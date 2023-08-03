@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/ConsoleHelper/Properties/launchSettings.json
+/ConsoleHelper/TestFiles/ScalableCapital.xlsx

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "GhostfolioSidekick": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
