@@ -8,6 +8,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
     public class GhostfolioAPI : IGhostfolioAPI
     {
+        private readonly Mapper mapper;
         private readonly IMemoryCache memoryCache;
         private readonly MemoryCacheEntryOptions cacheEntryOptions;
         private ILogger<GhostfolioAPI> logger;
@@ -17,6 +18,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
         public GhostfolioAPI(IMemoryCache memoryCache, ILogger<GhostfolioAPI> logger)
         {
+            this.mapper = new Mapper();
             this.memoryCache = memoryCache;
             cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
@@ -188,6 +190,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
         public async Task<Asset> FindSymbolByISIN(string? isin)
         {
+            isin = mapper.MapIdentifier(isin);
+
             if (memoryCache.TryGetValue<Asset>(isin, out var result))
             {
                 return result;
