@@ -16,61 +16,72 @@ namespace GhostfolioSidekick.FileImporter
 
 		protected abstract IEnumerable<HeaderMapping> ExpectedHeaders { get; }
 
-		public virtual async Task<bool> CanConvertOrders(string file)
+		public virtual async Task<bool> CanConvertOrders(IEnumerable<string> filenames)
 		{
-			CsvConfiguration csvConfig = GetConfig();
-
-			using var streamReader = File.OpenText(file);
-			using var csvReader = new CsvReader(streamReader, csvConfig);
-
-			csvReader.Read();
-			csvReader.ReadHeader();
-
-			return ExpectedHeaders.All(x => csvReader.HeaderRecord?.Contains(x.SourceName) ?? false);
-		}
-
-		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, string filename)
-		{
-			var account = await api.GetAccountByName(accountName);
-			var list = new List<Order>();
-
-			if (account == null)
+			foreach (var file in filenames)
 			{
-				throw new NotSupportedException();
+				CsvConfiguration csvConfig = GetConfig();
+
+				using var streamReader = File.OpenText(file);
+				using var csvReader = new CsvReader(streamReader, csvConfig);
+
+				csvReader.Read();
+				csvReader.ReadHeader();
+
+				if (!ExpectedHeaders.All(x => csvReader.HeaderRecord?.Contains(x.SourceName) ?? false))
+				{
+					return false;
+				}
 			}
 
-			CsvConfiguration csvConfig = GetConfig();
+			return true;
+		}
 
-			using var streamReader = File.OpenText(filename);
-			using var csvReader = new CsvReader(streamReader, csvConfig);
-
-			csvReader.Read();
-			csvReader.ReadHeader();
-			while (csvReader.Read())
+		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
+		{
+			var list = new List<Order>();
+			foreach (var filename in filenames)
 			{
-				var asset = await GetAsset(csvReader);
+				var account = await api.GetAccountByName(accountName);
 
-				if (asset == null)
+				if (account == null)
 				{
-					continue;
+					throw new NotSupportedException();
 				}
 
-				var order = new Order
-				{
-					AccountId = account.Id,
-					Currency = GetValue(csvReader, DestinationHeader.Currency),
-					Date = GetDate(csvReader, DestinationHeader.Date),
-					Fee = GetFee(csvReader),
-					Quantity = GetQuantity(csvReader),
-					Asset = asset,
-					Type = GetOrderType(csvReader),
-					UnitPrice = GetUnitPrice(csvReader),
-					Comment = GetComment(csvReader)
-				};
+				CsvConfiguration csvConfig = GetConfig();
 
-				if (order.Type != OrderType.IGNORE)
+				using var streamReader = File.OpenText(filename);
+				using var csvReader = new CsvReader(streamReader, csvConfig);
+
+				csvReader.Read();
+				csvReader.ReadHeader();
+				while (csvReader.Read())
 				{
-					list.Add(order);
+					var asset = await GetAsset(csvReader);
+
+					if (asset == null)
+					{
+						continue;
+					}
+
+					var order = new Order
+					{
+						AccountId = account.Id,
+						Currency = GetValue(csvReader, DestinationHeader.Currency),
+						Date = GetDate(csvReader, DestinationHeader.Date),
+						Fee = GetFee(csvReader),
+						Quantity = GetQuantity(csvReader),
+						Asset = asset,
+						Type = GetOrderType(csvReader),
+						UnitPrice = GetUnitPrice(csvReader),
+						Comment = GetComment(csvReader)
+					};
+
+					if (order.Type != OrderType.IGNORE)
+					{
+						list.Add(order);
+					}
 				}
 			}
 

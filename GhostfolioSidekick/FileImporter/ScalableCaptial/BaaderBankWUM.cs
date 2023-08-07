@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		protected override decimal GetFee(CsvReader csvReader)
 		{
 			var isSavingsPlan = string.Equals(GetValue(csvReader, DestinationHeader.Undefined).Trim(), "00000000", StringComparison.InvariantCultureIgnoreCase);
-			return (decimal)(isSavingsPlan ? 0 : 0.99);
+			return isSavingsPlan ? 0 : -1;
 		}
 
 		protected override CultureInfo GetCultureForParsingNumbers()

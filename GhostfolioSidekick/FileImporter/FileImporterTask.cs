@@ -30,22 +30,22 @@ namespace GhostfolioSidekick.FileImporter
 			var files = Directory.GetFiles(fileLocation, "*.*", SearchOption.AllDirectories)
 				.Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
 
-			foreach (var file in files)
+			foreach (var fileGroup in files.GroupBy(x => new FileInfo(x).Directory.Name))
 			{
-				logger.LogDebug($"Found file {file} to process");
+				logger.LogDebug($"Found file {fileGroup} to process");
 				try
 				{
-					var accountName = new FileInfo(file).Directory.Name;
+					var accountName = fileGroup.Key;
 
 					logger.LogDebug($"AccountName: {accountName}");
 
-					var importer = importers.Where(x => x.CanConvertOrders(file).Result).SingleOrDefault();
+					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(fileGroup).Result);
 					if (importer == null)
 					{
-						throw new NotSupportedException($"File has no importer, content {File.ReadAllText(file)}");
+						throw new NotSupportedException($"Filegroup {fileGroup} has no importer");
 					}
 
-					orders.AddRange(await importer.ConvertToOrders(accountName, file));
+					orders.AddRange(await importer.ConvertToOrders(accountName, fileGroup));
 				}
 				catch (Exception ex)
 				{
