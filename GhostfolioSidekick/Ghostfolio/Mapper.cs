@@ -1,16 +1,10 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Globalization;
-using Microsoft.Extensions.Hosting;
 
 namespace GhostfolioSidekick.Ghostfolio
 {
-    internal class Mapper
+	internal class Mapper
     {
         string mappingFile = Environment.GetEnvironmentVariable("MAPPINGFILE");
 

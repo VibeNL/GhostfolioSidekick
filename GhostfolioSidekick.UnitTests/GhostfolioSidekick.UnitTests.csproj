@@ -38,6 +38,12 @@
     <None Update="FileImporter\DeGiro\TestFileSingleOrder.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\ScalableCapital\RKKExample1.CSV">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\ScalableCapital\WUMExample1.CSV">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

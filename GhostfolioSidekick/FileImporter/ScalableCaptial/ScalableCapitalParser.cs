@@ -5,33 +5,31 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 	public class ScalableCapitalParser : IFileImporter
 	{
-		private GhostfolioAPI api;
+		private IEnumerable<IFileImporter> fileImporters;
 
-		public ScalableCapitalParser(GhostfolioAPI api)
+		private IGhostfolioAPI api;
+
+		public ScalableCapitalParser(IGhostfolioAPI api)
 		{
 			this.api = api;
+			fileImporters = new IFileImporter[] {
+				new BaaderBankRKK(api),
+				new BaaderBankWUM(api),
+			};
 		}
 
-		protected IEnumerable<HeaderMapping> ExpectedHeaders => new[]
+		public async Task<bool> CanConvertOrders(string file)
 		{
-					new HeaderMapping{ DestinationHeader = DestinationHeader.Date, SourceName = "XXX-BUDAT" },
-					new HeaderMapping{ DestinationHeader = DestinationHeader.UnitPrice, SourceName ="XXX-WPKURS" },
-					new HeaderMapping{ DestinationHeader = DestinationHeader.Currency, SourceName ="XXX-WHGAB" },
-					new HeaderMapping{ DestinationHeader = DestinationHeader.Quantity, SourceName = "XXX-NW" },
-					new HeaderMapping{ DestinationHeader = DestinationHeader.Isin, SourceName = "XXX-WPNR" },
-					new HeaderMapping{ DestinationHeader = DestinationHeader.OrderType, SourceName = "XXX-WPGART" },
-					new HeaderMapping{ DestinationHeader = DestinationHeader.Reference, SourceName = "XXX-EXTORDID" },
-					new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName = "XXX-BELEGU" },
-				};
-
-		public Task<bool> CanConvertOrders(string file)
-		{
-			throw new NotImplementedException();
+			return fileImporters.Any(x => x.CanConvertOrders(file).Result);
 		}
 
-		public Task<IEnumerable<Order>> ConvertToOrders(string accountName, string filename)
+		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, string filename)
 		{
-			throw new NotImplementedException();
+			var orders = await fileImporters.Single(x => x.CanConvertOrders(filename).Result).ConvertToOrders(accountName, filename);
+
+			// TODO: Postprocess
+
+			return orders;
 		}
 	}
 }

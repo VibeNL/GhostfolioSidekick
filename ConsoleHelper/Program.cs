@@ -3,11 +3,10 @@ using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.Ghostfolio.API;
 using Microsoft.Extensions.Caching.Memory;
-using System.Reflection.Metadata.Ecma335;
 
 namespace ConsoleHelper
 {
-    internal class Program
+	internal class Program
     {
         private static ConsoleLogger logger = new ConsoleLogger();
 
