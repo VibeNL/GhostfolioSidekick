@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.Ghostfolio.API;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -35,7 +36,7 @@ namespace GhostfolioSidekick
 
                 services.AddScoped<IFileImporter, BaaderBankRKK>();
                 services.AddScoped<IFileImporter, BaaderBankWUM>();
-                services.AddScoped<IFileImporter, DeGiro>();
+                services.AddScoped<IFileImporter, DeGiroParser>();
 
                 services.AddSingleton<IMemoryCache, MemoryCache>();
             });

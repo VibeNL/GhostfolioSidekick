@@ -4,11 +4,11 @@ using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace GhostfolioSidekick.FileImporter
+namespace GhostfolioSidekick.FileImporter.DeGiro
 {
-    public class DeGiro : CSVBaseImporter
+    public class DeGiroParser : CSVBaseImporter
     {
-        public DeGiro(IGhostfolioAPI api) : base(api)
+        public DeGiroParser(IGhostfolioAPI api) : base(api)
         {
         }
 
