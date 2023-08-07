@@ -29,25 +29,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="FileImporter\DeGiro\TestFileMissingField.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\Example2\TestFileMissingField.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\DeGiro\TestFileMultipleOrders.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\Example3\TestFileMultipleOrders.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\DeGiro\TestFileSingleOrder.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\Example1\TestFileSingleOrder.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\ScalableCapital\RKKExample1.CSV">
+    <None Update="FileImporter\TestFiles\ScalableCapital\Example1\RKKExample1.CSV">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\ScalableCapital\WUMExample1.CSV">
+    <None Update="FileImporter\TestFiles\ScalableCapital\Example1\WUMExample1.CSV">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="FileImporter\ScalableCapital\" />
   </ItemGroup>
 
 </Project>

@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 
 			// Act
-			var canParse = await parser.CanConvertOrders("./FileImporter/DeGiro/TestFileSingleOrder.csv");
+			var canParse = await parser.CanConvertOrders("./FileImporter/TestFiles/DeGiro/Example1/TestFileSingleOrder.csv");
 
 			// Assert
 			canParse.Should().BeTrue();
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 
 			// Act
-			var canParse = await parser.CanConvertOrders("./FileImporter/DeGiro/TestFileMissingField.csv");
+			var canParse = await parser.CanConvertOrders("./FileImporter/TestFiles/DeGiro/Example2/TestFileMissingField.csv");
 
 			// Assert
 			canParse.Should().BeFalse();
@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			api.Setup(x => x.FindSymbolByISIN("IE00B3XXRP09")).ReturnsAsync(asset);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, "./FileImporter/DeGiro/TestFileSingleOrder.csv");
+			var orders = await parser.ConvertToOrders(account.Name, "./FileImporter/TestFiles/DeGiro/Example1/TestFileSingleOrder.csv");
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[] { new Order {
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			api.Setup(x => x.FindSymbolByISIN("NL0009690239")).ReturnsAsync(asset2);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, "./FileImporter/DeGiro/TestFileMultipleOrders.csv");
+			var orders = await parser.ConvertToOrders(account.Name, "./FileImporter/TestFiles/DeGiro/Example3/TestFileMultipleOrders.csv");
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[] 

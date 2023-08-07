@@ -7,11 +7,11 @@ using Moq;
 
 namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 {
-	public class ScalableCaptialParserTests
+	public class ScalableCapitalParserTests
 	{
 		readonly Mock<IGhostfolioAPI> api;
 
-		public ScalableCaptialParserTests()
+		public ScalableCapitalParserTests()
 		{
 			api = new Mock<IGhostfolioAPI>();
 		}
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var parser = new ScalableCapitalParser(api.Object);
 
 			// Act
-			var canParse = await parser.CanConvertOrders("./FileImporter/ScalableCapital/WUMExample1.csv");
+			var canParse = await parser.CanConvertOrders("./FileImporter/TestFiles/ScalableCapital/Example1/WUMExample1.csv");
 
 			// Assert
 			canParse.Should().BeTrue();
@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var parser = new ScalableCapitalParser(api.Object);
 
 			// Act
-			var canParse = await parser.CanConvertOrders("./FileImporter/ScalableCapital/RKKExample1.csv");
+			var canParse = await parser.CanConvertOrders("./FileImporter/TestFiles/ScalableCapital/Example1/RKKExample1.csv");
 
 			// Assert
 			canParse.Should().BeTrue();
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95")).ReturnsAsync(asset);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, "./FileImporter/ScalableCapital/WUMExample1.csv");
+			var orders = await parser.ConvertToOrders(account.Name, "./FileImporter/TestFiles/ScalableCapital/Example1/WUMExample1.csv");
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[] { new Order {
