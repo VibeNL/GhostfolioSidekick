@@ -5,18 +5,18 @@ using GhostfolioSidekick.Ghostfolio.API;
 
 namespace GhostfolioSidekick.FileImporter
 {
-	public abstract class CSVBaseImporter : IFileImporter
+	public abstract class CSVSingleFileBaseImporter : IFileImporter
 	{
 		protected readonly IGhostfolioAPI api;
 
-		public CSVBaseImporter(IGhostfolioAPI api)
+		protected CSVSingleFileBaseImporter(IGhostfolioAPI api)
 		{
 			this.api = api;
 		}
 
 		protected abstract IEnumerable<HeaderMapping> ExpectedHeaders { get; }
 
-		public async Task<bool> CanConvertOrders(string file)
+		public virtual async Task<bool> CanConvertOrders(string file)
 		{
 			CsvConfiguration csvConfig = GetConfig();
 

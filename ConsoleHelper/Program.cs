@@ -1,7 +1,9 @@
 ﻿using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.FileImporter.DeGiro;
+using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.Ghostfolio.API;
 using Microsoft.Extensions.Caching.Memory;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ConsoleHelper
 {
@@ -21,8 +23,7 @@ namespace ConsoleHelper
 
             GhostfolioAPI api = new GhostfolioAPI(new MemoryCache(new MemoryCacheOptions{}), logger);
             var t = new FileImporterTask(logger, api, new IFileImporter[] { 
-                new BaaderBankWUM(api),
-                new BaaderBankRKK(api),
+                new ScalableCapitalParser(api),
                 new DeGiroParser(api)
             });
 			t.DoWork().Wait();
