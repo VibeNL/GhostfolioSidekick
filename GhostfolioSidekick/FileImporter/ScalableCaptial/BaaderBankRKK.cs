@@ -14,8 +14,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		{
 			new HeaderMapping{ DestinationHeader = DestinationHeader.OrderType, SourceName = "XXX-UMART" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Symbol, SourceName = "XXX-TEXT1" }, // Symbol name
-            new HeaderMapping{ DestinationHeader = DestinationHeader.Isin, SourceName = "XXX-TEXT2" }, // ISIN
-            new HeaderMapping{ DestinationHeader = DestinationHeader.UnitPrice, SourceName = "XXX-SALDO" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Isin, SourceName = "XXX-TEXT2" }, // ISIN
+			new HeaderMapping{ DestinationHeader = DestinationHeader.UnitPrice, SourceName = "XXX-SALDO" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Currency, SourceName = "XXX-WHG" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Reference, SourceName = "XXX-REFNR1" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Date, SourceName = "XXX-VALUTA" },
@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 		protected override decimal GetQuantity(CsvReader csvReader)
 		{
-			if (GetOrderType(csvReader) == OrderType.IGNORE)
+			if (GetOrderType(csvReader) == OrderType.IGNORE || GetOrderType(csvReader) == OrderType.FEE)
 			{
 				return -1;
 			}
@@ -63,6 +63,11 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 		protected override async Task<Asset> GetAsset(CsvReader csvReader)
 		{
+			if (GetOrderType(csvReader) == OrderType.FEE)
+			{
+				return new Asset();
+			}
+
 			if (GetOrderType(csvReader) == OrderType.IGNORE)
 			{
 				return null;
@@ -81,13 +86,18 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		protected override OrderType GetOrderType(CsvReader csvReader)
 		{
 			var order = csvReader.GetField(GetSourceFieldName(DestinationHeader.OrderType));
-			switch (order)
+
+			if (order == "Coupons/Dividende")
 			{
-				case "Coupons/Dividende":
-					return OrderType.DIVIDEND;
-				default:
-					return OrderType.IGNORE;
+				return OrderType.DIVIDEND;
 			}
+
+			if (order?.StartsWith("Ordergeb") ?? false)
+			{
+				return OrderType.FEE;
+			}
+
+			return OrderType.IGNORE;
 		}
 	}
 }

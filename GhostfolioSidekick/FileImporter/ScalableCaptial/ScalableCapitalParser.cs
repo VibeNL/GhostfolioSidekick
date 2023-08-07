@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				}
 			}
 
-			return Task.FromResult<IEnumerable<Order>>(resultList);
+			return Task.FromResult<IEnumerable<Order>>(resultList.Where(x => x.Type != OrderType.FEE));
 		}
 	}
 }
