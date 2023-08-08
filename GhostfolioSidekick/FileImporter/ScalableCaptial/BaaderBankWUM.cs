@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
 
@@ -76,6 +77,16 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				default:
 					throw new NotSupportedException();
 			}
+		}
+
+		protected override CsvConfiguration GetConfig()
+		{
+			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			{
+				HasHeaderRecord = true,
+				CacheFields = true,
+				Delimiter = ";",
+			};
 		}
 	}
 }

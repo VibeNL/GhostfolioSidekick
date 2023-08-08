@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
 
@@ -101,6 +102,16 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			}
 
 			return OrderType.IGNORE;
+		}
+
+		protected override CsvConfiguration GetConfig()
+		{
+			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			{
+				HasHeaderRecord = true,
+				CacheFields = true,
+				Delimiter = ";",
+			};
 		}
 	}
 }

@@ -138,14 +138,6 @@ namespace GhostfolioSidekick.FileImporter
 			return ExpectedHeaders.Single(x => x.DestinationHeader == header).SourceName;
 		}
 
-		protected virtual CsvConfiguration GetConfig()
-		{
-			return new CsvConfiguration(CultureInfo.InvariantCulture)
-			{
-				HasHeaderRecord = true,
-				CacheFields = true,
-				Delimiter = ",",
-			};
-		}
+		protected abstract CsvConfiguration GetConfig();
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
 using System.Reflection.PortableExecutable;
@@ -47,6 +48,16 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		protected override string GetComment(CsvReader csvReader)
 		{
 			return $"Transaction Reference: [{GetValue(csvReader, DestinationHeader.Reference)}]";
+		}
+
+		protected override CsvConfiguration GetConfig()
+		{
+			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			{
+				HasHeaderRecord = true,
+				CacheFields = true,
+				Delimiter = ",",
+			};
 		}
 
 		protected override CultureInfo GetCultureForParsingNumbers()
