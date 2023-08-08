@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.FileImporter
 
 		public async Task DoWork()
 		{
-			logger.LogInformation("Starting to do work");
+			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
 
 			var orders = new List<Order>();
 
@@ -55,6 +55,8 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			await api.Write(orders.Where(x => x.Date < DateTime.Today).OrderBy(x => x.Date));
+
+			logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}
 	}
 }
