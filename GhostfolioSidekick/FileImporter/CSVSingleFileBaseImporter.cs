@@ -2,6 +2,7 @@
 using CsvHelper;
 using System.Globalization;
 using GhostfolioSidekick.Ghostfolio.API;
+using Microsoft.Extensions.Logging.Configuration;
 
 namespace GhostfolioSidekick.FileImporter
 {
@@ -71,6 +72,7 @@ namespace GhostfolioSidekick.FileImporter
 						Currency = GetValue(csvReader, DestinationHeader.Currency),
 						Date = GetDate(csvReader, DestinationHeader.Date),
 						Fee = GetFee(csvReader),
+						FeeCurrency = GetFeeCurrency(csvReader),
 						Quantity = GetQuantity(csvReader),
 						Asset = asset,
 						Type = GetOrderType(csvReader),
@@ -86,6 +88,11 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			return PostProcessList(list);
+		}
+
+		protected virtual string GetFeeCurrency(CsvReader csvReader)
+		{
+			return GetValue(csvReader, DestinationHeader.FeeCurrency) ?? GetValue(csvReader, DestinationHeader.Currency);
 		}
 
 		protected virtual IEnumerable<Order> PostProcessList(List<Order> list)
@@ -131,14 +138,6 @@ namespace GhostfolioSidekick.FileImporter
 			return ExpectedHeaders.Single(x => x.DestinationHeader == header).SourceName;
 		}
 
-		protected virtual CsvConfiguration GetConfig()
-		{
-			return new CsvConfiguration(CultureInfo.InvariantCulture)
-			{
-				HasHeaderRecord = true,
-				CacheFields = true,
-				Delimiter = ";",
-			};
-		}
+		protected abstract CsvConfiguration GetConfig();
 	}
 }

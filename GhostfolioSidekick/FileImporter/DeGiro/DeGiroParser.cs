@@ -23,6 +23,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Description, SourceName="Omschrijving" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="FX" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Currency, SourceName="Mutatie" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.FeeCurrency, SourceName="Mutatie" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Saldo" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Reference, SourceName="Order Id" },
 		};

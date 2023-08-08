@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GhostfolioSidekick", "Ghost
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleHelper", "ConsoleHelper\ConsoleHelper.csproj", "{EAE9D7C1-17CA-497C-AC21-E2F97E42CC54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GhostfolioSidekick.UnitTests", "GhostfolioSidekick.UnitTests\GhostfolioSidekick.UnitTests.csproj", "{7EC54DCF-567D-48B9-8512-6714929C95F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GhostfolioSidekick.UnitTests", "GhostfolioSidekick.UnitTests\GhostfolioSidekick.UnitTests.csproj", "{7EC54DCF-567D-48B9-8512-6714929C95F1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F13482F9-D6C8-4FE5-8F52-E3FE8712D6FC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{56B3F201-0E55-45FB-90CA-24F16BE6CCED}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
