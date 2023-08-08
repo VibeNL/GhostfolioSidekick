@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
+using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -39,6 +40,7 @@ namespace GhostfolioSidekick
 
 				services.AddScoped<IFileImporter, ScalableCapitalParser>();
 				services.AddScoped<IFileImporter, DeGiroParser>();
+				services.AddScoped<IFileImporter, Trading212Parser>();
 			});
 
 			await hostBuilder.RunConsoleAsync();
