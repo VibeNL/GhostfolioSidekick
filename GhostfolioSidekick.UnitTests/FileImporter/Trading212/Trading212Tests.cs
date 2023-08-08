@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, "EUR").Create();
+			var asset = fixture.Build<Asset>().With(x => x.Currency, "USD").Create();
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -51,11 +51,12 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
 				Currency = asset.Currency,
-				Date = new DateTime(2023,07,6, 0,0,0, DateTimeKind.Utc),
-				Fee = 1,
-				Quantity = 1,
+				FeeCurrency = "EUR",
+				Date = new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
+				Fee = 0.02M,
+				Quantity = 0.0267001M,
 				Type = OrderType.BUY,
-				UnitPrice = 77.30M
+				UnitPrice = 453.33M
 			} });
 		}
 	}

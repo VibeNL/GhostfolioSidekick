@@ -1,11 +1,7 @@
 ﻿using CsvHelper;
 using GhostfolioSidekick.Ghostfolio.API;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection.PortableExecutable;
 
 namespace GhostfolioSidekick.FileImporter.Trading212
 {
@@ -15,36 +11,78 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 		}
 
-		protected override IEnumerable<HeaderMapping> ExpectedHeaders => throw new NotImplementedException();
-
-		protected override Task<Asset> GetAsset(CsvReader csvReader)
+		protected override IEnumerable<HeaderMapping> ExpectedHeaders => new[]
 		{
-			throw new NotImplementedException();
+			// Datum,Tijd,Valutadatum,Product,ISIN,Omschrijving,FX,Mutatie,,Saldo,,Order Id
+			new HeaderMapping{ DestinationHeader = DestinationHeader.OrderType, SourceName="Action" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Date, SourceName="Time" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Isin, SourceName="ISIN" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Symbol, SourceName="Ticker" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Name" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Quantity, SourceName="No. of shares" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.UnitPrice, SourceName="Price / share" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Currency, SourceName="Currency (Price / share)" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Exchange rate" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Currency (Result)" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Total" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Currency (Total)" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Description, SourceName="Notes" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Reference, SourceName="ID" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.Fee, SourceName="Currency conversion fee" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.FeeCurrency, SourceName="Currency (Currency conversion fee)" },
+		};
+
+		protected override async Task<Asset> GetAsset(CsvReader csvReader)
+		{
+			if (GetOrderType(csvReader) == OrderType.IGNORE)
+			{
+				return null;
+			}
+
+			var isin = GetValue(csvReader, DestinationHeader.Isin);
+			var symbol = await api.FindSymbolByISIN(isin);
+			return symbol;
 		}
 
 		protected override string GetComment(CsvReader csvReader)
 		{
-			throw new NotImplementedException();
+			return $"Transaction Reference: [{GetValue(csvReader, DestinationHeader.Reference)}]";
 		}
 
 		protected override CultureInfo GetCultureForParsingNumbers()
 		{
-			throw new NotImplementedException();
+			return new CultureInfo("en")
+			{
+				NumberFormat =
+				{
+					NumberDecimalSeparator = "."
+				}
+			};
 		}
 
 		protected override DateTime GetDate(CsvReader csvReader, DestinationHeader header)
 		{
-			throw new NotImplementedException();
+			var stringvalue = GetValue(csvReader, header);
+			return DateTime.ParseExact(stringvalue, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture).Date;
 		}
 
 		protected override decimal GetFee(CsvReader csvReader)
 		{
-			throw new NotImplementedException();
+			return GetDecimalValue(csvReader, DestinationHeader.Fee);
 		}
 
 		protected override OrderType GetOrderType(CsvReader csvReader)
 		{
-			throw new NotImplementedException();
+			var order = csvReader.GetField(GetSourceFieldName(DestinationHeader.OrderType));
+			switch (order)
+			{
+				case "Deposit":
+					return OrderType.IGNORE;
+				case "Market buy":
+					return OrderType.BUY;
+				default:
+					throw new NotSupportedException();
+			}
 		}
 	}
 }
