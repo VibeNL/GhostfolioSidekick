@@ -1,4 +1,5 @@
 ﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
 
@@ -19,6 +20,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Isin, SourceName = "XXX-TEXT2" }, // ISIN
 			new HeaderMapping{ DestinationHeader = DestinationHeader.UnitPrice, SourceName = "XXX-SALDO" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Currency, SourceName = "XXX-WHG" },
+			new HeaderMapping{ DestinationHeader = DestinationHeader.FeeCurrency, SourceName = "XXX-WHG" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Reference, SourceName = "XXX-REFNR1" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Date, SourceName = "XXX-VALUTA" },
 			new HeaderMapping{ DestinationHeader = DestinationHeader.Quantity, SourceName = "XXX-TEXT3" },
@@ -100,6 +102,16 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			}
 
 			return OrderType.IGNORE;
+		}
+
+		protected override CsvConfiguration GetConfig()
+		{
+			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			{
+				HasHeaderRecord = true,
+				CacheFields = true,
+				Delimiter = ";",
+			};
 		}
 	}
 }
