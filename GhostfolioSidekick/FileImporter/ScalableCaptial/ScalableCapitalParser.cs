@@ -27,7 +27,12 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		public Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
 		{
 			var resultList = new List<Order>();
-			var orders = filenames.SelectMany(y => fileImporters.Single(x => x.CanConvertOrders(new[] { y }).Result).ConvertToOrders(accountName, new[] { y }).Result).ToList();
+			var orders = filenames
+			.SelectMany(y => 
+				fileImporters.Single(x => 
+					x.CanConvertOrders(new[] { y }).Result)
+					.ConvertToOrders(accountName, new[] { y }).Result)
+			.ToList();
 
 			// Match Fee with Transaction
 			var group = orders.GroupBy(x => x.Comment);
@@ -37,20 +42,21 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				{
 					resultList.Add(item.Single());
 				}
-				else if (item.Count() == 2)
+				else 
 				{
-					var transaction = item.Single(x => x.Quantity > 0);
-					var fee = item.Single(x => x.Quantity == -1);
-					transaction.Fee = fee.UnitPrice;
+					var transaction = item.Where(x => x.Quantity > 0).DistinctBy(x => new { x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity }).Single();
+					var fee = item.Where(x => x.Quantity == -1).DistinctBy(x => new { x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity }).SingleOrDefault();
+
+					if (fee != null)
+					{
+						transaction.Fee = fee.UnitPrice;
+					}
+
 					resultList.Add(transaction);
-				}
-				else
-				{
-					throw new NotSupportedException();
 				}
 			}
 
-			return Task.FromResult<IEnumerable<Order>>(resultList.Where(x => x.Type != OrderType.FEE));
+			return Task.FromResult(resultList.Where(x => x.Type != OrderType.FEE));
 		}
 	}
 }

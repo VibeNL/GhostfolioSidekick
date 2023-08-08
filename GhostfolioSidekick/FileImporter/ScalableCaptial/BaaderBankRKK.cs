@@ -6,6 +6,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 {
 	public class BaaderBankRKK : CSVSingleFileBaseImporter
 	{
+		private static Asset EmptyAsset = new Asset();
+
 		public BaaderBankRKK(IGhostfolioAPI api) : base(api)
 		{
 		}
@@ -65,7 +67,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		{
 			if (GetOrderType(csvReader) == OrderType.FEE)
 			{
-				return new Asset();
+				return EmptyAsset;
 			}
 
 			if (GetOrderType(csvReader) == OrderType.IGNORE)
