@@ -151,6 +151,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 		[Fact]
 		public async Task ConvertToOrders_Example2_NotDuplicateFeesAndDividend()
 		{
+			true.Should().BeFalse();
+
 			// Arrange
 			var parser = new ScalableCapitalParser(api.Object);
 			var fixture = new Fixture();
