@@ -11,6 +11,9 @@ COPY . .
 WORKDIR "/src/GhostfolioSidekick"
 RUN dotnet build "GhostfolioSidekick.csproj" -c Release -o /app/build
 
+FROM build AS testrunner
+RUN dotnet test
+
 FROM build AS publish
 RUN dotnet publish "GhostfolioSidekick.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
