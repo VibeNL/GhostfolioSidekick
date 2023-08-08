@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.FileImporter
 					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(fileGroup).Result);
 					if (importer == null)
 					{
-						throw new NotSupportedException($"Filegroup {fileGroup} has no importer");
+						throw new NotSupportedException($"Filegroup {fileGroup.Key} has no importer");
 					}
 
 					orders.AddRange(await importer.ConvertToOrders(accountName, fileGroup));
