@@ -18,7 +18,7 @@
         OrderType,
         Isin,
         Reference,
-        Undefined1,
+        Undefined,
         Description,
     }
 }
