@@ -188,11 +188,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Added transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
 		}
 
-		public async Task<Asset> FindSymbolByISIN(string? isin)
+		public async Task<Asset> FindSymbolByISIN(string? identifier)
 		{
-			isin = mapper.MapIdentifier(isin);
+			identifier = mapper.MapIdentifier(identifier);
 
-			if (memoryCache.TryGetValue<Asset>(isin, out var result))
+			if (memoryCache.TryGetValue<Asset>(identifier, out var result))
 			{
 				return result;
 			}
@@ -204,7 +204,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			};
 
 			var client = new RestClient(options);
-			var request = new RestRequest($"{url}/api/v1/symbol/lookup?query={isin}&includeIndices=true")
+			var request = new RestRequest($"{url}/api/v1/symbol/lookup?query={identifier}&includeIndices=true")
 			{
 				RequestFormat = DataFormat.Json
 			};
@@ -226,13 +226,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				DataSource = stuff.items[0].dataSource,
 			};
 
-			memoryCache.Set(isin, asset, cacheEntryOptions);
+			memoryCache.Set(identifier, asset, cacheEntryOptions);
 			return asset;
 		}
 
 		public async Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date)
 		{
-			if (memoryCache.TryGetValue<decimal>(Tuple.Create(sourceCurrency, targetCurrency, date.Date), out var result))
+            sourceCurrency = mapper.MapCurrency(sourceCurrency);
+
+            if (memoryCache.TryGetValue<decimal>(Tuple.Create(sourceCurrency, targetCurrency, date.Date), out var result))
 			{
 				return result;
 			}
@@ -255,7 +257,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var r = await client.ExecuteGetAsync(request);
 			if (!r.IsSuccessStatusCode)
 			{
-				throw new NotSupportedException();
+				throw new NotSupportedException($"Conversion {sourceCurrency} to {targetCurrency} on date {date} was not found");
 			}
 
 			dynamic stuff = JsonConvert.DeserializeObject(r.Content);

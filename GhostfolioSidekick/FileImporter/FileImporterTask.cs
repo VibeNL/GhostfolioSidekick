@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			foreach (var fileGroup in files.GroupBy(x => new FileInfo(x).Directory.Name))
 			{
-				logger.LogDebug($"Found file {fileGroup} to process");
+				logger.LogDebug($"Found file {fileGroup.Key} to process");
 				try
 				{
 					var accountName = fileGroup.Key;
