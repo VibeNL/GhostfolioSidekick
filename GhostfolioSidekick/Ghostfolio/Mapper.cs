@@ -4,11 +4,11 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Ghostfolio
 {
-	internal class Mapper
+    internal class Mapper
     {
         string mappingFile = Environment.GetEnvironmentVariable("MAPPINGFILE");
 
-        private Dictionary<string, string> mapping = new Dictionary<string, string>();
+        private Dictionary<Tuple<TypeOfMapping, string>, string> mapping = new Dictionary<Tuple<TypeOfMapping, string>, string>();
 
         public Mapper()
         {
@@ -26,15 +26,27 @@ namespace GhostfolioSidekick.Ghostfolio
 
                     while (csvReader.Read())
                     {
-                        mapping.Add(csvReader.GetField(0), csvReader.GetField(1));
+                        mapping.Add(Tuple.Create(Enum.Parse<TypeOfMapping>(csvReader.GetField("TYPE")), csvReader.GetField("SOURCE")), csvReader.GetField("TARGET"));
                     }
                 }
             }
         }
 
+        internal string MapCurrency(string sourceCurrency)
+        {
+            return mapping.GetValueOrDefault(Tuple.Create(TypeOfMapping.CURRENCY, sourceCurrency), sourceCurrency);
+        }
+
         internal string? MapIdentifier(string? identifier)
         {
-            return mapping.GetValueOrDefault(identifier, identifier);
+            return mapping.GetValueOrDefault(Tuple.Create(TypeOfMapping.IDENTIFIER,identifier), identifier);
         }
+    }
+
+    internal enum TypeOfMapping
+    {
+        CURRENCY,
+
+        IDENTIFIER
     }
 }
