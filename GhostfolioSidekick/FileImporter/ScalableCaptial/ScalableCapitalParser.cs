@@ -2,6 +2,7 @@
 using CsvHelper;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 {
@@ -47,15 +48,15 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
             var wumRecords = new List<BaaderBankWUMRecord>();
             var rkkRecords = new List<BaaderBankRKKRecord>();
 
+            var account = await api.GetAccountByName(accountName);
+
+            if (account == null)
+            {
+                throw new NotSupportedException();
+            }
+
             foreach (var filename in filenames)
             {
-                var account = await api.GetAccountByName(accountName);
-
-                if (account == null)
-                {
-                    throw new NotSupportedException();
-                }
-
                 CsvConfiguration csvConfig = GetConfig();
 
                 using var streamReader = File.OpenText(filename);
@@ -77,25 +78,101 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
             foreach (var record in wumRecords)
             {
-                list.AddRange(ConvertToOrder(record, rkkRecords));
+                var order = await ConvertToOrder(account, record, rkkRecords);
+                if (order != null)
+                {
+                    list.Add(order);
+                }
             }
 
             foreach (var record in rkkRecords)
             {
-                list.AddRange(ConvertToOrder(record));
+                var order = await ConvertToOrder(account, record);
+                if (order != null)
+                {
+                    list.Add(order);
+                }
             }
 
-            return list;
+            return list.DistinctBy(x => new { x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity });
         }
 
-        private IEnumerable<Order> ConvertToOrder(BaaderBankRKKRecord record)
+        private async Task<Order> ConvertToOrder(Account account, BaaderBankRKKRecord record)
         {
-            throw new NotImplementedException();
+            var orderType = GetOrderType(record);
+            if (orderType == null)
+            {
+                return null;
+            }
+
+            var asset = await api.FindSymbolByISIN(record.Isin.Replace("ISIN ", string.Empty));
+
+            var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
+            var unitPrice = record.UnitPrice.Value / quantity;
+            return new Order
+            {
+                AccountId = account.Id,
+                Asset = asset,
+                Comment = $"Transaction Reference: [{record.Reference}]",
+                Currency = record.Currency,
+                Date = record.Date.ToDateTime(TimeOnly.MinValue),
+                Fee = 0,
+                FeeCurrency = record.Currency,
+                Quantity = quantity,
+                ReferenceCode = record.Reference,
+                Type = orderType.Value,
+                UnitPrice = unitPrice
+            };
         }
 
-        private IEnumerable<Order> ConvertToOrder(BaaderBankWUMRecord record, List<BaaderBankRKKRecord> rkkRecords)
+        private async Task<Order> ConvertToOrder(Account account, BaaderBankWUMRecord record, List<BaaderBankRKKRecord> rkkRecords)
         {
-            throw new NotImplementedException();
+            var asset = await api.FindSymbolByISIN(record.Isin);
+
+            var fee = FindFeeRecord(rkkRecords, record.Reference);
+
+            return new Order
+            {
+                AccountId = account.Id,
+                Asset = asset,
+                Comment = $"Transaction Reference: [{record.Reference}]",
+                Currency = record.Currency,
+                Date = record.Date.ToDateTime(TimeOnly.MinValue),
+                Fee = Math.Abs(fee?.UnitPrice ?? 0),
+                FeeCurrency = fee?.Currency ?? record.Currency,
+                Quantity = record.Quantity.Value,
+                ReferenceCode = record.Reference,
+                Type = GetOrderType(record),
+                UnitPrice = record.UnitPrice.Value
+            };
+        }
+
+        private BaaderBankRKKRecord? FindFeeRecord(List<BaaderBankRKKRecord> rkkRecords, string reference)
+        {
+            return rkkRecords.FirstOrDefault(x => x.Reference == reference);
+        }
+
+        private OrderType GetOrderType(BaaderBankWUMRecord record)
+        {
+            switch (record.OrderType)
+            {
+                case "Verkauf":
+                    return OrderType.SELL;
+                case "Kauf":
+                    return OrderType.BUY;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private OrderType? GetOrderType(BaaderBankRKKRecord record)
+        {
+            if (record.OrderType == "Coupons/Dividende")
+            {
+                return OrderType.DIVIDEND;
+            }
+            
+            return null;
         }
 
         private CsvConfiguration GetConfig()
@@ -134,6 +211,17 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
             }
 
             return false;
+        }
+
+        private CultureInfo GetCultureForParsingNumbers()
+        {
+            return new CultureInfo("en")
+            {
+                NumberFormat =
+                {
+                    NumberDecimalSeparator = ","
+                }
+            };
         }
     }
 }

@@ -19,6 +19,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
         public string Isin { get; set; }
 
         [Name("XXX-SALDO")]
+        [CultureInfo("nl-NL")]
         public decimal? UnitPrice { get; set; }
 
         [Name("XXX-WHG")]
@@ -27,9 +28,9 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
         [Name("XXX-REFNR1")]
         public string Reference { get; set; }
 
-        [Format("yyyyMMdd")]
         [Name("XXX-VALUTA")]
-        public string Date { get; set; }
+        [Format("yyyyMMdd")]
+        public DateOnly Date { get; set; }
 
         [Name("XXX-TEXT3")]
         public string Quantity { get; set; }
