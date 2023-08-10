@@ -19,7 +19,7 @@ FileImporterPath should point to a folder with the following structure:
    * File2.csv
    * File3.csv
 
-Assuming you configured an account with the name 'Trading 212' and 'De Giro' in ghostfolio, the following structure should be used.
+Assuming you configured an account with the name 'Trading 212' and an account with 'De Giro' in ghostfolio, the following structure should be used.
 For example:
 * Trading 212
   * Export2023.csv
