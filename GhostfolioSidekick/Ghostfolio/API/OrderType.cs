@@ -6,9 +6,6 @@
 
         SELL,
 
-        DIVIDEND,
-
-        IGNORE,
-        FEE
+        DIVIDEND
     }
 }

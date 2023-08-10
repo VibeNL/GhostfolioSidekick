@@ -1,149 +1,149 @@
-﻿using CsvHelper.Configuration;
-using CsvHelper;
-using System.Globalization;
-using GhostfolioSidekick.Ghostfolio.API;
-using Microsoft.Extensions.Logging.Configuration;
+﻿//using CsvHelper.Configuration;
+//using CsvHelper;
+//using System.Globalization;
+//using GhostfolioSidekick.Ghostfolio.API;
+//using Microsoft.Extensions.Logging.Configuration;
 
-namespace GhostfolioSidekick.FileImporter
-{
-	public abstract class CSVSingleFileBaseImporter : IFileImporter
-	{
-		protected readonly IGhostfolioAPI api;
+//namespace GhostfolioSidekick.FileImporter
+//{
+//	public abstract class CSVSingleFileBaseImporter : IFileImporter
+//	{
+//		protected readonly IGhostfolioAPI api;
 
-		protected CSVSingleFileBaseImporter(IGhostfolioAPI api)
-		{
-			this.api = api;
-		}
+//		protected CSVSingleFileBaseImporter(IGhostfolioAPI api)
+//		{
+//			this.api = api;
+//		}
 
-		protected abstract IEnumerable<HeaderMapping> ExpectedHeaders { get; }
+//		protected abstract IEnumerable<HeaderMapping> ExpectedHeaders { get; }
 
-		public virtual async Task<bool> CanConvertOrders(IEnumerable<string> filenames)
-		{
-			foreach (var file in filenames)
-			{
-				CsvConfiguration csvConfig = GetConfig();
+//		public virtual async Task<bool> CanConvertOrders(IEnumerable<string> filenames)
+//		{
+//			foreach (var file in filenames)
+//			{
+//				CsvConfiguration csvConfig = GetConfig();
 
-				using var streamReader = File.OpenText(file);
-				using var csvReader = new CsvReader(streamReader, csvConfig);
+//				using var streamReader = File.OpenText(file);
+//				using var csvReader = new CsvReader(streamReader, csvConfig);
 
-				csvReader.Read();
-				csvReader.ReadHeader();
+//				csvReader.Read();
+//				csvReader.ReadHeader();
 
-				if (!ExpectedHeaders.Where(x => !x.IsOptional).All(x => csvReader.HeaderRecord?.Contains(x.SourceName) ?? false))
-				{
-					return false;
-				}
-			}
+//				if (!ExpectedHeaders.Where(x => !x.IsOptional).All(x => csvReader.HeaderRecord?.Contains(x.SourceName) ?? false))
+//				{
+//					return false;
+//				}
+//			}
 
-			return true;
-		}
+//			return true;
+//		}
 
-		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
-		{
-			var list = new List<Order>();
-			foreach (var filename in filenames)
-			{
-				var account = await api.GetAccountByName(accountName);
+//		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
+//		{
+//			var list = new List<Order>();
+//			foreach (var filename in filenames)
+//			{
+//				var account = await api.GetAccountByName(accountName);
 
-				if (account == null)
-				{
-					throw new NotSupportedException();
-				}
+//				if (account == null)
+//				{
+//					throw new NotSupportedException();
+//				}
 
-				CsvConfiguration csvConfig = GetConfig();
+//				CsvConfiguration csvConfig = GetConfig();
 
-				using var streamReader = File.OpenText(filename);
-				using var csvReader = new CsvReader(streamReader, csvConfig);
+//				using var streamReader = File.OpenText(filename);
+//				using var csvReader = new CsvReader(streamReader, csvConfig);
 
-				csvReader.Read();
-				csvReader.ReadHeader();
-				while (csvReader.Read())
-				{
-					var asset = await GetAsset(csvReader);
+//				csvReader.Read();
+//				csvReader.ReadHeader();
+//				while (csvReader.Read())
+//				{
+//					var asset = await GetAsset(csvReader);
 
-					if (asset == null)
-					{
-						continue;
-					}
+//					if (asset == null)
+//					{
+//						continue;
+//					}
 
-					var order = new Order
-					{
-						AccountId = account.Id,
-						Currency = GetValue(csvReader, DestinationHeader.Currency),
-						Date = GetDate(csvReader, DestinationHeader.Date),
-						Fee = GetFee(csvReader),
-						FeeCurrency = GetFeeCurrency(csvReader),
-						Quantity = GetQuantity(csvReader),
-						Asset = asset,
-						Type = GetOrderType(csvReader),
-						UnitPrice = GetUnitPrice(csvReader),
-						Comment = GetComment(csvReader)
-					};
+//					var order = new Order
+//					{
+//						AccountId = account.Id,
+//						Currency = GetValue(csvReader, DestinationHeader.Currency),
+//						Date = GetDate(csvReader, DestinationHeader.Date),
+//						Fee = GetFee(csvReader),
+//						FeeCurrency = GetFeeCurrency(csvReader),
+//						Quantity = GetQuantity(csvReader),
+//						Asset = asset,
+//						Type = GetOrderType(csvReader),
+//						UnitPrice = GetUnitPrice(csvReader),
+//						Comment = GetComment(csvReader)
+//					};
 
-					if (order.Type != OrderType.IGNORE)
-					{
-						list.Add(order);
-					}
-				}
-			}
+//					if (order.Type != OrderType.IGNORE)
+//					{
+//						list.Add(order);
+//					}
+//				}
+//			}
 
-			return PostProcessList(list);
-		}
+//			return PostProcessList(list);
+//		}
 
-		protected virtual string GetFeeCurrency(CsvReader csvReader)
-		{
-			return GetValue(csvReader, DestinationHeader.FeeCurrency) ?? GetValue(csvReader, DestinationHeader.Currency);
-		}
+//		protected virtual string GetFeeCurrency(CsvReader csvReader)
+//		{
+//			return GetValue(csvReader, DestinationHeader.FeeCurrency) ?? GetValue(csvReader, DestinationHeader.Currency);
+//		}
 
-		protected virtual IEnumerable<Order> PostProcessList(List<Order> list)
-		{
-			return list;
-		}
+//		protected virtual IEnumerable<Order> PostProcessList(List<Order> list)
+//		{
+//			return list;
+//		}
 
-		protected virtual decimal GetUnitPrice(CsvReader csvReader)
-		{
-			return GetDecimalValue(csvReader, DestinationHeader.UnitPrice);
-		}
+//		protected virtual decimal GetUnitPrice(CsvReader csvReader)
+//		{
+//			return GetDecimalValue(csvReader, DestinationHeader.UnitPrice);
+//		}
 
-		protected virtual decimal GetQuantity(CsvReader csvReader)
-		{
-			return GetDecimalValue(csvReader, DestinationHeader.Quantity);
-		}
+//		protected virtual decimal GetQuantity(CsvReader csvReader)
+//		{
+//			return GetDecimalValue(csvReader, DestinationHeader.Quantity);
+//		}
 
-		protected abstract string GetComment(CsvReader csvReader);
+//		protected abstract string GetComment(CsvReader csvReader);
 
-		protected abstract OrderType GetOrderType(CsvReader csvReader);
+//		protected abstract OrderType GetOrderType(CsvReader csvReader);
 
-		protected abstract decimal GetFee(CsvReader csvReader);
+//		protected abstract decimal GetFee(CsvReader csvReader);
 
-		protected abstract Task<Asset> GetAsset(CsvReader csvReader);
+//		protected abstract Task<Asset> GetAsset(CsvReader csvReader);
 
-		protected decimal GetDecimalValue(CsvReader csvReader, DestinationHeader header)
-		{
-			var stringvalue = GetValue(csvReader, header);
+//		protected decimal GetDecimalValue(CsvReader csvReader, DestinationHeader header)
+//		{
+//			var stringvalue = GetValue(csvReader, header);
 
-			if (string.IsNullOrWhiteSpace(stringvalue))
-			{
-				return 0;
-			}
+//			if (string.IsNullOrWhiteSpace(stringvalue))
+//			{
+//				return 0;
+//			}
 
-			return decimal.Parse(stringvalue, GetCultureForParsingNumbers());
-		}
+//			return decimal.Parse(stringvalue, GetCultureForParsingNumbers());
+//		}
 
-		protected abstract CultureInfo GetCultureForParsingNumbers();
+//		protected abstract CultureInfo GetCultureForParsingNumbers();
 
-		protected abstract DateTime GetDate(CsvReader csvReader, DestinationHeader header);
+//		protected abstract DateTime GetDate(CsvReader csvReader, DestinationHeader header);
 
-		protected string GetValue(CsvReader csvReader, DestinationHeader header)
-		{
-			return csvReader.GetField(GetSourceFieldName(header));
-		}
+//		protected string GetValue(CsvReader csvReader, DestinationHeader header)
+//		{
+//			return csvReader.GetField(GetSourceFieldName(header));
+//		}
 
-		protected string GetSourceFieldName(DestinationHeader header)
-		{
-			return ExpectedHeaders.Single(x => x.DestinationHeader == header).SourceName;
-		}
+//		protected string GetSourceFieldName(DestinationHeader header)
+//		{
+//			return ExpectedHeaders.Single(x => x.DestinationHeader == header).SourceName;
+//		}
 
-		protected abstract CsvConfiguration GetConfig();
-	}
-}
+//		protected abstract CsvConfiguration GetConfig();
+//	}
+//}

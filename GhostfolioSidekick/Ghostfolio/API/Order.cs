@@ -21,5 +21,9 @@
 		public OrderType Type { get; set; }
 
 		public decimal UnitPrice { get; set; }
+
+		
+		// Internal use
+		public string ReferenceCode { get; set; }
 	}
 }
