@@ -5,7 +5,9 @@
 		public string SourceName { get; set; }
 
 		public DestinationHeader DestinationHeader { get; set; }
-	}
+
+		public bool IsOptional { get; set; } = false;
+    }
 
 	public enum DestinationHeader
 	{
@@ -21,5 +23,7 @@
 		Reference,
 		Undefined,
 		Description,
-	}
+        CurrencyFeeUK,
+        FeeUK,
+    }
 }

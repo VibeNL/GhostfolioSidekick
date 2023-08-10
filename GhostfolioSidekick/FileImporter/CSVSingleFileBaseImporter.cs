@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.FileImporter
 				csvReader.Read();
 				csvReader.ReadHeader();
 
-				if (!ExpectedHeaders.All(x => csvReader.HeaderRecord?.Contains(x.SourceName) ?? false))
+				if (!ExpectedHeaders.Where(x => !x.IsOptional).All(x => csvReader.HeaderRecord?.Contains(x.SourceName) ?? false))
 				{
 					return false;
 				}
@@ -121,6 +121,12 @@ namespace GhostfolioSidekick.FileImporter
 		protected decimal GetDecimalValue(CsvReader csvReader, DestinationHeader header)
 		{
 			var stringvalue = GetValue(csvReader, header);
+
+			if (string.IsNullOrWhiteSpace(stringvalue))
+			{
+				return 0;
+			}
+
 			return decimal.Parse(stringvalue, GetCultureForParsingNumbers());
 		}
 
