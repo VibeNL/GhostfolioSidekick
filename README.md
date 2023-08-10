@@ -22,12 +22,12 @@ Assuming you configured an account with the name 'Trading 212' and 'Coinbase' in
 For example:
 * Trading 212
   * Export2023.csv
-* Coinbase
+* De Giro
   * Export2022.csv
   * Export2023.csv
 
 ### Mapping File
-A single csv file that contains mapping to convert currencies and symbols to something that can be found in yahoo finance or coin gecko
+A single csv file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio
 
 ```
 TYPE,SOURCE,TARGET
