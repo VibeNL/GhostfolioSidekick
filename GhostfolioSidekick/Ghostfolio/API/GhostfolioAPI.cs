@@ -127,7 +127,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
             }
 
             decimal currencyConvertionRate = (await GetExchangeRate(order.Currency, order.Asset.Currency, order.Date));
-            decimal feeConvertionRate = (await GetExchangeRate(order.FeeCurrency, order.Asset.Currency, order.Date));
+            decimal feeConvertionRate = order.Fee > 0 ? (await GetExchangeRate(order.FeeCurrency, order.Asset.Currency, order.Date)) : 1;
             return new Order
             {
                 AccountId = order.AccountId,
