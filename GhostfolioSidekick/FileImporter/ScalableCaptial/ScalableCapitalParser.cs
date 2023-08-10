@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
                 Date = record.Date.ToDateTime(TimeOnly.MinValue),
                 Fee = Math.Abs(fee?.UnitPrice ?? 0),
                 FeeCurrency = fee?.Currency ?? record.Currency,
-                Quantity = record.Quantity.Value,
+                Quantity = Math.Abs(record.Quantity.Value),
                 ReferenceCode = record.Reference,
                 Type = GetOrderType(record),
                 UnitPrice = record.UnitPrice.Value
@@ -171,7 +171,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
             {
                 return OrderType.DIVIDEND;
             }
-            
+
             return null;
         }
 
