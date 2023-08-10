@@ -1,6 +1,7 @@
 # GhostfolioSidekick
 
-A sidecar (or sidekick) project to automatically import files from several brokers & crypto exchanges.
+A sidecar (or sidekick) project to automatically import files from several brokers & crypto exchanges. The program checks every hour if any new transactions are found and inserts them in ghostfolio.
+
 ( more to come? Help is always welcome! )
 
 ## Setup
@@ -34,6 +35,13 @@ TYPE,SOURCE,TARGET
 CURRENCY,GBX,GBp
 IDENTIFIER,ATOM-USD,Cosmos USD
 ```
+
+### Supported formats
+| Platform | Source of the files | Buy | Sell | Dividend | 
+|--|--|--|--|--|
+| Trading 212 | Export of transaction history | X | - | - |
+| De Giro | Export of transaction history | X | - | - |
+| Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X |
 
 ## Run in Docker
 The docker image is: vibenl/ghostfoliosidekick
