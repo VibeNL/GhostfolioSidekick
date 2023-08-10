@@ -1,62 +1,139 @@
-﻿//using GhostfolioSidekick.Ghostfolio.API;
-//using System.Collections.Generic;
+﻿using CsvHelper.Configuration;
+using CsvHelper;
+using GhostfolioSidekick.Ghostfolio.API;
+using System.Globalization;
 
-//namespace GhostfolioSidekick.FileImporter.ScalableCaptial
-//{
+namespace GhostfolioSidekick.FileImporter.ScalableCaptial
+{
 
-//	public class ScalableCapitalParser : IFileImporter
-//	{
-//		private IEnumerable<IFileImporter> fileImporters;
+    public class ScalableCapitalParser : IFileImporter
+    {
+        private IEnumerable<IFileImporter> fileImporters;
 
-//		private IGhostfolioAPI api;
+        private IGhostfolioAPI api;
 
-//		public ScalableCapitalParser(IGhostfolioAPI api)
-//		{
-//			this.api = api;
-//			fileImporters = new IFileImporter[] {
-//				new BaaderBankRKK(api),
-//				new BaaderBankWUM(api),
-//			};
-//		}
+        public ScalableCapitalParser(IGhostfolioAPI api)
+        {
+            this.api = api;
+        }
 
-//		public async Task<bool> CanConvertOrders(IEnumerable<string> filenames)
-//		{
-//			return filenames.All(y => fileImporters.Any(x => x.CanConvertOrders(new[] { y }).Result));
-//		}
+        public async Task<bool> CanConvertOrders(IEnumerable<string> filenames)
+        {
+            foreach (var file in filenames)
+            {
+                CsvConfiguration csvConfig = GetConfig();
 
-//		public Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
-//		{
-//			var resultList = new List<Order>();
-//			var orders = filenames
-//			.SelectMany(y => 
-//				fileImporters.Single(x => 
-//					x.CanConvertOrders(new[] { y }).Result)
-//					.ConvertToOrders(accountName, new[] { y }).Result)
-//			.ToList();
+                using var streamReader = File.OpenText(file);
+                using var csvReader = new CsvReader(streamReader, csvConfig);
 
-//			// Match Fee with Transaction
-//			var group = orders.GroupBy(x => x.Comment);
-//			foreach (var item in group)
-//			{
-//				if (item.Count() == 1)
-//				{
-//					resultList.Add(item.Single());
-//				}
-//				else 
-//				{
-//					var transaction = item.Where(x => x.Quantity > 0).DistinctBy(x => new { x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity }).Single();
-//					var fee = item.Where(x => x.Quantity == -1).DistinctBy(x => new { x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity }).SingleOrDefault();
+                csvReader.Read();
+                csvReader.ReadHeader();
 
-//					if (fee != null)
-//					{
-//						transaction.Fee = fee.UnitPrice;
-//					}
 
-//					resultList.Add(transaction);
-//				}
-//			}
+                var canParse = IsWUMRecord(csvReader) || IsRKKRecord(csvReader);
+                if (!canParse)
+                {
+                    return false;
+                }
+            }
 
-//			return Task.FromResult(resultList.Where(x => x.Type != OrderType.FEE));
-//		}
-//	}
-//}
+            return true;
+        }
+
+
+        public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
+        {
+            var list = new List<Order>();
+            var wumRecords = new List<BaaderBankWUMRecord>();
+            var rkkRecords = new List<BaaderBankRKKRecord>();
+
+            foreach (var filename in filenames)
+            {
+                var account = await api.GetAccountByName(accountName);
+
+                if (account == null)
+                {
+                    throw new NotSupportedException();
+                }
+
+                CsvConfiguration csvConfig = GetConfig();
+
+                using var streamReader = File.OpenText(filename);
+                using var csvReader = new CsvReader(streamReader, csvConfig);
+
+                csvReader.Read();
+                csvReader.ReadHeader();
+
+                if (IsWUMRecord(csvReader))
+                {
+                    wumRecords.AddRange(csvReader.GetRecords<BaaderBankWUMRecord>().ToList());
+                }
+
+                if (IsRKKRecord(csvReader))
+                {
+                    rkkRecords.AddRange(csvReader.GetRecords<BaaderBankRKKRecord>().ToList());
+                }
+            }
+
+            foreach (var record in wumRecords)
+            {
+                list.AddRange(ConvertToOrder(record, rkkRecords));
+            }
+
+            foreach (var record in rkkRecords)
+            {
+                list.AddRange(ConvertToOrder(record));
+            }
+
+            return list;
+        }
+
+        private IEnumerable<Order> ConvertToOrder(BaaderBankRKKRecord record)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IEnumerable<Order> ConvertToOrder(BaaderBankWUMRecord record, List<BaaderBankRKKRecord> rkkRecords)
+        {
+            throw new NotImplementedException();
+        }
+
+        private CsvConfiguration GetConfig()
+        {
+            return new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                CacheFields = true,
+                Delimiter = ";",
+            };
+        }
+
+        private static bool IsRKKRecord(CsvReader csvReader)
+        {
+            try
+            {
+                csvReader.ValidateHeader<BaaderBankRKKRecord>();
+                return true;
+            }
+            catch
+            {
+            }
+
+            return false;
+        }
+
+        private static bool IsWUMRecord(CsvReader csvReader)
+        {
+            try
+            {
+                csvReader.ValidateHeader<BaaderBankWUMRecord>();
+                return true;
+            }
+            catch
+            {
+            }
+
+            return false;
+        }
+    }
+}

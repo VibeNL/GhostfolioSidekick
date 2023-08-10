@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
 using Microsoft.Extensions.Caching.Memory;
@@ -21,9 +22,9 @@ namespace ConsoleHelper
 
             GhostfolioAPI api = new GhostfolioAPI(new MemoryCache(new MemoryCacheOptions{}), logger);
             var t = new FileImporterTask(logger, api, new IFileImporter[] { 
-               // new ScalableCapitalParser(api),
+                new ScalableCapitalParser(api),
                 //new DeGiroParser(api),
-                new Trading212Parser(api)
+                //new Trading212Parser(api)
             });
 			t.DoWork().Wait();
         }
