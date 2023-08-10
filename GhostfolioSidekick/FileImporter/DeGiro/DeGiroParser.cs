@@ -1,5 +1,4 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
+﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -41,6 +40,16 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
             return order;
         }
 
+        protected override CsvConfiguration GetConfig()
+        {
+            return new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                CacheFields = true,
+                Delimiter = ",",
+            };
+        }
+
         private Tuple<decimal?, string>? GetFee(DeGiroRecord record, IEnumerable<DeGiroRecord> allRecords)
         {
             var feeRecord = allRecords.SingleOrDefault(x => x.OrderId == record.OrderId && x != record);
@@ -52,7 +61,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
             return Tuple.Create(feeRecord.Total, feeRecord.Mutatie);
         }
 
-        protected OrderType? GetOrderType(DeGiroRecord record)
+        private OrderType? GetOrderType(DeGiroRecord record)
         {
             if (record.Omschrijving.Contains("Koop"))
             {
@@ -61,16 +70,6 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
             // TODO, implement other options
             return null;
-        }
-
-        protected override CsvConfiguration GetConfig()
-        {
-            return new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                HasHeaderRecord = true,
-                CacheFields = true,
-                Delimiter = ",",
-            };
         }
 
         private decimal GetQuantity(DeGiroRecord record)

@@ -1,121 +1,83 @@
-﻿//using CsvHelper;
-//using CsvHelper.Configuration;
-//using GhostfolioSidekick.Ghostfolio.API;
-//using System.Globalization;
-//using System.Reflection.PortableExecutable;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using GhostfolioSidekick.FileImporter.DeGiro;
+using GhostfolioSidekick.Ghostfolio.API;
+using System.Globalization;
 
-//namespace GhostfolioSidekick.FileImporter.Trading212
-//{
-//    public class Trading212Parser : CSVSingleFileBaseImporter
-//    {
-//        public Trading212Parser(IGhostfolioAPI api) : base(api)
-//        {
-//        }
+namespace GhostfolioSidekick.FileImporter.Trading212
+{
+    public class Trading212Parser : RecordBaseImporter<Trading212Record>
+    {
+        public Trading212Parser(IGhostfolioAPI api) : base(api)
+        {
+        }
 
-//        protected override IEnumerable<HeaderMapping> ExpectedHeaders
-//        {
-//            get
-//            {
-//                return new[]
-//                {
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.OrderType, SourceName="Action" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Date, SourceName="Time" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Isin, SourceName="ISIN" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Symbol, SourceName="Ticker" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Name" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Quantity, SourceName="No. of shares" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.UnitPrice, SourceName="Price / share" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Currency, SourceName="Currency (Price / share)" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Exchange rate" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Currency (Result)" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Total" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Undefined, SourceName="Currency (Total)" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Description, SourceName="Notes" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Reference, SourceName="ID" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.Fee, SourceName="Currency conversion fee" },
-//                    new HeaderMapping{ DestinationHeader = DestinationHeader.FeeCurrency, SourceName="Currency (Currency conversion fee)" },
-//                    new HeaderMapping { IsOptional = true, DestinationHeader = DestinationHeader.FeeUK, SourceName = "Stamp duty reserve tax" },
-//                    new HeaderMapping { IsOptional = true, DestinationHeader = DestinationHeader.CurrencyFeeUK, SourceName = "Currency (Stamp duty reserve tax)" },
-//                };
-//            }
-//        }
+        protected override async Task<Order?> ConvertOrder(Trading212Record record, Account account, IEnumerable<Trading212Record> allRecords)
+        {
+            var orderType = GetOrderType(record);
+            if (orderType == null)
+            {
+                return null;
+            }
 
-//        protected override async Task<Asset> GetAsset(CsvReader csvReader)
-//        {
-//            if (GetOrderType(csvReader) == OrderType.IGNORE)
-//            {
-//                return null;
-//            }
+            var asset = await api.FindSymbolByISIN(record.ISIN);
 
-//            var isin = GetValue(csvReader, DestinationHeader.Isin);
-//            var symbol = await api.FindSymbolByISIN(isin);
-//            return symbol;
-//        }
+            var order = new Order
+            {
+                AccountId = account.Id,
+                Asset = asset,
+                Currency = record.Currency,
+                Date = record.Time,
+                Comment = $"Transaction Reference: [{record.Id}]",
+                Fee = GetFee(record) ?? 0,
+                FeeCurrency = record.ConversionFeeCurrency,
+                Quantity = record.NumberOfShares.Value,
+                Type = orderType.Value,
+                UnitPrice = record.Price.Value,
+                ReferenceCode = record.Id,
+            };
 
-//        protected override string GetComment(CsvReader csvReader)
-//        {
-//            return $"Transaction Reference: [{GetValue(csvReader, DestinationHeader.Reference)}]";
-//        }
+            return order;
+        }
 
-//        protected override CsvConfiguration GetConfig()
-//        {
-//            return new CsvConfiguration(CultureInfo.InvariantCulture)
-//            {
-//                HasHeaderRecord = true,
-//                CacheFields = true,
-//                Delimiter = ",",
-//            };
-//        }
+        protected override CsvConfiguration GetConfig()
+        {
+            return new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                CacheFields = true,
+                Delimiter = ",",
+            };
+        }
 
-//        protected override CultureInfo GetCultureForParsingNumbers()
-//        {
-//            return new CultureInfo("en")
-//            {
-//                NumberFormat =
-//                {
-//                    NumberDecimalSeparator = "."
-//                }
-//            };
-//        }
+        private decimal? GetFee(Trading212Record record)
+        {
+            if (record.FeeUK == null)
+            {
+                return record.ConversionFee;
+            }
 
-//        protected override DateTime GetDate(CsvReader csvReader, DestinationHeader header)
-//        {
-//            var stringvalue = GetValue(csvReader, header);
-//            return DateTime.ParseExact(stringvalue, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture).Date;
-//        }
+            if (record.FeeUK > 0 && record.FeeUKCurrency != record.ConversionFeeCurrency)
+            {
+                var rate = api.GetExchangeRate(record.FeeUKCurrency, record.ConversionFeeCurrency, record.Time).Result;
+                record.FeeUK = record.FeeUK * rate;
+            }
 
-//        protected override decimal GetFee(CsvReader csvReader)
-//        {
-//            if (!csvReader.HeaderRecord.Any(y => y == ExpectedHeaders.Single(x => x.DestinationHeader == DestinationHeader.FeeUK).SourceName))
-//            {
-//                return GetDecimalValue(csvReader, DestinationHeader.Fee);
-//            }
+            return record.ConversionFee + record.FeeUK;
+        }
 
-//            var stampDutyValue = GetDecimalValue(csvReader, DestinationHeader.FeeUK);
-//            var stampDutyCurrencyValue = GetValue(csvReader, DestinationHeader.CurrencyFeeUK);
-
-//            string feeCurrency = GetValue(csvReader, DestinationHeader.FeeCurrency);
-//            if (stampDutyValue > 0 && stampDutyCurrencyValue != feeCurrency)
-//            {
-//                var rate = api.GetExchangeRate(stampDutyCurrencyValue, feeCurrency, GetDate(csvReader, DestinationHeader.Date)).Result;
-//                stampDutyValue = stampDutyValue * rate;
-//            }
-
-//            return GetDecimalValue(csvReader, DestinationHeader.Fee) + stampDutyValue;
-//        }
-
-//        protected override OrderType GetOrderType(CsvReader csvReader)
-//        {
-//            var order = csvReader.GetField(GetSourceFieldName(DestinationHeader.OrderType));
-//            switch (order)
-//            {
-//                case "Deposit":
-//                    return OrderType.IGNORE;
-//                case "Market buy":
-//                    return OrderType.BUY;
-//                default:
-//                    throw new NotSupportedException();
-//            }
-//        }
-//    }
-//}
+        private OrderType? GetOrderType(Trading212Record record)
+        {
+            switch (record.Action)
+            {
+                case "Deposit":
+                    return null;
+                case "Market buy":
+                    return OrderType.BUY;
+                default:
+                    // TODO, implement other options
+                    return null;
+            }
+        }
+    }
+}
