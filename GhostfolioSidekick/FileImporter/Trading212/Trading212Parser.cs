@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
             var stampDutyCurrencyValue = GetValue(csvReader, DestinationHeader.CurrencyFeeUK);
 
             string feeCurrency = GetValue(csvReader, DestinationHeader.FeeCurrency);
-            if (stampDutyCurrencyValue != feeCurrency)
+            if (stampDutyValue > 0 && stampDutyCurrencyValue != feeCurrency)
             {
                 var rate = api.GetExchangeRate(stampDutyCurrencyValue, feeCurrency, GetDate(csvReader, DestinationHeader.Date)).Result;
                 stampDutyValue = stampDutyValue * rate;
