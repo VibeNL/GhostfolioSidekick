@@ -1,6 +1,5 @@
 ﻿using AutoFixture;
 using FluentAssertions;
-using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.Ghostfolio.API;
 using Moq;
@@ -66,11 +65,12 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Currency = asset.Currency,
 				FeeCurrency = asset.Currency,
 				Date = new DateTime(2023,8,3, 0,0,0, DateTimeKind.Utc),
-				Fee = -1,
+				Fee = 0,
 				Quantity = 5,
 				Type = OrderType.BUY,
-				UnitPrice = 8.685M
-			} });
+				UnitPrice = 8.685M,
+				ReferenceCode = "SCALQbWiZnN9DtQ"
+            } });
 		}
 
 		[Fact]
@@ -100,8 +100,9 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Fee = 0,
 				Quantity = 14,
 				Type = OrderType.DIVIDEND,
-				UnitPrice = 0.5057142857142857142857142857M
-			} });
+				UnitPrice = 0.5057142857142857142857142857M,
+				ReferenceCode = "WWEK 16100100"
+            } });
 		}
 
 		[Fact]
@@ -136,8 +137,9 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Fee = 0.99M,
 				Quantity = 5,
 				Type = OrderType.BUY,
-				UnitPrice = 8.685M
-			},
+				UnitPrice = 8.685M,
+                ReferenceCode = "SCALQbWiZnN9DtQ"
+            },
 			new Order {
 				AccountId = account.Id,
 				Asset = asset2,
@@ -148,8 +150,9 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Fee = 0,
 				Quantity = 14,
 				Type = OrderType.DIVIDEND,
-				UnitPrice = 0.5057142857142857142857142857M
-			} });
+				UnitPrice = 0.5057142857142857142857142857M,
+                ReferenceCode = "WWEK 16100100"
+            } });
 		}
 
 		[Fact]
@@ -185,8 +188,9 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Fee = 0.99M,
 				Quantity = 5,
 				Type = OrderType.BUY,
-				UnitPrice = 8.685M
-			},
+				UnitPrice = 8.685M,
+				ReferenceCode = "SCALQbWiZnN9DtQ"
+            },
 			new Order {
 				AccountId = account.Id,
 				Asset = asset2,
@@ -197,8 +201,9 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Fee = 0,
 				Quantity = 14,
 				Type = OrderType.DIVIDEND,
-				UnitPrice = 0.5057142857142857142857142857M
-			} });
+				UnitPrice = 0.5057142857142857142857142857M,
+                ReferenceCode = "WWEK 16100100"
+            } });
 		}
 	}
 }

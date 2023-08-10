@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace ConsoleHelper
 {
-	internal class Program
+    internal class Program
     {
         private static ConsoleLogger logger = new ConsoleLogger();
 

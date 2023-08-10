@@ -1,64 +1,64 @@
 using AutoFixture;
 using FluentAssertions;
-using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
 using Moq;
 
 namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 {
-	public class Trading212Tests
-	{
-		readonly Mock<IGhostfolioAPI> api;
+    public class Trading212Tests
+    {
+        readonly Mock<IGhostfolioAPI> api;
 
-		public Trading212Tests()
-		{
-			api = new Mock<IGhostfolioAPI>();
-		}
+        public Trading212Tests()
+        {
+            api = new Mock<IGhostfolioAPI>();
+        }
 
-		[Fact]
-		public async Task CanConvertOrders_TestFileSingleOrder_True()
-		{
-			// Arrange
-			var parser = new Trading212Parser(api.Object);
+        [Fact]
+        public async Task CanConvertOrders_TestFileSingleOrder_True()
+        {
+            // Arrange
+            var parser = new Trading212Parser(api.Object);
 
-			// Act
-			var canParse = await parser.CanConvertOrders(new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
+            // Act
+            var canParse = await parser.CanConvertOrders(new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
 
-			// Assert
-			canParse.Should().BeTrue();
-		}
+            // Assert
+            canParse.Should().BeTrue();
+        }
 
-		[Fact]
-		public async Task ConvertToOrders_TestFileSingleOrder_Converted()
-		{
-			// Arrange
-			var parser = new Trading212Parser(api.Object);
-			var fixture = new Fixture();
+        [Fact]
+        public async Task ConvertToOrders_TestFileSingleOrder_Converted()
+        {
+            // Arrange
+            var parser = new Trading212Parser(api.Object);
+            var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, "USD").Create();
-			var account = fixture.Create<Account>();
+            var asset = fixture.Build<Asset>().With(x => x.Currency, "USD").Create();
+            var account = fixture.Create<Account>();
 
-			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("US67066G1040")).ReturnsAsync(asset);
+            api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+            api.Setup(x => x.FindSymbolByISIN("US67066G1040")).ReturnsAsync(asset);
 
-			// Act
-			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
+            // Act
+            var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
 
-			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
-				AccountId = account.Id,
-				Asset = asset,
-				Comment = "Transaction Reference: [EOF3219953148]",
-				Currency = asset.Currency,
-				FeeCurrency = "EUR",
-				Date = new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
-				Fee = 0.02M,
-				Quantity = 0.0267001M,
-				Type = OrderType.BUY,
-				UnitPrice = 453.33M
-			} });
-		}
+            // Assert
+            orders.Should().BeEquivalentTo(new[] { new Order {
+                AccountId = account.Id,
+                Asset = asset,
+                Comment = "Transaction Reference: [EOF3219953148]",
+                Currency = asset.Currency,
+                FeeCurrency = "EUR",
+                Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
+                Fee = 0.02M,
+                Quantity = 0.0267001M,
+                Type = OrderType.BUY,
+                UnitPrice = 453.33M,
+                ReferenceCode = "EOF3219953148"
+            } });
+        }
 
         [Fact]
         public async Task ConvertToOrders_TestFileMultipleOrdersUS_Converted()
@@ -78,17 +78,18 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 
             // Assert
             orders.Should().BeEquivalentTo(new[] {
-			new Order {
+            new Order {
                 AccountId = account.Id,
                 Asset = asset,
                 Comment = "Transaction Reference: [EOF3219953148]",
                 Currency = asset.Currency,
                 FeeCurrency = "EUR",
-                Date = new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
+                Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
                 Fee = 0.02M,
                 Quantity = 0.0267001M,
                 Type = OrderType.BUY,
-                UnitPrice = 453.33M
+                UnitPrice = 453.33M,
+                ReferenceCode = "EOF3219953148"
             },
             new Order {
                 AccountId = account.Id,
@@ -96,11 +97,12 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
                 Comment = "Transaction Reference: [EOF3224031567]",
                 Currency = asset.Currency,
                 FeeCurrency = "",
-                Date = new DateTime(2023,08,9, 0,0,0, DateTimeKind.Utc),
+                Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
                 Fee = 0,
                 Quantity = 0.0026199M,
                 Type = OrderType.BUY,
-                UnitPrice = 423.25M
+                UnitPrice = 423.25M,
+                ReferenceCode = "EOF3224031567"
             }});
         }
 
@@ -127,11 +129,12 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
                 Comment = "Transaction Reference: [EOF3224031549]",
                 Currency = asset.Currency,
                 FeeCurrency = "EUR",
-                Date = new DateTime(2023,08,9, 0,0,0, DateTimeKind.Utc),
+                Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
                 Fee = 0.07M,
                 Quantity = 0.18625698M,
                 Type = OrderType.BUY,
-                UnitPrice = 4947.00M
+                UnitPrice = 4947.00M,
+                ReferenceCode = "EOF3224031549"
             } });
         }
     }
