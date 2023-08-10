@@ -1,6 +1,6 @@
 # GhostfolioSidekick
 
-A sidecar (or sidekick) project to automatically import files from several brokers & crypto exchanges. The program checks every hour if any new transactions are found and inserts them in ghostfolio.
+A sidecar (or sidekick) project to automatically import files from several brokers & crypto exchanges. The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio).
 
 ( more to come? Help is always welcome! )
 
