@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Polly.Retry;
+using Polly;
 using RestSharp;
 
 namespace GhostfolioSidekick.Ghostfolio.API
@@ -9,25 +11,23 @@ namespace GhostfolioSidekick.Ghostfolio.API
     public class GhostfolioAPI : IGhostfolioAPI
     {
         private readonly Mapper mapper;
-        private readonly IMemoryCache memoryCache;
-        private readonly MemoryCacheEntryOptions cacheEntryOptions;
         private ILogger<GhostfolioAPI> logger;
 
         string url = Environment.GetEnvironmentVariable("GHOSTFOLIO_URL");
         string accessToken = Environment.GetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN");
+        private RestCall restCall;
 
         public GhostfolioAPI(IMemoryCache memoryCache, ILogger<GhostfolioAPI> logger)
         {
-            this.mapper = new Mapper();
-            this.memoryCache = memoryCache;
-            cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+            mapper = new Mapper();
             this.logger = logger;
 
             if (url != null && url.EndsWith("/"))
             {
                 url = url.Substring(0, url.Length - 1);
             }
+
+            restCall = new RestCall(memoryCache, logger, url, accessToken);
         }
 
         public async Task Write(IEnumerable<Order> orders)
@@ -47,39 +47,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
         public async Task<decimal> GetMarketPrice(string symbol, DateTime date)
         {
-            if (memoryCache.TryGetValue<decimal>(Tuple.Create(symbol, date.Date), out var result))
-            {
-                return result;
-            }
-
-            var options = new RestClientOptions(url)
-            {
-                ThrowOnAnyError = false,
-                ThrowOnDeserializationError = false
-            };
-
-            var client = new RestClient(options);
-            var request = new RestRequest($"{url}/api/v1/admin/market-data/YAHOO/{symbol}")
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-            request.AddHeader("Content-Type", "application/json");
-
-            var r = await client.ExecuteGetAsync(request);
-            if (!r.IsSuccessStatusCode)
-            {
-                throw new NotSupportedException();
-            }
-
-            var market = JsonConvert.DeserializeObject<Market>(r.Content);
+            var content = await restCall.DoRestGet($"api/v1/admin/market-data/YAHOO/{symbol}");
+            var market = JsonConvert.DeserializeObject<Market>(content);
 
             foreach (var item in market.MarketData)
             {
                 if (item.Date == date.Date)
                 {
-                    memoryCache.Set(Tuple.Create(symbol, date.Date), (decimal)item.MarketPrice, cacheEntryOptions);
                     return (decimal)item.MarketPrice;
                 }
             }
@@ -142,38 +116,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
             };
         }
 
-        private async Task<string> GetAuthenticationToken()
-        {
-            using (var client = new HttpClient())
-            {
-                string requestUri = $"{url}/api/v1/auth/anonymous/{accessToken}";
-                var content = await client.GetStringAsync(requestUri);
-
-                dynamic stuff = JsonConvert.DeserializeObject(content);
-                var token = stuff.authToken.ToString();
-                return token;
-            }
-        }
-
         private async Task WriteOrder(Order? order)
         {
-            var options = new RestClientOptions(url)
-            {
-                ThrowOnAnyError = false,
-                ThrowOnDeserializationError = false
-            };
-
-            var client = new RestClient(options);
-            var request = new RestRequest($"{url}/api/v1/import")
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-            request.AddHeader("Content-Type", "application/json");
-
-            request.AddJsonBody(await ConvertToBody(order));
-            var r = await client.ExecutePostAsync(request);
+            var r = await restCall.DoRestPost($"api/v1/import", await ConvertToBody(order));
             bool emptyResponse = false;
             if (!r.IsSuccessStatusCode || (emptyResponse = r.Content.Equals("{\"activities\":[]}")))
             {
@@ -194,33 +139,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
         {
             identifier = mapper.MapIdentifier(identifier);
 
-            if (memoryCache.TryGetValue<Asset>(identifier, out var result))
-            {
-                return result;
-            }
-
-            var options = new RestClientOptions(url)
-            {
-                ThrowOnAnyError = false,
-                ThrowOnDeserializationError = false
-            };
-
-            var client = new RestClient(options);
-            var request = new RestRequest($"{url}/api/v1/symbol/lookup?query={identifier}&includeIndices=true")
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-            request.AddHeader("Content-Type", "application/json");
-
-            var r = await client.ExecuteGetAsync(request);
-            if (!r.IsSuccessStatusCode)
-            {
-                throw new NotSupportedException($"Call to find SYMBOL failed. Got error {r.StatusCode} {r.Content}");
-            }
-
-            dynamic stuff = JsonConvert.DeserializeObject(r.Content);
+            var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices=true");
+            dynamic stuff = JsonConvert.DeserializeObject(content);
             var asset = new Asset
             {
                 Symbol = stuff.items[0].symbol,
@@ -228,7 +148,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
                 DataSource = stuff.items[0].dataSource,
             };
 
-            memoryCache.Set(identifier, asset, cacheEntryOptions);
             return asset;
         }
 
@@ -236,64 +155,20 @@ namespace GhostfolioSidekick.Ghostfolio.API
         {
             sourceCurrency = mapper.MapCurrency(sourceCurrency);
 
-            if (memoryCache.TryGetValue<decimal>(Tuple.Create(sourceCurrency, targetCurrency, date.Date), out var result))
-            {
-                return result;
-            }
+            var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}");
 
-            var options = new RestClientOptions(url)
-            {
-                ThrowOnAnyError = false,
-                ThrowOnDeserializationError = false
-            };
-
-            var client = new RestClient(options);
-            var request = new RestRequest($"{url}/api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}")
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-            request.AddHeader("Content-Type", "application/json");
-
-            var r = await client.ExecuteGetAsync(request);
-            if (!r.IsSuccessStatusCode)
-            {
-                throw new NotSupportedException($"Conversion {sourceCurrency} to {targetCurrency} on date {date} was not found");
-            }
-
-            dynamic stuff = JsonConvert.DeserializeObject(r.Content);
+            dynamic stuff = JsonConvert.DeserializeObject(content);
             var token = stuff.marketPrice.ToString();
             var rate = (decimal)decimal.Parse(token);
 
-            memoryCache.Set(Tuple.Create(sourceCurrency, targetCurrency, date.Date), rate, cacheEntryOptions);
             return rate;
         }
 
         public async Task<Account> GetAccountByName(string name)
         {
-            var options = new RestClientOptions(url)
-            {
-                ThrowOnAnyError = false,
-                ThrowOnDeserializationError = false
-            };
-
-            var client = new RestClient(options);
-            var request = new RestRequest($"{url}/api/v1/account")
-            {
-                RequestFormat = DataFormat.Json
-            };
-
-            request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-            request.AddHeader("Content-Type", "application/json");
-
-            var r = await client.ExecuteGetAsync(request);
-            if (!r.IsSuccessStatusCode)
-            {
-                throw new NotSupportedException();
-            }
-
-            var account = JsonConvert.DeserializeObject<AccountList>(r.Content);
+            var content = await restCall.DoRestGet($"api/v1/account");
+            
+            var account = JsonConvert.DeserializeObject<AccountList>(content);
             return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
         }
     }
