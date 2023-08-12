@@ -217,7 +217,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
             var r = await client.ExecuteGetAsync(request);
             if (!r.IsSuccessStatusCode)
             {
-                throw new NotSupportedException();
+                throw new NotSupportedException($"Call to find SYMBOL failed. Got error {r}");
             }
 
             dynamic stuff = JsonConvert.DeserializeObject(r.Content);
