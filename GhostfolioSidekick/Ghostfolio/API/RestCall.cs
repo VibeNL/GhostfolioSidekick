@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Polly;
 using Polly.Retry;
 using RestSharp;
@@ -121,10 +122,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				RequestFormat = DataFormat.Json
 			};
 
-			request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
 			request.AddHeader("Content-Type", "application/json");
 
-			request.AddJsonBody("{ accessToken: {" + accessToken + "} }");
+            var body = new JObject
+            {
+                ["accessToken"] = accessToken
+            };
+            request.AddJsonBody(body.ToString());
 			var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
 
 			if (!r.IsSuccessStatusCode)
