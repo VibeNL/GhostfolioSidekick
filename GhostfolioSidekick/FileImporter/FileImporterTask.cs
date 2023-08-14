@@ -13,9 +13,10 @@ namespace GhostfolioSidekick.FileImporter
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
 			IGhostfolioAPI api,
+			IConfigurationSettings settings,
 			IEnumerable<IFileImporter> importers)
 		{
-			fileLocation = Environment.GetEnvironmentVariable("FileImporterPath");
+			fileLocation = settings.FileImporterPath; 
 			this.logger = logger;
 			this.api = api;
 			this.importers = importers;
