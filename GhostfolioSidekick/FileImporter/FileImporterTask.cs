@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.FileImporter
 			IConfigurationSettings settings,
 			IEnumerable<IFileImporter> importers)
 		{
-			fileLocation = settings.FileImporterPath; 
+			fileLocation = settings.FileImporterPath;
 			this.logger = logger;
 			this.api = api;
 			this.importers = importers;
@@ -28,25 +28,23 @@ namespace GhostfolioSidekick.FileImporter
 
 			var orders = new List<Order>();
 
-			var files = Directory.GetFiles(fileLocation, "*.*", SearchOption.AllDirectories)
-				.Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
+			var directories = Directory.GetDirectories(fileLocation);
 
-			foreach (var fileGroup in files.GroupBy(x => new FileInfo(x).Directory.Name))
+			foreach (var directory in directories.Select(x => new DirectoryInfo(x)))
 			{
-				logger.LogDebug($"Found file {fileGroup.Key} to process");
+				var accountName = directory.Name;
+				logger.LogDebug($"AccountName: {accountName}");
+
 				try
 				{
-					var accountName = fileGroup.Key;
-
-					logger.LogDebug($"AccountName: {accountName}");
-
-					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(fileGroup).Result);
+					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName);
+					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(files).Result);
 					if (importer == null)
 					{
-						throw new NotSupportedException($"Filegroup {fileGroup.Key} has no importer");
+						throw new NotSupportedException($"Directory {accountName} has no importer");
 					}
 
-					orders.AddRange(await importer.ConvertToOrders(accountName, fileGroup));
+					orders.AddRange(await importer.ConvertToOrders(accountName, files));
 				}
 				catch (Exception ex)
 				{
