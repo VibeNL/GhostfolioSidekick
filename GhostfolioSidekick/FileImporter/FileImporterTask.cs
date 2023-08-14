@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.FileImporter
 {
 	public class FileImporterTask : IScheduledWork
 	{
-		private readonly string? fileLocation;
+		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
 		private readonly IEnumerable<IFileImporter> importers;
@@ -16,10 +16,15 @@ namespace GhostfolioSidekick.FileImporter
 			IConfigurationSettings settings,
 			IEnumerable<IFileImporter> importers)
 		{
+			if (settings is null)
+			{
+				throw new ArgumentNullException(nameof(settings));
+			}
+
 			fileLocation = settings.FileImporterPath;
-			this.logger = logger;
-			this.api = api;
-			this.importers = importers;
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.api = api ?? throw new ArgumentNullException(nameof(api));
+			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
 		}
 
 		public async Task DoWork()
@@ -38,12 +43,7 @@ namespace GhostfolioSidekick.FileImporter
 				try
 				{
 					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName);
-					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(files).Result);
-					if (importer == null)
-					{
-						throw new NotSupportedException($"Directory {accountName} has no importer");
-					}
-
+					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(files).Result) ?? throw new NotSupportedException($"Directory {accountName} has no importer");
 					orders.AddRange(await importer.ConvertToOrders(accountName, files));
 				}
 				catch (Exception ex)

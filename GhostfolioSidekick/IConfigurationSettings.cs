@@ -2,6 +2,6 @@
 {
 	public interface IConfigurationSettings
 	{
-		string? FileImporterPath { get; }
+		string FileImporterPath { get; }
 	}
 }
