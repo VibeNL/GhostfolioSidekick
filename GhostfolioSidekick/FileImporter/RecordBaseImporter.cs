@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.FileImporter
 			CsvConfiguration csvConfig = GetConfig();
 
 			var list = new ConcurrentBag<Order>();
-			Parallel.ForEach(filenames, filename =>
+			await Parallel.ForEachAsync(filenames, async (filename, c1) =>
 			{
 				using (var streamReader = File.OpenText(filename))
 				{
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.FileImporter
 						csvReader.ReadHeader();
 						var records = csvReader.GetRecords<T>().ToList();
 
-						Parallel.ForEach(records, async record =>
+						await Parallel.ForEachAsync(records, async (record, c) =>
 						{
 							var order = await ConvertOrder(record, account, records);
 
