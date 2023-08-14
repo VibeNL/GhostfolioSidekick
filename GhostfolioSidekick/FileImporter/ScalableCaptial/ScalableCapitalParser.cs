@@ -10,16 +10,14 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 	public class ScalableCapitalParser : IFileImporter
 	{
-		private IEnumerable<IFileImporter> fileImporters;
-
-		private IGhostfolioAPI api;
+		private readonly IGhostfolioAPI api;
 
 		public ScalableCapitalParser(IGhostfolioAPI api)
 		{
 			this.api = api;
 		}
 
-		public async Task<bool> CanConvertOrders(IEnumerable<string> filenames)
+		public Task<bool> CanConvertOrders(IEnumerable<string> filenames)
 		{
 			foreach (var file in filenames)
 			{
@@ -31,15 +29,14 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				csvReader.Read();
 				csvReader.ReadHeader();
 
-
 				var canParse = IsWUMRecord(csvReader) || IsRKKRecord(csvReader);
 				if (!canParse)
 				{
-					return false;
+					return Task.FromResult(false);
 				}
 			}
 
-			return true;
+			return Task.FromResult(true);
 		}
 
 
@@ -55,12 +52,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var wumRecords = new ConcurrentBag<BaaderBankWUMRecord>();
 			var rkkRecords = new ConcurrentBag<BaaderBankRKKRecord>();
 
-			var account = await api.GetAccountByName(accountName);
-
-			if (account == null)
-			{
-				throw new NotSupportedException();
-			}
+			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException();
 
 			Parallel.ForEach(filenames, filename =>
 			{
@@ -104,7 +96,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return list.Values;
 		}
 
-		private async Task<Order> ConvertToOrder(Account account, BaaderBankRKKRecord record)
+		private async Task<Order?> ConvertToOrder(Account account, BaaderBankRKKRecord record)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
@@ -115,7 +107,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var asset = await api.FindSymbolByISIN(record.Isin.Replace("ISIN ", string.Empty));
 
 			var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
-			var unitPrice = record.UnitPrice.Value / quantity;
+			var unitPrice = record.UnitPrice.GetValueOrDefault() / quantity;
 			return new Order
 			{
 				AccountId = account.Id,
@@ -147,10 +139,10 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				Date = record.Date.ToDateTime(TimeOnly.MinValue),
 				Fee = Math.Abs(fee?.UnitPrice ?? 0),
 				FeeCurrency = fee?.Currency ?? record.Currency,
-				Quantity = Math.Abs(record.Quantity.Value),
+				Quantity = Math.Abs(record.Quantity.GetValueOrDefault()),
 				ReferenceCode = record.Reference,
 				Type = GetOrderType(record),
-				UnitPrice = record.UnitPrice.Value
+				UnitPrice = record.UnitPrice.GetValueOrDefault()
 			};
 		}
 
@@ -222,7 +214,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return false;
 		}
 
-		private CultureInfo GetCultureForParsingNumbers()
+		private static CultureInfo GetCultureForParsingNumbers()
 		{
 			return new CultureInfo("en")
 			{
