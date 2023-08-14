@@ -1,10 +1,11 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper;
 using GhostfolioSidekick.Ghostfolio.API;
+using System.Collections.Concurrent;
 
 namespace GhostfolioSidekick.FileImporter
 {
-    public abstract class RecordBaseImporter<T> : IFileImporter
+	public abstract class RecordBaseImporter<T> : IFileImporter
 	{
 		protected readonly IGhostfolioAPI api;
 
@@ -28,7 +29,8 @@ namespace GhostfolioSidekick.FileImporter
 				try
 				{
 					csvReader.ValidateHeader<T>();
-				} catch
+				}
+				catch
 				{
 					return false;
 				}
@@ -39,41 +41,43 @@ namespace GhostfolioSidekick.FileImporter
 
 		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
 		{
-			var list = new List<Order>();
-			foreach (var filename in filenames)
+			var account = await api.GetAccountByName(accountName);
+			if (account == null)
 			{
-				var account = await api.GetAccountByName(accountName);
+				throw new NotSupportedException();
+			}
 
-				if (account == null)
+			CsvConfiguration csvConfig = GetConfig();
+
+			var list = new ConcurrentBag<Order>();
+			Parallel.ForEach(filenames, filename =>
+			{
+				using (var streamReader = File.OpenText(filename))
 				{
-					throw new NotSupportedException();
-				}
-
-				CsvConfiguration csvConfig = GetConfig();
-
-				using var streamReader = File.OpenText(filename);
-				using var csvReader = new CsvReader(streamReader, csvConfig);
-
-				csvReader.Read();
-				csvReader.ReadHeader();
-				var records = csvReader.GetRecords<T>().ToList();
-
-				foreach (var record in records)
-				{
-					var order = await ConvertOrder(record, account, records);
-
-					if (order!= null)
+					using (var csvReader = new CsvReader(streamReader, csvConfig))
 					{
-						list.Add(order);
+						csvReader.Read();
+						csvReader.ReadHeader();
+						var records = csvReader.GetRecords<T>().ToList();
+
+						Parallel.ForEach(records, async record =>
+						{
+							var order = await ConvertOrder(record, account, records);
+
+							if (order != null)
+							{
+								list.Add(order);
+							}
+						});
 					}
 				}
-			}
+			});
 
 			return list;
 		}
 
-        protected abstract Task<Order?> ConvertOrder(T record, Account account, IEnumerable<T> allRecords);
+		protected abstract Task<Order?> ConvertOrder(T record, Account account, IEnumerable<T> allRecords);
 
-        protected abstract CsvConfiguration GetConfig();
+		protected abstract CsvConfiguration GetConfig();
 	}
 }
