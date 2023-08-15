@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 
 			var wumRecords = new ConcurrentBag<BaaderBankWUMRecord>();
-			var rkkRecords = new ConcurrentBag<BaaderBankRKKRecord>();
+			var rkkRecords = new ConcurrentDictionary<string, BaaderBankRKKRecord>();
 
 			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException();
 
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 				if (IsRKKRecord(csvReader))
 				{
-					csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x => rkkRecords.Add(x));
+					csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x => rkkRecords.TryAdd(x.Reference, x));
 				}
 			});
 
@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 			Parallel.ForEach(rkkRecords, async record =>
 			{
-				var order = await ConvertToOrder(account, record);
+				var order = await ConvertToOrder(account, record.Value);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -124,7 +124,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			};
 		}
 
-		private async Task<Order> ConvertToOrder(Account account, BaaderBankWUMRecord record, IEnumerable<BaaderBankRKKRecord> rkkRecords)
+		private async Task<Order> ConvertToOrder(Account account, BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
 		{
 			var asset = await api.FindSymbolByISIN(record.Isin);
 
@@ -146,9 +146,14 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			};
 		}
 
-		private BaaderBankRKKRecord? FindFeeRecord(IEnumerable<BaaderBankRKKRecord> rkkRecords, string reference)
+		private BaaderBankRKKRecord? FindFeeRecord(ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords, string reference)
 		{
-			return rkkRecords.FirstOrDefault(x => x.Reference == reference);
+			if (rkkRecords.TryGetValue(reference, out var baaderBankRKKRecord))
+			{
+				return baaderBankRKKRecord;
+			}
+
+			return null;
 		}
 
 		private OrderType GetOrderType(BaaderBankWUMRecord record)
