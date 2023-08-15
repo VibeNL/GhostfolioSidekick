@@ -32,6 +32,7 @@ namespace GhostfolioSidekick
 			if (isRunning)
 			{
 				_logger.LogWarning("Service is still executing, skipping run.");
+				return;
 			}
 
 			try
