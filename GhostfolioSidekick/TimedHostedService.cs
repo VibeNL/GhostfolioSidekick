@@ -8,6 +8,7 @@ namespace GhostfolioSidekick
 		private readonly ILogger _logger;
 		private readonly IEnumerable<IScheduledWork> _workItems;
 		private Timer? _timer;
+		private volatile bool isRunning = false;
 
 		public TimedHostedService(ILogger<TimedHostedService> logger, IEnumerable<IScheduledWork> todo)
 		{
@@ -28,18 +29,35 @@ namespace GhostfolioSidekick
 
 		private void DoWork(object? state)
 		{
-			_logger.LogInformation("Service is executing.");
-
-			foreach (var workItem in _workItems)
+			if (isRunning)
 			{
-				try
+				_logger.LogWarning("Service is still executing, skipping run.");
+				return;
+			}
+
+			try
+			{
+				_logger.LogInformation("Service is executing.");
+
+				isRunning = true;
+
+				foreach (var workItem in _workItems)
 				{
-					workItem.DoWork().Wait();
+					try
+					{
+						workItem.DoWork().Wait();
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError(ex.Message);
+					}
 				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex.Message);
-				}
+
+				_logger.LogInformation("Service has executed.");
+			}
+			finally
+			{
+				isRunning = false;
 			}
 		}
 
