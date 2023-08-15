@@ -8,135 +8,159 @@ using RestSharp;
 
 namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public class RestCall
-	{
-		private static int _maxRetryAttempts = 5;
-		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(10);
+    public class RestCall
+    {
+        private Mutex mutex = new Mutex();
 
-		private readonly IMemoryCache memoryCache;
-		private readonly string url;
-		private readonly string accessToken;
-		private readonly RetryPolicy<RestResponse> retryPolicy;
+        private static int _maxRetryAttempts = 5;
+        private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(1);
 
-		public RestCall(
-			IMemoryCache memoryCache,
-			ILogger<GhostfolioAPI> logger,
-			string url,
-			string accessToken)
-		{
-			this.memoryCache = memoryCache;
-			this.url = url;
-			this.accessToken = accessToken;
+        private readonly IMemoryCache memoryCache;
+        private readonly string url;
+        private readonly string accessToken;
+        private readonly RetryPolicy<RestResponse> retryPolicy;
 
-			retryPolicy = Policy
-				.HandleResult<RestResponse>(x => !x.IsSuccessful)
-				.WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, async (iRestResponse, timeSpan, retryCount, context) =>
-				{
-					logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
-				});
-		}
+        public RestCall(
+            IMemoryCache memoryCache,
+            ILogger<GhostfolioAPI> logger,
+            string url,
+            string accessToken)
+        {
+            this.memoryCache = memoryCache;
+            this.url = url;
+            this.accessToken = accessToken;
 
-		public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions cacheEntryOptions)
-		{
-			if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
-			{
-				return result;
-			}
+            retryPolicy = Policy
+                .HandleResult<RestResponse>(x => !x.IsSuccessful)
+                .WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, async (iRestResponse, timeSpan, retryCount, context) =>
+                {
+                    logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
+                });
+        }
 
-			var options = new RestClientOptions(url)
-			{
-				ThrowOnAnyError = false,
-				ThrowOnDeserializationError = false
-			};
+        public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions cacheEntryOptions)
+        {
 
-			var client = new RestClient(options);
-			var request = new RestRequest($"{url}/{suffixUrl}")
-			{
-				RequestFormat = DataFormat.Json
-			};
+            if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
+            {
+                return result;
+            }
 
-			request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-			request.AddHeader("Content-Type", "application/json");
+            try
+            {
+                mutex.WaitOne();
+                var options = new RestClientOptions(url)
+                {
+                    ThrowOnAnyError = false,
+                    ThrowOnDeserializationError = false
+                };
 
-			var r = retryPolicy.Execute(() => client.ExecuteGetAsync(request).Result);
+                var client = new RestClient(options);
+                var request = new RestRequest($"{url}/{suffixUrl}")
+                {
+                    RequestFormat = DataFormat.Json
+                };
 
-			if (!r.IsSuccessStatusCode)
-			{
-				throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
-			}
+                request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
+                request.AddHeader("Content-Type", "application/json");
 
-			memoryCache.Set(suffixUrl, r.Content, cacheEntryOptions);
+                var r = retryPolicy.Execute(() => client.ExecuteGetAsync(request).Result);
 
-			return r.Content;
-		}
+                if (!r.IsSuccessStatusCode)
+                {
+                    throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+                }
 
-		internal async Task<RestResponse?> DoRestPost(string suffixUrl, string body)
-		{
-			var options = new RestClientOptions(url)
-			{
-				ThrowOnAnyError = false,
-				ThrowOnDeserializationError = false
-			};
+                memoryCache.Set(suffixUrl, r.Content, cacheEntryOptions);
 
-			var client = new RestClient(options);
-			var request = new RestRequest($"{url}/{suffixUrl}")
-			{
-				RequestFormat = DataFormat.Json
-			};
+                return r.Content;
+            }
+            finally
+            {
+                //Call the ReleaseMutex method to unblock so that other threads
+                //that are trying to gain ownership of the mutex can enter  
+                mutex.ReleaseMutex();
+            }
+        }
 
-			request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-			request.AddHeader("Content-Type", "application/json");
+        internal async Task<RestResponse?> DoRestPost(string suffixUrl, string body)
+        {
+            try
+            {
+                mutex.WaitOne();
 
-			request.AddJsonBody(body);
-			var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
+                var options = new RestClientOptions(url)
+                {
+                    ThrowOnAnyError = false,
+                    ThrowOnDeserializationError = false
+                };
 
-			if (!r.IsSuccessStatusCode)
-			{
-				throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
-			}
+                var client = new RestClient(options);
+                var request = new RestRequest($"{url}/{suffixUrl}")
+                {
+                    RequestFormat = DataFormat.Json
+                };
 
-			return r;
-		}
+                request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
+                request.AddHeader("Content-Type", "application/json");
 
-		private async Task<string> GetAuthenticationToken()
-		{
-			var suffixUrl = "api/v1/auth/anonymous";
-			if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
-			{
-				return result;
-			}
+                request.AddJsonBody(body);
+                var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
 
-			var options = new RestClientOptions(url)
-			{
-				ThrowOnAnyError = false,
-				ThrowOnDeserializationError = false
-			};
+                if (!r.IsSuccessStatusCode)
+                {
+                    throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+                }
 
-			var client = new RestClient(options);
-			var request = new RestRequest($"{url}/{suffixUrl}")
-			{
-				RequestFormat = DataFormat.Json
-			};
+                return r;
+            }
+            finally
+            {
+                //Call the ReleaseMutex method to unblock so that other threads
+                //that are trying to gain ownership of the mutex can enter  
+                mutex.ReleaseMutex();
+            }
+        }
 
-			request.AddHeader("Content-Type", "application/json");
+        private async Task<string> GetAuthenticationToken()
+        {
+            var suffixUrl = "api/v1/auth/anonymous";
+            if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
+            {
+                return result;
+            }
 
-			var body = new JObject
-			{
-				["accessToken"] = accessToken
-			};
-			request.AddJsonBody(body.ToString());
-			var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
+            var options = new RestClientOptions(url)
+            {
+                ThrowOnAnyError = false,
+                ThrowOnDeserializationError = false
+            };
 
-			if (!r.IsSuccessStatusCode)
-			{
-				throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
-			}
+            var client = new RestClient(options);
+            var request = new RestRequest($"{url}/{suffixUrl}")
+            {
+                RequestFormat = DataFormat.Json
+            };
 
-			dynamic stuff = JsonConvert.DeserializeObject(r.Content);
-			string token = stuff.authToken.ToString();
+            request.AddHeader("Content-Type", "application/json");
 
-			memoryCache.Set(suffixUrl, token, CacheDuration.Short());
-			return token;
-		}
-	}
+            var body = new JObject
+            {
+                ["accessToken"] = accessToken
+            };
+            request.AddJsonBody(body.ToString());
+            var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
+
+            if (!r.IsSuccessStatusCode)
+            {
+                throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+            }
+
+            dynamic stuff = JsonConvert.DeserializeObject(r.Content);
+            string token = stuff.authToken.ToString();
+
+            memoryCache.Set(suffixUrl, token, CacheDuration.Short());
+            return token;
+        }
+    }
 }
