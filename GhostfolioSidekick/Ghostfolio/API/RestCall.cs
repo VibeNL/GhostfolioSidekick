@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			   .HandleResult<RestResponse>(x => !x.IsSuccessful)
 			   .WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, async (iRestResponse, timeSpan, retryCount, context) =>
 			   {
-				   logger.LogWarning($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
+				   logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
 			   });
 		}
 
@@ -124,11 +124,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			request.AddHeader("Content-Type", "application/json");
 
-            var body = new JObject
-            {
-                ["accessToken"] = accessToken
-            };
-            request.AddJsonBody(body.ToString());
+			var body = new JObject
+			{
+				["accessToken"] = accessToken
+			};
+			request.AddJsonBody(body.ToString());
 			var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
 
 			if (!r.IsSuccessStatusCode)
