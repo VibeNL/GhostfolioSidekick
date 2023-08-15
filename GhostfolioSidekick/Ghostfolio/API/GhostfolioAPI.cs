@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<decimal> GetMarketPrice(string symbol, DateTime date)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/YAHOO/{symbol}");
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/YAHOO/{symbol}", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Market>(content);
 
 			foreach (var item in market.MarketData)
@@ -136,7 +136,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		{
 			identifier = mapper.MapIdentifier(identifier);
 
-			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices=true");
+			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
 			dynamic stuff = JsonConvert.DeserializeObject(content);
 			var asset = new Asset
 			{
@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		{
 			sourceCurrency = mapper.MapCurrency(sourceCurrency);
 
-			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}");
+			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}", CacheDuration.Short());
 
 			dynamic stuff = JsonConvert.DeserializeObject(content);
 			var token = stuff.marketPrice.ToString();
@@ -163,7 +163,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Account> GetAccountByName(string name)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account");
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Long());
 
 			var account = JsonConvert.DeserializeObject<AccountList>(content);
 			return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));

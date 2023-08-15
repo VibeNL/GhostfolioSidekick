@@ -11,12 +11,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	public class RestCall
 	{
 		private static int _maxRetryAttempts = 5;
-		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromMinutes(30);
+		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(10);
 
 		private readonly IMemoryCache memoryCache;
 		private readonly string url;
 		private readonly string accessToken;
-		private readonly MemoryCacheEntryOptions cacheEntryOptions;
 		private readonly RetryPolicy<RestResponse> retryPolicy;
 
 		public RestCall(
@@ -29,18 +28,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.url = url;
 			this.accessToken = accessToken;
 
-			cacheEntryOptions = new MemoryCacheEntryOptions()
-				.SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
-
 			retryPolicy = Policy
-			   .HandleResult<RestResponse>(x => !x.IsSuccessful)
-			   .WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, async (iRestResponse, timeSpan, retryCount, context) =>
-			   {
-				   logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
-			   });
+				.HandleResult<RestResponse>(x => !x.IsSuccessful)
+				.WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, async (iRestResponse, timeSpan, retryCount, context) =>
+				{
+					logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
+				});
 		}
 
-		public async Task<string?> DoRestGet(string suffixUrl)
+		public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions cacheEntryOptions)
 		{
 			if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
 			{
@@ -139,7 +135,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			dynamic stuff = JsonConvert.DeserializeObject(r.Content);
 			string token = stuff.authToken.ToString();
 
-			memoryCache.Set(suffixUrl, token, cacheEntryOptions);
+			memoryCache.Set(suffixUrl, token, CacheDuration.Short());
 			return token;
 		}
 	}
