@@ -1,4 +1,8 @@
-﻿namespace GhostfolioSidekick.FileImporter.Trading212
+﻿using CsvHelper.Configuration;
+using GhostfolioSidekick.Ghostfolio.API;
+using System.Globalization;
+
+namespace GhostfolioSidekick.FileImporter.Trading212
 {
 	public class Trading212Parser : RecordBaseImporter<Trading212Record>
 	{
