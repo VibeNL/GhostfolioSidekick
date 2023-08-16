@@ -58,6 +58,94 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return 0;
 		}
 
+		public async Task<Asset> FindSymbolByISIN(string? identifier)
+		{
+			identifier = mapper.MapIdentifier(identifier);
+
+			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
+			dynamic stuff = JsonConvert.DeserializeObject(content);
+			var asset = new Asset
+			{
+				Symbol = stuff.items[0].symbol,
+				Currency = stuff.items[0].currency,
+				DataSource = stuff.items[0].dataSource,
+			};
+
+			return asset;
+		}
+
+		public async Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date)
+		{
+			sourceCurrency = mapper.MapCurrency(sourceCurrency);
+
+			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}", CacheDuration.Short());
+
+			dynamic stuff = JsonConvert.DeserializeObject(content);
+			var token = stuff.marketPrice.ToString();
+			var rate = (decimal)decimal.Parse(token);
+
+			return rate;
+		}
+
+		public async Task<Account> GetAccountByName(string name)
+		{
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Long());
+
+			var account = JsonConvert.DeserializeObject<AccountList>(content);
+			return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+		}
+
+		public async Task<IEnumerable<Order>> GetExistingOrders(Account account)
+		{
+			var content = await restCall.DoRestGet($"api/v1/order?accounts={account.Id}", CacheDuration.None());
+
+			var rawOrderList = JsonConvert.DeserializeObject<RawOrderList>(content);
+			var orderList = new List<Order>();
+
+			foreach (var order in rawOrderList.Activities)
+			{
+				orderList.Add(new Order
+				{
+					AccountId = account.Id,
+					Asset = await FindSymbolByISIN(order.SymbolProfile.Symbol),
+					Comment = order.Comment,
+					Currency = order.SymbolProfile.Currency,
+					Date = order.Date,
+					Fee = order.Fee,
+					FeeCurrency = order.SymbolProfile.Currency,
+					Quantity = order.Quantity,
+					Type = order.Type,
+					UnitPrice = order.UnitPrice,
+				});
+			}
+
+			return orderList;
+		}
+
+		public Task Delete(IEnumerable<Order> orders)
+		{
+			throw new NotImplementedException();
+		}
+
+		private async Task WriteOrder(Order? order)
+		{
+			var r = await restCall.DoRestPost($"api/v1/import", await ConvertToBody(order));
+			bool emptyResponse = false;
+			if (!r.IsSuccessStatusCode || (emptyResponse = r.Content.Equals("{\"activities\":[]}")))
+			{
+				var isduplicate = emptyResponse || (r.Content?.Contains("activities.1 is a duplicate activity") ?? false);
+				if (isduplicate)
+				{
+					logger.LogDebug($"Duplicate transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
+					return;
+				}
+
+				throw new NotSupportedException();
+			}
+
+			logger.LogInformation($"Added transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
+		}
+
 		private async Task<string> ConvertToBody(Order order)
 		{
 			var o = new JObject();
@@ -113,60 +201,5 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			};
 		}
 
-		private async Task WriteOrder(Order? order)
-		{
-			var r = await restCall.DoRestPost($"api/v1/import", await ConvertToBody(order));
-			bool emptyResponse = false;
-			if (!r.IsSuccessStatusCode || (emptyResponse = r.Content.Equals("{\"activities\":[]}")))
-			{
-				var isduplicate = emptyResponse || (r.Content?.Contains("activities.1 is a duplicate activity") ?? false);
-				if (isduplicate)
-				{
-					logger.LogDebug($"Duplicate transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
-					return;
-				}
-
-				throw new NotSupportedException();
-			}
-
-			logger.LogInformation($"Added transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
-		}
-
-		public async Task<Asset> FindSymbolByISIN(string? identifier)
-		{
-			identifier = mapper.MapIdentifier(identifier);
-
-			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
-			dynamic stuff = JsonConvert.DeserializeObject(content);
-			var asset = new Asset
-			{
-				Symbol = stuff.items[0].symbol,
-				Currency = stuff.items[0].currency,
-				DataSource = stuff.items[0].dataSource,
-			};
-
-			return asset;
-		}
-
-		public async Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date)
-		{
-			sourceCurrency = mapper.MapCurrency(sourceCurrency);
-
-			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}", CacheDuration.Short());
-
-			dynamic stuff = JsonConvert.DeserializeObject(content);
-			var token = stuff.marketPrice.ToString();
-			var rate = (decimal)decimal.Parse(token);
-
-			return rate;
-		}
-
-		public async Task<Account> GetAccountByName(string name)
-		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Long());
-
-			var account = JsonConvert.DeserializeObject<AccountList>(content);
-			return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
-		}
 	}
 }
