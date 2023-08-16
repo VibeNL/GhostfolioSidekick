@@ -23,13 +23,14 @@ namespace ConsoleHelper
 			}
 
 			var cs = new ConfigurationSettings();
-			GhostfolioAPI api = new GhostfolioAPI(new MemoryCache(new MemoryCacheOptions { }), logger);
+            MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
+            GhostfolioAPI api = new GhostfolioAPI(memoryCache, logger);
 			var t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new ScalableCapitalParser(api),
 				new DeGiroParser(api),
 				new Trading212Parser(api)
 			});
 			t.DoWork().Wait();
-		}
+        }
 	}
 }

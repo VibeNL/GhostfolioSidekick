@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using Polly;
 using Polly.Retry;
 using RestSharp;
+using System.Diagnostics;
 
 namespace GhostfolioSidekick.Ghostfolio.API
 {
@@ -16,6 +17,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
         private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(1);
 
         private readonly IMemoryCache memoryCache;
+        private readonly ILogger<GhostfolioAPI> logger;
         private readonly string url;
         private readonly string accessToken;
         private readonly RetryPolicy<RestResponse> retryPolicy;
@@ -27,6 +29,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
             string accessToken)
         {
             this.memoryCache = memoryCache;
+            this.logger = logger;
             this.url = url;
             this.accessToken = accessToken;
 
@@ -40,7 +43,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
         public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions cacheEntryOptions)
         {
-
             if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
             {
                 return result;
@@ -49,10 +51,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
             try
             {
                 mutex.WaitOne();
+
+                if (memoryCache.TryGetValue<string?>(suffixUrl, out var result2))
+                {
+                    return result2;
+                }
+
                 var options = new RestClientOptions(url)
                 {
                     ThrowOnAnyError = false,
-                    ThrowOnDeserializationError = false
+                    ThrowOnDeserializationError = false,
                 };
 
                 var client = new RestClient(options);
@@ -64,7 +72,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
                 request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
                 request.AddHeader("Content-Type", "application/json");
 
+                var stopwatch = new Stopwatch();
+
+                stopwatch.Start();
                 var r = retryPolicy.Execute(() => client.ExecuteGetAsync(request).Result);
+                stopwatch.Stop();
+
+                logger.LogDebug($"Url {url}/{suffixUrl} took {stopwatch.ElapsedMilliseconds}ms");
 
                 if (!r.IsSuccessStatusCode)
                 {
