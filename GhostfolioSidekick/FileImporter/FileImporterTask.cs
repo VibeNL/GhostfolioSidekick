@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.FileImporter
 
                 try
                 {
-                    var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName);
+                    var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName).Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
                     var importer = importers.SingleOrDefault(x => x.CanConvertOrders(files).Result) ?? throw new NoImporterAvailableException($"Directory {accountName} has no importer");
                     orders.AddRange(await importer.ConvertToOrders(accountName, files));
                 }
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.FileImporter
 
                     foreach (var file in files)
                     {
-                        var importerString = string.Join(", ", importers.Select(x => $"Importer: {x.GetType().Name} CanConvert: {x.CanConvertOrders(files).Result}"));
+                        var importerString = string.Join(", ", importers.Select(x => $"Importer: {x.GetType().Name} CanConvert: {x.CanConvertOrders(new[] { file }).Result}"));
                         sb.AppendLine($"{accountName} | {file} can be imported by {importerString}");
                     }
 
