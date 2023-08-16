@@ -43,8 +43,6 @@ namespace GhostfolioSidekick.FileImporter
 
                 try
                 {
-                    throw new NoImporterAvailableException();
-
                     var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName);
                     var importer = importers.SingleOrDefault(x => x.CanConvertOrders(files).Result) ?? throw new NoImporterAvailableException($"Directory {accountName} has no importer");
                     orders.AddRange(await importer.ConvertToOrders(accountName, files));
