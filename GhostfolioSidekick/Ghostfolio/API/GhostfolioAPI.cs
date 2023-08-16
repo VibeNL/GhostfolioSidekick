@@ -102,6 +102,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date)
 		{
+			if (sourceCurrency == targetCurrency)
+			{
+				return 1;
+			}
+
 			sourceCurrency = mapper.MapCurrency(sourceCurrency);
 
 			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}", CacheDuration.Short());
@@ -158,19 +163,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return Math.Round(value, 10);
 			};
 
-			if (order.Currency == order.Asset.Currency)
-			{
-				return order;
-			}
-
-			decimal currencyConvertionRate = (await GetExchangeRate(order.Currency, order.Asset.Currency, order.Date));
+			decimal currencyConvertionRate = await GetExchangeRate(order.Currency, order.Asset.Currency, order.Date);
 			decimal feeConvertionRate = order.Fee > 0 ? (await GetExchangeRate(order.FeeCurrency, order.Asset.Currency, order.Date)) : 1;
+
+			var conversionComment = currencyConvertionRate != 1 ? $" | Original Price {order.UnitPrice}{order.Currency}, Fee {order.Fee}{order.Currency}" : string.Empty;
 			return new Order
 			{
 				AccountId = order.AccountId,
 				Currency = order.Asset.Currency,
 				Asset = order.Asset,
-				Comment = $"{order.Comment} | Original Price {order.UnitPrice}{order.Currency}, Fee {order.Fee}{order.Currency}",
+				Comment = order.Comment + conversionComment,
 				Date = order.Date,
 				Fee = Round(feeConvertionRate * order.Fee),
 				Quantity = Round(order.Quantity),
