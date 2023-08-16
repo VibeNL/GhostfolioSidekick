@@ -22,7 +22,7 @@
 
 		public decimal UnitPrice { get; set; }
 
-		
+
 		// Internal use
 		public string ReferenceCode { get; set; }
 	}

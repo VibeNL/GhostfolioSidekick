@@ -17,5 +17,7 @@
 		public OrderType Type { get; set; }
 
 		public decimal UnitPrice { get; set; }
+
+		public Guid Id { get; set; }
 	}
 }

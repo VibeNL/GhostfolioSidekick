@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Ghostfolio.API
 {
@@ -27,17 +28,42 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			restCall = new RestCall(memoryCache, logger, url, accessToken);
 		}
 
-		public async Task Write(IEnumerable<Order> orders)
+		public async Task UpdateOrders(IEnumerable<Order> orders)
 		{
-			foreach (var order in orders.OrderBy(x => x.Date))
+			var ordersByAccount = orders.GroupBy(x => x.AccountId);
+
+			foreach (var group in ordersByAccount)
 			{
-				try
+				var mapped = group.Select(x => ConvertToNativeCurrency(x).Result).ToList();
+				var existingOrders = await GetExistingOrders(group.First().AccountId);
+
+				foreach (var mergeOrder in MergeOrders(mapped, existingOrders))
 				{
-					await WriteOrder(order);
-				}
-				catch (Exception ex)
-				{
-					logger.LogError($"Transaction failed to write {ex}, skipping");
+					try
+					{
+						switch (mergeOrder.Operation)
+						{
+							case Operation.New:
+								await WriteOrder(mergeOrder.Order1);
+								break;
+							case Operation.Duplicate:
+								// Nothing to do!
+								break;
+							case Operation.Updated:
+								await DeleteOrder(mergeOrder.Order2);
+								await WriteOrder(mergeOrder.Order1);
+								break;
+							case Operation.Removed:
+								await DeleteOrder(mergeOrder.Order2);
+								break;
+							default:
+								break;
+						}
+					}
+					catch (Exception ex)
+					{
+						logger.LogError($"Transaction failed to write {ex}, skipping");
+					}
 				}
 			}
 		}
@@ -95,38 +121,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 		}
 
-		public async Task<IEnumerable<Order>> GetExistingOrders(Account account)
-		{
-			var content = await restCall.DoRestGet($"api/v1/order?accounts={account.Id}", CacheDuration.None());
-
-			var rawOrderList = JsonConvert.DeserializeObject<RawOrderList>(content);
-			var orderList = new List<Order>();
-
-			foreach (var order in rawOrderList.Activities)
-			{
-				orderList.Add(new Order
-				{
-					AccountId = account.Id,
-					Asset = await FindSymbolByISIN(order.SymbolProfile.Symbol),
-					Comment = order.Comment,
-					Currency = order.SymbolProfile.Currency,
-					Date = order.Date,
-					Fee = order.Fee,
-					FeeCurrency = order.SymbolProfile.Currency,
-					Quantity = order.Quantity,
-					Type = order.Type,
-					UnitPrice = order.UnitPrice,
-				});
-			}
-
-			return orderList;
-		}
-
-		public Task Delete(IEnumerable<Order> orders)
-		{
-			throw new NotImplementedException();
-		}
-
 		private async Task WriteOrder(Order? order)
 		{
 			var r = await restCall.DoRestPost($"api/v1/import", await ConvertToBody(order));
@@ -140,46 +134,30 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					return;
 				}
 
-				throw new NotSupportedException();
+				throw new NotSupportedException($"Insert Failed {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
 			}
 
 			logger.LogInformation($"Added transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
 		}
 
-		private async Task<string> ConvertToBody(Order order)
+		private async Task DeleteOrder(RawOrder? order)
 		{
-			var o = new JObject();
-			var r = new JObject
+			var r = await restCall.DoRestDelete($"api/v1/order/{order.Id}");
+			if (!r.IsSuccessStatusCode)
 			{
-				["activities"] = new JArray()
-				{
-					o
-				}
-			};
+				throw new NotSupportedException($"Deletion failed {order.Id}");
+			}
 
-			double Round(decimal value)
-			{
-				return decimal.ToDouble(Math.Round(value, 10));
-			};
-
-			order = await ConvertOrderToNativeCurrencyIfNeeded(order);
-
-			o["accountId"] = order.AccountId;
-			o["comment"] = order.Comment;
-			o["currency"] = order.Currency;
-			o["dataSource"] = order.Asset.DataSource;
-			o["date"] = order.Date.ToString("o");
-			o["fee"] = Round(order.Fee);
-			o["quantity"] = Round(order.Quantity);
-			o["symbol"] = order.Asset.Symbol;
-			o["type"] = order.Type.ToString();
-			o["unitPrice"] = Round(order.UnitPrice);
-			var res = r.ToString();
-			return res;
+			logger.LogInformation($"Deleted transaction {order.Id} {order.SymbolProfile.Symbol} {order.Date}");
 		}
 
-		private async Task<Order> ConvertOrderToNativeCurrencyIfNeeded(Order order)
+		private async Task<Order> ConvertToNativeCurrency(Order order)
 		{
+			decimal Round(decimal value)
+			{
+				return Math.Round(value, 10);
+			};
+
 			if (order.Currency == order.Asset.Currency)
 			{
 				return order;
@@ -194,12 +172,106 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				Asset = order.Asset,
 				Comment = $"{order.Comment} | Original Price {order.UnitPrice}{order.Currency}, Fee {order.Fee}{order.Currency}",
 				Date = order.Date,
-				Fee = feeConvertionRate * order.Fee,
-				Quantity = order.Quantity,
+				Fee = Round(feeConvertionRate * order.Fee),
+				Quantity = Round(order.Quantity),
 				Type = order.Type,
-				UnitPrice = currencyConvertionRate * order.UnitPrice,
+				UnitPrice = Round(currencyConvertionRate * order.UnitPrice),
+				ReferenceCode = order.ReferenceCode
 			};
 		}
 
+		private async Task<string> ConvertToBody(Order order)
+		{
+			var o = new JObject();
+			var r = new JObject
+			{
+				["activities"] = new JArray()
+				{
+					o
+				}
+			};
+
+			o["accountId"] = order.AccountId;
+			o["comment"] = order.Comment;
+			o["currency"] = order.Currency;
+			o["dataSource"] = order.Asset.DataSource;
+			o["date"] = order.Date.ToString("o");
+			o["fee"] = order.Fee;
+			o["quantity"] = order.Quantity;
+			o["symbol"] = order.Asset.Symbol;
+			o["type"] = order.Type.ToString();
+			o["unitPrice"] = order.UnitPrice;
+			var res = r.ToString();
+			return res;
+		}
+
+		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Order> ordersFromFiles, IEnumerable<RawOrder> existingOrders)
+		{
+			var pattern = @"Transaction Reference: \[(.*?)\]";
+
+			return ordersFromFiles.GroupJoin(existingOrders,
+				fo => fo.ReferenceCode,
+				eo =>
+				{
+					var match = Regex.Match(eo.Comment, pattern);
+					var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
+					return key;
+				},
+				(fo, eo) =>
+				{
+					if (fo != null && eo != null && eo.Any())
+					{
+						if (AreEquals(fo, eo.Single()))
+						{
+							return new MergeOrder(Operation.Duplicate, fo);
+						}
+
+						return new MergeOrder(Operation.Updated, fo, eo.Single());
+					}
+					else if (fo != null)
+					{
+						return new MergeOrder(Operation.New, fo);
+					}
+					else
+					{
+						return new MergeOrder(Operation.Removed, null, eo.Single());
+					}
+				});
+		}
+
+		private bool AreEquals(Order fo, RawOrder eo)
+		{
+			return fo.Quantity == eo.Quantity &&
+				fo.UnitPrice == eo.UnitPrice &&
+				fo.Fee == eo.Fee &&
+				fo.Type == eo.Type &&
+				fo.Date == eo.Date;
+		}
+
+		private async Task<IEnumerable<RawOrder>> GetExistingOrders(string accountId)
+		{
+			var content = await restCall.DoRestGet($"api/v1/order?accounts={accountId}", CacheDuration.None());
+			return JsonConvert.DeserializeObject<RawOrderList>(content).Activities;
+		}
+
+		private class MergeOrder
+		{
+			public MergeOrder(Operation operation, Order? order1)
+			{
+				Operation = operation;
+				Order1 = order1;
+			}
+
+			public MergeOrder(Operation operation, Order? order1, RawOrder? order2) : this(operation, order1)
+			{
+				Order2 = order2;
+			}
+
+			public Operation Operation { get; }
+
+			public Order Order1 { get; }
+
+			public RawOrder Order2 { get; }
+		}
 	}
 }

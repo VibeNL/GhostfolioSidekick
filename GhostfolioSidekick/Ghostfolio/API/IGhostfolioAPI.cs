@@ -10,10 +10,6 @@
 
 		Task<Account> GetAccountByName(string name);
 
-		Task<IEnumerable<Order>> GetExistingOrders(Account account);
-
-		public Task Write(IEnumerable<Order> orders);
-
-		public Task Delete(IEnumerable<Order> orders);
+		public Task UpdateOrders(IEnumerable<Order> orders);
 	}
 }

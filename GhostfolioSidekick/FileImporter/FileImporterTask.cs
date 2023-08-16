@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
 
-			var newOrders = new List<Order>();
+			var orders = new List<Order>();
 
 			var directories = Directory.GetDirectories(fileLocation);
 
@@ -45,10 +45,7 @@ namespace GhostfolioSidekick.FileImporter
 				{
 					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName).Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
 					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(files).Result) ?? throw new NoImporterAvailableException($"Directory {accountName} has no importer");
-					var ordersFromFiles = await importer.ConvertToOrders(accountName, files);
-
-					var existingOrders = await api.GetExistingOrders(await api.GetAccountByName(accountName));
-					newOrders.AddRange(ordersFromFiles);
+					orders.AddRange(await importer.ConvertToOrders(accountName, files));
 				}
 				catch (NoImporterAvailableException noImporter)
 				{
@@ -70,7 +67,7 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			await api.Write(newOrders.Where(x => x.Date < DateTime.Today).OrderBy(x => x.Date));
+			await api.UpdateOrders(orders);
 
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}
