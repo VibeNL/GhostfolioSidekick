@@ -69,14 +69,14 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			switch (record.Action)
 			{
 				case "Deposit":
+				case "Interest on cash":
 					return null;
 				case "Market buy":
 					return OrderType.BUY;
 				case "Market sell":
 					return OrderType.SELL;
 				default:
-					// TODO, implement other options
-					return null;
+					throw new NotSupportedException();
 			}
 		}
 	}
