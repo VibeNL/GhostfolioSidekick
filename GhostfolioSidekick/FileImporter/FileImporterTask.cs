@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.FileImporter
 {
 	public class FileImporterTask : IScheduledWork
 	{
-		private readonly string? fileLocation;
+		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
 		private readonly IEnumerable<IFileImporter> importers;
@@ -13,12 +13,18 @@ namespace GhostfolioSidekick.FileImporter
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
 			IGhostfolioAPI api,
+			IConfigurationSettings settings,
 			IEnumerable<IFileImporter> importers)
 		{
-			fileLocation = Environment.GetEnvironmentVariable("FileImporterPath");
-			this.logger = logger;
-			this.api = api;
-			this.importers = importers;
+			if (settings is null)
+			{
+				throw new ArgumentNullException(nameof(settings));
+			}
+
+			fileLocation = settings.FileImporterPath;
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.api = api ?? throw new ArgumentNullException(nameof(api));
+			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
 		}
 
 		public async Task DoWork()
@@ -27,25 +33,18 @@ namespace GhostfolioSidekick.FileImporter
 
 			var orders = new List<Order>();
 
-			var files = Directory.GetFiles(fileLocation, "*.*", SearchOption.AllDirectories)
-				.Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
+			var directories = Directory.GetDirectories(fileLocation);
 
-			foreach (var fileGroup in files.GroupBy(x => new FileInfo(x).Directory.Name))
+			foreach (var directory in directories.Select(x => new DirectoryInfo(x)))
 			{
-				logger.LogInformation($"Found file {fileGroup.Key} to process");
+				var accountName = directory.Name;
+				logger.LogDebug($"AccountName: {accountName}");
+
 				try
 				{
-					var accountName = fileGroup.Key;
-
-					logger.LogDebug($"AccountName: {accountName}");
-
-					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(fileGroup).Result);
-					if (importer == null)
-					{
-						throw new NotSupportedException($"Filegroup {fileGroup.Key} has no importer");
-					}
-
-					orders.AddRange(await importer.ConvertToOrders(accountName, fileGroup));
+					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName);
+					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(files).Result) ?? throw new NotSupportedException($"Directory {accountName} has no importer");
+					orders.AddRange(await importer.ConvertToOrders(accountName, files));
 				}
 				catch (Exception ex)
 				{

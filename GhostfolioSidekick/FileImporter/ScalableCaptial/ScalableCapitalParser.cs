@@ -3,225 +3,231 @@ using CsvHelper;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 {
 
-    public class ScalableCapitalParser : IFileImporter
-    {
-        private IEnumerable<IFileImporter> fileImporters;
+	public class ScalableCapitalParser : IFileImporter
+	{
+		private readonly IGhostfolioAPI api;
 
-        private IGhostfolioAPI api;
+		public ScalableCapitalParser(IGhostfolioAPI api)
+		{
+			this.api = api;
+		}
 
-        public ScalableCapitalParser(IGhostfolioAPI api)
-        {
-            this.api = api;
-        }
+		public Task<bool> CanConvertOrders(IEnumerable<string> filenames)
+		{
+			foreach (var file in filenames)
+			{
+				CsvConfiguration csvConfig = GetConfig();
 
-        public async Task<bool> CanConvertOrders(IEnumerable<string> filenames)
-        {
-            foreach (var file in filenames)
-            {
-                CsvConfiguration csvConfig = GetConfig();
+				using var streamReader = File.OpenText(file);
+				using var csvReader = new CsvReader(streamReader, csvConfig);
 
-                using var streamReader = File.OpenText(file);
-                using var csvReader = new CsvReader(streamReader, csvConfig);
+				csvReader.Read();
+				csvReader.ReadHeader();
 
-                csvReader.Read();
-                csvReader.ReadHeader();
+				var canParse = IsWUMRecord(csvReader) || IsRKKRecord(csvReader);
+				if (!canParse)
+				{
+					return Task.FromResult(false);
+				}
+			}
 
-
-                var canParse = IsWUMRecord(csvReader) || IsRKKRecord(csvReader);
-                if (!canParse)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+			return Task.FromResult(true);
+		}
 
 
-        public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
-        {
-            var list = new List<Order>();
-            var wumRecords = new List<BaaderBankWUMRecord>();
-            var rkkRecords = new List<BaaderBankRKKRecord>();
+		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
+		{
+			var list = new ConcurrentDictionary<Tuple<string, Asset, string, DateTime, decimal, decimal>, Order>();
+			Tuple<string, Asset, string, DateTime, decimal, decimal> GetKey(Order x)
+			{
+				return Tuple.Create(x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity);
+			};
 
-            var account = await api.GetAccountByName(accountName);
 
-            if (account == null)
-            {
-                throw new NotSupportedException();
-            }
+			var wumRecords = new ConcurrentBag<BaaderBankWUMRecord>();
+			var rkkRecords = new ConcurrentDictionary<string, BaaderBankRKKRecord>();
 
-            foreach (var filename in filenames)
-            {
-                CsvConfiguration csvConfig = GetConfig();
+			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException();
 
-                using var streamReader = File.OpenText(filename);
-                using var csvReader = new CsvReader(streamReader, csvConfig);
+			Parallel.ForEach(filenames, filename =>
+			{
+				CsvConfiguration csvConfig = GetConfig();
 
-                csvReader.Read();
-                csvReader.ReadHeader();
+				using var streamReader = File.OpenText(filename);
+				using var csvReader = new CsvReader(streamReader, csvConfig);
 
-                if (IsWUMRecord(csvReader))
-                {
-                    wumRecords.AddRange(csvReader.GetRecords<BaaderBankWUMRecord>().ToList());
-                }
+				csvReader.Read();
+				csvReader.ReadHeader();
 
-                if (IsRKKRecord(csvReader))
-                {
-                    rkkRecords.AddRange(csvReader.GetRecords<BaaderBankRKKRecord>().ToList());
-                }
-            }
+				if (IsWUMRecord(csvReader))
+				{
+					csvReader.GetRecords<BaaderBankWUMRecord>().ToList().ForEach(x => wumRecords.Add(x));
+				}
 
-            foreach (var record in wumRecords)
-            {
-                var order = await ConvertToOrder(account, record, rkkRecords);
-                if (order != null)
-                {
-                    list.Add(order);
-                }
-            }
+				if (IsRKKRecord(csvReader))
+				{
+					csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x => rkkRecords.TryAdd(x.Reference, x));
+				}
+			});
 
-            foreach (var record in rkkRecords)
-            {
-                var order = await ConvertToOrder(account, record);
-                if (order != null)
-                {
-                    list.Add(order);
-                }
-            }
+			Parallel.ForEach(wumRecords, async record =>
+			{
+				var order = await ConvertToOrder(account, record, rkkRecords);
+				if (order != null)
+				{
+					list.TryAdd(GetKey(order), order);
+				}
+			});
 
-            return list.DistinctBy(x => new { x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity });
-        }
+			Parallel.ForEach(rkkRecords, async record =>
+			{
+				var order = await ConvertToOrder(account, record.Value);
+				if (order != null)
+				{
+					list.TryAdd(GetKey(order), order);
+				}
+			});
 
-        private async Task<Order> ConvertToOrder(Account account, BaaderBankRKKRecord record)
-        {
-            var orderType = GetOrderType(record);
-            if (orderType == null)
-            {
-                return null;
-            }
+			return list.Values;
+		}
 
-            var asset = await api.FindSymbolByISIN(record.Isin.Replace("ISIN ", string.Empty));
+		private async Task<Order?> ConvertToOrder(Account account, BaaderBankRKKRecord record)
+		{
+			var orderType = GetOrderType(record);
+			if (orderType == null)
+			{
+				return null;
+			}
 
-            var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
-            var unitPrice = record.UnitPrice.Value / quantity;
-            return new Order
-            {
-                AccountId = account.Id,
-                Asset = asset,
-                Comment = $"Transaction Reference: [{record.Reference}]",
-                Currency = record.Currency,
-                Date = record.Date.ToDateTime(TimeOnly.MinValue),
-                Fee = 0,
-                FeeCurrency = record.Currency,
-                Quantity = quantity,
-                ReferenceCode = record.Reference,
-                Type = orderType.Value,
-                UnitPrice = unitPrice
-            };
-        }
+			var asset = await api.FindSymbolByISIN(record.Isin.Replace("ISIN ", string.Empty));
 
-        private async Task<Order> ConvertToOrder(Account account, BaaderBankWUMRecord record, List<BaaderBankRKKRecord> rkkRecords)
-        {
-            var asset = await api.FindSymbolByISIN(record.Isin);
+			var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
+			var unitPrice = record.UnitPrice.GetValueOrDefault() / quantity;
+			return new Order
+			{
+				AccountId = account.Id,
+				Asset = asset,
+				Comment = $"Transaction Reference: [{record.Reference}]",
+				Currency = record.Currency,
+				Date = record.Date.ToDateTime(TimeOnly.MinValue),
+				Fee = 0,
+				FeeCurrency = record.Currency,
+				Quantity = quantity,
+				ReferenceCode = record.Reference,
+				Type = orderType.Value,
+				UnitPrice = unitPrice
+			};
+		}
 
-            var fee = FindFeeRecord(rkkRecords, record.Reference);
+		private async Task<Order> ConvertToOrder(Account account, BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
+		{
+			var asset = await api.FindSymbolByISIN(record.Isin);
 
-            return new Order
-            {
-                AccountId = account.Id,
-                Asset = asset,
-                Comment = $"Transaction Reference: [{record.Reference}]",
-                Currency = record.Currency,
-                Date = record.Date.ToDateTime(TimeOnly.MinValue),
-                Fee = Math.Abs(fee?.UnitPrice ?? 0),
-                FeeCurrency = fee?.Currency ?? record.Currency,
-                Quantity = Math.Abs(record.Quantity.Value),
-                ReferenceCode = record.Reference,
-                Type = GetOrderType(record),
-                UnitPrice = record.UnitPrice.Value
-            };
-        }
+			var fee = FindFeeRecord(rkkRecords, record.Reference);
 
-        private BaaderBankRKKRecord? FindFeeRecord(List<BaaderBankRKKRecord> rkkRecords, string reference)
-        {
-            return rkkRecords.FirstOrDefault(x => x.Reference == reference);
-        }
+			return new Order
+			{
+				AccountId = account.Id,
+				Asset = asset,
+				Comment = $"Transaction Reference: [{record.Reference}]",
+				Currency = record.Currency,
+				Date = record.Date.ToDateTime(TimeOnly.MinValue),
+				Fee = Math.Abs(fee?.UnitPrice ?? 0),
+				FeeCurrency = fee?.Currency ?? record.Currency,
+				Quantity = Math.Abs(record.Quantity.GetValueOrDefault()),
+				ReferenceCode = record.Reference,
+				Type = GetOrderType(record),
+				UnitPrice = record.UnitPrice.GetValueOrDefault()
+			};
+		}
 
-        private OrderType GetOrderType(BaaderBankWUMRecord record)
-        {
-            switch (record.OrderType)
-            {
-                case "Verkauf":
-                    return OrderType.SELL;
-                case "Kauf":
-                    return OrderType.BUY;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+		private BaaderBankRKKRecord? FindFeeRecord(ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords, string reference)
+		{
+			if (rkkRecords.TryGetValue(reference, out var baaderBankRKKRecord))
+			{
+				return baaderBankRKKRecord;
+			}
 
-        private OrderType? GetOrderType(BaaderBankRKKRecord record)
-        {
-            if (record.OrderType == "Coupons/Dividende")
-            {
-                return OrderType.DIVIDEND;
-            }
+			return null;
+		}
 
-            return null;
-        }
+		private OrderType GetOrderType(BaaderBankWUMRecord record)
+		{
+			switch (record.OrderType)
+			{
+				case "Verkauf":
+					return OrderType.SELL;
+				case "Kauf":
+					return OrderType.BUY;
+				default:
+					throw new NotSupportedException();
+			}
+		}
 
-        private CsvConfiguration GetConfig()
-        {
-            return new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                HasHeaderRecord = true,
-                CacheFields = true,
-                Delimiter = ";",
-            };
-        }
+		private OrderType? GetOrderType(BaaderBankRKKRecord record)
+		{
+			if (record.OrderType == "Coupons/Dividende")
+			{
+				return OrderType.DIVIDEND;
+			}
 
-        private static bool IsRKKRecord(CsvReader csvReader)
-        {
-            try
-            {
-                csvReader.ValidateHeader<BaaderBankRKKRecord>();
-                return true;
-            }
-            catch
-            {
-            }
+			return null;
+		}
 
-            return false;
-        }
+		private CsvConfiguration GetConfig()
+		{
+			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			{
+				HasHeaderRecord = true,
+				CacheFields = true,
+				Delimiter = ";",
+			};
+		}
 
-        private static bool IsWUMRecord(CsvReader csvReader)
-        {
-            try
-            {
-                csvReader.ValidateHeader<BaaderBankWUMRecord>();
-                return true;
-            }
-            catch
-            {
-            }
+		private static bool IsRKKRecord(CsvReader csvReader)
+		{
+			try
+			{
+				csvReader.ValidateHeader<BaaderBankRKKRecord>();
+				return true;
+			}
+			catch
+			{
+				// Ignore
+			}
 
-            return false;
-        }
+			return false;
+		}
 
-        private CultureInfo GetCultureForParsingNumbers()
-        {
-            return new CultureInfo("en")
-            {
-                NumberFormat =
-                {
-                    NumberDecimalSeparator = ","
-                }
-            };
-        }
-    }
+		private static bool IsWUMRecord(CsvReader csvReader)
+		{
+			try
+			{
+				csvReader.ValidateHeader<BaaderBankWUMRecord>();
+				return true;
+			}
+			catch
+			{
+				// Ignore
+			}
+
+			return false;
+		}
+
+		private static CultureInfo GetCultureForParsingNumbers()
+		{
+			return new CultureInfo("en")
+			{
+				NumberFormat =
+				{
+					NumberDecimalSeparator = ","
+				}
+			};
+		}
+	}
 }
