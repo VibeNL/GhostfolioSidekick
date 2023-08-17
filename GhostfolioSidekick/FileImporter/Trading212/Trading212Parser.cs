@@ -20,6 +20,11 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			var asset = await api.FindSymbolByISIN(record.ISIN);
 
+			if (string.IsNullOrWhiteSpace(record.Id))
+			{
+				record.Id = $"{orderType}_{record.ISIN}_{record.Time.ToString("yyyy-MM-dd")}";
+			}
+
 			var order = new Order
 			{
 				AccountId = account.Id,
@@ -66,18 +71,14 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		private OrderType? GetOrderType(Trading212Record record)
 		{
-			switch (record.Action)
+			return record.Action switch
 			{
-				case "Deposit":
-				case "Interest on cash":
-					return null;
-				case "Market buy":
-					return OrderType.BUY;
-				case "Market sell":
-					return OrderType.SELL;
-				default:
-					throw new NotSupportedException();
-			}
+				"Deposit" or "Interest on cash" => null,
+				"Market buy" => OrderType.BUY,
+				"Market sell" => OrderType.SELL,
+				string d when d.Contains("Dividend") => OrderType.DIVIDEND,
+				_ => throw new NotSupportedException(),
+			};
 		}
 	}
 }

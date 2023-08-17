@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			var cs = new Mock<IConfigurationSettings>();
 			cs.Setup(x => x.FileImporterPath).Returns("./FileImporter/TestFiles");
 
-			var task = new FileImporterTask(new Mock<ILogger<FileImporterTask>>().Object, api.Object, cs.Object, new[] { testImporter.Object } );
+			var task = new FileImporterTask(new Mock<ILogger<FileImporterTask>>().Object, api.Object, cs.Object, new[] { testImporter.Object });
 
 			// Act
 			await task.DoWork();
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			// Assert
 			testImporter.Verify(x => x.ConvertToOrders("DeGiro", It.Is<IEnumerable<string>>(y => y.Count() == 3)), Times.Once);
 			testImporter.Verify(x => x.ConvertToOrders("ScalableCapital", It.Is<IEnumerable<string>>(y => y.Count() == 5)), Times.Once);
-			testImporter.Verify(x => x.ConvertToOrders("Trading212", It.Is<IEnumerable<string>>(y => y.Count() == 3)), Times.Once);
+			testImporter.Verify(x => x.ConvertToOrders("Trading212", It.Is<IEnumerable<string>>(y => y.Count() == 4)), Times.Once);
 		}
 	}
 }

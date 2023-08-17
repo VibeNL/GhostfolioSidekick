@@ -39,7 +39,7 @@ IDENTIFIER,ATOM-USD,Cosmos USD
 ### Supported formats
 | Platform | Source of the files | Buy | Sell | Dividend | 
 |--|--|--|--|--|
-| Trading 212 | Export of transaction history | X | X | - |
+| Trading 212 | Export of transaction history | X | X | X |
 | De Giro | Export of transaction history | X | - | - |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X |
 

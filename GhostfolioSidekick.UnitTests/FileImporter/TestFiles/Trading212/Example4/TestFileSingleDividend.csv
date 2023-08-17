@@ -1,0 +1,2 @@
+Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
+Dividend (Dividends paid by us corporations),2023-08-17 10:49:49,US0378331005,AAPL,"Apple",0.1279177000,0.20,USD,Not available,,,0.02,"EUR",0.00,USD,,,,,,
