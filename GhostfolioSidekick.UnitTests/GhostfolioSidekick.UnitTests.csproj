@@ -62,6 +62,9 @@
     <None Update="FileImporter\TestFiles\Trading212\Example3\TestFileSingleOrderUK.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\Trading212\Example4\TestFileSingleDividend.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
