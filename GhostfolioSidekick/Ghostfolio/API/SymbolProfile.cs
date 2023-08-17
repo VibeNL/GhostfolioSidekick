@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public class Asset
+	public class SymbolProfile
 	{
 		public string Currency { get; set; }
 
