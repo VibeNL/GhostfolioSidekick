@@ -20,22 +20,18 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				CsvConfiguration csvConfig = GetConfig();
 
-				using (var streamReader = GetStreamReader(file))
-				{
-					using (var csvReader = new CsvReader(streamReader, csvConfig))
-					{
-						csvReader.Read();
-						csvReader.ReadHeader();
+				using var streamReader = GetStreamReader(file);
+				using var csvReader = new CsvReader(streamReader, csvConfig);
+				csvReader.Read();
+				csvReader.ReadHeader();
 
-						try
-						{
-							csvReader.ValidateHeader<T>();
-						}
-						catch
-						{
-							return false;
-						}
-					}
+				try
+				{
+					csvReader.ValidateHeader<T>();
+				}
+				catch
+				{
+					return false;
 				}
 			}
 
@@ -44,42 +40,36 @@ namespace GhostfolioSidekick.FileImporter
 
 		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
 		{
-			var account = await api.GetAccountByName(accountName);
-			if (account == null)
-			{
-				throw new NotSupportedException();
-			}
-
+			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
 			CsvConfiguration csvConfig = GetConfig();
 
 			var list = new ConcurrentBag<Order>();
 			await Parallel.ForEachAsync(filenames, async (filename, c1) =>
 			{
-				using (var streamReader = GetStreamReader(filename))
+				using var streamReader = GetStreamReader(filename);
+				using var csvReader = new CsvReader(streamReader, csvConfig);
+				csvReader.Read();
+				csvReader.ReadHeader();
+				var records = csvReader.GetRecords<T>().ToList();
+
+				await Parallel.ForEachAsync(records, async (record, c) =>
 				{
-					using (var csvReader = new CsvReader(streamReader, csvConfig))
+					var orders = await ConvertOrders(record, account, records);
+
+					if (orders != null)
 					{
-						csvReader.Read();
-						csvReader.ReadHeader();
-						var records = csvReader.GetRecords<T>().ToList();
-
-						await Parallel.ForEachAsync(records, async (record, c) =>
+						foreach (var order in orders)
 						{
-							var order = await ConvertOrder(record, account, records);
-
-							if (order != null)
-							{
-								list.Add(order);
-							}
-						});
+							list.Add(order);
+						}
 					}
-				}
+				});
 			});
 
 			return list;
 		}
 
-		protected abstract Task<Order?> ConvertOrder(T record, Account account, IEnumerable<T> allRecords);
+		protected abstract Task<IEnumerable<Order>> ConvertOrders(T record, Account account, IEnumerable<T> allRecords);
 
 		protected abstract CsvConfiguration GetConfig();
 

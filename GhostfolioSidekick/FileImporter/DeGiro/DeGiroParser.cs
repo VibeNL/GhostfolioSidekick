@@ -11,12 +11,12 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 		}
 
-		protected override async Task<Order?> ConvertOrder(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
+		protected override async Task<IEnumerable<Order>> ConvertOrders(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
 			{
-				return null;
+				return Array.Empty<Order>();
 			}
 
 			var asset = await api.FindSymbolByISIN(record.ISIN);
@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				ReferenceCode = record.OrderId,
 			};
 
-			return order;
+			return new[] { order };
 		}
 
 		protected override CsvConfiguration GetConfig()

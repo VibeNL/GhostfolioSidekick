@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			this.api = api;
 		}
 
-		protected override async Task<Order?> ConvertOrder(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
+		protected override async Task<IEnumerable<Order>> ConvertOrders(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				ReferenceCode = refCode,
 			};
 
-			return order;
+			return new[] { order };
 		}
 
 		protected override CsvConfiguration GetConfig()
