@@ -13,9 +13,34 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			this.api = api;
 		}
 
-		protected override Task<Order?> ConvertOrder(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
+		protected override async Task<Order?> ConvertOrder(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
 		{
-			throw new NotImplementedException();
+			var orderType = GetOrderType(record);
+			if (orderType == null)
+			{
+				return null;
+			}
+
+			var asset = await api.FindSymbolByISIN(record.Asset);
+
+			var refCode = $"{orderType}_{record.Asset}_{record.Timestamp.Ticks}";
+
+			var order = new Order
+			{
+				AccountId = account.Id,
+				Asset = asset,
+				Currency = record.Currency,
+				Date = record.Timestamp,
+				Comment = $"Transaction Reference: [{refCode}]",
+				Fee = record.Fee ?? 0,
+				FeeCurrency = record.Currency,
+				Quantity = record.Quantity,
+				Type = orderType.Value,
+				UnitPrice = record.UnitPrice ?? 0,
+				ReferenceCode = refCode,
+			};
+
+			return order;
 		}
 
 		protected override CsvConfiguration GetConfig()
@@ -38,6 +63,23 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			}
 
 			return sr;
+		}
+
+		private OrderType? GetOrderType(CoinbaseRecord record)
+		{
+			switch (record.Order)
+			{
+				case "Buy":
+				case "Receive":
+					return OrderType.BUY;
+				case "Send":
+				case "Sell":
+					return OrderType.SELL;
+				case "Convert":
+				case "Rewards Income":
+					return null;
+				default: throw new NotSupportedException($"{record.Order}");
+			}
 		}
 	}
 }
