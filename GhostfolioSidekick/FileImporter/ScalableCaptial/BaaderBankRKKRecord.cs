@@ -1,13 +1,8 @@
 ﻿using CsvHelper.Configuration.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 {
-    public class BaaderBankRKKRecord
+	public class BaaderBankRKKRecord
     {
         [Name("XXX-UMART")]
         public string OrderType { get; set; }

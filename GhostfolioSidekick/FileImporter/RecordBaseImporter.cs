@@ -20,19 +20,22 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				CsvConfiguration csvConfig = GetConfig();
 
-				using var streamReader = File.OpenText(file);
-				using var csvReader = new CsvReader(streamReader, csvConfig);
-
-				csvReader.Read();
-				csvReader.ReadHeader();
-
-				try
+				using (var streamReader = GetStreamReader(file))
 				{
-					csvReader.ValidateHeader<T>();
-				}
-				catch
-				{
-					return false;
+					using (var csvReader = new CsvReader(streamReader, csvConfig))
+					{
+						csvReader.Read();
+						csvReader.ReadHeader();
+
+						try
+						{
+							csvReader.ValidateHeader<T>();
+						}
+						catch
+						{
+							return false;
+						}
+					}
 				}
 			}
 
@@ -52,7 +55,7 @@ namespace GhostfolioSidekick.FileImporter
 			var list = new ConcurrentBag<Order>();
 			await Parallel.ForEachAsync(filenames, async (filename, c1) =>
 			{
-				using (var streamReader = File.OpenText(filename))
+				using (var streamReader = GetStreamReader(filename))
 				{
 					using (var csvReader = new CsvReader(streamReader, csvConfig))
 					{
@@ -79,5 +82,10 @@ namespace GhostfolioSidekick.FileImporter
 		protected abstract Task<Order?> ConvertOrder(T record, Account account, IEnumerable<T> allRecords);
 
 		protected abstract CsvConfiguration GetConfig();
+
+		protected virtual StreamReader GetStreamReader(string file)
+		{
+			return File.OpenText(file);
+		}
 	}
 }
