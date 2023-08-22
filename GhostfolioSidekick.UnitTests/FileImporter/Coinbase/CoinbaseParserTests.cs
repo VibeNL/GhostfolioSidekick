@@ -103,7 +103,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			new Order {
 				AccountId = account.Id,
 				Asset = asset2, // ETH
-				Comment = "",
+				Comment = "Transaction Reference: [BUY_ETH_638175675400000000]",
 				Currency = asset2.Currency,
 				FeeCurrency = asset2.Currency,
 				Date = new DateTime(2023,04,20,4,5,40, DateTimeKind.Utc),
@@ -111,12 +111,12 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Quantity = 0.00213232M,
 				Type = OrderType.BUY,
 				UnitPrice =1810.23M,
-				ReferenceCode = ""
+				ReferenceCode = "BUY_ETH_638175675400000000"
 			},
 			new Order {
 				AccountId = account.Id,
 				Asset = asset2, // ETH
-				Comment = "Transaction Reference: []",
+				Comment = "Transaction Reference: [BUY_ETH_638177486840000000]",
 				Currency = asset2.Currency,
 				FeeCurrency = asset2.Currency,
 				Date = new DateTime(2023,4,22,6,24,44, DateTimeKind.Utc),
@@ -124,12 +124,12 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Quantity = 1.0e-08M,
 				Type = OrderType.BUY,
 				UnitPrice =1689.10M,
-				ReferenceCode = ""
+				ReferenceCode = "BUY_ETH_638177486840000000"
 			},
 			new Order {
 				AccountId = account.Id,
 				Asset = asset2, // ETH -> ATOM
-				Comment = "Transaction Reference: []",
+				Comment = "Transaction Reference: [SELL_ETH_638181207820000000]",
 				Currency = asset2.Currency,
 				FeeCurrency = asset2.Currency,
 				Date = new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc),
@@ -137,12 +137,12 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Quantity = 0.00052203M,
 				Type = OrderType.SELL,
 				UnitPrice = 1762.35M,
-				ReferenceCode = ""
+				ReferenceCode = "SELL_ETH_638181207820000000"
 			},
 			new Order {
 				AccountId = account.Id,
 				Asset = asset3, // ETH -> ATOM
-				Comment = "Transaction Reference: []",
+				Comment = "Transaction Reference: [BUY_ATOM_638181207820000000]",
 				Currency = asset3.Currency,
 				FeeCurrency = asset3.Currency,
 				Date = new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc),
@@ -150,7 +150,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Quantity = 0.087842M,
 				Type = OrderType.SELL,
 				UnitPrice = -1,
-				ReferenceCode = ""
+				ReferenceCode = "BUY_ATOM_638181207820000000"
 			}});
 		}
 	}

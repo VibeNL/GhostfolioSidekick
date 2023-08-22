@@ -16,15 +16,18 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 
 		protected override async Task<IEnumerable<Order>> ConvertOrders(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
 		{
-			var orderType = GetOrderType(record);
+			var orderTypeCrypto = GetOrderTypeCrypto(record);
+			var orderType = Convert(orderTypeCrypto);
 			if (orderType == null)
 			{
-				return null;
+				return Array.Empty<Order>();
 			}
 
 			var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(record.Asset));
 
 			var refCode = $"{orderType}_{record.Asset}_{record.Timestamp.Ticks}";
+
+			var orders = new List<Order>();
 
 			var order = new Order
 			{
@@ -40,8 +43,56 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				UnitPrice = record.UnitPrice ?? 0,
 				ReferenceCode = refCode,
 			};
+			orders.Add(order);
 
-			return new[] { order };
+			if (orderTypeCrypto.GetValueOrDefault() == CryptoOrderType.Convert)
+			{
+				ParseComment4Convert(record.Notes);
+				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(record.Asset));
+
+				var refCodeBuy = $"{OrderType.BUY}_{record.Asset}_{record.Timestamp.Ticks}";
+				var orderBuy = new Order
+				{
+					AccountId = account.Id,
+					Asset = asset,
+					Currency = record.Currency,
+					Date = record.Timestamp.ToUniversalTime(),
+					Comment = $"Transaction Reference: [{refCodeBuy}]",
+					Fee = 0,
+					FeeCurrency = record.Currency,
+					Quantity = record.Quantity,
+					Type = OrderType.BUY,
+					UnitPrice = -1,
+					ReferenceCode = refCodeBuy,
+				};
+				orders.Add(orderBuy);
+			}
+
+			return orders;
+		}
+
+		private void ParseComment4Convert(string notes)
+		{
+			throw new NotImplementedException();
+		}
+
+		private OrderType? Convert(CryptoOrderType? value)
+		{
+			if (value is null)
+			{
+				return null;
+			}
+
+			return value switch
+			{
+				CryptoOrderType.Buy => (OrderType?)OrderType.BUY,
+				CryptoOrderType.Sell => (OrderType?)OrderType.SELL,
+				CryptoOrderType.Send => (OrderType?)OrderType.SELL,
+				CryptoOrderType.Receive => (OrderType?)OrderType.BUY,
+				CryptoOrderType.Convert => (OrderType?)OrderType.SELL,
+				CryptoOrderType.LearningReward or CryptoOrderType.StakingReward => null,
+				_ => throw new NotSupportedException(),
+			};
 		}
 
 		protected override CsvConfiguration GetConfig()
@@ -66,19 +117,24 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			return sr;
 		}
 
-		private OrderType? GetOrderType(CoinbaseRecord record)
+		private CryptoOrderType? GetOrderTypeCrypto(CoinbaseRecord record)
 		{
 			switch (record.Order)
 			{
 				case "Buy":
+					return CryptoOrderType.Buy;
 				case "Receive":
-					return OrderType.BUY;
+					return CryptoOrderType.Receive;
 				case "Send":
+					return CryptoOrderType.Send;
 				case "Sell":
-					return OrderType.SELL;
+					return CryptoOrderType.Sell;
 				case "Convert":
+					return CryptoOrderType.Convert;
 				case "Rewards Income":
-					return null;
+					return CryptoOrderType.StakingReward;
+				case "Learning Reward":
+					return CryptoOrderType.LearningReward;
 				default: throw new NotSupportedException($"{record.Order}");
 			}
 		}
