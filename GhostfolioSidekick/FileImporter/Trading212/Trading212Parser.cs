@@ -25,6 +25,8 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				record.Id = $"{orderType}_{record.ISIN}_{record.Time.ToString("yyyy-MM-dd")}";
 			}
 
+			var fee = GetFee(record);
+
 			var order = new Order
 			{
 				AccountId = account.Id,
@@ -32,8 +34,8 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				Currency = record.Currency,
 				Date = record.Time,
 				Comment = $"Transaction Reference: [{record.Id}]",
-				Fee = GetFee(record) ?? 0,
-				FeeCurrency = record.ConversionFeeCurrency,
+				Fee = fee.Fee ?? 0,
+				FeeCurrency = fee.Currency,
 				Quantity = record.NumberOfShares.Value,
 				Type = orderType.Value,
 				UnitPrice = record.Price.Value,
@@ -53,11 +55,16 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			};
 		}
 
-		private decimal? GetFee(Trading212Record record)
+		private (string Currency, decimal? Fee) GetFee(Trading212Record record)
 		{
 			if (record.FeeUK == null)
 			{
-				return record.ConversionFee;
+				return (record.ConversionFeeCurrency, record.ConversionFee);
+			}
+
+			if (record.ConversionFee == null)
+			{
+				return (record.FeeUKCurrency, record.FeeUK);
 			}
 
 			if (record.FeeUK > 0 && record.FeeUKCurrency != record.ConversionFeeCurrency)
@@ -66,7 +73,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				record.FeeUK = record.FeeUK * rate;
 			}
 
-			return record.ConversionFee + record.FeeUK;
+			return (record.ConversionFeeCurrency, record.ConversionFee + record.FeeUK);
 		}
 
 		private OrderType? GetOrderType(Trading212Record record)
