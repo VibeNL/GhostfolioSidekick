@@ -169,5 +169,37 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				ReferenceCode = "DIVIDEND_US0378331005_2023-08-17"
 			} });
 		}
+
+		[Fact]
+		public async Task ConvertToOrders_TestFileSingleOrderUKNativeCurrency_Converted()
+		{
+			// Arrange
+			var parser = new Trading212Parser(api.Object);
+			var fixture = new Fixture();
+
+			var asset = fixture.Build<Asset>().With(x => x.Currency, "GBX").Create();
+			var account = fixture.Create<Account>();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			api.Setup(x => x.FindSymbolByISIN("GB0007188757")).ReturnsAsync(asset);
+
+			// Act
+			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example5/TestFileSingleOrderUKNativeCurrency.csv" });
+
+			// Assert
+			orders.Should().BeEquivalentTo(new[] { new Order {
+				AccountId = account.Id,
+				Asset = asset,
+				Comment = "Transaction Reference: [EOF3224031549]",
+				Currency = asset.Currency,
+				FeeCurrency = "GBP",
+				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
+				Fee = 0.05M,
+				Quantity = 0.18625698M,
+				Type = OrderType.BUY,
+				UnitPrice = 4947.00M,
+				ReferenceCode = "EOF3224031549"
+			} });
+		}
 	}
 }
