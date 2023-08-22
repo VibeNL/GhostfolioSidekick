@@ -37,43 +37,37 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			var asset1 = fixture.Build<Asset>().With(x => x.Currency, "EUR").Create();
 			var asset2 = fixture.Build<Asset>().With(x => x.Currency, "EUR").Create();
+			var asset3 = fixture.Build<Asset>().With(x => x.Currency, "EUR").Create();
+			var asset4 = fixture.Build<Asset>().With(x => x.Currency, "EUR").Create();
 
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00B3XXRP09")).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByISIN("NL0009690239")).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByISIN("Bitcoin")).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByISIN("Ethereum")).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByISIN("Eth 2.0 Staking by Pool-X")).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByISIN("Cosmos")).ReturnsAsync(asset3);
+			api.Setup(x => x.FindSymbolByISIN("USD Coin")).ReturnsAsync(asset4);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Coinbase/Example1/Example1.csv" });
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
-			{ new Order {
+			{
+			new Order {
 				AccountId = account.Id,
 				Asset = asset1,
-				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b]",
+				Comment = "Transaction Reference: [SELL_BTC_638280698190000000]",
 				Currency = asset1.Currency,
 				FeeCurrency = asset1.Currency,
-				Date = new DateTime(2023,07,6,9,39,0, DateTimeKind.Utc),
-				Fee = 1,
-				Quantity = 1,
-				Type = OrderType.BUY,
-				UnitPrice = 77.30M,
-				ReferenceCode = "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b"
-			}, new Order {
-				AccountId = account.Id,
-				Asset = asset2,
-				Comment = "Transaction Reference: [67e39ca1-2f10-4f82-8365-1baad98c398f]",
-				Currency = asset2.Currency,
-				FeeCurrency = asset2.Currency,
-				Date = new DateTime(2023,07,11, 9,33,0, DateTimeKind.Utc),
-				Fee = 1,
-				Quantity = 29,
-				Type = OrderType.BUY,
-				UnitPrice = 34.375M,
-				ReferenceCode = "67e39ca1-2f10-4f82-8365-1baad98c398f"
-			} });
+				Date = new DateTime(2023,08,19,17,23,39, DateTimeKind.Utc),
+				Fee = 0,
+				Quantity = 0.00205323M,
+				Type = OrderType.SELL,
+				UnitPrice = 24073.28M,
+				ReferenceCode = "SELL_BTC_638280698190000000"
+			}});
 		}
 	}
 }

@@ -6,11 +6,4 @@ Transactions
 User,some@email.com,0000000000000000000000
 
 Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
-2023-08-19T17:23:39Z,Send,BTC,0.00205323,EUR,24073.28,"","","",Sent 0.00205323 BTC to 39ADd6pNpeuwjcweLLS5JiJPFjNPJnf4xY
-2023-04-20T04:05:40Z,Buy,ETH,0.00213232,EUR,1810.23,3.86,4.85,0.990000,Bought 0.00213232 ETH for €4.85 EUR
-2023-04-22T06:24:44Z,Receive,ETH,1.0e-08,EUR,1689.10,"","","",Received 0.00000001 ETH from Vweeter Limited
-2023-04-25T19:20:47Z,Send,ETH,0.00659758,EUR,1670.90,"","","",Sent 0.00659758 ETH to 0x786FA93282c86E849aAB0334Ac4F5b818288f5E9
-2023-04-26T13:46:22Z,Convert,ETH,0.00052203,EUR,1762.35,0.900000,0.920000,0.020000,Converted 0.00052203 ETH to 0.087842 ATOM
-2023-05-19T18:14:56Z,Rewards Income,ETH2,2.103e-05,EUR,1682.84,0.040000,0.040000,0.00,Received 0.00002103 ETH2 from Coinbase Rewards
-2023-05-03T16:40:04Z,Rewards Income,ATOM,2.1e-05,EUR,9.80,0.00,0.00,0.00,Received 0.000021 ATOM from Coinbase Rewards
-2023-08-05T01:12:57Z,Rewards Income,USDC,0.090944,EUR,0.910000,0.080000,0.080000,0.00,Received 0.090944 USDC from Coinbase Rewards
+2023-08-19T17:23:39Z,Sell,BTC,0.00205323,EUR,24073.28,"","","",Sent 0.00205323 BTC to 39ADd6pNpeuwjcweLLS5JiJPFjNPJnf4xY

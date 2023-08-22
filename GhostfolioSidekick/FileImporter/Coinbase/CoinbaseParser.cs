@@ -1,4 +1,5 @@
 ﻿using CsvHelper.Configuration;
+using GhostfolioSidekick.Crypto;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
 
@@ -21,7 +22,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				return null;
 			}
 
-			var asset = await api.FindSymbolByISIN(record.Asset);
+			var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(record.Asset));
 
 			var refCode = $"{orderType}_{record.Asset}_{record.Timestamp.Ticks}";
 
@@ -30,7 +31,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				AccountId = account.Id,
 				Asset = asset,
 				Currency = record.Currency,
-				Date = record.Timestamp,
+				Date = record.Timestamp.ToUniversalTime(),
 				Comment = $"Transaction Reference: [{refCode}]",
 				Fee = record.Fee ?? 0,
 				FeeCurrency = record.Currency,
