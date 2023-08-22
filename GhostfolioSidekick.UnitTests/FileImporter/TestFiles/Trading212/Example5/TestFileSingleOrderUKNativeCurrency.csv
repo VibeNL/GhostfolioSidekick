@@ -1,0 +1,2 @@
+Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Currency (Result),Total,Currency (Total),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
+Market buy,2023-08-09 15:25:08,GB0007188757,RIO,"Rio Tinto",0.1862569800,4947.00,GBX,86.30197,"EUR",10.75,"EUR",0.05,"GBP",,EOF3224031549,,
