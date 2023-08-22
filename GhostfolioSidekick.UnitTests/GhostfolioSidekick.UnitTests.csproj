@@ -67,4 +67,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="FileImporter\Coinbase\" />
+  </ItemGroup>
+
 </Project>
