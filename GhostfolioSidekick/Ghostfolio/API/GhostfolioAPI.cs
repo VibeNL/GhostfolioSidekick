@@ -116,8 +116,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 		}
 
-		private async Task WriteOrder(Order? order)
+		private async Task WriteOrder(Order order)
 		{
+			if (order.UnitPrice == 0 && order.Quantity == 0)
+			{
+				logger.LogDebug($"Skipping empty transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
+			}
+
 			var r = await restCall.DoRestPost($"api/v1/import", await ConvertToBody(order));
 			bool emptyResponse = false;
 			if (!r.IsSuccessStatusCode || (emptyResponse = r.Content.Equals("{\"activities\":[]}")))
