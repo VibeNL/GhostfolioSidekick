@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				FeeCurrency = record.Currency,
 				Quantity = record.Quantity,
 				Type = orderType.Value,
-				UnitPrice = record.UnitPrice ?? 0,
+				UnitPrice = await GetCorrectUnitPrice(record.UnitPrice, asset, record.Timestamp.ToUniversalTime()),
 				ReferenceCode = refCode,
 			};
 			orders.Add(order);
@@ -67,13 +67,25 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 					FeeCurrency = record.Currency,
 					Quantity = buyRecord.Quantity,
 					Type = OrderType.BUY,
-					UnitPrice = buyRecord.UnitPrice,
+					UnitPrice = await GetCorrectUnitPrice(buyRecord.UnitPrice, assetBuy, record.Timestamp.ToUniversalTime()),
 					ReferenceCode = refCodeBuy,
 				};
 				orders.Add(orderBuy);
 			}
 
 			return orders;
+		}
+
+		private async Task<decimal> GetCorrectUnitPrice(decimal? originalUnitPrice, Asset? symbol, DateTime date)
+		{
+			if (originalUnitPrice > 0)
+			{
+				return originalUnitPrice.Value;
+			}
+
+			// GetPrice from Ghostfolio
+			var price = await api.GetMarketPrice(symbol, date);
+			return price;
 		}
 
 		private Asset? ParseResult(string assetName, string symbol, IEnumerable<Asset> assets)

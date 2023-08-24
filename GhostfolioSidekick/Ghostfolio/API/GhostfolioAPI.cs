@@ -68,20 +68,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<decimal> GetMarketPrice(string symbol, DateTime date)
+		public async Task<decimal> GetMarketPrice(Asset asset, DateTime date)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/YAHOO/{symbol}", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Market>(content);
-
-			foreach (var item in market.MarketData)
-			{
-				if (item.Date == date.Date)
-				{
-					return (decimal)item.MarketPrice;
-				}
-			}
-
-			return 0;
+			return (decimal)(market.MarketData.FirstOrDefault(x => x.Date == date.Date)?.MarketPrice ?? 0);
 		}
 
 		public async Task<Asset> FindSymbolByISIN(string? identifier, Func<IEnumerable<Asset>, Asset> selector)
