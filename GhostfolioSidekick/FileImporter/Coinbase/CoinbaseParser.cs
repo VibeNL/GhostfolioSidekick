@@ -52,7 +52,8 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			if (orderTypeCrypto.GetValueOrDefault() == CryptoOrderType.Convert)
 			{
 				var buyRecord = ParseComment4Convert(record);
-				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset));
+				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), x =>
+					ParseResult(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), buyRecord.Asset, x));
 
 				var refCodeBuy = $"{OrderType.BUY}_{buyRecord.Asset}_{record.Timestamp.Ticks}";
 				var orderBuy = new Order
@@ -77,12 +78,24 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 
 		private Asset? ParseResult(string assetName, string symbol, IEnumerable<Asset> assets)
 		{
-			return assets
-				.Where(x => x.AssetSubClass == "CRYPTOCURRENCY")
-				.OrderByDescending(x => assetName == x.Name) // Math name
-				.ThenByDescending(x => symbol == x.Symbol) // Math symbol
-				.ThenBy(x => x.Symbol.Length)
+			var cryptoOnly = assets.Where(x => x.AssetSubClass == "CRYPTOCURRENCY");
+			var asset = cryptoOnly.FirstOrDefault(x => assetName == x.Name);
+			if (asset != null)
+			{
+				return asset;
+			}
+
+			asset = cryptoOnly.FirstOrDefault(x => symbol == x.Symbol);
+			if (asset != null)
+			{
+				return asset;
+			}
+
+			asset = cryptoOnly
+				.OrderBy(x => x.Symbol.Length)
 				.FirstOrDefault();
+
+			return asset;
 		}
 
 		private (decimal Quantity, decimal UnitPrice, string Asset) ParseComment4Convert(CoinbaseRecord record)
