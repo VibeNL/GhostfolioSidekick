@@ -201,5 +201,41 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				ReferenceCode = "EOF3224031549"
 			} });
 		}
+
+		[Fact]
+		public async Task ConvertToOrders_TestFileSingleOrderMultipleTimes_Converted()
+		{
+			// Arrange
+			var parser = new Trading212Parser(api.Object);
+			var fixture = new Fixture();
+
+			var asset = fixture.Build<Asset>().With(x => x.Currency, "USD").Create();
+			var account = fixture.Create<Account>();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			api.Setup(x => x.FindSymbolByISIN("US67066G1040")).ReturnsAsync(asset);
+
+			// Act
+			var orders = await parser.ConvertToOrders(account.Name, new[] {
+				"./FileImporter/TestFiles/Trading212/Example6/TestFileSingleOrder.csv",
+				"./FileImporter/TestFiles/Trading212/Example6/TestFileSingleOrder2.csv",
+				"./FileImporter/TestFiles/Trading212/Example6/TestFileSingleOrder3.csv"
+			});
+
+			// Assert
+			orders.Should().BeEquivalentTo(new[] { new Order {
+				AccountId = account.Id,
+				Asset = asset,
+				Comment = "Transaction Reference: [EOF3219953148]",
+				Currency = asset.Currency,
+				FeeCurrency = "EUR",
+				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
+				Fee = 0.02M,
+				Quantity = 0.0267001M,
+				Type = OrderType.BUY,
+				UnitPrice = 453.33M,
+				ReferenceCode = "EOF3219953148"
+			} });
+		}
 	}
 }
