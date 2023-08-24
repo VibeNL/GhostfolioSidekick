@@ -148,8 +148,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Date = new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 0.087842M,
-				Type = OrderType.SELL,
-				UnitPrice = -1,
+				Type = OrderType.BUY,
+				UnitPrice = 10.473344988729764804990778898M,
 				ReferenceCode = "BUY_ATOM_638181207820000000"
 			}});
 		}

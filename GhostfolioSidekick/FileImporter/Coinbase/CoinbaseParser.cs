@@ -8,6 +8,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 	public class CoinbaseParser : RecordBaseImporter<CoinbaseRecord>
 	{
 		private IGhostfolioAPI api;
+		private NumberStyles numberStyle = NumberStyles.AllowExponent | NumberStyles.AllowDecimalPoint;
 
 		public CoinbaseParser(IGhostfolioAPI api) : base(api)
 		{
@@ -45,24 +46,25 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			};
 			orders.Add(order);
 
+			// Convert is a SELL / BUY. SELL in the default operation so we need another BUY
 			if (orderTypeCrypto.GetValueOrDefault() == CryptoOrderType.Convert)
 			{
-				ParseComment4Convert(record.Notes);
-				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(record.Asset));
+				var buyRecord = ParseComment4Convert(record);
+				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset));
 
-				var refCodeBuy = $"{OrderType.BUY}_{record.Asset}_{record.Timestamp.Ticks}";
+				var refCodeBuy = $"{OrderType.BUY}_{buyRecord.Asset}_{record.Timestamp.Ticks}";
 				var orderBuy = new Order
 				{
 					AccountId = account.Id,
-					Asset = asset,
+					Asset = assetBuy,
 					Currency = record.Currency,
 					Date = record.Timestamp.ToUniversalTime(),
 					Comment = $"Transaction Reference: [{refCodeBuy}]",
 					Fee = 0,
 					FeeCurrency = record.Currency,
-					Quantity = record.Quantity,
+					Quantity = buyRecord.Quantity,
 					Type = OrderType.BUY,
-					UnitPrice = -1,
+					UnitPrice = buyRecord.UnitPrice,
 					ReferenceCode = refCodeBuy,
 				};
 				orders.Add(orderBuy);
@@ -71,9 +73,15 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			return orders;
 		}
 
-		private void ParseComment4Convert(string notes)
+		private (decimal Quantity, decimal UnitPrice, string Asset) ParseComment4Convert(CoinbaseRecord record)
 		{
-			throw new NotImplementedException();
+			// Converted 0.00052203 ETH to 0.087842 ATOM
+
+			var comment = record.Notes.Split(" ");
+			var quantity = decimal.Parse(comment[4], numberStyle, CultureInfo.InvariantCulture);
+
+			var unitPrice = (record.UnitPrice * record.Quantity) / quantity;
+			return (quantity, unitPrice.Value, comment[5]);
 		}
 
 		private OrderType? Convert(CryptoOrderType? value)
