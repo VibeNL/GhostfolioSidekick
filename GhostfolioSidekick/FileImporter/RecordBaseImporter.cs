@@ -1,5 +1,5 @@
-﻿using CsvHelper.Configuration;
-using CsvHelper;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Collections.Concurrent;
 
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			CsvConfiguration csvConfig = GetConfig();
 
-			var list = new ConcurrentBag<Order>();
+			var list = new ConcurrentDictionary<string, Order>();
 			await Parallel.ForEachAsync(filenames, async (filename, c1) =>
 			{
 				using (var streamReader = File.OpenText(filename))
@@ -66,14 +66,14 @@ namespace GhostfolioSidekick.FileImporter
 
 							if (order != null)
 							{
-								list.Add(order);
+								list.TryAdd(order.ReferenceCode, order);
 							}
 						});
 					}
 				}
 			});
 
-			return list;
+			return list.Values;
 		}
 
 		protected abstract Task<Order?> ConvertOrder(T record, Account account, IEnumerable<T> allRecords);
