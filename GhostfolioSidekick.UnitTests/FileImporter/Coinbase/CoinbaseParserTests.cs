@@ -4,7 +4,7 @@ using GhostfolioSidekick.FileImporter.Coinbase;
 using GhostfolioSidekick.Ghostfolio.API;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
+namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 {
 	public class CoinbaseParserTests
 	{
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("Bitcoin")).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByISIN("Bitcoin", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset1);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Coinbase/Example1/Example1.csv" });
@@ -77,9 +77,9 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("Bitcoin")).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByISIN("Ethereum")).ReturnsAsync(asset2);
-			api.Setup(x => x.FindSymbolByISIN("Cosmos")).ReturnsAsync(asset3);
+			api.Setup(x => x.FindSymbolByISIN("Bitcoin", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByISIN("Ethereum", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByISIN("Cosmos", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset3);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Coinbase/Example2/Example2.csv" });

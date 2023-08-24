@@ -84,20 +84,19 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return 0;
 		}
 
-		public async Task<Asset> FindSymbolByISIN(string? identifier)
+		public async Task<Asset> FindSymbolByISIN(string? identifier, Func<IEnumerable<Asset>, Asset> selector)
 		{
 			identifier = mapper.MapIdentifier(identifier);
 
 			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
-			dynamic stuff = JsonConvert.DeserializeObject(content);
-			var asset = new Asset
-			{
-				Symbol = stuff.items[0].symbol,
-				Currency = stuff.items[0].currency,
-				DataSource = stuff.items[0].dataSource,
-			};
+			var assetList = JsonConvert.DeserializeObject<AssetList>(content);
 
-			return asset;
+			if (selector == null)
+			{
+				return assetList.Items[0];
+			}
+
+			return selector(assetList.Items);
 		}
 
 		public async Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date)

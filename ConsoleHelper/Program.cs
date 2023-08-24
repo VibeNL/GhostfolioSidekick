@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick;
 using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.FileImporter.Coinbase;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
@@ -23,14 +24,15 @@ namespace ConsoleHelper
 			}
 
 			var cs = new ConfigurationSettings();
-            MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
-            GhostfolioAPI api = new GhostfolioAPI(memoryCache, logger);
+			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
+			GhostfolioAPI api = new GhostfolioAPI(memoryCache, logger);
 			var t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new ScalableCapitalParser(api),
 				new DeGiroParser(api),
-				new Trading212Parser(api)
+				new Trading212Parser(api),
+				new CoinbaseParser(api)
 			});
 			t.DoWork().Wait();
-        }
+		}
 	}
 }

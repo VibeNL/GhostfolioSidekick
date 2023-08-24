@@ -24,9 +24,11 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				return Array.Empty<Order>();
 			}
 
-			var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(record.Asset));
+			var assetName = record.Asset;
+			var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(assetName), x =>
+				ParseResult(CryptoTranslate.Instance.TranslateToken(assetName), assetName, x));
 
-			var refCode = $"{orderType}_{record.Asset}_{record.Timestamp.Ticks}";
+			var refCode = $"{orderType}_{assetName}_{record.Timestamp.Ticks}";
 
 			var orders = new List<Order>();
 
@@ -73,10 +75,19 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			return orders;
 		}
 
+		private Asset? ParseResult(string assetName, string symbol, IEnumerable<Asset> assets)
+		{
+			return assets
+				.Where(x => x.AssetSubClass == "CRYPTOCURRENCY")
+				.OrderByDescending(x => assetName == x.Name) // Math name
+				.ThenByDescending(x => symbol == x.Symbol) // Math symbol
+				.ThenBy(x => x.Symbol.Length)
+				.FirstOrDefault();
+		}
+
 		private (decimal Quantity, decimal UnitPrice, string Asset) ParseComment4Convert(CoinbaseRecord record)
 		{
 			// Converted 0.00052203 ETH to 0.087842 ATOM
-
 			var comment = record.Notes.Split(" ");
 			var quantity = decimal.Parse(comment[4], numberStyle, CultureInfo.InvariantCulture);
 

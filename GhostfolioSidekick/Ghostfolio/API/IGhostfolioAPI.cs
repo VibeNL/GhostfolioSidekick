@@ -2,7 +2,7 @@
 {
 	public interface IGhostfolioAPI
 	{
-		Task<Asset> FindSymbolByISIN(string? identifier);
+		Task<Asset> FindSymbolByISIN(string? identifier, Func<IEnumerable<Asset>, Asset> selector = null);
 
 		Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date);
 
