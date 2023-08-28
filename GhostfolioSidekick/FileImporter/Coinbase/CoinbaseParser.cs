@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(assetName), x =>
 				ParseResult(CryptoTranslate.Instance.TranslateToken(assetName), assetName, x));
 
-			var refCode = $"{orderType}_{assetName}_{record.Timestamp.Ticks}";
+			var refCode = $"{orderType}_{assetName}_{record.Timestamp.ToUniversalTime().Ticks}";
 
 			var orders = new List<Order>();
 
@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), x =>
 					ParseResult(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), buyRecord.Asset, x));
 
-				var refCodeBuy = $"{OrderType.BUY}_{buyRecord.Asset}_{record.Timestamp.Ticks}";
+				var refCodeBuy = $"{OrderType.BUY}_{buyRecord.Asset}_{record.Timestamp.ToUniversalTime().Ticks}";
 				var orderBuy = new Order
 				{
 					AccountId = account.Id,
