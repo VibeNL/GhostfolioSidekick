@@ -43,6 +43,7 @@ IDENTIFIER,ATOM-USD,Cosmos USD
 | De Giro | Export of transaction history | X | - | - |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X |
 | Coinbase (Experimental) | Export of transaction history | X | X | - |
+| Nexo (Experimental) | Export of transaction history | X | - | - |
 
 ## Run in Docker
 The docker image is: vibenl/ghostfoliosidekick
