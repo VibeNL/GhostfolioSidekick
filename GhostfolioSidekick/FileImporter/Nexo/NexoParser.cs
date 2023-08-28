@@ -8,6 +8,8 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 {
 	public class NexoParser : CryptoRecordBaseImporter<NexoRecord>
 	{
+		private string[] fiat = new[] { "EURX", "USDX" };
+
 		public NexoParser(IGhostfolioAPI api) : base(api)
 		{
 		}
@@ -21,52 +23,59 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				return Array.Empty<Order>();
 			}
 
-			var assetName = record.InputCurrency;
-			var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(assetName), x =>
-				ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(assetName), assetName, x));
-
 			var orders = new List<Order>();
+			var assetName = record.InputCurrency;
 
-			var order = new Order
+			if (!fiat.Contains(assetName))
 			{
-				AccountId = account.Id,
-				Asset = asset,
-				Currency = record.InputCurrency,
-				Date = record.DateTime,
-				Comment = $"Transaction Reference: [{record.Transaction}]",
-				Fee = 0,
-				FeeCurrency = null,
-				Quantity = record.InputAmount,
-				Type = orderType.Value,
-				UnitPrice = record.GetUSDEquivalent() / record.InputAmount,
-				ReferenceCode = record.Transaction,
-			};
-			orders.Add(order);
+				var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(assetName), x =>
+					ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(assetName), assetName, x));
+
+				var order = new Order
+				{
+					AccountId = account.Id,
+					Asset = asset,
+					Currency = "USD",
+					Date = record.DateTime,
+					Comment = $"Transaction Reference: [{record.Transaction}]",
+					Fee = 0,
+					FeeCurrency = null,
+					Quantity = record.InputAmount,
+					Type = orderType.Value,
+					UnitPrice = record.GetUSDEquivalent() / record.InputAmount,
+					ReferenceCode = record.Transaction,
+				};
+				orders.Add(order);
+			}
 
 			// Convert is a SELL / BUY. SELL in the default operation so we need another BUY
 			if (orderTypeCrypto.GetValueOrDefault() == CryptoOrderType.Convert)
 			{
 				var buyAsset = record.OutputCurrency;
-				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyAsset), x =>
-					ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(buyAsset), buyAsset, x));
-
-				var orderBuy = new Order
+				if (!fiat.Contains(buyAsset))
 				{
-					AccountId = account.Id,
-					Asset = assetBuy,
-					Currency = record.OutputCurrency,
-					Date = record.DateTime,
-					Comment = $"Transaction Reference: [{record.Transaction}]",
-					Fee = 0,
-					FeeCurrency = null,
-					Quantity = record.OutputAmount,
-					Type = OrderType.BUY,
-					UnitPrice = record.GetUSDEquivalent() / record.OutputAmount,
-					ReferenceCode = record.Transaction,
-				};
-				orders.Add(orderBuy);
+					var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyAsset), x =>
+						ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(buyAsset), buyAsset, x));
+
+					var orderBuy = new Order
+					{
+						AccountId = account.Id,
+						Asset = assetBuy,
+						Currency = "USD",
+						Date = record.DateTime,
+						Comment = $"Transaction Reference: [{record.Transaction}]",
+						Fee = 0,
+						FeeCurrency = null,
+						Quantity = record.OutputAmount,
+						Type = OrderType.BUY,
+						UnitPrice = record.GetUSDEquivalent() / record.OutputAmount,
+						ReferenceCode = record.Transaction,
+					};
+					orders.Add(orderBuy);
+				}
 			}
 
+			// Filter out fiat currency
 			return orders;
 		}
 
