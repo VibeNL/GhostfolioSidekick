@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Crypto
 {
-	internal enum CryptoOrderType
+	public enum CryptoOrderType
 	{
 		Buy,
 

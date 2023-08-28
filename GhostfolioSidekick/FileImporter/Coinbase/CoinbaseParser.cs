@@ -5,14 +5,12 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.Coinbase
 {
-	public class CoinbaseParser : RecordBaseImporter<CoinbaseRecord>
+	public class CoinbaseParser : CryptoRecordBaseImporter<CoinbaseRecord>
 	{
-		private IGhostfolioAPI api;
-		private NumberStyles numberStyle = NumberStyles.AllowExponent | NumberStyles.AllowDecimalPoint;
+		private readonly NumberStyles numberStyle = NumberStyles.AllowExponent | NumberStyles.AllowDecimalPoint;
 
 		public CoinbaseParser(IGhostfolioAPI api) : base(api)
 		{
-			this.api = api;
 		}
 
 		protected override async Task<IEnumerable<Order>> ConvertOrders(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
@@ -26,7 +24,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 
 			var assetName = record.Asset;
 			var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(assetName), x =>
-				ParseResult(CryptoTranslate.Instance.TranslateToken(assetName), assetName, x));
+				ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(assetName), assetName, x));
 
 			var refCode = $"{orderType}_{assetName}_{record.Timestamp.ToUniversalTime().Ticks}";
 
@@ -53,7 +51,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			{
 				var buyRecord = ParseComment4Convert(record);
 				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), x =>
-					ParseResult(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), buyRecord.Asset, x));
+					ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), buyRecord.Asset, x));
 
 				var refCodeBuy = $"{OrderType.BUY}_{buyRecord.Asset}_{record.Timestamp.ToUniversalTime().Ticks}";
 				var orderBuy = new Order
@@ -75,41 +73,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 
 			return orders;
 		}
-
-		private async Task<decimal> GetCorrectUnitPrice(decimal? originalUnitPrice, Asset? symbol, DateTime date)
-		{
-			if (originalUnitPrice > 0)
-			{
-				return originalUnitPrice.Value;
-			}
-
-			// GetPrice from Ghostfolio
-			var price = await api.GetMarketPrice(symbol, date);
-			return price;
-		}
-
-		private Asset? ParseResult(string assetName, string symbol, IEnumerable<Asset> assets)
-		{
-			var cryptoOnly = assets.Where(x => x.AssetSubClass == "CRYPTOCURRENCY");
-			var asset = cryptoOnly.FirstOrDefault(x => assetName == x.Name);
-			if (asset != null)
-			{
-				return asset;
-			}
-
-			asset = cryptoOnly.FirstOrDefault(x => symbol == x.Symbol);
-			if (asset != null)
-			{
-				return asset;
-			}
-
-			asset = cryptoOnly
-				.OrderBy(x => x.Symbol.Length)
-				.FirstOrDefault();
-
-			return asset;
-		}
-
+		
 		private (decimal Quantity, decimal UnitPrice, string Asset) ParseComment4Convert(CoinbaseRecord record)
 		{
 			// Converted 0.00052203 ETH to 0.087842 ATOM
@@ -118,25 +82,6 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 
 			var unitPrice = (record.UnitPrice * record.Quantity) / quantity;
 			return (quantity, unitPrice.Value, comment[5]);
-		}
-
-		private OrderType? Convert(CryptoOrderType? value)
-		{
-			if (value is null)
-			{
-				return null;
-			}
-
-			return value switch
-			{
-				CryptoOrderType.Buy => (OrderType?)OrderType.BUY,
-				CryptoOrderType.Sell => (OrderType?)OrderType.SELL,
-				CryptoOrderType.Send => (OrderType?)OrderType.SELL,
-				CryptoOrderType.Receive => (OrderType?)OrderType.BUY,
-				CryptoOrderType.Convert => (OrderType?)OrderType.SELL,
-				CryptoOrderType.LearningReward or CryptoOrderType.StakingReward => null,
-				_ => throw new NotSupportedException(),
-			};
 		}
 
 		protected override CsvConfiguration GetConfig()
