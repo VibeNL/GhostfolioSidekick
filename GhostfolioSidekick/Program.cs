@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.FileImporter.Coinbase;
 using GhostfolioSidekick.FileImporter.DeGiro;
+using GhostfolioSidekick.FileImporter.Nexo;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
@@ -44,6 +45,7 @@ namespace GhostfolioSidekick
 				services.AddScoped<IFileImporter, DeGiroParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 				services.AddScoped<IFileImporter, CoinbaseParser>();
+				services.AddScoped<IFileImporter, NexoParser>();
 			});
 
 			await hostBuilder.RunConsoleAsync();
