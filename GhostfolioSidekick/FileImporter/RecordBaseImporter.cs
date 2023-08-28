@@ -20,9 +20,8 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				CsvConfiguration csvConfig = GetConfig();
 
-				using var streamReader = File.OpenText(file);
+				using var streamReader = GetStreamReader(file);
 				using var csvReader = new CsvReader(streamReader, csvConfig);
-
 				csvReader.Read();
 				csvReader.ReadHeader();
 
@@ -41,43 +40,42 @@ namespace GhostfolioSidekick.FileImporter
 
 		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
 		{
-			var account = await api.GetAccountByName(accountName);
-			if (account == null)
-			{
-				throw new NotSupportedException();
-			}
-
+			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
 			CsvConfiguration csvConfig = GetConfig();
 
 			var list = new ConcurrentDictionary<string, Order>();
 			await Parallel.ForEachAsync(filenames, async (filename, c1) =>
 			{
-				using (var streamReader = File.OpenText(filename))
+				using var streamReader = GetStreamReader(filename);
+				using var csvReader = new CsvReader(streamReader, csvConfig);
+				csvReader.Read();
+				csvReader.ReadHeader();
+				var records = csvReader.GetRecords<T>().ToList();
+
+				await Parallel.ForEachAsync(records, async (record, c) =>
 				{
-					using (var csvReader = new CsvReader(streamReader, csvConfig))
+					var orders = await ConvertOrders(record, account, records);
+
+					if (orders != null)
 					{
-						csvReader.Read();
-						csvReader.ReadHeader();
-						var records = csvReader.GetRecords<T>().ToList();
-
-						await Parallel.ForEachAsync(records, async (record, c) =>
+						foreach (var order in orders)
 						{
-							var order = await ConvertOrder(record, account, records);
-
-							if (order != null)
-							{
-								list.TryAdd(order.ReferenceCode, order);
-							}
-						});
+							list.TryAdd(order.ReferenceCode, order);
+						}
 					}
-				}
+				});
 			});
 
 			return list.Values;
 		}
 
-		protected abstract Task<Order?> ConvertOrder(T record, Account account, IEnumerable<T> allRecords);
+		protected abstract Task<IEnumerable<Order>> ConvertOrders(T record, Account account, IEnumerable<T> allRecords);
 
 		protected abstract CsvConfiguration GetConfig();
+
+		protected virtual StreamReader GetStreamReader(string file)
+		{
+			return File.OpenText(file);
+		}
 	}
 }

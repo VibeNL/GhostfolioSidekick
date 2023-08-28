@@ -68,36 +68,26 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<decimal> GetMarketPrice(string symbol, DateTime date)
+		public async Task<decimal> GetMarketPrice(Asset asset, DateTime date)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/YAHOO/{symbol}", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Market>(content);
-
-			foreach (var item in market.MarketData)
-			{
-				if (item.Date == date.Date)
-				{
-					return (decimal)item.MarketPrice;
-				}
-			}
-
-			return 0;
+			return (decimal)(market.MarketData.FirstOrDefault(x => x.Date == date.Date)?.MarketPrice ?? 0);
 		}
 
-		public async Task<Asset> FindSymbolByISIN(string? identifier)
+		public async Task<Asset> FindSymbolByISIN(string? identifier, Func<IEnumerable<Asset>, Asset> selector)
 		{
 			identifier = mapper.MapIdentifier(identifier);
 
 			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
-			dynamic stuff = JsonConvert.DeserializeObject(content);
-			var asset = new Asset
-			{
-				Symbol = stuff.items[0].symbol,
-				Currency = stuff.items[0].currency,
-				DataSource = stuff.items[0].dataSource,
-			};
+			var assetList = JsonConvert.DeserializeObject<AssetList>(content);
 
-			return asset;
+			if (selector == null)
+			{
+				return assetList.Items[0];
+			}
+
+			return selector(assetList.Items);
 		}
 
 		public async Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date)
@@ -126,8 +116,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 		}
 
-		private async Task WriteOrder(Order? order)
+		private async Task WriteOrder(Order order)
 		{
+			if (order.UnitPrice == 0 && order.Quantity == 0)
+			{
+				logger.LogDebug($"Skipping empty transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
+			}
+
 			var r = await restCall.DoRestPost($"api/v1/import", await ConvertToBody(order));
 			bool emptyResponse = false;
 			if (!r.IsSuccessStatusCode || (emptyResponse = r.Content.Equals("{\"activities\":[]}")))

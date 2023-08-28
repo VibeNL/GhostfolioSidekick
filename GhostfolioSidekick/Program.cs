@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.FileImporter.Coinbase;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
@@ -10,11 +11,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
-	{
+{
 	internal class Program
-		{
+	{
 		static async Task Main(string[] args)
-			{
+		{
 			var hostBuilder = new HostBuilder()
 			.ConfigureAppConfiguration((hostContext, configBuilder) =>
 			{
@@ -42,9 +43,10 @@ namespace GhostfolioSidekick
 				services.AddScoped<IFileImporter, ScalableCapitalParser>();
 				services.AddScoped<IFileImporter, DeGiroParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
+				services.AddScoped<IFileImporter, CoinbaseParser>();
 			});
 
 			await hostBuilder.RunConsoleAsync();
-			}
 		}
 	}
+}

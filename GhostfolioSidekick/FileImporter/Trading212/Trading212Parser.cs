@@ -10,12 +10,12 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 		}
 
-		protected override async Task<Order?> ConvertOrder(Trading212Record record, Account account, IEnumerable<Trading212Record> allRecords)
+		protected override async Task<IEnumerable<Order>> ConvertOrders(Trading212Record record, Account account, IEnumerable<Trading212Record> allRecords)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
 			{
-				return null;
+				return Array.Empty<Order>();
 			}
 
 			var asset = await api.FindSymbolByISIN(record.ISIN);
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				ReferenceCode = record.Id,
 			};
 
-			return order;
+			return new[] { order };
 		}
 
 		protected override CsvConfiguration GetConfig()

@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00B3XXRP09")).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByISIN("IE00B3XXRP09", null)).ReturnsAsync(asset);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example1/TestFileSingleOrder.csv" });
@@ -86,8 +86,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00B3XXRP09")).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByISIN("NL0009690239")).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByISIN("IE00B3XXRP09", null)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByISIN("NL0009690239", null)).ReturnsAsync(asset2);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example3/TestFileMultipleOrders.csv" });

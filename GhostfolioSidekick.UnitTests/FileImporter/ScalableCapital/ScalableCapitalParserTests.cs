@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95")).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/ScalableCapital/Example1/WUMExample1.csv" });
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Type = OrderType.BUY,
 				UnitPrice = 8.685M,
 				ReferenceCode = "SCALQbWiZnN9DtQ"
-            } });
+			} });
 		}
 
 		[Fact]
@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("US92343V1044")).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByISIN("US92343V1044", null)).ReturnsAsync(asset);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/ScalableCapital/Example1/RKKExample1.csv" });
@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Type = OrderType.DIVIDEND,
 				UnitPrice = 0.5057142857142857142857142857M,
 				ReferenceCode = "WWEK 16100100"
-            } });
+			} });
 		}
 
 		[Fact]
@@ -117,8 +117,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95")).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByISIN("US92343V1044")).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByISIN("US92343V1044", null)).ReturnsAsync(asset2);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] {
@@ -138,8 +138,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Quantity = 5,
 				Type = OrderType.BUY,
 				UnitPrice = 8.685M,
-                ReferenceCode = "SCALQbWiZnN9DtQ"
-            },
+				ReferenceCode = "SCALQbWiZnN9DtQ"
+			},
 			new Order {
 				AccountId = account.Id,
 				Asset = asset2,
@@ -151,8 +151,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Quantity = 14,
 				Type = OrderType.DIVIDEND,
 				UnitPrice = 0.5057142857142857142857142857M,
-                ReferenceCode = "WWEK 16100100"
-            } });
+				ReferenceCode = "WWEK 16100100"
+			} });
 		}
 
 		[Fact]
@@ -167,8 +167,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95")).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByISIN("US92343V1044")).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByISIN("US92343V1044", null)).ReturnsAsync(asset2);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] {
@@ -190,7 +190,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Type = OrderType.BUY,
 				UnitPrice = 8.685M,
 				ReferenceCode = "SCALQbWiZnN9DtQ"
-            },
+			},
 			new Order {
 				AccountId = account.Id,
 				Asset = asset2,
@@ -202,8 +202,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Quantity = 14,
 				Type = OrderType.DIVIDEND,
 				UnitPrice = 0.5057142857142857142857142857M,
-                ReferenceCode = "WWEK 16100100"
-            } });
+				ReferenceCode = "WWEK 16100100"
+			} });
 		}
 	}
 }

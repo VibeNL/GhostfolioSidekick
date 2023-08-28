@@ -1,11 +1,11 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.API
 {
-    public enum OrderType
-    {
-        BUY,
+	public enum OrderType
+	{
+		BUY,
 
-        SELL,
+		SELL,
 
-        DIVIDEND
-    }
+		DIVIDEND
+	}
 }

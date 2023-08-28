@@ -2,7 +2,6 @@
 using CsvHelper;
 using GhostfolioSidekick.Ghostfolio.API;
 using System.Globalization;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
 
 namespace GhostfolioSidekick.FileImporter.ScalableCaptial
