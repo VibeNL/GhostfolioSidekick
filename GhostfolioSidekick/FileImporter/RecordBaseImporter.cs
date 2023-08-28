@@ -18,15 +18,14 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			foreach (var file in filenames)
 			{
-				CsvConfiguration csvConfig = GetConfig();
-
-				using var streamReader = GetStreamReader(file);
-				using var csvReader = new CsvReader(streamReader, csvConfig);
-				csvReader.Read();
-				csvReader.ReadHeader();
-
 				try
 				{
+					CsvConfiguration csvConfig = GetConfig();
+
+					using var streamReader = GetStreamReader(file);
+					using var csvReader = new CsvReader(streamReader, csvConfig);
+					csvReader.Read();
+					csvReader.ReadHeader();
 					csvReader.ValidateHeader<T>();
 				}
 				catch
