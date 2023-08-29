@@ -65,7 +65,7 @@ OrderType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
 BUY,US67066G1040,2023-08-07,USD,0.0267001000,453.33,0.02
 
 ## Run in Docker
-The docker image is: vibenl/ghostfoliosidekick
+The docker image is named: vibenl/ghostfoliosidekick
 
 ### Settings
 | Envs |Description  |
