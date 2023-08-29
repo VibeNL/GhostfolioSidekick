@@ -72,8 +72,8 @@ The docker image is named: vibenl/ghostfoliosidekick
 |--|--|
 |**GHOSTFOLIO_URL**  | The endpoint for your ghostfolio instance.   |
 |**GHOSTFOLIO_ACCESTOKEN**  | The token as used to 'login' in the UI |
-|**MAPPINGFILE**  | (optional) The path to the mapping file containing mapping for identifiers so it can be mapped automatically [Mapping File]() |
-|**FileImporterPath**  | The path to the files (see [Import Path]()) |
+|**MAPPINGFILE**  | (optional) The path to the mapping file containing mapping for identifiers so it can be mapped automatically [Mapping File] |
+|**FileImporterPath**  | The path to the files (see [Import Path]) |
 
 ## Contributing
 
