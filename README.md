@@ -39,22 +39,41 @@ IDENTIFIER,ATOM-USD,Cosmos USD
 ### Supported formats
 | Platform | Source of the files | Buy | Sell | Dividend | 
 |--|--|--|--|--|
+| Generic importer | See below | X | X | X |
 | Trading 212 | Export of transaction history | X | X | X |
 | De Giro | Export of transaction history | X | - | - |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X |
 | Coinbase (Experimental) | Export of transaction history | X | X | - |
 | Nexo (Experimental) | Export of transaction history | X | - | - |
 
+#### Generic import format
+Beside the supported exchanges and brokers there is also a generic format. This format is only usefull for stocks at the moment, not for cryptocurrency:
+
+| Field | Value(s) | 
+| ----- | ----- |
+| OrderType | BUY ,SELL or DIVIDEND | 
+| Symbol | The symbol to search
+| Date | The date, yyyy-MM-dd |
+| Currency | The currency of the unitprice and fee |
+| Quantity | The amount of units |
+| UnitPrice | The paid price per unit |
+| Fee | The total fee paid for the transaction |
+
+##### Example
+
+OrderType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
+BUY,US67066G1040,2023-08-07,USD,0.0267001000,453.33,0.02
+
 ## Run in Docker
-The docker image is: vibenl/ghostfoliosidekick
+The docker image is named: vibenl/ghostfoliosidekick
 
 ### Settings
 | Envs |Description  |
 |--|--|
 |**GHOSTFOLIO_URL**  | The endpoint for your ghostfolio instance.   |
 |**GHOSTFOLIO_ACCESTOKEN**  | The token as used to 'login' in the UI |
-|**MAPPINGFILE**  | (optional) The path to the mapping file containing mapping for identifiers so it can be mapped automatically [Mapping File]() |
-|**FileImporterPath**  | The path to the files (see [Import Path]()) |
+|**MAPPINGFILE**  | (optional) The path to the mapping file containing mapping for identifiers so it can be mapped automatically [Mapping File] |
+|**FileImporterPath**  | The path to the files (see [Import Path]) |
 
 ## Contributing
 
