@@ -47,7 +47,7 @@ IDENTIFIER,ATOM-USD,Cosmos USD
 | Nexo (Experimental) | Export of transaction history | X | - | - |
 
 #### Generic import format
-Beside the supported exchanges and brokers there is also a generic format:
+Beside the supported exchanges and brokers there is also a generic format. This format is only usefull for stocks at the moment, not for cryptocurrency:
 
 | Field | Value(s) | 
 | ----- | ----- |
