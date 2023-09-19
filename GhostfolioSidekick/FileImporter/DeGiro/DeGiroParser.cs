@@ -22,6 +22,11 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			var asset = await api.FindSymbolByISIN(record.ISIN);
 			var fee = GetFee(record, allRecords);
 
+			if (string.IsNullOrWhiteSpace(record.OrderId))
+			{
+				record.OrderId = $"{orderType}_{record.Datum}_{record.Tijd}_{record.ISIN}";
+			}
+
 			var order = new Order
 			{
 				AccountId = account.Id,
@@ -31,9 +36,9 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				Comment = $"Transaction Reference: [{record.OrderId}]",
 				Fee = Math.Abs(fee?.Item1 ?? 0),
 				FeeCurrency = fee?.Item2 ?? record.Mutatie,
-				Quantity = GetQuantity(record),
+				Quantity = GetQuantity(orderType, record),
 				Type = orderType.Value,
-				UnitPrice = GetUnitPrice(record),
+				UnitPrice = GetUnitPrice(orderType, record),
 				ReferenceCode = record.OrderId,
 			};
 
@@ -47,18 +52,27 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				HasHeaderRecord = true,
 				CacheFields = true,
 				Delimiter = ",",
+
 			};
 		}
 
 		private Tuple<decimal?, string>? GetFee(DeGiroRecord record, IEnumerable<DeGiroRecord> allRecords)
 		{
-			var feeRecord = allRecords.SingleOrDefault(x => x.OrderId == record.OrderId && x != record);
-			if (feeRecord == null)
+			// Costs of stocks
+			var feeRecord = allRecords.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.OrderId) && x.OrderId == record.OrderId && x != record);
+			if (feeRecord != null)
 			{
-				return null;
+				return Tuple.Create(feeRecord.Total, feeRecord.Mutatie);
 			}
 
-			return Tuple.Create(feeRecord.Total, feeRecord.Mutatie);
+			// Taxes of dividends
+			feeRecord = allRecords.SingleOrDefault(x => x.Datum == record.Datum && x.ISIN == record.ISIN && x.Omschrijving == "Dividendbelasting");
+			if (feeRecord != null)
+			{
+				return Tuple.Create(feeRecord.Total, feeRecord.Mutatie);
+			}
+
+			return null;
 		}
 
 		private OrderType? GetOrderType(DeGiroRecord record)
@@ -68,18 +82,33 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				return OrderType.BUY;
 			}
 
+			if (record.Omschrijving.Equals("Dividend"))
+			{
+				return OrderType.DIVIDEND;
+			}
+
 			// TODO, implement other options
 			return null;
 		}
 
-		private decimal GetQuantity(DeGiroRecord record)
+		private decimal GetQuantity(OrderType? orderType, DeGiroRecord record)
 		{
+			if (orderType == OrderType.DIVIDEND)
+			{
+				return 1;
+			}
+
 			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[1].Value;
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		private decimal GetUnitPrice(DeGiroRecord record)
+		private decimal GetUnitPrice(OrderType? orderType, DeGiroRecord record)
 		{
+			if (orderType == OrderType.DIVIDEND)
+			{
+				return record.Total.GetValueOrDefault();
+			}
+
 			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[2].Value;
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}

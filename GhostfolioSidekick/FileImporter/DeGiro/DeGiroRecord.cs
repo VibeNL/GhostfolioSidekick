@@ -1,5 +1,4 @@
 ﻿using CsvHelper.Configuration.Attributes;
-using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
@@ -25,7 +24,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		public string Mutatie { get; set; }
 
 		[Index(8)]
-		[CultureInfo("nl-NL")]
+		//[CultureInfo("en-EN")]
 		public decimal? Total { get; set; }
 
 		public string Saldo { get; set; }
