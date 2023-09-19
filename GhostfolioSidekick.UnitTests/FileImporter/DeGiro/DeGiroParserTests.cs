@@ -141,7 +141,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			orders.Should().BeEquivalentTo(new[] { new Order {
 				AccountId = account.Id,
 				Asset = asset,
-				Comment = "Transaction Reference: [DIVIDEND_14-9-2023_06:32_NL0009690239]",
+				Comment = "Transaction Reference: [DIVIDEND_14-09-2023_06:32_NL0009690239]",
 				Currency = asset.Currency,
 				FeeCurrency = asset.Currency,
 				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Quantity = 1,
 				Type = OrderType.DIVIDEND,
 				UnitPrice = 9.57M,
-				ReferenceCode = "DIVIDEND_14-9-2023_06:32_NL0009690239"
+				ReferenceCode = "DIVIDEND_14-09-2023_06:32_NL0009690239"
 			} });
 		}
 

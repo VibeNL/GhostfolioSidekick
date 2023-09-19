@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			if (string.IsNullOrWhiteSpace(record.OrderId))
 			{
-				record.OrderId = $"{orderType}_{record.Datum}_{record.Tijd}_{record.ISIN}";
+				record.OrderId = $"{orderType}_{record.Datum.ToString("dd-MM-yyyy")}_{record.Tijd}_{record.ISIN}";
 			}
 
 			var order = new Order
