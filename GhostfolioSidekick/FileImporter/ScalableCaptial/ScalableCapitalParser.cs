@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var wumRecords = new ConcurrentBag<BaaderBankWUMRecord>();
 			var rkkRecords = new ConcurrentDictionary<string, BaaderBankRKKRecord>();
 
-			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException();
+		                        var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
 
 			Parallel.ForEach(filenames, filename =>
 			{
