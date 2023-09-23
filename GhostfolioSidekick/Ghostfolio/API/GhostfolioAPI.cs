@@ -84,10 +84,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			if (selector == null)
 			{
-				return assetList.Items.FirstOrDefault();
+				return LogIfEmpty(assetList.Items.FirstOrDefault(), identifier);
 			}
 
-			return selector(assetList.Items);
+			return LogIfEmpty(selector(assetList.Items), identifier);
 		}
 
 		public async Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date)
@@ -270,5 +270,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			public RawOrder Order2 { get; }
 		}
+
+		private Asset? LogIfEmpty(Asset? asset, string identifier)
+		{
+			if (asset == null)
+			{
+				logger.LogError($"Could not find {identifier} as a symbol");
+			}
+
+			return asset;
+		}
+
 	}
 }

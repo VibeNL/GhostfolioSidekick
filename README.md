@@ -41,7 +41,7 @@ IDENTIFIER,ATOM-USD,Cosmos USD
 |--|--|--|--|--|
 | Generic importer | See below | X | X | X |
 | Trading 212 | Export of transaction history | X | X | X |
-| De Giro | Export of transaction history | X | - | - |
+| De Giro | Export of transaction history | X | - | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X |
 | Coinbase (Experimental) | Export of transaction history | X | X | - |
 | Nexo (Experimental) | Export of transaction history | X | - | - |
