@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			if (selector == null)
 			{
-				return assetList.Items[0];
+				return assetList.Items.FirstOrDefault();
 			}
 
 			return selector(assetList.Items);
