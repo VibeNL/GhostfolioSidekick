@@ -1,8 +1,8 @@
-﻿using CsvHelper.Configuration;
-using CsvHelper;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
-using System.Globalization;
 using System.Collections.Concurrent;
+using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 {
@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var wumRecords = new ConcurrentBag<BaaderBankWUMRecord>();
 			var rkkRecords = new ConcurrentDictionary<string, BaaderBankRKKRecord>();
 
-		                        var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
+			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
 
 			Parallel.ForEach(filenames, filename =>
 			{
@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				Asset = asset,
 				Comment = $"Transaction Reference: [{record.Reference}]",
 				Currency = record.Currency,
-				Date = record.Date.ToDateTime(TimeOnly.MinValue),
+				Date = record.Date.ToDateTime(record.Time),
 				Fee = Math.Abs(fee?.UnitPrice ?? 0),
 				FeeCurrency = fee?.Currency ?? record.Currency,
 				Quantity = Math.Abs(record.Quantity.GetValueOrDefault()),
