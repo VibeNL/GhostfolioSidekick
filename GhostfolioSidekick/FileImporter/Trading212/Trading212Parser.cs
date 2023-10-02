@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 			return record.Action switch
 			{
-				"Deposit" or "Interest on cash" => null,
+				"Deposit" or "Interest on cash" or "Currency conversion" => null,
 				"Market buy" => OrderType.BUY,
 				"Market sell" => OrderType.SELL,
 				string d when d.Contains("Dividend") => OrderType.DIVIDEND,
