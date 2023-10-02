@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task UpdateOrders(IEnumerable<Order> orders)
 		{
-			var ordersByAccount = orders.GroupBy(x => x.AccountId);
+			var ordersByAccount = DateTimeCollisionFixer.Fix(orders).GroupBy(x => x.AccountId);
 
 			foreach (var group in ordersByAccount)
 			{
@@ -238,7 +238,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private bool AreEquals(Order fo, RawOrder eo)
 		{
-			return fo.Quantity == eo.Quantity &&
+			return
+				fo.Asset?.Symbol == eo.SymbolProfile?.Symbol &&
+				fo.Quantity == eo.Quantity &&
 				fo.UnitPrice == eo.UnitPrice &&
 				fo.Fee == eo.Fee &&
 				fo.Type == eo.Type &&
