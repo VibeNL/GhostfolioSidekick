@@ -41,8 +41,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Create<Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("USD Coin", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByISIN("Bitcoin", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByISIN("USDC", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByISIN("BTC", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset2);
 
 			// Act
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Example1/Example1.csv" });
