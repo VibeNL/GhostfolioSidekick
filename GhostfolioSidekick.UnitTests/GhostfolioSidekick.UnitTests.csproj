@@ -44,6 +44,9 @@
     <None Update="FileImporter\TestFiles\DeGiro\Example1\TestFileSingleOrder.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\DeGiro\Example5\TestFileDividendNoTax.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\DeGiro\Example4\TestFileDividend.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

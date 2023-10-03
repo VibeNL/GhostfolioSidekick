@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 		}
 
 		[Fact]
-		public async Task ConvertToOrders_TestFileDividend_Converted()
+		public async Task ConvertToOrders_TestFileDividend_WithTax_Converted()
 		{
 			// Arrange
 			var parser = new DeGiroParser(api.Object);
@@ -153,5 +153,36 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			} });
 		}
 
+		[Fact]
+		public async Task ConvertToOrders_TestFileDividend_NoTax_Converted()
+		{
+			// Arrange
+			var parser = new DeGiroParser(api.Object);
+			var fixture = new Fixture();
+
+			var asset = fixture.Build<Asset>().With(x => x.Currency, "EUR").Create();
+			var account = fixture.Create<Account>();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			api.Setup(x => x.FindSymbolByISIN("NL0009690239", null)).ReturnsAsync(asset);
+
+			// Act
+			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example5/TestFileDividendNoTax.csv" });
+
+			// Assert
+			orders.Should().BeEquivalentTo(new[] { new Order {
+				AccountId = account.Id,
+				Asset = asset,
+				Comment = "Transaction Reference: [DIVIDEND_14-09-2023_06:32_NL0009690239]",
+				Currency = asset.Currency,
+				FeeCurrency = asset.Currency,
+				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
+				Fee = 0M,
+				Quantity = 1,
+				Type = OrderType.DIVIDEND,
+				UnitPrice = 9.57M,
+				ReferenceCode = "DIVIDEND_14-09-2023_06:32_NL0009690239"
+			} });
+		}
 	}
 }

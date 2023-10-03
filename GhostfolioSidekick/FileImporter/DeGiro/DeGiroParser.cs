@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					FeeCurrency = fee?.Item2 ?? record.Mutatie,
 					Quantity = 1,
 					Type = orderType.Value,
-					UnitPrice = record.Total.GetValueOrDefault() - taxes.Item1.GetValueOrDefault(),
+					UnitPrice = record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0),
 					ReferenceCode = record.OrderId,
 				};
 			}
