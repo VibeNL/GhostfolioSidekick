@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 			var orderTypeCrypto = GetOrderTypeCrypto(record);
 			var orderType = Convert(orderTypeCrypto);
-			if (orderType == null)
+			if (orderType == null || !record.Details.StartsWith("approved"))
 			{
 				return Array.Empty<Order>();
 			}
@@ -93,14 +93,16 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 			switch (record.Type)
 			{
+				case "ReferralBonus": // TODO: Should be a 'reward'
 				case "Deposit":
 					return CryptoOrderType.Buy;
 				case "Exchange":
 					return CryptoOrderType.Convert;
 				case "LockingTermDeposit":
+				case "UnlockingTermDeposit":
 				case "DepositToExchange":
 				case "ExchangeDepositedOn":
-				case "ReferralBonus":
+				case "Interest": // TODO: Should be a 'reward'
 					return null;
 				default: throw new NotSupportedException($"{record.Type}");
 			}
