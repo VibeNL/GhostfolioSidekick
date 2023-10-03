@@ -21,26 +21,48 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			var asset = await api.FindSymbolByISIN(record.ISIN);
 			var fee = GetFee(record, allRecords);
+			var taxes = GetTaxes(record, allRecords);
 
 			if (string.IsNullOrWhiteSpace(record.OrderId))
 			{
 				record.OrderId = $"{orderType}_{record.Datum.ToString("dd-MM-yyyy")}_{record.Tijd}_{record.ISIN}";
 			}
 
-			var order = new Order
+			Order order;
+			if (orderType == OrderType.DIVIDEND)
 			{
-				AccountId = account.Id,
-				Asset = asset,
-				Currency = record.Mutatie,
-				Date = record.Datum.ToDateTime(record.Tijd),
-				Comment = $"Transaction Reference: [{record.OrderId}]",
-				Fee = Math.Abs(fee?.Item1 ?? 0),
-				FeeCurrency = fee?.Item2 ?? record.Mutatie,
-				Quantity = GetQuantity(orderType, record),
-				Type = orderType.Value,
-				UnitPrice = GetUnitPrice(orderType, record),
-				ReferenceCode = record.OrderId,
-			};
+				order = new Order
+				{
+					AccountId = account.Id,
+					Asset = asset,
+					Currency = record.Mutatie,
+					Date = record.Datum.ToDateTime(record.Tijd),
+					Comment = $"Transaction Reference: [{record.OrderId}]",
+					Fee = Math.Abs(fee?.Item1 ?? 0),
+					FeeCurrency = fee?.Item2 ?? record.Mutatie,
+					Quantity = 1,
+					Type = orderType.Value,
+					UnitPrice = record.Total.GetValueOrDefault() - taxes.Item1.GetValueOrDefault(),
+					ReferenceCode = record.OrderId,
+				};
+			}
+			else
+			{
+				order = new Order
+				{
+					AccountId = account.Id,
+					Asset = asset,
+					Currency = record.Mutatie,
+					Date = record.Datum.ToDateTime(record.Tijd),
+					Comment = $"Transaction Reference: [{record.OrderId}]",
+					Fee = Math.Abs(fee?.Item1 ?? 0),
+					FeeCurrency = fee?.Item2 ?? record.Mutatie,
+					Quantity = GetQuantity(orderType, record),
+					Type = orderType.Value,
+					UnitPrice = GetUnitPrice(orderType, record),
+					ReferenceCode = record.OrderId,
+				};
+			}
 
 			return new[] { order };
 		}
@@ -65,11 +87,16 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				return Tuple.Create(feeRecord.Total, feeRecord.Mutatie);
 			}
 
+			return null;
+		}
+
+		private Tuple<decimal?, string>? GetTaxes(DeGiroRecord record, IEnumerable<DeGiroRecord> allRecords)
+		{
 			// Taxes of dividends
-			feeRecord = allRecords.SingleOrDefault(x => x.Datum == record.Datum && x.ISIN == record.ISIN && x.Omschrijving == "Dividendbelasting");
+			var feeRecord = allRecords.SingleOrDefault(x => x.Datum == record.Datum && x.ISIN == record.ISIN && x.Omschrijving == "Dividendbelasting");
 			if (feeRecord != null)
 			{
-				return Tuple.Create(feeRecord.Total, feeRecord.Mutatie);
+				return Tuple.Create(feeRecord.Total * -1, feeRecord.Mutatie);
 			}
 
 			return null;
@@ -93,22 +120,12 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		private decimal GetQuantity(OrderType? orderType, DeGiroRecord record)
 		{
-			if (orderType == OrderType.DIVIDEND)
-			{
-				return 1;
-			}
-
 			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[1].Value;
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		private decimal GetUnitPrice(OrderType? orderType, DeGiroRecord record)
 		{
-			if (orderType == OrderType.DIVIDEND)
-			{
-				return record.Total.GetValueOrDefault();
-			}
-
 			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[2].Value;
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}

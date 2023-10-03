@@ -145,10 +145,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Currency = asset.Currency,
 				FeeCurrency = asset.Currency,
 				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
-				Fee = 1.44M,
+				Fee = 0M,
 				Quantity = 1,
 				Type = OrderType.DIVIDEND,
-				UnitPrice = 9.57M,
+				UnitPrice = 8.13M,
 				ReferenceCode = "DIVIDEND_14-09-2023_06:32_NL0009690239"
 			} });
 		}
