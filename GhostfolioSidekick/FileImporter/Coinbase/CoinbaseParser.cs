@@ -23,8 +23,8 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			}
 
 			var assetName = record.Asset;
-			var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(assetName), x =>
-				ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(assetName), assetName, x));
+			var asset = await api.FindSymbolByISIN(assetName, x =>
+				ParseFindSymbolByISINResult(assetName, assetName, x));
 
 			var refCode = $"{orderType}_{assetName}_{record.Timestamp.ToUniversalTime().Ticks}";
 
@@ -50,8 +50,8 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			if (orderTypeCrypto.GetValueOrDefault() == CryptoOrderType.Convert)
 			{
 				var buyRecord = ParseComment4Convert(record);
-				var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), x =>
-					ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(buyRecord.Asset), buyRecord.Asset, x));
+				var assetBuy = await api.FindSymbolByISIN(buyRecord.Asset, x =>
+					ParseFindSymbolByISINResult(buyRecord.Asset, buyRecord.Asset, x));
 
 				var refCodeBuy = $"{OrderType.BUY}_{buyRecord.Asset}_{record.Timestamp.ToUniversalTime().Ticks}";
 				var orderBuy = new Order

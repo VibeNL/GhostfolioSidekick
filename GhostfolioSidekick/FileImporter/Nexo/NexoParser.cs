@@ -28,8 +28,8 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			if (!fiat.Contains(assetName))
 			{
-				var asset = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(assetName), x =>
-					ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(assetName), assetName, x));
+				var asset = await api.FindSymbolByISIN(assetName, x =>
+					ParseFindSymbolByISINResult(assetName, assetName, x));
 
 				var order = new Order
 				{
@@ -54,8 +54,8 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				var buyAsset = record.OutputCurrency;
 				if (!fiat.Contains(buyAsset))
 				{
-					var assetBuy = await api.FindSymbolByISIN(CryptoTranslate.Instance.TranslateToken(buyAsset), x =>
-						ParseFindSymbolByISINResult(CryptoTranslate.Instance.TranslateToken(buyAsset), buyAsset, x));
+					var assetBuy = await api.FindSymbolByISIN(buyAsset, x =>
+						ParseFindSymbolByISINResult(buyAsset, buyAsset, x));
 
 					var orderBuy = new Order
 					{
