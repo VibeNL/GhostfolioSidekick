@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.FileImporter
 			return asset;
 		}
 
-		protected OrderType? Convert(CryptoOrderType? value)
+		protected ActivityType? Convert(CryptoOrderType? value)
 		{
 			if (value is null)
 			{
@@ -57,11 +57,11 @@ namespace GhostfolioSidekick.FileImporter
 
 			return value switch
 			{
-				CryptoOrderType.Buy => (OrderType?)OrderType.BUY,
-				CryptoOrderType.Sell => (OrderType?)OrderType.SELL,
-				CryptoOrderType.Send => (OrderType?)OrderType.SELL,
-				CryptoOrderType.Receive => (OrderType?)OrderType.BUY,
-				CryptoOrderType.Convert => (OrderType?)OrderType.SELL,
+				CryptoOrderType.Buy => (ActivityType?)ActivityType.BUY,
+				CryptoOrderType.Sell => (ActivityType?)ActivityType.SELL,
+				CryptoOrderType.Send => (ActivityType?)ActivityType.SELL,
+				CryptoOrderType.Receive => (ActivityType?)ActivityType.BUY,
+				CryptoOrderType.Convert => (ActivityType?)ActivityType.SELL,
 				CryptoOrderType.LearningReward or CryptoOrderType.StakingReward => null,
 				_ => throw new NotSupportedException(),
 			};

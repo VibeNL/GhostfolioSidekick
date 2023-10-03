@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/ScalableCapital/Example1/WUMExample1.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 5,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 8.685M,
 				ReferenceCode = "SCALQbWiZnN9DtQ"
 			} });
@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/ScalableCapital/Example1/RKKExample1.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [WWEK 16100100]",
@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 14,
-				Type = OrderType.DIVIDEND,
+				Type = ActivityType.DIVIDEND,
 				UnitPrice = 0.5057142857142857142857142857M,
 				ReferenceCode = "WWEK 16100100"
 			} });
@@ -127,7 +127,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[] {
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset1,
 				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
@@ -136,11 +136,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
 				Fee = 0.99M,
 				Quantity = 5,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 8.685M,
 				ReferenceCode = "SCALQbWiZnN9DtQ"
 			},
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset2,
 				Comment = "Transaction Reference: [WWEK 16100100]",
@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 14,
-				Type = OrderType.DIVIDEND,
+				Type = ActivityType.DIVIDEND,
 				UnitPrice = 0.5057142857142857142857142857M,
 				ReferenceCode = "WWEK 16100100"
 			} });
@@ -178,7 +178,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[] {
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset1,
 				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
@@ -187,11 +187,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
 				Fee = 0.99M,
 				Quantity = 5,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 8.685M,
 				ReferenceCode = "SCALQbWiZnN9DtQ"
 			},
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset2,
 				Comment = "Transaction Reference: [WWEK 16100100]",
@@ -200,7 +200,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 14,
-				Type = OrderType.DIVIDEND,
+				Type = ActivityType.DIVIDEND,
 				UnitPrice = 0.5057142857142857142857142857M,
 				ReferenceCode = "WWEK 16100100"
 			} });

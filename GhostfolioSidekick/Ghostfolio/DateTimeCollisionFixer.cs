@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Ghostfolio
 {
 	public class DateTimeCollisionFixer
 	{
-		public static IEnumerable<Order> Fix(IEnumerable<Order> orders)
+		public static IEnumerable<Activity> Fix(IEnumerable<Activity> orders)
 		{
 			var isChecked = false;
 

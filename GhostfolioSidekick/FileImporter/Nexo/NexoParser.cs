@@ -14,16 +14,16 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 		}
 
-		protected override async Task<IEnumerable<Order>> ConvertOrders(NexoRecord record, Account account, IEnumerable<NexoRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(NexoRecord record, Account account, IEnumerable<NexoRecord> allRecords)
 		{
 			var orderTypeCrypto = GetOrderTypeCrypto(record);
 			var orderType = Convert(orderTypeCrypto);
 			if (orderType == null || !record.Details.StartsWith("approved"))
 			{
-				return Array.Empty<Order>();
+				return Array.Empty<Activity>();
 			}
 
-			var orders = new List<Order>();
+			var orders = new List<Activity>();
 			var assetName = record.InputCurrency;
 
 			if (!fiat.Contains(assetName))
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				var asset = await api.FindSymbolByISIN(assetName, x =>
 					ParseFindSymbolByISINResult(assetName, assetName, x));
 
-				var order = new Order
+				var order = new Activity
 				{
 					AccountId = account.Id,
 					Asset = asset,
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					var assetBuy = await api.FindSymbolByISIN(buyAsset, x =>
 						ParseFindSymbolByISINResult(buyAsset, buyAsset, x));
 
-					var orderBuy = new Order
+					var orderBuy = new Activity
 					{
 						AccountId = account.Id,
 						Asset = assetBuy,
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 						Fee = 0,
 						FeeCurrency = null,
 						Quantity = record.OutputAmount,
-						Type = OrderType.BUY,
+						Type = ActivityType.BUY,
 						UnitPrice = record.GetUSDEquivalent() / record.OutputAmount,
 						ReferenceCode = record.Transaction,
 					};

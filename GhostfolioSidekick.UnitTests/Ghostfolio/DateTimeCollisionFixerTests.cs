@@ -11,9 +11,9 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 		{
 			// Arrange
 			var orders = new[] {
-				new Order{ ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Order{ ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
-				new Order{ ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
+				new Activity{ ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
+				new Activity{ ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
 			};
 
 			// Act
@@ -22,9 +22,9 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
 			{
-				new Order{ ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Order{ ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
-				new Order{ ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
+				new Activity{ ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
+				new Activity{ ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
 			});
 		}
 
@@ -34,9 +34,9 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			// Arrange
 			var asset = new Asset { Symbol = "A" };
 			var orders = new[] {
-				new Order{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Order{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Order{ Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
 			};
 
 			// Act
@@ -45,9 +45,9 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
 			{
-				new Order{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Order{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
-				new Order{Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
+				new Activity{Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
 			});
 		}
 
@@ -58,9 +58,9 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			var asset = new Asset { Symbol = "A" };
 			var assetB = new Asset { Symbol = "B" };
 			var orders = new[] {
-				new Order{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Order{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Order{ Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
 			};
 
 			// Act
@@ -69,9 +69,9 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
 			{
-				new Order{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Order{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
-				new Order{Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
+				new Activity{Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
 			});
 		}
 	}

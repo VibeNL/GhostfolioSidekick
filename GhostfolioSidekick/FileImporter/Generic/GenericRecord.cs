@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.FileImporter.Generic
 {
 	public class GenericRecord
 	{
-		public OrderType OrderType { get; set; }
+		public ActivityType OrderType { get; set; }
 
 		public string? Symbol { get; set; }
 

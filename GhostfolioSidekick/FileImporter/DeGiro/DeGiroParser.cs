@@ -11,12 +11,12 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 		}
 
-		protected override async Task<IEnumerable<Order>> ConvertOrders(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
 			{
-				return Array.Empty<Order>();
+				return Array.Empty<Activity>();
 			}
 
 			var asset = await api.FindSymbolByISIN(record.ISIN);
@@ -28,10 +28,10 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				record.OrderId = $"{orderType}_{record.Datum.ToString("dd-MM-yyyy")}_{record.Tijd}_{record.ISIN}";
 			}
 
-			Order order;
-			if (orderType == OrderType.DIVIDEND)
+			Activity order;
+			if (orderType == ActivityType.DIVIDEND)
 			{
-				order = new Order
+				order = new Activity
 				{
 					AccountId = account.Id,
 					Asset = asset,
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			}
 			else
 			{
-				order = new Order
+				order = new Activity
 				{
 					AccountId = account.Id,
 					Asset = asset,
@@ -102,29 +102,29 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private OrderType? GetOrderType(DeGiroRecord record)
+		private ActivityType? GetOrderType(DeGiroRecord record)
 		{
 			if (record.Omschrijving.Contains("Koop"))
 			{
-				return OrderType.BUY;
+				return ActivityType.BUY;
 			}
 
 			if (record.Omschrijving.Equals("Dividend"))
 			{
-				return OrderType.DIVIDEND;
+				return ActivityType.DIVIDEND;
 			}
 
 			// TODO, implement other options
 			return null;
 		}
 
-		private decimal GetQuantity(OrderType? orderType, DeGiroRecord record)
+		private decimal GetQuantity(ActivityType? orderType, DeGiroRecord record)
 		{
 			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[1].Value;
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		private decimal GetUnitPrice(OrderType? orderType, DeGiroRecord record)
+		private decimal GetUnitPrice(ActivityType? orderType, DeGiroRecord record)
 		{
 			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[2].Value;
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());

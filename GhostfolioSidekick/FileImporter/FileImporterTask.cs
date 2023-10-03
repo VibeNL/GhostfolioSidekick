@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
 
-			var orders = new List<Order>();
+			var orders = new List<Activity>();
 
 			var directories = Directory.GetDirectories(fileLocation);
 

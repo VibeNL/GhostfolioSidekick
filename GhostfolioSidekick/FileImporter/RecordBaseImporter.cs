@@ -37,12 +37,12 @@ namespace GhostfolioSidekick.FileImporter
 			return true;
 		}
 
-		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
+		public async Task<IEnumerable<Activity>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
 		{
 			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
 			CsvConfiguration csvConfig = GetConfig();
 
-			var list = new ConcurrentDictionary<string, Order>();
+			var list = new ConcurrentDictionary<string, Activity>();
 			await Parallel.ForEachAsync(filenames, async (filename, c1) =>
 			{
 				using var streamReader = GetStreamReader(filename);
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.FileImporter
 			return list.Values;
 		}
 
-		protected abstract Task<IEnumerable<Order>> ConvertOrders(T record, Account account, IEnumerable<T> allRecords);
+		protected abstract Task<IEnumerable<Activity>> ConvertOrders(T record, Account account, IEnumerable<T> allRecords);
 
 		protected abstract CsvConfiguration GetConfig();
 

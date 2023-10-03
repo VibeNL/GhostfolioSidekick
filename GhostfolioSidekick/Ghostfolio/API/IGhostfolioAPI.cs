@@ -10,6 +10,6 @@
 
 		Task<Account> GetAccountByName(string name);
 
-		public Task UpdateOrders(IEnumerable<Order> orders);
+		public Task UpdateOrders(IEnumerable<Activity> orders);
 	}
 }

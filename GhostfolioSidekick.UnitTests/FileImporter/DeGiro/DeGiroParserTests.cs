@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example1/TestFileSingleOrder.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b]",
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Date = new DateTime(2023,07,6, 9, 39,0, DateTimeKind.Utc),
 				Fee = 1,
 				Quantity = 1,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 77.30M,
 				ReferenceCode = "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b"
 			} });
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
-			{ new Order {
+			{ new Activity {
 				AccountId = account.Id,
 				Asset = asset1,
 				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b]",
@@ -103,10 +103,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Date = new DateTime(2023,07,6,9,39,0, DateTimeKind.Utc),
 				Fee = 1,
 				Quantity = 1,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 77.30M,
 				ReferenceCode = "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b"
-			}, new Order {
+			}, new Activity {
 				AccountId = account.Id,
 				Asset = asset2,
 				Comment = "Transaction Reference: [67e39ca1-2f10-4f82-8365-1baad98c398f]",
@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Date = new DateTime(2023,07,11, 9,33,0, DateTimeKind.Utc),
 				Fee = 1,
 				Quantity = 29,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 34.375M,
 				ReferenceCode = "67e39ca1-2f10-4f82-8365-1baad98c398f"
 			} });
@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example4/TestFileDividend.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [DIVIDEND_14-09-2023_06:32_NL0009690239]",
@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
 				Fee = 0M,
 				Quantity = 1,
-				Type = OrderType.DIVIDEND,
+				Type = ActivityType.DIVIDEND,
 				UnitPrice = 8.13M,
 				ReferenceCode = "DIVIDEND_14-09-2023_06:32_NL0009690239"
 			} });
@@ -170,7 +170,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example5/TestFileDividendNoTax.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [DIVIDEND_14-09-2023_06:32_NL0009690239]",
@@ -179,7 +179,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
 				Fee = 0M,
 				Quantity = 1,
-				Type = OrderType.DIVIDEND,
+				Type = ActivityType.DIVIDEND,
 				UnitPrice = 9.57M,
 				ReferenceCode = "DIVIDEND_14-09-2023_06:32_NL0009690239"
 			} });

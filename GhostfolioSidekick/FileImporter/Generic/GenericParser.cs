@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.FileImporter.Generic
 		{
 		}
 
-		protected override async Task<IEnumerable<Order>> ConvertOrders(GenericRecord record, Account account, IEnumerable<GenericRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(GenericRecord record, Account account, IEnumerable<GenericRecord> allRecords)
 		{
 			var asset = await api.FindSymbolByISIN(record.Symbol);
 
@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.FileImporter.Generic
 				record.Id = $"{record.OrderType}_{record.Symbol}_{record.Date.ToString("yyyy-MM-dd")}";
 			}
 
-			var order = new Order
+			var order = new Activity
 			{
 				AccountId = account.Id,
 				Asset = asset,

@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Generic/Example1/Example1.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [BUY_US67066G1040_2023-08-07]",
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 				Date = new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
 				Fee = 0.02M,
 				Quantity = 0.0267001M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 453.33M,
 				ReferenceCode = "BUY_US67066G1040_2023-08-07"
 			} });

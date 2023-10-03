@@ -13,13 +13,13 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 		{
 		}
 
-		protected override async Task<IEnumerable<Order>> ConvertOrders(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
 		{
 			var orderTypeCrypto = GetOrderTypeCrypto(record);
 			var orderType = Convert(orderTypeCrypto);
 			if (orderType == null)
 			{
-				return Array.Empty<Order>();
+				return Array.Empty<Activity>();
 			}
 
 			var assetName = record.Asset;
@@ -28,9 +28,9 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 
 			var refCode = $"{orderType}_{assetName}_{record.Timestamp.ToUniversalTime().Ticks}";
 
-			var orders = new List<Order>();
+			var orders = new List<Activity>();
 
-			var order = new Order
+			var order = new Activity
 			{
 				AccountId = account.Id,
 				Asset = asset,
@@ -53,8 +53,8 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				var assetBuy = await api.FindSymbolByISIN(buyRecord.Asset, x =>
 					ParseFindSymbolByISINResult(buyRecord.Asset, buyRecord.Asset, x));
 
-				var refCodeBuy = $"{OrderType.BUY}_{buyRecord.Asset}_{record.Timestamp.ToUniversalTime().Ticks}";
-				var orderBuy = new Order
+				var refCodeBuy = $"{ActivityType.BUY}_{buyRecord.Asset}_{record.Timestamp.ToUniversalTime().Ticks}";
+				var orderBuy = new Activity
 				{
 					AccountId = account.Id,
 					Asset = assetBuy,
@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 					Fee = 0,
 					FeeCurrency = record.Currency,
 					Quantity = buyRecord.Quantity,
-					Type = OrderType.BUY,
+					Type = ActivityType.BUY,
 					UnitPrice = await GetCorrectUnitPrice(buyRecord.UnitPrice, assetBuy, record.Timestamp.ToUniversalTime()),
 					ReferenceCode = refCodeBuy,
 				};

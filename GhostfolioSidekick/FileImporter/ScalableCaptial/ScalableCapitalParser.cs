@@ -39,10 +39,10 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		}
 
 
-		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
+		public async Task<IEnumerable<Activity>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
 		{
-			var list = new ConcurrentDictionary<Tuple<string, Asset, string, DateTime, decimal, decimal>, Order>();
-			Tuple<string, Asset, string, DateTime, decimal, decimal> GetKey(Order x)
+			var list = new ConcurrentDictionary<Tuple<string, Asset, string, DateTime, decimal, decimal>, Activity>();
+			Tuple<string, Asset, string, DateTime, decimal, decimal> GetKey(Activity x)
 			{
 				return Tuple.Create(x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity);
 			};
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return list.Values;
 		}
 
-		private async Task<Order?> ConvertToOrder(Account account, BaaderBankRKKRecord record)
+		private async Task<Activity?> ConvertToOrder(Account account, BaaderBankRKKRecord record)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 			var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
 			var unitPrice = record.UnitPrice.GetValueOrDefault() / quantity;
-			return new Order
+			return new Activity
 			{
 				AccountId = account.Id,
 				Asset = asset,
@@ -123,13 +123,13 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			};
 		}
 
-		private async Task<Order> ConvertToOrder(Account account, BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
+		private async Task<Activity> ConvertToOrder(Account account, BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
 		{
 			var asset = await api.FindSymbolByISIN(record.Isin);
 
 			var fee = FindFeeRecord(rkkRecords, record.Reference);
 
-			return new Order
+			return new Activity
 			{
 				AccountId = account.Id,
 				Asset = asset,
@@ -155,24 +155,24 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return null;
 		}
 
-		private OrderType GetOrderType(BaaderBankWUMRecord record)
+		private ActivityType GetOrderType(BaaderBankWUMRecord record)
 		{
 			switch (record.OrderType)
 			{
 				case "Verkauf":
-					return OrderType.SELL;
+					return ActivityType.SELL;
 				case "Kauf":
-					return OrderType.BUY;
+					return ActivityType.BUY;
 				default:
 					throw new NotSupportedException();
 			}
 		}
 
-		private OrderType? GetOrderType(BaaderBankRKKRecord record)
+		private ActivityType? GetOrderType(BaaderBankRKKRecord record)
 		{
 			if (record.OrderType == "Coupons/Dividende")
 			{
-				return OrderType.DIVIDEND;
+				return ActivityType.DIVIDEND;
 			}
 
 			return null;

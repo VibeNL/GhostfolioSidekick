@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
 			{
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset1,
 				Comment = "Transaction Reference: [SELL_BTC_638280626190000000]",
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 				Date = new DateTime(2023,08,19,17,23,39, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 0.00205323M,
-				Type = OrderType.SELL,
+				Type = ActivityType.SELL,
 				UnitPrice = 24073.28M,
 				ReferenceCode = "SELL_BTC_638280626190000000"
 			}});
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
 			{
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset1, // BTC
 				Comment = "Transaction Reference: [SELL_BTC_638280626190000000]",
@@ -96,11 +96,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 				Date = new DateTime(2023,08,19,17,23,39, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 0.00205323M,
-				Type = OrderType.SELL,
+				Type = ActivityType.SELL,
 				UnitPrice = 24073.28M,
 				ReferenceCode = "SELL_BTC_638280626190000000"
 			},
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset2, // ETH
 				Comment = "Transaction Reference: [BUY_ETH_638175603400000000]",
@@ -109,11 +109,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 				Date = new DateTime(2023,04,20,4,5,40, DateTimeKind.Utc),
 				Fee = 0.990000M,
 				Quantity = 0.00213232M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice =1810.23M,
 				ReferenceCode = "BUY_ETH_638175603400000000"
 			},
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset2, // ETH
 				Comment = "Transaction Reference: [BUY_ETH_638177414840000000]",
@@ -122,11 +122,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 				Date = new DateTime(2023,4,22,6,24,44, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 1.0e-08M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice =1689.10M,
 				ReferenceCode = "BUY_ETH_638177414840000000"
 			},
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset2, // ETH -> ATOM
 				Comment = "Transaction Reference: [SELL_ETH_638181135820000000]",
@@ -135,11 +135,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 				Date = new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc),
 				Fee = 0.020000M,
 				Quantity = 0.00052203M,
-				Type = OrderType.SELL,
+				Type = ActivityType.SELL,
 				UnitPrice = 1762.35M,
 				ReferenceCode = "SELL_ETH_638181135820000000"
 			},
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset3, // ETH -> ATOM
 				Comment = "Transaction Reference: [BUY_ATOM_638181135820000000]",
@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 				Date = new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 0.087842M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 10.473344988729764804990778898M,
 				ReferenceCode = "BUY_ATOM_638181135820000000"
 			}});

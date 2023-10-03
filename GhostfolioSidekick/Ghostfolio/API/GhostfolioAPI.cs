@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			restCall = new RestCall(memoryCache, logger, url, accessToken);
 		}
 
-		public async Task UpdateOrders(IEnumerable<Order> orders)
+		public async Task UpdateOrders(IEnumerable<Activity> orders)
 		{
 			var ordersByAccount = DateTimeCollisionFixer.Fix(orders).GroupBy(x => x.AccountId);
 
@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 		}
 
-		private async Task WriteOrder(Order order)
+		private async Task WriteOrder(Activity order)
 		{
 			if (order.UnitPrice == 0 && order.Quantity == 0)
 			{
@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Added transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
 		}
 
-		private async Task DeleteOrder(RawOrder? order)
+		private async Task DeleteOrder(RawActivity? order)
 		{
 			var r = await restCall.DoRestDelete($"api/v1/order/{order.Id}");
 			if (!r.IsSuccessStatusCode)
@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Deleted transaction {order.Id} {order.SymbolProfile.Symbol} {order.Date}");
 		}
 
-		private async Task<Order> ConvertToNativeCurrency(Order order)
+		private async Task<Activity> ConvertToNativeCurrency(Activity order)
 		{
 			decimal Round(decimal value)
 			{
@@ -162,7 +162,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			decimal feeConvertionRate = order.Fee > 0 ? (await GetExchangeRate(order.FeeCurrency, order.Asset.Currency, order.Date)) : 1;
 
 			var conversionComment = currencyConvertionRate != 1 ? $" | Original Price {order.UnitPrice}{order.Currency}, Fee {order.Fee}{order.Currency}" : string.Empty;
-			return new Order
+			return new Activity
 			{
 				AccountId = order.AccountId,
 				Currency = order.Asset.Currency,
@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			};
 		}
 
-		private async Task<string> ConvertToBody(Order order)
+		private async Task<string> ConvertToBody(Activity order)
 		{
 			var o = new JObject();
 			var r = new JObject
@@ -202,7 +202,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return res;
 		}
 
-		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Order> ordersFromFiles, IEnumerable<RawOrder> existingOrders)
+		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Activity> ordersFromFiles, IEnumerable<RawActivity> existingOrders)
 		{
 			var pattern = @"Transaction Reference: \[(.*?)\]";
 
@@ -236,7 +236,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				});
 		}
 
-		private bool AreEquals(Order fo, RawOrder eo)
+		private bool AreEquals(Activity fo, RawActivity eo)
 		{
 			return
 				fo.Asset?.Symbol == eo.SymbolProfile?.Symbol &&
@@ -247,30 +247,31 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				fo.Date == eo.Date;
 		}
 
-		private async Task<IEnumerable<RawOrder>> GetExistingOrders(string accountId)
+		private async Task<IEnumerable<RawActivity>> GetExistingOrders(string accountId)
 		{
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={accountId}", CacheDuration.None());
-			return JsonConvert.DeserializeObject<RawOrderList>(content).Activities;
+			return JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
 		}
 
-		private class MergeOrder
+		private sealed class MergeOrder
 		{
-			public MergeOrder(Operation operation, Order? order1)
+			public MergeOrder(Operation operation, Activity order1)
 			{
 				Operation = operation;
 				Order1 = order1;
+				Order2 = null;
 			}
 
-			public MergeOrder(Operation operation, Order? order1, RawOrder? order2) : this(operation, order1)
+			public MergeOrder(Operation operation, Activity order1, RawActivity? order2) : this(operation, order1)
 			{
 				Order2 = order2;
 			}
 
 			public Operation Operation { get; }
 
-			public Order Order1 { get; }
+			public Activity Order1 { get; }
 
-			public RawOrder Order2 { get; }
+			public RawActivity? Order2 { get; }
 		}
 
 		private Asset? LogIfEmpty(Asset? asset, string identifier)

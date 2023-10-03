@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public class Order
+	public class Activity
 	{
 		public string AccountId { get; set; }
 
@@ -18,7 +18,7 @@
 
 		public decimal Quantity { get; set; }
 
-		public OrderType Type { get; set; }
+		public ActivityType Type { get; set; }
 
 		public decimal UnitPrice { get; set; }
 

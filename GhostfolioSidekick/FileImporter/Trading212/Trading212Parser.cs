@@ -10,12 +10,12 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 		}
 
-		protected override async Task<IEnumerable<Order>> ConvertOrders(Trading212Record record, Account account, IEnumerable<Trading212Record> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(Trading212Record record, Account account, IEnumerable<Trading212Record> allRecords)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
 			{
-				return Array.Empty<Order>();
+				return Array.Empty<Activity>();
 			}
 
 			var asset = await api.FindSymbolByISIN(record.ISIN);
@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			var fee = GetFee(record);
 
-			var order = new Order
+			var order = new Activity
 			{
 				AccountId = account.Id,
 				Asset = asset,
@@ -76,14 +76,14 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			return (record.ConversionFeeCurrency, record.ConversionFee + record.FeeUK);
 		}
 
-		private OrderType? GetOrderType(Trading212Record record)
+		private ActivityType? GetOrderType(Trading212Record record)
 		{
 			return record.Action switch
 			{
 				"Deposit" or "Interest on cash" or "Currency conversion" => null,
-				"Market buy" => OrderType.BUY,
-				"Market sell" => OrderType.SELL,
-				string d when d.Contains("Dividend") => OrderType.DIVIDEND,
+				"Market buy" => ActivityType.BUY,
+				"Market sell" => ActivityType.SELL,
+				string d when d.Contains("Dividend") => ActivityType.DIVIDEND,
 				_ => throw new NotSupportedException(),
 			};
 		}

@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
-			{ new Order {
+			{ new Activity {
 				AccountId = account.Id,
 				Asset = asset1,
 				Comment = "Transaction Reference: [NXTyPxhiopNL3]",
@@ -58,10 +58,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,8,25,14,44,46, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 161.90485771M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 0.999969996514813032906620872M,
 				ReferenceCode = "NXTyPxhiopNL3"
-			}, new Order {
+			}, new Activity {
 				AccountId = account.Id,
 				Asset = asset2,
 				Comment = "Transaction Reference: [NXTyVJeCwg6Og]",
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,8,26, 13,30,38, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 0.00445142M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 26028.386478921332967906870167M,
 				ReferenceCode = "NXTyVJeCwg6Og"
 			} });
@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[]
-			{ new Order {
+			{ new Activity {
 				AccountId = account.Id,
 				Asset = asset1,
 				Comment = "Transaction Reference: [NXTyPxhiopNL3]",
@@ -106,10 +106,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,8,25,14,44,46, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 161.90485771M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 0.999969996514813032906620872M,
 				ReferenceCode = "NXTyPxhiopNL3"
-			} , new Order {
+			} , new Activity {
 				AccountId = account.Id,
 				Asset = asset2,
 				Comment = "Transaction Reference: [NXTk6FBYyxOqH]",
@@ -118,10 +118,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,08,25,16,43,55, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 0.00096332M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 25951.855302495536270398206204M,
 				ReferenceCode = "NXTk6FBYyxOqH"
-			} , new Order {
+			} , new Activity {
 				AccountId = account.Id,
 				Asset = asset2,
 				Comment = "Transaction Reference: [NXTyVJeCwg6Og]",
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,8,26, 13,30,38, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 0.00445142M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 26028.386478921332967906870167M,
 				ReferenceCode = "NXTyVJeCwg6Og"
 			} });

@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
 				Fee = 0.02M,
 				Quantity = 0.0267001M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 453.33M,
 				ReferenceCode = "EOF3219953148"
 			} });
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 
 			// Assert
 			orders.Should().BeEquivalentTo(new[] {
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
@@ -87,11 +87,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
 				Fee = 0.02M,
 				Quantity = 0.0267001M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 453.33M,
 				ReferenceCode = "EOF3219953148"
 			},
-			new Order {
+			new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031567]",
@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
 				Fee = 0,
 				Quantity = 0.0026199M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 423.25M,
 				ReferenceCode = "EOF3224031567"
 			}});
@@ -123,7 +123,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example3/TestFileSingleOrderUK.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031549]",
@@ -132,7 +132,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
 				Fee = 0.07M,
 				Quantity = 0.18625698M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 4947.00M,
 				ReferenceCode = "EOF3224031549"
 			} });
@@ -155,7 +155,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example4/TestFileSingleDividend.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [DIVIDEND_US0378331005_2023-08-17]",
@@ -164,7 +164,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Date = new DateTime(2023,08,17, 10,49,49, DateTimeKind.Utc),
 				Fee = 0M,
 				Quantity = 0.1279177000M,
-				Type = OrderType.DIVIDEND,
+				Type = ActivityType.DIVIDEND,
 				UnitPrice =  0.20M,
 				ReferenceCode = "DIVIDEND_US0378331005_2023-08-17"
 			} });
@@ -187,7 +187,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example5/TestFileSingleOrderUKNativeCurrency.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031549]",
@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
 				Fee = 0.05M,
 				Quantity = 0.18625698M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 4947.00M,
 				ReferenceCode = "EOF3224031549"
 			} });
@@ -223,7 +223,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			});
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Order {
+			orders.Should().BeEquivalentTo(new[] { new Activity {
 				AccountId = account.Id,
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
@@ -232,7 +232,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
 				Fee = 0.02M,
 				Quantity = 0.0267001M,
-				Type = OrderType.BUY,
+				Type = ActivityType.BUY,
 				UnitPrice = 453.33M,
 				ReferenceCode = "EOF3219953148"
 			} });
