@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.FileImporter
 {
@@ -8,17 +9,17 @@ namespace GhostfolioSidekick.FileImporter
 		{
 		}
 
-		//protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, Model.Asset? symbol, DateTime date)
-		//{
-		//	if (originalUnitPrice.Amount > 0)
-		//	{
-		//		return originalUnitPrice;
-		//	}
+		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, Model.Asset? symbol, DateTime date)
+		{
+			if (originalUnitPrice.Amount > 0)
+			{
+				return originalUnitPrice;
+			}
 
-		//	// GetPrice from Ghostfolio
-		//	var price = await api.GetMarketPrice(symbol, date);
-		//	return price;
-		//}
+			// GetPrice from Ghostfolio
+			var price = await api.GetMarketPrice(symbol, date);
+			return price;
+		}
 
 		protected Model.Asset? ParseFindSymbolByISINResult(string assetName, string symbol, IEnumerable<Model.Asset> assets)
 		{
@@ -40,6 +41,16 @@ namespace GhostfolioSidekick.FileImporter
 				.FirstOrDefault();
 
 			return asset;
+		}
+
+		protected Model.ActivityType HandleConvertActivityType(Model.ActivityType value)
+		{
+			if (value == Model.ActivityType.Convert)
+			{
+				return Model.ActivityType.Sell;
+			}
+
+			return value;
 		}
 	}
 }

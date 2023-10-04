@@ -24,7 +24,7 @@
 
 		public DateTime Date { get; set; }
 
-		public Money Fee { get; set; }
+		public Money? Fee { get; set; }
 
 		public decimal Quantity { get; set; }
 

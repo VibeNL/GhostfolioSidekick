@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					Comment = $"Transaction Reference: [{record.Transaction}]",
 					Fee = null,
 					Quantity = record.InputAmount,
-					Type = activityType.Value,
+					Type = HandleConvertActivityType(activityType.Value),
 					UnitPrice = new Model.Money(currency, record.GetUSDEquivalent() / record.InputAmount),
 					ReferenceCode = record.Transaction,
 				};
@@ -100,5 +100,6 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				default: throw new NotSupportedException($"{record.Type}");
 			}
 		}
+
 	}
 }

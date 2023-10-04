@@ -12,14 +12,13 @@
 
 		Receive,
 
-		Convert,
-
 		Interest,
 
 		Gift,
 
 		LearningReward,
 
-		StakingReward
+		StakingReward,
+		Convert
 	}
 }
