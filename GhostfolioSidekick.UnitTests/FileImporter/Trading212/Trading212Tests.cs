@@ -2,6 +2,7 @@ using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using Moq;
 
 namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
@@ -16,224 +17,203 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 		}
 
 		[Fact]
-		public async Task CanConvertOrders_TestFileSingleOrder_True()
+		public async Task CanParseActivities_TestFileSingleOrder_True()
 		{
 			// Arrange
 			var parser = new Trading212Parser(api.Object);
 
 			// Act
-			var canParse = await parser.CanConvertOrders(new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
+			var canParse = await parser.CanParseActivities(new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
 
 			// Assert
 			canParse.Should().BeTrue();
 		}
 
 		[Fact]
-		public async Task ConvertToOrders_TestFileSingleOrder_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileSingleOrder_Converted()
 		{
 			// Arrange
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, "USD").Create();
-			var account = fixture.Create<Account>();
+			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var account = fixture.Create<Model.Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Activity {
-				AccountId = account.Id,
+			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
-				Currency = asset.Currency,
-				FeeCurrency = "EUR",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
-				Fee = 0.02M,
+				Fee = new Money(DefaultCurrency.EUR, 0.02M),
 				Quantity = 0.0267001M,
-				Type = ActivityType.BUY,
-				UnitPrice = 453.33M,
+				Type = Model. ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.USD,453.33M),
 				ReferenceCode = "EOF3219953148"
 			} });
 		}
 
 		[Fact]
-		public async Task ConvertToOrders_TestFileMultipleOrdersUS_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileMultipleOrdersUS_Converted()
 		{
 			// Arrange
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, "USD").Create();
-			var account = fixture.Create<Account>();
+			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var account = fixture.Create<Model.Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example2/TestFileMultipleOrdersUS.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example2/TestFileMultipleOrdersUS.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] {
-			new Activity {
-				AccountId = account.Id,
+			account.Activities.Should().BeEquivalentTo(new[] {
+			new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
-				Currency = asset.Currency,
-				FeeCurrency = "EUR",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
-				Fee = 0.02M,
+				Fee = new Money(DefaultCurrency.EUR,0.02M),
 				Quantity = 0.0267001M,
-				Type = ActivityType.BUY,
-				UnitPrice = 453.33M,
+				Type = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.USD,453.33M),
 				ReferenceCode = "EOF3219953148"
 			},
-			new Activity {
-				AccountId = account.Id,
+			new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031567]",
-				Currency = asset.Currency,
-				FeeCurrency = "",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
-				Fee = 0,
+				Fee = new Money(string.Empty, null),
 				Quantity = 0.0026199M,
-				Type = ActivityType.BUY,
-				UnitPrice = 423.25M,
+				Type = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.USD,423.25M),
 				ReferenceCode = "EOF3224031567"
 			}});
 		}
 
 		[Fact]
-		public async Task ConvertToOrders_TestFileSingleOrderUK_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileSingleOrderUK_Converted()
 		{
 			// Arrange
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, "GBX").Create();
-			var account = fixture.Create<Account>();
+			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.GBX).Create();
+			var account = fixture.Create<Model.Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("GB0007188757", null)).ReturnsAsync(asset);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example3/TestFileSingleOrderUK.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example3/TestFileSingleOrderUK.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Activity {
-				AccountId = account.Id,
+			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031549]",
-				Currency = asset.Currency,
-				FeeCurrency = "EUR",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
-				Fee = 0.07M,
+				Fee = new Money(DefaultCurrency.EUR,0.07M),
 				Quantity = 0.18625698M,
-				Type = ActivityType.BUY,
-				UnitPrice = 4947.00M,
+				Type = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.GBX,4947.00M),
 				ReferenceCode = "EOF3224031549"
 			} });
 		}
 
 		[Fact]
-		public async Task ConvertToOrders_TestFileSingleDividend_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
 		{
 			// Arrange
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, "USD").Create();
-			var account = fixture.Create<Account>();
+			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var account = fixture.Create<Model.Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US0378331005", null)).ReturnsAsync(asset);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example4/TestFileSingleDividend.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example4/TestFileSingleDividend.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Activity {
-				AccountId = account.Id,
+			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [DIVIDEND_US0378331005_2023-08-17]",
-				Currency = asset.Currency,
-				FeeCurrency = "",
+				Comment = "Transaction Reference: [Dividend_US0378331005_2023-08-17]",
 				Date = new DateTime(2023,08,17, 10,49,49, DateTimeKind.Utc),
-				Fee = 0M,
+				Fee = new Money(string.Empty, null),
 				Quantity = 0.1279177000M,
-				Type = ActivityType.DIVIDEND,
-				UnitPrice =  0.20M,
-				ReferenceCode = "DIVIDEND_US0378331005_2023-08-17"
+				Type = Model.ActivityType.Dividend,
+				UnitPrice = new Money(DefaultCurrency.USD, 0.20M),
+				ReferenceCode = "Dividend_US0378331005_2023-08-17"
 			} });
 		}
 
 		[Fact]
-		public async Task ConvertToOrders_TestFileSingleOrderUKNativeCurrency_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileSingleOrderUKNativeCurrency_Converted()
 		{
 			// Arrange
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, "GBX").Create();
-			var account = fixture.Create<Account>();
+			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.GBX).Create();
+			var account = fixture.Create<Model.Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("GB0007188757", null)).ReturnsAsync(asset);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example5/TestFileSingleOrderUKNativeCurrency.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example5/TestFileSingleOrderUKNativeCurrency.csv" });
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Activity {
-				AccountId = account.Id,
+			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031549]",
-				Currency = asset.Currency,
-				FeeCurrency = "GBP",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
-				Fee = 0.05M,
+				Fee = new Money(DefaultCurrency.GBP,0.05M),
 				Quantity = 0.18625698M,
-				Type = ActivityType.BUY,
-				UnitPrice = 4947.00M,
+				Type = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.GBX,4947.00M),
 				ReferenceCode = "EOF3224031549"
 			} });
 		}
 
 		[Fact]
-		public async Task ConvertToOrders_TestFileSingleOrderMultipleTimes_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileSingleOrderMultipleTimes_Converted()
 		{
 			// Arrange
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, "USD").Create();
-			var account = fixture.Create<Account>();
+			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var account = fixture.Create<Model.Account>();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
 
 			// Act
-			var orders = await parser.ConvertToOrders(account.Name, new[] {
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
 				"./FileImporter/TestFiles/Trading212/Example6/TestFileSingleOrder.csv",
 				"./FileImporter/TestFiles/Trading212/Example6/TestFileSingleOrder2.csv",
 				"./FileImporter/TestFiles/Trading212/Example6/TestFileSingleOrder3.csv"
 			});
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[] { new Activity {
-				AccountId = account.Id,
+			account.Activities.Should().BeEquivalentTo(new[] { new Model. Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
-				Currency = asset.Currency,
-				FeeCurrency = "EUR",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
-				Fee = 0.02M,
+				Fee = new Money(DefaultCurrency.EUR,0.02M),
 				Quantity = 0.0267001M,
-				Type = ActivityType.BUY,
-				UnitPrice = 453.33M,
+				Type = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.USD,453.33M),
 				ReferenceCode = "EOF3219953148"
 			} });
 		}

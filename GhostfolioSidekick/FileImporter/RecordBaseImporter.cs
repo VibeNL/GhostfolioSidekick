@@ -65,6 +65,8 @@ namespace GhostfolioSidekick.FileImporter
 				});
 			});
 
+			account.ReplaceActivities(list.Values);
+
 			return account;
 		}
 

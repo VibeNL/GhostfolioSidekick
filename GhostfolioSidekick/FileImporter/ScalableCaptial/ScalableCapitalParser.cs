@@ -93,6 +93,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				}
 			});
 
+			account.ReplaceActivities(list.Values);
+
 			return account;
 		}
 
@@ -130,7 +132,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return new Model.Activity(
 				GetOrderType(record),
 				asset,
-				record.Date.ToDateTime(TimeOnly.MinValue),
+				record.Date.ToDateTime(record.Time),
 				Math.Abs(record.Quantity.GetValueOrDefault()),
 				new Money(record.Currency, record.UnitPrice.GetValueOrDefault()),
 				new Money(fee?.Currency ?? record.Currency, Math.Abs(fee?.UnitPrice ?? 0)),

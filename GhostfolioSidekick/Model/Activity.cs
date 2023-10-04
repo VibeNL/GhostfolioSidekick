@@ -2,6 +2,10 @@
 {
 	public class Activity
 	{
+		public Activity()
+		{
+		}
+
 		public Activity(ActivityType type, Asset? asset, DateTime date, decimal quantity, Money unitPrice, Money fee, string comment, string referenceCode)
 		{
 			Asset = asset ?? throw new ArgumentNullException(nameof(asset));

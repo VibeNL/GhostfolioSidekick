@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		{
 			// Arrange
 			var testImporter = new Mock<IFileImporter>();
-			testImporter.Setup(x => x.CanConvertOrders(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
+			testImporter.Setup(x => x.CanParseActivities(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
 			var cs = new Mock<IConfigurationSettings>();
 			cs.Setup(x => x.FileImporterPath).Returns("./FileImporter/TestFiles");
 
@@ -29,10 +29,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			await task.DoWork();
 
 			// Assert
-			testImporter.Verify(x => x.ConvertToOrders("Coinbase", It.Is<IEnumerable<string>>(y => y.Count() == 2)), Times.Once);
-			testImporter.Verify(x => x.ConvertToOrders("DeGiro", It.Is<IEnumerable<string>>(y => y.Count() == 5)), Times.Once);
-			testImporter.Verify(x => x.ConvertToOrders("ScalableCapital", It.Is<IEnumerable<string>>(y => y.Count() == 5)), Times.Once);
-			testImporter.Verify(x => x.ConvertToOrders("Trading212", It.Is<IEnumerable<string>>(y => y.Count() == 8)), Times.Once);
+			testImporter.Verify(x => x.ConvertActivitiesForAccount("Coinbase", It.Is<IEnumerable<string>>(y => y.Count() == 2)), Times.Once);
+			testImporter.Verify(x => x.ConvertActivitiesForAccount("DeGiro", It.Is<IEnumerable<string>>(y => y.Count() == 5)), Times.Once);
+			testImporter.Verify(x => x.ConvertActivitiesForAccount("ScalableCapital", It.Is<IEnumerable<string>>(y => y.Count() == 5)), Times.Once);
+			testImporter.Verify(x => x.ConvertActivitiesForAccount("Trading212", It.Is<IEnumerable<string>>(y => y.Count() == 8)), Times.Once);
 		}
 	}
 }

@@ -6,7 +6,7 @@ namespace GhostfolioSidekick
 	{
 		public static Currency ParseCurrency(string currency)
 		{
-			return (Currency)Enum.Parse(typeof(Currency), currency);
+			return new Currency(currency);
 		}
 	}
 }

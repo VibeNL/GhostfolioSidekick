@@ -1,15 +1,12 @@
 ﻿namespace GhostfolioSidekick.Model
 {
-	public enum Currency
+	public class Currency
 	{
-		USD,
+		public Currency(string symbol)
+		{
+			Symbol = symbol;
+		}
 
-		EUR,
-
-		GBP,
-
-		GBp,
-
-		CAD
+		public string Symbol { get; set; }
 	}
 }

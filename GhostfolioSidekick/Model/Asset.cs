@@ -2,6 +2,9 @@
 {
 	public class Asset
 	{
+		public Asset()
+		{
+		}
 		public Asset(Currency currency, string symbol, string name, string dataSource, string assetSubClass, string assetClass)
 		{
 			Currency = currency;

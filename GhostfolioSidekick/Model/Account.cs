@@ -27,5 +27,11 @@
 		public Money Balance { get; set; }
 
 		public List<Activity> Activities { get; set; }
+
+		internal void ReplaceActivities(ICollection<Activity> newSet)
+		{
+			Activities.Clear();
+			Activities.AddRange(newSet);
+		}
 	}
 }
