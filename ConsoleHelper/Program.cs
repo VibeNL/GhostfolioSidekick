@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.FileImporter.DeGiro;
+using GhostfolioSidekick.FileImporter.Nexo;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
@@ -30,7 +31,7 @@ namespace ConsoleHelper
 				new DeGiroParser(api),
 				new Trading212Parser(api),
 				//new CoinbaseParser(api),
-				//new NexoParser(api),
+				new NexoParser(api),
 			});
 			t.DoWork().Wait();
 		}
