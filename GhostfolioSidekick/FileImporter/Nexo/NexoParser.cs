@@ -1,7 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Crypto;
 using GhostfolioSidekick.Ghostfolio.API;
-using System.Data;
 using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.Nexo
@@ -102,6 +101,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				case "UnlockingTermDeposit":
 				case "DepositToExchange":
 				case "ExchangeDepositedOn":
+				case "FixedTermInterest": // TODO: Should be a 'reward'
 				case "Interest": // TODO: Should be a 'reward'
 					return null;
 				default: throw new NotSupportedException($"{record.Type}");
