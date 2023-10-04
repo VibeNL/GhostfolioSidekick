@@ -68,45 +68,45 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				);
 		}
 
-		public async Task UpdateAccount(IEnumerable<Model.Account> accounts)
+		public async Task UpdateAccount(Model.Account account)
 		{
-			throw new NotImplementedException();
-			//var ordersByAccount = DateTimeCollisionFixer.Fix(orders).GroupBy(x => x.AccountId);
+			var existingAccount = await GetAccountByName(account.Name);
+			// TODO update account!
 
-			//foreach (var group in ordersByAccount)
-			//{
-			//	var mapped = group.Select(x => ConvertToNativeCurrency(x).Result).ToList();
-			//	var existingOrders = await GetExistingOrders(group.First().AccountId);
+			var newActivities = DateTimeCollisionFixer.Fix(account.Activities).Select(x => ConvertToGhostfolioActivity(account, x).Result).ToList();
 
-			//	foreach (var mergeOrder in MergeOrders(mapped, existingOrders))
-			//	{
-			//		try
-			//		{
-			//			switch (mergeOrder.Operation)
-			//			{
-			//				case Operation.New:
-			//					await WriteOrder(mergeOrder.Order1);
-			//					break;
-			//				case Operation.Duplicate:
-			//					// Nothing to do!
-			//					break;
-			//				case Operation.Updated:
-			//					await DeleteOrder(mergeOrder.Order2);
-			//					await WriteOrder(mergeOrder.Order1);
-			//					break;
-			//				case Operation.Removed:
-			//					await DeleteOrder(mergeOrder.Order2);
-			//					break;
-			//				default:
-			//					break;
-			//			}
-			//		}
-			//		catch (Exception ex)
-			//		{
-			//			logger.LogError($"Transaction failed to write {ex}, skipping");
-			//		}
-			//	}
-			//}
+			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
+			var existingActivities = JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
+
+			IEnumerable<MergeOrder> mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).ToList();
+			foreach (var mergeOrder in mergeOrders)
+			{
+				try
+				{
+					switch (mergeOrder.Operation)
+					{
+						case Operation.New:
+							await WriteOrder(mergeOrder.Order1);
+							break;
+						case Operation.Duplicate:
+							// Nothing to do!
+							break;
+						case Operation.Updated:
+							await DeleteOrder(mergeOrder.Order2);
+							await WriteOrder(mergeOrder.Order1);
+							break;
+						case Operation.Removed:
+							await DeleteOrder(mergeOrder.Order2);
+							break;
+						default:
+							throw new NotSupportedException();
+					}
+				}
+				catch (Exception ex)
+				{
+					logger.LogError($"Transaction failed to write {ex}, skipping");
+				}
+			}
 		}
 
 		public async Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date)
@@ -148,9 +148,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return money;
 			}
 
-			var sourceCurrency = mapper.MapCurrency(money.Currency.ToString());
+			var sourceCurrency = mapper.MapCurrency(money.Currency.Symbol);
 
-			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short());
 
 			dynamic stuff = JsonConvert.DeserializeObject(content);
 			var token = stuff.marketPrice.ToString();
@@ -199,31 +199,26 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Deleted transaction {order.Id} {order.SymbolProfile.Symbol} {order.Date}");
 		}
 
-		private async Task<Model.Activity> ConvertToNativeCurrency(Model.Account account, Model.Activity order)
+		private async Task<Activity> ConvertToGhostfolioActivity(Model.Account account, Model.Activity order)
 		{
-			/*decimal Round(decimal value)
+			decimal Round(decimal? value)
 			{
-				return Math.Round(value, 10);
+				return Math.Round(value ?? 0, 10);
 			};
 
-			decimal currencyConvertionRate = await GetExchangeRate(order.Currency, order.Asset.Currency, order.Date);
-			decimal feeConvertionRate = order.Fee > 0 ? (await GetExchangeRate(order.FeeCurrency, order.Asset.Currency, order.Date)) : 1;
-
-			var conversionComment = currencyConvertionRate != 1 ? $" | Original Price {order.UnitPrice}{order.Currency}, Fee {order.Fee}{order.Currency}" : string.Empty;
 			return new Activity
 			{
-				AccountId = order.AccountId,
-				Currency = order.Asset.Currency.ToString(),
-				Asset = order.Asset,
-				Comment = order.Comment + conversionComment,
+				AccountId = account.Id,
+				Currency = order.Asset?.Currency?.Symbol,
+				Asset = new Asset { Symbol = order.Asset?.Symbol },
+				Comment = order.Comment,
 				Date = order.Date,
-				Fee = Round((await GetConvertedPrice(order.Fee, order.Asset.Currency, order.Date)).Amount),
+				Fee = Round((await GetConvertedPrice(order.Fee, order.Asset?.Currency, order.Date)).Amount),
 				Quantity = Round(order.Quantity),
-				Type = order.Type,
-				UnitPrice = Round((await GetConvertedPrice(order.UnitPrice, order.Asset.Currency, order.Date)).Amount),
+				Type = ParseType(order.Type),
+				UnitPrice = Round((await GetConvertedPrice(order.UnitPrice, order.Asset?.Currency, order.Date)).Amount),
 				ReferenceCode = order.ReferenceCode
-			};*/
-			return null;
+			};
 		}
 
 		private async Task<string> ConvertToBody(Activity order)
@@ -251,39 +246,42 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return res;
 		}
 
-		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Model.Activity> ordersFromFiles, IEnumerable<RawActivity> existingOrders)
+		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Activity> ordersFromFiles, IEnumerable<RawActivity> existingOrders)
 		{
-			return null;
-			//var pattern = @"Transaction Reference: \[(.*?)\]";
+			var pattern = @"Transaction Reference: \[(.*?)\]";
 
-			//return ordersFromFiles.GroupJoin(existingOrders,
-			//	fo => fo.ReferenceCode,
-			//	eo =>
-			//	{
-			//		var match = Regex.Match(eo.Comment, pattern);
-			//		var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
-			//		return key;
-			//	},
-			//	(fo, eo) =>
-			//	{
-			//		if (fo != null && eo != null && eo.Any())
-			//		{
-			//			if (AreEquals(fo, eo.Single()))
-			//			{
-			//				return new MergeOrder(Operation.Duplicate, fo);
-			//			}
+			var existingOrdersWithMatchFlag = existingOrders.Select(x => new MatchRawActivity { Activity = x, IsMatched = false }).ToList();
+			return ordersFromFiles.GroupJoin(existingOrdersWithMatchFlag,
+				fo => fo.ReferenceCode,
+				eo =>
+				{
+					var match = Regex.Match(eo.Activity.Comment, pattern);
+					var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
+					return key;
+				},
+				(fo, eo) =>
+				{
+					if (fo != null && eo != null && eo.Any())
+					{
+						var other = eo.Single();
+						other.IsMatched = true;
 
-			//			return new MergeOrder(Operation.Updated, fo, eo.Single());
-			//		}
-			//		else if (fo != null)
-			//		{
-			//			return new MergeOrder(Operation.New, fo);
-			//		}
-			//		else
-			//		{
-			//			return new MergeOrder(Operation.Removed, null, eo.Single());
-			//		}
-			//	});
+						if (AreEquals(fo, other.Activity))
+						{
+							return new MergeOrder(Operation.Duplicate, fo);
+						}
+
+						return new MergeOrder(Operation.Updated, fo, other.Activity);
+					}
+					else if (fo != null)
+					{
+						return new MergeOrder(Operation.New, fo);
+					}
+					else
+					{
+						throw new NotSupportedException();
+					}
+				}).Union(existingOrdersWithMatchFlag.Where(x => !x.IsMatched).Select(x => new MergeOrder(Operation.Removed, null, x.Activity)));
 		}
 
 		private bool AreEquals(Activity fo, RawActivity eo)
@@ -331,7 +329,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private static Model.Asset ParseSymbolProfile(SymbolProfile symbolProfile)
 		{
 			return new Model.Asset(
-CurrencyHelper.ParseCurrency(symbolProfile.Currency),
+				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
 				symbolProfile.Symbol,
 				symbolProfile.Name,
 				symbolProfile.DataSource,
@@ -342,7 +340,7 @@ CurrencyHelper.ParseCurrency(symbolProfile.Currency),
 		private static Model.Asset ParseSymbolProfile(Asset symbolProfile)
 		{
 			return new Model.Asset(
-CurrencyHelper.ParseCurrency(symbolProfile.Currency),
+				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
 				symbolProfile.Symbol,
 				symbolProfile.Name,
 				symbolProfile.DataSource,
@@ -373,6 +371,44 @@ CurrencyHelper.ParseCurrency(symbolProfile.Currency),
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");
 			}
+		}
+
+		private ActivityType ParseType(Model.ActivityType? type)
+		{
+			switch (type)
+			{
+				case null:
+					return ActivityType.IGNORE;
+				case Model.ActivityType.Buy:
+					return ActivityType.BUY;
+				case Model.ActivityType.Sell:
+					return ActivityType.SELL;
+				case Model.ActivityType.Dividend:
+					return ActivityType.DIVIDEND;
+				case Model.ActivityType.Send:
+					return ActivityType.SELL; // TODO: 
+				case Model.ActivityType.Receive:
+					return ActivityType.BUY; // TODO: 
+				case Model.ActivityType.Convert:
+					return ActivityType.IGNORE; // TODO: 
+				case Model.ActivityType.Interest:
+					return ActivityType.IGNORE; // TODO: 
+				case Model.ActivityType.Gift:
+					return ActivityType.IGNORE; // TODO: 
+				case Model.ActivityType.LearningReward:
+					return ActivityType.IGNORE; // TODO: 
+				case Model.ActivityType.StakingReward:
+					return ActivityType.IGNORE; // TODO: 
+				default:
+					throw new NotSupportedException($"ActivityType {type} not supported");
+			}
+
+		}
+
+		private class MatchRawActivity
+		{
+			public RawActivity Activity { get; set; }
+			public bool IsMatched { get; set; }
 		}
 	}
 }

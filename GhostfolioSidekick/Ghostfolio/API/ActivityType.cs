@@ -8,6 +8,7 @@
 
         DIVIDEND,
 
-        INTEREST
-    }
+        INTEREST,
+		IGNORE
+	}
 }

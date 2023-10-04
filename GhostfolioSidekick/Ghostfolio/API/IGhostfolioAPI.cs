@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	{
 		Task<Model.Account?> GetAccountByName(string name);
 
-		public Task UpdateAccount(IEnumerable<Model.Account> accounts);
+		public Task UpdateAccount(Model.Account account);
 
 		Task<Model.Asset?> FindSymbolByISIN(string? identifier, Func<IEnumerable<Model.Asset>, Model.Asset?> selector = null);
 
