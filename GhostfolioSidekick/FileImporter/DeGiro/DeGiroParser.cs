@@ -11,12 +11,12 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
+		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(DeGiroRecord record, Model.Account account, IEnumerable<DeGiroRecord> allRecords)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
 			{
-				return Array.Empty<Activity>();
+				return Array.Empty<Model.Activity>();
 			}
 
 			var asset = await api.FindSymbolByISIN(record.ISIN);
@@ -28,40 +28,30 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				record.OrderId = $"{orderType}_{record.Datum.ToString("dd-MM-yyyy")}_{record.Tijd}_{record.ISIN}";
 			}
 
-			Activity order;
-			if (orderType == ActivityType.DIVIDEND)
+			Model.Activity order;
+			if (orderType == Model.ActivityType.Dividend)
 			{
-				order = new Activity
-				{
-					AccountId = account.Id,
-					Asset = asset,
-					Currency = record.Mutatie,
-					Date = record.Datum.ToDateTime(record.Tijd),
-					Comment = $"Transaction Reference: [{record.OrderId}]",
-					Fee = Math.Abs(fee?.Item1 ?? 0),
-					FeeCurrency = fee?.Item2 ?? record.Mutatie,
-					Quantity = 1,
-					Type = orderType.Value,
-					UnitPrice = record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0),
-					ReferenceCode = record.OrderId,
-				};
+				order = new Model.Activity(
+					orderType.Value,
+					asset,
+					record.Datum.ToDateTime(record.Tijd),
+					1,
+					new Model.Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0)),
+					new Model.Money(CurrencyHelper.ParseCurrency(fee?.Item2 ?? record.Mutatie), Math.Abs(fee?.Item1 ?? 0)),
+					$"Transaction Reference: [{record.OrderId}]",
+					record.OrderId);
 			}
 			else
 			{
-				order = new Activity
-				{
-					AccountId = account.Id,
-					Asset = asset,
-					Currency = record.Mutatie,
-					Date = record.Datum.ToDateTime(record.Tijd),
-					Comment = $"Transaction Reference: [{record.OrderId}]",
-					Fee = Math.Abs(fee?.Item1 ?? 0),
-					FeeCurrency = fee?.Item2 ?? record.Mutatie,
-					Quantity = GetQuantity(orderType, record),
-					Type = orderType.Value,
-					UnitPrice = GetUnitPrice(orderType, record),
-					ReferenceCode = record.OrderId,
-				};
+				order = new Model.Activity(
+					orderType.Value,
+					asset,
+					record.Datum.ToDateTime(record.Tijd),
+					GetQuantity(record),
+					new Model.Money(CurrencyHelper.ParseCurrency(record.Mutatie), GetUnitPrice(record)),
+					new Model.Money(CurrencyHelper.ParseCurrency(fee?.Item2 ?? record.Mutatie), Math.Abs(fee?.Item1 ?? 0)),
+					$"Transaction Reference: [{record.OrderId}]",
+					record.OrderId);
 			}
 
 			return new[] { order };
@@ -102,29 +92,29 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private ActivityType? GetOrderType(DeGiroRecord record)
+		private Model.ActivityType? GetOrderType(DeGiroRecord record)
 		{
 			if (record.Omschrijving.Contains("Koop"))
 			{
-				return ActivityType.BUY;
+				return Model.ActivityType.Buy;
 			}
 
 			if (record.Omschrijving.Equals("Dividend"))
 			{
-				return ActivityType.DIVIDEND;
+				return Model.ActivityType.Dividend;
 			}
 
 			// TODO, implement other options
 			return null;
 		}
 
-		private decimal GetQuantity(ActivityType? orderType, DeGiroRecord record)
+		private decimal GetQuantity(DeGiroRecord record)
 		{
 			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[1].Value;
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		private decimal GetUnitPrice(ActivityType? orderType, DeGiroRecord record)
+		private decimal GetUnitPrice(DeGiroRecord record)
 		{
 			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[2].Value;
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());

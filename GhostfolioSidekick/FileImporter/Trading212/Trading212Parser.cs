@@ -10,12 +10,12 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(Trading212Record record, Account account, IEnumerable<Trading212Record> allRecords)
+		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(Trading212Record record, Model.Account account, IEnumerable<Trading212Record> allRecords)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
 			{
-				return Array.Empty<Activity>();
+				return Array.Empty<Model.Activity>();
 			}
 
 			var asset = await api.FindSymbolByISIN(record.ISIN);
@@ -27,20 +27,16 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			var fee = GetFee(record);
 
-			var order = new Activity
-			{
-				AccountId = account.Id,
-				Asset = asset,
-				Currency = record.Currency,
-				Date = record.Time,
-				Comment = $"Transaction Reference: [{record.Id}]",
-				Fee = fee.Fee ?? 0,
-				FeeCurrency = fee.Currency,
-				Quantity = record.NumberOfShares.Value,
-				Type = orderType.Value,
-				UnitPrice = record.Price.Value,
-				ReferenceCode = record.Id,
-			};
+			var order = new Model.Activity(
+				orderType.Value,
+				asset,
+				record.Time,
+				record.NumberOfShares.Value,
+				new Model.Money(fee.Currency, fee.Fee),
+				new Model.Money(record.Currency, record.Price.Value),
+				$"Transaction Reference: [{record.Id}]",
+				record.Id
+				);
 
 			return new[] { order };
 		}
@@ -69,21 +65,20 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			if (record.FeeUK > 0 && record.FeeUKCurrency != record.ConversionFeeCurrency)
 			{
-				var rate = api.GetExchangeRate(record.FeeUKCurrency, record.ConversionFeeCurrency, record.Time).Result;
-				record.FeeUK = record.FeeUK * rate;
+				record.FeeUK = api.GetConvertedPrice(new Model.Money(record.FeeUKCurrency, record.FeeUK), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount;
 			}
 
 			return (record.ConversionFeeCurrency, record.ConversionFee + record.FeeUK);
 		}
 
-		private ActivityType? GetOrderType(Trading212Record record)
+		private Model.ActivityType? GetOrderType(Trading212Record record)
 		{
 			return record.Action switch
 			{
 				"Deposit" or "Interest on cash" or "Currency conversion" => null,
-				"Market buy" => ActivityType.BUY,
-				"Market sell" => ActivityType.SELL,
-				string d when d.Contains("Dividend") => ActivityType.DIVIDEND,
+				"Market buy" => Model.ActivityType.Buy,
+				"Market sell" => Model.ActivityType.Sell,
+				string d when d.Contains("Dividend") => Model.ActivityType.Dividend,
 				_ => throw new NotSupportedException(),
 			};
 		}

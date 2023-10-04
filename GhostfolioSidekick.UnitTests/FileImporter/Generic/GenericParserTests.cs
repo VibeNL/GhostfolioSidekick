@@ -5,7 +5,7 @@ using GhostfolioSidekick.Ghostfolio.API;
 using Moq;
 
 namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
-{ 
+{
 	public class GenericParserTests
 	{
 		readonly Mock<IGhostfolioAPI> api;

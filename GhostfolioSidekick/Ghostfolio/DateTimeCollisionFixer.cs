@@ -1,10 +1,8 @@
-﻿using GhostfolioSidekick.Ghostfolio.API;
-
-namespace GhostfolioSidekick.Ghostfolio
+﻿namespace GhostfolioSidekick.Ghostfolio
 {
 	public class DateTimeCollisionFixer
 	{
-		public static IEnumerable<Activity> Fix(IEnumerable<Activity> orders)
+		public static IEnumerable<Model.Activity> Fix(IEnumerable<Model.Activity> orders)
 		{
 			var isChecked = false;
 

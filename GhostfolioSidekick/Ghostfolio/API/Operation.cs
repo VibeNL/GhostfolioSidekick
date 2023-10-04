@@ -1,13 +1,13 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public enum Operation
-	{
-		New,
+    public enum Operation
+    {
+        New,
 
-		Duplicate,
+        Duplicate,
 
-		Updated,
+        Updated,
 
-		Removed
-	}
+        Removed
+    }
 }

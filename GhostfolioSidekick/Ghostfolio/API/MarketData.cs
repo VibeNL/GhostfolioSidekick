@@ -6,6 +6,6 @@
 
 		public string Symbol { get; set; }
 
-		public double MarketPrice { get; set; }
+		public decimal MarketPrice { get; set; }
 	}
 }

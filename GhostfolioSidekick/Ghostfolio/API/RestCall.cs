@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public class RestCall
+    public class RestCall
 	{
 		private Mutex mutex = new Mutex();
 

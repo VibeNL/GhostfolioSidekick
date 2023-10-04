@@ -1,10 +1,9 @@
-﻿using GhostfolioSidekick.Ghostfolio.API;
-
-namespace GhostfolioSidekick.FileImporter
+﻿namespace GhostfolioSidekick.FileImporter
 {
 	public interface IFileImporter
 	{
-		Task<bool> CanConvertOrders(IEnumerable<string> filenames);
-		Task<IEnumerable<Activity>> ConvertToOrders(string accountName, IEnumerable<string> filenames);
+		Task<bool> CanParseActivities(IEnumerable<string> filenames);
+
+		Task<Model.Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames);
 	}
 }

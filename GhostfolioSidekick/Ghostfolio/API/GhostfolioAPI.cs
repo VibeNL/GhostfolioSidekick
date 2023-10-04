@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using GhostfolioSidekick.Model;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Ghostfolio.API
@@ -28,76 +30,125 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			restCall = new RestCall(memoryCache, logger, url, accessToken);
 		}
 
-		public async Task UpdateOrders(IEnumerable<Activity> orders)
+		public async Task<Model.Account?> GetAccountByName(string name)
 		{
-			var ordersByAccount = DateTimeCollisionFixer.Fix(orders).GroupBy(x => x.AccountId);
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Long());
 
-			foreach (var group in ordersByAccount)
+			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
+			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+
+			if (rawAccount == null)
 			{
-				var mapped = group.Select(x => ConvertToNativeCurrency(x).Result).ToList();
-				var existingOrders = await GetExistingOrders(group.First().AccountId);
-
-				foreach (var mergeOrder in MergeOrders(mapped, existingOrders))
-				{
-					try
-					{
-						switch (mergeOrder.Operation)
-						{
-							case Operation.New:
-								await WriteOrder(mergeOrder.Order1);
-								break;
-							case Operation.Duplicate:
-								// Nothing to do!
-								break;
-							case Operation.Updated:
-								await DeleteOrder(mergeOrder.Order2);
-								await WriteOrder(mergeOrder.Order1);
-								break;
-							case Operation.Removed:
-								await DeleteOrder(mergeOrder.Order2);
-								break;
-							default:
-								break;
-						}
-					}
-					catch (Exception ex)
-					{
-						logger.LogError($"Transaction failed to write {ex}, skipping");
-					}
-				}
+				return null;
 			}
+
+			content = await restCall.DoRestGet($"api/v1/order?accounts={rawAccount.Id}", CacheDuration.None());
+			var rawOrders = JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
+
+			var assets = new ConcurrentDictionary<string, Model.Asset>();
+
+			return new Model.Account(
+				rawAccount.Id,
+				rawAccount.Name,
+				new Money(CurrencyHelper.ParseCurrency(rawAccount.Currency), rawAccount.Balance),
+				rawOrders.Select(x =>
+				{
+					var asset = assets.GetOrAdd(x.SymbolProfile.Symbol, (y) => ParseSymbolProfile(x.SymbolProfile));
+					return new Model.Activity(
+										ParseType(x.Type),
+										asset,
+										x.Date,
+										x.Quantity,
+										new Money(asset.Currency, x.UnitPrice),
+										new Money(asset.Currency, x.Fee),
+										x.Comment,
+										ParseReference(x.Comment)
+										);
+				}).ToList()
+				);
 		}
 
-		public async Task<decimal> GetMarketPrice(Asset asset, DateTime date)
+		public async Task UpdateAccount(IEnumerable<Model.Account> accounts)
+		{
+			throw new NotImplementedException();
+			//var ordersByAccount = DateTimeCollisionFixer.Fix(orders).GroupBy(x => x.AccountId);
+
+			//foreach (var group in ordersByAccount)
+			//{
+			//	var mapped = group.Select(x => ConvertToNativeCurrency(x).Result).ToList();
+			//	var existingOrders = await GetExistingOrders(group.First().AccountId);
+
+			//	foreach (var mergeOrder in MergeOrders(mapped, existingOrders))
+			//	{
+			//		try
+			//		{
+			//			switch (mergeOrder.Operation)
+			//			{
+			//				case Operation.New:
+			//					await WriteOrder(mergeOrder.Order1);
+			//					break;
+			//				case Operation.Duplicate:
+			//					// Nothing to do!
+			//					break;
+			//				case Operation.Updated:
+			//					await DeleteOrder(mergeOrder.Order2);
+			//					await WriteOrder(mergeOrder.Order1);
+			//					break;
+			//				case Operation.Removed:
+			//					await DeleteOrder(mergeOrder.Order2);
+			//					break;
+			//				default:
+			//					break;
+			//			}
+			//		}
+			//		catch (Exception ex)
+			//		{
+			//			logger.LogError($"Transaction failed to write {ex}, skipping");
+			//		}
+			//	}
+			//}
+		}
+
+		public async Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date)
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Market>(content);
-			return (decimal)(market.MarketData.FirstOrDefault(x => x.Date == date.Date)?.MarketPrice ?? 0);
+
+			var marketData = market.MarketData.FirstOrDefault(x => x.Date == date.Date);
+
+			if (marketData == null)
+			{
+				return null;
+			}
+
+			return new Money(asset.Currency, marketData.MarketPrice);
 		}
 
-		public async Task<Asset> FindSymbolByISIN(string? identifier, Func<IEnumerable<Asset>, Asset> selector)
+		public async Task<Model.Asset?> FindSymbolByISIN(string? identifier, Func<IEnumerable<Model.Asset>, Model.Asset?> selector)
 		{
 			identifier = mapper.MapIdentifier(identifier);
 
 			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
-			var assetList = JsonConvert.DeserializeObject<AssetList>(content);
+			var rawAssetList = JsonConvert.DeserializeObject<AssetList>(content);
+
+			var assets = rawAssetList.Items.Select(x => ParseSymbolProfile(x));
 
 			if (selector == null)
 			{
-				return LogIfEmpty(assetList.Items.FirstOrDefault(), identifier);
+				return LogIfEmpty(assets.FirstOrDefault(), identifier);
 			}
 
-			return LogIfEmpty(selector(assetList.Items), identifier);
+			return LogIfEmpty(selector(assets), identifier);
 		}
 
-		public async Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date)
+		public async Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date)
 		{
-			if (sourceCurrency == targetCurrency)
+			if (money.Currency == targetCurrency)
 			{
-				return 1;
+				return money;
 			}
 
-			sourceCurrency = mapper.MapCurrency(sourceCurrency);
+			var sourceCurrency = mapper.MapCurrency(money.Currency.ToString());
 
 			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency}/{date:yyyy-MM-dd}", CacheDuration.Short());
 
@@ -105,15 +156,12 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var token = stuff.marketPrice.ToString();
 			var rate = (decimal)decimal.Parse(token);
 
-			return rate;
-		}
+			if (rate == 1)
+			{
+				return money;
+			}
 
-		public async Task<Account> GetAccountByName(string name)
-		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Long());
-
-			var account = JsonConvert.DeserializeObject<AccountList>(content);
-			return account.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+			return new Money(targetCurrency, rate * money.Amount);
 		}
 
 		private async Task WriteOrder(Activity order)
@@ -151,9 +199,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Deleted transaction {order.Id} {order.SymbolProfile.Symbol} {order.Date}");
 		}
 
-		private async Task<Activity> ConvertToNativeCurrency(Activity order)
+		private async Task<Model.Activity> ConvertToNativeCurrency(Model.Account account, Model.Activity order)
 		{
-			decimal Round(decimal value)
+			/*decimal Round(decimal value)
 			{
 				return Math.Round(value, 10);
 			};
@@ -165,16 +213,17 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Activity
 			{
 				AccountId = order.AccountId,
-				Currency = order.Asset.Currency,
+				Currency = order.Asset.Currency.ToString(),
 				Asset = order.Asset,
 				Comment = order.Comment + conversionComment,
 				Date = order.Date,
-				Fee = Round(feeConvertionRate * order.Fee),
+				Fee = Round((await GetConvertedPrice(order.Fee, order.Asset.Currency, order.Date)).Amount),
 				Quantity = Round(order.Quantity),
 				Type = order.Type,
-				UnitPrice = Round(currencyConvertionRate * order.UnitPrice),
+				UnitPrice = Round((await GetConvertedPrice(order.UnitPrice, order.Asset.Currency, order.Date)).Amount),
 				ReferenceCode = order.ReferenceCode
-			};
+			};*/
+			return null;
 		}
 
 		private async Task<string> ConvertToBody(Activity order)
@@ -202,38 +251,39 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return res;
 		}
 
-		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Activity> ordersFromFiles, IEnumerable<RawActivity> existingOrders)
+		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Model.Activity> ordersFromFiles, IEnumerable<RawActivity> existingOrders)
 		{
-			var pattern = @"Transaction Reference: \[(.*?)\]";
+			return null;
+			//var pattern = @"Transaction Reference: \[(.*?)\]";
 
-			return ordersFromFiles.GroupJoin(existingOrders,
-				fo => fo.ReferenceCode,
-				eo =>
-				{
-					var match = Regex.Match(eo.Comment, pattern);
-					var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
-					return key;
-				},
-				(fo, eo) =>
-				{
-					if (fo != null && eo != null && eo.Any())
-					{
-						if (AreEquals(fo, eo.Single()))
-						{
-							return new MergeOrder(Operation.Duplicate, fo);
-						}
+			//return ordersFromFiles.GroupJoin(existingOrders,
+			//	fo => fo.ReferenceCode,
+			//	eo =>
+			//	{
+			//		var match = Regex.Match(eo.Comment, pattern);
+			//		var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
+			//		return key;
+			//	},
+			//	(fo, eo) =>
+			//	{
+			//		if (fo != null && eo != null && eo.Any())
+			//		{
+			//			if (AreEquals(fo, eo.Single()))
+			//			{
+			//				return new MergeOrder(Operation.Duplicate, fo);
+			//			}
 
-						return new MergeOrder(Operation.Updated, fo, eo.Single());
-					}
-					else if (fo != null)
-					{
-						return new MergeOrder(Operation.New, fo);
-					}
-					else
-					{
-						return new MergeOrder(Operation.Removed, null, eo.Single());
-					}
-				});
+			//			return new MergeOrder(Operation.Updated, fo, eo.Single());
+			//		}
+			//		else if (fo != null)
+			//		{
+			//			return new MergeOrder(Operation.New, fo);
+			//		}
+			//		else
+			//		{
+			//			return new MergeOrder(Operation.Removed, null, eo.Single());
+			//		}
+			//	});
 		}
 
 		private bool AreEquals(Activity fo, RawActivity eo)
@@ -245,12 +295,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				fo.Fee == eo.Fee &&
 				fo.Type == eo.Type &&
 				fo.Date == eo.Date;
-		}
-
-		private async Task<IEnumerable<RawActivity>> GetExistingOrders(string accountId)
-		{
-			var content = await restCall.DoRestGet($"api/v1/order?accounts={accountId}", CacheDuration.None());
-			return JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
 		}
 
 		private sealed class MergeOrder
@@ -274,7 +318,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			public RawActivity? Order2 { get; }
 		}
 
-		private Asset? LogIfEmpty(Asset? asset, string identifier)
+		private Model.Asset? LogIfEmpty(Model.Asset? asset, string identifier)
 		{
 			if (asset == null)
 			{
@@ -284,5 +328,51 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return asset;
 		}
 
+		private static Model.Asset ParseSymbolProfile(SymbolProfile symbolProfile)
+		{
+			return new Model.Asset(
+CurrencyHelper.ParseCurrency(symbolProfile.Currency),
+				symbolProfile.Symbol,
+				symbolProfile.Name,
+				symbolProfile.DataSource,
+				symbolProfile.AssetSubClass,
+				symbolProfile.AssetClass);
+		}
+
+		private static Model.Asset ParseSymbolProfile(Asset symbolProfile)
+		{
+			return new Model.Asset(
+CurrencyHelper.ParseCurrency(symbolProfile.Currency),
+				symbolProfile.Symbol,
+				symbolProfile.Name,
+				symbolProfile.DataSource,
+				symbolProfile.AssetSubClass,
+				symbolProfile.AssetClass);
+		}
+
+		private static string ParseReference(string comment)
+		{
+			var pattern = @"Transaction Reference: \[(.*?)\]";
+			var match = Regex.Match(comment, pattern);
+			var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
+			return key;
+		}
+
+		private static Model.ActivityType ParseType(ActivityType type)
+		{
+			switch (type)
+			{
+				case ActivityType.BUY:
+					return Model.ActivityType.Buy;
+				case ActivityType.SELL:
+					return Model.ActivityType.Sell;
+				case ActivityType.DIVIDEND:
+					return Model.ActivityType.Dividend;
+				case ActivityType.INTEREST:
+					return Model.ActivityType.Interest;
+				default:
+					throw new NotSupportedException($"ActivityType {type} not supported");
+			}
+		}
 	}
 }

@@ -1,10 +1,8 @@
-﻿using GhostfolioSidekick.Ghostfolio.API;
-
-namespace GhostfolioSidekick.FileImporter.Generic
+﻿namespace GhostfolioSidekick.FileImporter.Generic
 {
 	public class GenericRecord
 	{
-		public ActivityType OrderType { get; set; }
+		public Model.ActivityType ActivityType { get; set; }
 
 		public string? Symbol { get; set; }
 

@@ -4,25 +4,25 @@ using Microsoft.Extensions.Logging;
 
 namespace ConsoleHelper
 {
-    internal class ConsoleLogger : ILogger<GhostfolioAPI>, ILogger<FileImporterTask>, IDisposable
-    {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
-        {
-            return this;
-        }
+	internal class ConsoleLogger : ILogger<GhostfolioAPI>, ILogger<FileImporterTask>, IDisposable
+	{
+		public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+		{
+			return this;
+		}
 
-        public void Dispose()
-        {
-        }
+		public void Dispose()
+		{
+		}
 
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true;
-        }
+		public bool IsEnabled(LogLevel logLevel)
+		{
+			return true;
+		}
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            Console.WriteLine(formatter(state, exception));
-        }
-    }
+		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+		{
+			Console.WriteLine(formatter(state, exception));
+		}
+	}
 }
