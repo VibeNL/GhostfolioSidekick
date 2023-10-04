@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
 			var existingActivities = JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
 
-			IEnumerable<MergeOrder> mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).ToList();
+			var mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).ToList();
 			foreach (var mergeOrder in mergeOrders)
 			{
 				try
@@ -143,7 +143,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date)
 		{
-			if (money.Currency == targetCurrency)
+			if (money.Currency == targetCurrency || (money.Amount ?? 0) == 0)
 			{
 				return money;
 			}

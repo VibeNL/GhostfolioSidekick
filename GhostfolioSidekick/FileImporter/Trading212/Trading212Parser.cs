@@ -65,7 +65,10 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			if (record.FeeUK > 0 && record.FeeUKCurrency != record.ConversionFeeCurrency)
 			{
-				record.FeeUK = api.GetConvertedPrice(new Model.Money(record.FeeUKCurrency, record.FeeUK), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount;
+				if (record.FeeUK > 0)
+				{
+					record.FeeUK = api.GetConvertedPrice(new Model.Money(record.FeeUKCurrency, record.FeeUK), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount;
+				}
 			}
 
 			return (record.ConversionFeeCurrency, record.ConversionFee + record.FeeUK);
