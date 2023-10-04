@@ -75,6 +75,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var balance = GetBalance(account.Balance);
 
+			await UpdateBalance(account, balance);
+
 			var newActivities = DateTimeCollisionFixer.Fix(account.Activities).Select(x => ConvertToGhostfolioActivity(account, x).Result).ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
@@ -117,7 +119,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			decimal amount = 0;
 			foreach (var item in balance.MoneyList)
 			{
-				if (item.Currency == targetCurrency)
+				if (item.Currency.Equals(targetCurrency))
 				{
 					amount += item.Amount ?? 0;
 				}
@@ -164,7 +166,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date)
 		{
-			if (money.Currency == targetCurrency || (money.Amount ?? 0) == 0)
+			if (money == null || money.Currency == targetCurrency || (money.Amount ?? 0) == 0)
 			{
 				return money;
 			}
@@ -220,6 +222,28 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Deleted transaction {order.Id} {order.SymbolProfile.Symbol} {order.Date}");
 		}
 
+		private async Task UpdateBalance(Model.Account account, decimal balance)
+		{
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Long());
+
+			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
+			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Id, account.Id, StringComparison.InvariantCultureIgnoreCase));
+
+			rawAccount.Balance = balance;
+
+			var o = new JObject();
+			o["balance"] = balance;
+			o["comment"] = rawAccount.Comment;
+			o["currency"] = rawAccount.Currency;
+			o["id"] = rawAccount.Id;
+			o["isExcluded"] = rawAccount.IsExcluded;
+			o["name"] = rawAccount.Name;
+			o["platformId"] = rawAccount.PlatformId;
+			var res = o.ToString();
+
+			await restCall.DoRestPut($"api/v1/account/{account.Id}", res);
+		}
+
 		private async Task<Activity> ConvertToGhostfolioActivity(Model.Account account, Model.Activity order)
 		{
 			decimal Round(decimal? value)
@@ -234,7 +258,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				Asset = new Asset { Symbol = order.Asset?.Symbol },
 				Comment = order.Comment,
 				Date = order.Date,
-				Fee = Round((await GetConvertedPrice(order.Fee, order.Asset?.Currency, order.Date)).Amount),
+				Fee = Round((await GetConvertedPrice(order.Fee, order.Asset?.Currency, order.Date))?.Amount),
 				Quantity = Round(order.Quantity),
 				Type = ParseType(order.ActivityType),
 				UnitPrice = Round((await GetConvertedPrice(order.UnitPrice, order.Asset?.Currency, order.Date)).Amount),

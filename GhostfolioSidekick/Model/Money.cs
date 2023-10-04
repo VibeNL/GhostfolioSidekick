@@ -23,6 +23,11 @@
 
 		public DateTime TimeOfRecord { get; set; }
 
+		internal Money Absolute()
+		{
+			return new Money(Currency, Amount == null ? null : Math.Abs(Amount.GetValueOrDefault(0)), TimeOfRecord);
+		}
+
 		internal Money Negate()
 		{
 			return new Money(Currency, Amount * -1, TimeOfRecord);

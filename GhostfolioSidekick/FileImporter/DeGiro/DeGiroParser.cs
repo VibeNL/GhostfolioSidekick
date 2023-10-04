@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					null,
 					record.Datum.ToDateTime(record.Tijd),
 					1,
-					new Model.Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault(), record.Datum.ToDateTime(record.Tijd)),
+					new Model.Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault(), record.Datum.ToDateTime(record.Tijd)).Absolute(),
 					null,
 					$"Transaction Reference: [{activityType}{record.Datum}]",
 					$"{activityType}{record.Datum}"
@@ -117,14 +117,19 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				return Model.ActivityType.Dividend;
 			}
 
-			if (record.Omschrijving.Contains("Deposit"))
+			if (record.Omschrijving.Equals("flatex terugstorting"))
+			{
+				return Model.ActivityType.CashWithdrawel;
+			}
+
+			if (record.Omschrijving.Contains("Deposit") && !record.Omschrijving.Contains("Reservation"))
 			{
 				return Model.ActivityType.CashDeposit;
 			}
 
-			if (record.Omschrijving.Equals("Processed Flatex Withdrawal"))
+			if (record.Omschrijving.Equals("DEGIRO Verrekening Promotie"))
 			{
-				return Model.ActivityType.CashWithdrawel;
+				return Model.ActivityType.CashDeposit; // TODO: Gift?
 			}
 
 			// TODO, implement other options
