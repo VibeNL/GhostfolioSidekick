@@ -33,10 +33,10 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				Asset = asset,
 				Date = record.Timestamp.ToUniversalTime(),
 				Comment = $"Transaction Reference: [{refCode}]",
-				Fee = record.Fee == null ? null : new Model.Money(record.Currency, record.Fee ?? 0),
+				Fee = record.Fee == null ? null : new Model.Money(record.Currency, record.Fee ?? 0, record.Timestamp.ToUniversalTime()),
 				Quantity = record.Quantity,
-				Type = HandleConvertActivityType(activityType.Value),
-				UnitPrice = await GetCorrectUnitPrice(new Model.Money(record.Currency, record.UnitPrice), asset, record.Timestamp.ToUniversalTime()),
+				ActivityType = HandleConvertActivityType(activityType.Value),
+				UnitPrice = await GetCorrectUnitPrice(new Model.Money(record.Currency, record.UnitPrice, record.Timestamp.ToUniversalTime()), asset, record.Timestamp.ToUniversalTime()),
 				ReferenceCode = refCode,
 			};
 			orders.Add(order);
@@ -56,8 +56,8 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 					Comment = $"Transaction Reference: [{refCodeBuy}]",
 					Fee = null,
 					Quantity = buyRecord.Quantity,
-					Type = Model.ActivityType.Buy,
-					UnitPrice = await GetCorrectUnitPrice(new Model.Money(record.Currency, buyRecord.UnitPrice), assetBuy, record.Timestamp.ToUniversalTime()),
+					ActivityType = Model.ActivityType.Buy,
+					UnitPrice = await GetCorrectUnitPrice(new Model.Money(record.Currency, buyRecord.UnitPrice, record.Timestamp.ToUniversalTime()), assetBuy, record.Timestamp.ToUniversalTime()),
 					ReferenceCode = refCodeBuy,
 				};
 				orders.Add(orderBuy);

@@ -63,10 +63,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Asset = asset,
 				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 0M),
+				Fee = null,
 				Quantity = 5,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.EUR, 8.685M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.EUR, 8.685M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
 				ReferenceCode = "SCALQbWiZnN9DtQ"
 			} });
 		}
@@ -92,10 +92,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Asset = asset,
 				Comment = "Transaction Reference: [WWEK 16100100]",
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 0),
+				Fee = null,
 				Quantity = 14,
-				Type = Model.ActivityType.Dividend,
-				UnitPrice = new Money(DefaultCurrency.EUR, 0.5057142857142857142857142857M),
+				ActivityType = Model.ActivityType.Dividend,
+				UnitPrice = new Money(DefaultCurrency.EUR, 0.5057142857142857142857142857M, new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc)),
 				ReferenceCode = "WWEK 16100100"
 			} });
 		}
@@ -126,20 +126,20 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Asset = asset1,
 				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 0.99M),
+				Fee = new Money(DefaultCurrency.EUR, 0.99M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
 				Quantity = 5,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.EUR, 8.685M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.EUR, 8.685M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
 				ReferenceCode = "SCALQbWiZnN9DtQ"
 			},
 			new Model.Activity {
 				Asset = asset2,
 				Comment = "Transaction Reference: [WWEK 16100100]",
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
-				Fee =  new Money(DefaultCurrency.EUR, 0),
+				Fee =  null,
 				Quantity = 14,
-				Type = Model.ActivityType.Dividend,
-				UnitPrice = new Money(DefaultCurrency.EUR, 0.5057142857142857142857142857M),
+				ActivityType = Model.ActivityType.Dividend,
+				UnitPrice = new Money(DefaultCurrency.EUR, 0.5057142857142857142857142857M, new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc)),
 				ReferenceCode = "WWEK 16100100"
 			} });
 		}
@@ -171,20 +171,20 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				Asset = asset1,
 				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 0.99M),
+				Fee = new Money(DefaultCurrency.EUR, 0.99M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
 				Quantity = 5,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.EUR, 8.685M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.EUR, 8.685M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
 				ReferenceCode = "SCALQbWiZnN9DtQ"
 			},
 			new Model.Activity {
 				Asset = asset2,
 				Comment = "Transaction Reference: [WWEK 16100100]",
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 0),
+				Fee = null,
 				Quantity = 14,
-				Type = Model.ActivityType.Dividend,
-				UnitPrice = new Money(DefaultCurrency.EUR, 0.5057142857142857142857142857M),
+				ActivityType = Model.ActivityType.Dividend,
+				UnitPrice = new Money(DefaultCurrency.EUR, 0.5057142857142857142857142857M, new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc)),
 				ReferenceCode = "WWEK 16100100"
 			} });
 		}

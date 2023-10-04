@@ -55,16 +55,16 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,8,25,14,44,46, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 161.90485771M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Model.Money(asset1.Currency, 0.999969996514813032906620872M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Model.Money(asset1.Currency, 0.999969996514813032906620872M, new DateTime(2023,8,25,14,44,46, DateTimeKind.Utc)),
 				ReferenceCode = "NXTyPxhiopNL3"
 			}, new Model.Activity {
 				Asset = asset2,
 				Comment = "Transaction Reference: [NXTyVJeCwg6Og]",
 				Date = new DateTime(2023,8,26, 13,30,38, DateTimeKind.Utc),
 				Quantity = 0.00445142M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Model.Money(asset1.Currency, 26028.386478921332967906870167M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Model.Money(asset1.Currency, 26028.386478921332967906870167M, new DateTime(2023,8,26, 13,30,38, DateTimeKind.Utc)),
 				ReferenceCode = "NXTyVJeCwg6Og"
 			} });
 		}
@@ -96,8 +96,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,8,25,14,44,46, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 161.90485771M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Model.Money(asset1.Currency, 0.999969996514813032906620872M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Model.Money(asset1.Currency, 0.999969996514813032906620872M, new DateTime(2023,8,25,14,44,46, DateTimeKind.Utc)),
 				ReferenceCode = "NXTyPxhiopNL3"
 			} , new Model.Activity {
 				Asset = asset2,
@@ -105,8 +105,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,08,25,16,43,55, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.00096332M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Model.Money(asset1.Currency, 25951.855302495536270398206204M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Model.Money(asset1.Currency, 25951.855302495536270398206204M, new DateTime(2023,08,25,16,43,55, DateTimeKind.Utc)),
 				ReferenceCode = "NXTk6FBYyxOqH"
 			} , new Model.Activity {
 				Asset = asset2,
@@ -114,8 +114,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,8,26, 13,30,38, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.00445142M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Model.Money(asset1.Currency, 26028.386478921332967906870167M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Model.Money(asset1.Currency, 26028.386478921332967906870167M, new DateTime(2023,8,26, 13,30,38, DateTimeKind.Utc)),
 				ReferenceCode = "NXTyVJeCwg6Og"
 			} });
 		}

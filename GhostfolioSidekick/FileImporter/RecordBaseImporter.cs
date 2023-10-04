@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.FileImporter
 
 					if (orders != null)
 					{
-						foreach (var order in orders.Where(x => x.Asset != null))
+						foreach (var order in orders)
 						{
 							list.TryAdd(order.ReferenceCode, order);
 						}

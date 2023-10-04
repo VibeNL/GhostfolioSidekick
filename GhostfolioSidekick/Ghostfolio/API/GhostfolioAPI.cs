@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Model.Account(
 				rawAccount.Id,
 				rawAccount.Name,
-				new Money(CurrencyHelper.ParseCurrency(rawAccount.Currency), rawAccount.Balance),
+				new Balance(new Money(CurrencyHelper.ParseCurrency(rawAccount.Currency), rawAccount.Balance, DateTime.UtcNow)),
 				rawOrders.Select(x =>
 				{
 					var asset = assets.GetOrAdd(x.SymbolProfile.Symbol, (y) => ParseSymbolProfile(x.SymbolProfile));
@@ -59,8 +59,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 										asset,
 										x.Date,
 										x.Quantity,
-										new Money(asset.Currency, x.UnitPrice),
-										new Money(asset.Currency, x.Fee),
+										new Money(asset.Currency, x.UnitPrice, x.Date),
+										new Money(asset.Currency, x.Fee, x.Date),
 										x.Comment,
 										ParseReference(x.Comment)
 										);
@@ -72,6 +72,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		{
 			var existingAccount = await GetAccountByName(account.Name);
 			// TODO update account!
+
+			var balance = GetBalance(account.Balance);
 
 			var newActivities = DateTimeCollisionFixer.Fix(account.Activities).Select(x => ConvertToGhostfolioActivity(account, x).Result).ToList();
 
@@ -109,6 +111,25 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
+		private decimal GetBalance(Balance balance)
+		{
+			var targetCurrency = balance.Currency;
+			decimal amount = 0;
+			foreach (var item in balance.MoneyList)
+			{
+				if (item.Currency == targetCurrency)
+				{
+					amount += item.Amount ?? 0;
+				}
+				else
+				{
+					amount += GetConvertedPrice(item, targetCurrency, item.TimeOfRecord)?.Result?.Amount ?? 0;
+				}
+			}
+
+			return amount;
+		}
+
 		public async Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date)
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
@@ -121,7 +142,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return null;
 			}
 
-			return new Money(asset.Currency, marketData.MarketPrice);
+			return new Money(asset.Currency, marketData.MarketPrice, date);
 		}
 
 		public async Task<Model.Asset?> FindSymbolByISIN(string? identifier, Func<IEnumerable<Model.Asset>, Model.Asset?> selector)
@@ -161,7 +182,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return money;
 			}
 
-			return new Money(targetCurrency, rate * money.Amount);
+			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
 		private async Task WriteOrder(Activity order)
@@ -215,7 +236,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				Date = order.Date,
 				Fee = Round((await GetConvertedPrice(order.Fee, order.Asset?.Currency, order.Date)).Amount),
 				Quantity = Round(order.Quantity),
-				Type = ParseType(order.Type),
+				Type = ParseType(order.ActivityType),
 				UnitPrice = Round((await GetConvertedPrice(order.UnitPrice, order.Asset?.Currency, order.Date)).Amount),
 				ReferenceCode = order.ReferenceCode
 			};

@@ -6,14 +6,14 @@
 		{
 		}
 
-		public Activity(ActivityType type, Asset? asset, DateTime date, decimal quantity, Money unitPrice, Money fee, string comment, string referenceCode)
+		public Activity(ActivityType activityType, Asset? asset, DateTime date, decimal quantity, Money unitPrice, Money? fee, string comment, string referenceCode)
 		{
-			Asset = asset ?? throw new ArgumentNullException(nameof(asset));
+			Asset = asset;
 			Comment = comment ?? throw new ArgumentNullException(nameof(comment));
 			Date = date;
-			Fee = fee ?? throw new ArgumentNullException(nameof(fee));
+			Fee = fee;
 			Quantity = quantity;
-			Type = type;
+			ActivityType = activityType;
 			UnitPrice = unitPrice ?? throw new ArgumentNullException(nameof(unitPrice));
 			ReferenceCode = referenceCode ?? throw new ArgumentNullException(nameof(referenceCode));
 		}
@@ -28,7 +28,7 @@
 
 		public decimal Quantity { get; set; }
 
-		public ActivityType Type { get; set; }
+		public ActivityType ActivityType { get; set; }
 
 		public Money UnitPrice { get; set; }
 

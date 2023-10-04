@@ -63,10 +63,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Asset = asset,
 				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b]",
 				Date = new DateTime(2023,07,6, 9, 39,0, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 1),
+				Fee = new Money(DefaultCurrency.EUR, 1, new DateTime(2023,07,6, 9, 39,0, DateTimeKind.Utc)),
 				Quantity = 1,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.EUR, 77.30M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.EUR, 77.30M, new DateTime(2023,07,6, 9, 39,0, DateTimeKind.Utc)),
 				ReferenceCode = "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b"
 			} });
 		}
@@ -96,19 +96,19 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Asset = asset1,
 				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b]",
 				Date = new DateTime(2023,07,6,9,39,0, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 1),
+				Fee = new Money(DefaultCurrency.EUR, 1, new DateTime(2023,07,6,9,39,0, DateTimeKind.Utc)),
 				Quantity = 1,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.EUR, 77.30M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.EUR, 77.30M, new DateTime(2023,07,6,9,39,0, DateTimeKind.Utc)),
 				ReferenceCode = "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b"
 			}, new Model.Activity {
 				Asset = asset2,
 				Comment = "Transaction Reference: [67e39ca1-2f10-4f82-8365-1baad98c398f]",
 				Date = new DateTime(2023,07,11, 9,33,0, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 1),
+				Fee = new Money(DefaultCurrency.EUR, 1, new DateTime(2023,07,11, 9,33,0, DateTimeKind.Utc)),
 				Quantity = 29,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.EUR, 34.375M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.EUR, 34.375M, new DateTime(2023,07,11, 9,33,0, DateTimeKind.Utc)),
 				ReferenceCode = "67e39ca1-2f10-4f82-8365-1baad98c398f"
 			} });
 		}
@@ -134,10 +134,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Asset = asset,
 				Comment = "Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239]",
 				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 0),
+				Fee = null,
 				Quantity = 1,
-				Type = Model.ActivityType.Dividend,
-				UnitPrice = new Money(DefaultCurrency.EUR, 8.13M),
+				ActivityType = Model.ActivityType.Dividend,
+				UnitPrice = new Money(DefaultCurrency.EUR, 8.13M, new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc)),
 				ReferenceCode = "Dividend_14-09-2023_06:32_NL0009690239"
 			} });
 		}
@@ -163,10 +163,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				Asset = asset,
 				Comment = "Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239]",
 				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 0),
+				Fee = null,
 				Quantity = 1,
-				Type = Model.ActivityType.Dividend,
-				UnitPrice = new Money(DefaultCurrency.EUR, 9.57M),
+				ActivityType = Model.ActivityType.Dividend,
+				UnitPrice = new Money(DefaultCurrency.EUR, 9.57M, new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc)),
 				ReferenceCode = "Dividend_14-09-2023_06:32_NL0009690239"
 			} });
 		}

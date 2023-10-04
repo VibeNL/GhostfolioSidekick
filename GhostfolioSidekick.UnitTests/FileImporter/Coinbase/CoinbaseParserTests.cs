@@ -54,8 +54,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 					Date = new DateTime(2023,08,19,17,23,39, DateTimeKind.Utc),
 					Fee = null,
 					Quantity = 0.00205323M,
-					Type = Model.ActivityType.Sell,
-					UnitPrice = new Model.Money(asset1.Currency, 24073.28M),
+					ActivityType = Model.ActivityType.Sell,
+					UnitPrice = new Model.Money(asset1.Currency, 24073.28M, new DateTime(2023,08,19,17,23,39, DateTimeKind.Utc)),
 					ReferenceCode = "Sell_BTC_638280626190000000"
 			}});
 		}
@@ -90,18 +90,18 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 					Date = new DateTime(2023,08,19,17,23,39, DateTimeKind.Utc),
 					Fee = null,
 					Quantity = 0.00205323M,
-					Type = Model.ActivityType.Send,
-					UnitPrice = new Model.Money(asset1.Currency, 24073.28M),
+					ActivityType = Model.ActivityType.Send,
+					UnitPrice = new Model.Money(asset1.Currency, 24073.28M, new DateTime(2023,08,19,17,23,39, DateTimeKind.Utc)),
 					ReferenceCode = "Send_BTC_638280626190000000"
 				},
 				new Model.Activity {
 					Asset = asset2, // ETH
 					Comment = "Transaction Reference: [Buy_ETH_638175603400000000]",
 					Date = new DateTime(2023,04,20,4,5,40, DateTimeKind.Utc),
-					Fee = new Model.Money(asset2.Currency,0.990000M),
+					Fee = new Model.Money(asset2.Currency,0.990000M, new DateTime(2023,04,20,4,5,40, DateTimeKind.Utc)),
 					Quantity = 0.00213232M,
-					Type = Model.ActivityType.Buy,
-					UnitPrice =new Model.Money(asset2.Currency,1810.23M),
+					ActivityType = Model.ActivityType.Buy,
+					UnitPrice =new Model.Money(asset2.Currency,1810.23M, new DateTime(2023,04,20,4,5,40, DateTimeKind.Utc)),
 					ReferenceCode = "Buy_ETH_638175603400000000"
 				},
 				new Model.Activity {
@@ -110,18 +110,18 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 					Date = new DateTime(2023,4,22,6,24,44, DateTimeKind.Utc),
 					Fee = null,
 					Quantity = 1.0e-08M,
-					Type = Model.ActivityType.Receive,
-					UnitPrice = new Model.Money(asset2.Currency,1689.10M),
+					ActivityType = Model.ActivityType.Receive,
+					UnitPrice = new Model.Money(asset2.Currency,1689.10M, new DateTime(2023,4,22,6,24,44, DateTimeKind.Utc)),
 					ReferenceCode = "Receive_ETH_638177414840000000"
 				},
 				new Model.Activity {
 					Asset = asset2, // ETH -> ATOM
 					Comment = "Transaction Reference: [Sell_ETH_638181135820000000]",
 					Date = new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc),
-					Fee = new Model.Money(asset2.Currency,0.020000M),
+					Fee = new Model.Money(asset2.Currency,0.020000M, new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc)),
 					Quantity = 0.00052203M,
-					Type = Model.ActivityType.Sell,
-					UnitPrice = new Model.Money(asset2.Currency,1762.35M),
+					ActivityType = Model.ActivityType.Sell,
+					UnitPrice = new Model.Money(asset2.Currency,1762.35M, new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc)),
 					ReferenceCode = "Sell_ETH_638181135820000000"
 				},
 				new Model.Activity {
@@ -130,8 +130,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
 					Date = new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc),
 					Fee = null,
 					Quantity = 0.087842M,
-					Type = Model.ActivityType.Buy,
-					UnitPrice = new Model.Money(asset3.Currency,10.473344988729764804990778898M),
+					ActivityType = Model.ActivityType.Buy,
+					UnitPrice = new Model.Money(asset3.Currency,10.473344988729764804990778898M, new DateTime(2023,04,26,13,46,22, DateTimeKind.Utc)),
 					ReferenceCode = "Buy_ATOM_638181135820000000"
 				}});
 		}

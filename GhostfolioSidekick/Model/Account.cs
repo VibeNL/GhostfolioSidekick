@@ -2,7 +2,7 @@
 {
 	public class Account
 	{
-		public Account(string id, string name, Money balance, List<Activity> activities)
+		public Account(string id, string name, Balance balance, List<Activity> activities)
 		{
 			if (string.IsNullOrEmpty(id))
 			{
@@ -24,14 +24,15 @@
 
 		public string Id { get; set; }
 
-		public Money Balance { get; set; }
+		public Balance Balance { get; set; }
 
 		public List<Activity> Activities { get; set; }
 
 		internal void ReplaceActivities(ICollection<Activity> newSet)
 		{
 			Activities.Clear();
-			Activities.AddRange(newSet);
+			Activities.AddRange(newSet.Where(x => x.Asset != null));
+			Balance.Calculate(newSet);
 		}
 	}
 }

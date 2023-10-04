@@ -50,10 +50,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR, 0.02M),
+				Fee = new Money(DefaultCurrency.EUR, 0.02M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				Quantity = 0.0267001M,
-				Type = Model. ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.USD,453.33M),
+				ActivityType = Model. ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.USD,453.33M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				ReferenceCode = "EOF3219953148"
 			} });
 		}
@@ -80,20 +80,20 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR,0.02M),
+				Fee = new Money(DefaultCurrency.EUR,0.02M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				Quantity = 0.0267001M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.USD,453.33M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.USD,453.33M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				ReferenceCode = "EOF3219953148"
 			},
 			new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031567]",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
-				Fee = new Money(string.Empty, null),
+				Fee = null,
 				Quantity = 0.0026199M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.USD,423.25M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.USD,423.25M, new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc)),
 				ReferenceCode = "EOF3224031567"
 			}});
 		}
@@ -119,10 +119,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031549]",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR,0.07M),
+				Fee = new Money(DefaultCurrency.EUR,0.07M, new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc)),
 				Quantity = 0.18625698M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.GBX,4947.00M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.GBX,4947.00M, new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc)),
 				ReferenceCode = "EOF3224031549"
 			} });
 		}
@@ -148,10 +148,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Asset = asset,
 				Comment = "Transaction Reference: [Dividend_US0378331005_2023-08-17]",
 				Date = new DateTime(2023,08,17, 10,49,49, DateTimeKind.Utc),
-				Fee = new Money(string.Empty, null),
+				Fee = null,
 				Quantity = 0.1279177000M,
-				Type = Model.ActivityType.Dividend,
-				UnitPrice = new Money(DefaultCurrency.USD, 0.20M),
+				ActivityType = Model.ActivityType.Dividend,
+				UnitPrice = new Money(DefaultCurrency.USD, 0.20M, new DateTime(2023,08,17, 10,49,49, DateTimeKind.Utc)),
 				ReferenceCode = "Dividend_US0378331005_2023-08-17"
 			} });
 		}
@@ -177,10 +177,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3224031549]",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.GBP,0.05M),
+				Fee = new Money(DefaultCurrency.GBP,0.05M, new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc)),
 				Quantity = 0.18625698M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.GBX,4947.00M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.GBX,4947.00M, new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc)),
 				ReferenceCode = "EOF3224031549"
 			} });
 		}
@@ -210,10 +210,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.EUR,0.02M),
+				Fee = new Money(DefaultCurrency.EUR,0.02M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				Quantity = 0.0267001M,
-				Type = Model.ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.USD,453.33M),
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.USD,453.33M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				ReferenceCode = "EOF3219953148"
 			} });
 		}

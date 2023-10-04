@@ -7,7 +7,6 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 {
-
 	public class ScalableCapitalParser : IFileImporter
 	{
 		private readonly IGhostfolioAPI api;
@@ -116,8 +115,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				asset,
 				record.Date.ToDateTime(TimeOnly.MinValue),
 				quantity,
-				new Money(record.Currency, unitPrice),
-				new Money(record.Currency, 0),
+				new Money(record.Currency, unitPrice, record.Date.ToDateTime(TimeOnly.MinValue)),
+				null,
 				$"Transaction Reference: [{record.Reference}]",
 				record.Reference
 				);
@@ -134,8 +133,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				asset,
 				record.Date.ToDateTime(record.Time),
 				Math.Abs(record.Quantity.GetValueOrDefault()),
-				new Money(record.Currency, record.UnitPrice.GetValueOrDefault()),
-				new Money(fee?.Currency ?? record.Currency, Math.Abs(fee?.UnitPrice ?? 0)),
+				new Money(record.Currency, record.UnitPrice.GetValueOrDefault(), record.Date.ToDateTime(record.Time)),
+				fee == null ? null : new Money(fee?.Currency ?? record.Currency, Math.Abs(fee?.UnitPrice ?? 0), record.Date.ToDateTime(record.Time)),
 				$"Transaction Reference: [{record.Reference}]",
 				record.Reference
 				);
