@@ -47,11 +47,11 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				return Tuple.Create(x.Asset, x.UnitPrice.Currency, x.Date, x.UnitPrice.Amount, x.Quantity);
 			};
 
-
 			var wumRecords = new ConcurrentBag<BaaderBankWUMRecord>();
 			var rkkRecords = new ConcurrentDictionary<string, BaaderBankRKKRecord>();
 
 			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
+			account.Balance.Empty();
 
 			Parallel.ForEach(filenames, filename =>
 			{
@@ -70,13 +70,21 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 				if (IsRKKRecord(csvReader))
 				{
-					csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x => rkkRecords.TryAdd(x.Reference, x));
+					csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x =>
+					{
+						rkkRecords.TryAdd(DetermineKey(x), x);
+
+						static string DetermineKey(BaaderBankRKKRecord x)
+						{
+							return x.Reference == "-" ? Guid.NewGuid().ToString() : x.Reference;
+						}
+					});
 				}
 			});
 
 			Parallel.ForEach(wumRecords, async record =>
 			{
-				var order = await ConvertToOrder(account, record, rkkRecords);
+				var order = await ConvertToOrder(record, rkkRecords);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -85,10 +93,16 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 			Parallel.ForEach(rkkRecords, async record =>
 			{
-				var order = await ConvertToOrder(account, record.Value);
+				BaaderBankRKKRecord r = record.Value;
+				var order = await ConvertToOrder(r);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
+				}
+
+				if (r.OrderType == "Saldo")
+				{
+					account.Balance.SetKnownBalance(new Money(r.Currency, r.UnitPrice.GetValueOrDefault(0), r.Date.ToDateTime(TimeOnly.MinValue)));
 				}
 			});
 
@@ -97,7 +111,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return account;
 		}
 
-		private async Task<Model.Activity?> ConvertToOrder(Model.Account account, BaaderBankRKKRecord record)
+		private async Task<Model.Activity?> ConvertToOrder(BaaderBankRKKRecord record)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
@@ -122,7 +136,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				);
 		}
 
-		private async Task<Model.Activity> ConvertToOrder(Model.Account account, BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
+		private async Task<Model.Activity> ConvertToOrder(BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
 		{
 			var asset = await api.FindSymbolByISIN(record.Isin);
 

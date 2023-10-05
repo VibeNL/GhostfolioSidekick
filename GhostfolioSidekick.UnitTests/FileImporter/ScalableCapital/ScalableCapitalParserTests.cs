@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset);
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US92343V1044", null)).ReturnsAsync(asset);
@@ -88,6 +88,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/ScalableCapital/Example1/RKKExample1.csv" });
 
 			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 696.85M, new DateTime(2023, 08, 2, 0, 0, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [WWEK 16100100]",
@@ -109,7 +110,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 
 			var asset1 = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 			var asset2 = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset1);
@@ -121,6 +122,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				"./FileImporter/TestFiles/ScalableCapital/Example1/RKKExample1.csv" });
 
 			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 696.85M, new DateTime(2023, 08, 2, 0, 0, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] {
 			new Model.Activity {
 				Asset = asset1,
@@ -153,7 +155,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 
 			var asset1 = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 			var asset2 = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset1);
@@ -166,6 +168,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 				"./FileImporter/TestFiles/ScalableCapital/Example2/RKKExample2.csv" });
 
 			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 696.85M, new DateTime(2023, 08, 2, 0, 0, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] {
 			new Model.Activity {
 				Asset = asset1,
