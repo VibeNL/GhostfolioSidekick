@@ -41,8 +41,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 		public async Task<Model.Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames)
 		{
-			var list = new ConcurrentDictionary<Tuple<Model.Asset, Currency, DateTime, decimal?, decimal>, Model.Activity>();
-			Tuple<Model.Asset, Currency, DateTime, decimal?, decimal> GetKey(Model.Activity x)
+			var list = new ConcurrentDictionary<Tuple<Model.Asset, Currency, DateTime, decimal, decimal>, Model.Activity>();
+			Tuple<Model.Asset, Currency, DateTime, decimal, decimal> GetKey(Model.Activity x)
 			{
 				return Tuple.Create(x.Asset, x.UnitPrice.Currency, x.Date, x.UnitPrice.Amount, x.Quantity);
 			};

@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("IE00B3XXRP09", null)).ReturnsAsync(asset);
@@ -59,6 +59,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example1/TestFileSingleOrder.csv" });
 
 			// Assert
+			account.Balance.Current.Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 21.70M, new DateTime(2023, 07, 10, 17, 34, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b]",
@@ -81,7 +82,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var asset1 = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 			var asset2 = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("IE00B3XXRP09", null)).ReturnsAsync(asset1);
@@ -91,6 +92,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example3/TestFileMultipleOrders.csv" });
 
 			// Assert
+			account.Balance.Current.Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 23.83M, new DateTime(2023, 07, 13, 11, 49, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
 			{ new Model.Activity {
 				Asset = asset1,
@@ -121,7 +123,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("NL0009690239", null)).ReturnsAsync(asset);
@@ -130,6 +132,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example4/TestFileDividend.csv" });
 
 			// Assert
+			account.Balance.Current.Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 24.39M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239]",
@@ -150,7 +153,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("NL0009690239", null)).ReturnsAsync(asset);
@@ -159,6 +162,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/Example5/TestFileDividendNoTax.csv" });
 
 			// Assert
+			account.Balance.Current.Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 33.96M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239]",

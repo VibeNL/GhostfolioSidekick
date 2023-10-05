@@ -2,19 +2,40 @@
 {
 	public class Balance
 	{
+		private volatile Money _knownBalance;
+
 		public Balance(Money initial)
 		{
-			MoneyList.Add(initial);
+			MoneyTrail.Add(initial);
+			SetKnownBalance(initial);
 			Currency = initial.Currency;
 		}
 
 		public Currency Currency { get; set; }
 
-		public List<Money> MoneyList { get; private set; } = new List<Money>();
+		public Money Current
+		{
+			get
+			{
+				if (_knownBalance != null)
+				{
+					return _knownBalance;
+				}
+
+				throw new NotSupportedException();
+			}
+		}
+
+		public List<Money> MoneyTrail { get; set; } = new List<Money>();
+
+		public static Balance Empty(Currency currency)
+		{
+			return new Balance(new Money(currency, 0, DateTime.MinValue));
+		}
 
 		public void Calculate(ICollection<Activity> newSet)
 		{
-			MoneyList.Clear();
+			MoneyTrail.Clear();
 
 			foreach (var activity in newSet.OrderBy(x => x.Date))
 			{
@@ -24,12 +45,12 @@
 					case ActivityType.Dividend:
 					case ActivityType.Interest:
 					case ActivityType.Sell:
-						MoneyList.Add(CalculateActivityTotal(activity));
+						MoneyTrail.Add(CalculateActivityTotal(activity));
 						break;
 					case ActivityType.CashWithdrawel:
 					case ActivityType.Buy:
 
-						MoneyList.Add(CalculateActivityTotal(activity).Negate());
+						MoneyTrail.Add(CalculateActivityTotal(activity).Negate());
 						break;
 					case ActivityType.Gift:
 					case ActivityType.LearningReward:
@@ -45,13 +66,26 @@
 
 				if (activity.Fee != null)
 				{
-					MoneyList.Add(activity.Fee.Negate());
+					MoneyTrail.Add(activity.Fee.Negate());
 				}
 			}
 
 			static Money CalculateActivityTotal(Activity activity)
 			{
 				return new Money(activity.UnitPrice.Currency, activity.UnitPrice.Amount * activity.Quantity, activity.UnitPrice.TimeOfRecord);
+			}
+		}
+
+		public void SetKnownBalance(Money money)
+		{
+			lock (this)
+			{
+				bool isNewer = _knownBalance == null || money.TimeOfRecord > _knownBalance?.TimeOfRecord;
+				var isSameDateButLowerAmount = money.TimeOfRecord == _knownBalance?.TimeOfRecord && money.Amount < _knownBalance.Amount;
+				if (isNewer || isSameDateButLowerAmount)
+				{
+					_knownBalance = money;
+				}
 			}
 		}
 	}

@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 				Fee = record.Fee == null ? null : new Model.Money(record.Currency, record.Fee ?? 0, record.Timestamp.ToUniversalTime()),
 				Quantity = record.Quantity,
 				ActivityType = HandleConvertActivityType(activityType.Value),
-				UnitPrice = await GetCorrectUnitPrice(new Model.Money(record.Currency, record.UnitPrice, record.Timestamp.ToUniversalTime()), asset, record.Timestamp.ToUniversalTime()),
+				UnitPrice = await GetCorrectUnitPrice(new Model.Money(record.Currency, record.UnitPrice ?? 0, record.Timestamp.ToUniversalTime()), asset, record.Timestamp.ToUniversalTime()),
 				ReferenceCode = refCode,
 			};
 			orders.Add(order);

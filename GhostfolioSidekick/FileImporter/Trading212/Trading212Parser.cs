@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				record.Time,
 				record.NumberOfShares.Value,
 				new Model.Money(record.Currency, record.Price.Value, record.Time),
-				fee.Fee == null ? null : new Model.Money(fee.Currency, fee.Fee, record.Time),
+				fee.Fee == null ? null : new Model.Money(fee.Currency, fee.Fee ?? 0, record.Time),
 				$"Transaction Reference: [{record.Id}]",
 				record.Id
 				);
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			{
 				if (record.FeeUK > 0)
 				{
-					record.FeeUK = api.GetConvertedPrice(new Model.Money(record.FeeUKCurrency, record.FeeUK, record.Time), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount;
+					record.FeeUK = api.GetConvertedPrice(new Model.Money(record.FeeUKCurrency, record.FeeUK ?? 0, record.Time), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount;
 				}
 			}
 

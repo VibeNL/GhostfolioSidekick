@@ -2,7 +2,7 @@
 {
 	public class Money
 	{
-		public Money(string currency, decimal? amount, DateTime timeOfRecord)
+		public Money(string currency, decimal amount, DateTime timeOfRecord)
 		{
 			Currency = CurrencyHelper.ParseCurrency(currency);
 			Amount = amount;
@@ -10,14 +10,14 @@
 
 		}
 
-		public Money(Currency currency, decimal? amount, DateTime timeOfRecord)
+		public Money(Currency currency, decimal amount, DateTime timeOfRecord)
 		{
 			Currency = currency;
 			Amount = amount;
 			TimeOfRecord = timeOfRecord;
 		}
 
-		public decimal? Amount { get; set; }
+		public decimal Amount { get; set; }
 
 		public Currency Currency { get; set; }
 
@@ -25,7 +25,7 @@
 
 		internal Money Absolute()
 		{
-			return new Money(Currency, Amount == null ? null : Math.Abs(Amount.GetValueOrDefault(0)), TimeOfRecord);
+			return new Money(Currency, Math.Abs(Amount), TimeOfRecord);
 		}
 
 		internal Money Negate()

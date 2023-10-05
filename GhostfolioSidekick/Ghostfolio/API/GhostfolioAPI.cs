@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Model.Account(
 				rawAccount.Id,
 				rawAccount.Name,
-				new Balance(new Money(CurrencyHelper.ParseCurrency(rawAccount.Currency), rawAccount.Balance, DateTime.UtcNow)),
+				new Balance(new Money(CurrencyHelper.ParseCurrency(rawAccount.Currency), rawAccount.Balance, DateTime.MinValue)),
 				rawOrders.Select(x =>
 				{
 					var asset = assets.GetOrAdd(x.SymbolProfile.Symbol, (y) => ParseSymbolProfile(x.SymbolProfile));
@@ -115,13 +115,19 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private decimal GetBalance(Balance balance)
 		{
+			var current = balance.Current;
+			if (current != null)
+			{
+				return current.Amount;
+			}
+
 			var targetCurrency = balance.Currency;
 			decimal amount = 0;
-			foreach (var item in balance.MoneyList)
+			foreach (var item in balance.MoneyTrail)
 			{
 				if (item.Currency.Equals(targetCurrency))
 				{
-					amount += item.Amount ?? 0;
+					amount += item.Amount;
 				}
 				else
 				{
@@ -166,7 +172,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date)
 		{
-			if (money == null || money.Currency == targetCurrency || (money.Amount ?? 0) == 0)
+			if (money == null || money.Currency == targetCurrency || (money.Amount) == 0)
 			{
 				return money;
 			}
