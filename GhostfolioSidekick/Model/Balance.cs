@@ -58,7 +58,7 @@
 					case ActivityType.Sell:
 						MoneyTrail.Add(CalculateActivityTotal(activity));
 						break;
-					case ActivityType.CashWithdrawel:
+					case ActivityType.CashWithdrawal:
 					case ActivityType.Buy:
 
 						MoneyTrail.Add(CalculateActivityTotal(activity).Negate());

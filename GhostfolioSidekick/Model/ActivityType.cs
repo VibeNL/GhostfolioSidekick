@@ -19,8 +19,11 @@
 		LearningReward,
 
 		StakingReward,
+
 		Convert,
+
 		CashDeposit,
-		CashWithdrawel
+
+		CashWithdrawal
 	}
 }

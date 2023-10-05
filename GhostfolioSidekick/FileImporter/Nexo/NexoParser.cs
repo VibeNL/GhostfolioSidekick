@@ -160,7 +160,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				Comment = $"Transaction Reference: [{refCode}]",
 				Fee = null,
 				Quantity = record.OutputAmount,
-				ActivityType = deposit ? Model.ActivityType.CashDeposit : Model.ActivityType.CashWithdrawel,
+				ActivityType = deposit ? Model.ActivityType.CashDeposit : Model.ActivityType.CashWithdrawal,
 				UnitPrice = new Model.Money(CurrencyHelper.ParseCurrency(deposit ? record.InputCurrency : record.OutputCurrency), 1, record.DateTime),
 				ReferenceCode = refCode,
 			};

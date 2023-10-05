@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			}
 
 			Model.Activity activity;
-			if (activityType == Model.ActivityType.CashDeposit || activityType == Model.ActivityType.CashWithdrawel)
+			if (activityType == Model.ActivityType.CashDeposit || activityType == Model.ActivityType.CashWithdrawal)
 			{
 				activity = new Model.Activity(
 					activityType.Value,
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			if (record.Omschrijving.Equals("flatex terugstorting"))
 			{
-				return Model.ActivityType.CashWithdrawel;
+				return Model.ActivityType.CashWithdrawal;
 			}
 
 			if (record.Omschrijving.Contains("Deposit") && !record.Omschrijving.Contains("Reservation"))
