@@ -51,6 +51,8 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		[Name("Currency (Currency conversion fee)")]
 		public string ConversionFeeCurrency { get; set; }
+
+		public decimal? Total { get; set; }
 	}
 
 	internal class ExchangeRateConverter : DefaultTypeConverter

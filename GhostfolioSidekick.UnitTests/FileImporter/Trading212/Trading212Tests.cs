@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
@@ -46,6 +46,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
 
 			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 98.906043667000M, new DateTime(2023, 08, 11, 21, 8, 18, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
@@ -66,7 +67,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
@@ -75,6 +76,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example2/TestFileMultipleOrdersUS.csv" });
 
 			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -13.232829008000M, new DateTime(2023, 08, 9, 15, 25, 08, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] {
 			new Model.Activity {
 				Asset = asset,
@@ -106,7 +108,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.GBX).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("GB0007188757", null)).ReturnsAsync(asset);
@@ -135,7 +137,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US0378331005", null)).ReturnsAsync(asset);
@@ -144,6 +146,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example4/TestFileSingleDividend.csv" });
 
 			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.025583540000M, new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [Dividend_US0378331005_2023-08-17]",
@@ -164,7 +167,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.GBX).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("GB0007188757", null)).ReturnsAsync(asset);
@@ -193,7 +196,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
-			var account = fixture.Create<Model.Account>();
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
@@ -206,6 +209,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			});
 
 			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 98.896043667000M, new DateTime(2023, 08, 11, 21, 8, 18, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Model. Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",

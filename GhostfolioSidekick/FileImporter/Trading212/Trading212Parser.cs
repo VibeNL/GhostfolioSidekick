@@ -12,8 +12,8 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(Trading212Record record, Model.Account account, IEnumerable<Trading212Record> allRecords)
 		{
-			var orderType = GetOrderType(record);
-			if (orderType == null)
+			var activityType = GetOrderType(record);
+			if (activityType == null)
 			{
 				return Array.Empty<Model.Activity>();
 			}
@@ -22,23 +22,41 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
-				record.Id = $"{orderType}_{record.ISIN}_{record.Time.ToString("yyyy-MM-dd")}";
+				record.Id = $"{activityType}_{record.ISIN}_{record.Time.ToString("yyyy-MM-dd")}";
 			}
 
 			var fee = GetFee(record);
+			Model.Activity activity;
+			if (activityType == Model.ActivityType.CashDeposit ||
+				activityType == Model.ActivityType.CashWithdrawal ||
+				activityType == Model.ActivityType.Interest)
+			{
+				activity = new Model.Activity(
+					activityType.Value,
+					asset,
+					record.Time,
+					1,
+					new Model.Money(record.Currency, record.Total.GetValueOrDefault(0), record.Time),
+					fee.Fee == null ? null : new Model.Money(fee.Currency, fee.Fee ?? 0, record.Time),
+					$"Transaction Reference: [{record.Id}]",
+					record.Id
+					);
+			}
+			else
+			{
+				activity = new Model.Activity(
+					activityType.Value,
+					asset,
+					record.Time,
+					record.NumberOfShares.Value,
+					new Model.Money(record.Currency, record.Price.Value, record.Time),
+					fee.Fee == null ? null : new Model.Money(fee.Currency, fee.Fee ?? 0, record.Time),
+					$"Transaction Reference: [{record.Id}]",
+					record.Id
+					);
+			}
 
-			var order = new Model.Activity(
-				orderType.Value,
-				asset,
-				record.Time,
-				record.NumberOfShares.Value,
-				new Model.Money(record.Currency, record.Price.Value, record.Time),
-				fee.Fee == null ? null : new Model.Money(fee.Currency, fee.Fee ?? 0, record.Time),
-				$"Transaction Reference: [{record.Id}]",
-				record.Id
-				);
-
-			return new[] { order };
+			return new[] { activity };
 		}
 
 		protected override CsvConfiguration GetConfig()
@@ -78,7 +96,9 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 			return record.Action switch
 			{
-				"Deposit" or "Interest on cash" or "Currency conversion" => null,
+				"Deposit" => Model.ActivityType.CashDeposit,
+				"Interest on cash" => Model.ActivityType.Interest,
+				"Currency conversion" => Model.ActivityType.Convert,
 				"Market buy" => Model.ActivityType.Buy,
 				"Market sell" => Model.ActivityType.Sell,
 				string d when d.Contains("Dividend") => Model.ActivityType.Dividend,
