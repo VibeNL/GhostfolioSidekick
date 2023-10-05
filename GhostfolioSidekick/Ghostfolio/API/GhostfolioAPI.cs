@@ -115,27 +115,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private decimal GetBalance(Balance balance)
 		{
-			var current = balance.Current;
-			if (current != null)
-			{
-				return current.Amount;
-			}
-
-			var targetCurrency = balance.Currency;
-			decimal amount = 0;
-			foreach (var item in balance.MoneyTrail)
-			{
-				if (item.Currency.Equals(targetCurrency))
-				{
-					amount += item.Amount;
-				}
-				else
-				{
-					amount += GetConvertedPrice(item, targetCurrency, item.TimeOfRecord)?.Result?.Amount ?? 0;
-				}
-			}
-
-			return amount;
+			return balance.Current(new CurrentPriceCalculator(this)).Amount;
 		}
 
 		public async Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date)
@@ -460,6 +440,21 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		{
 			public RawActivity Activity { get; set; }
 			public bool IsMatched { get; set; }
+		}
+
+		private class CurrentPriceCalculator : ICurrentPriceCalculator
+		{
+			private GhostfolioAPI ghostfolioAPI;
+
+			public CurrentPriceCalculator(GhostfolioAPI ghostfolioAPI)
+			{
+				this.ghostfolioAPI = ghostfolioAPI;
+			}
+
+			public Money GetConvertedPrice(Money item, Currency targetCurrency, DateTime timeOfRecord)
+			{
+				return ghostfolioAPI.GetConvertedPrice(item, targetCurrency, timeOfRecord).Result;
+			}
 		}
 	}
 }

@@ -2,7 +2,7 @@
 {
 	public class Balance
 	{
-		private volatile Money _knownBalance;
+		private volatile Money? _knownBalance;
 
 		public Balance(Money initial)
 		{
@@ -13,20 +13,31 @@
 
 		public Currency Currency { get; set; }
 
-		public Money Current
+		public Money Current(ICurrentPriceCalculator currentPriceCalculator)
 		{
-			get
+			if (_knownBalance != null)
 			{
-				if (_knownBalance != null)
-				{
-					return _knownBalance;
-				}
-
-				throw new NotSupportedException();
+				return _knownBalance;
 			}
+
+			var targetCurrency = Currency;
+			decimal amount = 0;
+			foreach (var item in MoneyTrail)
+			{
+				if (item.Currency.Equals(targetCurrency))
+				{
+					amount += item.Amount;
+				}
+				else
+				{
+					amount += currentPriceCalculator.GetConvertedPrice(item, targetCurrency, item.TimeOfRecord)?.Amount ?? 0;
+				}
+			}
+
+			return new Money(targetCurrency, amount, MoneyTrail.Select(x => x.TimeOfRecord).Max());
 		}
 
-		public List<Money> MoneyTrail { get; set; } = new List<Money>();
+		private List<Money> MoneyTrail { get; set; } = new List<Money>();
 
 		public static Balance Empty(Currency currency)
 		{
@@ -86,6 +97,15 @@
 				{
 					_knownBalance = money;
 				}
+			}
+		}
+
+		internal void Empty()
+		{
+			lock (this)
+			{
+				_knownBalance = null;
+				MoneyTrail.Clear();
 			}
 		}
 	}

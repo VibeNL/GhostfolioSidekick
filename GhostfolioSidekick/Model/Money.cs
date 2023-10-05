@@ -32,5 +32,10 @@
 		{
 			return new Money(Currency, Amount * -1, TimeOfRecord);
 		}
+
+		internal Money Times(decimal quantity)
+		{
+			return new Money(Currency, Amount * quantity, TimeOfRecord);
+		}
 	}
 }

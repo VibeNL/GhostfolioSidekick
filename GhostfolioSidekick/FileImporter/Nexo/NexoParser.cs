@@ -1,12 +1,21 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.Nexo
 {
 	public class NexoParser : CryptoRecordBaseImporter<NexoRecord>
 	{
-		private string[] fiat = new[] { "EURX", "USDX" };
+		private Model.Asset[] fiat = new[] {
+			new Model.Asset(new Model.Currency("EUR"), "EUR", "EUR", null, null, null),
+			new Model.Asset(new Model.Currency("USD"), "USD", "USD", null, null, null)
+		};
+
+		private Model.Asset[] fiatCoin = new[] {
+			new Model.Asset(new Model.Currency("EUR"), "EURX", "EURX", null, null, null),
+			new Model.Asset(new Model.Currency("USD"), "USDX", "USDX", null, null, null)
+		};
 
 		public NexoParser(IGhostfolioAPI api) : base(api)
 		{
@@ -20,55 +29,80 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				return Array.Empty<Model.Activity>();
 			}
 
-			var currency = CurrencyHelper.ParseCurrency("USD");
-			var orders = new List<Model.Activity>();
-			var assetName = record.InputCurrency;
-
-			if (!fiat.Contains(assetName))
+			var activities = new List<Model.Activity>();
+			if (HandleDepositAndWithdrawel(record, activities))
 			{
-				var asset = await api.FindSymbolByISIN(assetName, x =>
-					ParseFindSymbolByISINResult(assetName, assetName, x));
-
-				var order = new Model.Activity
-				{
-					Asset = asset,
-					Date = record.DateTime,
-					Comment = $"Transaction Reference: [{record.Transaction}]",
-					Fee = null,
-					Quantity = record.InputAmount,
-					ActivityType = HandleConvertActivityType(activityType.Value),
-					UnitPrice = new Model.Money(currency, record.GetUSDEquivalent() / record.InputAmount, record.DateTime),
-					ReferenceCode = record.Transaction,
-				};
-				orders.Add(order);
+				return activities;
 			}
 
-			// Convert is a SELL / BUY. SELL in the default operation so we need another BUY
-			if (activityType.GetValueOrDefault() == Model.ActivityType.Convert)
-			{
-				var buyAsset = record.OutputCurrency;
-				if (!fiat.Contains(buyAsset))
-				{
-					var assetBuy = await api.FindSymbolByISIN(buyAsset, x =>
-						ParseFindSymbolByISINResult(buyAsset, buyAsset, x));
+			var assetName = record.InputCurrency;
+			var sellAsset = await GetAsset(assetName);
 
-					var orderBuy = new Model.Activity
-					{
-						Asset = assetBuy,
-						Date = record.DateTime,
-						Comment = $"Transaction Reference: [{record.Transaction}]",
-						Fee = null,
-						Quantity = record.OutputAmount,
-						ActivityType = Model.ActivityType.Buy,
-						UnitPrice = new Model.Money(currency, record.GetUSDEquivalent() / record.OutputAmount, record.DateTime),
-						ReferenceCode = record.Transaction,
-					};
-					orders.Add(orderBuy);
-				}
+			var sellActivity = new Model.Activity
+			{
+				Asset = sellAsset,
+				Date = record.DateTime,
+				Comment = $"Transaction Reference: [{record.Transaction}]",
+				Fee = null,
+				Quantity = record.InputAmount,
+				ActivityType = HandleConvertActivityType(activityType.Value),
+				UnitPrice = GetUnitPrice(record, false),
+				ReferenceCode = record.Transaction,
+			};
+			activities.Add(sellActivity);
+
+			var buyAssetName = record.OutputCurrency;
+			var buyAsset = await GetAsset(buyAssetName);
+
+			var refCode = record.Transaction + "_2";
+			var orderBuy = new Model.Activity
+			{
+				Asset = buyAsset,
+				Date = record.DateTime,
+				Comment = $"Transaction Reference: [{refCode}]",
+				Fee = null,
+				Quantity = record.OutputAmount,
+				ActivityType = Model.ActivityType.Buy,
+				UnitPrice = GetUnitPrice(record, true),
+				ReferenceCode = refCode,
+			};
+
+			if (activityType != Model.ActivityType.Receive)
+			{
+				activities.Add(orderBuy);
 			}
 
 			// Filter out fiat currency
-			return orders;
+			return activities;
+
+			async Task<Model.Asset?> GetAsset(string assetName)
+			{
+				return await api.FindSymbolByISIN(assetName, x =>
+								ParseFindSymbolByISINResult(assetName, assetName, x));
+			}
+		}
+
+		protected override void SetActivitiesToAccount(Model.Account account, ICollection<Model.Activity> values)
+		{
+			base.SetActivitiesToAccount(account, values);
+
+			// Fix balance
+			account.Balance.Empty();
+			account.Balance.Calculate(values.Where(x => x.Asset == null).ToList());
+		}
+
+		private Money GetUnitPrice(NexoRecord record, bool isOutput)
+		{
+			var currency = isOutput ? record.OutputCurrency : record.InputCurrency;
+			var amount = isOutput ? record.OutputAmount : record.InputAmount;
+			var fiatCoinCurrency = fiatCoin.Any(x => x.Symbol == currency);
+
+			if (fiatCoinCurrency == false)
+			{
+				return new Model.Money("USD", record.GetUSDEquivalent() / amount, record.DateTime);
+			}
+
+			return new Model.Money(currency, 1, record.DateTime);
 		}
 
 		protected override CsvConfiguration GetConfig()
@@ -87,12 +121,13 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			{
 				case "ReferralBonus": // TODO: Should be a 'reward'
 				case "Deposit":
-					return Model.ActivityType.Buy;
+					return Model.ActivityType.Receive;
 				case "Exchange":
 					return Model.ActivityType.Convert;
+				case "DepositToExchange":
+					return Model.ActivityType.CashDeposit;
 				case "LockingTermDeposit":
 				case "UnlockingTermDeposit":
-				case "DepositToExchange":
 				case "ExchangeDepositedOn":
 				case "FixedTermInterest": // TODO: Should be a 'reward'
 				case "Interest": // TODO: Should be a 'reward'
@@ -101,5 +136,36 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			}
 		}
 
+		private bool HandleDepositAndWithdrawel(NexoRecord record, List<Model.Activity> activities)
+		{
+			var inFiat = fiat.Any(x => x.Symbol == record.InputCurrency);
+			var outFiat = fiat.Any(x => x.Symbol == record.OutputCurrency);
+
+			var inFiatCoin = fiatCoin.Any(x => x.Symbol == record.InputCurrency);
+			var outFiatCoin = fiatCoin.Any(x => x.Symbol == record.OutputCurrency);
+
+			var deposit = inFiat && outFiatCoin;
+			var withdrawl = inFiatCoin && outFiat;
+
+			if (!deposit && !withdrawl)
+			{
+				return false;
+			}
+
+			var refCode = $"Cash_Change_{record.DateTime}";
+			var activity = new Model.Activity
+			{
+				Asset = null,
+				Date = record.DateTime,
+				Comment = $"Transaction Reference: [{refCode}]",
+				Fee = null,
+				Quantity = record.OutputAmount,
+				ActivityType = deposit ? Model.ActivityType.CashDeposit : Model.ActivityType.CashWithdrawel,
+				UnitPrice = new Model.Money(CurrencyHelper.ParseCurrency(deposit ? record.InputCurrency : record.OutputCurrency), 1, record.DateTime),
+				ReferenceCode = refCode,
+			};
+			activities.Add(activity);
+			return true;
+		}
 	}
 }
