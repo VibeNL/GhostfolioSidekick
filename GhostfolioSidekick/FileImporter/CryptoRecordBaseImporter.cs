@@ -42,15 +42,5 @@ namespace GhostfolioSidekick.FileImporter
 
 			return asset;
 		}
-
-		protected Model.ActivityType HandleConvertActivityType(Model.ActivityType value)
-		{
-			if (value == Model.ActivityType.Convert)
-			{
-				return Model.ActivityType.Sell;
-			}
-
-			return value;
-		}
 	}
 }
