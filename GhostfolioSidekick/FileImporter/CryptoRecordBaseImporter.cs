@@ -1,10 +1,5 @@
-﻿using GhostfolioSidekick.Crypto;
-using GhostfolioSidekick.Ghostfolio.API;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.FileImporter
 {
@@ -14,11 +9,11 @@ namespace GhostfolioSidekick.FileImporter
 		{
 		}
 
-		protected async Task<decimal> GetCorrectUnitPrice(decimal? originalUnitPrice, Asset? symbol, DateTime date)
+		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, Model.Asset? symbol, DateTime date)
 		{
-			if (originalUnitPrice > 0)
+			if (originalUnitPrice.Amount > 0)
 			{
-				return originalUnitPrice.Value;
+				return originalUnitPrice;
 			}
 
 			// GetPrice from Ghostfolio
@@ -26,7 +21,7 @@ namespace GhostfolioSidekick.FileImporter
 			return price;
 		}
 
-		protected Asset? ParseFindSymbolByISINResult(string assetName, string symbol, IEnumerable<Asset> assets)
+		protected Model.Asset? ParseFindSymbolByISINResult(string assetName, string symbol, IEnumerable<Model.Asset> assets)
 		{
 			var cryptoOnly = assets.Where(x => x.AssetSubClass == "CRYPTOCURRENCY");
 			var asset = cryptoOnly.FirstOrDefault(x => assetName == x.Name);
@@ -48,23 +43,14 @@ namespace GhostfolioSidekick.FileImporter
 			return asset;
 		}
 
-		protected OrderType? Convert(CryptoOrderType? value)
+		protected Model.ActivityType HandleConvertActivityType(Model.ActivityType value)
 		{
-			if (value is null)
+			if (value == Model.ActivityType.Convert)
 			{
-				return null;
+				return Model.ActivityType.Sell;
 			}
 
-			return value switch
-			{
-				CryptoOrderType.Buy => (OrderType?)OrderType.BUY,
-				CryptoOrderType.Sell => (OrderType?)OrderType.SELL,
-				CryptoOrderType.Send => (OrderType?)OrderType.SELL,
-				CryptoOrderType.Receive => (OrderType?)OrderType.BUY,
-				CryptoOrderType.Convert => (OrderType?)OrderType.SELL,
-				CryptoOrderType.LearningReward or CryptoOrderType.StakingReward => null,
-				_ => throw new NotSupportedException(),
-			};
+			return value;
 		}
 	}
 }

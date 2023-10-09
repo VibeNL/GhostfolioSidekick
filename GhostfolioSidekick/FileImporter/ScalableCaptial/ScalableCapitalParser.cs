@@ -1,12 +1,12 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using System.Collections.Concurrent;
 using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 {
-
 	public class ScalableCapitalParser : IFileImporter
 	{
 		private readonly IGhostfolioAPI api;
@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			this.api = api;
 		}
 
-		public Task<bool> CanConvertOrders(IEnumerable<string> filenames)
+		public Task<bool> CanParseActivities(IEnumerable<string> filenames)
 		{
 			foreach (var file in filenames)
 			{
@@ -39,19 +39,19 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		}
 
 
-		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
+		public async Task<Model.Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames)
 		{
-			var list = new ConcurrentDictionary<Tuple<string, Asset, string, DateTime, decimal, decimal>, Order>();
-			Tuple<string, Asset, string, DateTime, decimal, decimal> GetKey(Order x)
+			var list = new ConcurrentDictionary<Tuple<Model.Asset, Currency, DateTime, decimal, decimal>, Model.Activity>();
+			Tuple<Model.Asset, Currency, DateTime, decimal, decimal> GetKey(Model.Activity x)
 			{
-				return Tuple.Create(x.AccountId, x.Asset, x.Currency, x.Date, x.UnitPrice, x.Quantity);
+				return Tuple.Create(x.Asset, x.UnitPrice.Currency, x.Date, x.UnitPrice.Amount, x.Quantity);
 			};
-
 
 			var wumRecords = new ConcurrentBag<BaaderBankWUMRecord>();
 			var rkkRecords = new ConcurrentDictionary<string, BaaderBankRKKRecord>();
 
 			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
+			account.Balance.Empty();
 
 			Parallel.ForEach(filenames, filename =>
 			{
@@ -70,13 +70,21 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 				if (IsRKKRecord(csvReader))
 				{
-					csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x => rkkRecords.TryAdd(x.Reference, x));
+					csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x =>
+					{
+						rkkRecords.TryAdd(DetermineKey(x), x);
+
+						static string DetermineKey(BaaderBankRKKRecord x)
+						{
+							return x.Reference == "-" ? Guid.NewGuid().ToString() : x.Reference;
+						}
+					});
 				}
 			});
 
 			Parallel.ForEach(wumRecords, async record =>
 			{
-				var order = await ConvertToOrder(account, record, rkkRecords);
+				var order = await ConvertToOrder(record, rkkRecords);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -85,17 +93,25 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 			Parallel.ForEach(rkkRecords, async record =>
 			{
-				var order = await ConvertToOrder(account, record.Value);
+				BaaderBankRKKRecord r = record.Value;
+				var order = await ConvertToOrder(r);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
 				}
+
+				if (r.OrderType == "Saldo")
+				{
+					account.Balance.SetKnownBalance(new Money(r.Currency, r.UnitPrice.GetValueOrDefault(0), r.Date.ToDateTime(TimeOnly.MinValue)));
+				}
 			});
 
-			return list.Values;
+			account.ReplaceActivities(list.Values);
+
+			return account;
 		}
 
-		private async Task<Order?> ConvertToOrder(Account account, BaaderBankRKKRecord record)
+		private async Task<Model.Activity?> ConvertToOrder(BaaderBankRKKRecord record)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
@@ -107,42 +123,35 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 			var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
 			var unitPrice = record.UnitPrice.GetValueOrDefault() / quantity;
-			return new Order
-			{
-				AccountId = account.Id,
-				Asset = asset,
-				Comment = $"Transaction Reference: [{record.Reference}]",
-				Currency = record.Currency,
-				Date = record.Date.ToDateTime(TimeOnly.MinValue),
-				Fee = 0,
-				FeeCurrency = record.Currency,
-				Quantity = quantity,
-				ReferenceCode = record.Reference,
-				Type = orderType.Value,
-				UnitPrice = unitPrice
-			};
+
+			return new Model.Activity(
+				orderType.Value,
+				asset,
+				record.Date.ToDateTime(TimeOnly.MinValue),
+				quantity,
+				new Money(record.Currency, unitPrice, record.Date.ToDateTime(TimeOnly.MinValue)),
+				null,
+				$"Transaction Reference: [{record.Reference}]",
+				record.Reference
+				);
 		}
 
-		private async Task<Order> ConvertToOrder(Account account, BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
+		private async Task<Model.Activity> ConvertToOrder(BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
 		{
 			var asset = await api.FindSymbolByISIN(record.Isin);
 
 			var fee = FindFeeRecord(rkkRecords, record.Reference);
 
-			return new Order
-			{
-				AccountId = account.Id,
-				Asset = asset,
-				Comment = $"Transaction Reference: [{record.Reference}]",
-				Currency = record.Currency,
-				Date = record.Date.ToDateTime(record.Time),
-				Fee = Math.Abs(fee?.UnitPrice ?? 0),
-				FeeCurrency = fee?.Currency ?? record.Currency,
-				Quantity = Math.Abs(record.Quantity.GetValueOrDefault()),
-				ReferenceCode = record.Reference,
-				Type = GetOrderType(record),
-				UnitPrice = record.UnitPrice.GetValueOrDefault()
-			};
+			return new Model.Activity(
+				GetOrderType(record),
+				asset,
+				record.Date.ToDateTime(record.Time),
+				Math.Abs(record.Quantity.GetValueOrDefault()),
+				new Money(record.Currency, record.UnitPrice.GetValueOrDefault(), record.Date.ToDateTime(record.Time)),
+				fee == null ? null : new Money(fee?.Currency ?? record.Currency, Math.Abs(fee?.UnitPrice ?? 0), record.Date.ToDateTime(record.Time)),
+				$"Transaction Reference: [{record.Reference}]",
+				record.Reference
+				);
 		}
 
 		private BaaderBankRKKRecord? FindFeeRecord(ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords, string reference)
@@ -155,24 +164,24 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return null;
 		}
 
-		private OrderType GetOrderType(BaaderBankWUMRecord record)
+		private Model.ActivityType GetOrderType(BaaderBankWUMRecord record)
 		{
 			switch (record.OrderType)
 			{
 				case "Verkauf":
-					return OrderType.SELL;
+					return Model.ActivityType.Sell;
 				case "Kauf":
-					return OrderType.BUY;
+					return Model.ActivityType.Buy;
 				default:
 					throw new NotSupportedException();
 			}
 		}
 
-		private OrderType? GetOrderType(BaaderBankRKKRecord record)
+		private Model.ActivityType? GetOrderType(BaaderBankRKKRecord record)
 		{
 			if (record.OrderType == "Coupons/Dividende")
 			{
-				return OrderType.DIVIDEND;
+				return Model.ActivityType.Dividend;
 			}
 
 			return null;

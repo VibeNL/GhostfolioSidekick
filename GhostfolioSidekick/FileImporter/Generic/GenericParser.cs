@@ -10,29 +10,25 @@ namespace GhostfolioSidekick.FileImporter.Generic
 		{
 		}
 
-		protected override async Task<IEnumerable<Order>> ConvertOrders(GenericRecord record, Account account, IEnumerable<GenericRecord> allRecords)
+		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(GenericRecord record, Model.Account account, IEnumerable<GenericRecord> allRecords)
 		{
 			var asset = await api.FindSymbolByISIN(record.Symbol);
 
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
-				record.Id = $"{record.OrderType}_{record.Symbol}_{record.Date.ToString("yyyy-MM-dd")}";
+				record.Id = $"{record.ActivityType}_{record.Symbol}_{record.Date.ToString("yyyy-MM-dd")}";
 			}
 
-			var order = new Order
-			{
-				AccountId = account.Id,
-				Asset = asset,
-				Currency = record.Currency,
-				Date = record.Date,
-				Comment = $"Transaction Reference: [{record.Id}]",
-				Fee = record.Fee ?? 0,
-				FeeCurrency = record.Currency,
-				Quantity = record.Quantity,
-				Type = record.OrderType,
-				UnitPrice = record.UnitPrice,
-				ReferenceCode = record.Id,
-			};
+			var order = new Model.Activity(
+				record.ActivityType,
+				asset,
+				record.Date,
+				record.Quantity,
+				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.UnitPrice, record.Date),
+				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date),
+				$"Transaction Reference: [{record.Id}]",
+				record.Id
+				);
 
 			return new[] { order };
 		}

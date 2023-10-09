@@ -32,8 +32,6 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
 
-			var orders = new List<Order>();
-
 			var directories = Directory.GetDirectories(fileLocation);
 
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)))
@@ -44,8 +42,9 @@ namespace GhostfolioSidekick.FileImporter
 				try
 				{
 					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName).Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
-					var importer = importers.SingleOrDefault(x => x.CanConvertOrders(files).Result) ?? throw new NoImporterAvailableException($"Directory {accountName} has no importer");
-					orders.AddRange(await importer.ConvertToOrders(accountName, files));
+					var importer = importers.SingleOrDefault(x => x.CanParseActivities(files).Result) ?? throw new NoImporterAvailableException($"Directory {accountName} has no importer");
+					var account = await importer.ConvertActivitiesForAccount(accountName, files);
+					await api.UpdateAccount(account);
 				}
 				catch (NoImporterAvailableException noImporter)
 				{
@@ -54,7 +53,7 @@ namespace GhostfolioSidekick.FileImporter
 
 					foreach (var file in files)
 					{
-						var importerString = string.Join(", ", importers.Select(x => $"Importer: {x.GetType().Name} CanConvert: {x.CanConvertOrders(new[] { file }).Result}"));
+						var importerString = string.Join(", ", importers.Select(x => $"Importer: {x.GetType().Name} CanConvert: {x.CanParseActivities(new[] { file }).Result}"));
 						sb.AppendLine($"{accountName} | {file} can be imported by {importerString}");
 					}
 
@@ -66,8 +65,6 @@ namespace GhostfolioSidekick.FileImporter
 					// TODO
 				}
 			}
-
-			await api.UpdateOrders(orders);
 
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}

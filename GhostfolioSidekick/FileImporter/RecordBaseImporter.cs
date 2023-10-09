@@ -9,12 +9,14 @@ namespace GhostfolioSidekick.FileImporter
 	{
 		protected readonly IGhostfolioAPI api;
 
+		private ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 1 };
+
 		protected RecordBaseImporter(IGhostfolioAPI api)
 		{
 			this.api = api;
 		}
 
-		public virtual async Task<bool> CanConvertOrders(IEnumerable<string> filenames)
+		public virtual async Task<bool> CanParseActivities(IEnumerable<string> filenames)
 		{
 			foreach (var file in filenames)
 			{
@@ -37,13 +39,15 @@ namespace GhostfolioSidekick.FileImporter
 			return true;
 		}
 
-		public async Task<IEnumerable<Order>> ConvertToOrders(string accountName, IEnumerable<string> filenames)
+		public async Task<Model.Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames)
 		{
 			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
+			account.Balance.Empty();
+
 			CsvConfiguration csvConfig = GetConfig();
 
-			var list = new ConcurrentDictionary<string, Order>();
-			await Parallel.ForEachAsync(filenames, async (filename, c1) =>
+			var list = new ConcurrentDictionary<string, Model.Activity>();
+			await Parallel.ForEachAsync(filenames, parallelOptions, async (filename, c1) =>
 			{
 				using var streamReader = GetStreamReader(filename);
 				using var csvReader = new CsvReader(streamReader, csvConfig);
@@ -51,13 +55,13 @@ namespace GhostfolioSidekick.FileImporter
 				csvReader.ReadHeader();
 				var records = csvReader.GetRecords<T>().ToList();
 
-				await Parallel.ForEachAsync(records, async (record, c) =>
+				await Parallel.ForEachAsync(records, parallelOptions, async (record, c) =>
 				{
 					var orders = await ConvertOrders(record, account, records);
 
 					if (orders != null)
 					{
-						foreach (var order in orders.Where(x => x.Asset != null))
+						foreach (var order in orders)
 						{
 							list.TryAdd(order.ReferenceCode, order);
 						}
@@ -65,10 +69,17 @@ namespace GhostfolioSidekick.FileImporter
 				});
 			});
 
-			return list.Values;
+			SetActivitiesToAccount(account, list.Values);
+
+			return account;
 		}
 
-		protected abstract Task<IEnumerable<Order>> ConvertOrders(T record, Account account, IEnumerable<T> allRecords);
+		protected virtual void SetActivitiesToAccount(Model.Account account, ICollection<Model.Activity> values)
+		{
+			account.ReplaceActivities(values);
+		}
+
+		protected abstract Task<IEnumerable<Model.Activity>> ConvertOrders(T record, Model.Account account, IEnumerable<T> allRecords);
 
 		protected abstract CsvConfiguration GetConfig();
 

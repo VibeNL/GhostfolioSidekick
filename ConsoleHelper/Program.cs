@@ -1,8 +1,8 @@
 ﻿using GhostfolioSidekick;
 using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.FileImporter.Coinbase;
+using GhostfolioSidekick.FileImporter.Bunq;
 using GhostfolioSidekick.FileImporter.DeGiro;
-using GhostfolioSidekick.FileImporter.Nexo;
+using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
@@ -31,8 +31,10 @@ namespace ConsoleHelper
 				new ScalableCapitalParser(api),
 				new DeGiroParser(api),
 				new Trading212Parser(api),
-				new CoinbaseParser(api),
-				new NexoParser(api),
+				new GenericParser(api),
+				new BunqParser(api),
+				//new CoinbaseParser(api),
+				//new NexoParser(api),
 			});
 			t.DoWork().Wait();
 		}

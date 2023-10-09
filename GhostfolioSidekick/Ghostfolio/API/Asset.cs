@@ -1,17 +1,17 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public class Asset
-	{
-		public string Currency { get; set; }
+    public class Asset
+    {
+        public string Currency { get; set; }
 
-		public string Symbol { get; set; }
+        public string Symbol { get; set; }
 
-		public string Name { get; set; }
+        public string Name { get; set; }
 
-		public string DataSource { get; set; }
+        public string DataSource { get; set; }
 
-		public string AssetSubClass { get; set; }
+        public string AssetSubClass { get; set; }
 
-		public string AssetClass { get; set; }
-	}
+        public string AssetClass { get; set; }
+    }
 }

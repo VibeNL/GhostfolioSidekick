@@ -24,10 +24,12 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		public string Mutatie { get; set; }
 
 		[Index(8)]
-		//[CultureInfo("en-EN")]
 		public decimal? Total { get; set; }
 
 		public string Saldo { get; set; }
+
+		[Index(10)]
+		public decimal SaldoValue { get; set; }
 
 		[Name("Order Id")]
 		public string OrderId { get; set; }

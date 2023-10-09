@@ -1,15 +1,17 @@
-﻿namespace GhostfolioSidekick.Ghostfolio.API
+﻿using GhostfolioSidekick.Model;
+
+namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public interface IGhostfolioAPI
 	{
-		Task<Asset> FindSymbolByISIN(string? identifier, Func<IEnumerable<Asset>, Asset> selector = null);
+		Task<Model.Account?> GetAccountByName(string name);
 
-		Task<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency, DateTime date);
+		public Task UpdateAccount(Model.Account account);
 
-		Task<decimal> GetMarketPrice(Asset asset, DateTime date);
+		Task<Model.Asset?> FindSymbolByISIN(string? identifier, Func<IEnumerable<Model.Asset>, Model.Asset?> selector = null);
 
-		Task<Account> GetAccountByName(string name);
+		Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date);
 
-		public Task UpdateOrders(IEnumerable<Order> orders);
+		Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date);
 	}
 }

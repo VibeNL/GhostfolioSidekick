@@ -1,7 +1,7 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public class AssetList
-	{
-		public Asset[] Items { get; set; }
-	}
+    public class AssetList
+    {
+        public Asset[] Items { get; set; }
+    }
 }

@@ -136,6 +136,45 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
+		internal async Task<RestResponse?> DoRestPut(string suffixUrl, string body)
+		{
+			try
+			{
+				mutex.WaitOne();
+
+				var options = new RestClientOptions(url)
+				{
+					ThrowOnAnyError = false,
+					ThrowOnDeserializationError = false
+				};
+
+				var client = new RestClient(options);
+				var request = new RestRequest($"{url}/{suffixUrl}")
+				{
+					RequestFormat = DataFormat.Json
+				};
+
+				request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
+				request.AddHeader("Content-Type", "application/json");
+
+				request.AddJsonBody(body);
+				var r = retryPolicy.Execute(() => client.ExecutePutAsync(request).Result);
+
+				if (!r.IsSuccessStatusCode)
+				{
+					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+				}
+
+				return r;
+			}
+			finally
+			{
+				//Call the ReleaseMutex method to unblock so that other threads
+				//that are trying to gain ownership of the mutex can enter  
+				mutex.ReleaseMutex();
+			}
+		}
+
 		public async Task<RestResponse?> DoRestDelete(string suffixUrl)
 		{
 			try

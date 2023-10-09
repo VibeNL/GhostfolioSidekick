@@ -1,0 +1,4 @@
+﻿ActivityType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
+CashDeposit,EUR,2023-08-06,USD,1,1000,0
+Buy,US67066G1040,2023-08-07,USD,4,100,0.02
+CashWithdrawal,EUR,2023-08-08,USD,1,10,0

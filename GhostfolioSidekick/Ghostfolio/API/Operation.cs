@@ -2,12 +2,12 @@
 {
 	public enum Operation
 	{
-		New,
+		New = 3,
 
-		Duplicate,
+		Duplicate = 0,
 
-		Updated,
+		Updated = 2,
 
-		Removed
+		Removed = 1
 	}
 }
