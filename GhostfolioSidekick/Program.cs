@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.FileImporter.Bunq;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
@@ -40,12 +41,14 @@ namespace GhostfolioSidekick
 				services.AddSingleton<IGhostfolioAPI, GhostfolioAPI>();
 				services.AddScoped<IScheduledWork, FileImporterTask>();
 
-				services.AddScoped<IFileImporter, ScalableCapitalParser>();
-				services.AddScoped<IFileImporter, DeGiroParser>();
-				services.AddScoped<IFileImporter, Trading212Parser>();
+				services.AddScoped<IFileImporter, BunqParser>();
 				//services.AddScoped<IFileImporter, CoinbaseParser>();
-				//services.AddScoped<IFileImporter, NexoParser>();
+				services.AddScoped<IFileImporter, DeGiroParser>();
 				services.AddScoped<IFileImporter, GenericParser>();
+				//services.AddScoped<IFileImporter, NexoParser>();
+				services.AddScoped<IFileImporter, ScalableCapitalParser>();
+				services.AddScoped<IFileImporter, Trading212Parser>();
+
 			});
 
 			await hostBuilder.RunConsoleAsync();
