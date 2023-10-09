@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			// DEGiro always had the balance listed at the end of the row, just take the latest one
 			account.Balance.SetKnownBalance(new Model.Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
 
-			var activityType = GetOrderType(record);
+			var activityType = GetActivityType(record);
 			if (activityType == null)
 			{
 				return Array.Empty<Model.Activity>();
@@ -108,7 +108,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private Model.ActivityType? GetOrderType(DeGiroRecord record)
+		private Model.ActivityType? GetActivityType(DeGiroRecord record)
 		{
 			if (record.Omschrijving.Contains("Koop"))
 			{

@@ -7,11 +7,11 @@ using Moq;
 
 namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 {
-	public class GenericParserTests
+	public class BunqParserTests
 	{
 		readonly Mock<IGhostfolioAPI> api;
 
-		public GenericParserTests()
+		public BunqParserTests()
 		{
 			api = new Mock<IGhostfolioAPI>();
 		}
