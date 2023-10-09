@@ -56,5 +56,24 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 				ReferenceCode = "Interest_2023-07-27"
 			} });
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestMultipleDepositsOn1Day_Converted()
+		{
+			// Arrange
+			var parser = new BunqParser(api.Object);
+			var fixture = new Fixture();
+
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/Example2/Example2.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 3000M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
+			account.Activities.Should().BeEmpty();
+		}
 	}
 }
