@@ -231,5 +231,25 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				ReferenceCode = "EOF3219953148"
 			}});
 		}
+
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileCurrencyConversion_Converted()
+		{
+			// Arrange
+			var parser = new Trading212Parser(api.Object);
+			var fixture = new Fixture();
+
+			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example7/TestFileCurrencyConversion.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.00M, new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc)));
+			account.Activities.Should().BeEmpty();
+		}
 	}
 }

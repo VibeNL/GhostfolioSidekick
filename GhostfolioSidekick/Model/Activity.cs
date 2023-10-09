@@ -9,13 +9,13 @@
 		public Activity(ActivityType activityType, Asset? asset, DateTime date, decimal quantity, Money unitPrice, Money? fee, string comment, string referenceCode)
 		{
 			Asset = asset;
-			Comment = comment ?? throw new ArgumentNullException(nameof(comment));
+			Comment = comment;
 			Date = date;
 			Fee = fee;
 			Quantity = quantity;
 			ActivityType = activityType;
 			UnitPrice = unitPrice ?? throw new ArgumentNullException(nameof(unitPrice));
-			ReferenceCode = referenceCode ?? throw new ArgumentNullException(nameof(referenceCode));
+			ReferenceCode = referenceCode;
 		}
 
 		public Asset? Asset { get; set; }

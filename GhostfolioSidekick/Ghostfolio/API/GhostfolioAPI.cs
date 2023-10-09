@@ -173,28 +173,35 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
-		private async Task WriteOrder(Activity order)
+		private async Task WriteOrder(Activity activity)
 		{
-			if (order.UnitPrice == 0 && order.Quantity == 0)
+			if (activity.UnitPrice == 0 && activity.Quantity == 0)
 			{
-				logger.LogDebug($"Skipping empty transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
+				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
-			var r = await restCall.DoRestPost($"api/v1/import", await ConvertToBody(order));
+			if (activity.Type == ActivityType.IGNORE)
+			{
+				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
+			}
+
+			url = $"api/v1/order";
+
+			var r = await restCall.DoRestPost(url, await ConvertToBody(activity));
 			bool emptyResponse = false;
 			if (!r.IsSuccessStatusCode || (emptyResponse = r.Content.Equals("{\"activities\":[]}")))
 			{
 				var isduplicate = emptyResponse || (r.Content?.Contains("activities.1 is a duplicate activity") ?? false);
 				if (isduplicate)
 				{
-					logger.LogDebug($"Duplicate transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
+					logger.LogDebug($"Duplicate transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
 					return;
 				}
 
-				throw new NotSupportedException($"Insert Failed {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
+				throw new NotSupportedException($"Insert Failed {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
-			logger.LogInformation($"Added transaction {order.Date} {order.Asset.Symbol} {order.Quantity} {order.Type}");
+			logger.LogInformation($"Added transaction {activity.Date} {activity.Asset?.Symbol} {activity.Quantity} {activity.Type}");
 		}
 
 		private async Task DeleteOrder(RawActivity? order)
@@ -230,50 +237,75 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			await restCall.DoRestPut($"api/v1/account/{account.Id}", res);
 		}
 
-		private async Task<Activity> ConvertToGhostfolioActivity(Model.Account account, Model.Activity order)
+		private async Task<Activity> ConvertToGhostfolioActivity(Model.Account account, Model.Activity activity)
 		{
 			decimal Round(decimal? value)
 			{
 				return Math.Round(value ?? 0, 10);
 			};
 
+			if (activity.ActivityType == Model.ActivityType.Interest)
+			{
+				return new Activity
+				{
+					AccountId = account.Id,
+					Currency = account.Balance.Currency.Symbol,
+					Asset = null,
+					Comment = activity.Comment,
+					Date = activity.Date,
+					Fee = Round((await GetConvertedPrice(activity.Fee, account.Balance.Currency, activity.Date))?.Amount),
+					Quantity = Round(activity.Quantity),
+					Type = ParseType(activity.ActivityType),
+					UnitPrice = Round((await GetConvertedPrice(activity.UnitPrice, account.Balance.Currency, activity.Date)).Amount),
+					ReferenceCode = activity.ReferenceCode
+				};
+			}
+
 			return new Activity
 			{
 				AccountId = account.Id,
-				Currency = order.Asset?.Currency?.Symbol,
-				Asset = new Asset { Symbol = order.Asset?.Symbol },
-				Comment = order.Comment,
-				Date = order.Date,
-				Fee = Round((await GetConvertedPrice(order.Fee, order.Asset?.Currency, order.Date))?.Amount),
-				Quantity = Round(order.Quantity),
-				Type = ParseType(order.ActivityType),
-				UnitPrice = Round((await GetConvertedPrice(order.UnitPrice, order.Asset?.Currency, order.Date)).Amount),
-				ReferenceCode = order.ReferenceCode
+				Currency = activity.Asset.Currency?.Symbol,
+				Asset = new Asset
+				{
+					Symbol = activity.Asset.Symbol,
+					AssetClass = activity.Asset.AssetClass,
+					AssetSubClass = activity.Asset.AssetSubClass,
+					Currency = activity.Asset.Currency.Symbol,
+					DataSource = activity.Asset.DataSource,
+					Name = activity.Asset.Name
+				},
+				Comment = activity.Comment,
+				Date = activity.Date,
+				Fee = Round((await GetConvertedPrice(activity.Fee, activity.Asset.Currency, activity.Date))?.Amount),
+				Quantity = Round(activity.Quantity),
+				Type = ParseType(activity.ActivityType),
+				UnitPrice = Round((await GetConvertedPrice(activity.UnitPrice, activity.Asset.Currency, activity.Date)).Amount),
+				ReferenceCode = activity.ReferenceCode
 			};
 		}
 
-		private async Task<string> ConvertToBody(Activity order)
+		private async Task<string> ConvertToBody(Activity activity)
 		{
 			var o = new JObject();
-			var r = new JObject
-			{
-				["activities"] = new JArray()
-				{
-					o
-				}
-			};
+			o["accountId"] = activity.AccountId;
+			o["comment"] = activity.Comment;
+			o["currency"] = activity.Currency;
+			o["dataSource"] = activity.Asset?.DataSource;
+			o["date"] = activity.Date.ToString("o");
+			o["fee"] = activity.Fee;
+			o["quantity"] = activity.Quantity;
 
-			o["accountId"] = order.AccountId;
-			o["comment"] = order.Comment;
-			o["currency"] = order.Currency;
-			o["dataSource"] = order.Asset.DataSource;
-			o["date"] = order.Date.ToString("o");
-			o["fee"] = order.Fee;
-			o["quantity"] = order.Quantity;
-			o["symbol"] = order.Asset.Symbol;
-			o["type"] = order.Type.ToString();
-			o["unitPrice"] = order.UnitPrice;
-			var res = r.ToString();
+			if (activity.Type == ActivityType.INTEREST)
+			{
+				o["symbol"] = "Interest";
+			}
+			else
+			{
+				o["symbol"] = activity.Asset?.Symbol;
+			}
+			o["type"] = activity.Type.ToString();
+			o["unitPrice"] = activity.UnitPrice;
+			var res = o.ToString();
 			return res;
 		}
 
@@ -286,6 +318,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				fo => fo.ReferenceCode,
 				eo =>
 				{
+					if (string.IsNullOrWhiteSpace(eo.Activity.Comment))
+					{
+						return Guid.NewGuid().ToString();
+					}
+
 					var match = Regex.Match(eo.Activity.Comment, pattern);
 					var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
 					return key;
@@ -381,6 +418,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private static string ParseReference(string comment)
 		{
+			if (string.IsNullOrWhiteSpace(comment))
+			{
+				return null;
+			}
+
 			var pattern = @"Transaction Reference: \[(.*?)\]";
 			var match = Regex.Match(comment, pattern);
 			var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
@@ -423,7 +465,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				case Model.ActivityType.Convert:
 					return ActivityType.IGNORE; // TODO: 
 				case Model.ActivityType.Interest:
-					return ActivityType.IGNORE; // TODO: 
+					return ActivityType.INTEREST;
 				case Model.ActivityType.Gift:
 					return ActivityType.IGNORE; // TODO: 
 				case Model.ActivityType.LearningReward:

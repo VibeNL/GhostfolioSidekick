@@ -1,5 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.Trading212
@@ -18,7 +19,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				return Array.Empty<Model.Activity>();
 			}
 
-			var asset = await api.FindSymbolByISIN(record.ISIN);
+			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByISIN(record.ISIN);
 
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
@@ -26,12 +27,38 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			}
 
 			var fee = GetFee(record);
-			Model.Activity activity;
-			if (activityType == Model.ActivityType.CashDeposit ||
+
+			if (activityType == Model.ActivityType.Convert)
+			{
+				var parsed = ParserConvertion(record);
+				var activitySource = new Model.Activity(
+					Model.ActivityType.CashWithdrawal,
+					asset,
+					record.Time,
+					1,
+					parsed.Source,
+					null,
+					$"Transaction Reference: [{record.Id}_SourceCurrencyConversion]",
+					record.Id + "_SourceCurrencyConversion"
+					);
+				var activityTarget = new Model.Activity(
+					Model.ActivityType.CashDeposit,
+					asset,
+					record.Time,
+					1,
+					parsed.Target,
+					null,
+					$"Transaction Reference: [{record.Id}_TargetCurrencyConversion]",
+					record.Id + "_TargetCurrencyConversion"
+				);
+
+				return new[] { activitySource, activityTarget };
+			}
+			else if (activityType == Model.ActivityType.CashDeposit ||
 				activityType == Model.ActivityType.CashWithdrawal ||
 				activityType == Model.ActivityType.Interest)
 			{
-				activity = new Model.Activity(
+				var activity = new Model.Activity(
 					activityType.Value,
 					asset,
 					record.Time,
@@ -41,10 +68,11 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					$"Transaction Reference: [{record.Id}]",
 					record.Id
 					);
+				return new[] { activity };
 			}
 			else
 			{
-				activity = new Model.Activity(
+				var activity = new Model.Activity(
 					activityType.Value,
 					asset,
 					record.Time,
@@ -54,9 +82,20 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					$"Transaction Reference: [{record.Id}]",
 					record.Id
 					);
+				return new[] { activity };
 			}
+		}
 
-			return new[] { activity };
+		private (Money Source, Money Target) ParserConvertion(Trading212Record record)
+		{
+			// "0.01 GBP -> 0.01 EUR"
+			var note = record.Notes;
+			var splitted = note.Split(' ');
+
+			Money source = new Money(splitted[1], Decimal.Parse(splitted[0], CultureInfo.InvariantCulture), record.Time);
+			Money target = new Money(splitted[4], Decimal.Parse(splitted[3], CultureInfo.InvariantCulture), record.Time);
+
+			return (source, target);
 		}
 
 		protected override CsvConfiguration GetConfig()

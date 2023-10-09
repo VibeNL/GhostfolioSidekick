@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 		{
 			var activityType = GetActivityType(record);
 
-			var id = $"{activityType}_{record.Date:yyyy-MM-dd}";
+			var id = $"{activityType}{ConvertRowNumber(record, allRecords)}_{record.Date:yyyy-MM-dd}";
 
 			var order = new Model.Activity(
 				activityType,
@@ -28,6 +28,19 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 				);
 
 			return new[] { order };
+		}
+
+		private string ConvertRowNumber(BunqRecord record, IEnumerable<BunqRecord> allRecords)
+		{
+			var groupedByDate = allRecords.GroupBy(x => x.Date);
+			IGrouping<DateTime, BunqRecord> group = groupedByDate.Single(x => x.Key == record.Date);
+			if (group.Count() == 1)
+			{
+				return string.Empty;
+			}
+
+			var sortedByRow = group.OrderBy(x => x.RowNumber).Select((x, i) => new { x, i }).ToList();
+			return (sortedByRow.Single(x => x.x == record).i + 1).ToString();
 		}
 
 		private Model.ActivityType GetActivityType(BunqRecord record)
