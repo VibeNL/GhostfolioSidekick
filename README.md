@@ -38,14 +38,14 @@ IDENTIFIER,ATOM-USD,Cosmos USD
 
 ### Supported formats
 | Platform | Source of the files | Buy | Sell | Dividend | Interest & Cash balance |
-|--|--|--|--|--|
+|--|--|--|--|--|--|
 | Generic importer | See below | X | X | X | X |
 | Trading 212 | Export of transaction history | X | X | X | X |
 | De Giro | Export of transaction history | X | - | X | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
-| ~~Coinbase (Experimental)~~ | Export of transaction history | X | X | - |
-| ~~Nexo (Experimental)~~ | Export of transaction history | X | - | - |
+| ~~Coinbase (Experimental)~~ | Export of transaction history | X | X | - | X |
+| ~~Nexo (Experimental)~~ | Export of transaction history | X | - | - | X |
 
 #### Generic import format
 Beside the supported exchanges and brokers there is also a generic format. This format is only usefull for stocks at the moment, not for cryptocurrency:
