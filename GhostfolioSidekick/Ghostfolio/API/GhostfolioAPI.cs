@@ -77,7 +77,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			await UpdateBalance(account, balance);
 
-			var newActivities = DateTimeCollisionFixer.Fix(account.Activities).Select(x => ConvertToGhostfolioActivity(account, x).Result).ToList();
+			var newActivities = DateTimeCollisionFixer.Fix(account.Activities)
+				.Select(x => ConvertToGhostfolioActivity(account, x).Result)
+				.Where(x => x != null)
+				.Where(x => x.Type != ActivityType.IGNORE)
+				.ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
 			var existingActivities = JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
@@ -259,6 +263,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					UnitPrice = Round((await GetConvertedPrice(activity.UnitPrice, account.Balance.Currency, activity.Date)).Amount),
 					ReferenceCode = activity.ReferenceCode
 				};
+			}
+
+			if (activity.Asset == null)
+			{
+				return null;
 			}
 
 			return new Activity
@@ -467,7 +476,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				case Model.ActivityType.Interest:
 					return ActivityType.INTEREST;
 				case Model.ActivityType.Gift:
-					return ActivityType.IGNORE; // TODO: 
+					return ActivityType.BUY; // TODO: 
 				case Model.ActivityType.LearningReward:
 					return ActivityType.IGNORE; // TODO: 
 				case Model.ActivityType.StakingReward:
