@@ -56,7 +56,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				ActivityType = Model. ActivityType.Buy,
 				UnitPrice = new Money(DefaultCurrency.USD,453.33M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				ReferenceCode = "EOF3219953148"
-			} });
+			},
+			new Model.Activity {
+				Asset = null,
+				Comment = "Transaction Reference: [82f82014-23a3-4ddf-bc09-658419823f4c]",
+				Date = new DateTime(2023,08,11, 21,08,18, DateTimeKind.Utc),
+				Fee = null,
+				Quantity = 1M,
+				ActivityType = Model. ActivityType.Interest,
+				UnitPrice = new Money(DefaultCurrency.EUR,0.01M, new DateTime(2023,08,11, 21,08,18, DateTimeKind.Utc)),
+				ReferenceCode = "82f82014-23a3-4ddf-bc09-658419823f4c"
+			}});
 		}
 
 		[Fact]
@@ -209,7 +219,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			});
 
 			// Assert
-			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 98.896043667000M, new DateTime(2023, 08, 11, 21, 8, 18, DateTimeKind.Utc)));
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 98.896043667000M, new DateTime(2023, 08, 7, 19, 56, 02, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Model. Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [EOF3219953148]",
@@ -219,7 +229,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 				ActivityType = Model.ActivityType.Buy,
 				UnitPrice = new Money(DefaultCurrency.USD,453.33M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				ReferenceCode = "EOF3219953148"
-			} });
+			}});
 		}
 	}
 }

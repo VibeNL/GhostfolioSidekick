@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 		[CultureInfo("nl-NL")]
 		public decimal Amount { get; set; }
 
-		public string Counterparty { get; set; }
+		public string Name { get; set; }
 
 		public string Description { get; set; }
 	}

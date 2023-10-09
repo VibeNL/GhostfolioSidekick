@@ -44,8 +44,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/Example1/Example1.csv" });
 
 			// Assert
-			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1015.26M, new DateTime(2023, 08, 24, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEmpty();
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 903.5M, new DateTime(2023, 08, 18, 0, 0, 0, DateTimeKind.Utc)));
+			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
+				Asset = null,
+				Comment = "Transaction Reference: [Interest_2023-07-27]",
+				Date = new DateTime(2023,07,27, 0,0,0, DateTimeKind.Utc),
+				Fee = null,
+				Quantity = 1m,
+				ActivityType = Model.ActivityType.Interest,
+				UnitPrice = new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023,7,27, 0,0,0, DateTimeKind.Utc)),
+				ReferenceCode = "Interest_2023-07-27"
+			} });
 		}
 	}
 }

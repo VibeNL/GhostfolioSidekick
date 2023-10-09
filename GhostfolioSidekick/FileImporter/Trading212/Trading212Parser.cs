@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					asset,
 					record.Time,
 					1,
-					new Model.Money(record.Currency, record.Total.GetValueOrDefault(0), record.Time),
+					new Model.Money(record.Currency == string.Empty ? record.CurrencyTotal : record.Currency, record.Total.GetValueOrDefault(0), record.Time),
 					fee.Fee == null ? null : new Model.Money(fee.Currency, fee.Fee ?? 0, record.Time),
 					$"Transaction Reference: [{record.Id}]",
 					record.Id

@@ -73,12 +73,35 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			}
 
 			// Filter out fiat currency
-			return activities;
+			return activities.Where(FilterEmptyBuysAndSells);
 
 			async Task<Model.Asset?> GetAsset(string assetName)
 			{
 				return await api.FindSymbolByISIN(assetName, x =>
 								ParseFindSymbolByISINResult(assetName, assetName, x));
+			}
+		}
+
+		private bool FilterEmptyBuysAndSells(Model.Activity activity)
+		{
+			switch (activity.ActivityType)
+			{
+				case Model.ActivityType.Buy:
+				case Model.ActivityType.Sell:
+					return activity.Asset != null;
+				case Model.ActivityType.Dividend:
+				case Model.ActivityType.Send:
+				case Model.ActivityType.Receive:
+				case Model.ActivityType.Interest:
+				case Model.ActivityType.Gift:
+				case Model.ActivityType.LearningReward:
+				case Model.ActivityType.StakingReward:
+				case Model.ActivityType.Convert:
+				case Model.ActivityType.CashDeposit:
+				case Model.ActivityType.CashWithdrawal:
+					return true;
+				default:
+					throw new NotSupportedException();
 			}
 		}
 

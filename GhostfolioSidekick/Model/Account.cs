@@ -31,8 +31,32 @@
 		internal void ReplaceActivities(ICollection<Activity> newSet)
 		{
 			Activities.Clear();
-			Activities.AddRange(newSet.Where(x => x.Asset != null));
+			Activities.AddRange(newSet.Where(FilterActivities));
 			Balance.Calculate(newSet);
+		}
+
+		private bool FilterActivities(Activity activity)
+		{
+			switch (activity.ActivityType)
+			{
+				case ActivityType.Buy:
+				case ActivityType.Sell:
+				case ActivityType.Dividend:
+				case ActivityType.Send:
+				case ActivityType.Receive:
+				case ActivityType.Interest:
+				case ActivityType.Gift:
+				case ActivityType.LearningReward:
+				case ActivityType.StakingReward:
+				case ActivityType.Convert:
+					return true;
+				// Not needed at the time, is in the balance
+				case ActivityType.CashDeposit:
+				case ActivityType.CashWithdrawal:
+					return false;
+				default:
+					throw new NotSupportedException();
+			}
 		}
 	}
 }

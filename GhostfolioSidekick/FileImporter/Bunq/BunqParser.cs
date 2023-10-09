@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 				record.Date,
 				1,
 				new Model.Money(CurrencyHelper.ParseCurrency("EUR"), Math.Abs(record.Amount), record.Date),
-				new Model.Money(CurrencyHelper.ParseCurrency("EUR"), 0, record.Date),
+				null,
 				$"Transaction Reference: [{id}]",
 				id
 				);
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 
 		private Model.ActivityType GetActivityType(BunqRecord record)
 		{
-			if (record.Counterparty == "bunq" && record.Description.Contains("bunq Payday"))
+			if (record.Name == "bunq" && record.Description.Contains("bunq Payday"))
 			{
 				return Model.ActivityType.Interest;
 			}
