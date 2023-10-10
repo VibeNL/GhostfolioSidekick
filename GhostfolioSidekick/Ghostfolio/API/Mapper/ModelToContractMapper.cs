@@ -1,17 +1,12 @@
 ﻿using GhostfolioSidekick.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 {
-	public class ActivityMapper
+	public class ModelToContractMapper
 	{
 		private readonly ICurrentPriceCalculator currentPriceCalculator;
 
-		public ActivityMapper(ICurrentPriceCalculator currentPriceCalculator)
+		public ModelToContractMapper(ICurrentPriceCalculator currentPriceCalculator)
 		{
 			this.currentPriceCalculator = currentPriceCalculator;
 		}
