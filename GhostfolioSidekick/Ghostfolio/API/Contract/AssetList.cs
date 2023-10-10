@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Ghostfolio.API
+﻿namespace GhostfolioSidekick.Ghostfolio.API.Contract
 {
     public class AssetList
     {

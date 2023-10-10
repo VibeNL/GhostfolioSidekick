@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Ghostfolio.API.Contract;
+using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -8,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public class GhostfolioAPI : IGhostfolioAPI
+    public class GhostfolioAPI : IGhostfolioAPI
 	{
 		private readonly Mapper mapper;
 		private ILogger<GhostfolioAPI> logger;
@@ -80,7 +81,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var newActivities = DateTimeCollisionFixer.Fix(account.Activities)
 				.Select(x => ConvertToGhostfolioActivity(account, x).Result)
 				.Where(x => x != null)
-				.Where(x => x.Type != ActivityType.IGNORE)
+				.Where(x => x.Type != Contract.ActivityType.IGNORE)
 				.ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
@@ -177,14 +178,14 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
-		private async Task WriteOrder(Activity activity)
+		private async Task WriteOrder(Contract.Activity activity)
 		{
 			if (activity.UnitPrice == 0 && activity.Quantity == 0)
 			{
 				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
-			if (activity.Type == ActivityType.IGNORE)
+			if (activity.Type == Contract.ActivityType.IGNORE)
 			{
 				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
 			}
@@ -241,7 +242,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			await restCall.DoRestPut($"api/v1/account/{account.Id}", res);
 		}
 
-		private async Task<Activity> ConvertToGhostfolioActivity(Model.Account account, Model.Activity activity)
+		private async Task<Contract.Activity> ConvertToGhostfolioActivity(Model.Account account, Model.Activity activity)
 		{
 			decimal Round(decimal? value)
 			{
@@ -250,7 +251,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			if (activity.ActivityType == Model.ActivityType.Interest)
 			{
-				return new Activity
+				return new Contract.Activity
 				{
 					AccountId = account.Id,
 					Currency = account.Balance.Currency.Symbol,
@@ -270,11 +271,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return null;
 			}
 
-			return new Activity
+			return new Contract.Activity
 			{
 				AccountId = account.Id,
 				Currency = activity.Asset.Currency?.Symbol,
-				Asset = new Asset
+				Asset = new Contract.Asset
 				{
 					Symbol = activity.Asset.Symbol,
 					AssetClass = activity.Asset.AssetClass,
@@ -293,7 +294,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			};
 		}
 
-		private async Task<string> ConvertToBody(Activity activity)
+		private async Task<string> ConvertToBody(Contract.Activity activity)
 		{
 			var o = new JObject();
 			o["accountId"] = activity.AccountId;
@@ -304,7 +305,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			o["fee"] = activity.Fee;
 			o["quantity"] = activity.Quantity;
 
-			if (activity.Type == ActivityType.INTEREST)
+			if (activity.Type == Contract.ActivityType.INTEREST)
 			{
 				o["symbol"] = "Interest";
 			}
@@ -318,7 +319,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return res;
 		}
 
-		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Activity> ordersFromFiles, IEnumerable<RawActivity> existingOrders)
+		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Contract.Activity> ordersFromFiles, IEnumerable<RawActivity> existingOrders)
 		{
 			var pattern = @"Transaction Reference: \[(.*?)\]";
 
@@ -361,10 +362,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}).Union(existingOrdersWithMatchFlag.Where(x => !x.IsMatched).Select(x => new MergeOrder(Operation.Removed, null, x.Activity)));
 		}
 
-		private bool AreEquals(Activity fo, RawActivity eo)
+		private bool AreEquals(Contract.Activity fo, RawActivity eo)
 		{
 			return
-				(fo.Asset?.Symbol == eo.SymbolProfile?.Symbol || fo.Type == ActivityType.INTEREST) && // Interest create manual symbols
+				(fo.Asset?.Symbol == eo.SymbolProfile?.Symbol || fo.Type == Contract.ActivityType.INTEREST) && // Interest create manual symbols
 				fo.Quantity == eo.Quantity &&
 				fo.UnitPrice == eo.UnitPrice &&
 				fo.Fee == eo.Fee &&
@@ -374,21 +375,21 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private sealed class MergeOrder
 		{
-			public MergeOrder(Operation operation, Activity order1)
+			public MergeOrder(Operation operation, Contract.Activity order1)
 			{
 				Operation = operation;
 				Order1 = order1;
 				Order2 = null;
 			}
 
-			public MergeOrder(Operation operation, Activity order1, RawActivity? order2) : this(operation, order1)
+			public MergeOrder(Operation operation, Contract.Activity order1, RawActivity? order2) : this(operation, order1)
 			{
 				Order2 = order2;
 			}
 
 			public Operation Operation { get; }
 
-			public Activity Order1 { get; }
+			public Contract.Activity Order1 { get; }
 
 			public RawActivity? Order2 { get; }
 		}
@@ -403,7 +404,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return asset;
 		}
 
-		private static Model.Asset ParseSymbolProfile(SymbolProfile symbolProfile)
+		private static Model.Asset ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
 			return new Model.Asset(
 				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
@@ -414,7 +415,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				symbolProfile.AssetClass);
 		}
 
-		private static Model.Asset ParseSymbolProfile(Asset symbolProfile)
+		private static Model.Asset ParseSymbolProfile(Contract.Asset symbolProfile)
 		{
 			return new Model.Asset(
 				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
@@ -438,49 +439,49 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return key;
 		}
 
-		private static Model.ActivityType ParseType(ActivityType type)
+		private static Model.ActivityType ParseType(Contract.ActivityType type)
 		{
 			switch (type)
 			{
-				case ActivityType.BUY:
+				case Contract.ActivityType.BUY:
 					return Model.ActivityType.Buy;
-				case ActivityType.SELL:
+				case Contract.ActivityType.SELL:
 					return Model.ActivityType.Sell;
-				case ActivityType.DIVIDEND:
+				case Contract.ActivityType.DIVIDEND:
 					return Model.ActivityType.Dividend;
-				case ActivityType.INTEREST:
+				case Contract.ActivityType.INTEREST:
 					return Model.ActivityType.Interest;
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");
 			}
 		}
 
-		private ActivityType ParseType(Model.ActivityType? type)
+		private Contract.ActivityType ParseType(Model.ActivityType? type)
 		{
 			switch (type)
 			{
 				case null:
-					return ActivityType.IGNORE;
+					return Contract.ActivityType.IGNORE;
 				case Model.ActivityType.Buy:
-					return ActivityType.BUY;
+					return Contract.ActivityType.BUY;
 				case Model.ActivityType.Sell:
-					return ActivityType.SELL;
+					return Contract.ActivityType.SELL;
 				case Model.ActivityType.Dividend:
-					return ActivityType.DIVIDEND;
+					return Contract.ActivityType.DIVIDEND;
 				case Model.ActivityType.Send:
-					return ActivityType.SELL; // TODO: 
+					return Contract.ActivityType.SELL; // TODO: 
 				case Model.ActivityType.Receive:
-					return ActivityType.BUY; // TODO: 
+					return Contract.ActivityType.BUY; // TODO: 
 				case Model.ActivityType.Convert:
-					return ActivityType.IGNORE; // TODO: 
+					return Contract.ActivityType.IGNORE; // TODO: 
 				case Model.ActivityType.Interest:
-					return ActivityType.INTEREST;
+					return Contract.ActivityType.INTEREST;
 				case Model.ActivityType.Gift:
-					return ActivityType.BUY; // TODO: 
+					return Contract.ActivityType.BUY; // TODO: 
 				case Model.ActivityType.LearningReward:
-					return ActivityType.IGNORE; // TODO: 
+					return Contract.ActivityType.IGNORE; // TODO: 
 				case Model.ActivityType.StakingReward:
-					return ActivityType.IGNORE; // TODO: 
+					return Contract.ActivityType.IGNORE; // TODO: 
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");
 			}

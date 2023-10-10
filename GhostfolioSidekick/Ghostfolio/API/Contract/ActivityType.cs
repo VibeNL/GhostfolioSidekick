@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Ghostfolio.API
+﻿namespace GhostfolioSidekick.Ghostfolio.API.Contract
 {
     public enum ActivityType
     {
@@ -9,6 +9,6 @@
         DIVIDEND,
 
         INTEREST,
-		IGNORE
-	}
+        IGNORE
+    }
 }
