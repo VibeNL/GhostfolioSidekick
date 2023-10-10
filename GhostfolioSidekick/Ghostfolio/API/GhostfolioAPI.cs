@@ -169,6 +169,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
+		public Task<IEnumerable<Model.MarketData>> GetMarketData()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task DeleteMarketData(Model.MarketData marketData)
+		{
+			throw new NotImplementedException();
+		}
+
 		private async Task WriteOrder(Contract.Activity activity)
 		{
 			if (activity.UnitPrice == 0 && activity.Quantity == 0)
@@ -320,5 +330,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			return asset;
 		}
+
 	}
 }
