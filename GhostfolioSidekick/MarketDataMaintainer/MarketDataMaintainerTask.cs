@@ -21,6 +21,15 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Starting to do work");
 
+			// Clean unused data
+			var marketDataList = await api.GetMarketData();
+			foreach (var marketData in marketDataList)
+			{
+				if (marketData.ActivityCount == 0)
+				{
+					await api.DeleteMarketData(marketData);
+				}
+			}
 
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
 		}
