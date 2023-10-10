@@ -27,7 +27,7 @@ namespace ConsoleHelper
 
 			var cs = new ConfigurationSettings();
 			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
-			GhostfolioAPI api = new GhostfolioAPI(memoryCache, logger);
+			GhostfolioAPI api = new GhostfolioAPI(cs, memoryCache, logger);
 			var t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new ScalableCapitalParser(api),
 				new DeGiroParser(api),

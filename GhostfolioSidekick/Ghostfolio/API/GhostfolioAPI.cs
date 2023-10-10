@@ -12,28 +12,32 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public partial class GhostfolioAPI : IGhostfolioAPI
 	{
-		private readonly SymbolMapper mapper;
+		private readonly SymbolMapper mapper = new SymbolMapper();
+		private readonly ConfigurationSettings settings;
 		private ILogger<GhostfolioAPI> logger;
 		private readonly ModelToContractMapper activityMapper;
 
-		string url = Environment.GetEnvironmentVariable("GHOSTFOLIO_URL");
-		string accessToken = Environment.GetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN");
+		
 		private RestCall restCall;
 
 		public GhostfolioAPI(
-		IMemoryCache memoryCache, 
-		ILogger<GhostfolioAPI> logger)
+			ConfigurationSettings settings,
+			IMemoryCache memoryCache, 
+			ILogger<GhostfolioAPI> logger)
 		{
-			mapper = new SymbolMapper();
-			this.logger = logger;
-			this.activityMapper = activityMapper;
-			if (url != null && url.EndsWith("/"))
+			if (settings is null)
 			{
-				url = url.Substring(0, url.Length - 1);
+				throw new ArgumentNullException(nameof(settings));
 			}
 
-			restCall = new RestCall(memoryCache, logger, url, accessToken);
+			if (memoryCache is null)
+			{
+				throw new ArgumentNullException(nameof(memoryCache));
+			}
 
+			this.settings = settings;
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			restCall = new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken);
 			activityMapper = new ModelToContractMapper(new CurrentPriceCalculator(this));
 		}
 
@@ -177,8 +181,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
-			url = $"api/v1/order";
-
+			var url = $"api/v1/order";
 			var r = await restCall.DoRestPost(url, await ConvertToBody(activity));
 			bool emptyResponse = false;
 			if (!r.IsSuccessStatusCode || (emptyResponse = r.Content.Equals("{\"activities\":[]}")))
