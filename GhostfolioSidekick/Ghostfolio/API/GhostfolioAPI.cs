@@ -364,7 +364,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private bool AreEquals(Activity fo, RawActivity eo)
 		{
 			return
-				fo.Asset?.Symbol == eo.SymbolProfile?.Symbol &&
+				(fo.Asset?.Symbol == eo.SymbolProfile?.Symbol || fo.Type == ActivityType.INTEREST) && // Interest create manual symbols
 				fo.Quantity == eo.Quantity &&
 				fo.UnitPrice == eo.UnitPrice &&
 				fo.Fee == eo.Fee &&
