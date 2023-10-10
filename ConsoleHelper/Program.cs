@@ -6,6 +6,7 @@ using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Ghostfolio.API.Mapper;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ConsoleHelper

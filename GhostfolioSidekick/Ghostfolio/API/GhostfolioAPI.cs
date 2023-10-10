@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Ghostfolio.API.Contract;
+using GhostfolioSidekick.Ghostfolio.API.Mapper;
 using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -9,26 +10,31 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Ghostfolio.API
 {
-    public class GhostfolioAPI : IGhostfolioAPI
+	public partial class GhostfolioAPI : IGhostfolioAPI
 	{
-		private readonly Mapper mapper;
+		private readonly SymbolMapper mapper;
 		private ILogger<GhostfolioAPI> logger;
+		private readonly ActivityMapper activityMapper;
 
 		string url = Environment.GetEnvironmentVariable("GHOSTFOLIO_URL");
 		string accessToken = Environment.GetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN");
 		private RestCall restCall;
 
-		public GhostfolioAPI(IMemoryCache memoryCache, ILogger<GhostfolioAPI> logger)
+		public GhostfolioAPI(
+		IMemoryCache memoryCache, 
+		ILogger<GhostfolioAPI> logger)
 		{
-			mapper = new Mapper();
+			mapper = new SymbolMapper();
 			this.logger = logger;
-
+			this.activityMapper = activityMapper;
 			if (url != null && url.EndsWith("/"))
 			{
 				url = url.Substring(0, url.Length - 1);
 			}
 
 			restCall = new RestCall(memoryCache, logger, url, accessToken);
+
+			activityMapper = new ActivityMapper(new CurrentPriceCalculator(this));
 		}
 
 		public async Task<Model.Account?> GetAccountByName(string name)
@@ -79,7 +85,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			await UpdateBalance(account, balance);
 
 			var newActivities = DateTimeCollisionFixer.Fix(account.Activities)
-				.Select(x => ConvertToGhostfolioActivity(account, x).Result)
+				.Select(x => activityMapper.ConvertToGhostfolioActivity(account, x))
 				.Where(x => x != null)
 				.Where(x => x.Type != Contract.ActivityType.IGNORE)
 				.ToList();
@@ -242,58 +248,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			await restCall.DoRestPut($"api/v1/account/{account.Id}", res);
 		}
 
-		private async Task<Contract.Activity> ConvertToGhostfolioActivity(Model.Account account, Model.Activity activity)
-		{
-			decimal Round(decimal? value)
-			{
-				return Math.Round(value ?? 0, 10);
-			};
-
-			if (activity.ActivityType == Model.ActivityType.Interest)
-			{
-				return new Contract.Activity
-				{
-					AccountId = account.Id,
-					Currency = account.Balance.Currency.Symbol,
-					Asset = null,
-					Comment = activity.Comment,
-					Date = activity.Date,
-					Fee = Round((await GetConvertedPrice(activity.Fee, account.Balance.Currency, activity.Date))?.Amount),
-					Quantity = Round(activity.Quantity),
-					Type = ParseType(activity.ActivityType),
-					UnitPrice = Round((await GetConvertedPrice(activity.UnitPrice, account.Balance.Currency, activity.Date)).Amount),
-					ReferenceCode = activity.ReferenceCode
-				};
-			}
-
-			if (activity.Asset == null)
-			{
-				return null;
-			}
-
-			return new Contract.Activity
-			{
-				AccountId = account.Id,
-				Currency = activity.Asset.Currency?.Symbol,
-				Asset = new Contract.Asset
-				{
-					Symbol = activity.Asset.Symbol,
-					AssetClass = activity.Asset.AssetClass,
-					AssetSubClass = activity.Asset.AssetSubClass,
-					Currency = activity.Asset.Currency.Symbol,
-					DataSource = activity.Asset.DataSource,
-					Name = activity.Asset.Name
-				},
-				Comment = activity.Comment,
-				Date = activity.Date,
-				Fee = Round((await GetConvertedPrice(activity.Fee, activity.Asset.Currency, activity.Date))?.Amount),
-				Quantity = Round(activity.Quantity),
-				Type = ParseType(activity.ActivityType),
-				UnitPrice = Round((await GetConvertedPrice(activity.UnitPrice, activity.Asset.Currency, activity.Date)).Amount),
-				ReferenceCode = activity.ReferenceCode
-			};
-		}
-
 		private async Task<string> ConvertToBody(Contract.Activity activity)
 		{
 			var o = new JObject();
@@ -373,27 +327,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				fo.Date == eo.Date;
 		}
 
-		private sealed class MergeOrder
-		{
-			public MergeOrder(Operation operation, Contract.Activity order1)
-			{
-				Operation = operation;
-				Order1 = order1;
-				Order2 = null;
-			}
-
-			public MergeOrder(Operation operation, Contract.Activity order1, RawActivity? order2) : this(operation, order1)
-			{
-				Order2 = order2;
-			}
-
-			public Operation Operation { get; }
-
-			public Contract.Activity Order1 { get; }
-
-			public RawActivity? Order2 { get; }
-		}
-
 		private Model.Asset? LogIfEmpty(Model.Asset? asset, string identifier)
 		{
 			if (asset == null)
@@ -456,57 +389,5 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		private Contract.ActivityType ParseType(Model.ActivityType? type)
-		{
-			switch (type)
-			{
-				case null:
-					return Contract.ActivityType.IGNORE;
-				case Model.ActivityType.Buy:
-					return Contract.ActivityType.BUY;
-				case Model.ActivityType.Sell:
-					return Contract.ActivityType.SELL;
-				case Model.ActivityType.Dividend:
-					return Contract.ActivityType.DIVIDEND;
-				case Model.ActivityType.Send:
-					return Contract.ActivityType.SELL; // TODO: 
-				case Model.ActivityType.Receive:
-					return Contract.ActivityType.BUY; // TODO: 
-				case Model.ActivityType.Convert:
-					return Contract.ActivityType.IGNORE; // TODO: 
-				case Model.ActivityType.Interest:
-					return Contract.ActivityType.INTEREST;
-				case Model.ActivityType.Gift:
-					return Contract.ActivityType.BUY; // TODO: 
-				case Model.ActivityType.LearningReward:
-					return Contract.ActivityType.IGNORE; // TODO: 
-				case Model.ActivityType.StakingReward:
-					return Contract.ActivityType.IGNORE; // TODO: 
-				default:
-					throw new NotSupportedException($"ActivityType {type} not supported");
-			}
-
-		}
-
-		private class MatchRawActivity
-		{
-			public RawActivity Activity { get; set; }
-			public bool IsMatched { get; set; }
-		}
-
-		private class CurrentPriceCalculator : ICurrentPriceCalculator
-		{
-			private GhostfolioAPI ghostfolioAPI;
-
-			public CurrentPriceCalculator(GhostfolioAPI ghostfolioAPI)
-			{
-				this.ghostfolioAPI = ghostfolioAPI;
-			}
-
-			public Money GetConvertedPrice(Money item, Currency targetCurrency, DateTime timeOfRecord)
-			{
-				return ghostfolioAPI.GetConvertedPrice(item, targetCurrency, timeOfRecord).Result;
-			}
-		}
 	}
 }
