@@ -63,7 +63,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		public async Task UpdateAccount(Model.Account account)
 		{
 			var existingAccount = await GetAccountByName(account.Name);
-			// TODO update account!
 
 			var balance = GetBalance(account.Balance);
 

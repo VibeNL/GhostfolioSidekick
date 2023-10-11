@@ -2,7 +2,7 @@
 {
 	public class ConfigurationSettings : IConfigurationSettings
 	{
-		public string? FileImporterPath => Environment.GetEnvironmentVariable("FileImporterPath");
+		public string FileImporterPath => Environment.GetEnvironmentVariable("FileImporterPath");
 
 		public string GhostfolioAccessToken => Environment.GetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN");
 
@@ -20,6 +20,6 @@
 			}
 		}
 
-		private readonly string? ghostfolioUrl = Environment.GetEnvironmentVariable("GHOSTFOLIO_URL");
+		private readonly string ghostfolioUrl = Environment.GetEnvironmentVariable("GHOSTFOLIO_URL");
 	}
 }

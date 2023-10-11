@@ -1,6 +1,6 @@
 # GhostfolioSidekick
 
-A continuous running Docker container (A sidecar) to automatically import files from several brokers & crypto exchanges. The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
+A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
 
 ( more to come? Help is always welcome! )
 
