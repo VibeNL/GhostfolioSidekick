@@ -2,6 +2,7 @@
 using GhostfolioSidekick.FileImporter.Bunq;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.Generic;
+using GhostfolioSidekick.FileImporter.Nexo;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
 {
-    internal class Program
+	internal class Program
 	{
 		static async Task Main(string[] args)
 		{
