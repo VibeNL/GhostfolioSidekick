@@ -29,14 +29,14 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 		}
 
 		[Fact]
-		public async Task SingleCollisionsWithCascadingEffect()
+		public async Task SingleCollision_Merged()
 		{
 			// Arrange
 			var asset = new Asset { Symbol = "A" };
 			var activities = new[] {
-				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Activity{ Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 1},
+				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 1},
+				new Activity{ Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc), Quantity = 1}
 			};
 
 			// Act
@@ -45,20 +45,20 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			// Assert
 			activities.Should().BeEquivalentTo(new[]
 			{
-				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 3}
 			});
 		}
 
 		[Fact]
-		public async Task SingleCollisionsWithNoCascadingEffect()
+		public async Task SingleCollisions_MultipleAssets_CorrectlyMerged()
 		{
 			// Arrange
 			var asset = new Asset { Symbol = "A" };
 			var assetB = new Asset { Symbol = "B" };
 			var activities = new[] {
-				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Activity{ Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 1},
+				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 1},
+				new Activity{ Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc), Quantity = 1}
 			};
 
 			// Act
@@ -67,8 +67,8 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			// Assert
 			activities.Should().BeEquivalentTo(new[]
 			{
-				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Activity{Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 2},
+				new Activity{Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc), Quantity = 1}
 			});
 		}
 	}

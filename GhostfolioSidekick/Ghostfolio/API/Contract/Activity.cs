@@ -29,6 +29,10 @@
 		public Activity Merge(Activity activity)
 		{
 			if (activity == null) throw new ArgumentNullException();
+			if (Type == ActivityType.IGNORE)
+			{
+				return this;
+			}
 
 			var canJoin =
 				(Type == ActivityType.BUY || Type == ActivityType.SELL) &&
@@ -46,15 +50,31 @@
 			var positiveOrNegativeThis = Type == ActivityType.BUY ? 1 : -1;
 			var positiveOrNegativeOther = activity.Type == ActivityType.BUY ? 1 : -1;
 
-			var unitPrice =
-					((UnitPrice * Quantity * positiveOrNegativeThis) + (activity.UnitPrice * activity.Quantity * positiveOrNegativeOther))
+			decimal totalQuantity = Quantity + activity.Quantity;
+			var unitPrice = totalQuantity == 0 ? 0 :
+					((UnitPrice * Quantity) + (activity.UnitPrice * activity.Quantity))
 					/
-					(Quantity + activity.Quantity);
+					totalQuantity;
 
 			decimal quantity = positiveOrNegativeThis * Quantity + positiveOrNegativeOther * activity.Quantity;
+
+			ActivityType activityType;
+			if (quantity == 0)
+			{
+				activityType = ActivityType.IGNORE;
+			}
+			else if (quantity > 0)
+			{
+				activityType = ActivityType.BUY;
+			}
+			else
+			{
+				activityType = ActivityType.SELL;
+			}
+
 			return new Activity
 			{
-				Type = quantity > 0 ? ActivityType.BUY : ActivityType.SELL,
+				Type = activityType,
 				AccountId = AccountId,
 				Asset = Asset,
 				Comment = Comment,
