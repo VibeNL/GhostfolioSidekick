@@ -6,6 +6,7 @@ using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.MarketDataMaintainer;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ConsoleHelper
@@ -26,8 +27,8 @@ namespace ConsoleHelper
 
 			var cs = new ConfigurationSettings();
 			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
-			GhostfolioAPI api = new GhostfolioAPI(memoryCache, logger);
-			var t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
+			GhostfolioAPI api = new GhostfolioAPI(cs, memoryCache, logger);
+			IScheduledWork t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new ScalableCapitalParser(api),
 				new DeGiroParser(api),
 				new Trading212Parser(api),
@@ -36,6 +37,8 @@ namespace ConsoleHelper
 				//new CoinbaseParser(api),
 				//new NexoParser(api),
 			});
+			// t.DoWork().Wait();
+			t = new MarketDataMaintainerTask(logger, api);
 			t.DoWork().Wait();
 		}
 	}

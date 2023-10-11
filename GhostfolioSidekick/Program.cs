@@ -5,6 +5,7 @@ using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.MarketDataMaintainer;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
 {
-	internal class Program
+    internal class Program
 	{
 		static async Task Main(string[] args)
 		{
@@ -40,6 +41,7 @@ namespace GhostfolioSidekick
 				services.AddScoped<IHostedService, TimedHostedService>();
 				services.AddSingleton<IGhostfolioAPI, GhostfolioAPI>();
 				services.AddScoped<IScheduledWork, FileImporterTask>();
+				services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();
 
 				services.AddScoped<IFileImporter, BunqParser>();
 				//services.AddScoped<IFileImporter, CoinbaseParser>();
