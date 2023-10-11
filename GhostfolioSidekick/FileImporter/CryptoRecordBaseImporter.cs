@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.FileImporter
 		{
 		}
 
-		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, Model.Asset? symbol, DateTime date)
+		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, Asset? symbol, DateTime date)
 		{
 			if (originalUnitPrice.Amount > 0)
 			{
@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.FileImporter
 			return price;
 		}
 
-		protected Model.Asset? ParseFindSymbolByISINResult(string assetName, string symbol, IEnumerable<Model.Asset> assets)
+		protected Asset? ParseFindSymbolByISINResult(string assetName, string symbol, IEnumerable<Asset> assets)
 		{
 			var cryptoOnly = assets.Where(x => x.AssetSubClass == "CRYPTOCURRENCY");
 			var asset = cryptoOnly.FirstOrDefault(x => assetName == x.Name);
@@ -41,16 +41,6 @@ namespace GhostfolioSidekick.FileImporter
 				.FirstOrDefault();
 
 			return asset;
-		}
-
-		protected Model.ActivityType HandleConvertActivityType(Model.ActivityType value)
-		{
-			if (value == Model.ActivityType.Convert)
-			{
-				return Model.ActivityType.Sell;
-			}
-
-			return value;
 		}
 	}
 }

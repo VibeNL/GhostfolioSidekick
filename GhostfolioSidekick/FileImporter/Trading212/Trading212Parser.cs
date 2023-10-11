@@ -11,12 +11,12 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 		}
 
-		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(Trading212Record record, Model.Account account, IEnumerable<Trading212Record> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(Trading212Record record, Account account, IEnumerable<Trading212Record> allRecords)
 		{
 			var activityType = GetOrderType(record);
 			if (activityType == null)
 			{
-				return Array.Empty<Model.Activity>();
+				return Array.Empty<Activity>();
 			}
 
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByISIN(record.ISIN);
@@ -28,11 +28,11 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			var fee = GetFee(record);
 
-			if (activityType == Model.ActivityType.Convert)
+			if (activityType == ActivityType.Convert)
 			{
 				var parsed = ParserConvertion(record);
-				var activitySource = new Model.Activity(
-					Model.ActivityType.CashWithdrawal,
+				var activitySource = new Activity(
+					ActivityType.CashWithdrawal,
 					asset,
 					record.Time,
 					1,
@@ -41,8 +41,8 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					$"Transaction Reference: [{record.Id}_SourceCurrencyConversion]",
 					record.Id + "_SourceCurrencyConversion"
 					);
-				var activityTarget = new Model.Activity(
-					Model.ActivityType.CashDeposit,
+				var activityTarget = new Activity(
+					ActivityType.CashDeposit,
 					asset,
 					record.Time,
 					1,
@@ -54,17 +54,17 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 				return new[] { activitySource, activityTarget };
 			}
-			else if (activityType == Model.ActivityType.CashDeposit ||
-				activityType == Model.ActivityType.CashWithdrawal ||
-				activityType == Model.ActivityType.Interest)
+			else if (activityType == ActivityType.CashDeposit ||
+				activityType == ActivityType.CashWithdrawal ||
+				activityType == ActivityType.Interest)
 			{
-				var activity = new Model.Activity(
+				var activity = new Activity(
 					activityType.Value,
 					asset,
 					record.Time,
 					1,
-					new Model.Money(record.Currency == string.Empty ? record.CurrencyTotal : record.Currency, record.Total.GetValueOrDefault(0), record.Time),
-					fee.Fee == null ? null : new Model.Money(fee.Currency, fee.Fee ?? 0, record.Time),
+					new Money(record.Currency == string.Empty ? record.CurrencyTotal : record.Currency, record.Total.GetValueOrDefault(0), record.Time),
+					fee.Fee == null ? null : new Money(fee.Currency, fee.Fee ?? 0, record.Time),
 					$"Transaction Reference: [{record.Id}]",
 					record.Id
 					);
@@ -72,13 +72,13 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			}
 			else
 			{
-				var activity = new Model.Activity(
+				var activity = new Activity(
 					activityType.Value,
 					asset,
 					record.Time,
 					record.NumberOfShares.Value,
-					new Model.Money(record.Currency, record.Price.Value, record.Time),
-					fee.Fee == null ? null : new Model.Money(fee.Currency, fee.Fee ?? 0, record.Time),
+					new Money(record.Currency, record.Price.Value, record.Time),
+					fee.Fee == null ? null : new Money(fee.Currency, fee.Fee ?? 0, record.Time),
 					$"Transaction Reference: [{record.Id}]",
 					record.Id
 					);
@@ -124,23 +124,23 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			{
 				if (record.FeeUK > 0)
 				{
-					record.FeeUK = api.GetConvertedPrice(new Model.Money(record.FeeUKCurrency, record.FeeUK ?? 0, record.Time), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount;
+					record.FeeUK = api.GetConvertedPrice(new Money(record.FeeUKCurrency, record.FeeUK ?? 0, record.Time), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount;
 				}
 			}
 
 			return (record.ConversionFeeCurrency, record.ConversionFee + record.FeeUK);
 		}
 
-		private Model.ActivityType? GetOrderType(Trading212Record record)
+		private ActivityType? GetOrderType(Trading212Record record)
 		{
 			return record.Action switch
 			{
-				"Deposit" => Model.ActivityType.CashDeposit,
-				"Interest on cash" => Model.ActivityType.Interest,
-				"Currency conversion" => Model.ActivityType.Convert,
-				"Market buy" => Model.ActivityType.Buy,
-				"Market sell" => Model.ActivityType.Sell,
-				string d when d.Contains("Dividend") => Model.ActivityType.Dividend,
+				"Deposit" => ActivityType.CashDeposit,
+				"Interest on cash" => ActivityType.Interest,
+				"Currency conversion" => ActivityType.Convert,
+				"Market buy" => ActivityType.Buy,
+				"Market sell" => ActivityType.Sell,
+				string d when d.Contains("Dividend") => ActivityType.Dividend,
 				_ => throw new NotSupportedException(),
 			};
 		}

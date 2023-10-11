@@ -193,7 +193,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private async Task<GenericInfo> GetInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
-			return JsonConvert.DeserializeObject<Contract.GenericInfo>(content);
+			return JsonConvert.DeserializeObject<GenericInfo>(content);
 		}
 
 		private async Task WriteOrder(Contract.Activity activity)

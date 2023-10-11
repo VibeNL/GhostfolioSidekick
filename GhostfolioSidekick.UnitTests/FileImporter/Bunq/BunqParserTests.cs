@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			var parser = new BunqParser(api.Object);
 			var fixture = new Fixture();
 
-			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
@@ -45,13 +45,13 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 903.5M, new DateTime(2023, 08, 18, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Model.Activity {
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = null,
 				Comment = "Transaction Reference: [Interest_2023-07-27]",
 				Date = new DateTime(2023,07,27, 0,0,0, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 1m,
-				ActivityType = Model.ActivityType.Interest,
+				ActivityType = ActivityType.Interest,
 				UnitPrice = new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023,7,27, 0,0,0, DateTimeKind.Utc)),
 				ReferenceCode = "Interest_2023-07-27"
 			} });
@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			var parser = new BunqParser(api.Object);
 			var fixture = new Fixture();
 
-			var account = fixture.Build<Model.Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 

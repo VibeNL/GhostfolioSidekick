@@ -2,7 +2,9 @@
 {
 	public enum ActivityType
 	{
-		Buy,
+		Undefined = 0,
+
+		Buy = 1,
 
 		Sell,
 
