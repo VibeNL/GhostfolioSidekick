@@ -2,12 +2,9 @@
 
 namespace GhostfolioSidekick.Ghostfolio.API
 {
-	public partial class GhostfolioAPI
+	public class MatchRawActivity
 	{
-		private class MatchRawActivity
-		{
-			public RawActivity Activity { get; set; }
-			public bool IsMatched { get; set; }
-		}
+		public RawActivity Activity { get; set; }
+		public bool IsMatched { get; set; }
 	}
 }

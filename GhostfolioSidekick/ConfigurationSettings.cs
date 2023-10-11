@@ -1,14 +1,12 @@
-﻿using System;
-
-namespace GhostfolioSidekick
+﻿namespace GhostfolioSidekick
 {
 	public class ConfigurationSettings : IConfigurationSettings
 	{
 		public string? FileImporterPath => Environment.GetEnvironmentVariable("FileImporterPath");
 
-		public string? GhostfolioAccessToken => Environment.GetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN");
+		public string GhostfolioAccessToken => Environment.GetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN");
 
-		public string? GhostfolioUrl
+		public string GhostfolioUrl
 		{
 			get
 			{

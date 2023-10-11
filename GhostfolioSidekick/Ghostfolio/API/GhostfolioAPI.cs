@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	public partial class GhostfolioAPI : IGhostfolioAPI
 	{
 		private readonly SymbolMapper mapper = new SymbolMapper();
-		private readonly ConfigurationSettings settings;
+		private readonly IConfigurationSettings settings;
 		private ILogger<GhostfolioAPI> logger;
 		private readonly ModelToContractMapper modelToContractMapper;
 
@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private RestCall restCall;
 
 		public GhostfolioAPI(
-			ConfigurationSettings settings,
+			IConfigurationSettings settings,
 			IMemoryCache memoryCache,
 			ILogger<GhostfolioAPI> logger)
 		{
