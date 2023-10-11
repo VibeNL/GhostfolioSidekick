@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using GhostfolioSidekick.Ghostfolio;
+using GhostfolioSidekick.Ghostfolio.API.Contract;
 
 namespace GhostfolioSidekick.UnitTests.Ghostfolio
 {
@@ -9,21 +10,21 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 		public async Task NoCollisions()
 		{
 			// Arrange
-			var orders = new[] {
-				new Model.Activity{ ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Model.Activity{ ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
-				new Model.Activity{ ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
+			var activities = new[] {
+				new Activity{ ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ ReferenceCode = "2", Date = new DateTime(2023,1,2,1,1,1, DateTimeKind.Utc)},
+				new Activity{ ReferenceCode = "3", Date = new DateTime(2023,1,3,1,1,1, DateTimeKind.Utc)}
 			};
 
 			// Act
-			DateTimeCollisionFixer.Fix(orders);
+			activities = DateTimeCollisionFixer.Merge(activities).ToArray();
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{
-				new Model.Activity{ ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Model.Activity{ ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
-				new Model.Activity{ ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
+				new Activity{ ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ ReferenceCode = "2", Date = new DateTime(2023,1,2,1,1,1, DateTimeKind.Utc)},
+				new Activity{ ReferenceCode = "3", Date = new DateTime(2023,1,3,1,1,1, DateTimeKind.Utc)}
 			});
 		}
 
@@ -31,22 +32,20 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 		public async Task SingleCollisionsWithCascadingEffect()
 		{
 			// Arrange
-			var asset = new Model.Asset { Symbol = "A" };
-			var orders = new[] {
-				new Model.Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Model.Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Model.Activity{ Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+			var asset = new Asset { Symbol = "A" };
+			var activities = new[] {
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
 			};
 
 			// Act
-			DateTimeCollisionFixer.Fix(orders);
+			activities = DateTimeCollisionFixer.Merge(activities).ToArray();
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{
-				new Model.Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Model.Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
-				new Model.Activity{Asset = asset, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,3, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)}
 			});
 		}
 
@@ -54,23 +53,22 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 		public async Task SingleCollisionsWithNoCascadingEffect()
 		{
 			// Arrange
-			var asset = new Model.Asset { Symbol = "A" };
-			var assetB = new Model.Asset { Symbol = "B" };
-			var orders = new[] {
-				new Model.Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Model.Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Model.Activity{ Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+			var asset = new Asset { Symbol = "A" };
+			var assetB = new Asset { Symbol = "B" };
+			var activities = new[] {
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{ Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
 			};
 
 			// Act
-			DateTimeCollisionFixer.Fix(orders);
+			activities = DateTimeCollisionFixer.Merge(activities).ToArray();
 
 			// Assert
-			orders.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{
-				new Model.Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
-				new Model.Activity{ Asset = asset, ReferenceCode = "2", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)},
-				new Model.Activity{Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc)},
+				new Activity{Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc)}
 			});
 		}
 	}

@@ -68,11 +68,12 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			await UpdateBalance(account, balance);
 
-			var newActivities = DateTimeCollisionFixer.Fix(account.Activities)
+			var newActivities = account.Activities
 				.Select(x => modelToContractMapper.ConvertToGhostfolioActivity(account, x))
 				.Where(x => x != null)
 				.Where(x => x.Type != Contract.ActivityType.IGNORE)
 				.ToList();
+			newActivities = DateTimeCollisionFixer.Merge(newActivities).ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
 			var existingActivities = JsonConvert.DeserializeObject<RawActivityList>(content).Activities;

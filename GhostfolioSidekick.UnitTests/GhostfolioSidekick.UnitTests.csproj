@@ -114,6 +114,7 @@
 
   <ItemGroup>
     <Folder Include="FileImporter\TestFiles\Bunq\Example1\" />
+    <Folder Include="Model\" />
   </ItemGroup>
 
 </Project>
