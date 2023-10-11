@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Ghostfolio
 
 			foreach (var activity in sortedActivities.Skip(1))
 			{
-				r.Union(activity);
+				r = r.Merge(activity);
 			}
 
 			return r;

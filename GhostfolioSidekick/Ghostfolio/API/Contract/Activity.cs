@@ -26,7 +26,7 @@
 		// Internal use
 		public string ReferenceCode { get; set; }
 
-		internal void Union(Activity activity)
+		public Activity Merge(Activity activity)
 		{
 			if (activity == null) throw new ArgumentNullException();
 
@@ -46,16 +46,26 @@
 			var positiveOrNegativeThis = Type == ActivityType.BUY ? 1 : -1;
 			var positiveOrNegativeOther = activity.Type == ActivityType.BUY ? 1 : -1;
 
-			if ((activity.Quantity + Quantity) != 0)
-			{
-				UnitPrice =
+			var unitPrice =
 					((UnitPrice * Quantity * positiveOrNegativeThis) + (activity.UnitPrice * activity.Quantity * positiveOrNegativeOther))
 					/
 					(Quantity + activity.Quantity);
-			}
 
-			Quantity += positiveOrNegativeThis * activity.Quantity;
-			Fee += positiveOrNegativeOther * activity.Fee;
+			decimal quantity = positiveOrNegativeThis * Quantity + positiveOrNegativeOther * activity.Quantity;
+			return new Activity
+			{
+				Type = quantity > 0 ? ActivityType.BUY : ActivityType.SELL,
+				AccountId = AccountId,
+				Asset = Asset,
+				Comment = Comment,
+				Currency = Currency,
+				FeeCurrency = FeeCurrency,
+				Date = Date,
+				Fee = Fee + activity.Fee,
+				Quantity = Math.Abs(quantity),
+				ReferenceCode = ReferenceCode,
+				UnitPrice = Math.Abs(unitPrice)
+			};
 		}
 	}
 }
