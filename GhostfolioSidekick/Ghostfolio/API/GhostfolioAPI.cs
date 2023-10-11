@@ -15,14 +15,14 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private readonly SymbolMapper mapper = new SymbolMapper();
 		private readonly ConfigurationSettings settings;
 		private ILogger<GhostfolioAPI> logger;
-		private readonly ModelToContractMapper activityMapper;
+		private readonly ModelToContractMapper modelToContractMapper;
 
-		
+
 		private RestCall restCall;
 
 		public GhostfolioAPI(
 			ConfigurationSettings settings,
-			IMemoryCache memoryCache, 
+			IMemoryCache memoryCache,
 			ILogger<GhostfolioAPI> logger)
 		{
 			if (settings is null)
@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.settings = settings;
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			restCall = new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken);
-			activityMapper = new ModelToContractMapper(new CurrentPriceCalculator(this));
+			modelToContractMapper = new ModelToContractMapper(new CurrentPriceCalculator(this));
 		}
 
 		public async Task<Model.Account?> GetAccountByName(string name)
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var assets = new ConcurrentDictionary<string, Model.Asset>();
 			return ContractToModelMapper.MapActivity(rawAccount, rawOrders, assets);
 		}
-		
+
 		public async Task UpdateAccount(Model.Account account)
 		{
 			var existingAccount = await GetAccountByName(account.Name);
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			await UpdateBalance(account, balance);
 
 			var newActivities = DateTimeCollisionFixer.Fix(account.Activities)
-				.Select(x => activityMapper.ConvertToGhostfolioActivity(account, x))
+				.Select(x => modelToContractMapper.ConvertToGhostfolioActivity(account, x))
 				.Where(x => x != null)
 				.Where(x => x.Type != Contract.ActivityType.IGNORE)
 				.ToList();
@@ -169,14 +169,25 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
-		public Task<IEnumerable<Model.MarketData>> GetMarketData()
+		public async Task<IEnumerable<Model.MarketDataInfo>> GetMarketDataInfo()
+		{
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
+			var market = JsonConvert.DeserializeObject<MarketDataInfoList>(content);
+
+			var benchmarks = (await GetInfo()).BenchMarks;
+
+			return market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol)).Select(x => ContractToModelMapper.MapMarketDataInfo(x));
+		}
+
+		public Task DeleteMarketData(Model.MarketDataInfo marketData)
 		{
 			throw new NotImplementedException();
 		}
 
-		public Task DeleteMarketData(Model.MarketData marketData)
+		private async Task<GenericInfo> GetInfo()
 		{
-			throw new NotImplementedException();
+			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
+			return JsonConvert.DeserializeObject<Contract.GenericInfo>(content);
 		}
 
 		private async Task WriteOrder(Contract.Activity activity)

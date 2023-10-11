@@ -30,6 +30,16 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				);
 		}
 
+		public static Model.MarketDataInfo MapMarketDataInfo(Contract.MarketDataInfo marketDataInfo)
+		{
+			return new Model.MarketDataInfo
+			{
+				ActivitiesCount = marketDataInfo.ActivitiesCount,
+				DataSource = marketDataInfo.DataSource,
+				Symbol = marketDataInfo.Symbol,
+			};
+		}
+
 		private static Model.Asset ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
 			return new Model.Asset(

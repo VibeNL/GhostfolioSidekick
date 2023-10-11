@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class MarketDataMaintainerTask : IScheduledWork
+	public class MarketDataMaintainerTask : IScheduledWork
 	{
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Starting to do work");
 
 			// Clean unused data
-			var marketDataList = await api.GetMarketData();
+			var marketDataList = await api.GetMarketDataInfo();
 			foreach (var marketData in marketDataList)
 			{
 				if (marketData.ActivitiesCount == 0)
