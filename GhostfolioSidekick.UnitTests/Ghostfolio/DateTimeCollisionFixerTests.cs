@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			// Assert
 			activities.Should().BeEquivalentTo(new[]
 			{
-				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 3}
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 3, Comment = " (01:01 BUY 1@0|01:01 BUY 1@0|01:01 BUY 1@0)"}
 			});
 		}
 
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.UnitTests.Ghostfolio
 			// Assert
 			activities.Should().BeEquivalentTo(new[]
 			{
-				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 2},
+				new Activity{ Asset = asset, ReferenceCode = "1", Date = new DateTime(2023,1,1,1,1,1, DateTimeKind.Utc), Quantity = 2, Comment=" (01:01 BUY 1@0|01:01 BUY 1@0)"},
 				new Activity{Asset = assetB, ReferenceCode = "3", Date = new DateTime(2023,1,1,1,1,2, DateTimeKind.Utc), Quantity = 1}
 			});
 		}
