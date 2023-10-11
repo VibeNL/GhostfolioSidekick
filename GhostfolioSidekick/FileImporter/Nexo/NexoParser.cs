@@ -60,6 +60,11 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			async Task<Asset?> GetAsset(string assetName)
 			{
+				if (fiatCoin.Any(x => x.Symbol == assetName))
+				{
+					return null;
+				}
+
 				return await api.FindSymbolByISIN(assetName, x =>
 								ParseFindSymbolByISINResult(assetName, assetName, x));
 			}
