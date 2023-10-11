@@ -179,9 +179,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol)).Select(x => ContractToModelMapper.MapMarketDataInfo(x));
 		}
 
-		public Task DeleteMarketData(Model.MarketDataInfo marketData)
+		public async Task DeleteMarketData(Model.MarketDataInfo marketData)
 		{
-			throw new NotImplementedException();
+			// https://ghostfolio.vincentberkien.nl/api/v1/admin/profile-data/MANUAL/385c8b0f-cfba-4c9c-a6e9-468a68536d0f
+			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}");
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Deletion failed {marketData.Symbol}");
+			}
+
+			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
 		}
 
 		private async Task<GenericInfo> GetInfo()
