@@ -13,5 +13,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date);
 
 		Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date);
+
+		Task<IEnumerable<MarketDataInfo>> GetMarketDataInfo();
+
+		Task DeleteMarketData(MarketDataInfo marketData);
 	}
 }

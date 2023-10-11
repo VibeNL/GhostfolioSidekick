@@ -1,6 +1,6 @@
 # GhostfolioSidekick
 
-A continuous running Docker container (A sidecar) to automatically import files from several brokers & crypto exchanges. The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
+A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
 
 ( more to come? Help is always welcome! )
 
@@ -38,14 +38,14 @@ IDENTIFIER,ATOM-USD,Cosmos USD
 
 ### Supported formats
 | Platform | Source of the files | Buy | Sell | Dividend | Interest & Cash balance |
-|--|--|--|--|--|
+|--|--|--|--|--|--|
 | Generic importer | See below | X | X | X | X |
 | Trading 212 | Export of transaction history | X | X | X | X |
 | De Giro | Export of transaction history | X | - | X | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
-| ~~Coinbase (Experimental)~~ | Export of transaction history | X | X | - |
-| ~~Nexo (Experimental)~~ | Export of transaction history | X | - | - |
+| ~~Coinbase (Experimental)~~ | Export of transaction history | X | X | - | X |
+| ~~Nexo (Experimental)~~ | Export of transaction history | X | - | - | X |
 
 #### Generic import format
 Beside the supported exchanges and brokers there is also a generic format. This format is only usefull for stocks at the moment, not for cryptocurrency:

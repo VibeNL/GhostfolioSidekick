@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.FileImporter
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)))
 			{
 				var accountName = directory.Name;
-				logger.LogDebug($"AccountName: {accountName}");
+				logger.LogInformation($"AccountName: {accountName}");
 
 				try
 				{
