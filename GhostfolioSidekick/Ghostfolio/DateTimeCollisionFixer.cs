@@ -35,7 +35,19 @@ namespace GhostfolioSidekick.Ghostfolio
 				r = r.Merge(activity);
 			}
 
+			r.Comment = GenerateComment(sortedActivities);
+
 			return r;
+		}
+
+		private static string GenerateComment(IOrderedEnumerable<Activity> sortedActivities)
+		{
+			if (sortedActivities.Count() == 1)
+			{
+				return sortedActivities.Single().Comment;
+			}
+
+			return sortedActivities.First().Comment + " (" + string.Join('|', sortedActivities.Select(x => $"{x.Date.ToShortTimeString()} {x.Type} {x.Quantity}@{x.UnitPrice}")) + ")";
 		}
 	}
 }
