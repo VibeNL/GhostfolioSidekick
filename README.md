@@ -44,7 +44,7 @@ IDENTIFIER,ATOM-USD,Cosmos USD
 | De Giro | Export of transaction history | X | - | X | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
-| ~~Coinbase (Experimental)~~ | Export of transaction history | X | X | - | X |
+| Coinbase (Experimental) | Export of transaction history | X | X | - | - (Interest not yet supported due to missing stake rewards) |
 | ~~Nexo (Experimental)~~ | Export of transaction history | X | - | - | X |
 
 #### Generic import format

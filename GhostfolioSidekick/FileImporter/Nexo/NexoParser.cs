@@ -7,105 +7,110 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 {
 	public class NexoParser : CryptoRecordBaseImporter<NexoRecord>
 	{
-		private Model.Asset[] fiat = new[] {
-			new Model.Asset(new Currency("EUR"), "EUR", "EUR", null, null, null),
-			new Model.Asset(new Currency("USD"), "USD", "USD", null, null, null)
-		};
-
-		private Model.Asset[] fiatCoin = new[] {
-			new Model.Asset(new Currency("EUR"), "EURX", "EURX", null, null, null),
-			new Model.Asset(new Currency("USD"), "USDX", "USDX", null, null, null)
+		private Asset[] fiatCoin = new[] {
+			new Asset(new Currency("EUR"), "EURX", "EURX", null, null, null),
+			new Asset(new Currency("USD"), "USDX", "USDX", null, null, null),
+			new Asset(new Currency("EUR"), "EUR", "EUR", null, null, null),
+			new Asset(new Currency("USD"), "USD", "USD", null, null, null)
 		};
 
 		public NexoParser(IGhostfolioAPI api) : base(api)
 		{
 		}
 
-		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(NexoRecord record, Model.Account account, IEnumerable<NexoRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(NexoRecord record, Account account, IEnumerable<NexoRecord> allRecords)
 		{
-			var activityType = GetActivityTypeCrypto(record);
-			if (activityType == null || !record.Details.StartsWith("approved"))
+			if (!record.Details.StartsWith("approved"))
 			{
-				return Array.Empty<Model.Activity>();
+				return Array.Empty<Activity>();
 			}
 
-			var activities = new List<Model.Activity>();
+			var activities = new List<Activity>();
 
 			var inputAsset = await GetAsset(record.InputCurrency);
-			var inputActivity = new Model.Activity
+			var inputActivity = new Activity
 			{
 				Asset = inputAsset,
 				Date = record.DateTime,
 				Comment = $"Transaction Reference: [{record.Transaction}]",
 				Fee = null,
 				Quantity = record.InputAmount,
-				ActivityType = activityType.Value,
+				ActivityType = ActivityType.Undefined,
 				UnitPrice = GetUnitPrice(record, false),
 				ReferenceCode = record.Transaction,
 			};
 
 			var outputAsset = await GetAsset(record.OutputCurrency);
 			var refCode = record.Transaction;
-			var outputActivity = new Model.Activity
+			var outputActivity = new Activity
 			{
 				Asset = outputAsset,
 				Date = record.DateTime,
 				Comment = $"Transaction Reference: [{refCode}]",
 				Fee = null,
 				Quantity = record.OutputAmount,
-				ActivityType = activityType.Value,
+				ActivityType = ActivityType.Undefined,
 				UnitPrice = GetUnitPrice(record, true),
 				ReferenceCode = refCode,
 			};
 
-			switch (activityType)
-			{
-				case Model.ActivityType.Buy:
-				case Model.ActivityType.Receive:
-				case Model.ActivityType.Dividend:
-				case Model.ActivityType.Interest:
-				case Model.ActivityType.Gift:
-				case Model.ActivityType.CashDeposit:
-				case Model.ActivityType.CashWithdrawal:
-					activities.Add(outputActivity);
-					break;
-				case Model.ActivityType.Sell:
-				case Model.ActivityType.Send:
-					activities.Add(inputActivity);
-					break;
-				case Model.ActivityType.Convert:
-					activities.AddRange(HandleConversion(inputActivity, outputActivity));
-					break;
-				case Model.ActivityType.LearningReward:
-				case Model.ActivityType.StakingReward:
-				default:
-					throw new NotSupportedException();
-			}
+			activities.AddRange(HandleRecord(record, inputActivity, outputActivity));
 
 			return activities;
 
-			async Task<Model.Asset?> GetAsset(string assetName)
+			async Task<Asset?> GetAsset(string assetName)
 			{
 				return await api.FindSymbolByISIN(assetName, x =>
 								ParseFindSymbolByISINResult(assetName, assetName, x));
 			}
 		}
 
-		private IEnumerable<Model.Activity> HandleConversion(Model.Activity inputActivity, Model.Activity outputActivity)
+		private IEnumerable<Activity> HandleRecord(NexoRecord record, Activity inputActivity, Activity outputActivity)
 		{
-			//var inFiat = fiat.Any(x => x.Symbol == inputActivity.UnitPrice.Currency.Symbol);
-			//var outFiat = fiat.Any(x => x.Symbol == outputActivity.UnitPrice.Currency.Symbol);
-			var inFiatCoin = fiatCoin.Any(x => x.Symbol == inputActivity.UnitPrice.Currency.Symbol);
-			var outFiatCoin = fiatCoin.Any(x => x.Symbol == outputActivity.UnitPrice.Currency.Symbol);
+			switch (record.Type)
+			{
+				case "ReferralBonus": // TODO: Should be a 'reward'
+				case "Deposit":
+					return new[] { SetActivity(outputActivity, ActivityType.Receive) };
+				case "ExchangeDepositedOn":
+				case "Exchange":
+					return HandleConversion(record, inputActivity, outputActivity);
+				case "Interest":
+				case "FixedTermInterest":
+				// return new[] { SetActivity(outputActivity, ActivityType.Interest) }; // Staking rewards are not yet supported
+				case "DepositToExchange":
+				case "LockingTermDeposit":
+				case "UnlockingTermDeposit":
+					return Enumerable.Empty<Activity>();
+				default: throw new NotSupportedException($"{record.Type}");
+			}
+		}
+
+		private Activity SetActivity(Activity outputActivity, ActivityType activityType)
+		{
+			outputActivity.ActivityType = activityType;
+			return outputActivity;
+		}
+
+		private IEnumerable<Activity> HandleConversion(NexoRecord record, Activity inputActivity, Activity outputActivity)
+		{
+			var inFiatCoin = inputActivity.Asset == null && fiatCoin.Any(x => x.Symbol == inputActivity.UnitPrice.Currency.Symbol);
+			var outFiatCoin = outputActivity.Asset == null && fiatCoin.Any(x => x.Symbol == outputActivity.UnitPrice.Currency.Symbol);
 
 			if (inFiatCoin && !outFiatCoin)
 			{
-				outputActivity.ActivityType = Model.ActivityType.Buy;
+				outputActivity.ActivityType = ActivityType.Buy;
 				return new[] { outputActivity };
 			}
 			if (!inFiatCoin && outFiatCoin)
 			{
-				inputActivity.ActivityType = Model.ActivityType.Sell;
+				inputActivity.ActivityType = ActivityType.Sell;
+				return new[] { inputActivity };
+			}
+
+			if (inFiatCoin && outFiatCoin)
+			{
+				inputActivity.ActivityType = ActivityType.CashDeposit;
 				return new[] { inputActivity };
 			}
 
@@ -134,28 +139,6 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				CacheFields = true,
 				Delimiter = ",",
 			};
-		}
-
-		private Model.ActivityType? GetActivityTypeCrypto(NexoRecord record)
-		{
-			switch (record.Type)
-			{
-				case "ReferralBonus": // TODO: Should be a 'reward'
-				case "Deposit":
-					return Model.ActivityType.Receive;
-				case "Exchange":
-					return Model.ActivityType.Convert;
-				case "DepositToExchange":
-					return Model.ActivityType.CashDeposit;
-				case "Interest":
-					return Model.ActivityType.Interest;
-				case "LockingTermDeposit":
-				case "UnlockingTermDeposit":
-				case "ExchangeDepositedOn":
-				case "FixedTermInterest": // TODO: Should be a 'reward'
-					return null;
-				default: throw new NotSupportedException($"{record.Type}");
-			}
 		}
 	}
 }

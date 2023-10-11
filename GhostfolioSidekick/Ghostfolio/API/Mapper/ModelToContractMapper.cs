@@ -11,14 +11,14 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			this.currentPriceCalculator = currentPriceCalculator;
 		}
 
-		public Contract.Activity ConvertToGhostfolioActivity(Model.Account account, Model.Activity activity)
+		public Contract.Activity ConvertToGhostfolioActivity(Account account, Activity activity)
 		{
 			decimal Round(decimal? value)
 			{
 				return Math.Round(value ?? 0, 10);
 			};
 
-			if (activity.ActivityType == Model.ActivityType.Interest)
+			if (activity.ActivityType == ActivityType.Interest)
 			{
 				return new Contract.Activity
 				{
@@ -63,31 +63,31 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			};
 		}
 
-		private Contract.ActivityType ParseType(Model.ActivityType? type)
+		private Contract.ActivityType ParseType(ActivityType? type)
 		{
 			switch (type)
 			{
 				case null:
 					return Contract.ActivityType.IGNORE;
-				case Model.ActivityType.Buy:
+				case ActivityType.Buy:
 					return Contract.ActivityType.BUY;
-				case Model.ActivityType.Sell:
+				case ActivityType.Sell:
 					return Contract.ActivityType.SELL;
-				case Model.ActivityType.Dividend:
+				case ActivityType.Dividend:
 					return Contract.ActivityType.DIVIDEND;
-				case Model.ActivityType.Send:
+				case ActivityType.Send:
 					return Contract.ActivityType.SELL; // TODO: 
-				case Model.ActivityType.Receive:
+				case ActivityType.Receive:
 					return Contract.ActivityType.BUY; // TODO: 
-				case Model.ActivityType.Convert:
+				case ActivityType.Convert:
 					return Contract.ActivityType.IGNORE; // TODO: 
-				case Model.ActivityType.Interest:
+				case ActivityType.Interest:
 					return Contract.ActivityType.INTEREST;
-				case Model.ActivityType.Gift:
+				case ActivityType.Gift:
 					return Contract.ActivityType.BUY; // TODO: 
-				case Model.ActivityType.LearningReward:
+				case ActivityType.LearningReward:
 					return Contract.ActivityType.IGNORE; // TODO: 
-				case Model.ActivityType.StakingReward:
+				case ActivityType.StakingReward:
 					return Contract.ActivityType.IGNORE; // TODO: 
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");

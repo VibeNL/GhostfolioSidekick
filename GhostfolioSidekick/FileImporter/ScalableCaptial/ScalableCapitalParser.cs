@@ -39,10 +39,10 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		}
 
 
-		public async Task<Model.Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames)
+		public async Task<Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames)
 		{
-			var list = new ConcurrentDictionary<Tuple<Model.Asset, Currency, DateTime, decimal, decimal>, Model.Activity>();
-			Tuple<Model.Asset, Currency, DateTime, decimal, decimal> GetKey(Model.Activity x)
+			var list = new ConcurrentDictionary<Tuple<Asset, Currency, DateTime, decimal, decimal>, Activity>();
+			Tuple<Asset, Currency, DateTime, decimal, decimal> GetKey(Activity x)
 			{
 				return Tuple.Create(x.Asset, x.UnitPrice.Currency, x.Date, x.UnitPrice.Amount, x.Quantity);
 			};
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return account;
 		}
 
-		private async Task<Model.Activity?> ConvertToOrder(BaaderBankRKKRecord record)
+		private async Task<Activity?> ConvertToOrder(BaaderBankRKKRecord record)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
@@ -124,7 +124,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
 			var unitPrice = record.UnitPrice.GetValueOrDefault() / quantity;
 
-			return new Model.Activity(
+			return new Activity(
 				orderType.Value,
 				asset,
 				record.Date.ToDateTime(TimeOnly.MinValue),
@@ -136,13 +136,13 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				);
 		}
 
-		private async Task<Model.Activity> ConvertToOrder(BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
+		private async Task<Activity> ConvertToOrder(BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
 		{
 			var asset = await api.FindSymbolByISIN(record.Isin);
 
 			var fee = FindFeeRecord(rkkRecords, record.Reference);
 
-			return new Model.Activity(
+			return new Activity(
 				GetOrderType(record),
 				asset,
 				record.Date.ToDateTime(record.Time),
@@ -164,24 +164,24 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return null;
 		}
 
-		private Model.ActivityType GetOrderType(BaaderBankWUMRecord record)
+		private ActivityType GetOrderType(BaaderBankWUMRecord record)
 		{
 			switch (record.OrderType)
 			{
 				case "Verkauf":
-					return Model.ActivityType.Sell;
+					return ActivityType.Sell;
 				case "Kauf":
-					return Model.ActivityType.Buy;
+					return ActivityType.Buy;
 				default:
 					throw new NotSupportedException();
 			}
 		}
 
-		private Model.ActivityType? GetOrderType(BaaderBankRKKRecord record)
+		private ActivityType? GetOrderType(BaaderBankRKKRecord record)
 		{
 			if (record.OrderType == "Coupons/Dividende")
 			{
-				return Model.ActivityType.Dividend;
+				return ActivityType.Dividend;
 			}
 
 			return null;
