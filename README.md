@@ -52,7 +52,7 @@ Beside the supported exchanges and brokers there is also a generic format. This 
 
 | Field | Value(s) | 
 | ----- | ----- |
-| OrderType | BUY ,SELL or DIVIDEND | 
+| OrderType | BUY ,SELL, DIVIDEND and INTEREST | 
 | Symbol | The symbol to search
 | Date | The date, yyyy-MM-dd |
 | Currency | The currency of the unitprice and fee |
