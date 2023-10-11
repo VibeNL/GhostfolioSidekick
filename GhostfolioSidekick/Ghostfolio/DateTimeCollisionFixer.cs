@@ -1,31 +1,53 @@
-﻿namespace GhostfolioSidekick.Ghostfolio
+﻿using GhostfolioSidekick.Ghostfolio.API.Contract;
+
+namespace GhostfolioSidekick.Ghostfolio
 {
 	public class DateTimeCollisionFixer
 	{
-		public static IEnumerable<Model.Activity> Fix(IEnumerable<Model.Activity> orders)
+		public static IEnumerable<Activity> Merge(IEnumerable<Activity> activities)
 		{
-			var isChecked = false;
+			var mergeActivities = new[] { ActivityType.BUY, ActivityType.SELL };
+			var toMerge = activities.Where(x => mergeActivities.Contains(x.Type)).ToList();
 
-			var updated = orders.ToList();
-			while (!isChecked)
-			{
-				isChecked = true;
-
-				updated = updated
-					.GroupBy(x => new { x.Asset?.Symbol, x.Date })
-					.SelectMany(x => x.OrderBy(y => y.ReferenceCode).Select((y, i) =>
+			return
+				toMerge
+					.GroupBy(x => Tuple.Create(x.Asset?.Symbol ?? string.Empty, x.Date.Date))
+					.Select(x =>
 					{
-						if (i > 0)
-						{
-							isChecked = false;
-						}
+						return MergeToOne(x.ToList());
 
-						y.Date = y.Date.AddSeconds(i);
-						return y;
-					})).ToList();
+					})
+					.ToList()
+					.Union(activities.Where(x => !mergeActivities.Contains(x.Type)));
+		}
+
+		private static Activity MergeToOne(List<Activity> activities)
+		{
+			var sortedActivities = activities
+				.OrderBy(x => x.Date)
+				.ThenBy(x => x.ReferenceCode)
+				.ThenBy(x => x.Quantity);
+
+			var r = sortedActivities.First();
+
+			foreach (var activity in sortedActivities.Skip(1))
+			{
+				r = r.Merge(activity);
 			}
 
-			return updated;
+			r.Comment = GenerateComment(sortedActivities);
+
+			return r;
+		}
+
+		private static string GenerateComment(IOrderedEnumerable<Activity> sortedActivities)
+		{
+			if (sortedActivities.Count() == 1)
+			{
+				return sortedActivities.Single().Comment;
+			}
+
+			return sortedActivities.First().Comment + " (" + string.Join('|', sortedActivities.Select(x => $"{x.Date.ToShortTimeString()} {x.Type} {x.Quantity}@{x.UnitPrice}")) + ")";
 		}
 	}
 }
