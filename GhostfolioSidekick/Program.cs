@@ -47,7 +47,7 @@ namespace GhostfolioSidekick
 				//services.AddScoped<IFileImporter, CoinbaseParser>();
 				services.AddScoped<IFileImporter, DeGiroParser>();
 				services.AddScoped<IFileImporter, GenericParser>();
-				//services.AddScoped<IFileImporter, NexoParser>();
+				services.AddScoped<IFileImporter, NexoParser>();
 				services.AddScoped<IFileImporter, ScalableCapitalParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 
