@@ -21,7 +21,23 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Starting to do work");
 
-			// Clean unused data
+			await DeletUnusedSymbols();
+			await SetTrackingInsightOnSymbols();
+
+			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
+		}
+
+		private async Task SetTrackingInsightOnSymbols()
+		{
+			var marketDataList = await api.GetMarketDataInfo();
+			foreach (var marketData in marketDataList)
+			{
+
+			}
+		}
+
+		private async Task DeletUnusedSymbols()
+		{
 			var marketDataList = await api.GetMarketDataInfo();
 			foreach (var marketData in marketDataList)
 			{
@@ -30,8 +46,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					await api.DeleteMarketData(marketData);
 				}
 			}
-
-			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
 		}
 	}
 }
