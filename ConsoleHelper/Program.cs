@@ -39,7 +39,7 @@ namespace ConsoleHelper
 				new Trading212Parser(api),
 			});
 			//t.DoWork().Wait();
-			t = new MarketDataMaintainerTask(logger, api);
+			t = new MarketDataMaintainerTask(logger, api, null);
 			t.DoWork().Wait();
 		}
 	}

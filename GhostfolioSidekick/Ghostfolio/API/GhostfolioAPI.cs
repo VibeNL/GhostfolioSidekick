@@ -207,6 +207,19 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
 		}
 
+		public async Task<Model.MarketData> GetMarketData(Model.MarketDataInfo marketDataInfo)
+		{
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{marketDataInfo.DataSource}/{marketDataInfo.Symbol}", CacheDuration.Short());
+			var market = JsonConvert.DeserializeObject<Market>(content);
+
+			return ContractToModelMapper.MapMarketData(market);
+		}
+
+		public Task UpdateMarketData(Model.MarketData marketData)
+		{
+			throw new NotImplementedException();
+		}
+
 		private async Task<GenericInfo> GetInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
@@ -364,6 +377,5 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			return asset;
 		}
-
 	}
 }

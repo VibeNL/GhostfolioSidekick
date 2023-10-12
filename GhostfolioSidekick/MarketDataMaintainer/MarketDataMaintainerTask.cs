@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.FileImporter;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.Ghostfolio.API;
 using Microsoft.Extensions.Logging;
 
@@ -8,13 +9,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 	{
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
+		private readonly ConfigurationInstance configurationInstance;
 
 		public MarketDataMaintainerTask(
 			ILogger<FileImporterTask> logger,
-			IGhostfolioAPI api)
+			IGhostfolioAPI api,
+			ConfigurationInstance configurationInstance)
 		{
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.api = api ?? throw new ArgumentNullException(nameof(api));
+			this.configurationInstance = configurationInstance ?? throw new ArgumentNullException(nameof(configurationInstance));
 		}
 
 		public async Task DoWork()
@@ -29,10 +33,24 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		private async Task SetTrackingInsightOnSymbols()
 		{
-			var marketDataList = await api.GetMarketDataInfo();
-			foreach (var marketData in marketDataList)
+			var marketDataInfoList = await api.GetMarketDataInfo();
+			foreach (var marketDataInfo in marketDataInfoList)
 			{
+				var symbolConfiguration = configurationInstance.FindSymbol(marketDataInfo.Symbol);
+				if (symbolConfiguration == null)
+				{
+					continue;
+				}
 
+				var marketData = await api.GetMarketData(marketDataInfo);
+
+				var mappingStringTrackInsight = "{\"TRACKINSIGHT\":\"" + symbolConfiguration.TrackingInsightSymbol + "\"}";
+
+				if (marketData.Mappings.TrackInsight != mappingStringTrackInsight)
+				{
+					marketData.Mappings.TrackInsight = mappingStringTrackInsight;
+					await api.UpdateMarketData(marketData);
+				}
 			}
 		}
 

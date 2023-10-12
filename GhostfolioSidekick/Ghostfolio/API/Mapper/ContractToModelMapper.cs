@@ -62,6 +62,15 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				symbolProfile.AssetClass);
 		}
 
+		public static Model.MarketData MapMarketData(Market? market)
+		{
+			market.SymbolMapping.TryGetValue("TRACKINSIGHT", out string? trackinsight);
+			return new Model.MarketData
+			(
+				market.Symbol, market.ActivitiesCount, trackinsight ?? string.Empty
+			);
+		}
+
 		private static Model.ActivityType ParseType(Contract.ActivityType type)
 		{
 			switch (type)
