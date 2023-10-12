@@ -13,11 +13,6 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 
 		public Contract.Activity ConvertToGhostfolioActivity(Account account, Activity activity)
 		{
-			decimal Round(decimal? value)
-			{
-				return Math.Round(value ?? 0, 10);
-			};
-
 			if (activity.ActivityType == ActivityType.Interest)
 			{
 				return new Contract.Activity
@@ -27,10 +22,10 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					Asset = null,
 					Comment = activity.Comment,
 					Date = activity.Date,
-					Fee = Round((currentPriceCalculator.GetConvertedPrice(activity.Fee, account.Balance.Currency, activity.Date))?.Amount),
-					Quantity = Round(activity.Quantity),
+					Fee = currentPriceCalculator.GetConvertedPrice(activity.Fee, account.Balance.Currency, activity.Date)?.Amount ?? 0,
+					Quantity = activity.Quantity,
 					Type = ParseType(activity.ActivityType),
-					UnitPrice = Round((currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, account.Balance.Currency, activity.Date)).Amount),
+					UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, account.Balance.Currency, activity.Date).Amount,
 					ReferenceCode = activity.ReferenceCode
 				};
 			}
@@ -55,10 +50,10 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				},
 				Comment = activity.Comment,
 				Date = activity.Date,
-				Fee = Round((currentPriceCalculator.GetConvertedPrice(activity.Fee, activity.Asset.Currency, activity.Date))?.Amount),
-				Quantity = Round(activity.Quantity),
+				Fee = currentPriceCalculator.GetConvertedPrice(activity.Fee, activity.Asset.Currency, activity.Date)?.Amount ?? 0,
+				Quantity = activity.Quantity,
 				Type = ParseType(activity.ActivityType),
-				UnitPrice = Round((currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, activity.Asset.Currency, activity.Date)).Amount),
+				UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, activity.Asset.Currency, activity.Date).Amount,
 				ReferenceCode = activity.ReferenceCode
 			};
 		}

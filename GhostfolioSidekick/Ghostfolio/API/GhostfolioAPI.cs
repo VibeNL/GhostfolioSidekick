@@ -74,6 +74,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.Where(x => x.Type != Contract.ActivityType.IGNORE)
 				.ToList();
 			newActivities = DateTimeCollisionFixer.Merge(newActivities).ToList();
+			newActivities = newActivities.Select(Round).ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
 			var existingActivities = JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
@@ -107,6 +108,21 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					logger.LogError($"Transaction failed to write {ex}, skipping");
 				}
 			}
+		}
+
+		private Contract.Activity Round(Contract.Activity activity)
+		{
+			decimal Round(decimal? value)
+			{
+				var r = Math.Round(value ?? 0, 10);
+				return r;
+			};
+
+			activity.Fee = Round(activity.Fee);
+			activity.Quantity = Round(activity.Quantity);
+			activity.UnitPrice = Round(activity.UnitPrice);
+
+			return activity;
 		}
 
 		private decimal GetBalance(Balance balance)
