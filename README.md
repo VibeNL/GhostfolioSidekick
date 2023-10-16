@@ -27,13 +27,23 @@ For example:
   * Export2022.csv
   * Export2023.csv
 
-### Mapping File
-A single csv file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio
+### Configuration File
+A single json file csv file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio.
+Also allows overriding asset settings, like Trackinsight
 
 ```
-TYPE,SOURCE,TARGET
-CURRENCY,GBX,GBp
-IDENTIFIER,ATOM-USD,Cosmos USD
+{
+	"mappings":[
+		{ "type":"currency", "source":"GBX", "target":"GBp"},
+		{ "type":"symbol", "source":"USDC", "target":"usd-coin"},
+		{ "type":"symbol", "source":"BTC", "target":"bitcoin"}
+	],
+	"symbols":[
+		{ "symbol": "VDUC.L", "trackinsight": "VUSC" },
+		{ "symbol": "VFEM.L", "trackinsight": "VDEM" }
+	]
+}
+
 ```
 
 ### Supported formats
@@ -73,8 +83,9 @@ The docker image is named: vibenl/ghostfoliosidekick
 |--|--|
 |**GHOSTFOLIO_URL**  | The endpoint for your ghostfolio instance.   |
 |**GHOSTFOLIO_ACCESTOKEN**  | The token as used to 'login' in the UI |
-|**MAPPINGFILE**  | (optional) The path to the mapping file containing mapping for identifiers so it can be mapped automatically [Mapping File] |
-|**FileImporterPath**  | The path to the files (see [Import Path]) |
+|**FILEIMPORTER_PATH**  | The path to the files (see [Import Path]) |
+|**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, see above |
+
 
 ## Contributing
 

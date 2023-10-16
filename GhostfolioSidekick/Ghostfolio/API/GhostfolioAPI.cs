@@ -12,16 +12,14 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public partial class GhostfolioAPI : IGhostfolioAPI
 	{
-		private readonly SymbolMapper mapper = new SymbolMapper();
-		private readonly IConfigurationSettings settings;
+		private readonly IApplicationSettings settings;
 		private ILogger<GhostfolioAPI> logger;
 		private readonly ModelToContractMapper modelToContractMapper;
-
-
+		private readonly SymbolMapper mapper;
 		private RestCall restCall;
 
 		public GhostfolioAPI(
-			IConfigurationSettings settings,
+			IApplicationSettings settings,
 			IMemoryCache memoryCache,
 			ILogger<GhostfolioAPI> logger)
 		{
@@ -39,6 +37,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			restCall = new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken);
 			modelToContractMapper = new ModelToContractMapper(new CurrentPriceCalculator(this));
+			this.mapper = new SymbolMapper(settings.ConfigurationInstance.Mappings);
 		}
 
 		public async Task<Model.Account?> GetAccountByName(string name)
@@ -147,7 +146,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Model.Asset?> FindSymbolByISIN(string? identifier, Func<IEnumerable<Model.Asset>, Model.Asset?> selector)
 		{
-			identifier = mapper.MapIdentifier(identifier);
+			identifier = mapper.MapSymbol(identifier);
 
 			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
 			var rawAssetList = JsonConvert.DeserializeObject<AssetList>(content);
@@ -164,7 +163,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date)
 		{
-			if (money == null || money.Currency == targetCurrency || (money.Amount) == 0)
+			if (money == null || money.Currency.Symbol == targetCurrency.Symbol || (money.Amount) == 0)
 			{
 				return money;
 			}
@@ -205,6 +204,36 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
+		}
+
+		public async Task<Model.MarketData> GetMarketData(Model.MarketDataInfo marketDataInfo)
+		{
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{marketDataInfo.DataSource}/{marketDataInfo.Symbol}", CacheDuration.Short());
+			var market = JsonConvert.DeserializeObject<Market>(content);
+
+			return ContractToModelMapper.MapMarketData(market);
+		}
+
+		public async Task UpdateMarketData(Model.MarketData marketData)
+		{
+			var o = new JObject();
+			JObject mappingObject = new JObject();
+			if (marketData.Mappings.TrackInsight != null)
+			{
+				mappingObject.Add("TRACKINSIGHT", marketData.Mappings.TrackInsight);
+			}
+
+			o["symbolMapping"] = mappingObject;
+			var res = o.ToString();
+
+			var r = await restCall.DoPatch($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Deletion failed {marketData.Symbol}");
+			}
+
+			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
+
 		}
 
 		private async Task<GenericInfo> GetInfo()
@@ -364,6 +393,5 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			return asset;
 		}
-
 	}
 }
