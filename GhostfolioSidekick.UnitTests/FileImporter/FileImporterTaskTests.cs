@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			// Arrange
 			var testImporter = new Mock<IFileImporter>();
 			testImporter.Setup(x => x.CanParseActivities(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
-			var cs = new Mock<IConfigurationSettings>();
+			var cs = new Mock<IApplicationSettings>();
 			cs.Setup(x => x.FileImporterPath).Returns("./FileImporter/TestFiles");
 
 			var task = new FileImporterTask(new Mock<ILogger<FileImporterTask>>().Object, api.Object, cs.Object, new[] { testImporter.Object });

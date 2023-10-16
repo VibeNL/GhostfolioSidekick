@@ -1,58 +1,36 @@
-﻿using CsvHelper.Configuration;
-using CsvHelper;
-using System.Globalization;
+﻿using GhostfolioSidekick.Configuration;
 
 namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 {
-    internal class SymbolMapper
-    {
-        string mappingFile = Environment.GetEnvironmentVariable("MAPPINGFILE");
+	internal class SymbolMapper
+	{
+		private readonly List<Mapping> mappings;
 
-        private Dictionary<Tuple<TypeOfMapping, string>, string> mapping = new Dictionary<Tuple<TypeOfMapping, string>, string>();
+		public SymbolMapper(IEnumerable<Mapping> mappings)
+		{
+			this.mappings = mappings.ToList();
+		}
 
-        public SymbolMapper()
-        {
-            if (string.IsNullOrWhiteSpace(mappingFile))
-            {
-                // No mapping file found
-                return;
-            }
+		internal string? MapCurrency(string? sourceCurrency)
+		{
+			return Map(MappingType.Currency, sourceCurrency);
+		}
 
-            using (var streamReader = File.OpenText(mappingFile))
-            {
-                using (var csvReader = new CsvReader(streamReader, new CsvConfiguration(CultureInfo.InvariantCulture)
-                {
-                    HasHeaderRecord = true,
-                    CacheFields = true,
-                    Delimiter = ",",
-                }))
-                {
-                    csvReader.Read();
-                    csvReader.ReadHeader();
+		internal string? MapSymbol(string? identifier)
+		{
+			return Map(MappingType.Symbol, identifier);
+		}
 
-                    while (csvReader.Read())
-                    {
-                        mapping.Add(Tuple.Create(Enum.Parse<TypeOfMapping>(csvReader.GetField("TYPE")), csvReader.GetField("SOURCE")), csvReader.GetField("TARGET"));
-                    }
-                }
-            }
-        }
+		private string? Map(MappingType type, string? sourceCurrency)
+		{
+			return mappings.SingleOrDefault(x => x.MappingType == type && x.Source == sourceCurrency)?.Target ?? sourceCurrency;
+		}
+	}
 
-        internal string MapCurrency(string sourceCurrency)
-        {
-            return mapping.GetValueOrDefault(Tuple.Create(TypeOfMapping.CURRENCY, sourceCurrency), sourceCurrency);
-        }
+	internal enum TypeOfMapping
+	{
+		CURRENCY,
 
-        internal string? MapIdentifier(string? identifier)
-        {
-            return mapping.GetValueOrDefault(Tuple.Create(TypeOfMapping.IDENTIFIER, identifier), identifier);
-        }
-    }
-
-    internal enum TypeOfMapping
-    {
-        CURRENCY,
-
-        IDENTIFIER
-    }
+		IDENTIFIER
+	}
 }

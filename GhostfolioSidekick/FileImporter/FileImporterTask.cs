@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.FileImporter
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
 			IGhostfolioAPI api,
-			IConfigurationSettings settings,
+			IApplicationSettings settings,
 			IEnumerable<IFileImporter> importers)
 		{
 			if (settings is null)
