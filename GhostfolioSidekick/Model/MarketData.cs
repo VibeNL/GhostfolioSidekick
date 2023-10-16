@@ -2,9 +2,10 @@
 {
 	public class MarketData
 	{
-		public MarketData(string symbol, int activitiesCount, string trackinsight)
+		public MarketData(string symbol, string dataSource, int activitiesCount, string trackinsight)
 		{
 			Symbol = symbol;
+			DataSource = dataSource;
 			ActivitiesCount = activitiesCount;
 			Mappings.TrackInsight = trackinsight;
 		}
@@ -14,6 +15,7 @@
 		public MarketDataMappings Mappings { get; private set; } = new MarketDataMappings();
 
 		public string Symbol { get; set; }
-		public string V { get; }
+
+		public string DataSource { get; set; }
 	}
 }

@@ -38,8 +38,8 @@ namespace ConsoleHelper
 				new ScalableCapitalParser(api),
 				new Trading212Parser(api),
 			});
-			t.DoWork().Wait();
-			t = new MarketDataMaintainerTask(logger, api, null);
+			//t.DoWork().Wait();
+			t = new MarketDataMaintainerTask(logger, api, cs);
 			t.DoWork().Wait();
 		}
 	}

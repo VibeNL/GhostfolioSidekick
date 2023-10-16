@@ -214,9 +214,26 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return ContractToModelMapper.MapMarketData(market);
 		}
 
-		public Task UpdateMarketData(Model.MarketData marketData)
+		public async Task UpdateMarketData(Model.MarketData marketData)
 		{
-			throw new NotImplementedException();
+			var o = new JObject();
+			JObject mappingObject = new JObject();
+			if (marketData.Mappings.TrackInsight != null)
+			{
+				mappingObject.Add("TRACKINSIGHT", marketData.Mappings.TrackInsight);
+			}
+
+			o["symbolMapping"] = mappingObject;
+			var res = o.ToString();
+
+			var r = await restCall.DoPatch($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Deletion failed {marketData.Symbol}");
+			}
+
+			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
+
 		}
 
 		private async Task<GenericInfo> GetInfo()

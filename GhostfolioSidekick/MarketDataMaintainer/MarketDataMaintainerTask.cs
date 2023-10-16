@@ -14,11 +14,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		public MarketDataMaintainerTask(
 			ILogger<FileImporterTask> logger,
 			IGhostfolioAPI api,
-			ConfigurationInstance configurationInstance)
+			ApplicationSettings applicationSettings)
 		{
+			if (applicationSettings is null)
+			{
+				throw new ArgumentNullException(nameof(applicationSettings));
+			}
+
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.api = api ?? throw new ArgumentNullException(nameof(api));
-			this.configurationInstance = configurationInstance ?? throw new ArgumentNullException(nameof(configurationInstance));
+			this.configurationInstance = applicationSettings.ConfigurationInstance;
 		}
 
 		public async Task DoWork()
@@ -44,11 +49,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				var marketData = await api.GetMarketData(marketDataInfo);
 
-				var mappingStringTrackInsight = "{\"TRACKINSIGHT\":\"" + symbolConfiguration.TrackingInsightSymbol + "\"}";
-
-				if (marketData.Mappings.TrackInsight != mappingStringTrackInsight)
+				if (marketData.Mappings.TrackInsight != symbolConfiguration.TrackingInsightSymbol)
 				{
-					marketData.Mappings.TrackInsight = mappingStringTrackInsight;
+					marketData.Mappings.TrackInsight = symbolConfiguration.TrackingInsightSymbol;
 					await api.UpdateMarketData(marketData);
 				}
 			}

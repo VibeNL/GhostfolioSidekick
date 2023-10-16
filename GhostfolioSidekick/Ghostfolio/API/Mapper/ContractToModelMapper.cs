@@ -64,10 +64,14 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 
 		public static Model.MarketData MapMarketData(Market? market)
 		{
-			market.SymbolMapping.TryGetValue("TRACKINSIGHT", out string? trackinsight);
+			string? trackinsight = null;
+			market.AssetProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out trackinsight);
 			return new Model.MarketData
 			(
-				market.Symbol, market.ActivitiesCount, trackinsight ?? string.Empty
+				market.AssetProfile.Symbol,
+				market.AssetProfile.DataSource,
+				market.AssetProfile.ActivitiesCount,
+				trackinsight ?? string.Empty
 			);
 		}
 
