@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		public MarketDataMaintainerTask(
 			ILogger<FileImporterTask> logger,
 			IGhostfolioAPI api,
-			ApplicationSettings applicationSettings)
+			IApplicationSettings applicationSettings)
 		{
 			if (applicationSettings is null)
 			{
