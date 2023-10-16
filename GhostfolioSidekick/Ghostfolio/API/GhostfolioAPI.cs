@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.Where(x => x != null)
 				.Where(x => x.Type != Contract.ActivityType.IGNORE)
 				.ToList();
-			newActivities = DateTimeCollisionFixer.Merge(newActivities).ToList();
+			//newActivities = DateTimeCollisionFixer.Merge(newActivities).ToList();
 			newActivities = newActivities.Select(Round).ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
