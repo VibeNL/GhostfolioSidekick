@@ -164,5 +164,49 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				ReferenceCode = "NXT6asbYnZqniNoTss0nyuIxM"
 			}});
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestExchangeCoins_Converted()
+		{
+			// Arrange
+			var parser = new NexoParser(api.Object);
+			var fixture = new Fixture();
+
+			var asset1 = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset2 = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			api.Setup(x => x.FindSymbolByISIN("USDC", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByISIN("BTC", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset2);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Example4/ExchangeCoins.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)));
+			account.Activities.Should().BeEquivalentTo(new[]
+			{ new Activity {
+				Asset = asset1,
+				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc]",
+				Date = new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
+				Fee = null,
+				Quantity = 200M,
+				ActivityType = ActivityType.Sell,
+				UnitPrice = new Money(asset1.Currency, 0.9988M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)),
+				ReferenceCode = "NXTVDI4DJFWqB63pTcCuTpgc"
+			},
+			new Activity {
+				Asset = asset2,
+				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc_2]",
+				Date = new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
+				Fee = null,
+				Quantity = 0.00716057M,
+				ActivityType = ActivityType.Buy,
+				UnitPrice = new Money(asset2.Currency, 27897.220472671868300987211912M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)),
+				ReferenceCode = "NXTVDI4DJFWqB63pTcCuTpgc_2"
+			}});
+		}
 	}
 }

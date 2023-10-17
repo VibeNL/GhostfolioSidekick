@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using System.Globalization;
+using System.Xml.Linq;
 
 namespace GhostfolioSidekick.FileImporter.Nexo
 {
@@ -34,7 +35,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				Date = record.DateTime,
 				Comment = $"Transaction Reference: [{record.Transaction}]",
 				Fee = null,
-				Quantity = record.InputAmount,
+				Quantity = Math.Abs(record.InputAmount),
 				ActivityType = ActivityType.Undefined,
 				UnitPrice = GetUnitPrice(record, false),
 				ReferenceCode = record.Transaction,
@@ -48,7 +49,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				Date = record.DateTime,
 				Comment = $"Transaction Reference: [{refCode}]",
 				Fee = null,
-				Quantity = record.OutputAmount,
+				Quantity = Math.Abs(record.OutputAmount),
 				ActivityType = ActivityType.Undefined,
 				UnitPrice = GetUnitPrice(record, true),
 				ReferenceCode = refCode,
@@ -80,7 +81,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					return new[] { SetActivity(outputActivity, ActivityType.Receive) };
 				case "ExchangeDepositedOn":
 				case "Exchange":
-					return HandleConversion(record, inputActivity, outputActivity);
+					return HandleConversion( inputActivity, outputActivity);
 				case "Interest":
 				case "FixedTermInterest":
 				// return new[] { SetActivity(outputActivity, ActivityType.Interest) }; // Staking rewards are not yet supported
@@ -98,7 +99,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			return outputActivity;
 		}
 
-		private IEnumerable<Activity> HandleConversion(NexoRecord record, Activity inputActivity, Activity outputActivity)
+		private IEnumerable<Activity> HandleConversion(Activity inputActivity, Activity outputActivity)
 		{
 			var inFiatCoin = inputActivity.Asset == null && fiatCoin.Any(x => x.Symbol == inputActivity.UnitPrice.Currency.Symbol);
 			var outFiatCoin = outputActivity.Asset == null && fiatCoin.Any(x => x.Symbol == outputActivity.UnitPrice.Currency.Symbol);
@@ -108,19 +109,24 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				outputActivity.ActivityType = ActivityType.Buy;
 				return new[] { outputActivity };
 			}
-			if (!inFiatCoin && outFiatCoin)
+			else if (!inFiatCoin && outFiatCoin)
 			{
 				inputActivity.ActivityType = ActivityType.Sell;
 				return new[] { inputActivity };
 			}
-
-			if (inFiatCoin && outFiatCoin)
+			else if (inFiatCoin)
 			{
-				inputActivity.ActivityType = ActivityType.CashDeposit;
+				inputActivity.ActivityType = ActivityType.CashDeposit; // TODO: withdrawal check?
 				return new[] { inputActivity };
 			}
-
-			throw new NotSupportedException();
+			else
+			{
+				outputActivity.ReferenceCode += "_2";
+				outputActivity.Comment = $"Transaction Reference: [{outputActivity.ReferenceCode}]";
+				inputActivity.ActivityType = ActivityType.Sell;
+				outputActivity.ActivityType = ActivityType.Buy;
+				return new[] { inputActivity, outputActivity };
+			}
 		}
 
 		private Money GetUnitPrice(NexoRecord record, bool isOutput)
@@ -129,9 +135,9 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			var amount = isOutput ? record.OutputAmount : record.InputAmount;
 			var fiatCoinCurrency = fiatCoin.Any(x => x.Symbol == currency);
 
-			if (fiatCoinCurrency == false)
+			if (!fiatCoinCurrency)
 			{
-				return new Money("USD", record.GetUSDEquivalent() / amount, record.DateTime);
+				return new Money("USD", Math.Abs(record.GetUSDEquivalent() / amount), record.DateTime);
 			}
 
 			return new Money(currency, 1, record.DateTime);
