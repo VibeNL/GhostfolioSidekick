@@ -152,6 +152,16 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				ActivityType = ActivityType.Receive,
 				UnitPrice = new Money(asset.Currency, 26811.1M, new DateTime(2023,10,12,10,44,32, DateTimeKind.Utc)),
 				ReferenceCode = "NXT2yQdOutpLLE1Lz51xXt6uW"
+			},
+			new Activity {
+				Asset = null,
+				Comment = "Transaction Reference: [NXT6asbYnZqniNoTss0nyuIxM]",
+				Date = new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc),
+				Fee = null,
+				Quantity = 0.06548358M,
+				ActivityType = ActivityType.Receive,
+				UnitPrice = new Money("EURX", 1M, new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc)),
+				ReferenceCode = "NXT6asbYnZqniNoTss0nyuIxM"
 			}});
 		}
 	}
