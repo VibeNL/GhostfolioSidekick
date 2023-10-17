@@ -34,7 +34,7 @@
 				}
 			}
 
-			return new Money(targetCurrency, amount, MoneyTrail.Select(x => x.TimeOfRecord).Max());
+			return new Money(targetCurrency, amount, MoneyTrail.Select(x => x.TimeOfRecord).DefaultIfEmpty().Max());
 		}
 
 		private List<Money> MoneyTrail { get; set; } = new List<Money>();

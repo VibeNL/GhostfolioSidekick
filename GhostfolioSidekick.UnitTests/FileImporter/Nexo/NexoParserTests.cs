@@ -122,5 +122,37 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				ReferenceCode = "NXTyVJeCwg6Og"
 			}});
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestCashback_Converted()
+		{
+			// Arrange
+			var parser = new NexoParser(api.Object);
+			var fixture = new Fixture();
+
+			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			api.Setup(x => x.FindSymbolByISIN("BTC", It.IsAny<Func<IEnumerable<Asset>, Asset>>())).ReturnsAsync(asset);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Example3/Cashback.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(0001, 01, 01, 00, 00, 00, DateTimeKind.Utc)));
+			account.Activities.Should().BeEquivalentTo(new[]
+			{ new Activity {
+				Asset = asset,
+				Comment = "Transaction Reference: [NXT2yQdOutpLLE1Lz51xXt6uW]",
+				Date = new DateTime(2023,10,12,10,44,32, DateTimeKind.Utc),
+				Fee = null,
+				Quantity = 0.00000040M,
+				ActivityType = ActivityType.Receive,
+				UnitPrice = new Money(asset.Currency, 26811.1M, new DateTime(2023,10,12,10,44,32, DateTimeKind.Utc)),
+				ReferenceCode = "NXT2yQdOutpLLE1Lz51xXt6uW"
+			}});
+		}
 	}
 }

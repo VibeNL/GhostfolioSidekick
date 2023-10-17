@@ -74,6 +74,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 			switch (record.Type)
 			{
+				case "Exchange Cashback":
 				case "ReferralBonus": // TODO: Should be a 'reward'
 				case "Deposit":
 					return new[] { SetActivity(outputActivity, ActivityType.Receive) };
