@@ -85,7 +85,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 				}
 
-				memoryCache.Set(suffixUrl, r.Content, cacheEntryOptions);
+				if (cacheEntryOptions != null)
+				{
+					memoryCache.Set(suffixUrl, r.Content, cacheEntryOptions);
+				}
 
 				return r.Content;
 			}

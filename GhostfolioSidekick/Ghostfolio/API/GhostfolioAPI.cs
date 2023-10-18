@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Model.Account?> GetAccountByName(string name)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Long());
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.None());
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
 			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
