@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				return Array.Empty<Activity>();
 			}
 
-			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByISIN(record.ISIN);
+			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(record.ISIN);
 
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{

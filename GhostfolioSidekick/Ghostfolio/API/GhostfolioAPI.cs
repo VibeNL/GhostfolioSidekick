@@ -144,7 +144,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(asset.Currency, marketData.MarketPrice, date);
 		}
 
-		public async Task<Model.Asset?> FindSymbolByISIN(string? identifier, Func<IEnumerable<Model.Asset>, Model.Asset?> selector)
+		public async Task<Model.Asset?> FindSymbolByIdentifier(string? identifier, Func<IEnumerable<Model.Asset>, Model.Asset?> selector)
 		{
 			identifier = mapper.MapSymbol(identifier);
 
@@ -194,9 +194,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol)).Select(x => ContractToModelMapper.MapMarketDataInfo(x));
 		}
 
-		public async Task DeleteMarketData(Model.MarketDataInfo marketData)
+		public async Task DeleteSymbol(Model.MarketDataInfo marketData)
 		{
-			// https://ghostfolio.vincentberkien.nl/api/v1/admin/profile-data/MANUAL/385c8b0f-cfba-4c9c-a6e9-468a68536d0f
 			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}");
 			if (!r.IsSuccessStatusCode)
 			{
@@ -204,6 +203,29 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
+		}
+
+		public async Task CreateManualSymbol(Model.Asset asset)
+		{
+			var o = new JObject
+			{
+				["symbol"] = asset.Symbol,
+				["isin"] = asset.ISIN,
+				["name"] = asset.Name,
+				["assetclass"] = asset.AssetClass,
+				["assetsubclass"] = asset.AssetSubClass,
+				["currency"] = asset.Currency.Symbol,
+				["datasource"] = asset.DataSource
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/admin/profile-data/{asset.DataSource}/{asset.Symbol}", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Creation failed {asset.Symbol}");
+			}
+
+			logger.LogInformation($"Created symbol {asset.Symbol}");
 		}
 
 		public async Task<Model.MarketData> GetMarketData(Model.MarketDataInfo marketDataInfo)
@@ -393,5 +415,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			return asset;
 		}
+
 	}
 }

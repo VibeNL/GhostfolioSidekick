@@ -45,6 +45,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			return new Model.Asset(
 				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
 				symbolProfile.Symbol,
+				symbolProfile.ISIN,
 				symbolProfile.Name,
 				symbolProfile.DataSource,
 				symbolProfile.AssetSubClass,
@@ -56,6 +57,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			return new Model.Asset(
 				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
 				symbolProfile.Symbol,
+				symbolProfile.ISIN,
 				symbolProfile.Name,
 				symbolProfile.DataSource,
 				symbolProfile.AssetSubClass,

@@ -2,17 +2,16 @@
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using System.Globalization;
-using System.Xml.Linq;
 
 namespace GhostfolioSidekick.FileImporter.Nexo
 {
 	public class NexoParser : CryptoRecordBaseImporter<NexoRecord>
 	{
 		private Asset[] fiatCoin = new[] {
-			new Asset(new Currency("EUR"), "EURX", "EURX", null, null, null),
-			new Asset(new Currency("USD"), "USDX", "USDX", null, null, null),
-			new Asset(new Currency("EUR"), "EUR", "EUR", null, null, null),
-			new Asset(new Currency("USD"), "USD", "USD", null, null, null)
+			new Asset(new Currency("EUR"), "EURX",null, "EURX", null, null, null),
+			new Asset(new Currency("USD"), "USDX",null, "USDX", null, null, null),
+			new Asset(new Currency("EUR"), "EUR", null,"EUR", null, null, null),
+			new Asset(new Currency("USD"), "USD",null, "USD", null, null, null)
 		};
 
 		public NexoParser(IGhostfolioAPI api) : base(api)
@@ -66,7 +65,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					return null;
 				}
 
-				return await api.FindSymbolByISIN(assetName, x =>
+				return await api.FindSymbolByIdentifier(assetName, x =>
 								ParseFindSymbolByISINResult(assetName, assetName, x));
 			}
 		}
@@ -81,7 +80,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					return new[] { SetActivity(outputActivity, ActivityType.Receive) };
 				case "ExchangeDepositedOn":
 				case "Exchange":
-					return HandleConversion( inputActivity, outputActivity);
+					return HandleConversion(inputActivity, outputActivity);
 				case "Interest":
 				case "FixedTermInterest":
 				// return new[] { SetActivity(outputActivity, ActivityType.Interest) }; // Staking rewards are not yet supported

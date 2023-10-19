@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.FileImporter.Generic
 
 		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(GenericRecord record, Model.Account account, IEnumerable<GenericRecord> allRecords)
 		{
-			var asset = string.IsNullOrWhiteSpace(record.Symbol) ? null : await api.FindSymbolByISIN(record.Symbol);
+			var asset = string.IsNullOrWhiteSpace(record.Symbol) ? null : await api.FindSymbolByIdentifier(record.Symbol);
 
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
