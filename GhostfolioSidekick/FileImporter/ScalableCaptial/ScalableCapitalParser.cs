@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				return null;
 			}
 
-			var asset = await api.FindSymbolByISIN(record.Isin.Replace("ISIN ", string.Empty));
+			var asset = await api.FindSymbolByIdentifier(record.Isin.Replace("ISIN ", string.Empty));
 
 			var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
 			var unitPrice = record.UnitPrice.GetValueOrDefault() / quantity;
@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 		private async Task<Activity> ConvertToOrder(BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
 		{
-			var asset = await api.FindSymbolByISIN(record.Isin);
+			var asset = await api.FindSymbolByIdentifier(record.Isin);
 
 			var fee = FindFeeRecord(rkkRecords, record.Reference);
 

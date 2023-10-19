@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("US67066G1040", null)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example1/TestFileSingleOrder.csv" });
@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("US67066G1040", null)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example2/TestFileMultipleOrdersUS.csv" });
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("GB0007188757", null)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("GB0007188757", null)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example3/TestFileSingleOrderUK.csv" });
@@ -150,7 +150,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("US0378331005", null)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("US0378331005", null)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example4/TestFileSingleDividend.csv" });
@@ -180,7 +180,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("GB0007188757", null)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("GB0007188757", null)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/Example5/TestFileSingleOrderUKNativeCurrency.csv" });
@@ -209,7 +209,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("US67066G1040", null)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("US67066G1040", null)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {

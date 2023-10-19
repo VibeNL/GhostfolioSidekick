@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", null)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/ScalableCapital/Example1/WUMExample1.csv" });
@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("US92343V1044", null)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("US92343V1044", null)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/ScalableCapital/Example1/RKKExample1.csv" });
@@ -113,8 +113,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByISIN("US92343V1044", null)).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", null)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier("US92343V1044", null)).ReturnsAsync(asset2);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
@@ -158,8 +158,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByISIN("IE00077FRP95", null)).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByISIN("US92343V1044", null)).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", null)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier("US92343V1044", null)).ReturnsAsync(asset2);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {

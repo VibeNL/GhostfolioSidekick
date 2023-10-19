@@ -5,10 +5,18 @@
 		public Asset()
 		{
 		}
-		public Asset(Currency currency, string symbol, string name, string dataSource, string assetSubClass, string assetClass)
+		public Asset(
+			Currency currency,
+			string symbol,
+			string isin,
+			string name,
+			string dataSource,
+			string assetSubClass,
+			string assetClass)
 		{
 			Currency = currency;
 			Symbol = symbol;
+			ISIN = isin;
 			Name = name;
 			DataSource = dataSource;
 			AssetSubClass = assetSubClass;
@@ -26,5 +34,7 @@
 		public string AssetSubClass { get; set; }
 
 		public string AssetClass { get; set; }
+
+		public string ISIN { get; set; }
 	}
 }

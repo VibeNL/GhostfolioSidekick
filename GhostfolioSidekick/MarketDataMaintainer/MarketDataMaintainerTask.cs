@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
@@ -30,7 +31,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Starting to do work");
 
-			await DeletUnusedSymbols();
+			await DeleteUnusedSymbols();
+			await AddManualSymbols();
 			await SetTrackingInsightOnSymbols();
 
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
@@ -57,15 +59,45 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 		}
 
-		private async Task DeletUnusedSymbols()
+		private async Task DeleteUnusedSymbols()
 		{
 			var marketDataList = await api.GetMarketDataInfo();
 			foreach (var marketData in marketDataList)
 			{
 				if (marketData.ActivitiesCount == 0)
 				{
-					await api.DeleteMarketData(marketData);
+					await api.DeleteSymbol(marketData);
 				}
+			}
+		}
+
+		private async Task AddManualSymbols()
+		{
+			var symbolConfigurations = configurationInstance.Symbols;
+			foreach (var symbolConfiguration in symbolConfigurations)
+			{
+				var manualSymbolConfiguration = symbolConfiguration.ManualSymbolConfiguration;
+				if (manualSymbolConfiguration == null)
+				{
+					continue;
+				}
+
+				var symbol = await api.FindSymbolByIdentifier(symbolConfiguration.Symbol);
+				if (symbol == null)
+				{
+					await api.CreateManualSymbol(new Asset
+					{
+						AssetClass = manualSymbolConfiguration.AssetClass,
+						AssetSubClass = manualSymbolConfiguration.AssetSubClass,
+						Currency = CurrencyHelper.ParseCurrency(manualSymbolConfiguration.Currency),
+						DataSource = "MANUAL",
+						Name = manualSymbolConfiguration.Name,
+						Symbol = symbolConfiguration.Symbol,
+						ISIN = manualSymbolConfiguration.ISIN
+					});
+				}
+
+				// TODO: update on difference???
 			}
 		}
 	}

@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				return Array.Empty<Model.Activity>();
 			}
 
-			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByISIN(record.ISIN);
+			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(record.ISIN);
 			var fee = GetFee(record, allRecords);
 			var taxes = GetTaxes(record, allRecords);
 
