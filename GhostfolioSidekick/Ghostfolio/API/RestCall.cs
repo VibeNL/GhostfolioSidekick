@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Polly;
+using Polly.CircuitBreaker;
 using Polly.Retry;
 using RestSharp;
 using System.Diagnostics;
@@ -21,6 +22,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private readonly string url;
 		private readonly string accessToken;
 		private readonly RetryPolicy<RestResponse> retryPolicy;
+		private readonly CircuitBreakerPolicy<RestResponse> basicCircuitBreakerPolicy;
 
 		public RestCall(
 			IMemoryCache memoryCache,
@@ -39,13 +41,29 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				{
 					logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
 				});
+
+			basicCircuitBreakerPolicy = Policy
+				.HandleResult<RestResponse>(r => !r.IsSuccessStatusCode)
+				.CircuitBreaker(2, TimeSpan.FromSeconds(30), (iRestResponse, timeSpan) =>
+				{
+					logger.LogDebug($"Circuit Breaker on a break");
+				}, () =>
+				{
+					logger.LogDebug($"Circuit Breaker active");
+				});
 		}
 
-		public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions cacheEntryOptions)
+		public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions cacheEntryOptions, bool useCircuitBreaker = false)
 		{
 			if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
 			{
 				return result;
+			}
+
+			Policy<RestResponse> policy = retryPolicy;
+			if (useCircuitBreaker)
+			{
+				policy = basicCircuitBreakerPolicy.Wrap(retryPolicy);
 			}
 
 			try
@@ -75,7 +93,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				var stopwatch = new Stopwatch();
 
 				stopwatch.Start();
-				var r = retryPolicy.Execute(() => client.ExecuteGetAsync(request).Result);
+
+				var r = policy.Execute(() => client.ExecuteGetAsync(request).Result);
 				stopwatch.Stop();
 
 				logger.LogDebug($"Url {url}/{suffixUrl} took {stopwatch.ElapsedMilliseconds}ms");
@@ -91,6 +110,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}
 
 				return r.Content;
+			}
+			catch (BrokenCircuitException)
+			{
+				return null;
 			}
 			finally
 			{

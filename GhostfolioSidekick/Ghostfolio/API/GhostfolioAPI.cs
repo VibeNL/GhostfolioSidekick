@@ -1,5 +1,5 @@
-﻿using GhostfolioSidekick.Ghostfolio.API.Contract;
-using GhostfolioSidekick.Ghostfolio.API.Mapper;
+﻿using GhostfolioSidekick.Ghostfolio.API.Mapper;
+using GhostfolioSidekick.Ghostfolio.Contract;
 using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -53,10 +53,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			content = await restCall.DoRestGet($"api/v1/order?accounts={rawAccount.Id}", CacheDuration.None());
-			var rawOrders = JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
+			var activities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
 
-			var assets = new ConcurrentDictionary<string, Model.Asset>();
-			return ContractToModelMapper.MapActivity(rawAccount, rawOrders, assets);
+			return ContractToModelMapper.MapAccount(rawAccount, activities);
 		}
 
 		public async Task UpdateAccount(Model.Account account)
@@ -72,11 +71,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.Where(x => x != null)
 				.Where(x => x.Type != Contract.ActivityType.IGNORE)
 				.ToList();
-			//newActivities = DateTimeCollisionFixer.Merge(newActivities).ToList();
 			newActivities = newActivities.Select(Round).ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
-			var existingActivities = JsonConvert.DeserializeObject<RawActivityList>(content).Activities;
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
 
 			var mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).ToList();
 			foreach (var mergeOrder in mergeOrders)
@@ -109,30 +107,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		private Contract.Activity Round(Contract.Activity activity)
-		{
-			decimal Round(decimal? value)
-			{
-				var r = Math.Round(value ?? 0, 10);
-				return r;
-			};
-
-			activity.Fee = Round(activity.Fee);
-			activity.Quantity = Round(activity.Quantity);
-			activity.UnitPrice = Round(activity.UnitPrice);
-
-			return activity;
-		}
-
-		private decimal GetBalance(Balance balance)
-		{
-			return balance.Current(new CurrentPriceCalculator(this)).Amount;
-		}
-
 		public async Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date)
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
-			var market = JsonConvert.DeserializeObject<Market>(content);
+			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var marketData = market.MarketData.FirstOrDefault(x => x.Date == date.Date);
 
@@ -149,9 +127,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			identifier = mapper.MapSymbol(identifier);
 
 			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
-			var rawAssetList = JsonConvert.DeserializeObject<AssetList>(content);
+			var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
 
-			var assets = rawAssetList.Items.Select(x => ContractToModelMapper.ParseSymbolProfile(x));
+			var assets = symbolProfileList.Items.Select(x => ContractToModelMapper.ParseSymbolProfile(x));
 
 			if (selector == null)
 			{
@@ -170,11 +148,22 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var sourceCurrency = mapper.MapCurrency(money.Currency.Symbol);
 
-			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short());
+			decimal rate = 1;
+			try
+			{
+				var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
 
-			dynamic stuff = JsonConvert.DeserializeObject(content);
-			var token = stuff.marketPrice.ToString();
-			var rate = (decimal)decimal.Parse(token);
+				if (content != null)
+				{
+					dynamic stuff = JsonConvert.DeserializeObject(content);
+					var token = stuff.marketPrice.ToString();
+					rate = (decimal)decimal.Parse(token);
+				}
+			}
+			catch
+			{
+				logger.LogWarning($"Exchange rate not found for {sourceCurrency}-{targetCurrency.Symbol} on {date}. Assuming rate of 1");
+			}
 
 			if (rate == 1)
 			{
@@ -184,17 +173,19 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
-		public async Task<IEnumerable<Model.MarketData>> GetMarketDataInfo()
+		public async Task<IEnumerable<Model.MarketDataList>> GetMarketData()
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
-			var market = JsonConvert.DeserializeObject<MarketDataInfoList>(content);
+			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var benchmarks = (await GetInfo()).BenchMarks;
 
-			return market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol)).Select(x => ContractToModelMapper.MapMarketDataInfo(x));
+			var filtered = market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol));
+
+			return filtered.Select(x => GetMarketData(x.Symbol, x.DataSource).Result).ToList();
 		}
 
-		public async Task DeleteSymbol(Model.MarketData marketData)
+		public async Task DeleteSymbol(Model.SymbolProfile marketData)
 		{
 			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}");
 			if (!r.IsSuccessStatusCode)
@@ -228,15 +219,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Created symbol {asset.Symbol}");
 		}
 
-		public async Task<Model.MarketData> GetMarketData(Model.MarketData marketDataInfo)
+		public async Task<Model.MarketDataList> GetMarketData(string symbol, string dataSource)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{marketDataInfo.DataSource}/{marketDataInfo.Symbol}", CacheDuration.Short());
-			var market = JsonConvert.DeserializeObject<Market>(content);
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
+			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
-			return ContractToModelMapper.MapMarketData(market);
+			return ContractToModelMapper.MapMarketDataList(market);
 		}
 
-		public async Task UpdateMarketData(Model.MarketData marketData)
+		public async Task UpdateMarketData(Model.SymbolProfile marketData)
 		{
 			var o = new JObject();
 			JObject mappingObject = new JObject();
@@ -258,22 +249,47 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		}
 
+		public async Task<IEnumerable<Model.Activity>> GetAllActivities()
+		{
+			var content = await restCall.DoRestGet($"api/v1/order", CacheDuration.None());
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
+
+			var assets = new ConcurrentDictionary<string, Model.Asset>();
+			return existingActivities.Select(x => ContractToModelMapper.MapActivity(x, assets));
+		}
+
+		public async Task SetMarketPrice(Model.SymbolProfile assetProfile, Money money)
+		{
+			var o = new JObject();
+			o["marketPrice"] = money.Amount;
+
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPut($"api/v1/admin/market-data/{assetProfile.DataSource}/{assetProfile.Symbol}/{money.TimeOfRecord:yyyy-MM-dd}", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"SetMarketPrice failed {assetProfile.Symbol} {money.TimeOfRecord}");
+			}
+
+			logger.LogInformation($"SetMarketPrice symbol {assetProfile.Symbol} {money.TimeOfRecord} @ {money.Amount}");
+		}
+
 		private async Task<GenericInfo> GetInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
 			return JsonConvert.DeserializeObject<GenericInfo>(content);
 		}
 
-		private async Task WriteOrder(Contract.Activity activity)
+		private async Task WriteOrder(Ghostfolio.Contract.Activity activity)
 		{
 			if (activity.UnitPrice == 0 && activity.Quantity == 0)
 			{
-				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
+				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
-			if (activity.Type == Contract.ActivityType.IGNORE)
+			if (activity.Type == Ghostfolio.Contract.ActivityType.IGNORE)
 			{
-				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
+				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
 			var url = $"api/v1/order";
@@ -284,17 +300,17 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				var isduplicate = emptyResponse || (r.Content?.Contains("activities.1 is a duplicate activity") ?? false);
 				if (isduplicate)
 				{
-					logger.LogDebug($"Duplicate transaction {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
+					logger.LogDebug($"Duplicate transaction {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
 					return;
 				}
 
-				throw new NotSupportedException($"Insert Failed {activity.Date} {activity.Asset.Symbol} {activity.Quantity} {activity.Type}");
+				throw new NotSupportedException($"Insert Failed {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
-			logger.LogInformation($"Added transaction {activity.Date} {activity.Asset?.Symbol} {activity.Quantity} {activity.Type}");
+			logger.LogInformation($"Added transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 		}
 
-		private async Task DeleteOrder(RawActivity? order)
+		private async Task DeleteOrder(Contract.Activity? order)
 		{
 			var r = await restCall.DoRestDelete($"api/v1/order/{order.Id}");
 			if (!r.IsSuccessStatusCode)
@@ -327,24 +343,24 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			await restCall.DoRestPut($"api/v1/account/{account.Id}", res);
 		}
 
-		private async Task<string> ConvertToBody(Contract.Activity activity)
+		private async Task<string> ConvertToBody(Ghostfolio.Contract.Activity activity)
 		{
 			var o = new JObject();
 			o["accountId"] = activity.AccountId;
 			o["comment"] = activity.Comment;
 			o["currency"] = activity.Currency;
-			o["dataSource"] = activity.Asset?.DataSource;
+			o["dataSource"] = activity.SymbolProfile?.DataSource;
 			o["date"] = activity.Date.ToString("o");
 			o["fee"] = activity.Fee;
 			o["quantity"] = activity.Quantity;
 
-			if (activity.Type == Contract.ActivityType.INTEREST)
+			if (activity.Type == Ghostfolio.Contract.ActivityType.INTEREST)
 			{
 				o["symbol"] = "Interest";
 			}
 			else
 			{
-				o["symbol"] = activity.Asset?.Symbol;
+				o["symbol"] = activity.SymbolProfile?.Symbol;
 			}
 			o["type"] = activity.Type.ToString();
 			o["unitPrice"] = activity.UnitPrice;
@@ -352,11 +368,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return res;
 		}
 
-		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Contract.Activity> ordersFromFiles, IEnumerable<RawActivity> existingOrders)
+		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Ghostfolio.Contract.Activity> ordersFromFiles, IEnumerable<Contract.Activity> existingOrders)
 		{
 			var pattern = @"Transaction Reference: \[(.*?)\]";
 
-			var existingOrdersWithMatchFlag = existingOrders.Select(x => new MatchRawActivity { Activity = x, IsMatched = false }).ToList();
+			var existingOrdersWithMatchFlag = existingOrders.Select(x => new MatchActivity { Activity = x, IsMatched = false }).ToList();
 			return ordersFromFiles.GroupJoin(existingOrdersWithMatchFlag,
 				fo => fo.ReferenceCode,
 				eo =>
@@ -395,10 +411,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}).Union(existingOrdersWithMatchFlag.Where(x => !x.IsMatched).Select(x => new MergeOrder(Operation.Removed, null, x.Activity)));
 		}
 
-		private bool AreEquals(Contract.Activity fo, RawActivity eo)
+		private bool AreEquals(Ghostfolio.Contract.Activity fo, Contract.Activity eo)
 		{
 			return
-				(fo.Asset?.Symbol == eo.SymbolProfile?.Symbol || fo.Type == Contract.ActivityType.INTEREST) && // Interest create manual symbols
+				(fo.SymbolProfile?.Symbol == eo.SymbolProfile?.Symbol || fo.Type == Ghostfolio.Contract.ActivityType.INTEREST) && // Interest create manual symbols
 				fo.Quantity == eo.Quantity &&
 				fo.UnitPrice == eo.UnitPrice &&
 				fo.Fee == eo.Fee &&
@@ -416,5 +432,24 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return asset;
 		}
 
+		private Ghostfolio.Contract.Activity Round(Ghostfolio.Contract.Activity activity)
+		{
+			decimal Round(decimal? value)
+			{
+				var r = Math.Round(value ?? 0, 10);
+				return r;
+			};
+
+			activity.Fee = Round(activity.Fee);
+			activity.Quantity = Round(activity.Quantity);
+			activity.UnitPrice = Round(activity.UnitPrice);
+
+			return activity;
+		}
+
+		private decimal GetBalance(Balance balance)
+		{
+			return balance.Current(new CurrentPriceCalculator(this)).Amount;
+		}
 	}
 }
