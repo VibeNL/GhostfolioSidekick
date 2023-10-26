@@ -55,8 +55,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			content = await restCall.DoRestGet($"api/v1/order?accounts={rawAccount.Id}", CacheDuration.None());
 			var activities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
 
-			var assets = new ConcurrentDictionary<string, Model.Asset>();
-			return ContractToModelMapper.MapActivity(rawAccount, activities, assets);
+			return ContractToModelMapper.MapAccount(rawAccount, activities);
 		}
 
 		public async Task UpdateAccount(Model.Account account)
@@ -111,7 +110,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		public async Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date)
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
-			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
+			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var marketData = market.MarketData.FirstOrDefault(x => x.Date == date.Date);
 
@@ -163,17 +162,19 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
-		public async Task<IEnumerable<Model.MarketData>> GetMarketDataInfo()
+		public async Task<IEnumerable<Model.MarketDataList>> GetMarketData()
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
-			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
+			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var benchmarks = (await GetInfo()).BenchMarks;
 
-			return market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol)).Select(x => ContractToModelMapper.MapMarketDataInfo(x));
+			var filtered = market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol));
+
+			return filtered.Select(x => GetMarketData(x.Symbol, x.DataSource).Result).ToList();
 		}
 
-		public async Task DeleteSymbol(Model.MarketData marketData)
+		public async Task DeleteSymbol(Model.SymbolProfile marketData)
 		{
 			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}");
 			if (!r.IsSuccessStatusCode)
@@ -207,15 +208,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Created symbol {asset.Symbol}");
 		}
 
-		public async Task<Model.MarketData> GetMarketData(Model.MarketData marketDataInfo)
+		public async Task<Model.MarketDataList> GetMarketData(string symbol, string dataSource)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{marketDataInfo.DataSource}/{marketDataInfo.Symbol}", CacheDuration.Short());
-			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
+			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
-			return ContractToModelMapper.MapMarketData(market);
+			return ContractToModelMapper.MapMarketDataList(market);
 		}
 
-		public async Task UpdateMarketData(Model.MarketData marketData)
+		public async Task UpdateMarketData(Model.SymbolProfile marketData)
 		{
 			var o = new JObject();
 			JObject mappingObject = new JObject();
@@ -235,6 +236,31 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
 
+		}
+
+		public async Task<IEnumerable<Model.Activity>> GetAllActivities()
+		{
+			var content = await restCall.DoRestGet($"api/v1/order", CacheDuration.None());
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
+
+			var assets = new ConcurrentDictionary<string, Model.Asset>();
+			return existingActivities.Select(x => ContractToModelMapper.MapActivity(x, assets));
+		}
+
+		public async Task SetMarketPrice(Model.SymbolProfile assetProfile, Money money)
+		{
+			var o = new JObject();
+			o["marketPrice"] = money.Amount;
+
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPut($"api/v1/admin/market-data/{assetProfile.DataSource}/{assetProfile.Symbol}/{money.TimeOfRecord:yyyy-MM-dd}", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"SetMarketPrice failed {assetProfile.Symbol} {money.TimeOfRecord}");
+			}
+
+			logger.LogInformation($"SetMarketPrice symbol {assetProfile.Symbol} {money.TimeOfRecord} @ {money.Amount}");
 		}
 
 		private async Task<GenericInfo> GetInfo()

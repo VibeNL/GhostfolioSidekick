@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Ghostfolio.Contract;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
@@ -7,32 +6,39 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 {
 	internal static class ContractToModelMapper
 	{
-		public static Model.Account MapActivity(Contract.Account rawAccount, Contract.Activity[] rawOrders, ConcurrentDictionary<string, Model.Asset> assets)
+		public static Model.Account MapAccount(Contract.Account rawAccount, Contract.Activity[] rawOrders)
 		{
+			var assets = new ConcurrentDictionary<string, Model.Asset>();
+
 			return new Model.Account(
 				rawAccount.Id,
 				rawAccount.Name,
 				new Balance(new Money(CurrencyHelper.ParseCurrency(rawAccount.Currency), rawAccount.Balance, DateTime.MinValue)),
 				rawOrders.Select(x =>
 				{
-					var asset = assets.GetOrAdd(x.SymbolProfile.Symbol, (y) => ParseSymbolProfile(x.SymbolProfile));
-					return new Model.Activity(
-										ParseType(x.Type),
-										asset,
-										x.Date,
-										x.Quantity,
-										new Money(asset.Currency, x.UnitPrice, x.Date),
-										new Money(asset.Currency, x.Fee, x.Date),
-										x.Comment,
-										ParseReference(x.Comment)
-										);
+					return MapActivity(x, assets);
 				}).ToList()
 				);
 		}
 
-		public static Model.MarketData MapMarketDataInfo(Contract.MarketData marketData)
+		public static Model.Activity MapActivity(Contract.Activity x, ConcurrentDictionary<string, Asset> assets)
 		{
-			return new Model.MarketData(marketData.Symbol, marketData.DataSource, marketData.ActivitiesCount, string.Empty);
+			var asset = assets.GetOrAdd(x.SymbolProfile.Symbol, (y) => ParseSymbolProfile(x.SymbolProfile));
+			return new Model.Activity(
+								ParseType(x.Type),
+								asset,
+								x.Date,
+								x.Quantity,
+								new Money(asset.Currency, x.UnitPrice, x.Date),
+								new Money(asset.Currency, x.Fee, x.Date),
+								x.Comment,
+								ParseReference(x.Comment)
+								);
+		}
+
+		public static Model.MarketData MapMarketData(Contract.MarketData marketData)
+		{
+			return new Model.MarketData(marketData.Symbol, marketData.DataSource, marketData.MarketPrice, marketData.Date);
 		}
 
 		public static Model.Asset ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
@@ -47,17 +53,21 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				symbolProfile.AssetClass);
 		}
 
-		public static Model.MarketData MapMarketData(MarketDataList? market)
+		public static Model.MarketDataList MapMarketDataList(Contract.MarketDataList? market)
 		{
 			string? trackinsight = null;
 			market.AssetProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out trackinsight);
-			return new Model.MarketData
-			(
-				market.AssetProfile.Symbol,
-				market.AssetProfile.DataSource,
-				market.AssetProfile.ActivitiesCount,
-				trackinsight ?? string.Empty
-			);
+			return new Model.MarketDataList()
+			{
+				AssetProfile = new SymbolProfile
+				{
+					Currency = CurrencyHelper.ParseCurrency("EUR"),
+					DataSource = market.AssetProfile.DataSource,
+					Symbol = market.AssetProfile.Symbol,
+					ActivitiesCount = market.AssetProfile.ActivitiesCount,
+				},
+				MarketData = market.MarketData.Select(x => MapMarketData(x)).ToList()
+			};
 		}
 
 		private static Model.ActivityType ParseType(Contract.ActivityType type)

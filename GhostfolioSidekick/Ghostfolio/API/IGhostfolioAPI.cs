@@ -14,14 +14,18 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		Task UpdateAccount(Account account);
 
-		Task<IEnumerable<MarketData>> GetMarketDataInfo();
+		Task<IEnumerable<MarketDataList>> GetMarketData();
 
-		Task<MarketData> GetMarketData(MarketData marketDataInfo);
+		Task<MarketDataList> GetMarketData(string symbol, string dataSource);
 
-		Task UpdateMarketData(MarketData marketData);
+		Task UpdateMarketData(SymbolProfile marketData);
 
-		Task DeleteSymbol(MarketData marketData);
+		Task DeleteSymbol(SymbolProfile marketData);
 
 		Task CreateManualSymbol(Asset asset);
+
+		Task<IEnumerable<Activity>> GetAllActivities();
+
+		Task SetMarketPrice(SymbolProfile assetProfile, Money money);
 	}
 }

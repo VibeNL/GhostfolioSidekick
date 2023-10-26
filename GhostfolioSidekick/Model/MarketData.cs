@@ -2,20 +2,20 @@
 {
 	public class MarketData
 	{
-		public MarketData(string symbol, string dataSource, int activitiesCount, string trackinsight)
+		public MarketData(string symbol, string dataSource, decimal marketPrice, DateTime date)
 		{
 			Symbol = symbol;
 			DataSource = dataSource;
-			ActivitiesCount = activitiesCount;
-			Mappings.TrackInsight = trackinsight;
+			MarketPrice = marketPrice;
+			Date = date;
 		}
-
-		public int ActivitiesCount { get; set; }
-
-		public MarketDataMappings Mappings { get; private set; } = new MarketDataMappings();
 
 		public string Symbol { get; set; }
 
 		public string DataSource { get; set; }
+
+		public decimal MarketPrice { get; }
+
+		public DateTime Date { get; }
 	}
 }
