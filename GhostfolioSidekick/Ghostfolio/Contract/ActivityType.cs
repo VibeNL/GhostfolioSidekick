@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Ghostfolio.API.Contract
+﻿namespace GhostfolioSidekick.Ghostfolio.Contract
 {
     public enum ActivityType
     {

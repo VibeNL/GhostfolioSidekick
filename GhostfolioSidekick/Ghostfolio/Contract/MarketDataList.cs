@@ -1,6 +1,6 @@
-﻿namespace GhostfolioSidekick.Ghostfolio.API.Contract
+﻿namespace GhostfolioSidekick.Ghostfolio.Contract
 {
-	public class Market
+	public class MarketDataList
 	{
 		public List<MarketData> MarketData { get; set; }
 

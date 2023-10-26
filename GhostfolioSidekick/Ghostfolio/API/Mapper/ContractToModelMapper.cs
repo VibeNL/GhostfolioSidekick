@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Ghostfolio.API.Contract;
+﻿using GhostfolioSidekick.Ghostfolio.Contract;
 using GhostfolioSidekick.Model;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 {
 	internal static class ContractToModelMapper
 	{
-		public static Model.Account MapActivity(Contract.Account rawAccount, RawActivity[] rawOrders, ConcurrentDictionary<string, Model.Asset> assets)
+		public static Model.Account MapActivity(Contract.Account rawAccount, Contract.Activity[] rawOrders, ConcurrentDictionary<string, Model.Asset> assets)
 		{
 			return new Model.Account(
 				rawAccount.Id,
@@ -30,24 +30,12 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				);
 		}
 
-		public static Model.MarketData MapMarketDataInfo(MarketDataInfo marketDataInfo)
+		public static Model.MarketData MapMarketDataInfo(Contract.MarketData marketData)
 		{
-			return new Model.MarketData(marketDataInfo.Symbol, marketDataInfo.DataSource, marketDataInfo.ActivitiesCount, string.Empty);
+			return new Model.MarketData(marketData.Symbol, marketData.DataSource, marketData.ActivitiesCount, string.Empty);
 		}
 
-		private static Model.Asset ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
-		{
-			return new Model.Asset(
-				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
-				symbolProfile.Symbol,
-				symbolProfile.ISIN,
-				symbolProfile.Name,
-				symbolProfile.DataSource,
-				symbolProfile.AssetSubClass,
-				symbolProfile.AssetClass);
-		}
-
-		public static Model.Asset ParseSymbolProfile(Contract.Asset symbolProfile)
+		public static Model.Asset ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
 			return new Model.Asset(
 				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
@@ -59,7 +47,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				symbolProfile.AssetClass);
 		}
 
-		public static Model.MarketData MapMarketData(Market? market)
+		public static Model.MarketData MapMarketData(MarketDataList? market)
 		{
 			string? trackinsight = null;
 			market.AssetProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out trackinsight);

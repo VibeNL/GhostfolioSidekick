@@ -51,9 +51,10 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				var marketData = await api.GetMarketData(marketDataInfo);
 
-				if (marketData.Mappings.TrackInsight != symbolConfiguration.TrackingInsightSymbol)
+				string trackingInsightSymbol = symbolConfiguration.TrackingInsightSymbol ?? string.Empty;
+				if (marketData.Mappings.TrackInsight != trackingInsightSymbol)
 				{
-					marketData.Mappings.TrackInsight = symbolConfiguration.TrackingInsightSymbol;
+					marketData.Mappings.TrackInsight = trackingInsightSymbol;
 					await api.UpdateMarketData(marketData);
 				}
 			}

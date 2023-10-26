@@ -1,10 +1,12 @@
-﻿namespace GhostfolioSidekick.Ghostfolio.API.Contract
+﻿namespace GhostfolioSidekick.Ghostfolio.Contract
 {
 	public class Activity
 	{
+		public string Id { get; set; }
+
 		public string AccountId { get; set; }
 
-		public Asset Asset { get; set; }
+		public SymbolProfile SymbolProfile { get; set; }
 
 		public string Comment { get; set; }
 
@@ -24,5 +26,6 @@
 
 		// Internal use
 		public string ReferenceCode { get; set; }
+
 	}
 }

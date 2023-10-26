@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Ghostfolio.API.Contract;
+﻿using GhostfolioSidekick.Ghostfolio.Contract;
 
 namespace GhostfolioSidekick.Ghostfolio.API
 {
@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			Order2 = null;
 		}
 
-		public MergeOrder(Operation operation, Activity order1, RawActivity? order2) : this(operation, order1)
+		public MergeOrder(Operation operation, Activity order1, Activity? order2) : this(operation, order1)
 		{
 			Order2 = order2;
 		}
@@ -20,6 +20,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public Activity Order1 { get; }
 
-		public RawActivity? Order2 { get; }
+		public Activity? Order2 { get; }
 	}
 }
