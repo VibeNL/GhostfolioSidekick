@@ -148,11 +148,22 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var sourceCurrency = mapper.MapCurrency(money.Currency.Symbol);
 
-			var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short());
+			decimal rate = 1;
+			try
+			{
+				var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
 
-			dynamic stuff = JsonConvert.DeserializeObject(content);
-			var token = stuff.marketPrice.ToString();
-			var rate = (decimal)decimal.Parse(token);
+				if (content != null)
+				{
+					dynamic stuff = JsonConvert.DeserializeObject(content);
+					var token = stuff.marketPrice.ToString();
+					rate = (decimal)decimal.Parse(token);
+				}
+			}
+			catch
+			{
+				logger.LogWarning($"Exchange rate not found for {sourceCurrency}-{targetCurrency.Symbol} on {date}. Assuming rate of 1");
+			}
 
 			if (rate == 1)
 			{
