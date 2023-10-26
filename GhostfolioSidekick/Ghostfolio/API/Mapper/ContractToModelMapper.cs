@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 {
-	internal class ContractToModelMapper
+	internal static class ContractToModelMapper
 	{
-		public static Model.Account MapActivity(Contract.Account? rawAccount, RawActivity[] rawOrders, ConcurrentDictionary<string, Model.Asset> assets)
+		public static Model.Account MapActivity(Contract.Account rawAccount, RawActivity[] rawOrders, ConcurrentDictionary<string, Model.Asset> assets)
 		{
 			return new Model.Account(
 				rawAccount.Id,
@@ -30,14 +30,9 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				);
 		}
 
-		public static Model.MarketDataInfo MapMarketDataInfo(Contract.MarketDataInfo marketDataInfo)
+		public static Model.MarketData MapMarketDataInfo(MarketDataInfo marketDataInfo)
 		{
-			return new Model.MarketDataInfo
-			{
-				ActivitiesCount = marketDataInfo.ActivitiesCount,
-				DataSource = marketDataInfo.DataSource,
-				Symbol = marketDataInfo.Symbol,
-			};
+			return new Model.MarketData(marketDataInfo.Symbol, marketDataInfo.DataSource, marketDataInfo.ActivitiesCount, string.Empty);
 		}
 
 		private static Model.Asset ParseSymbolProfile(Contract.SymbolProfile symbolProfile)

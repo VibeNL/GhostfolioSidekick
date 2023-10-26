@@ -184,7 +184,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
-		public async Task<IEnumerable<Model.MarketDataInfo>> GetMarketDataInfo()
+		public async Task<IEnumerable<Model.MarketData>> GetMarketDataInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<MarketDataInfoList>(content);
@@ -194,7 +194,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol)).Select(x => ContractToModelMapper.MapMarketDataInfo(x));
 		}
 
-		public async Task DeleteSymbol(Model.MarketDataInfo marketData)
+		public async Task DeleteSymbol(Model.MarketData marketData)
 		{
 			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}");
 			if (!r.IsSuccessStatusCode)
@@ -228,7 +228,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Created symbol {asset.Symbol}");
 		}
 
-		public async Task<Model.MarketData> GetMarketData(Model.MarketDataInfo marketDataInfo)
+		public async Task<Model.MarketData> GetMarketData(Model.MarketData marketDataInfo)
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{marketDataInfo.DataSource}/{marketDataInfo.Symbol}", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Market>(content);
