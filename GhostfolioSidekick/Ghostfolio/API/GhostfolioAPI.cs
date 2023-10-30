@@ -230,7 +230,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				["isin"] = asset.ISIN,
 				["name"] = asset.Name,
 				["assetClass"] = asset.AssetClass?.ToString(),
-				["assetSubClass"] = asset.AssetSubClass.ToString(),
+				["assetSubClass"] = asset.AssetSubClass?.ToString(),
 				["currency"] = asset.Currency.Symbol,
 				["datasource"] = asset.DataSource
 			};
