@@ -124,7 +124,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(asset.Currency, marketData.MarketPrice, date);
 		}
 
-		public async Task<Asset?> FindSymbolByIdentifier(string? identifier, Func<IEnumerable<Asset>, Asset?> selector)
+		public async Task<Asset?> FindSymbolByIdentifier(
+			string? identifier,
+			Currency? expectedCurrency,
+			AssetClass?[] expectedAssetClass,
+			AssetSubClass?[] expectedAssetSubClass)
 		{
 			if (identifier == null)
 			{
@@ -143,44 +147,21 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var assets = symbolProfileList.Items.Select(x => ContractToModelMapper.ParseSymbolProfile(x));
 
-			Asset? filteredAsset;
-			if (selector == null)
-			{
-				filteredAsset = DefaultSelector(assets);
-				AddToCache(identifier, filteredAsset, memoryCache);
-				return LogIfEmpty(filteredAsset, mappedIdentifier);
-			}
-
-			filteredAsset = selector(assets);
+			var filteredAsset = assets
+				.OrderBy(x => x.ISIN == identifier ? 0 : 1)
+				.ThenBy(x => x.Symbol == identifier ? 0 : 1)
+				.ThenBy(x => x.Name == identifier ? 0 : 1)
+				.ThenBy(x => (expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? false) ? 0 : 1)
+				.ThenBy(x => (expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? false) ? 0 : 1)
+				.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
+				.ThenBy(x => x.Name.Length)
+				.FirstOrDefault();
 			AddToCache(identifier, filteredAsset, memoryCache);
 			return LogIfEmpty(filteredAsset, mappedIdentifier);
 
 			static void AddToCache(string identifier, Asset? asset, IMemoryCache cache)
 			{
 				cache.Set(identifier, asset, CacheDuration.Long());
-			}
-
-			static Asset? DefaultSelector(IEnumerable<Asset> assets)
-			{
-				var asset = assets.OrderBy(x => CurrencyToNumber(x.Currency)).OrderBy(x => x.Name.Length).FirstOrDefault();
-				return asset;
-			}
-
-			static int CurrencyToNumber(Currency currency)
-			{
-				// TODO: Make it more general
-				switch (currency.Symbol)
-				{
-					case "EUR":
-						return 1;
-					case "USD":
-						return 2;
-					case "GBP":
-					case "GBp":
-						return 3;
-					default:
-						return int.MaxValue;
-				}
 			}
 		}
 
@@ -248,8 +229,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				["symbol"] = asset.Symbol,
 				["isin"] = asset.ISIN,
 				["name"] = asset.Name,
-				["assetClass"] = asset.AssetClass,
-				["assetSubClass"] = asset.AssetSubClass,
+				["assetClass"] = asset.AssetClass?.ToString(),
+				["assetSubClass"] = asset.AssetSubClass?.ToString(),
 				["currency"] = asset.Currency.Symbol,
 				["datasource"] = asset.DataSource
 			};
@@ -265,8 +246,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			o = new JObject
 			{
 				["name"] = asset.Name,
-				["assetClass"] = asset.AssetClass,
-				["assetSubClass"] = asset.AssetSubClass,
+				["assetClass"] = asset.AssetClass?.ToString(),
+				["assetSubClass"] = asset.AssetSubClass?.ToString(),
 				["comment"] = string.Empty,
 				["comment"] = string.Empty,
 				["scraperConfiguration"] = new JObject(),

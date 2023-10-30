@@ -4,7 +4,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public interface IGhostfolioAPI
 	{
-		Task<Asset?> FindSymbolByIdentifier(string? identifier, Func<IEnumerable<Asset>, Asset?> selector = null);
+		Task<Asset?> FindSymbolByIdentifier(
+			string? identifier,
+			Currency? expectedCurrency,
+			AssetClass?[] expectedAssetClass,
+			AssetSubClass?[] expectedAssetSubClass);
 
 		Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date);
 

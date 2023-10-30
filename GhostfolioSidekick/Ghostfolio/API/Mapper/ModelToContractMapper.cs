@@ -42,8 +42,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				SymbolProfile = new Contract.SymbolProfile
 				{
 					Symbol = activity.Asset.Symbol,
-					AssetClass = activity.Asset.AssetClass,
-					AssetSubClass = activity.Asset.AssetSubClass,
+					AssetClass = activity.Asset.AssetClass?.ToString(),
+					AssetSubClass = activity.Asset.AssetSubClass?.ToString(),
 					Currency = activity.Asset.Currency.Symbol,
 					DataSource = activity.Asset.DataSource,
 					Name = activity.Asset.Name

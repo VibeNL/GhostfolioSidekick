@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 			foreach (var record in wumRecords)
 			{
-				var order = await ConvertToOrder(record, rkkRecords);
+				var order = await ConvertToOrder(account.Balance.Currency, record, rkkRecords);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			foreach (var record in rkkRecords)
 			{
 				BaaderBankRKKRecord r = record.Value;
-				var order = await ConvertToOrder(r);
+				var order = await ConvertToOrder(account.Balance.Currency, r);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			return account;
 		}
 
-		private async Task<Activity?> ConvertToOrder(BaaderBankRKKRecord record)
+		private async Task<Activity?> ConvertToOrder(Currency expectedCurrency, BaaderBankRKKRecord record)
 		{
 			var orderType = GetOrderType(record);
 			if (orderType == null)
@@ -119,7 +119,11 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				return null;
 			}
 
-			var asset = await api.FindSymbolByIdentifier(record.Isin.Replace("ISIN ", string.Empty));
+			var asset = await api.FindSymbolByIdentifier(
+				record.Isin.Replace("ISIN ", string.Empty),
+				expectedCurrency,
+				new AssetClass?[] { AssetClass.EQUITY },
+				new AssetSubClass?[] { AssetSubClass.STOCK });
 
 			var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
 			var unitPrice = record.UnitPrice.GetValueOrDefault() / quantity;
@@ -136,9 +140,13 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				);
 		}
 
-		private async Task<Activity> ConvertToOrder(BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
+		private async Task<Activity> ConvertToOrder(Currency expectedCurrency, BaaderBankWUMRecord record, ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords)
 		{
-			var asset = await api.FindSymbolByIdentifier(record.Isin);
+			var asset = await api.FindSymbolByIdentifier(
+				record.Isin,
+				expectedCurrency,
+				new AssetClass?[] { AssetClass.EQUITY },
+				new AssetSubClass?[] { AssetSubClass.STOCK });
 
 			var fee = FindFeeRecord(rkkRecords, record.Reference);
 
