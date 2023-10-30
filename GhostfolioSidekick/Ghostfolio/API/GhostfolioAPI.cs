@@ -203,8 +203,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				["symbol"] = asset.Symbol,
 				["isin"] = asset.ISIN,
 				["name"] = asset.Name,
-				["assetclass"] = asset.AssetClass,
-				["assetsubclass"] = asset.AssetSubClass,
+				["assetClass"] = asset.AssetClass,
+				["assetSubClass"] = asset.AssetSubClass,
 				["currency"] = asset.Currency.Symbol,
 				["datasource"] = asset.DataSource
 			};
@@ -214,6 +214,32 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			if (!r.IsSuccessStatusCode)
 			{
 				throw new NotSupportedException($"Creation failed {asset.Symbol}");
+			}
+
+			// Set name and assetClass (BUG / Quirk Ghostfolio?)
+			o = new JObject
+			{
+				["name"] = asset.Name,
+				["assetClass"] = asset.AssetClass,
+				["assetSubClass"] = asset.AssetSubClass,
+				["comment"] = string.Empty,
+				["comment"] = string.Empty,
+				["scraperConfiguration"] = new JObject(),
+				["symbolMapping"] = new JObject()
+			};
+			res = o.ToString();
+
+			try
+			{
+				r = await restCall.DoPatch($"api/v1/admin/profile-data/{asset.DataSource}/{asset.Symbol}", res);
+				if (!r.IsSuccessStatusCode)
+				{
+					throw new NotSupportedException($"Creation failed on update {asset.Symbol}");
+				}
+			}
+			catch (Exception ex)
+			{
+				throw new NotSupportedException($"Creation failed on update {asset.Symbol}.");
 			}
 
 			logger.LogInformation($"Created symbol {asset.Symbol}");
