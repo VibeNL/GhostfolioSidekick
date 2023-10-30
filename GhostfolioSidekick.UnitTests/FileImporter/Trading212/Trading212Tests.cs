@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 98.906043667000M, new DateTime(2023, 08, 11, 21, 8, 18, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [EOF3219953148]",
+				Comment = "Transaction Reference: [EOF3219953148] (Details: asset US67066G1040)",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR, 0.02M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				Quantity = 0.0267001M,
@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			account.Activities.Should().BeEquivalentTo(new[] {
 			new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [EOF3219953148]",
+				Comment = "Transaction Reference: [EOF3219953148] (Details: asset US67066G1040)",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR,0.02M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				Quantity = 0.0267001M,
@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			},
 			new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [EOF3224031567]",
+				Comment = "Transaction Reference: [EOF3224031567] (Details: asset US67066G1040)",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.0026199M,
@@ -129,7 +129,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			// Assert
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [EOF3224031549]",
+				Comment = "Transaction Reference: [EOF3224031549] (Details: asset GB0007188757)",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR,0.07M, new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc)),
 				Quantity = 0.18625698M,
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.025583540000M, new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [Dividend_US0378331005_2023-08-17]",
+				Comment = "Transaction Reference: [Dividend_US0378331005_2023-08-17] (Details: asset US0378331005)",
 				Date = new DateTime(2023,08,17, 10,49,49, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.1279177000M,
@@ -188,7 +188,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			// Assert
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [EOF3224031549]",
+				Comment = "Transaction Reference: [EOF3224031549] (Details: asset GB0007188757)",
 				Date = new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.GBP,0.05M, new DateTime(2023,08,9, 15,25,8, DateTimeKind.Utc)),
 				Quantity = 0.18625698M,
@@ -222,7 +222,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 98.896043667000M, new DateTime(2023, 08, 7, 19, 56, 02, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [EOF3219953148]",
+				Comment = "Transaction Reference: [EOF3219953148] (Details: asset US67066G1040)",
 				Date = new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR,0.02M, new DateTime(2023,08,7, 19,56,2, DateTimeKind.Utc)),
 				Quantity = 0.0267001M,

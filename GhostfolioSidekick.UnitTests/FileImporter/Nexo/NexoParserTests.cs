@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			account.Activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset1,
-				Comment = "Transaction Reference: [NXTyPxhiopNL3]",
+				Comment = "Transaction Reference: [NXTyPxhiopNL3] (Details: asset USDC)",
 				Date = new DateTime(2023,8,25,14,44,46, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 161.90485771M,
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				ReferenceCode = "NXTyPxhiopNL3"
 			}, new Activity {
 				Asset = asset2,
-				Comment = "Transaction Reference: [NXTyVJeCwg6Og]",
+				Comment = "Transaction Reference: [NXTyVJeCwg6Og] (Details: asset BTC)",
 				Date = new DateTime(2023,8,26, 13,30,38, DateTimeKind.Utc),
 				Quantity = 0.00445142M,
 				ActivityType = ActivityType.Receive,
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			account.Activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset1,
-				Comment = "Transaction Reference: [NXTyPxhiopNL3]",
+				Comment = "Transaction Reference: [NXTyPxhiopNL3] (Details: asset USDC)",
 				Date = new DateTime(2023,8,25,14,44,46, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 161.90485771M,
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				ReferenceCode = "NXTyPxhiopNL3"
 			}, new Activity {
 				Asset = asset2,
-				Comment = "Transaction Reference: [NXTk6FBYyxOqH]",
+				Comment = "Transaction Reference: [NXTk6FBYyxOqH] (Details: asset BTC)",
 				Date = new DateTime(2023,08,25,16,43,55, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.00096332M,
@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				ReferenceCode = "NXTk6FBYyxOqH"
 			}, new Activity {
 				Asset = asset2,
-				Comment = "Transaction Reference: [NXTyVJeCwg6Og]",
+				Comment = "Transaction Reference: [NXTyVJeCwg6Og] (Details: asset BTC)",
 				Date = new DateTime(2023,8,26, 13,30,38, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.00445142M,
@@ -145,7 +145,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			account.Activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [NXT2yQdOutpLLE1Lz51xXt6uW]",
+				Comment = "Transaction Reference: [NXT2yQdOutpLLE1Lz51xXt6uW] (Details: asset BTC)",
 				Date = new DateTime(2023,10,12,10,44,32, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.00000040M,
@@ -155,7 +155,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			},
 			new Activity {
 				Asset = null,
-				Comment = "Transaction Reference: [NXT6asbYnZqniNoTss0nyuIxM]",
+				Comment = "Transaction Reference: [NXT6asbYnZqniNoTss0nyuIxM] (Details: asset EURX)",
 				Date = new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.06548358M,
@@ -189,7 +189,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			account.Activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset1,
-				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc]",
+				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc] (Details: asset USDC)",
 				Date = new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 200M,
@@ -199,7 +199,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			},
 			new Activity {
 				Asset = asset2,
-				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc_2]",
+				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc_2] (Details: asset BTC)",
 				Date = new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.00716057M,

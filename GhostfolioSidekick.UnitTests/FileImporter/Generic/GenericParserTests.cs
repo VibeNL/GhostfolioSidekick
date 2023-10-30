@@ -7,11 +7,11 @@ using Moq;
 
 namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 {
-	public class BunqParserTests
+	public class GenericParserTests
 	{
 		readonly Mock<IGhostfolioAPI> api;
 
-		public BunqParserTests()
+		public GenericParserTests()
 		{
 			api = new Mock<IGhostfolioAPI>();
 		}
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -12.123956333000M, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [Buy_US67066G1040_2023-08-07]",
+				Comment = "Transaction Reference: [Buy_US67066G1040_2023-08-07] (Details: asset US67066G1040)",
 				Date = new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.USD, 0.02M, new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc)),
 				Quantity = 0.0267001M,
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, 589.98M, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [Buy_US67066G1040_2023-08-07]",
+				Comment = "Transaction Reference: [Buy_US67066G1040_2023-08-07] (Details: asset US67066G1040)",
 				Date = new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.USD, 0.02M, new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc)),
 				Quantity = 4m,

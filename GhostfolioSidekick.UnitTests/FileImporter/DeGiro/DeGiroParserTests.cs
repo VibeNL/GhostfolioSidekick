@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 21.70M, new DateTime(2023, 07, 10, 17, 34, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b]",
+				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b] (Details: asset IE00B3XXRP09)",
 				Date = new DateTime(2023,07,6, 9, 39,0, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR, 1, new DateTime(2023,07,6, 9, 39,0, DateTimeKind.Utc)),
 				Quantity = 1,
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account.Activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset1,
-				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b]",
+				Comment = "Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b] (Details: asset IE00B3XXRP09)",
 				Date = new DateTime(2023,07,6,9,39,0, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR, 1, new DateTime(2023,07,6,9,39,0, DateTimeKind.Utc)),
 				Quantity = 1,
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				ReferenceCode = "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5b"
 			}, new Activity {
 				Asset = asset2,
-				Comment = "Transaction Reference: [67e39ca1-2f10-4f82-8365-1baad98c398f]",
+				Comment = "Transaction Reference: [67e39ca1-2f10-4f82-8365-1baad98c398f] (Details: asset NL0009690239)",
 				Date = new DateTime(2023,07,11, 9,33,0, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR, 1, new DateTime(2023,07,11, 9,33,0, DateTimeKind.Utc)),
 				Quantity = 29,
@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 24.39M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239]",
+				Comment = "Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239] (Details: asset NL0009690239)",
 				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 1,
@@ -165,7 +165,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 33.96M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239]",
+				Comment = "Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239] (Details: asset NL0009690239)",
 				Date = new DateTime(2023,09,14,6, 32,0, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 1,

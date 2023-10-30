@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			// Assert
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
+				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ] (Details: asset IE00077FRP95)",
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 5,
@@ -91,7 +91,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 696.85M, new DateTime(2023, 08, 2, 0, 0, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
-				Comment = "Transaction Reference: [WWEK 16100100]",
+				Comment = "Transaction Reference: [WWEK 16100100] (Details: asset ISIN US92343V1044)",
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 14,
@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			account.Activities.Should().BeEquivalentTo(new[] {
 			new Activity {
 				Asset = asset1,
-				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
+				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ] (Details: asset IE00077FRP95)",
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR, 0.99M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
 				Quantity = 5,
@@ -136,7 +136,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			},
 			new Activity {
 				Asset = asset2,
-				Comment = "Transaction Reference: [WWEK 16100100]",
+				Comment = "Transaction Reference: [WWEK 16100100] (Details: asset ISIN US92343V1044)",
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
 				Fee =  null,
 				Quantity = 14,
@@ -172,7 +172,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			account.Activities.Should().BeEquivalentTo(new[] {
 			new Activity {
 				Asset = asset1,
-				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ]",
+				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ] (Details: asset IE00077FRP95)",
 				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
 				Fee = new Money(DefaultCurrency.EUR, 0.99M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
 				Quantity = 5,
@@ -182,7 +182,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			},
 			new Activity {
 				Asset = asset2,
-				Comment = "Transaction Reference: [WWEK 16100100]",
+				Comment = "Transaction Reference: [WWEK 16100100] (Details: asset ISIN US92343V1044)",
 				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 14,

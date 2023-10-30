@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			{
 				Asset = inputAsset,
 				Date = record.DateTime,
-				Comment = TransactionReferenceUtilities.GetComment(record.Transaction, inputAsset?.Symbol),
+				Comment = TransactionReferenceUtilities.GetComment(record.Transaction, record.InputCurrency),
 				Fee = null,
 				Quantity = Math.Abs(record.InputAmount),
 				ActivityType = ActivityType.Undefined,
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			{
 				Asset = outputAsset,
 				Date = record.DateTime,
-				Comment = TransactionReferenceUtilities.GetComment(refCode, outputAsset?.Symbol),
+				Comment = TransactionReferenceUtilities.GetComment(refCode, record.OutputCurrency),
 				Fee = null,
 				Quantity = Math.Abs(record.OutputAmount),
 				ActivityType = ActivityType.Undefined,
@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					return new[] { SetActivity(outputActivity, ActivityType.Receive) };
 				case "ExchangeDepositedOn":
 				case "Exchange":
-					return HandleConversion(inputActivity, outputActivity);
+					return HandleConversion(inputActivity, outputActivity, record);
 				case "Interest":
 				case "FixedTermInterest":
 				// return new[] { SetActivity(outputActivity, ActivityType.Interest) }; // Staking rewards are not yet supported
@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			return outputActivity;
 		}
 
-		private IEnumerable<Activity> HandleConversion(Activity inputActivity, Activity outputActivity)
+		private IEnumerable<Activity> HandleConversion(Activity inputActivity, Activity outputActivity, NexoRecord record)
 		{
 			var inFiatCoin = inputActivity.Asset == null && fiatCoin.Any(x => x.Symbol == inputActivity.UnitPrice.Currency.Symbol);
 			var outFiatCoin = outputActivity.Asset == null && fiatCoin.Any(x => x.Symbol == outputActivity.UnitPrice.Currency.Symbol);
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			else
 			{
 				outputActivity.ReferenceCode += "_2";
-				outputActivity.Comment = $"Transaction Reference: [{outputActivity.ReferenceCode}]";
+				outputActivity.Comment = TransactionReferenceUtilities.GetComment(outputActivity.ReferenceCode, record.OutputCurrency);
 				inputActivity.ActivityType = ActivityType.Sell;
 				outputActivity.ActivityType = ActivityType.Buy;
 				return new[] { inputActivity, outputActivity };
