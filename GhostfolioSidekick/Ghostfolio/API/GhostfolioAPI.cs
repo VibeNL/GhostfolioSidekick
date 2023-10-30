@@ -246,7 +246,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			o = new JObject
 			{
 				["name"] = asset.Name,
-				["assetClass"] = asset.AssetClass.ToString(),
+				["assetClass"] = asset.AssetClass?.ToString(),
 				["assetSubClass"] = asset.AssetSubClass.ToString(),
 				["comment"] = string.Empty,
 				["comment"] = string.Empty,
