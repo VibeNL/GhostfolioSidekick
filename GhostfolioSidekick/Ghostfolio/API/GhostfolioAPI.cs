@@ -13,6 +13,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	public partial class GhostfolioAPI : IGhostfolioAPI
 	{
 		private readonly IApplicationSettings settings;
+		private readonly IMemoryCache memoryCache;
 		private ILogger<GhostfolioAPI> logger;
 		private readonly ModelToContractMapper modelToContractMapper;
 		private readonly SymbolMapper mapper;
@@ -34,6 +35,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			this.settings = settings;
+			this.memoryCache = memoryCache;
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			restCall = new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken);
 			modelToContractMapper = new ModelToContractMapper(new CurrentPriceCalculator(this));
@@ -107,7 +109,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<Money?> GetMarketPrice(Model.Asset asset, DateTime date)
+		public async Task<Money?> GetMarketPrice(Asset asset, DateTime date)
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
@@ -122,21 +124,64 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(asset.Currency, marketData.MarketPrice, date);
 		}
 
-		public async Task<Model.Asset?> FindSymbolByIdentifier(string? identifier, Func<IEnumerable<Model.Asset>, Model.Asset?> selector)
+		public async Task<Asset?> FindSymbolByIdentifier(string? identifier, Func<IEnumerable<Asset>, Asset?> selector)
 		{
-			identifier = mapper.MapSymbol(identifier);
+			if (identifier == null)
+			{
+				return null;
+			}
 
-			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.Long());
+			if (memoryCache.TryGetValue(identifier, out Asset? asset))
+			{
+				return asset;
+			}
+
+			var mappedIdentifier = mapper.MapSymbol(identifier);
+
+			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={mappedIdentifier.Trim()}", CacheDuration.Long());
 			var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
 
 			var assets = symbolProfileList.Items.Select(x => ContractToModelMapper.ParseSymbolProfile(x));
 
+			Asset? filteredAsset;
 			if (selector == null)
 			{
-				return LogIfEmpty(assets.FirstOrDefault(), identifier);
+				filteredAsset = DefaultSelector(assets);
+				AddToCache(identifier, filteredAsset, memoryCache);
+				return LogIfEmpty(filteredAsset, mappedIdentifier);
 			}
 
-			return LogIfEmpty(selector(assets), identifier);
+			filteredAsset = selector(assets);
+			AddToCache(identifier, filteredAsset, memoryCache);
+			return LogIfEmpty(filteredAsset, mappedIdentifier);
+
+			static void AddToCache(string identifier, Asset? asset, IMemoryCache cache)
+			{
+				cache.Set(identifier, asset, CacheDuration.Long());
+			}
+
+			static Asset? DefaultSelector(IEnumerable<Asset> assets)
+			{
+				var asset = assets.OrderBy(x => CurrencyToNumber(x.Currency)).OrderBy(x => x.Name.Length).FirstOrDefault();
+				return asset;
+			}
+
+			static int CurrencyToNumber(Currency currency)
+			{
+				// TODO: Make it more general
+				switch (currency.Symbol)
+				{
+					case "EUR":
+						return 1;
+					case "USD":
+						return 2;
+					case "GBP":
+					case "GBp":
+						return 3;
+					default:
+						return int.MaxValue;
+				}
+			}
 		}
 
 		public async Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date)
@@ -196,7 +241,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
 		}
 
-		public async Task CreateManualSymbol(Model.Asset asset)
+		public async Task CreateManualSymbol(Asset asset)
 		{
 			var o = new JObject
 			{
@@ -280,7 +325,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var content = await restCall.DoRestGet($"api/v1/order", CacheDuration.None());
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
 
-			var assets = new ConcurrentDictionary<string, Model.Asset>();
+			var assets = new ConcurrentDictionary<string, Asset>();
 			return existingActivities.Select(x => ContractToModelMapper.MapActivity(x, assets));
 		}
 
@@ -306,7 +351,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return JsonConvert.DeserializeObject<GenericInfo>(content);
 		}
 
-		private async Task WriteOrder(Ghostfolio.Contract.Activity activity)
+		private async Task WriteOrder(Contract.Activity activity)
 		{
 			if (activity.UnitPrice == 0 && activity.Quantity == 0)
 			{
@@ -369,7 +414,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			await restCall.DoRestPut($"api/v1/account/{account.Id}", res);
 		}
 
-		private async Task<string> ConvertToBody(Ghostfolio.Contract.Activity activity)
+		private async Task<string> ConvertToBody(Contract.Activity activity)
 		{
 			var o = new JObject();
 			o["accountId"] = activity.AccountId;
@@ -394,7 +439,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return res;
 		}
 
-		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Ghostfolio.Contract.Activity> ordersFromFiles, IEnumerable<Contract.Activity> existingOrders)
+		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Contract.Activity> ordersFromFiles, IEnumerable<Contract.Activity> existingOrders)
 		{
 			var pattern = @"Transaction Reference: \[(.*?)\]";
 
@@ -437,7 +482,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}).Union(existingOrdersWithMatchFlag.Where(x => !x.IsMatched).Select(x => new MergeOrder(Operation.Removed, null, x.Activity)));
 		}
 
-		private bool AreEquals(Ghostfolio.Contract.Activity fo, Contract.Activity eo)
+		private bool AreEquals(Contract.Activity fo, Contract.Activity eo)
 		{
 			return
 				(fo.SymbolProfile?.Symbol == eo.SymbolProfile?.Symbol || fo.Type == Ghostfolio.Contract.ActivityType.INTEREST) && // Interest create manual symbols
@@ -448,7 +493,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				fo.Date == eo.Date;
 		}
 
-		private Model.Asset? LogIfEmpty(Model.Asset? asset, string identifier)
+		private Asset? LogIfEmpty(Asset? asset, string identifier)
 		{
 			if (asset == null)
 			{
@@ -458,7 +503,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return asset;
 		}
 
-		private Ghostfolio.Contract.Activity Round(Ghostfolio.Contract.Activity activity)
+		private Contract.Activity Round(Contract.Activity activity)
 		{
 			decimal Round(decimal? value)
 			{

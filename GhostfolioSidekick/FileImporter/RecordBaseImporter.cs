@@ -9,8 +9,6 @@ namespace GhostfolioSidekick.FileImporter
 	{
 		protected readonly IGhostfolioAPI api;
 
-		private ParallelOptions parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 1 };
-
 		protected RecordBaseImporter(IGhostfolioAPI api)
 		{
 			this.api = api;
@@ -47,7 +45,7 @@ namespace GhostfolioSidekick.FileImporter
 			CsvConfiguration csvConfig = GetConfig();
 
 			var list = new ConcurrentDictionary<string, Model.Activity>();
-			await Parallel.ForEachAsync(filenames, parallelOptions, async (filename, c1) =>
+			foreach (var filename in filenames)
 			{
 				using var streamReader = GetStreamReader(filename);
 				using var csvReader = new CsvReader(streamReader, csvConfig);
@@ -55,7 +53,7 @@ namespace GhostfolioSidekick.FileImporter
 				csvReader.ReadHeader();
 				var records = csvReader.GetRecords<T>().ToList();
 
-				await Parallel.ForEachAsync(records, parallelOptions, async (record, c) =>
+				foreach (var record in records)
 				{
 					var orders = await ConvertOrders(record, account, records);
 
@@ -66,8 +64,8 @@ namespace GhostfolioSidekick.FileImporter
 							list.TryAdd(order.ReferenceCode, order);
 						}
 					}
-				});
-			});
+				};
+			};
 
 			SetActivitiesToAccount(account, list.Values);
 

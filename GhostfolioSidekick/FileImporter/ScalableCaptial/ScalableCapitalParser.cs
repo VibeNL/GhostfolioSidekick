@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
 			account.Balance.Empty();
 
-			Parallel.ForEach(filenames, filename =>
+			foreach (var filename in filenames)
 			{
 				CsvConfiguration csvConfig = GetConfig();
 
@@ -80,18 +80,18 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 						}
 					});
 				}
-			});
+			};
 
-			Parallel.ForEach(wumRecords, async record =>
+			foreach (var record in wumRecords)
 			{
 				var order = await ConvertToOrder(record, rkkRecords);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
 				}
-			});
+			};
 
-			Parallel.ForEach(rkkRecords, async record =>
+			foreach (var record in rkkRecords)
 			{
 				BaaderBankRKKRecord r = record.Value;
 				var order = await ConvertToOrder(r);
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				{
 					account.Balance.SetKnownBalance(new Money(r.Currency, r.UnitPrice.GetValueOrDefault(0), r.Date.ToDateTime(TimeOnly.MinValue)));
 				}
-			});
+			};
 
 			account.ReplaceActivities(list.Values);
 
