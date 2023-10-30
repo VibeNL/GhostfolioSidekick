@@ -145,13 +145,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		private async Task AddOrUpdateSymbol(SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration? manualSymbolConfiguration)
 		{
-			var symbol = await api.FindSymbolByIdentifier(symbolConfiguration.Symbol);
+			var symbol = await api.FindSymbolByIdentifier(
+				symbolConfiguration.Symbol,
+				null,
+				new AssetClass?[] { Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass) },
+				new AssetSubClass?[] { Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass) });
 			if (symbol == null)
 			{
 				await api.CreateManualSymbol(new Asset
 				{
-					AssetClass = manualSymbolConfiguration.AssetClass,
-					AssetSubClass = manualSymbolConfiguration.AssetSubClass,
+					AssetClass = Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass),
+					AssetSubClass = Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass),
 					Currency = CurrencyHelper.ParseCurrency(manualSymbolConfiguration.Currency),
 					DataSource = "MANUAL",
 					Name = manualSymbolConfiguration.Name,

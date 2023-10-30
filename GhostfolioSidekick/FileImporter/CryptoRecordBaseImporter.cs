@@ -20,27 +20,5 @@ namespace GhostfolioSidekick.FileImporter
 			var price = await api.GetMarketPrice(symbol, date);
 			return price;
 		}
-
-		protected Asset? ParseFindSymbolByISINResult(string assetName, string symbol, IEnumerable<Asset> assets)
-		{
-			var cryptoOnly = assets.Where(x => x.AssetSubClass == "CRYPTOCURRENCY");
-			var asset = cryptoOnly.FirstOrDefault(x => assetName == x.Name);
-			if (asset != null)
-			{
-				return asset;
-			}
-
-			asset = cryptoOnly.FirstOrDefault(x => symbol == x.Symbol);
-			if (asset != null)
-			{
-				return asset;
-			}
-
-			asset = cryptoOnly
-				.OrderBy(x => x.Symbol.Length)
-				.FirstOrDefault();
-
-			return asset;
-		}
 	}
 }

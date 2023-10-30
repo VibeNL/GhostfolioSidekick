@@ -49,8 +49,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				symbolProfile.ISIN,
 				symbolProfile.Name,
 				symbolProfile.DataSource,
-				symbolProfile.AssetSubClass,
-				symbolProfile.AssetClass);
+				Utilities.ParseEnum<AssetClass>(symbolProfile.AssetClass),
+				Utilities.ParseEnum<AssetSubClass>(symbolProfile.AssetSubClass));
 		}
 
 		public static Model.MarketDataList MapMarketDataList(Contract.MarketDataList? market)

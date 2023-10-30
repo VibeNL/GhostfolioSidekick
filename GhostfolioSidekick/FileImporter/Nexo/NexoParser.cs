@@ -65,8 +65,11 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					return null;
 				}
 
-				return await api.FindSymbolByIdentifier(assetName, x =>
-								ParseFindSymbolByISINResult(assetName, assetName, x));
+				return await api.FindSymbolByIdentifier(
+					assetName,
+					account.Balance.Currency,
+					new AssetClass?[] { AssetClass.CASH },
+					new AssetSubClass?[] { AssetSubClass.CRYPTOCURRENCY });
 			}
 		}
 
