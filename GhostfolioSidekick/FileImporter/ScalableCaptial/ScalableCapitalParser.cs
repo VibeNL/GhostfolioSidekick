@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				quantity,
 				new Money(record.Currency, unitPrice, record.Date.ToDateTime(TimeOnly.MinValue)),
 				null,
-				$"Transaction Reference: [{record.Reference}]",
+				TransactionReferenceUtilities.GetComment(record.Reference, record.Isin),
 				record.Reference
 				);
 		}
@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				Math.Abs(record.Quantity.GetValueOrDefault()),
 				new Money(record.Currency, record.UnitPrice.GetValueOrDefault(), record.Date.ToDateTime(record.Time)),
 				fee == null ? null : new Money(fee?.Currency ?? record.Currency, Math.Abs(fee?.UnitPrice ?? 0), record.Date.ToDateTime(record.Time)),
-				$"Transaction Reference: [{record.Reference}]",
+				TransactionReferenceUtilities.GetComment(record.Reference, record.Isin),
 				record.Reference
 				);
 		}

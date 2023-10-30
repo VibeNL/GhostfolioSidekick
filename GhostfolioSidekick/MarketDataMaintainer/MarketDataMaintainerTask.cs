@@ -134,7 +134,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 					var price = md.MarketData.FirstOrDefault(x => x.Date.Date == date.Date);
 
-					if (price?.MarketPrice != expectedPrice)
+					var diff = (price?.MarketPrice ?? 0) - expectedPrice;
+					if (Math.Abs(diff) >= 0.0000001M)
 					{
 						await api.SetMarketPrice(md.AssetProfile, new Money(fromActivity.UnitPrice.Currency, expectedPrice, date));
 					}

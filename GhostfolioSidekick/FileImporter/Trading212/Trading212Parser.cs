@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					1,
 					new Money(record.Currency == string.Empty ? record.CurrencyTotal : record.Currency, record.Total.GetValueOrDefault(0), record.Time),
 					fee.Fee == null ? null : new Money(fee.Currency, fee.Fee ?? 0, record.Time),
-					$"Transaction Reference: [{record.Id}]",
+					TransactionReferenceUtilities.GetComment(record.Id),
 					record.Id
 					);
 				return new[] { activity };
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					record.NumberOfShares.Value,
 					new Money(record.Currency, record.Price.Value, record.Time),
 					fee.Fee == null ? null : new Money(fee.Currency, fee.Fee ?? 0, record.Time),
-					$"Transaction Reference: [{record.Id}]",
+					TransactionReferenceUtilities.GetComment(record.Id, record.ISIN),
 					record.Id
 					);
 				return new[] { activity };

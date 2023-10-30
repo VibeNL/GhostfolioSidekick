@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					1,
 					new Model.Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0), record.Datum.ToDateTime(record.Tijd)),
 					null,
-					$"Transaction Reference: [{record.OrderId}]",
+					TransactionReferenceUtilities.GetComment(record.OrderId, record.ISIN),
 					record.OrderId);
 			}
 			else
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					GetQuantity(record),
 					new Model.Money(CurrencyHelper.ParseCurrency(record.Mutatie), GetUnitPrice(record), record.Datum.ToDateTime(record.Tijd)),
 					new Model.Money(CurrencyHelper.ParseCurrency(fee?.Item2 ?? record.Mutatie), Math.Abs(fee?.Item1 ?? 0), record.Datum.ToDateTime(record.Tijd)),
-					$"Transaction Reference: [{record.OrderId}]",
+					TransactionReferenceUtilities.GetComment(record.OrderId, record.ISIN),
 					record.OrderId);
 			}
 

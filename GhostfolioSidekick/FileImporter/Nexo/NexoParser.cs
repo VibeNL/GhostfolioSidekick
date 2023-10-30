@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			{
 				Asset = inputAsset,
 				Date = record.DateTime,
-				Comment = $"Transaction Reference: [{record.Transaction}]",
+				Comment = TransactionReferenceUtilities.GetComment(record.Transaction, inputAsset?.Symbol),
 				Fee = null,
 				Quantity = Math.Abs(record.InputAmount),
 				ActivityType = ActivityType.Undefined,
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			{
 				Asset = outputAsset,
 				Date = record.DateTime,
-				Comment = $"Transaction Reference: [{refCode}]",
+				Comment = TransactionReferenceUtilities.GetComment(refCode, outputAsset?.Symbol),
 				Fee = null,
 				Quantity = Math.Abs(record.OutputAmount),
 				ActivityType = ActivityType.Undefined,

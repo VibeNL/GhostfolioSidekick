@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 				1,
 				new Model.Money(CurrencyHelper.ParseCurrency("EUR"), Math.Abs(record.Amount), record.Date),
 				null,
-				$"Transaction Reference: [{id}]",
+				TransactionReferenceUtilities.GetComment(id),
 				id
 				);
 

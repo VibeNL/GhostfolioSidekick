@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.FileImporter.Generic
 				record.Quantity,
 				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.UnitPrice, record.Date),
 				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date),
-				$"Transaction Reference: [{record.Id}]",
+				TransactionReferenceUtilities.GetComment(record.Id, record.Symbol),
 				record.Id
 				);
 
