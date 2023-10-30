@@ -247,7 +247,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			{
 				["name"] = asset.Name,
 				["assetClass"] = asset.AssetClass?.ToString(),
-				["assetSubClass"] = asset.AssetSubClass.ToString(),
+				["assetSubClass"] = asset.AssetSubClass?.ToString(),
 				["comment"] = string.Empty,
 				["comment"] = string.Empty,
 				["scraperConfiguration"] = new JObject(),
