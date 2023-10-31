@@ -154,6 +154,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.ThenBy(x => (expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? false) ? 0 : 1)
 				.ThenBy(x => (expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? false) ? 0 : 1)
 				.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
+				.ThenBy(x => new[] { "EUR", "USD", "GBP" }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
 				.ThenBy(x => x.Name.Length)
 				.FirstOrDefault();
 			AddToCache(identifier, filteredAsset, memoryCache);
