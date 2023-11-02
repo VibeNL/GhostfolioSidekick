@@ -122,8 +122,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var asset = await api.FindSymbolByIdentifier(
 				record.Isin.Replace("ISIN ", string.Empty),
 				expectedCurrency,
-				new AssetClass?[] { AssetClass.EQUITY },
-				new AssetSubClass?[] { AssetSubClass.STOCK });
+				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
+				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses);
 
 			var quantity = decimal.Parse(record.Quantity.Replace("STK ", string.Empty), GetCultureForParsingNumbers());
 			var unitPrice = record.UnitPrice.GetValueOrDefault() / quantity;
@@ -145,8 +145,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var asset = await api.FindSymbolByIdentifier(
 				record.Isin,
 				expectedCurrency,
-				new AssetClass?[] { AssetClass.EQUITY },
-				new AssetSubClass?[] { AssetSubClass.STOCK });
+				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
+				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses);
 
 			var fee = FindFeeRecord(rkkRecords, record.Reference);
 

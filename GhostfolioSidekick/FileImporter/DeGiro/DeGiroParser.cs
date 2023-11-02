@@ -1,5 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -25,8 +26,8 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(
 				record.ISIN,
 				account.Balance.Currency,
-				new Model.AssetClass?[] { Model.AssetClass.EQUITY },
-				new Model.AssetSubClass?[] { Model.AssetSubClass.STOCK, Model.AssetSubClass.ETF }
+				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
+				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses
 			);
 			var fee = GetFee(record, allRecords);
 			var taxes = GetTaxes(record, allRecords);
