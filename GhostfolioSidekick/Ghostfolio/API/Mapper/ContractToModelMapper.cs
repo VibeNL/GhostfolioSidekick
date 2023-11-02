@@ -57,17 +57,20 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 		{
 			string? trackinsight = null;
 			market.AssetProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out trackinsight);
-			return new Model.MarketDataList()
+			var mdl = new Model.MarketDataList()
 			{
 				AssetProfile = new SymbolProfile
 				{
 					Currency = CurrencyHelper.ParseCurrency("EUR"),
 					DataSource = market.AssetProfile.DataSource,
 					Symbol = market.AssetProfile.Symbol,
-					ActivitiesCount = market.AssetProfile.ActivitiesCount,
+					ActivitiesCount = market.AssetProfile.ActivitiesCount
 				},
 				MarketData = market.MarketData.Select(x => MapMarketData(x)).ToList()
 			};
+			mdl.AssetProfile.Mappings.TrackInsight = trackinsight;
+
+			return mdl;
 		}
 
 		private static Model.ActivityType ParseType(Contract.ActivityType type)

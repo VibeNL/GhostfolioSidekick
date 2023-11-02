@@ -298,7 +298,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				throw new NotSupportedException($"Deletion failed {marketData.Symbol}");
 			}
 
-			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
+			logger.LogInformation($"Updated symbol {marketData.Symbol}");
 
 		}
 

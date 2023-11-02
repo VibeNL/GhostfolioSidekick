@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.FileImporter.Generic
 		{
 			var asset = string.IsNullOrWhiteSpace(record.Symbol) ? null : await api.FindSymbolByIdentifier(
 				record.Symbol,
-				account.Balance.Currency,
+				CurrencyHelper.ParseCurrency(record.Currency) ?? account.Balance.Currency,
 				null,
 				null);
 

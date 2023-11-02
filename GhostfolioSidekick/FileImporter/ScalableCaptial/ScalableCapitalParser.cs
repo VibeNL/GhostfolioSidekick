@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 			foreach (var record in wumRecords)
 			{
-				var order = await ConvertToOrder(account.Balance.Currency, record, rkkRecords);
+				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Currency) ?? account.Balance.Currency, record, rkkRecords);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			foreach (var record in rkkRecords)
 			{
 				BaaderBankRKKRecord r = record.Value;
-				var order = await ConvertToOrder(account.Balance.Currency, r);
+				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Value.Currency) ?? account.Balance.Currency, r);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
