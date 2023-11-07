@@ -63,6 +63,18 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					TransactionReferenceUtilities.GetComment(record.OrderId, record.ISIN),
 					record.OrderId);
 			}
+            else if (activityType == Model.ActivityType.Sell)
+            {
+                activity = new Model.Activity(
+                    activityType.Value,
+                    asset,
+                    record.Datum.ToDateTime(record.Tijd),
+                    1,
+                    new Model.Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0), record.Datum.ToDateTime(record.Tijd)),
+                    null,
+                    TransactionReferenceUtilities.GetComment(record.OrderId, record.ISIN),
+                    record.OrderId);
+            }
 			else
 			{
 				activity = new Model.Activity(
@@ -121,6 +133,11 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				return Model.ActivityType.Buy;
 			}
 
+            if (record.Omschrijving.Contains("Verkoop"))
+            {
+                return Model.ActivityType.Sell;
+            }
+
 			if (record.Omschrijving.Equals("Dividend"))
 			{
 				return Model.ActivityType.Dividend;
@@ -145,17 +162,36 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private decimal GetQuantity(DeGiroRecord record)
-		{
-			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[1].Value;
+		private decimal GetQuantity(DeGiroRecord record, bool buy = true)
+        {
+            var quantity = "";
+            if (buy)
+            {
+			    quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*)").Groups[1].Value; // don't include currency here, it might be USD or other
+            }
+            else
+            {
+                quantity = Regex.Match(record.Omschrijving, $"Verkoop (?<amount>\\d+) @ (?<price>.*)").Groups[1].Value;
+            }
+
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		private decimal GetUnitPrice(DeGiroRecord record)
+		private decimal GetUnitPrice(DeGiroRecord record, bool buy = true)
 		{
-			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[2].Value;
+            var quantity = "";
+            if (buy)
+            {
+                quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*)").Groups[2].Value; // don't include currency here, it might be USD or other
+            }
+            else
+            {
+                quantity = Regex.Match(record.Omschrijving, $"Verkoop (?<amount>\\d+) @ (?<price>.*)").Groups[2].Value;
+            }
+
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
+
 
 		private CultureInfo GetCultureForParsingNumbers()
 		{
