@@ -153,7 +153,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
         {
             // oop is the same for both buy and sell or Koop and Verkoop in dutch
             // dont include currency at the end, this can be other things than EUR
-            var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>.*)").Groups[1].Value;
+            var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[1].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
@@ -162,7 +162,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
             // oop is the same for both buy and sell or Koop and Verkoop in dutch
             // dont include currency at the end, this can be other things than EUR
-            var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>.*)").Groups[2].Value;
+            var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
