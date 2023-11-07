@@ -62,18 +62,6 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					TransactionReferenceUtilities.GetComment(record.OrderId, record.ISIN),
 					record.OrderId);
 			}
-            else if (activityType == Model.ActivityType.Sell)
-            {
-                activity = new Model.Activity(
-                    activityType.Value,
-                    asset,
-                    record.Datum.ToDateTime(record.Tijd),
-                    1,
-                    new Model.Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0), record.Datum.ToDateTime(record.Tijd)),
-                    null,
-                    TransactionReferenceUtilities.GetComment(record.OrderId, record.ISIN),
-                    record.OrderId);
-            }
 			else
 			{
 				activity = new Model.Activity(
@@ -161,32 +149,20 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private decimal GetQuantity(DeGiroRecord record, bool buy = true)
+		private decimal GetQuantity(DeGiroRecord record)
         {
-            var quantity = "";
-            if (buy)
-            {
-			    quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*)").Groups[1].Value; // don't include currency here, it might be USD or other
-            }
-            else
-            {
-                quantity = Regex.Match(record.Omschrijving, $"Verkoop (?<amount>\\d+) @ (?<price>.*)").Groups[1].Value;
-            }
+            // oop is the same for both buy and sell or Koop and Verkoop in dutch
+            // dont include currency at the end, this can be other things than EUR
+            var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>.*)").Groups[1].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		private decimal GetUnitPrice(DeGiroRecord record, bool buy = true)
 		{
-            var quantity = "";
-            if (buy)
-            {
-                quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*)").Groups[2].Value; // don't include currency here, it might be USD or other
-            }
-            else
-            {
-                quantity = Regex.Match(record.Omschrijving, $"Verkoop (?<amount>\\d+) @ (?<price>.*)").Groups[2].Value;
-            }
+            // oop is the same for both buy and sell or Koop and Verkoop in dutch
+            // dont include currency at the end, this can be other things than EUR
+            var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>.*)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
