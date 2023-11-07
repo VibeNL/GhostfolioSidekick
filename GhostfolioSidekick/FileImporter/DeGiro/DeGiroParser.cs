@@ -13,8 +13,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		}
 
 		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(DeGiroRecord record, Model.Account account, IEnumerable<DeGiroRecord> allRecords)
-		{
-			// DEGiro always had the balance listed at the end of the row, just take the latest one
+        {
 			account.Balance.SetKnownBalance(new Model.Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
 
 			var activityType = GetActivityType(record);
