@@ -115,15 +115,15 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		private Model.ActivityType? GetActivityType(DeGiroRecord record)
 		{
+            if (record.Omschrijving.Contains("Verkoop")) // check Verkoop first because otherwise koop get's triggered
+            {
+                return Model.ActivityType.Sell;
+            }
+            
 			if (record.Omschrijving.Contains("Koop"))
 			{
 				return Model.ActivityType.Buy;
 			}
-
-            if (record.Omschrijving.Contains("Verkoop"))
-            {
-                return Model.ActivityType.Sell;
-            }
 
 			if (record.Omschrijving.Equals("Dividend"))
 			{
