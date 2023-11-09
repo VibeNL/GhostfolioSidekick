@@ -158,7 +158,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		private decimal GetUnitPrice(DeGiroRecord record, bool buy = true)
+		private decimal GetUnitPrice(DeGiroRecord record)
 		{
             // oop is the same for both buy and sell or Koop and Verkoop in dutch
             // dont include currency at the end, this can be other things than EUR
