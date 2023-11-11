@@ -240,6 +240,56 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleOrder_SplittedInSubOrders_Converted()
+		{
+			// Arrange
+			var parser = new DeGiroParser(api.Object);
+			var fixture = new Fixture();
+
+			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			api.Setup(x => x.FindSymbolByIdentifier("NL0011794037", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
+				It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name,
+				new[] { "./FileImporter/TestFiles/DeGiro/BuyOrders/singleorder_euro_splitted.csv" });
+
+			// Assert
+			account.Activities.Should().BeEquivalentTo(new[]
+			{
+				new Activity
+				{
+					Asset = asset,
+					Comment =
+						"Transaction Reference: [35d4345a-467c-42bd-848c-f6087737dd36] (Details: asset NL0011794037)",
+					Date = new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
+					Fee = new Money(DefaultCurrency.EUR, 3, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)),
+					Quantity = 34,
+					ActivityType = ActivityType.Buy,
+					UnitPrice = new Money(DefaultCurrency.EUR, 26.88M,
+						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)),
+					ReferenceCode = "35d4345a-467c-42bd-848c-f6087737dd36"
+				},
+				new Activity
+				{
+					Asset = asset,
+					Comment =
+						"Transaction Reference: [35d4345a-467c-42bd-848c-f6087737dd36 2] (Details: asset NL0011794037)",
+					Date = new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
+					Fee = new Money(DefaultCurrency.EUR, 0, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)),
+					Quantity = 4,
+					ActivityType = ActivityType.Buy,
+					UnitPrice = new Money(DefaultCurrency.EUR, 26.88M,
+						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)),
+					ReferenceCode = "35d4345a-467c-42bd-848c-f6087737dd36 2"
+				}
+			});
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFileMultipleOrders_Converted()
 		{
 			// Arrange
