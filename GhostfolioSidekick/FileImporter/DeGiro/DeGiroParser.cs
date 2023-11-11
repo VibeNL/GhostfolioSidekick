@@ -13,8 +13,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		}
 
 		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(DeGiroRecord record, Model.Account account, IEnumerable<DeGiroRecord> allRecords)
-		{
-			// DEGiro always had the balance listed at the end of the row, just take the latest one
+        {
 			account.Balance.SetKnownBalance(new Model.Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
 
 			var activityType = GetActivityType(record);
@@ -116,6 +115,11 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		private Model.ActivityType? GetActivityType(DeGiroRecord record)
 		{
+            if (record.Omschrijving.Contains("Verkoop")) // check Verkoop first because otherwise koop get's triggered
+            {
+                return Model.ActivityType.Sell;
+            }
+            
 			if (record.Omschrijving.Contains("Koop"))
 			{
 				return Model.ActivityType.Buy;
@@ -146,16 +150,23 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		}
 
 		private decimal GetQuantity(DeGiroRecord record)
-		{
-			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[1].Value;
+        {
+            // oop is the same for both buy and sell or Koop and Verkoop in dutch
+            // dont include currency at the end, this can be other things than EUR
+            var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[1].Value;
+
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		private decimal GetUnitPrice(DeGiroRecord record)
 		{
-			var quantity = Regex.Match(record.Omschrijving, $"Koop (?<amount>\\d+) @ (?<price>.*) EUR").Groups[2].Value;
+            // oop is the same for both buy and sell or Koop and Verkoop in dutch
+            // dont include currency at the end, this can be other things than EUR
+            var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[2].Value;
+
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
+
 
 		private CultureInfo GetCultureForParsingNumbers()
 		{
