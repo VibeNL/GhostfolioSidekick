@@ -41,6 +41,14 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		[Name("Currency (Stamp duty reserve tax)")]
 		public string FeeUKCurrency { get; set; }
 
+		[Optional]
+		[Name("French transaction tax")]
+		public decimal? FeeFrance { get; set; }
+
+		[Optional]
+		[Name("Currency (French transaction tax)")]
+		public string FeeFranceCurrency { get; set; }
+
 		public string Notes { get; set; }
 
 		[Name("ID")]
@@ -56,6 +64,8 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		[Name("Currency (Total)")]
 		public string CurrencyTotal { get; set; }
+
+
 	}
 
 	internal class ExchangeRateConverter : DefaultTypeConverter
