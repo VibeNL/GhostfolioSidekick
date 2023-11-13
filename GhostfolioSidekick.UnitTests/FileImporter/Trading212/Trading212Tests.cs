@@ -251,5 +251,34 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.00M, new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc)));
 			account.Activities.Should().BeEmpty();
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleOrderFrenchTaxes_Converted()
+		{
+			// Arrange
+			var parser = new Trading212Parser(api.Object);
+			var fixture = new Fixture();
+
+			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			api.Setup(x => x.FindSymbolByIdentifier("FR0010828137", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/BuyOrders/FrenchTaxes.csv" });
+
+			// Assert
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
+				Asset = asset,
+				Comment = "Transaction Reference: [EOF4500547227] (Details: asset FR0010828137)",
+				Date = new DateTime(2023,10,9, 14,28,20, DateTimeKind.Utc),
+				Fee = new Money(DefaultCurrency.EUR, 0.61M, new DateTime(2023,10,9, 14,28,20, DateTimeKind.Utc)),
+				Quantity = 14.7252730000M,
+				ActivityType =  ActivityType.Buy,
+				UnitPrice = new Money(DefaultCurrency.EUR,13.88M, new DateTime(2023,10,9, 14,28,20, DateTimeKind.Utc)),
+				ReferenceCode = "EOF4500547227"
+			} });
+		}
 	}
 }

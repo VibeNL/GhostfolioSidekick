@@ -1,0 +1,2 @@
+﻿Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Charge amount,Currency (Charge amount),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee),French transaction tax,Currency (French transaction tax)
+Market buy,2023-10-09 14:28:20,FR0010828137,CARM,"Carmila",14.7252730000,13.88,EUR,1.00000,,"EUR",205.00,"EUR",,,,,,,,EOF4500547227,,,0.61,"EUR"
