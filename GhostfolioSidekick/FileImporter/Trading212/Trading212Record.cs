@@ -26,10 +26,12 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		[Name("Currency (Price / share)")]
 		public string Currency { get; set; }
 
+		[Optional]
 		[Name("Exchange rate")]
 		[TypeConverter(typeof(ExchangeRateConverter))]
 		public decimal? ExchangeRate { get; set; }
 
+		[Optional]
 		[Name("Currency (Result)")]
 		public string CurrencySource { get; set; }
 
@@ -54,9 +56,11 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		[Name("ID")]
 		public string Id { get; set; }
 
+		[Optional]
 		[Name("Currency conversion fee")]
 		public decimal? ConversionFee { get; set; }
 
+		[Optional]
 		[Name("Currency (Currency conversion fee)")]
 		public string ConversionFeeCurrency { get; set; }
 
