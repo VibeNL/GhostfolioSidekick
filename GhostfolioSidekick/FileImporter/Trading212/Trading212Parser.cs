@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
-				record.Id = $"{activityType}_{record.ISIN}_{record.Time.ToString("yyyy-MM-dd")}";
+				record.Id = $"{activityType}_{record.ISIN}_{record.Time.ToInvariantDateOnlyString()}";
 			}
 
 			var fee = GetFee(record);

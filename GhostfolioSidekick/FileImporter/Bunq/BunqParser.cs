@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 		{
 			var activityType = GetActivityType(record);
 
-			var id = $"{activityType}{ConvertRowNumber(record, allRecords)}_{record.Date:yyyy-MM-dd}";
+			var id = $"{activityType}{ConvertRowNumber(record, allRecords)}_{record.Date.ToInvariantDateOnlyString()}";
 
 			var order = new Model.Activity(
 				activityType,

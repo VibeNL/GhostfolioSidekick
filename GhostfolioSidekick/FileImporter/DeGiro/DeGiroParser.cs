@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			if (string.IsNullOrWhiteSpace(record.OrderId))
 			{
-				record.OrderId = $"{activityType}_{record.Datum.ToString("dd-MM-yyyy")}_{record.Tijd}_{record.ISIN}";
+				record.OrderId = $"{activityType}_{record.Datum.ToInvariantString()}_{record.Tijd.ToInvariantString()}_{record.ISIN}";
 			}
 
 			Activity activity;
@@ -49,8 +49,8 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					1,
 					new Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault(), record.Datum.ToDateTime(record.Tijd)).Absolute(),
 					null,
-					$"Transaction Reference: [{activityType}{record.Datum}]",
-					$"{activityType}{record.Datum}"
+					$"Transaction Reference: [{activityType}{record.Datum.ToInvariantString()}]",
+					$"{activityType}{record.Datum.ToInvariantString()}"
 					);
 			}
 			else if (activityType == ActivityType.Dividend)

@@ -373,14 +373,14 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				{
 					Asset = asset,
 					Comment =
-						"Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239] (Details: asset NL0009690239)",
+						"Transaction Reference: [Dividend_2023-09-14_06:32_NL0009690239] (Details: asset NL0009690239)",
 					Date = new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
 					Fee = null,
 					Quantity = 1,
 					ActivityType = ActivityType.Dividend,
 					UnitPrice = new Money(DefaultCurrency.EUR, 8.13M,
 						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)),
-					ReferenceCode = "Dividend_14-09-2023_06:32_NL0009690239"
+					ReferenceCode = "Dividend_2023-09-14_06:32_NL0009690239"
 				}
 			});
 		}
@@ -412,14 +412,14 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				{
 					Asset = asset,
 					Comment =
-						"Transaction Reference: [Dividend_14-09-2023_06:32_NL0009690239] (Details: asset NL0009690239)",
+						"Transaction Reference: [Dividend_2023-09-14_06:32_NL0009690239] (Details: asset NL0009690239)",
 					Date = new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
 					Fee = null,
 					Quantity = 1,
 					ActivityType = ActivityType.Dividend,
 					UnitPrice = new Money(DefaultCurrency.EUR, 9.57M,
 						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)),
-					ReferenceCode = "Dividend_14-09-2023_06:32_NL0009690239"
+					ReferenceCode = "Dividend_2023-09-14_06:32_NL0009690239"
 				}
 			});
 		}
