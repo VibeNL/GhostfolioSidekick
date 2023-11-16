@@ -175,28 +175,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var sourceCurrency = mapper.MapCurrency(money.Currency.Symbol);
 
-			decimal rate = 1;
-			try
-			{
-				var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency}-{targetCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
-
-				if (content != null)
-				{
-					dynamic stuff = JsonConvert.DeserializeObject(content);
-					var token = stuff.marketPrice.ToString();
-					rate = (decimal)decimal.Parse(token);
-				}
-			}
-			catch
-			{
-				logger.LogWarning($"Exchange rate not found for {sourceCurrency}-{targetCurrency.Symbol} on {date}. Assuming rate of 1");
-			}
-
-			if (rate == 1)
-			{
-				return money;
-			}
-
+			decimal rate = await GetConversionRate(CurrencyHelper.ParseCurrency(sourceCurrency), targetCurrency, date);
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
@@ -503,6 +482,46 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private decimal GetBalance(Balance balance)
 		{
 			return balance.Current(new CurrentPriceCalculator(this)).Amount;
+		}
+
+		private async Task<decimal> GetConversionRate(Currency? sourceCurrency, Currency targetCurrency, DateTime date)
+		{
+			if (sourceCurrency == null)
+			{
+				return 1;
+			}
+
+			var pairTo = CurrencyHelper.GetKnownPairOfCurrencies(targetCurrency);
+			var pairFrom = CurrencyHelper.GetKnownPairOfCurrencies(sourceCurrency);
+
+			try
+			{
+				foreach (var fromCurrency in pairFrom)
+					foreach (var toCurrency in pairTo)
+					{
+						try
+						{
+							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
+							if (content != null)
+							{
+								dynamic stuff = JsonConvert.DeserializeObject(content);
+								var token = stuff.marketPrice.ToString();
+
+								var amount = pairFrom.CalculateRate(sourceCurrency, true) * pairTo.CalculateRate(targetCurrency, false);
+								return amount * ((decimal)decimal.Parse(token));
+							}
+						}
+						catch
+						{
+						}
+					}
+			}
+			catch
+			{
+				logger.LogWarning($"Exchange rate not found for {sourceCurrency}-{targetCurrency.Symbol} on {date}. Assuming rate of 1");
+			}
+
+			return 1;
 		}
 	}
 }
