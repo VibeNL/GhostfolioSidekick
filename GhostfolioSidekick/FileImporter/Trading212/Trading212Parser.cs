@@ -148,6 +148,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			return record.Action switch
 			{
 				"Deposit" => ActivityType.CashDeposit,
+   "Withdrawal" => ActivityType.CashWithdrawal,
 				"Interest on cash" => ActivityType.Interest,
 				"Currency conversion" => ActivityType.Convert,
 				"Market buy" => ActivityType.Buy,
