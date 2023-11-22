@@ -95,6 +95,9 @@
     <None Update="FileImporter\TestFiles\Trading212\BuyOrders\FrenchTaxes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\TestFileSingleWithdrawal.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\Trading212\Example7\TestFileCurrencyConversion.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
