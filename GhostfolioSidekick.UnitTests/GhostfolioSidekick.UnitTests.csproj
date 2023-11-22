@@ -62,19 +62,34 @@
     <None Update="FileImporter\TestFiles\Generic\BuyOrders\single_buy.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_cashback_fiat.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\Nexo\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Nexo\Example2\Example2.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Interest\single_interest_crypto.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Nexo\Example1\Example1.csv">
+    <None Update="FileImporter\TestFiles\Nexo\BuyOrders\single_buy.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Nexo\Example4\ExchangeCoins.csv">
+    <None Update="FileImporter\TestFiles\Nexo\BuyOrders\single_convert.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Nexo\Example3\Cashback.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_cashback_crypto.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_unlock_fix_term.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_referralbonus_approved.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_lock_fix_term.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_referralbonus_pending.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\ScalableCapital\Example2\RKKExample2.csv">
@@ -141,7 +156,6 @@
 
   <ItemGroup>
     <Folder Include="FileImporter\TestFiles\Generic\SellOrders\" />
-    <Folder Include="FileImporter\TestFiles\Nexo\BuyOrders\" />
     <Folder Include="FileImporter\TestFiles\Nexo\SellOrders\" />
     <Folder Include="Ghostfolio\" />
   </ItemGroup>
