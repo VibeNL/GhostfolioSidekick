@@ -41,22 +41,16 @@
     <None Update="FileImporter\TestFiles\Bunq\CashTransactions\multiple_deposits.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\singleorder_euro_splitted.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_buy_euro_multipart.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example2\TestFileMissingField.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example3\TestFileMultipleOrders.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\CashTransactions\single_dividend_notax.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example1\TestFileSingleOrder.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example5\TestFileDividendNoTax.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example4\TestFileDividend.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\CashTransactions\single_dividend.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\Generic\Example2\Example2.csv">
@@ -125,16 +119,16 @@
     <None Update="FileImporter\TestFiles\Trading212\Example4\TestFileSingleDividend.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_euro.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_buy_euro.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_usd.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_buy_usd.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_euro.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_sell_euro.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_usd.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_sell_usd.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
