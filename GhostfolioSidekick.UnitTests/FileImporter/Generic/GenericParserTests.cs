@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 		}
 
 		[Fact]
-		public async Task CanParseActivities_TestFileSingleOrder_True()
+		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange
 			var parser = new GenericParser(api.Object);

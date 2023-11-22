@@ -17,16 +17,38 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 		}
 
 		[Fact]
-		public async Task CanParseActivities_TestFileSingleOrder_True()
+		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange
 			var parser = new NexoParser(api.Object);
 
+			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/Nexo/", "*.csv", SearchOption.AllDirectories))
+			{
+				// Act
+				var canParse = await parser.CanParseActivities(new[] { file });
+
+				// Assert
+				canParse.Should().BeTrue($"File {file}  cannot be parsed");
+			}
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
+		{
+			// Arrange
+			var parser = new NexoParser(api.Object);
+			var fixture = new Fixture();
+
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+
 			// Act
-			var canParse = await parser.CanParseActivities(new[] { "./FileImporter/TestFiles/Nexo/Example1/Example1.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/CashTransactions/single_deposit.csv" });
 
 			// Assert
-			canParse.Should().BeTrue();
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 150, new DateTime(2023, 08, 25, 14, 44, 44, DateTimeKind.Utc)));
+			account.Activities.Should().BeEmpty();
 		}
 
 		[Fact]

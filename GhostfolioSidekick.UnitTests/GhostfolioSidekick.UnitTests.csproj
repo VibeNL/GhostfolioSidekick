@@ -62,6 +62,9 @@
     <None Update="FileImporter\TestFiles\Generic\BuyOrders\single_buy.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\Nexo\CashTransactions\single_deposit.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\Nexo\Example2\Example2.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -138,6 +141,8 @@
 
   <ItemGroup>
     <Folder Include="FileImporter\TestFiles\Generic\SellOrders\" />
+    <Folder Include="FileImporter\TestFiles\Nexo\BuyOrders\" />
+    <Folder Include="FileImporter\TestFiles\Nexo\SellOrders\" />
     <Folder Include="Ghostfolio\" />
   </ItemGroup>
 
