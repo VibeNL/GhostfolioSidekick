@@ -29,16 +29,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\SingleWithdrawal.csv">
+    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\single_withdrawal.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\SingleInterest.csv">
+    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\single_interest.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\SingleDeposit.csv">
+    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\MultipleDeposits.csv">
+    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\multiple_deposits.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\singleorder_euro_splitted.csv">

@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/SingleDeposit.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_deposit.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1000M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/SingleWithdrawal.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_withdrawal.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -100M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/SingleInterest.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_interest.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc)));
@@ -108,7 +108,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/MultipleDeposits.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/multiple_deposits.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 3000M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
