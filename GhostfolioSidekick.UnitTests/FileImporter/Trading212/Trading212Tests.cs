@@ -30,6 +30,24 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleWithdrawal_Converted()
+		{
+			// Arrange
+			var parser = new Trading212Parser(api.Object);
+			var fixture = new Fixture();
+
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/CashTransactions/TestFileSingleWithdrawal.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -1000, new DateTime(2023, 11, 17, 05, 49, 12, 337, DateTimeKind.Utc)));
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFileSingleOrder_Converted()
 		{
 			// Arrange

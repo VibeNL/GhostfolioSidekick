@@ -128,7 +128,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			{
 				return (record.ConversionFeeCurrency, record.ConversionFee);
 			}
-			
+
 			if (record.ConversionFee == null)
 			{
 				return taxes.Value;
@@ -137,7 +137,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			var t = taxes.Value;
 			if (t.Fee > 0 && t.Currency != record.ConversionFeeCurrency)
 			{
-				taxes = (record.ConversionFeeCurrency, api.GetConvertedPrice(new Money(t.Currency,t.Fee ?? 0, record.Time), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount);
+				taxes = (record.ConversionFeeCurrency, api.GetConvertedPrice(new Money(t.Currency, t.Fee ?? 0, record.Time), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount);
 			}
 
 			return (record.ConversionFeeCurrency, record.ConversionFee + taxes.Value.Fee);
@@ -148,6 +148,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			return record.Action switch
 			{
 				"Deposit" => ActivityType.CashDeposit,
+				"Withdrawal" => ActivityType.CashWithdrawal,
 				"Interest on cash" => ActivityType.Interest,
 				"Currency conversion" => ActivityType.Convert,
 				"Market buy" => ActivityType.Buy,
