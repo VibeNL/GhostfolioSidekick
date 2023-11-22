@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			api.Setup(x => x.FindSymbolByIdentifier("USDC", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset1);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/BuyORders/single_buy.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/BuyOrders/single_buy.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -161.9M, new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc)));
