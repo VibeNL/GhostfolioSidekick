@@ -200,7 +200,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			api.Setup(x => x.FindSymbolByIdentifier("GB0007188757", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/BuyOrders/single_buy_GBp.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Trading212/BuyOrders/single_buy_gbp.csv" });
 
 			// Assert
 			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
