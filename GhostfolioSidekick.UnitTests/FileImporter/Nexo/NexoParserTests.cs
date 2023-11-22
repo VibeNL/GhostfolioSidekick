@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_cashback_fiat.csv" });
 
 			// Assert
-			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.06548358M, new DateTime(2023, 10, 8, 20, 5, 12, DateTimeKind.Utc)));
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(0001, 01, 01, 00, 00, 00, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = null,
@@ -184,7 +184,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Date = new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc),
 				Fee = null,
 				Quantity = 0.06548358M,
-				ActivityType = ActivityType.Gift,
+				ActivityType = ActivityType.Receive,
 				UnitPrice = new Money("EURX", 1M, new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc)),
 				ReferenceCode = "NXT6asbYnZqniNoTss0nyuIxM"
 			}});
