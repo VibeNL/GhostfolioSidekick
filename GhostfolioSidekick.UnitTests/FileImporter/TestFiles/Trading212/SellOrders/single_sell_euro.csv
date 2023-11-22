@@ -1,0 +1,2 @@
+﻿Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Result,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Charge amount,Currency (Charge amount),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,Currency conversion fee,Currency (Currency conversion fee),French transaction tax,Currency (French transaction tax)
+Market sell,2023-10-09 14:26:43,US7561091049,O,"Realty Income",0.2534760000,50.38,USD,1.05528,-1.34,"EUR",12.08,"EUR",,,,,,,,EOF4500546889,0.02,"EUR",,

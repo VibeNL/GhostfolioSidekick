@@ -110,37 +110,31 @@
     <None Update="FileImporter\TestFiles\ScalableCapital\SellOrders\SingleSell\wum.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\FrenchTaxes.csv">
+    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\single_buy_euro_french_taxes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\TestFileSingleWithdrawal.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_interest.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example7\TestFileCurrencyConversion.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_withdrawal.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example6\TestFileSingleOrder3.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example6\TestFileSingleOrder2.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_convert_currencies.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example6\TestFileSingleOrder.csv">
+    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\single_buy_usd.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example2\TestFileMultipleOrdersUS.csv">
+    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\single_buy_euro_uk_taxes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example1\TestFileSingleOrder.csv">
+    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\single_buy_gbp.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example3\TestFileSingleOrderUK.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example5\TestFileSingleOrderUKNativeCurrency.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example4\TestFileSingleDividend.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_dividend.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_buy_euro.csv">
@@ -153,6 +147,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_sell_usd.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Trading212\SellOrders\single_sell_euro.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

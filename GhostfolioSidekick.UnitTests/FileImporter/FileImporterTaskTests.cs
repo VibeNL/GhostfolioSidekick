@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			// Assert
 			testImporter.Verify(x => x.ConvertActivitiesForAccount("DeGiro", It.Is<IEnumerable<string>>(y => y.Count() == 8)), Times.Once);
 			testImporter.Verify(x => x.ConvertActivitiesForAccount("ScalableCapital", It.Is<IEnumerable<string>>(y => y.Count() == 6)), Times.Once);
-			testImporter.Verify(x => x.ConvertActivitiesForAccount("Trading212", It.Is<IEnumerable<string>>(y => y.Count() == 11)), Times.Once);
+			testImporter.Verify(x => x.ConvertActivitiesForAccount("Trading212", It.Is<IEnumerable<string>>(y => y.Count() == 10)), Times.Once);
 		}
 	}
 }
