@@ -1,9 +1,0 @@
-"You can use this transaction report to inform your likely tax obligations. For US customers, Sells, Converts, Rewards Income, Learning Rewards, and Donations are taxable events. For final tax obligations, please consult your tax advisor."
-
-
-
-Transactions
-User,some@email.com,0000000000000000000000
-
-Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
-2023-08-19T17:23:39Z,Sell,BTC,0.00205323,EUR,24073.28,"","","",Sent 0.00205323 BTC to 39ADd6pNpeuwjcweLLS5JiJPFjNPJnf4xY
