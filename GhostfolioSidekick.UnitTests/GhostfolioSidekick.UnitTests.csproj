@@ -92,19 +92,22 @@
     <None Update="FileImporter\TestFiles\Nexo\Specials\single_referralbonus_pending.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example2\RKKExample2.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\BuyOrders\SingleBuy\rkk.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example2\RKKExample1.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\BuyOrders\SingleBuy\wum.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example2\WUMExample1.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\CashTransactions\single_dividend.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example1\RKKExample1.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\CashTransactions\single_known_saldo.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example1\WUMExample1.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\SellOrders\SingleSell\rkk.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\ScalableCapital\SellOrders\SingleSell\wum.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\Trading212\BuyOrders\FrenchTaxes.csv">
