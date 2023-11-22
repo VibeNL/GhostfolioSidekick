@@ -29,118 +29,134 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="FileImporter\TestFiles\Bunq\Example2\Example2.csv">
+    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\single_withdrawal.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Bunq\Example1\Example1.csv">
+    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\single_interest.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Coinbase\Example2\Example2.csv">
+    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Coinbase\Example1\Example1.csv">
+    <None Update="FileImporter\TestFiles\Bunq\CashTransactions\multiple_deposits.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\singleorder_euro_splitted.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_buy_euro_multipart.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example2\TestFileMissingField.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example3\TestFileMultipleOrders.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\CashTransactions\single_dividend_notax.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example1\TestFileSingleOrder.csv">
+    <None Update="FileImporter\TestFiles\DeGiro\CashTransactions\single_dividend.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example5\TestFileDividendNoTax.csv">
+    <None Update="FileImporter\TestFiles\Generic\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\Example4\TestFileDividend.csv">
+    <None Update="FileImporter\TestFiles\Generic\CashTransactions\single_withdrawal.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Generic\Example2\Example2.csv">
+    <None Update="FileImporter\TestFiles\Generic\BuyOrders\single_buy.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Generic\Example1\Example1.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_cashback_fiat.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Nexo\Example2\Example2.csv">
+    <None Update="FileImporter\TestFiles\Nexo\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Nexo\Example1\Example1.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Interest\single_interest_crypto.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Nexo\Example4\ExchangeCoins.csv">
+    <None Update="FileImporter\TestFiles\Nexo\BuyOrders\single_buy.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Nexo\Example3\Cashback.csv">
+    <None Update="FileImporter\TestFiles\Nexo\BuyOrders\single_convert.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example2\RKKExample2.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_cashback_crypto.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example2\RKKExample1.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_unlock_fix_term.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example2\WUMExample1.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_referralbonus_approved.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example1\RKKExample1.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_lock_fix_term.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\ScalableCapital\Example1\WUMExample1.csv">
+    <None Update="FileImporter\TestFiles\Nexo\Specials\single_referralbonus_pending.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\FrenchTaxes.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\BuyOrders\SingleBuy\rkk.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\TestFileSingleWithdrawal.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\BuyOrders\SingleBuy\wum.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example7\TestFileCurrencyConversion.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\CashTransactions\single_dividend.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example6\TestFileSingleOrder3.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\CashTransactions\single_known_saldo.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example6\TestFileSingleOrder2.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\SellOrders\SingleSell\rkk.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example6\TestFileSingleOrder.csv">
+    <None Update="FileImporter\TestFiles\ScalableCapital\SellOrders\SingleSell\wum.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example2\TestFileMultipleOrdersUS.csv">
+    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\single_buy_euro_french_taxes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example1\TestFileSingleOrder.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_interest.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example3\TestFileSingleOrderUK.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_withdrawal.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example5\TestFileSingleOrderUKNativeCurrency.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_deposit.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\Trading212\Example4\TestFileSingleDividend.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_convert_currencies.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_euro.csv">
+    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\single_buy_usd.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_usd.csv">
+    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\single_buy_euro_uk_taxes.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_euro.csv">
+    <None Update="FileImporter\TestFiles\Trading212\BuyOrders\single_buy_gbp.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_usd.csv">
+    <None Update="FileImporter\TestFiles\Trading212\CashTransactions\single_dividend.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_buy_euro.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\DeGiro\BuyOrders\single_buy_usd.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_sell_euro.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\DeGiro\SellOrders\single_sell_usd.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Trading212\SellOrders\single_sell_euro.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="FileImporter\TestFiles\Bunq\Example1\" />
+    <Folder Include="FileImporter\TestFiles\Generic\SellOrders\" />
+    <Folder Include="FileImporter\TestFiles\Nexo\SellOrders\" />
     <Folder Include="Ghostfolio\" />
   </ItemGroup>
 

@@ -1,0 +1,3 @@
+Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time
+NXTM6EtqQukSs,ExchangeDepositedOn,EUR,150.00000000,EURX,150.00000000,$162.20249359,"approved / EUR to EURX",2023-08-25 14:44:44
+NXTjmW5y307ah,DepositToExchange,EUR,150.00000000,EURX,150.00000000,$162.20249359,"approved / EUR Top Up",2023-08-25 14:44:44
