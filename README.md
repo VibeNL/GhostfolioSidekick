@@ -5,6 +5,9 @@ The program checks every hour if any new transactions are found and inserts them
 It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
 
 Additionally, for self-hosted instances, it can maintain symbols automatically.
+ - Set trackinsight property of symbols
+ - Create manual symbols
+ - Delete symbols that are no longer used
 
 ( more to come? Help is always welcome! )
 
