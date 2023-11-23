@@ -31,7 +31,6 @@ namespace ConsoleHelper
 			GhostfolioAPI api = new GhostfolioAPI(cs, memoryCache, logger);
 			IScheduledWork t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new BunqParser(api),
-				//new CoinbaseParser(api),
 				new DeGiroParser(api),
 				new GenericParser(api),
 				new NexoParser(api),
