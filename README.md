@@ -1,6 +1,13 @@
 # GhostfolioSidekick
 
-A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
+A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. 
+The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). 
+It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
+
+Additionally, for self-hosted instances, it can maintain symbols automatically.
+ - Set trackinsight property of symbols
+ - Create manual symbols
+ - Delete symbols that are no longer used
 
 ( more to come? Help is always welcome! )
 
@@ -29,7 +36,9 @@ For example:
 
 ### Configuration File
 A single json file csv file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio.
-Also allows overriding asset settings, like Trackinsight
+Also allows the following sybol settings
+  - Setting Trackinsight on symbols
+  - Adding / Updating Manual symbols 
 
 ```
 {
@@ -40,11 +49,40 @@ Also allows overriding asset settings, like Trackinsight
 	],
 	"symbols":[
 		{ "symbol": "VDUC.L", "trackinsight": "VUSC" },
-		{ "symbol": "VFEM.L", "trackinsight": "VDEM" }
+		{ "symbol": "VFEM.L", "trackinsight": "VDEM" },
+		{ "symbol": "DE0001102333", "manualSymbolConfiguration": { "currency":"EUR", "isin":"DE0001102333","name":"Bond Germany Feb 2024","assetSubClass":"BOND","assetClass":"EQUITY" } },
 	]
 }
 
 ```
+
+#### Mappings
+Change an identifier from the imported files to be compatible with Ghostfolio (for example certain symbols may not be found by Ghostfolio, so we can substituting the identifier with one that is recognized). 
+
+| Fieldname | Type | Description |
+|--|--|--|
+| type | one of: 'currency', 'symbol' | The type of mapping to be applied |
+| source | any string | the name of the symbol as it appears in the csv files |
+| target | any string | the name of the symbol to use within Ghostfolio |
+
+#### Symbols
+Maintaining symbols in ghostfolio
+
+| Fieldname | Type | Description |
+|--|--|--|
+| symbol | any string | The name of the symbol|
+| trackinsight | any string | The trackinsight key to be set |
+| manualSymbolConfiguration | ManualSymbolConfiguration | see ManualSymbolConfiguration. Will be created if it does not exists |
+
+##### ManualSymbolConfiguration
+
+| Fieldname | Type | Description |
+|--|--|--|
+| currency | any string | The currency of the symbol |
+| isin | any string | The ISIN to be set |
+| name | any string | The name of the symbol |
+| assetSubClass | one of: 'CRYPTOCURRENCY', 'ETF', 'STOCK', 'MUTUALFUND', 'BOND', 'COMMODITY', 'PRECIOUS_METAL', 'PRIVATE_EQUITY'| Same list as Ghostfolio |
+| assetClass | one of: 'CASH', 'COMMODITY', 'EQUITY', 'FIXED_INCOME', 'REAL_ESTATE' | Same list as Ghostfolio |
 
 ### Supported formats
 | Platform | Source of the files | Buy | Sell | Dividend | Interest & Cash balance |
