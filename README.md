@@ -58,7 +58,7 @@ Change an identifier from the imported files to be compatible with Ghostfolio (f
 
 | Fieldname | Type | Description |
 |--|--|--|
-| type | enum, 'currency' or 'symbol' | The type of mapping to be applied |
+| type | one of: 'currency', 'symbol' | The type of mapping to be applied |
 | source | any string | the name of the symbol as it appears in the csv files |
 | target | any string | the name of the symbol to use within Ghostfolio |
 
@@ -68,12 +68,18 @@ Maintaining symbols in ghostfolio
 | Fieldname | Type | Description |
 |--|--|--|
 | symbol | any string | The name of the symbol|
-| trackinsight | any string | the trackinsight key to be set |
-| manualSymbolConfiguration | ManualSymbolConfiguration | see ManualSymbolConfiguration |
+| trackinsight | any string | The trackinsight key to be set |
+| manualSymbolConfiguration | ManualSymbolConfiguration | see ManualSymbolConfiguration. Will be created if it does not exists |
 
 ##### ManualSymbolConfiguration
 
-
+| Fieldname | Type | Description |
+|--|--|--|
+| currency | any string | The currency of the symbol |
+| isin | any string | The ISIN to be set |
+| name | any string | The name of the symbol |
+| assetSubClass | one of: 'CRYPTOCURRENCY', 'ETF', 'STOCK', 'MUTUALFUND', 'BOND', 'COMMODITY', 'PRECIOUS_METAL', 'PRIVATE_EQUITY'| Same list as Ghostfolio |
+| assetClass | one of: 'CASH', 'COMMODITY', 'EQUITY', 'FIXED_INCOME', 'REAL_ESTATE' | Same list as Ghostfolio |
 
 ### Supported formats
 | Platform | Source of the files | Buy | Sell | Dividend | Interest & Cash balance |
