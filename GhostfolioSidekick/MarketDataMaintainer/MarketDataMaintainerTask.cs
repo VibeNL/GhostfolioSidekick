@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 
 			var md = await api.GetMarketData(mdi.AssetProfile.Symbol, mdi.AssetProfile.DataSource);
-			var activitiesForSymbol = activities.Where(x => x.Asset?.Symbol == mdi.AssetProfile.Symbol).ToList();
+			var activitiesForSymbol = activities.Where(x => x.Asset?.Symbol == mdi.AssetProfile.Symbol && IsBuyOrSell(x.ActivityType)).ToList();
 
 			if (!activitiesForSymbol.Any())
 			{
@@ -165,6 +165,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 
 			// TODO: update on difference???
+		}
+
+		private bool IsBuyOrSell(ActivityType activityType)
+		{
+			return activityType == ActivityType.Buy || activityType == ActivityType.Sell;
 		}
 	}
 }
