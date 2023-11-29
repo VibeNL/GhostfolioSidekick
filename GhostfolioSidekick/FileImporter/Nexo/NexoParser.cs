@@ -77,19 +77,20 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 			switch (record.Type)
 			{
+				case "Top up Crypto":
 				case "Exchange Cashback":
-				case "ReferralBonus": // TODO: Should be a 'reward'
+				case "Referral Bonus": // TODO: Should be a 'reward'
 				case "Deposit":
 					return new[] { SetActivity(outputActivity, ActivityType.Receive) };
-				case "ExchangeDepositedOn":
+				case "Exchange Deposited On":
 				case "Exchange":
 					return HandleConversion(inputActivity, outputActivity, record);
 				case "Interest":
-				case "FixedTermInterest":
+				case "Fixed Term Interest":
 				// return new[] { SetActivity(outputActivity, ActivityType.Interest) }; // Staking rewards are not yet supported
-				case "DepositToExchange":
-				case "LockingTermDeposit":
-				case "UnlockingTermDeposit":
+				case "Deposit To Exchange":
+				case "Locking Term Deposit":
+				case "Unlocking Term Deposit":
 					return Enumerable.Empty<Activity>();
 				default: throw new NotSupportedException($"{record.Type}");
 			}
