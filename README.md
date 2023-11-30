@@ -42,6 +42,12 @@ Also allows the following sybol settings
 
 ```
 {
+	"platforms":[
+		{ "name": "De Giro", "url":"https://www.degiro.nl/" }
+	],
+	"accounts":[
+		{ "name": "De Giro", "currency":"EUR", "platform":"De Giro" }
+	],
 	"mappings":[
 		{ "type":"currency", "source":"GBX", "target":"GBp"},
 		{ "type":"symbol", "source":"USDC", "target":"usd-coin"},
@@ -55,6 +61,11 @@ Also allows the following sybol settings
 }
 
 ```
+
+#### Platform and Account
+Creates platforms and accounts if not yet created
+
+Fields are identical to the UI
 
 #### Mappings
 Change an identifier from the imported files to be compatible with Ghostfolio (for example certain symbols may not be found by Ghostfolio, so we can substituting the identifier with one that is recognized). 
