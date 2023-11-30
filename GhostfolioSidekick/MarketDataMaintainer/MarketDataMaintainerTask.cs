@@ -13,6 +13,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private readonly ConfigurationInstance configurationInstance;
 		private int counter = -1;
 
+		public int Priority => 3;
+
 		public MarketDataMaintainerTask(
 			ILogger<FileImporterTask> logger,
 			IGhostfolioAPI api,

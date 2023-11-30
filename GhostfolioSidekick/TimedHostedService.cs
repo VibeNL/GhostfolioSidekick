@@ -41,7 +41,7 @@ namespace GhostfolioSidekick
 
 				isRunning = true;
 
-				foreach (var workItem in _workItems)
+				foreach (var workItem in _workItems.OrderBy(x => x.Priority))
 				{
 					try
 					{
