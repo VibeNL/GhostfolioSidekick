@@ -11,6 +11,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
 		private readonly ConfigurationInstance configurationInstance;
+		private int counter = -1;
 
 		public MarketDataMaintainerTask(
 			ILogger<FileImporterTask> logger,
@@ -34,7 +35,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			await DeleteUnusedSymbols();
 			await ManageManualSymbols();
 			await SetTrackingInsightOnSymbols();
-			await GatherAllData();
+
+			counter = (counter + 1) % 24; // HACK: once a day
+			if (counter == 0)
+			{
+				await GatherAllData();
+			}
 
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
 		}

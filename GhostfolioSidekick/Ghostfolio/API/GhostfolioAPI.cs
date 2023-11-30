@@ -382,7 +382,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task AddAndRemoveDummyCurrency()
 		{
-			// { 			"value": "[\"USD\",\" \"]" }
 			var o = new JObject
 			{
 				["value"] = "[\"USD\",\" \"]"
