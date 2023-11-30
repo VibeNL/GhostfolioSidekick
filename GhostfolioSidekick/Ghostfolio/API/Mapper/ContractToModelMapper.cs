@@ -102,5 +102,10 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			var key = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
 			return key;
 		}
+
+		internal static Platform? MapAccount(Contract.Platform rawPlatform)
+		{
+			return new Platform(rawPlatform.Id, rawPlatform.Name, rawPlatform.Url);
+		}
 	}
 }
