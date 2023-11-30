@@ -6,6 +6,12 @@ namespace GhostfolioSidekick.Configuration
 {
 	public class ConfigurationInstance
 	{
+		[JsonPropertyName("platforms")]
+		public PlatformConfiguration[] Platforms { get; set; }
+
+		[JsonPropertyName("accounts")]
+		public AccountConfiguration[] Accounts { get; set; }
+
 		[JsonPropertyName("mappings")]
 		public Mapping[] Mappings { get; set; }
 
