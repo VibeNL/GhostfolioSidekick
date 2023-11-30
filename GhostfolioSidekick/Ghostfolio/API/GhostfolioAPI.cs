@@ -380,6 +380,38 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Gathering requested");
 		}
 
+		public async Task AddAndRemoveDummyCurrency()
+		{
+			// { 			"value": "[\"USD\",\" \"]" }
+			var o = new JObject
+			{
+				["value"] = "[\"USD\",\" \"]"
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPut($"api/v1/admin/settings/CURRENCIES", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Inserting dummy currency failed");
+			}
+
+			logger.LogInformation($"Inserted dummy currency");
+
+			o = new JObject
+			{
+				["value"] = "[\"USD\"]"
+			};
+			res = o.ToString();
+
+			r = await restCall.DoRestPut($"api/v1/admin/settings/CURRENCIES", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Removing dummy currency failed");
+			}
+
+			logger.LogInformation($"Removed dummy currency");
+		}
+
 		private async Task<GenericInfo> GetInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());

@@ -41,6 +41,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		private async Task GatherAllData()
 		{
+			// Bug Ghostfolio: Currencies are not updated until a new one is added.
+			// Workaround: Adding and removing a dummy
+			await api.AddAndRemoveDummyCurrency();
 			await api.GatherAllMarktData();
 		}
 
