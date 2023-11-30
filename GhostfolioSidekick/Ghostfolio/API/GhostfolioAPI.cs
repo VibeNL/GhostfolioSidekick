@@ -364,6 +364,22 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Created account {account.Name}");
 		}
 
+		public async Task GatherAllMarktData()
+		{
+			var o = new JObject
+			{
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/admin/gather/max/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Gathering failed");
+			}
+
+			logger.LogInformation($"Gathering requested");
+		}
+
 		private async Task<GenericInfo> GetInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());

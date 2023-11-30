@@ -34,8 +34,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			await DeleteUnusedSymbols();
 			await ManageManualSymbols();
 			await SetTrackingInsightOnSymbols();
+			await GatherAllData();
 
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
+		}
+
+		private async Task GatherAllData()
+		{
+			await api.GatherAllMarktData();
 		}
 
 		private async Task SetTrackingInsightOnSymbols()
