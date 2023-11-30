@@ -11,6 +11,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private readonly IGhostfolioAPI api;
 		private readonly ConfigurationInstance configurationInstance;
 
+		public int Priority => 1;
+
 		public AccountMaintainerTask(
 			ILogger<FileImporterTask> logger,
 			IGhostfolioAPI api,

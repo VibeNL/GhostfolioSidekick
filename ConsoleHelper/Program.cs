@@ -29,21 +29,23 @@ namespace ConsoleHelper
 			var cs = new ApplicationSettings();
 			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
 			GhostfolioAPI api = new GhostfolioAPI(cs, memoryCache, logger);
-			IScheduledWork t;
-
-			t = new AccountMaintainerTask(logger, api, cs);
-			t.DoWork().Wait();
-			t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
+			var tasks = new IScheduledWork[]{
+			new AccountMaintainerTask(logger, api, cs),
+			new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new BunqParser(api),
 				new DeGiroParser(api),
 				new GenericParser(api),
 				new NexoParser(api),
 				new ScalableCapitalParser(api),
-				new Trading212Parser(api),
-			});
-			t.DoWork().Wait();
-			t = new MarketDataMaintainerTask(logger, api, cs);
-			t.DoWork().Wait();
+				new Trading212Parser(api)
+			}),
+			new MarketDataMaintainerTask(logger, api, cs)
+			};
+
+			foreach (var t in tasks.OrderBy(x => x.Priority))
+			{
+				t.DoWork().Wait();
+			}
 		}
 	}
 }

@@ -1,7 +1,9 @@
 ﻿namespace GhostfolioSidekick
 {
-    public interface IScheduledWork
-    {
-        Task DoWork();
-    }
+	public interface IScheduledWork
+	{
+		int Priority { get; }
+
+		Task DoWork();
+	}
 }
