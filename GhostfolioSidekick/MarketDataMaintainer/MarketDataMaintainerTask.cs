@@ -11,6 +11,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
 		private readonly ConfigurationInstance configurationInstance;
+		private int counter = -1;
 
 		public MarketDataMaintainerTask(
 			ILogger<FileImporterTask> logger,
@@ -35,7 +36,21 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			await ManageManualSymbols();
 			await SetTrackingInsightOnSymbols();
 
+			counter = (counter + 1) % 24; // HACK: once a day
+			if (counter == 0)
+			{
+				await GatherAllData();
+			}
+
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
+		}
+
+		private async Task GatherAllData()
+		{
+			// Bug Ghostfolio: Currencies are not updated until a new one is added.
+			// Workaround: Adding and removing a dummy
+			await api.AddAndRemoveDummyCurrency();
+			await api.GatherAllMarktData();
 		}
 
 		private async Task SetTrackingInsightOnSymbols()

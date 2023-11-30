@@ -364,6 +364,53 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Created account {account.Name}");
 		}
 
+		public async Task GatherAllMarktData()
+		{
+			var o = new JObject
+			{
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/admin/gather/max/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Gathering failed");
+			}
+
+			logger.LogInformation($"Gathering requested");
+		}
+
+		public async Task AddAndRemoveDummyCurrency()
+		{
+			var o = new JObject
+			{
+				["value"] = "[\"USD\",\" \"]"
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPut($"api/v1/admin/settings/CURRENCIES", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Inserting dummy currency failed");
+			}
+
+			logger.LogInformation($"Inserted dummy currency");
+
+			o = new JObject
+			{
+				["value"] = "[\"USD\"]"
+			};
+			res = o.ToString();
+
+			r = await restCall.DoRestPut($"api/v1/admin/settings/CURRENCIES", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Removing dummy currency failed");
+			}
+
+			logger.LogInformation($"Removed dummy currency");
+		}
+
 		private async Task<GenericInfo> GetInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());

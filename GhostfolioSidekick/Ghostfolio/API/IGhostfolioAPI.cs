@@ -37,5 +37,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		Task CreatePlatform(Platform platform);
 
 		Task CreateAccount(Account account);
+
+		Task GatherAllMarktData();
+
+		Task AddAndRemoveDummyCurrency();
 	}
 }
