@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 			// Arrange
 
 			// Act
-			var config = ConfigurationInstance.Parse(Example1);
+			var config = ConfigurationInstance.Parse(MappingsAndSymbols);
 
 			// Assert
 			config.Mappings.Should().BeEquivalentTo(new[] {
@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 			// Arrange
 
 			// Act
-			var config = ConfigurationInstance.Parse(Example2);
+			var config = ConfigurationInstance.Parse(ManualSymbol);
 
 			// Assert
 			config.Symbols.Should().BeEquivalentTo(new[] {
@@ -45,7 +45,38 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 			});
 		}
 
-		private string Example1 =
+		[Fact]
+		public void Parse_AccountsAndPlatforms_ParsedCorrectly()
+		{
+			// Arrange
+
+			// Act
+			var config = ConfigurationInstance.Parse(AccountsAndPlatforms);
+
+			// Assert
+			config.Platforms.Should().BeEquivalentTo(new[] {
+				new PlatformConfiguration{
+					Name = "Platform1",
+					Url = "someurl"
+				}
+			});
+			config.Accounts.Should().BeEquivalentTo(new[] {
+				new AccountConfiguration{
+					Name = "Account1",
+					Comment = "SomeComment",
+					Currency = "EUR",
+					Platform = "Platform1"
+				},
+				new AccountConfiguration{
+					Name = "Account2",
+					Comment = null,
+					Currency = "USD",
+					Platform = null
+				}
+			});
+		}
+
+		private string MappingsAndSymbols =
 		@"
 			{
 			""mappings"":[
@@ -58,7 +89,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 				}
 			";
 
-		private string Example2 =
+		private string ManualSymbol =
 		@"
 			{
 			""symbols"":[
@@ -71,6 +102,19 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 						""assetClass"":""Equity""
 					} 
 				}
+			]
+				}
+			";
+
+		private string AccountsAndPlatforms =
+		@"
+			{
+			""platforms"":[
+				{ ""name"": ""Platform1"", ""url"": ""someurl"" }
+			],
+			""accounts"":[
+				{ ""name"": ""Account1"", ""comment"": ""SomeComment"", ""currency"":""EUR"", ""platform"":""Platform1"" },
+				{ ""name"": ""Account2"", ""currency"":""USD"" }
 			]
 				}
 			";

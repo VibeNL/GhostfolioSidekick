@@ -43,9 +43,9 @@ namespace GhostfolioSidekick
 				services.AddSingleton<IGhostfolioAPI, GhostfolioAPI>();
 				services.AddScoped<IScheduledWork, FileImporterTask>();
 				services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();
+				services.AddScoped<IScheduledWork, AccountMaintainerTask>();
 
 				services.AddScoped<IFileImporter, BunqParser>();
-				//services.AddScoped<IFileImporter, CoinbaseParser>();
 				services.AddScoped<IFileImporter, DeGiroParser>();
 				services.AddScoped<IFileImporter, GenericParser>();
 				services.AddScoped<IFileImporter, NexoParser>();

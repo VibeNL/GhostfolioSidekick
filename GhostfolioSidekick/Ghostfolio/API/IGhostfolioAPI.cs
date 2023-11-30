@@ -16,6 +16,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		Task<Account?> GetAccountByName(string name);
 
+		Task<Platform?> GetPlatformByName(string name);
+
 		Task UpdateAccount(Account account);
 
 		Task<IEnumerable<MarketDataList>> GetMarketData();
@@ -31,5 +33,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		Task<IEnumerable<Activity>> GetAllActivities();
 
 		Task SetMarketPrice(SymbolProfile assetProfile, Money money);
+
+		Task CreatePlatform(Platform platform);
+
+		Task CreateAccount(Account account);
 	}
 }

@@ -60,6 +60,22 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return ContractToModelMapper.MapAccount(rawAccount, activities);
 		}
 
+		public async Task<Model.Platform?> GetPlatformByName(string name)
+		{
+			var content = await restCall.DoRestGet($"api/v1/platform", CacheDuration.None());
+
+			var rawPlatforms = JsonConvert.DeserializeObject<Contract.Platform[]>(content);
+			var rawPlatform = rawPlatforms.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+
+			if (rawPlatform == null)
+			{
+				return null;
+			}
+
+			return ContractToModelMapper.MapAccount(rawPlatform);
+		}
+
+
 		public async Task UpdateAccount(Model.Account account)
 		{
 			var existingAccount = await GetAccountByName(account.Name);
@@ -304,6 +320,48 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			logger.LogInformation($"SetMarketPrice symbol {assetProfile.Symbol} {money.TimeOfRecord} @ {money.Amount}");
+		}
+
+		public async Task CreatePlatform(Model.Platform platform)
+		{
+			var o = new JObject
+			{
+				["name"] = platform.Name,
+				["url"] = platform.Url
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/platform/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Creation failed {platform.Name}");
+			}
+
+			logger.LogInformation($"Created platform {platform.Name}");
+		}
+
+		public async Task CreateAccount(Model.Account account)
+		{
+			var platform = await GetPlatformByName(account.Name);
+
+			var o = new JObject
+			{
+				["name"] = account.Name,
+				["currency"] = account.Currency,
+				["comment"] = account.Comment,
+				["platformId"] = platform?.Id,
+				["isExcluded"] = false,
+				["balance"] = 0,
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/account/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Creation failed {account.Name}");
+			}
+
+			logger.LogInformation($"Created account {account.Name}");
 		}
 
 		private async Task<GenericInfo> GetInfo()

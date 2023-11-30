@@ -29,7 +29,11 @@ namespace ConsoleHelper
 			var cs = new ApplicationSettings();
 			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
 			GhostfolioAPI api = new GhostfolioAPI(cs, memoryCache, logger);
-			IScheduledWork t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
+			IScheduledWork t;
+
+			t = new AccountMaintainerTask(logger, api, cs);
+			t.DoWork().Wait();
+			t = new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new BunqParser(api),
 				new DeGiroParser(api),
 				new GenericParser(api),
