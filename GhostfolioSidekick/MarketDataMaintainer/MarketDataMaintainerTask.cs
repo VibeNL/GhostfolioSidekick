@@ -108,7 +108,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 		}
 
-		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<Model.MarketDataList> marketData, List<Model.Activity> activities)
+		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<MarketDataList> marketData, List<Activity> activities)
 		{
 			var mdi = marketData.SingleOrDefault(x => x.AssetProfile.Symbol == symbolConfiguration.Symbol);
 			if (mdi == null || mdi.AssetProfile.ActivitiesCount <= 0)
@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				new AssetSubClass?[] { Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass) });
 			if (symbol == null)
 			{
-				await api.CreateManualSymbol(new Asset
+				await api.CreateManualSymbol(new SymbolProfile
 				{
 					AssetClass = Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass),
 					AssetSubClass = Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass),

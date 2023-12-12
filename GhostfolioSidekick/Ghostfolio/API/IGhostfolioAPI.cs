@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public interface IGhostfolioAPI
 	{
-		Task<Asset?> FindSymbolByIdentifier(
+		Task<SymbolProfile?> FindSymbolByIdentifier(
 			string? identifier,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date);
 
-		Task<Money?> GetMarketPrice(Asset asset, DateTime date);
+		Task<Money?> GetMarketPrice(SymbolProfile asset, DateTime date);
 
 		Task<Account?> GetAccountByName(string name);
 
@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		Task DeleteSymbol(SymbolProfile marketData);
 
-		Task CreateManualSymbol(Asset asset);
+		Task CreateManualSymbol(SymbolProfile asset);
 
 		Task<IEnumerable<Activity>> GetAllActivities();
 

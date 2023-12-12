@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -213,7 +213,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -263,7 +263,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -303,7 +303,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var parser = new DeGiroParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.EUR).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.EUR).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);

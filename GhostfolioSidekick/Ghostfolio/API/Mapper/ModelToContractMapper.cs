@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			this.currentPriceCalculator = currentPriceCalculator;
 		}
 
-		public Ghostfolio.Contract.Activity ConvertToGhostfolioActivity(Model.Account account, Model.Activity activity)
+		public Contract.Activity ConvertToGhostfolioActivity(Account account, Activity activity)
 		{
 			if (activity.ActivityType == Model.ActivityType.Interest)
 			{
@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			};
 		}
 
-		private Ghostfolio.Contract.ActivityType ParseType(Model.ActivityType? type)
+		private Contract.ActivityType ParseType(ActivityType? type)
 		{
 			switch (type)
 			{

@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.FileImporter
 		{
 		}
 
-		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, Asset? symbol, DateTime date)
+		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, SymbolProfile? symbol, DateTime date)
 		{
 			if (originalUnitPrice.Amount > 0)
 			{

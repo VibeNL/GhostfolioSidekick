@@ -4,6 +4,6 @@
 	{
 		public List<MarketData> MarketData { get; set; }
 
-		public AssetProfile AssetProfile { get; set; }
+		public SymbolProfile AssetProfile { get; set; }
 	}
 }
