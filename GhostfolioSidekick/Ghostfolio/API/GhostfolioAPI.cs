@@ -75,7 +75,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return ContractToModelMapper.MapAccount(rawPlatform);
 		}
 
-
 		public async Task UpdateAccount(Model.Account account)
 		{
 			var existingAccount = await GetAccountByName(account.Name);
@@ -347,7 +346,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var o = new JObject
 			{
 				["name"] = account.Name,
-				["currency"] = account.Currency,
+				["currency"] = account.Balance.Currency.Symbol,
 				["comment"] = account.Comment,
 				["platformId"] = platform?.Id,
 				["isExcluded"] = false,

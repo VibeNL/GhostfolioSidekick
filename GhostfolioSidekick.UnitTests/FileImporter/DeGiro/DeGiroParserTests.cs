@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
 					Date = new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					Fee = new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
+					Fees = new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
 					Quantity = 1,
 					ActivityType = ActivityType.Buy,
 					UnitPrice = new Money(DefaultCurrency.EUR, 77.30M,
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
 					Date = new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					Fee = new Money(DefaultCurrency.USD, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
+					Fees = new[] { new Money(DefaultCurrency.USD, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
 					Quantity = 1,
 					ActivityType = ActivityType.Buy,
 					UnitPrice = new Money(DefaultCurrency.USD, 77.30M,
@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
 					Date = new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					Fee = new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
+					Fees = new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
 					Quantity = 1,
 					ActivityType = ActivityType.Sell,
 					UnitPrice = new Money(DefaultCurrency.EUR, 77.30M,
@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
 					Date = new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					Fee = new Money(DefaultCurrency.USD, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
+					Fees = new[] { new Money(DefaultCurrency.USD, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
 					Quantity = 1,
 					ActivityType = ActivityType.Sell,
 					UnitPrice = new Money(DefaultCurrency.USD, 77.30M,
@@ -233,7 +233,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [35d4345a-467c-42bd-848c-f6087737dd36] (Details: asset NL0011794037)",
 					Date = new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-					Fee = new Money(DefaultCurrency.EUR, 3, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)),
+					Fees = new[] { new Money(DefaultCurrency.EUR, 3, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)) },
 					Quantity = 34,
 					ActivityType = ActivityType.Buy,
 					UnitPrice = new Money(DefaultCurrency.EUR, 26.88M,
@@ -246,7 +246,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [35d4345a-467c-42bd-848c-f6087737dd36 2] (Details: asset NL0011794037)",
 					Date = new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-					Fee = new Money(DefaultCurrency.EUR, 0, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)),
+					Fees = new[] { new Money(DefaultCurrency.EUR, 0, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)) },
 					Quantity = 4,
 					ActivityType = ActivityType.Buy,
 					UnitPrice = new Money(DefaultCurrency.EUR, 26.88M,
@@ -286,7 +286,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [Dividend_2023-09-14_06:32_NL0009690239] (Details: asset NL0009690239)",
 					Date = new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
-					Fee = null,
+					Fees = Enumerable.Empty<Money>(),
 					Quantity = 1,
 					ActivityType = ActivityType.Dividend,
 					UnitPrice = new Money(DefaultCurrency.EUR, 8.13M,
@@ -325,7 +325,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [Dividend_2023-09-14_06:32_NL0009690239] (Details: asset NL0009690239)",
 					Date = new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
-					Fee = null,
+					Fees = Enumerable.Empty<Money>(),
 					Quantity = 1,
 					ActivityType = ActivityType.Dividend,
 					UnitPrice = new Money(DefaultCurrency.EUR, 9.57M,

@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			this.currentPriceCalculator = currentPriceCalculator;
 		}
 
-		public Ghostfolio.Contract.Activity ConvertToGhostfolioActivity(Model.Account account, Model.Activity activity)
+		public Contract.Activity ConvertToGhostfolioActivity(Model.Account account, Model.Activity activity)
 		{
 			if (activity.ActivityType == Model.ActivityType.Interest)
 			{
@@ -22,7 +22,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					SymbolProfile = null,
 					Comment = activity.Comment,
 					Date = activity.Date,
-					Fee = currentPriceCalculator.GetConvertedPrice(activity.Fee, account.Balance.Currency, activity.Date)?.Amount ?? 0,
+					Fee = CalculateFee(activity.Fees, account.Balance.Currency),
+					FeeCurrency = account.Balance.Currency.Symbol,
 					Quantity = activity.Quantity,
 					Type = ParseType(activity.ActivityType),
 					UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, account.Balance.Currency, activity.Date).Amount,
@@ -50,7 +51,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				},
 				Comment = activity.Comment,
 				Date = activity.Date,
-				Fee = currentPriceCalculator.GetConvertedPrice(activity.Fee, activity.Asset.Currency, activity.Date)?.Amount ?? 0,
+				Fee = CalculateFee(activity.Fees, account.Balance.Currency),
 				Quantity = activity.Quantity,
 				Type = ParseType(activity.ActivityType),
 				UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, activity.Asset.Currency, activity.Date).Amount,
@@ -58,35 +59,47 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			};
 		}
 
-		private Ghostfolio.Contract.ActivityType ParseType(Model.ActivityType? type)
+		private Contract.ActivityType ParseType(Model.ActivityType? type)
 		{
 			switch (type)
 			{
 				case null:
-					return Ghostfolio.Contract.ActivityType.IGNORE;
+					return Contract.ActivityType.IGNORE;
 				case Model.ActivityType.Buy:
-					return Ghostfolio.Contract.ActivityType.BUY;
+					return Contract.ActivityType.BUY;
 				case Model.ActivityType.Sell:
-					return Ghostfolio.Contract.ActivityType.SELL;
+					return Contract.ActivityType.SELL;
 				case Model.ActivityType.Dividend:
-					return Ghostfolio.Contract.ActivityType.DIVIDEND;
+					return Contract.ActivityType.DIVIDEND;
 				case Model.ActivityType.Send:
-					return Ghostfolio.Contract.ActivityType.SELL; // TODO: 
+					return Contract.ActivityType.SELL; // TODO: 
 				case Model.ActivityType.Receive:
-					return Ghostfolio.Contract.ActivityType.BUY; // TODO: 
+					return Contract.ActivityType.BUY; // TODO: 
 				case Model.ActivityType.Convert:
-					return Ghostfolio.Contract.ActivityType.IGNORE; // TODO: 
+					return Contract.ActivityType.IGNORE; // TODO: 
 				case Model.ActivityType.Interest:
-					return Ghostfolio.Contract.ActivityType.INTEREST;
+					return Contract.ActivityType.INTEREST;
 				case Model.ActivityType.Gift:
-					return Ghostfolio.Contract.ActivityType.BUY; // TODO: 
+					return Contract.ActivityType.BUY; // TODO: 
 				case Model.ActivityType.LearningReward:
-					return Ghostfolio.Contract.ActivityType.IGNORE; // TODO: 
+					return Contract.ActivityType.IGNORE; // TODO: 
 				case Model.ActivityType.StakingReward:
-					return Ghostfolio.Contract.ActivityType.IGNORE; // TODO: 
+					return Contract.ActivityType.IGNORE; // TODO: 
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");
 			}
+		}
+
+		private decimal CalculateFee(IEnumerable<Money> fees, Currency targetCurrency)
+		{
+			decimal amount = 0;
+
+			foreach (var fee in fees)
+			{
+				amount += currentPriceCalculator.GetConvertedPrice(fee, targetCurrency, fee.TimeOfRecord)?.Amount ?? 0;
+			}
+
+			return amount;
 		}
 	}
 }

@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.FileImporter.Generic
 				record.Date,
 				record.Quantity,
 				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.UnitPrice, record.Date),
-				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date),
+				new[] { new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date) },
 				TransactionReferenceUtilities.GetComment(record.Id, record.Symbol),
 				record.Id
 				);

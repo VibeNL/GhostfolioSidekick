@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses);
 
-			var fee = FindFeeRecord(rkkRecords, record.Reference);
+			var fees = GetFees(rkkRecords, record.Reference, record.Date.ToDateTime(record.Time));
 
 			return new Activity(
 				GetOrderType(record),
@@ -156,20 +156,20 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				record.Date.ToDateTime(record.Time),
 				Math.Abs(record.Quantity.GetValueOrDefault()),
 				new Money(record.Currency, record.UnitPrice.GetValueOrDefault(), record.Date.ToDateTime(record.Time)),
-				fee == null ? null : new Money(fee?.Currency ?? record.Currency, Math.Abs(fee?.UnitPrice ?? 0), record.Date.ToDateTime(record.Time)),
+				fees,
 				TransactionReferenceUtilities.GetComment(record.Reference, record.Isin),
 				record.Reference
 				);
 		}
 
-		private BaaderBankRKKRecord? FindFeeRecord(ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords, string reference)
+		private IEnumerable<Money> GetFees(ConcurrentDictionary<string, BaaderBankRKKRecord> rkkRecords, string reference, DateTime dateTime)
 		{
-			if (rkkRecords.TryGetValue(reference, out var baaderBankRKKRecord))
+			if (rkkRecords.TryGetValue(reference, out var record) && record != null)
 			{
-				return baaderBankRKKRecord;
+				return new[] { new Money(record.Currency, Math.Abs(record?.UnitPrice ?? 0), dateTime) };
 			}
 
-			return null;
+			return Enumerable.Empty<Money>();
 		}
 
 		private ActivityType GetOrderType(BaaderBankWUMRecord record)
