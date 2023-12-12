@@ -70,6 +70,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					AssetSubClass = Utilities.ParseEnum<AssetSubClass>(assetProfile.AssetSubClass),
 					ISIN = assetProfile.ISIN,
 					Name = assetProfile.Name,
+					Comment = assetProfile.Comment
 					// Ignore Mapping for now
 				},
 				MarketData = market.MarketData.Select(x => MapMarketData(x)).ToList()

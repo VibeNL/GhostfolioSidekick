@@ -19,5 +19,7 @@
 		public int ActivitiesCount { get; set; }
 
 		public IDictionary<string, string> SymbolMapping { get; set; }
+
+		public string Comment { get; set; }
 	}
 }

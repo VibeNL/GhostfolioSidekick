@@ -162,6 +162,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			if (foundAsset != null)
 			{
 				AddToCache(identifier, foundAsset, memoryCache);
+				await UpdateKnownIdentifiers(foundAsset, mappedIdentifier);
 			}
 
 			return LogIfEmpty(foundAsset, mappedIdentifier);
@@ -174,7 +175,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			async Task<Model.SymbolProfile?> FindByMarketData(string? identifier)
 			{
 				var r = (await GetMarketData()).Select(x => x.AssetProfile);
-				return r.SingleOrDefault(x => x.Symbol == identifier);
+				return r.SingleOrDefault(x => x.Symbol == identifier || x.ISIN == identifier || x.Identifiers.Contains(identifier));
 			}
 
 			async Task<Model.SymbolProfile?> FindByDataProvider(string? identifier, Currency? expectedCurrency, AssetClass?[] expectedAssetClass, AssetSubClass?[] expectedAssetSubClass, string? mappedIdentifier)
@@ -285,7 +286,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					throw new NotSupportedException($"Creation failed on update {asset.Symbol}");
 				}
 			}
-			catch (Exception ex)
+			catch
 			{
 				throw new NotSupportedException($"Creation failed on update {asset.Symbol}.");
 			}
@@ -320,7 +321,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			logger.LogInformation($"Updated symbol {marketData.Symbol}");
-
 		}
 
 		public async Task<IEnumerable<Model.Activity>> GetAllActivities()
@@ -654,5 +654,26 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			return 1;
 		}
+
+		private async Task UpdateKnownIdentifiers(Model.SymbolProfile foundAsset, string identifier)
+		{
+			if (!foundAsset.Identifiers.Contains(identifier))
+			{
+				foundAsset.AddIdentifier(identifier);
+
+				var o = new JObject();
+				o["comment"] = foundAsset.Comment;
+				var res = o.ToString();
+
+				var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+				if (!r.IsSuccessStatusCode)
+				{
+					throw new NotSupportedException($"Adding identifier to symbol failed {foundAsset.Symbol}");
+				}
+
+				logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+			}
+		}
+
 	}
 }
