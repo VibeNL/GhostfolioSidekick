@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.accessToken = accessToken;
 
 			retryPolicy = Policy
-				.HandleResult<RestResponse>(x => !x.IsSuccessful)
+				.HandleResult<RestResponse>(x => !x.IsSuccessful && x.StatusCode != System.Net.HttpStatusCode.Forbidden)
 				.WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, async (iRestResponse, timeSpan, retryCount, context) =>
 				{
 					logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
@@ -101,6 +101,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 				if (!r.IsSuccessStatusCode)
 				{
+					if (r.StatusCode == System.Net.HttpStatusCode.Forbidden)
+					{
+						throw new NotAuthorizedException($"Not authorized executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+					}
+
 					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 				}
 

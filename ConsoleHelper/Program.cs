@@ -7,7 +7,6 @@ using GhostfolioSidekick.FileImporter.Nexo;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
-using GhostfolioSidekick.MarketDataMaintainer;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ConsoleHelper
@@ -30,7 +29,7 @@ namespace ConsoleHelper
 			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
 			GhostfolioAPI api = new GhostfolioAPI(cs, memoryCache, logger);
 			var tasks = new IScheduledWork[]{
-			new AccountMaintainerTask(logger, api, cs),
+			//new AccountMaintainerTask(logger, api, cs),
 			new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new BunqParser(api),
 				new DeGiroParser(api),
@@ -39,7 +38,7 @@ namespace ConsoleHelper
 				new ScalableCapitalParser(api),
 				new Trading212Parser(api)
 			}),
-			new MarketDataMaintainerTask(logger, api, cs)
+			//new MarketDataMaintainerTask(logger, api, cs)
 			};
 
 			foreach (var t in tasks.OrderBy(x => x.Priority))

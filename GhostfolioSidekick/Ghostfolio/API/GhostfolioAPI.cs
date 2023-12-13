@@ -174,8 +174,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			async Task<Model.SymbolProfile?> FindByMarketData(string? identifier)
 			{
-				var r = (await GetMarketData()).Select(x => x.AssetProfile);
-				return r.SingleOrDefault(x => x.Symbol == identifier || x.ISIN == identifier || x.Identifiers.Contains(identifier));
+				try
+				{
+					var r = (await GetMarketData()).Select(x => x.AssetProfile);
+					return r.SingleOrDefault(x => x.Symbol == identifier || x.ISIN == identifier || x.Identifiers.Contains(identifier));
+				}
+				catch (NotAuthorizedException)
+				{
+					return null;
+				}
 			}
 
 			async Task<Model.SymbolProfile?> FindByDataProvider(string? identifier, Currency? expectedCurrency, AssetClass?[] expectedAssetClass, AssetSubClass?[] expectedAssetSubClass, string? mappedIdentifier)
@@ -679,7 +686,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					}
 					catch
 					{
-						logger.LogDebug($"Failed updating identifier to symbol {foundAsset.Symbol}, May not yet exists");
+						// Ignore for now
 					}
 				}
 			}
