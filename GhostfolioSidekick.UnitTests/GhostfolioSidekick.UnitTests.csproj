@@ -29,6 +29,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="FileImporter\TestFiles\Bitvavo\BuyOrders\single_buy.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Bitvavo\CashTransactions\single_deposit.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Bitvavo\CashTransactions\single_withdrawal.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Bitvavo\SellOrders\single_sell.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\Bunq\CashTransactions\single_withdrawal.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -155,6 +167,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="FileImporter\TestFiles\Bitvavo\Interest\" />
+    <Folder Include="FileImporter\TestFiles\Bitvavo\Specials\" />
     <Folder Include="FileImporter\TestFiles\Generic\SellOrders\" />
     <Folder Include="FileImporter\TestFiles\Nexo\SellOrders\" />
     <Folder Include="Ghostfolio\" />
