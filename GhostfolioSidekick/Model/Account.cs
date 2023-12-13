@@ -33,7 +33,7 @@
 			}
 
 			Name = name;
-			Currency = currency;
+			Balance = new Balance(new Money(currency, 0, DateTime.Now));
 			Comment = comment;
 			Platform = platform;
 		}
@@ -45,8 +45,6 @@
 		public Balance Balance { get; set; }
 
 		public List<Activity> Activities { get; set; }
-
-		public string Currency { get; }
 
 		public string? Comment { get; }
 

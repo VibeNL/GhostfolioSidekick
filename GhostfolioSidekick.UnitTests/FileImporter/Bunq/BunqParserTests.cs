@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 				Asset = null,
 				Comment = "Transaction Reference: [Interest_2023-07-27]",
 				Date = new DateTime(2023,07,27, 0,0,0, DateTimeKind.Utc),
-				Fee = null,
+				Fees = Enumerable.Empty<Money>(),
 				Quantity = 1m,
 				ActivityType = ActivityType.Interest,
 				UnitPrice = new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023,7,27, 0,0,0, DateTimeKind.Utc)),

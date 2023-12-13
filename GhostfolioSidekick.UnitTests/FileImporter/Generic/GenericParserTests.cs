@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 				Asset = asset,
 				Comment = "Transaction Reference: [Buy_US67066G1040_2023-08-07] (Details: asset US67066G1040)",
 				Date = new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
-				Fee = new Money(DefaultCurrency.USD, 0.02M, new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc)),
+				Fees = new[] { new Money(DefaultCurrency.USD, 0.02M, new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc)) },
 				Quantity = 0.0267001M,
 				ActivityType = ActivityType.Buy,
 				UnitPrice = new Money(DefaultCurrency.USD, 453.33M, new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc)),

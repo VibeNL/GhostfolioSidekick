@@ -75,9 +75,9 @@
 						throw new NotSupportedException();
 				}
 
-				if (activity.Fee != null)
+				foreach (var fee in activity.Fees)
 				{
-					MoneyTrail.Add(activity.Fee.Negate());
+					MoneyTrail.Add(fee.Negate());
 				}
 			}
 

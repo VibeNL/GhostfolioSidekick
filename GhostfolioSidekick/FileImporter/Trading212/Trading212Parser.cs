@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				record.Id = $"{activityType}_{record.ISIN}_{record.Time.ToInvariantDateOnlyString()}";
 			}
 
-			var fee = GetFee(record);
+			var fees = GetFees(record);
 
 			if (activityType == ActivityType.Convert)
 			{
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					record.Time,
 					1,
 					new Money(record.Currency == string.Empty ? record.CurrencyTotal : record.Currency, record.Total.GetValueOrDefault(0), record.Time),
-					fee.Fee == null ? null : new Money(fee.Currency, fee.Fee ?? 0, record.Time),
+					fees,
 					TransactionReferenceUtilities.GetComment(record.Id),
 					record.Id
 					);
@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					record.Time,
 					record.NumberOfShares.Value,
 					new Money(record.Currency, record.Price.Value, record.Time),
-					fee.Fee == null ? null : new Money(fee.Currency, fee.Fee ?? 0, record.Time),
+					fees,
 					TransactionReferenceUtilities.GetComment(record.Id, record.ISIN),
 					record.Id
 					);
@@ -112,35 +112,25 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			};
 		}
 
-		private (string Currency, decimal? Fee) GetFee(Trading212Record record)
+		private IEnumerable<Money> GetFees(Trading212Record record)
 		{
-			(string Currency, decimal? Fee)? taxes = null;
+			List<Money> taxes = new List<Money>();
 			if (record.FeeUK != null)
 			{
-				taxes = (record.FeeUKCurrency, record.FeeUK);
-			}
-			else if (record.FeeFrance != null)
-			{
-				taxes = (record.FeeFranceCurrency, record.FeeFrance);
+				taxes.Add(new Money(record.FeeUKCurrency, record.FeeUK.Value, record.Time));
 			}
 
-			if (taxes == null)
+			if (record.FeeFrance != null)
 			{
-				return (record.ConversionFeeCurrency, record.ConversionFee);
+				taxes.Add(new Money(record.FeeFranceCurrency, record.FeeFrance.Value, record.Time));
 			}
 
-			if (record.ConversionFee == null)
+			if (record.ConversionFee != null)
 			{
-				return taxes.Value;
+				taxes.Add(new Money(record.ConversionFeeCurrency, record.ConversionFee.Value, record.Time));
 			}
 
-			var t = taxes.Value;
-			if (t.Fee > 0 && t.Currency != record.ConversionFeeCurrency)
-			{
-				taxes = (record.ConversionFeeCurrency, api.GetConvertedPrice(new Money(t.Currency, t.Fee ?? 0, record.Time), CurrencyHelper.ParseCurrency(record.ConversionFeeCurrency), record.Time).Result.Amount);
-			}
-
-			return (record.ConversionFeeCurrency, record.ConversionFee + taxes.Value.Fee);
+			return taxes;
 		}
 
 		private ActivityType? GetOrderType(Trading212Record record)
