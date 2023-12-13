@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			{
 				AssetProfile = new SymbolProfile
 				{
-					Currency = CurrencyHelper.ParseCurrency("EUR"),
+					Currency = CurrencyHelper.ParseCurrency(assetProfile.Currency),
 					DataSource = assetProfile.DataSource,
 					Symbol = assetProfile.Symbol,
 					ActivitiesCount = assetProfile.ActivitiesCount,

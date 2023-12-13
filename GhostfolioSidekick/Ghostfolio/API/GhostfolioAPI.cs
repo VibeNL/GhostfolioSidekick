@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Model.Account?> GetAccountByName(string name)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
 			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.ToList();
 			newActivities = newActivities.Select(Round).ToList();
 
-			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.Short());
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
 
 			var mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).ToList();
@@ -224,7 +224,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<IEnumerable<Model.MarketDataList>> GetMarketData()
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var benchmarks = (await GetInfo()).BenchMarks;
@@ -296,7 +296,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Model.MarketDataList> GetMarketData(string symbol, string dataSource)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			return ContractToModelMapper.MapMarketDataList(market);
@@ -439,7 +439,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private async Task<GenericInfo> GetInfo()
 		{
-			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
 			return JsonConvert.DeserializeObject<GenericInfo>(content);
 		}
 
@@ -486,7 +486,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private async Task UpdateBalance(Model.Account account, decimal balance)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
 			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Id, account.Id, StringComparison.InvariantCultureIgnoreCase));
@@ -670,15 +670,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				o["comment"] = foundAsset.Comment;
 				var res = o.ToString();
 
-				var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
-				if (!r.IsSuccessStatusCode)
+				try
 				{
-					throw new NotSupportedException($"Adding identifier to symbol failed {foundAsset.Symbol}");
+					var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+					logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
 				}
-
-				logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+				catch
+				{
+					logger.LogDebug($"Failed updating identifier to symbol {foundAsset.Symbol}, May not yet exists");
+				}
 			}
 		}
-
 	}
 }
