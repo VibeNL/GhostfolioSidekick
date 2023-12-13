@@ -7,6 +7,7 @@ using GhostfolioSidekick.FileImporter.Nexo;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.MarketDataMaintainer;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ConsoleHelper
