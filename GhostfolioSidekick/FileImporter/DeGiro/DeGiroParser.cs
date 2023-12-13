@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					record.Datum.ToDateTime(record.Tijd),
 					GetQuantity(record),
 					new Money(CurrencyHelper.ParseCurrency(record.Mutatie), GetUnitPrice(record), record.Datum.ToDateTime(record.Tijd)),
-					new Money(CurrencyHelper.ParseCurrency(fee?.Item2 ?? record.Mutatie), Math.Abs(orderNumber == 0 ? (fee?.Item1 ?? 0) : 0), record.Datum.ToDateTime(record.Tijd)),
+					new[] { new Money(CurrencyHelper.ParseCurrency(fee?.Item2 ?? record.Mutatie), Math.Abs(orderNumber == 0 ? (fee?.Item1 ?? 0) : 0), record.Datum.ToDateTime(record.Tijd)) },
 					TransactionReferenceUtilities.GetComment(orderId, record.ISIN),
 					orderId);
 			}

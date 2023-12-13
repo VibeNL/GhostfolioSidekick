@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 								x.Date,
 								x.Quantity,
 								new Money(asset.Currency, x.UnitPrice, x.Date),
-								new Money(asset.Currency, x.Fee, x.Date),
+								new[] { new Money(asset.Currency, x.Fee, x.Date) },
 								x.Comment,
 								ParseReference(x.Comment)
 								);

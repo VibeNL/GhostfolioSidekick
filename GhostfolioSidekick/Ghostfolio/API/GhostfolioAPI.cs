@@ -380,7 +380,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var o = new JObject
 			{
 				["name"] = account.Name,
-				["currency"] = account.Currency,
+				["currency"] = account.Balance.Currency.Symbol,
 				["comment"] = account.Comment,
 				["platformId"] = platform?.Id,
 				["isExcluded"] = false,
