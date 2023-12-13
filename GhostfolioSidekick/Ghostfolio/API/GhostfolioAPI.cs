@@ -162,7 +162,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			if (foundAsset != null)
 			{
 				AddToCache(identifier, foundAsset, memoryCache);
-				await UpdateKnownIdentifiers(foundAsset, mappedIdentifier);
+				await UpdateKnownIdentifiers(foundAsset, mappedIdentifier, identifier);
 			}
 
 			return LogIfEmpty(foundAsset, mappedIdentifier);
@@ -660,24 +660,27 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return 1;
 		}
 
-		private async Task UpdateKnownIdentifiers(Model.SymbolProfile foundAsset, string identifier)
+		private async Task UpdateKnownIdentifiers(Model.SymbolProfile foundAsset, params string[] identifiers)
 		{
-			if (!foundAsset.Identifiers.Contains(identifier))
+			foreach (var identifier in identifiers)
 			{
-				foundAsset.AddIdentifier(identifier);
-
-				var o = new JObject();
-				o["comment"] = foundAsset.Comment;
-				var res = o.ToString();
-
-				try
+				if (!foundAsset.Identifiers.Contains(identifier))
 				{
-					var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
-					logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
-				}
-				catch
-				{
-					logger.LogDebug($"Failed updating identifier to symbol {foundAsset.Symbol}, May not yet exists");
+					foundAsset.AddIdentifier(identifier);
+
+					var o = new JObject();
+					o["comment"] = foundAsset.Comment;
+					var res = o.ToString();
+
+					try
+					{
+						var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+						logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+					}
+					catch
+					{
+						logger.LogDebug($"Failed updating identifier to symbol {foundAsset.Symbol}, May not yet exists");
+					}
 				}
 			}
 		}
