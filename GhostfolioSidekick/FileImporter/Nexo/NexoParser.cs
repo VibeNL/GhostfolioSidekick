@@ -1,4 +1,5 @@
 ﻿using CsvHelper.Configuration;
+using GhostfolioSidekick.FileImporter.Crypto;
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using System.Globalization;
@@ -63,8 +64,10 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					return null;
 				}
 
+				var mappedName = CryptoMapper.Instance.GetFullname(assetName);
+
 				return await api.FindSymbolByIdentifier(
-					assetName,
+					mappedName,
 					account.Balance.Currency,
 					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
 					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);

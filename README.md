@@ -62,6 +62,12 @@ Also allows the following sybol settings
 
 ```
 
+#### Note 
+The following parser first try to map the known cryptocurrencies. i.e. BTC becomes bitcoin
+
+- Nexo
+
+
 #### Platform and Account
 Creates platforms and accounts if not yet created
 
