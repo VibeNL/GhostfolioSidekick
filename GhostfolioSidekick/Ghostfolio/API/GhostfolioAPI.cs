@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Money?> GetMarketPrice(Model.SymbolProfile asset, DateTime date)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.None());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var marketData = market.MarketData.FirstOrDefault(x => x.Date == date.Date);
@@ -224,7 +224,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<IEnumerable<Model.MarketDataList>> GetMarketData()
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.None());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var benchmarks = (await GetInfo()).BenchMarks;
@@ -296,7 +296,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Model.MarketDataList> GetMarketData(string symbol, string dataSource)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.None());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			return ContractToModelMapper.MapMarketDataList(market);
@@ -439,7 +439,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private async Task<GenericInfo> GetInfo()
 		{
-			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.None());
 			return JsonConvert.DeserializeObject<GenericInfo>(content);
 		}
 
@@ -632,7 +632,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					{
 						try
 						{
-							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
+							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.None(), true);
 							if (content != null)
 							{
 								dynamic stuff = JsonConvert.DeserializeObject(content);

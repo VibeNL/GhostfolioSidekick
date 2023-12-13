@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				});
 		}
 
-		public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions cacheEntryOptions, bool useCircuitBreaker = false)
+		public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions? cacheEntryOptions, bool useCircuitBreaker = false)
 		{
 			if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
 			{
