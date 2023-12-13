@@ -4,12 +4,12 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public static class CacheDuration
 	{
-		public static MemoryCacheEntryOptions Long()
+		public static MemoryCacheEntryOptions? Long()
 		{
-			return new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+			return new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(24));
 		}
 
-		public static MemoryCacheEntryOptions Short()
+		public static MemoryCacheEntryOptions? Short()
 		{
 			return new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
 		}

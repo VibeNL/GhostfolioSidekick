@@ -7,7 +7,7 @@
 			Fees = Enumerable.Empty<Money>();
 		}
 
-		public Activity(ActivityType activityType, Asset? asset, DateTime date, decimal quantity, Money unitPrice, IEnumerable<Money>? fees, string comment, string referenceCode)
+		public Activity(ActivityType activityType, SymbolProfile? asset, DateTime date, decimal quantity, Money unitPrice, IEnumerable<Money>? fees, string comment, string referenceCode)
 		{
 			Asset = asset;
 			Comment = comment;
@@ -19,7 +19,7 @@
 			ReferenceCode = referenceCode;
 		}
 
-		public Asset? Asset { get; set; }
+		public SymbolProfile? Asset { get; set; }
 
 		public string Comment { get; set; }
 

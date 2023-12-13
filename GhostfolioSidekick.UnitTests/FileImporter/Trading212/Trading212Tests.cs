@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -134,7 +134,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.GBX).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.GBX).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.GBX).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.GBX).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -244,7 +244,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -273,7 +273,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
 			var parser = new Trading212Parser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);

@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 	{
 		public static Account MapAccount(Contract.Account rawAccount, Contract.Activity[] rawOrders)
 		{
-			var assets = new ConcurrentDictionary<string, Asset>();
+			var assets = new ConcurrentDictionary<string, SymbolProfile>();
 
 			return new Account(
 				rawAccount.Id,
@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				);
 		}
 
-		public static Activity MapActivity(Contract.Activity x, ConcurrentDictionary<string, Asset> assets)
+		public static Activity MapActivity(Contract.Activity x, ConcurrentDictionary<string, SymbolProfile> assets)
 		{
 			var asset = assets.GetOrAdd(x.SymbolProfile.Symbol, (y) => ParseSymbolProfile(x.SymbolProfile));
 			return new Activity(
@@ -41,9 +41,9 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			return new MarketData(marketData.Symbol, marketData.DataSource, marketData.MarketPrice, marketData.Date);
 		}
 
-		public static Asset ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
+		public static SymbolProfile ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
-			return new Asset(
+			return new SymbolProfile(
 				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
 				symbolProfile.Symbol,
 				symbolProfile.ISIN,
@@ -57,14 +57,21 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 		{
 			string? trackinsight = null;
 			market.AssetProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out trackinsight);
+			Contract.SymbolProfile assetProfile = market.AssetProfile;
 			var mdl = new MarketDataList()
 			{
 				AssetProfile = new SymbolProfile
 				{
-					Currency = CurrencyHelper.ParseCurrency("EUR"),
-					DataSource = market.AssetProfile.DataSource,
-					Symbol = market.AssetProfile.Symbol,
-					ActivitiesCount = market.AssetProfile.ActivitiesCount
+					Currency = CurrencyHelper.ParseCurrency(assetProfile.Currency),
+					DataSource = assetProfile.DataSource,
+					Symbol = assetProfile.Symbol,
+					ActivitiesCount = assetProfile.ActivitiesCount,
+					AssetClass = Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
+					AssetSubClass = Utilities.ParseEnum<AssetSubClass>(assetProfile.AssetSubClass),
+					ISIN = assetProfile.ISIN,
+					Name = assetProfile.Name,
+					Comment = assetProfile.Comment
+					// Ignore Mapping for now
 				},
 				MarketData = market.MarketData.Select(x => MapMarketData(x)).ToList()
 			};

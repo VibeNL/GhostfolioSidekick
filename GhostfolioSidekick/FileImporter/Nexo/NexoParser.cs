@@ -7,11 +7,11 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 {
 	public class NexoParser : CryptoRecordBaseImporter<NexoRecord>
 	{
-		private Asset[] fiatCoin = new[] {
-			new Asset(new Currency("EUR"), "EURX",null, "EURX", null, null, null),
-			new Asset(new Currency("USD"), "USDX",null, "USDX", null, null, null),
-			new Asset(new Currency("EUR"), "EUR", null,"EUR", null, null, null),
-			new Asset(new Currency("USD"), "USD",null, "USD", null, null, null)
+		private SymbolProfile[] fiatCoin = new[] {
+			new SymbolProfile(new Currency("EUR"), "EURX",null, "EURX", null, null, null),
+			new SymbolProfile(new Currency("USD"), "USDX",null, "USDX", null, null, null),
+			new SymbolProfile(new Currency("EUR"), "EUR", null,"EUR", null, null, null),
+			new SymbolProfile(new Currency("USD"), "USD",null, "USD", null, null, null)
 		};
 
 		public NexoParser(IGhostfolioAPI api) : base(api)
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			return activities;
 
-			async Task<Asset?> GetAsset(string assetName)
+			async Task<SymbolProfile?> GetAsset(string assetName)
 			{
 				if (fiatCoin.Any(x => x.Symbol == assetName))
 				{
