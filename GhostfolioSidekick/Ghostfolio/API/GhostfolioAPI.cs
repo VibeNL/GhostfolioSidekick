@@ -681,8 +681,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 					try
 					{
-						var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
-						logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+						// Check if exists
+						//var symbol = await restCall.DoRestGet($"api/v1/admin/market-data/{foundAsset.DataSource}/{foundAsset.Symbol}", CacheDuration.None());
+						var md = await GetMarketData(foundAsset.Symbol, foundAsset.DataSource);
+
+						if (md != null)
+						{
+							var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+							logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+						}
 					}
 					catch
 					{
