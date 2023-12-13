@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Model.Account?> GetAccountByName(string name)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
 			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
@@ -75,7 +75,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return ContractToModelMapper.MapAccount(rawPlatform);
 		}
 
-
 		public async Task UpdateAccount(Model.Account account)
 		{
 			var existingAccount = await GetAccountByName(account.Name);
@@ -91,7 +90,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.ToList();
 			newActivities = newActivities.Select(Round).ToList();
 
-			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.Short());
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
 
 			var mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).ToList();
@@ -125,9 +124,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<Money?> GetMarketPrice(Asset asset, DateTime date)
+		public async Task<Money?> GetMarketPrice(Model.SymbolProfile asset, DateTime date)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.None());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var marketData = market.MarketData.FirstOrDefault(x => x.Date == date.Date);
@@ -140,7 +139,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(asset.Currency, marketData.MarketPrice, date);
 		}
 
-		public async Task<Asset?> FindSymbolByIdentifier(
+		public async Task<Model.SymbolProfile?> FindSymbolByIdentifier(
 			string? identifier,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
@@ -151,34 +150,69 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return null;
 			}
 
-			if (memoryCache.TryGetValue(identifier, out Asset? asset))
+			if (memoryCache.TryGetValue(identifier, out Model.SymbolProfile? asset))
 			{
 				return asset;
 			}
 
 			var mappedIdentifier = mapper.MapSymbol(identifier);
+			var foundAsset = await FindByMarketData(identifier);
+			foundAsset ??= await FindByDataProvider(identifier, expectedCurrency, expectedAssetClass, expectedAssetSubClass, mappedIdentifier);
 
-			var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={mappedIdentifier.Trim()}", CacheDuration.Long());
-			var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
+			if (foundAsset != null)
+			{
+				AddToCache(identifier, foundAsset, memoryCache);
+				await UpdateKnownIdentifiers(foundAsset, mappedIdentifier, identifier);
+			}
 
-			var assets = symbolProfileList.Items.Select(x => ContractToModelMapper.ParseSymbolProfile(x));
+			return LogIfEmpty(foundAsset, mappedIdentifier);
 
-			var filteredAsset = assets
-				.OrderBy(x => x.ISIN == identifier ? 0 : 1)
-				.ThenBy(x => x.Symbol == identifier ? 0 : 1)
-				.ThenBy(x => x.Name == identifier ? 0 : 1)
-				.ThenBy(x => (expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? false) ? 0 : 1)
-				.ThenBy(x => (expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? false) ? 0 : 1)
-				.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
-				.ThenBy(x => new[] { "EUR", "USD", "GBP" }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
-				.ThenBy(x => x.Name.Length)
-				.FirstOrDefault();
-			AddToCache(identifier, filteredAsset, memoryCache);
-			return LogIfEmpty(filteredAsset, mappedIdentifier);
-
-			static void AddToCache(string identifier, Asset? asset, IMemoryCache cache)
+			static void AddToCache(string identifier, Model.SymbolProfile? asset, IMemoryCache cache)
 			{
 				cache.Set(identifier, asset, CacheDuration.Long());
+			}
+
+			async Task<Model.SymbolProfile?> FindByMarketData(string? identifier)
+			{
+				try
+				{
+					var r = (await GetMarketData()).Select(x => x.AssetProfile);
+					return r.SingleOrDefault(x => x.Symbol == identifier || x.ISIN == identifier || x.Identifiers.Contains(identifier));
+				}
+				catch (NotAuthorizedException)
+				{
+					return null;
+				}
+			}
+
+			async Task<Model.SymbolProfile?> FindByDataProvider(string? identifier, Currency? expectedCurrency, AssetClass?[] expectedAssetClass, AssetSubClass?[] expectedAssetSubClass, string? mappedIdentifier)
+			{
+				for (var i = 0; i < 5; i++)
+				{
+					var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={mappedIdentifier.Trim()}", CacheDuration.None());
+					var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
+
+					var assets = symbolProfileList.Items.Select(x => ContractToModelMapper.ParseSymbolProfile(x));
+
+					if (!assets.Any())
+					{
+						continue;
+					}
+
+					var filteredAsset = assets
+						.OrderBy(x => x.ISIN == identifier ? 0 : 1)
+						.ThenBy(x => x.Symbol == identifier ? 0 : 1)
+						.ThenBy(x => x.Name == identifier ? 0 : 1)
+						.ThenBy(x => (expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? false) ? 0 : 1)
+						.ThenBy(x => (expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? false) ? 0 : 1)
+						.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
+						.ThenBy(x => new[] { "EUR", "USD", "GBP" }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
+						.ThenBy(x => x.Name.Length)
+						.FirstOrDefault();
+					return filteredAsset;
+				}
+
+				return null;
 			}
 		}
 
@@ -218,7 +252,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
 		}
 
-		public async Task CreateManualSymbol(Asset asset)
+		public async Task CreateManualSymbol(Model.SymbolProfile asset)
 		{
 			var o = new JObject
 			{
@@ -259,7 +293,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					throw new NotSupportedException($"Creation failed on update {asset.Symbol}");
 				}
 			}
-			catch (Exception ex)
+			catch
 			{
 				throw new NotSupportedException($"Creation failed on update {asset.Symbol}.");
 			}
@@ -294,7 +328,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			logger.LogInformation($"Updated symbol {marketData.Symbol}");
-
 		}
 
 		public async Task<IEnumerable<Model.Activity>> GetAllActivities()
@@ -302,7 +335,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var content = await restCall.DoRestGet($"api/v1/order", CacheDuration.None());
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
 
-			var assets = new ConcurrentDictionary<string, Asset>();
+			var assets = new ConcurrentDictionary<string, Model.SymbolProfile>();
 			return existingActivities.Select(x => ContractToModelMapper.MapActivity(x, assets));
 		}
 
@@ -460,10 +493,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private async Task UpdateBalance(Model.Account account, decimal balance)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Long());
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
 			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Id, account.Id, StringComparison.InvariantCultureIgnoreCase));
+
+			if (Math.Round(rawAccount.Balance, 10) == Math.Round(balance, 10))
+			{
+				return;
+			}
 
 			rawAccount.Balance = balance;
 
@@ -559,7 +597,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				fo.Date == eo.Date;
 		}
 
-		private Asset? LogIfEmpty(Asset? asset, string identifier)
+		private Model.SymbolProfile? LogIfEmpty(Model.SymbolProfile? asset, string identifier)
 		{
 			if (asset == null)
 			{
@@ -606,7 +644,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					{
 						try
 						{
-							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
+							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.None(), true);
 							if (content != null)
 							{
 								dynamic stuff = JsonConvert.DeserializeObject(content);
@@ -627,6 +665,31 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			return 1;
+		}
+
+		private async Task UpdateKnownIdentifiers(Model.SymbolProfile foundAsset, params string[] identifiers)
+		{
+			foreach (var identifier in identifiers)
+			{
+				if (!foundAsset.Identifiers.Contains(identifier))
+				{
+					foundAsset.AddIdentifier(identifier);
+
+					var o = new JObject();
+					o["comment"] = foundAsset.Comment;
+					var res = o.ToString();
+
+					try
+					{
+						var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+						logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+					}
+					catch
+					{
+						// Ignore for now
+					}
+				}
+			}
 		}
 	}
 }

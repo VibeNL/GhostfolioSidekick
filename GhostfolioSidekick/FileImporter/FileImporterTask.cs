@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.FileImporter
 					var account = await importer.ConvertActivitiesForAccount(accountName, files);
 					await api.UpdateAccount(account);
 				}
-				catch (NoImporterAvailableException noImporter)
+				catch (NoImporterAvailableException)
 				{
 					var sb = new StringBuilder();
 					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName);

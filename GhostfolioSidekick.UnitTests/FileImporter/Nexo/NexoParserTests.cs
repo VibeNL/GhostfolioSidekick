@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var parser = new NexoParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset1 = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset1 = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
@@ -90,8 +90,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var parser = new NexoParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset1 = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
-			var asset2 = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset1 = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset2 = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
@@ -134,7 +134,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var parser = new NexoParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var parser = new NexoParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
@@ -197,7 +197,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var parser = new NexoParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset1 = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset1 = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
@@ -219,7 +219,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var parser = new NexoParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset1 = fixture.Build<Asset>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset1 = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
