@@ -49,6 +49,7 @@ namespace GhostfolioSidekick
 				services.AddScoped<IFileImporter, DeGiroParser>();
 				services.AddScoped<IFileImporter, GenericParser>();
 				services.AddScoped<IFileImporter, NexoParser>();
+				services.AddScoped<IFileImporter, BitvavoParser>();
 				services.AddScoped<IFileImporter, ScalableCapitalParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 

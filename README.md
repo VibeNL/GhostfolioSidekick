@@ -66,7 +66,7 @@ Also allows the following sybol settings
 The following parser first try to map the known cryptocurrencies. i.e. BTC becomes bitcoin
 
 - Nexo
-
+- Bitvavo
 
 #### Platform and Account
 Creates platforms and accounts if not yet created
@@ -110,6 +110,7 @@ Maintaining symbols in ghostfolio
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | Nexo (Experimental) | Export of transaction history | X | - | - | X |
+| Bitvavo (Experimental) | Export of transaction history | X | X | - | X |
 
 #### Generic import format
 Beside the supported exchanges and brokers there is also a generic format. This format is only usefull for stocks at the moment, not for cryptocurrency:

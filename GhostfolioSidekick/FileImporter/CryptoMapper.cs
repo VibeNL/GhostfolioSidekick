@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace GhostfolioSidekick.FileImporter.Crypto
+namespace GhostfolioSidekick.FileImporter
 {
 	internal class CryptoMapper
 	{
@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.FileImporter.Crypto
 		private CryptoMapper()
 		{
 			var assembly = typeof(CryptoMapper).Assembly;
-			using var resource = assembly.GetManifestResourceStream("GhostfolioSidekick.FileImporter.Crypto.cryptocurrencies.json");
+			using var resource = assembly.GetManifestResourceStream("GhostfolioSidekick.FileImporter.cryptocurrencies.json");
 			using var streamReader = new StreamReader(resource);
 			var fileContent = streamReader.ReadToEnd();
 			var obj = JObject.Parse(fileContent);
