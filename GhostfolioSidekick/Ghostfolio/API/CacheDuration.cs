@@ -6,12 +6,12 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	{
 		public static MemoryCacheEntryOptions? Long()
 		{
-			return new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(24));
+			return new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(24));
 		}
 
 		public static MemoryCacheEntryOptions? Short()
 		{
-			return new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10));
+			return new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
 		}
 
 		public static MemoryCacheEntryOptions? None()
