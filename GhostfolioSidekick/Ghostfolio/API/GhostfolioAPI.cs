@@ -491,6 +491,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
 			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Id, account.Id, StringComparison.InvariantCultureIgnoreCase));
 
+			if (Math.Round(rawAccount.Balance, 10) == Math.Round(balance, 10))
+			{
+				return;
+			}
+
 			rawAccount.Balance = balance;
 
 			var o = new JObject();
