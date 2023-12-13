@@ -1,5 +1,4 @@
 ﻿using CsvHelper.Configuration;
-using GhostfolioSidekick.FileImporter.Crypto;
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using System.Globalization;

@@ -1,0 +1,2 @@
+﻿Timezone,Date,Time,Type,Currency,Amount,Price (EUR),EUR received / paid,Fee currency,Fee amount,Status,Transaction ID,Address
+Europe/Amsterdam,2023-12-13,14:45:51.803,sell,ADA,-45.802549,0.56714,25.93,EUR,0.04645763986,Completed,14ae873a-4fce-4a12-ba0f-387522c67d46,

@@ -36,6 +36,7 @@ namespace ConsoleHelper
 				new DeGiroParser(api),
 				new GenericParser(api),
 				new NexoParser(api),
+				new BitvavoParser(api),
 				new ScalableCapitalParser(api),
 				new Trading212Parser(api)
 			}),
