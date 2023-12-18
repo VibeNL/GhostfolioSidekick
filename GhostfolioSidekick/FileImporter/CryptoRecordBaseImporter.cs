@@ -20,5 +20,16 @@ namespace GhostfolioSidekick.FileImporter
 			var price = await api.GetMarketPrice(symbol, date);
 			return price;
 		}
+
+		protected async Task<SymbolProfile?> GetAsset(string assetName, Account account)
+		{
+			var mappedName = CryptoMapper.Instance.GetFullname(assetName);
+
+			return await api.FindSymbolByIdentifier(
+				new[] { mappedName, assetName },
+				account.Balance.Currency,
+				DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
+				DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);
+		}
 	}
 }

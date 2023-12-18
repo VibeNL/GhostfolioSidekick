@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			var activities = new List<Activity>();
 
-			var asset = await GetAsset(record.Currency);
+			var asset = await GetAsset(record.Currency, account);
 			DateTime dateTime = record.Date.ToDateTime(record.Time);
 
 			Activity activity;
@@ -57,17 +57,6 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			activities.Add(activity);
 
 			return activities;
-
-			async Task<SymbolProfile?> GetAsset(string assetName)
-			{
-				var mappedName = CryptoMapper.Instance.GetFullname(assetName);
-
-				return await api.FindSymbolByIdentifier(
-					mappedName,
-					account.Balance.Currency,
-					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
-					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);
-			}
 		}
 
 		private ActivityType MapType(string type)

@@ -140,32 +140,37 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		}
 
 		public async Task<Model.SymbolProfile?> FindSymbolByIdentifier(
-			string? identifier,
+			string[]? identifiers,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
 			AssetSubClass?[] expectedAssetSubClass)
 		{
-			if (identifier == null)
+			if (identifiers == null || !identifiers.Any())
 			{
 				return null;
 			}
 
-			if (memoryCache.TryGetValue(identifier, out Model.SymbolProfile? asset))
+			foreach (var identifier in identifiers)
 			{
-				return asset;
+				if (memoryCache.TryGetValue(identifier, out Model.SymbolProfile? asset))
+				{
+					return asset;
+				}
+
+				var mappedIdentifier = mapper.MapSymbol(identifier);
+				var foundAsset = await FindByMarketData(identifier);
+				foundAsset ??= await FindByDataProvider(identifier, expectedCurrency, expectedAssetClass, expectedAssetSubClass, mappedIdentifier);
+
+				if (foundAsset != null)
+				{
+					AddToCache(identifier, foundAsset, memoryCache);
+					await UpdateKnownIdentifiers(foundAsset, mappedIdentifier, identifier);
+					return foundAsset;
+				}
 			}
 
-			var mappedIdentifier = mapper.MapSymbol(identifier);
-			var foundAsset = await FindByMarketData(identifier);
-			foundAsset ??= await FindByDataProvider(identifier, expectedCurrency, expectedAssetClass, expectedAssetSubClass, mappedIdentifier);
-
-			if (foundAsset != null)
-			{
-				AddToCache(identifier, foundAsset, memoryCache);
-				await UpdateKnownIdentifiers(foundAsset, mappedIdentifier, identifier);
-			}
-
-			return LogIfEmpty(foundAsset, mappedIdentifier);
+			logger.LogError($"Could not find any [{string.Join(",", identifiers)}] as a symbol");
+			return null;
 
 			static void AddToCache(string identifier, Model.SymbolProfile? asset, IMemoryCache cache)
 			{
@@ -595,16 +600,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				fo.Fee == eo.Fee &&
 				fo.Type == eo.Type &&
 				fo.Date == eo.Date;
-		}
-
-		private Model.SymbolProfile? LogIfEmpty(Model.SymbolProfile? asset, string identifier)
-		{
-			if (asset == null)
-			{
-				logger.LogError($"Could not find {identifier} as a symbol");
-			}
-
-			return asset;
 		}
 
 		private Contract.Activity Round(Contract.Activity activity)

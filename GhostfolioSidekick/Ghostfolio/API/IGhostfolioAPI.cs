@@ -5,10 +5,19 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	public interface IGhostfolioAPI
 	{
 		Task<SymbolProfile?> FindSymbolByIdentifier(
-			string? identifier,
+			string?[] identifiers,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
 			AssetSubClass?[] expectedAssetSubClass);
+
+		Task<SymbolProfile?> FindSymbolByIdentifier(
+			string? identifier,
+			Currency? expectedCurrency,
+			AssetClass?[] expectedAssetClass,
+			AssetSubClass?[] expectedAssetSubClass)
+		{
+			return FindSymbolByIdentifier(new[] { identifier }, expectedCurrency, expectedAssetClass, expectedAssetSubClass);
+		}
 
 		Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date);
 
