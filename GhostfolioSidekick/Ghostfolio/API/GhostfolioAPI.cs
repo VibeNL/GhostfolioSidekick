@@ -206,7 +206,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 						.ThenBy(x => x.Symbol == identifier ? 0 : 1)
 						.ThenBy(x => x.Name == identifier ? 0 : 1)
 						.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
-						.ThenBy(x => new[] { "EUR", "USD", "GBP" }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
+						.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
 						.ThenBy(x => x.Name.Length)
 						.FirstOrDefault();
 					return filteredAsset;
