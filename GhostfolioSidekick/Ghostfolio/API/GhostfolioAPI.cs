@@ -200,11 +200,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					}
 
 					var filteredAsset = assets
+						.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? false)
+						.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? false)
 						.OrderBy(x => x.ISIN == identifier ? 0 : 1)
 						.ThenBy(x => x.Symbol == identifier ? 0 : 1)
 						.ThenBy(x => x.Name == identifier ? 0 : 1)
-						.ThenBy(x => (expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? false) ? 0 : 1)
-						.ThenBy(x => (expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? false) ? 0 : 1)
 						.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
 						.ThenBy(x => new[] { "EUR", "USD", "GBP" }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
 						.ThenBy(x => x.Name.Length)
