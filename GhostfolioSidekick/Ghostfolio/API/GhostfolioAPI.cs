@@ -205,8 +205,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					}
 
 					var filteredAsset = assets
-						.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? false)
-						.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? false)
+						.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
+						.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
 						.OrderBy(x => x.ISIN == identifier ? 0 : 1)
 						.ThenBy(x => x.Symbol == identifier ? 0 : 1)
 						.ThenBy(x => x.Name == identifier ? 0 : 1)
