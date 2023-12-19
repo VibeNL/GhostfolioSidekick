@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.FileImporter
 			return true;
 		}
 
-		public async Task<IEnumerable<Activity>> ConvertToActivities(string fileName)
+		public async Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Currency defaultCurrency)
 		{
 			CsvConfiguration csvConfig = GetConfig();
 
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			foreach (var record in records)
 			{
-				var orders = await ConvertOrders(record, records);
+				var orders = await ConvertOrders(record, records, defaultCurrency);
 
 				if (orders != null)
 				{
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.FileImporter
 			return list.Values.ToList();
 		}
 
-		protected abstract Task<IEnumerable<Activity>> ConvertOrders(T record, IEnumerable<T> allRecords);
+		protected abstract Task<IEnumerable<Activity>> ConvertOrders(T record, IEnumerable<T> allRecords, Currency defaultCurrency);
 
 		protected abstract CsvConfiguration GetConfig();
 

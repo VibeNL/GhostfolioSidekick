@@ -1,5 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.Bunq
@@ -10,18 +11,18 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 		{
 		}
 
-		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(BunqRecord record, Model.Account account, IEnumerable<BunqRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(BunqRecord record, IEnumerable<BunqRecord> allRecords, Currency defaultCurrency)
 		{
 			var activityType = GetActivityType(record);
 
 			var id = $"{activityType}{ConvertRowNumber(record, allRecords)}_{record.Date.ToInvariantDateOnlyString()}";
 
-			var order = new Model.Activity(
+			var order = new Activity(
 				activityType,
 				null,
 				record.Date,
 				1,
-				new Model.Money(CurrencyHelper.ParseCurrency("EUR"), Math.Abs(record.Amount), record.Date),
+				new Money(CurrencyHelper.ParseCurrency("EUR"), Math.Abs(record.Amount), record.Date),
 				null,
 				TransactionReferenceUtilities.GetComment(id),
 				id
@@ -43,7 +44,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 			return (sortedByRow.Single(x => x.x == record).i + 1).ToString();
 		}
 
-		private Model.ActivityType GetActivityType(BunqRecord record)
+		private ActivityType GetActivityType(BunqRecord record)
 		{
 			if (record.Name == "bunq" && record.Description.Contains("bunq Payday"))
 			{

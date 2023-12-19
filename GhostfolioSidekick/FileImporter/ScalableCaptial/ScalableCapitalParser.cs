@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		}
 
 
-		public async Task<Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames)
+		public async Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Currency defaultCurrency)
 		{
 			var list = new ConcurrentDictionary<Tuple<SymbolProfile, Currency, DateTime, decimal, decimal>, Activity>();
 			Tuple<SymbolProfile, Currency, DateTime, decimal, decimal> GetKey(Activity x)
@@ -50,41 +50,35 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			var wumRecords = new ConcurrentBag<BaaderBankWUMRecord>();
 			var rkkRecords = new ConcurrentDictionary<string, BaaderBankRKKRecord>();
 
-			var account = await api.GetAccountByName(accountName) ?? throw new NotSupportedException($"Account not found {accountName}");
-			account.Balance.Empty();
+			CsvConfiguration csvConfig = GetConfig();
 
-			foreach (var filename in filenames)
+			using var streamReader = File.OpenText(fileName);
+			using var csvReader = new CsvReader(streamReader, csvConfig);
+
+			csvReader.Read();
+			csvReader.ReadHeader();
+
+			if (IsWUMRecord(csvReader))
 			{
-				CsvConfiguration csvConfig = GetConfig();
+				csvReader.GetRecords<BaaderBankWUMRecord>().ToList().ForEach(x => wumRecords.Add(x));
+			}
 
-				using var streamReader = File.OpenText(filename);
-				using var csvReader = new CsvReader(streamReader, csvConfig);
-
-				csvReader.Read();
-				csvReader.ReadHeader();
-
-				if (IsWUMRecord(csvReader))
+			if (IsRKKRecord(csvReader))
+			{
+				csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x =>
 				{
-					csvReader.GetRecords<BaaderBankWUMRecord>().ToList().ForEach(x => wumRecords.Add(x));
-				}
+					rkkRecords.TryAdd(DetermineKey(x), x);
 
-				if (IsRKKRecord(csvReader))
-				{
-					csvReader.GetRecords<BaaderBankRKKRecord>().ToList().ForEach(x =>
+					static string DetermineKey(BaaderBankRKKRecord x)
 					{
-						rkkRecords.TryAdd(DetermineKey(x), x);
-
-						static string DetermineKey(BaaderBankRKKRecord x)
-						{
-							return x.Reference == "-" ? Guid.NewGuid().ToString() : x.Reference;
-						}
-					});
-				}
-			};
+						return x.Reference == "-" ? Guid.NewGuid().ToString() : x.Reference;
+					}
+				});
+			}
 
 			foreach (var record in wumRecords)
 			{
-				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Currency) ?? account.Balance.Currency, record, rkkRecords);
+				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Currency) ?? defaultCurrency, record, rkkRecords);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -94,7 +88,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			foreach (var record in rkkRecords)
 			{
 				BaaderBankRKKRecord r = record.Value;
-				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Value.Currency) ?? account.Balance.Currency, r);
+				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Value.Currency) ?? defaultCurrency, r);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -102,13 +96,12 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 				if (r.OrderType == "Saldo")
 				{
-					account.Balance.SetKnownBalance(new Money(r.Currency, r.UnitPrice.GetValueOrDefault(0), r.Date.ToDateTime(TimeOnly.MinValue)));
+					order = Activity.GetKnownBalance(new Money(r.Currency, r.UnitPrice.GetValueOrDefault(0), r.Date.ToDateTime(TimeOnly.MinValue)));
+					list.TryAdd(GetKey(order), order);
 				}
 			};
 
-			account.ReplaceActivities(list.Values);
-
-			return account;
+			return list.Values;
 		}
 
 		private async Task<Activity?> ConvertToOrder(Currency expectedCurrency, BaaderBankRKKRecord record)
@@ -245,5 +238,11 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 				}
 			};
 		}
+
+		public Task<bool> CanParseActivities(string fileName)
+		{
+			throw new NotImplementedException();
+		}
+
 	}
 }

@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(NexoRecord record, Account account, IEnumerable<NexoRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(NexoRecord record, IEnumerable<NexoRecord> allRecords, Currency defaultCurrency)
 		{
 			if (!record.Details.StartsWith("approved"))
 			{
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 				return await api.FindSymbolByIdentifier(
 					mappedName,
-					account.Balance.Currency,
+					defaultCurrency,
 					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
 					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);
 			}

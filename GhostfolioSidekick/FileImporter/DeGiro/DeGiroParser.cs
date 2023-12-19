@@ -12,10 +12,9 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, IEnumerable<DeGiroRecord> allRecords, Currency defaultCurrency)
 		{
-			account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
-
+			var saldo = Activity.GetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
 			var activityType = GetActivityType(record);
 			if (activityType == null)
 			{
@@ -24,7 +23,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(
 				record.ISIN,
-				CurrencyHelper.ParseCurrency(record.Mutatie) ?? account.Balance.Currency,
+				CurrencyHelper.ParseCurrency(record.Mutatie) ?? defaultCurrency,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses
 			);
@@ -80,7 +79,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					orderId);
 			}
 
-			return new[] { activity };
+			return new[] { activity, saldo };
 		}
 
 		protected override CsvConfiguration GetConfig()

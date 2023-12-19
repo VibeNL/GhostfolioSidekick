@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(Trading212Record record, Account account, IEnumerable<Trading212Record> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(Trading212Record record, IEnumerable<Trading212Record> allRecords, Currency defaultCurrency)
 		{
 			var activityType = GetOrderType(record);
 			if (activityType == null)
@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(
 				record.ISIN,
-				CurrencyHelper.ParseCurrency(record.Currency) ?? account.Balance.Currency,
+				CurrencyHelper.ParseCurrency(record.Currency) ?? defaultCurrency,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses);
 

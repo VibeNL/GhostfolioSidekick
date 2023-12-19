@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(BitvavoRecord record, Account account, IEnumerable<BitvavoRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(BitvavoRecord record, IEnumerable<BitvavoRecord> allRecords, Currency defaultCurrency)
 		{
 			if (record.Status != "Completed")
 			{
@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 				return await api.FindSymbolByIdentifier(
 					mappedName,
-					account.Balance.Currency,
+					defaultCurrency,
 					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
 					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);
 			}

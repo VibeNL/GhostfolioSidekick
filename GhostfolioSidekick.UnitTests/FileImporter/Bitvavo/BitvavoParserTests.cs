@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/Bitvavo/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(new[] { file });
+				var canParse = await parser.CanParseActivities(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			var parser = new BitvavoParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
@@ -106,7 +106,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			var parser = new BitvavoParser(api.Object);
 			var fixture = new Fixture();
 
-			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var asset = fixture.Build<SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
