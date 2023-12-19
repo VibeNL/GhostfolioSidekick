@@ -2,8 +2,8 @@
 {
 	public interface IFileImporter
 	{
-		Task<bool> CanParseActivities(IEnumerable<string> filenames);
+		Task<bool> CanParseActivities(string fileName);
 
-		Task<Model.Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames);
+		Task<IEnumerable<Model.Activity>> ConvertToActivities(string fileName);
 	}
 }

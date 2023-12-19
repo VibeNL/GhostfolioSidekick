@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
 using System.Text;
 
@@ -44,8 +45,16 @@ namespace GhostfolioSidekick.FileImporter
 				try
 				{
 					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName).Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
-					var importer = importers.SingleOrDefault(x => x.CanParseActivities(files).Result) ?? throw new NoImporterAvailableException($"Directory {accountName} has no importer");
-					var account = await importer.ConvertActivitiesForAccount(accountName, files);
+
+					var activities = new List<Activity>();
+					foreach (var file in files)
+					{
+						var importer = importers.SingleOrDefault(x => x.CanParseActivities(file).Result) ?? throw new NoImporterAvailableException($"Directory {accountName} has no importer");
+						activities.AddRange(await importer.ConvertToActivities(file));
+					}
+
+					// TODO Update account
+
 					await api.UpdateAccount(account);
 				}
 				catch (NoImporterAvailableException)
