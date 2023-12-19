@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
+using System.Data;
 using System.Text;
 
 namespace GhostfolioSidekick.FileImporter
@@ -56,9 +57,9 @@ namespace GhostfolioSidekick.FileImporter
 						activities.AddRange(await importer.ConvertToActivities(file));
 					}
 
+					throw new NotImplementedException();
 					// TODO Load & Update account
-
-					await api.UpdateAccount(account);
+					// await api.UpdateAccount(account);
 				}
 				catch (NoImporterAvailableException)
 				{
