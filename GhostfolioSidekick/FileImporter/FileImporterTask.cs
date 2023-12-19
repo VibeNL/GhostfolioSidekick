@@ -44,7 +44,10 @@ namespace GhostfolioSidekick.FileImporter
 
 				try
 				{
-					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName).Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
+					var files = directory
+						.GetFiles("*.*", SearchOption.AllDirectories)
+						.Select(x => x.FullName)
+						.Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
 
 					var activities = new List<Activity>();
 					foreach (var file in files)
@@ -53,7 +56,7 @@ namespace GhostfolioSidekick.FileImporter
 						activities.AddRange(await importer.ConvertToActivities(file));
 					}
 
-					// TODO Update account
+					// TODO Load & Update account
 
 					await api.UpdateAccount(account);
 				}
