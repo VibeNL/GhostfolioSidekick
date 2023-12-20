@@ -152,9 +152,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var key = new CacheKey(identifiers, expectedAssetClass, expectedAssetSubClass);
 
-			if (memoryCache.TryGetValue(key, out Model.SymbolProfile? asset))
+			if (memoryCache.TryGetValue(key, out CacheValue cacheValue))
 			{
-				return asset;
+				return cacheValue.Asset;
 			}
 
 			foreach (var identifier in identifiers)
@@ -177,10 +177,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			static void AddToCache(CacheKey key, Model.SymbolProfile? asset, IMemoryCache cache)
 			{
-				if (asset != null)
-				{
-					cache.Set(key, asset, CacheDuration.Long());
-				}
+				cache.Set(key, new CacheValue(asset), CacheDuration.Long());
 			}
 
 			async Task<Model.SymbolProfile?> FindByMarketData(string? identifier)
