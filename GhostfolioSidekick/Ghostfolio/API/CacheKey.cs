@@ -15,9 +15,21 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.expectedAssetSubClass = expectedAssetSubClass;
 		}
 
+		private string CompareString
+		{
+			get
+			{
+				var a = string.Join(",", Identifiers);
+				var b = string.Join(",", expectedAssetClass?.Select(x => x.Value.ToString())) ?? string.Empty;
+				var c = string.Join(",", expectedAssetSubClass?.Select(x => x.Value.ToString())) ?? string.Empty;
+				var r = string.Join("|", a, b, c);
+				return r;
+			}
+		}
+
 		public bool Equals(CacheKey? other)
 		{
-			// TODO
+			return string.Equals(this.CompareString, other.CompareString, StringComparison.InvariantCultureIgnoreCase);
 		}
 		public override bool Equals(object obj)
 		{
@@ -26,7 +38,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public override int GetHashCode()
 		{
-			return base.GetHashCode();
+			return CompareString.GetHashCode();
 		}
 	}
 }
