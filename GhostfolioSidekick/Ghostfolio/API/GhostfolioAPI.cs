@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}
 			}
 
-			logger.LogError($"Could not find any [{string.Join(",", identifiers)}] as a symbol");
+			logger.LogError($"Could not find any identifier [{string.Join(",", identifiers)}] as a symbol");
 			return null;
 
 			static void AddToCache(string identifier, Model.SymbolProfile? asset, IMemoryCache cache)
