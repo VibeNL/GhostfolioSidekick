@@ -150,31 +150,37 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return null;
 			}
 
+			var key = new CacheKey(identifiers, expectedAssetClass, expectedAssetSubClass);
+
+			if (memoryCache.TryGetValue(key, out Model.SymbolProfile? asset))
+			{
+				return asset;
+			}
+
 			foreach (var identifier in identifiers)
 			{
-				if (memoryCache.TryGetValue(identifier, out Model.SymbolProfile? asset))
-				{
-					return asset;
-				}
-
 				var mappedIdentifier = mapper.MapSymbol(identifier);
 				var foundAsset = await FindByMarketData(identifier);
 				foundAsset ??= await FindByDataProvider(identifier, expectedCurrency, expectedAssetClass, expectedAssetSubClass, mappedIdentifier);
 
 				if (foundAsset != null)
 				{
-					AddToCache(identifier, foundAsset, memoryCache);
-					await UpdateKnownIdentifiers(foundAsset, mappedIdentifier, identifier);
+					AddToCache(key, foundAsset, memoryCache);
+					await UpdateKnownIdentifiers(foundAsset, identifiers);
 					return foundAsset;
 				}
 			}
 
+			AddToCache(key, null, memoryCache);
 			logger.LogError($"Could not find any identifier [{string.Join(",", identifiers)}] as a symbol");
 			return null;
 
-			static void AddToCache(string identifier, Model.SymbolProfile? asset, IMemoryCache cache)
+			static void AddToCache(CacheKey key, Model.SymbolProfile? asset, IMemoryCache cache)
 			{
-				cache.Set(identifier, asset, CacheDuration.Long());
+				if (asset != null)
+				{
+					cache.Set(key, asset, CacheDuration.Long());
+				}
 			}
 
 			async Task<Model.SymbolProfile?> FindByMarketData(string? identifier)
