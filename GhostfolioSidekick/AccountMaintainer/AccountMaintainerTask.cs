@@ -32,7 +32,15 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			logger.LogInformation($"{nameof(AccountMaintainerTask)} Starting to do work");
 
-			await AddOrUpdateAccountsAndPlatforms();
+			try
+			{
+				await AddOrUpdateAccountsAndPlatforms();
+			}
+			catch
+			{
+				logger.LogError($"{nameof(AccountMaintainerTask)} Failed");
+				return;
+			}
 
 			logger.LogInformation($"{nameof(AccountMaintainerTask)} Done");
 		}
