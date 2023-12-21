@@ -58,7 +58,6 @@ namespace GhostfolioSidekick.FileImporter
 						.Select(x => x.FullName)
 						.Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
 
-
 					var activities = new List<Activity>();
 					foreach (var file in files)
 					{
