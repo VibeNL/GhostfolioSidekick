@@ -206,7 +206,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<RestResponse?> DoPatch(string suffixUrl, string body)
+		public async Task<RestResponse?> DoRestPatch(string suffixUrl, string body)
 		{
 			try
 			{

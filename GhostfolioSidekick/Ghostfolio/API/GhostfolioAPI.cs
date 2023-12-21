@@ -295,7 +295,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			try
 			{
-				r = await restCall.DoPatch($"api/v1/admin/profile-data/{asset.DataSource}/{asset.Symbol}", res);
+				r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{asset.DataSource}/{asset.Symbol}", res);
 				if (!r.IsSuccessStatusCode)
 				{
 					throw new NotSupportedException($"Creation failed on update {asset.Symbol}");
@@ -311,7 +311,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Model.MarketDataList> GetMarketData(string symbol, string dataSource)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.None());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			return ContractToModelMapper.MapMarketDataList(market);
@@ -329,7 +329,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			o["symbolMapping"] = mappingObject;
 			var res = o.ToString();
 
-			var r = await restCall.DoPatch($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}", res);
+			var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}", res);
 			if (!r.IsSuccessStatusCode)
 			{
 				throw new NotSupportedException($"Deletion failed {marketData.Symbol}");
@@ -682,11 +682,18 @@ namespace GhostfolioSidekick.Ghostfolio.API
 						// Check if exists
 						var md = await GetMarketData(foundAsset.Symbol, foundAsset.DataSource);
 
-						if (!string.IsNullOrWhiteSpace(md?.AssetProfile.Name))
+						if (string.IsNullOrWhiteSpace(md?.AssetProfile.Name) && md?.AssetProfile?.Currency?.Symbol == "-")
 						{
-							var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
-							logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+							var newO = new JObject();
+							newO["symbol"] = foundAsset.Symbol;
+							newO["dataSource"] = foundAsset.DataSource;
+							var newRes = newO.ToString();
+							await restCall.DoRestPost($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", newRes);
+							logger.LogInformation($"Created symbol {foundAsset.Symbol}");
 						}
+
+						var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+						logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
 					}
 					catch
 					{

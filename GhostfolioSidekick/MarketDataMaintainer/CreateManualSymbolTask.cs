@@ -6,16 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	public class MarketDataMaintainerTask : IScheduledWork
+	public class CreateManualSymbolTask : IScheduledWork
 	{
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
 		private readonly ConfigurationInstance configurationInstance;
 		private int counter = -1;
 
-		public int Priority => 9999;
+		public int Priority => 2;
 
-		public MarketDataMaintainerTask(
+		public CreateManualSymbolTask(
 			ILogger<FileImporterTask> logger,
 			IGhostfolioAPI api,
 			IApplicationSettings applicationSettings)
@@ -32,61 +32,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork()
 		{
-			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Starting to do work");
+			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Starting to do work");
 
-			await DeleteUnusedSymbols();
 			await ManageManualSymbols();
-			await SetTrackingInsightOnSymbols();
 
-			counter = (counter + 1) % 24; // HACK: once a day
-			if (counter == 0)
-			{
-				await GatherAllData();
-			}
-
-			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
-		}
-
-		private async Task GatherAllData()
-		{
-			// Bug Ghostfolio: Currencies are not updated until a new one is added.
-			// Workaround: Adding and removing a dummy
-			await api.AddAndRemoveDummyCurrency();
-			await api.GatherAllMarktData();
-		}
-
-		private async Task SetTrackingInsightOnSymbols()
-		{
-			var marketDataInfoList = await api.GetMarketData();
-			foreach (var marketDataInfo in marketDataInfoList)
-			{
-				var symbolConfiguration = configurationInstance.FindSymbol(marketDataInfo.AssetProfile.Symbol);
-				if (symbolConfiguration == null)
-				{
-					continue;
-				}
-
-				var marketData = await api.GetMarketData(marketDataInfo.AssetProfile.Symbol, marketDataInfo.AssetProfile.DataSource);
-
-				string trackingInsightSymbol = symbolConfiguration.TrackingInsightSymbol ?? string.Empty;
-				if ((marketData.AssetProfile.Mappings.TrackInsight ?? string.Empty) != trackingInsightSymbol)
-				{
-					marketData.AssetProfile.Mappings.TrackInsight = trackingInsightSymbol;
-					await api.UpdateMarketData(marketData.AssetProfile);
-				}
-			}
-		}
-
-		private async Task DeleteUnusedSymbols()
-		{
-			var marketDataList = await api.GetMarketData();
-			foreach (var marketData in marketDataList)
-			{
-				if (marketData.AssetProfile.ActivitiesCount == 0)
-				{
-					await api.DeleteSymbol(marketData.AssetProfile);
-				}
-			}
+			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Done");
 		}
 
 		private async Task ManageManualSymbols()

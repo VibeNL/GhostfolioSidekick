@@ -31,6 +31,7 @@ namespace ConsoleHelper
 			GhostfolioAPI api = new GhostfolioAPI(cs, memoryCache, logger);
 			var tasks = new IScheduledWork[]{
 			new AccountMaintainerTask(logger, api, cs),
+			new CreateManualSymbolTask(logger, api, cs),
 			new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new BunqParser(api),
 				new DeGiroParser(api),
