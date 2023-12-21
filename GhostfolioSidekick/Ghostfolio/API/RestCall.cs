@@ -46,7 +46,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				});
 
 			basicCircuitBreakerPolicy = Policy
-				.HandleResult<RestResponse>(r => !r.IsSuccessStatusCode)
+				.HandleResult<RestResponse>(r =>
+				!r.IsSuccessStatusCode
+				&& r.StatusCode != System.Net.HttpStatusCode.Forbidden
+				&& r.StatusCode != System.Net.HttpStatusCode.BadRequest)
 				.CircuitBreaker(2, TimeSpan.FromSeconds(30), (iRestResponse, timeSpan) =>
 				{
 					logger.LogDebug($"Circuit Breaker on a break");
