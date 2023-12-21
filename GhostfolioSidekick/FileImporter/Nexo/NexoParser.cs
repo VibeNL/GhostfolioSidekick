@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			var activities = new List<Activity>();
 
-			var inputAsset = await GetAsset(record.InputCurrency);
+			var inputAsset = await GetAsset(record.InputCurrency, defaultCurrency);
 			var inputActivity = new Activity
 			{
 				Asset = inputAsset,
@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				ReferenceCode = record.Transaction,
 			};
 
-			var outputAsset = await GetAsset(record.OutputCurrency);
+			var outputAsset = await GetAsset(record.OutputCurrency, defaultCurrency);
 			var refCode = record.Transaction;
 			var outputActivity = new Activity
 			{
@@ -56,14 +56,14 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			return activities;
 
-			async Task<SymbolProfile?> GetAsset(string assetName)
+			async Task<SymbolProfile?> GetAsset(string assetName, Currency defaultCurrency)
 			{
 				if (fiatCoin.Any(x => x.Symbol == assetName))
 				{
 					return null;
 				}
 
-				return await base.GetAsset(assetName, account);
+				return await base.GetAsset(assetName, defaultCurrency);
 			}
 		}
 

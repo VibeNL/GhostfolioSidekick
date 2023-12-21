@@ -21,13 +21,13 @@ namespace GhostfolioSidekick.FileImporter
 			return price;
 		}
 
-		protected async Task<SymbolProfile?> GetAsset(string assetName, Account account)
+		protected async Task<SymbolProfile?> GetAsset(string assetName, Currency defaultCurrency)
 		{
 			var mappedName = CryptoMapper.Instance.GetFullname(assetName);
 
 			return await api.FindSymbolByIdentifier(
 				new[] { mappedName, assetName },
-				account.Balance.Currency,
+				defaultCurrency,
 				DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);
 		}

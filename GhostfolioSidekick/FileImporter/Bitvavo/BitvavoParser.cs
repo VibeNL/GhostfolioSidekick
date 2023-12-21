@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			}
 			else
 			{
-				var asset = await GetAsset(record.Currency, account);
+				var asset = await GetAsset(record.Currency, defaultCurrency);
 
 				activity = new Activity
 				{
