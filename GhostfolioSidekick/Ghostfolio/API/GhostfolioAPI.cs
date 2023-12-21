@@ -208,6 +208,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					}
 
 					var filteredAsset = assets
+						.Select(FixYahooCrypto)
 						.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
 						.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
 						.OrderBy(x => x.ISIN == identifier ? 0 : 1)
@@ -221,6 +222,18 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}
 
 				return null;
+			}
+
+			Model.SymbolProfile FixYahooCrypto(Model.SymbolProfile x)
+			{
+				// Workaround for bug Ghostfolio
+				if (x != null && x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY && x.DataSource == "YAHOO" && x.Symbol.Length >= 6)
+				{
+					var t = x.Symbol;
+					x.Symbol = t.Substring(0, t.Length - 3) + "-" + t.Substring(t.Length - 3, 3);
+				}
+
+				return x;
 			}
 		}
 
@@ -311,7 +324,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Model.MarketDataList> GetMarketData(string symbol, string dataSource)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			return ContractToModelMapper.MapMarketDataList(market);

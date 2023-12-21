@@ -36,7 +36,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.accessToken = accessToken;
 
 			retryPolicy = Policy
-				.HandleResult<RestResponse>(x => !x.IsSuccessful && x.StatusCode != System.Net.HttpStatusCode.Forbidden)
+				.HandleResult<RestResponse>(x =>
+				!x.IsSuccessful
+				&& x.StatusCode != System.Net.HttpStatusCode.Forbidden
+				&& x.StatusCode != System.Net.HttpStatusCode.BadRequest)
 				.WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, async (iRestResponse, timeSpan, retryCount, context) =>
 				{
 					logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
@@ -130,6 +133,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<RestResponse?> DoRestPost(string suffixUrl, string body)
 		{
+			DeleteCache(suffixUrl);
+
 			try
 			{
 				mutex.WaitOne();
@@ -169,6 +174,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		internal async Task<RestResponse?> DoRestPut(string suffixUrl, string body)
 		{
+			DeleteCache(suffixUrl);
+
 			try
 			{
 				mutex.WaitOne();
@@ -208,6 +215,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<RestResponse?> DoRestPatch(string suffixUrl, string body)
 		{
+			DeleteCache(suffixUrl);
+
 			try
 			{
 				mutex.WaitOne();
@@ -247,6 +256,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<RestResponse?> DoRestDelete(string suffixUrl)
 		{
+			DeleteCache(suffixUrl);
+
 			try
 			{
 				mutex.WaitOne();
@@ -322,6 +333,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			memoryCache.Set(suffixUrl, token, CacheDuration.Short());
 			return token;
+		}
+
+		private void DeleteCache(string suffixUrl)
+		{
+			memoryCache.Remove(suffixUrl);
 		}
 	}
 }
