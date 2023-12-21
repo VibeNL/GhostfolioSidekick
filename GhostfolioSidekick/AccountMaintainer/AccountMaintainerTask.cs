@@ -32,7 +32,15 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			logger.LogInformation($"{nameof(AccountMaintainerTask)} Starting to do work");
 
-			await AddOrUpdateAccountsAndPlatforms();
+			try
+			{
+				await AddOrUpdateAccountsAndPlatforms();
+			}
+			catch
+			{
+				logger.LogError($"{nameof(AccountMaintainerTask)} Failed");
+				return;
+			}
 
 			logger.LogInformation($"{nameof(AccountMaintainerTask)} Done");
 		}
@@ -42,7 +50,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var platforms = configurationInstance.Platforms;
 			var accounts = configurationInstance.Accounts;
 
-			foreach (var accountConfig in accounts)
+			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{
 				var account = await api.GetAccountByName(accountConfig.Name);
 
