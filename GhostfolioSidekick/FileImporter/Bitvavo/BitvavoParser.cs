@@ -20,7 +20,6 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			var activities = new List<Activity>();
 
-			var asset = await GetAsset(record.Currency, account);
 			DateTime dateTime = record.Date.ToDateTime(record.Time);
 
 			Activity activity;
@@ -30,7 +29,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				var factor = activityType == ActivityType.CashWithdrawal ? -1 : 1;
 				activity = new Activity
 				{
-					Asset = asset,
+					Asset = null,
 					Date = dateTime,
 					Comment = TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
 					Quantity = 1,
@@ -41,6 +40,8 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			}
 			else
 			{
+				var asset = await GetAsset(record.Currency, account);
+
 				activity = new Activity
 				{
 					Asset = asset,
