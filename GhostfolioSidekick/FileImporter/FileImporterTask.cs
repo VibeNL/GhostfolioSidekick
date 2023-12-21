@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly IGhostfolioAPI api;
 		private readonly IEnumerable<IFileImporter> importers;
 
-		public int Priority => 2;
+		public int Priority => 3;
 
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,

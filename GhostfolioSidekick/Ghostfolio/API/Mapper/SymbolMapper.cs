@@ -11,17 +11,17 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			this.mappings = mappings.ToList();
 		}
 
-		internal string? MapCurrency(string? sourceCurrency)
+		internal string MapCurrency(string sourceCurrency)
 		{
 			return Map(MappingType.Currency, sourceCurrency);
 		}
 
-		internal string? MapSymbol(string? identifier)
+		internal string MapSymbol(string identifier)
 		{
 			return Map(MappingType.Symbol, identifier);
 		}
 
-		private string? Map(MappingType type, string? sourceCurrency)
+		private string Map(MappingType type, string sourceCurrency)
 		{
 			return mappings.SingleOrDefault(x => x.MappingType == type && x.Source == sourceCurrency)?.Target ?? sourceCurrency;
 		}

@@ -19,6 +19,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private readonly SymbolMapper mapper;
 		private RestCall restCall;
 
+		public bool AllowAdminCalls { get; private set; } = true;
+
 		public GhostfolioAPI(
 			IApplicationSettings settings,
 			IMemoryCache memoryCache,
@@ -126,6 +128,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Money?> GetMarketPrice(Model.SymbolProfile asset, DateTime date)
 		{
+			if (!AllowAdminCalls)
+			{
+				return null;
+			}
+
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.None());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
@@ -140,36 +147,44 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		}
 
 		public async Task<Model.SymbolProfile?> FindSymbolByIdentifier(
-			string? identifier,
+			string[]? identifiers,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
 			AssetSubClass?[] expectedAssetSubClass)
 		{
-			if (identifier == null)
+			if (identifiers == null || !identifiers.Any())
 			{
 				return null;
 			}
 
-			if (memoryCache.TryGetValue(identifier, out Model.SymbolProfile? asset))
+			var key = new CacheKey(identifiers, expectedAssetClass, expectedAssetSubClass);
+
+			if (memoryCache.TryGetValue(key, out CacheValue cacheValue))
 			{
-				return asset;
+				return cacheValue.Asset;
 			}
 
-			var mappedIdentifier = mapper.MapSymbol(identifier);
-			var foundAsset = await FindByMarketData(identifier);
-			foundAsset ??= await FindByDataProvider(identifier, expectedCurrency, expectedAssetClass, expectedAssetSubClass, mappedIdentifier);
-
-			if (foundAsset != null)
+			foreach (var identifier in identifiers)
 			{
-				AddToCache(identifier, foundAsset, memoryCache);
-				await UpdateKnownIdentifiers(foundAsset, mappedIdentifier, identifier);
+				var mappedIdentifier = mapper.MapSymbol(identifier);
+				var foundAsset = await FindByMarketData(identifier);
+				foundAsset ??= await FindByDataProvider(identifier, expectedCurrency, expectedAssetClass, expectedAssetSubClass, mappedIdentifier);
+
+				if (foundAsset != null)
+				{
+					AddToCache(key, foundAsset, memoryCache);
+					await UpdateKnownIdentifiers(foundAsset, identifiers);
+					return foundAsset;
+				}
 			}
 
-			return LogIfEmpty(foundAsset, mappedIdentifier);
+			AddToCache(key, null, memoryCache);
+			logger.LogError($"Could not find any identifier [{string.Join(",", identifiers)}] as a symbol");
+			return null;
 
-			static void AddToCache(string identifier, Model.SymbolProfile? asset, IMemoryCache cache)
+			static void AddToCache(CacheKey key, Model.SymbolProfile? asset, IMemoryCache cache)
 			{
-				cache.Set(identifier, asset, CacheDuration.Long());
+				cache.Set(key, new CacheValue(asset), CacheDuration.Long());
 			}
 
 			async Task<Model.SymbolProfile?> FindByMarketData(string? identifier)
@@ -200,19 +215,32 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					}
 
 					var filteredAsset = assets
+						.Select(FixYahooCrypto)
+						.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
+						.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
 						.OrderBy(x => x.ISIN == identifier ? 0 : 1)
 						.ThenBy(x => x.Symbol == identifier ? 0 : 1)
 						.ThenBy(x => x.Name == identifier ? 0 : 1)
-						.ThenBy(x => (expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? false) ? 0 : 1)
-						.ThenBy(x => (expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? false) ? 0 : 1)
 						.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
-						.ThenBy(x => new[] { "EUR", "USD", "GBP" }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
-						.ThenBy(x => x.Name.Length)
+						.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
+						.ThenBy(x => x.Name?.Length ?? int.MaxValue)
 						.FirstOrDefault();
 					return filteredAsset;
 				}
 
 				return null;
+			}
+
+			Model.SymbolProfile FixYahooCrypto(Model.SymbolProfile x)
+			{
+				// Workaround for bug Ghostfolio
+				if (x != null && x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY && x.DataSource == "YAHOO" && x.Symbol.Length >= 6)
+				{
+					var t = x.Symbol;
+					x.Symbol = t.Substring(0, t.Length - 3) + "-" + t.Substring(t.Length - 3, 3);
+				}
+
+				return x;
 			}
 		}
 
@@ -231,6 +259,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<IEnumerable<Model.MarketDataList>> GetMarketData()
 		{
+			if (!AllowAdminCalls)
+			{
+				return Enumerable.Empty<Model.MarketDataList>();
+			}
+
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
@@ -243,6 +276,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task DeleteSymbol(Model.SymbolProfile marketData)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}");
 			if (!r.IsSuccessStatusCode)
 			{
@@ -254,6 +292,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task CreateManualSymbol(Model.SymbolProfile asset)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 				["symbol"] = asset.Symbol,
@@ -287,7 +330,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			try
 			{
-				r = await restCall.DoPatch($"api/v1/admin/profile-data/{asset.DataSource}/{asset.Symbol}", res);
+				r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{asset.DataSource}/{asset.Symbol}", res);
 				if (!r.IsSuccessStatusCode)
 				{
 					throw new NotSupportedException($"Creation failed on update {asset.Symbol}");
@@ -311,6 +354,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task UpdateMarketData(Model.SymbolProfile marketData)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject();
 			JObject mappingObject = new JObject();
 			if (marketData.Mappings.TrackInsight != null)
@@ -321,7 +369,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			o["symbolMapping"] = mappingObject;
 			var res = o.ToString();
 
-			var r = await restCall.DoPatch($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}", res);
+			var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}", res);
 			if (!r.IsSuccessStatusCode)
 			{
 				throw new NotSupportedException($"Deletion failed {marketData.Symbol}");
@@ -341,6 +389,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task SetMarketPrice(Model.SymbolProfile assetProfile, Money money)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject();
 			o["marketPrice"] = money.Amount;
 
@@ -357,6 +410,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task CreatePlatform(Model.Platform platform)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 				["name"] = platform.Name,
@@ -399,6 +457,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task GatherAllMarktData()
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 			};
@@ -415,6 +478,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task AddAndRemoveDummyCurrency()
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 				["value"] = "[\"USD\",\" \"]"
@@ -597,16 +665,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				fo.Date == eo.Date;
 		}
 
-		private Model.SymbolProfile? LogIfEmpty(Model.SymbolProfile? asset, string identifier)
-		{
-			if (asset == null)
-			{
-				logger.LogError($"Could not find {identifier} as a symbol");
-			}
-
-			return asset;
-		}
-
 		private Contract.Activity Round(Contract.Activity activity)
 		{
 			decimal Round(decimal? value)
@@ -644,7 +702,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					{
 						try
 						{
-							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.None(), true);
+							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
 							if (content != null)
 							{
 								dynamic stuff = JsonConvert.DeserializeObject(content);
@@ -669,6 +727,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private async Task UpdateKnownIdentifiers(Model.SymbolProfile foundAsset, params string[] identifiers)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			foreach (var identifier in identifiers)
 			{
 				if (!foundAsset.Identifiers.Contains(identifier))
@@ -684,11 +747,18 @@ namespace GhostfolioSidekick.Ghostfolio.API
 						// Check if exists
 						var md = await GetMarketData(foundAsset.Symbol, foundAsset.DataSource);
 
-						if (!string.IsNullOrWhiteSpace(md?.AssetProfile.Name))
+						if (string.IsNullOrWhiteSpace(md?.AssetProfile.Name) && md?.AssetProfile?.Currency?.Symbol == "-")
 						{
-							var r = await restCall.DoPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
-							logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+							var newO = new JObject();
+							newO["symbol"] = foundAsset.Symbol;
+							newO["dataSource"] = foundAsset.DataSource;
+							var newRes = newO.ToString();
+							await restCall.DoRestPost($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", newRes);
+							logger.LogInformation($"Created symbol {foundAsset.Symbol}");
 						}
+
+						var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+						logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
 					}
 					catch
 					{
@@ -696,6 +766,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					}
 				}
 			}
+		}
+
+		public void SetAllowAdmin(bool isallowed)
+		{
+			this.AllowAdminCalls = isallowed;
 		}
 	}
 }

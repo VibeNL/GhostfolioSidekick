@@ -63,13 +63,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					return null;
 				}
 
-				var mappedName = CryptoMapper.Instance.GetFullname(assetName);
-
-				return await api.FindSymbolByIdentifier(
-					mappedName,
-					defaultCurrency,
-					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
-					DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);
+				return await base.GetAsset(assetName, account);
 			}
 		}
 
