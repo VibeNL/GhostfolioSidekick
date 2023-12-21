@@ -50,5 +50,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		Task GatherAllMarktData();
 
 		Task AddAndRemoveDummyCurrency();
+
+		void SetAllowAdmin(bool isallowed);
 	}
 }

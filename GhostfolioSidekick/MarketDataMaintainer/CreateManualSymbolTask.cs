@@ -34,7 +34,15 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Starting to do work");
 
-			await ManageManualSymbols();
+			try
+			{
+				await ManageManualSymbols();
+			}
+			catch (NotAuthorizedException)
+			{
+				// Running against a managed instance?
+				api.SetAllowAdmin(false);
+			}
 
 			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Done");
 		}

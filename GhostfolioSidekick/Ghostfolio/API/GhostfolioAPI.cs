@@ -19,6 +19,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private readonly SymbolMapper mapper;
 		private RestCall restCall;
 
+		public bool AllowAdminCalls { get; private set; } = true;
+
 		public GhostfolioAPI(
 			IApplicationSettings settings,
 			IMemoryCache memoryCache,
@@ -126,6 +128,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<Money?> GetMarketPrice(Model.SymbolProfile asset, DateTime date)
 		{
+			if (!AllowAdminCalls)
+			{
+				return null;
+			}
+
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.None());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
@@ -216,7 +223,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 						.ThenBy(x => x.Name == identifier ? 0 : 1)
 						.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
 						.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
-						.ThenBy(x => x.Name.Length)
+						.ThenBy(x => x.Name?.Length ?? int.MaxValue)
 						.FirstOrDefault();
 					return filteredAsset;
 				}
@@ -252,6 +259,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task<IEnumerable<Model.MarketDataList>> GetMarketData()
 		{
+			if (!AllowAdminCalls)
+			{
+				return Enumerable.Empty<Model.MarketDataList>();
+			}
+
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
@@ -264,6 +276,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task DeleteSymbol(Model.SymbolProfile marketData)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}");
 			if (!r.IsSuccessStatusCode)
 			{
@@ -275,6 +292,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task CreateManualSymbol(Model.SymbolProfile asset)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 				["symbol"] = asset.Symbol,
@@ -332,6 +354,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task UpdateMarketData(Model.SymbolProfile marketData)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject();
 			JObject mappingObject = new JObject();
 			if (marketData.Mappings.TrackInsight != null)
@@ -362,6 +389,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task SetMarketPrice(Model.SymbolProfile assetProfile, Money money)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject();
 			o["marketPrice"] = money.Amount;
 
@@ -378,6 +410,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task CreatePlatform(Model.Platform platform)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 				["name"] = platform.Name,
@@ -420,6 +457,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task GatherAllMarktData()
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 			};
@@ -436,6 +478,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task AddAndRemoveDummyCurrency()
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 				["value"] = "[\"USD\",\" \"]"
@@ -655,7 +702,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					{
 						try
 						{
-							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.None(), true);
+							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
 							if (content != null)
 							{
 								dynamic stuff = JsonConvert.DeserializeObject(content);
@@ -680,6 +727,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		private async Task UpdateKnownIdentifiers(Model.SymbolProfile foundAsset, params string[] identifiers)
 		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
 			foreach (var identifier in identifiers)
 			{
 				if (!foundAsset.Identifiers.Contains(identifier))
@@ -714,6 +766,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					}
 				}
 			}
+		}
+
+		public void SetAllowAdmin(bool isallowed)
+		{
+			this.AllowAdminCalls = isallowed;
 		}
 	}
 }

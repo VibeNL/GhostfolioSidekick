@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var platforms = configurationInstance.Platforms;
 			var accounts = configurationInstance.Accounts;
 
-			foreach (var accountConfig in accounts)
+			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{
 				var account = await api.GetAccountByName(accountConfig.Name);
 
