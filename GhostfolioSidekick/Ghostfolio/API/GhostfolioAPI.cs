@@ -223,7 +223,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 						.ThenBy(x => x.Name == identifier ? 0 : 1)
 						.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
 						.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
-						.ThenBy(x => x.Name?.Length ?? int.MaxValue)
+						.ThenByDescending(x => x.DataSource) // prefer Yahoo above Coingecko
+.ThenBy(x => x.Name?.Length ?? int.MaxValue)
 						.FirstOrDefault();
 					return filteredAsset;
 				}
