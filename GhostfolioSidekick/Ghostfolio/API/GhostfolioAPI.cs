@@ -260,7 +260,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 				if (string.Equals(x.Symbol, id, StringComparison.InvariantCultureIgnoreCase) ||
 					(x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY &&
-					string.Equals(x.Symbol, id + "-USD", StringComparison.InvariantCultureIgnoreCase))) // Add USD for Yahoo crypto
+					string.Equals(x.Symbol, id + "-USD", StringComparison.InvariantCultureIgnoreCase)) || // Add USD for Yahoo crypto
+					(x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY &&
+					string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase))) // Add dashes for CoinGecko
 				{
 					return true;
 				}
