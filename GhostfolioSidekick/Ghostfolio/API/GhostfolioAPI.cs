@@ -213,11 +213,12 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			async Task<Model.SymbolProfile?> FindByDataProvider(
-				IEnumerable<string> identifiers,
+				IEnumerable<string> ids,
 				Currency? expectedCurrency,
 				AssetClass?[] expectedAssetClass,
 				AssetSubClass?[] expectedAssetSubClass)
 			{
+				var identifiers = ids.ToList();
 				var allAssets = new List<Model.SymbolProfile>();
 
 				foreach (var identifier in identifiers)
