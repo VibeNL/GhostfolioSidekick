@@ -166,6 +166,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var allIdentifiers = identifiers
 				.Union(identifiers.Select(x => mapper.MapSymbol(x)))
+				.Union(identifiers.Select(x => CreateCryptoForYahoo(x)))
 				.Where(x => !string.IsNullOrWhiteSpace(x))
 				.Distinct();
 
@@ -228,12 +229,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 						var assets = symbolProfileList.Items.Select(ContractToModelMapper.ParseSymbolProfile);
 
-						if (!assets.Any())
+						if (assets.Any())
 						{
-							continue;
+							allAssets.AddRange(assets);
+							break;
 						}
-
-						allAssets.AddRange(assets);
 					}
 				}
 
@@ -241,15 +241,35 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					.Select(FixYahooCrypto)
 					.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
 					.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
-					.OrderBy(x => identifiers.Any(y => x.ISIN == y) ? 0 : 1)
-					.ThenBy(x => identifiers.Any(y => x.Symbol == y) ? 0 : 1)
-					.ThenBy(x => identifiers.Any(y => x.Name == y) ? 0 : 1)
-					.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
+					.OrderBy(x => identifiers.Any(y => MatchId(x, y)) ? 0 : 1)
+					.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
 					.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
 					.ThenByDescending(x => x.DataSource) // prefer Yahoo above Coingecko due to performance
 					.ThenBy(x => x.Name?.Length ?? int.MaxValue)
 					.FirstOrDefault();
 				return filteredAsset;
+			}
+
+			bool MatchId(Model.SymbolProfile x, string id)
+			{
+				if (string.Equals(x.ISIN, id, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return true;
+				}
+
+				if (string.Equals(x.Symbol, id, StringComparison.InvariantCultureIgnoreCase) ||
+					(x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY &&
+					string.Equals(x.Symbol, id + "-USD", StringComparison.InvariantCultureIgnoreCase))) // Add USD for Yahoo crypto
+				{
+					return true;
+				}
+
+				if (string.Equals(x.Name, id, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return true;
+				}
+
+				return false;
 			}
 
 			Model.SymbolProfile FixYahooCrypto(Model.SymbolProfile x)
@@ -262,6 +282,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}
 
 				return x;
+			}
+
+			string CreateCryptoForYahoo(string x)
+			{
+				return x + "-USD";
 			}
 		}
 
