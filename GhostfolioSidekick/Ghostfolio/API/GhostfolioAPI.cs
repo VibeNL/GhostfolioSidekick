@@ -409,7 +409,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			var o = new JObject();
-			JObject mappingObject = new JObject();
+			JObject mappingObject = new();
 			if (marketData.Mappings.TrackInsight != null)
 			{
 				mappingObject.Add("TRACKINSIGHT", marketData.Mappings.TrackInsight);

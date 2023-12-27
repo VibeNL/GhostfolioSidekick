@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public class RestCall
 	{
-		private Mutex mutex = new Mutex();
+		private Mutex mutex = new();
 
 		private static int _maxRetryAttempts = 5;
 		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(1);

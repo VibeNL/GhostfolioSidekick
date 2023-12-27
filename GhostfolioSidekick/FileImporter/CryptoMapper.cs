@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.FileImporter
 {
 	internal class CryptoMapper
 	{
-		private Dictionary<string, string> mappings = new Dictionary<string, string>();
+		private Dictionary<string, string> mappings = new();
 
 		private CryptoMapper()
 		{
@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.FileImporter
 			}
 		}
 
-		public static readonly CryptoMapper Instance = new CryptoMapper();
+		public static readonly CryptoMapper Instance = new();
 
 		internal string? GetFullname(string symbol)
 		{
