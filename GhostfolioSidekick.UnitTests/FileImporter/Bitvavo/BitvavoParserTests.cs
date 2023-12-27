@@ -72,6 +72,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
 
+			api.Setup(x => x.GetMarketPrice(It.IsAny<SymbolProfile>(), It.IsAny<DateTime>())).ReturnsAsync(new Money(DefaultCurrency.EUR, 42, new DateTime(2023, 10, 13, 22, 38, 36, DateTimeKind.Utc)));
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Cosmos", "ATOM" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
 
@@ -87,7 +88,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 				Fees = Array.Empty<Money>(),
 				Quantity = 15.586311M,
 				ActivityType = ActivityType.Receive,
-				UnitPrice = new Money(DefaultCurrency.EUR, 0, new DateTime(2023, 10, 13, 22, 38, 36, DateTimeKind.Utc)),
+				UnitPrice = new Money(DefaultCurrency.EUR, 42, new DateTime(2023, 10, 13, 22, 38, 36, DateTimeKind.Utc)),
 				ReferenceCode = "af86c3d8-ff57-4866-b6ce-7a549db31eda"
 			} });
 		}
