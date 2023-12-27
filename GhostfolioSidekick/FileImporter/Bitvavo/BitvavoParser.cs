@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 		protected override async Task<IEnumerable<Activity>> ConvertOrders(BitvavoRecord record, Account account, IEnumerable<BitvavoRecord> allRecords)
 		{
-			if (record.Status != "Completed")
+			if (record.Status != "Completed" && record.Status != "Distributed")
 			{
 				return Array.Empty<Activity>();
 			}
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			DateTime dateTime = record.Date.ToDateTime(record.Time);
 
 			Activity activity;
-			ActivityType activityType = MapType(record.Type);
+			ActivityType activityType = MapType(record);
 			if (activityType == ActivityType.CashDeposit || activityType == ActivityType.CashWithdrawal)
 			{
 				var factor = activityType == ActivityType.CashWithdrawal ? -1 : 1;
@@ -42,6 +42,13 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			{
 				var asset = await GetAsset(record.Currency, account);
 
+				var fees = new List<Money>();
+
+				if (record.Fee != null && CurrencyHelper.IsFiat(record.FeeCurrency))
+				{
+					fees.Add(new Money(record.FeeCurrency, record.Fee.GetValueOrDefault(0), dateTime));
+				}
+
 				activity = new Activity
 				{
 					Asset = asset,
@@ -49,9 +56,9 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					Comment = TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
 					Quantity = Math.Abs(record.Amount),
 					ActivityType = activityType,
-					UnitPrice = new Money(CurrencyHelper.EUR, record.Price ?? 0, dateTime),//TODO
+					UnitPrice = await GetCorrectUnitPrice(new Money(CurrencyHelper.EUR, record.Price ?? 0, dateTime), asset, dateTime),
 					ReferenceCode = record.Transaction,
-					Fees = new[] { new Money(record.FeeCurrency, record.Fee.GetValueOrDefault(0), dateTime) }
+					Fees = fees
 				};
 			}
 
@@ -60,9 +67,10 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			return activities;
 		}
 
-		private ActivityType MapType(string type)
+		private ActivityType MapType(BitvavoRecord record)
 		{
-			switch (type)
+			var isFiat = CurrencyHelper.IsFiat(record.Currency);
+			switch (record.Type)
 			{
 				case "buy":
 					return ActivityType.Buy;
@@ -71,9 +79,9 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				case "staking":
 					return ActivityType.StakingReward;
 				case "withdrawal":
-					return ActivityType.CashWithdrawal;
+					return isFiat ? ActivityType.CashWithdrawal : ActivityType.Send;
 				case "deposit":
-					return ActivityType.CashDeposit;
+					return isFiat ? ActivityType.CashDeposit : ActivityType.Receive;
 				case "rebate":
 					return ActivityType.CashDeposit;
 				case "affiliate":

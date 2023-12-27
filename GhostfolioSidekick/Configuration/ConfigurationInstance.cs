@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Configuration
 
 		public static ConfigurationInstance? Parse(string configuration)
 		{
-			JsonSerializerOptions options = new JsonSerializerOptions
+			JsonSerializerOptions options = new()
 			{
 				Converters ={
 					new JsonStringEnumConverter()

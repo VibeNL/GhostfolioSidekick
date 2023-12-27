@@ -14,7 +14,7 @@ namespace ConsoleHelper
 {
 	internal class Program
 	{
-		private static ConsoleLogger logger = new ConsoleLogger();
+		private static ConsoleLogger logger = new();
 
 		static void Main(string[] args)
 		{
@@ -27,8 +27,8 @@ namespace ConsoleHelper
 			}
 
 			var cs = new ApplicationSettings();
-			MemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions { });
-			GhostfolioAPI api = new GhostfolioAPI(cs, memoryCache, logger);
+			MemoryCache memoryCache = new(new MemoryCacheOptions { });
+			GhostfolioAPI api = new(cs, memoryCache, logger);
 			var tasks = new IScheduledWork[]{
 			new AccountMaintainerTask(logger, api, cs),
 			new CreateManualSymbolTask(logger, api, cs),

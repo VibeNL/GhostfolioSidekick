@@ -96,8 +96,8 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			var note = record.Notes;
 			var splitted = note.Split(' ');
 
-			Money source = new Money(splitted[1], Decimal.Parse(splitted[0], CultureInfo.InvariantCulture), record.Time);
-			Money target = new Money(splitted[4], Decimal.Parse(splitted[3], CultureInfo.InvariantCulture), record.Time);
+			Money source = new(splitted[1], Decimal.Parse(splitted[0], CultureInfo.InvariantCulture), record.Time);
+			Money target = new(splitted[4], Decimal.Parse(splitted[3], CultureInfo.InvariantCulture), record.Time);
 
 			return (source, target);
 		}
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		private IEnumerable<Money> GetFees(Trading212Record record)
 		{
-			List<Money> taxes = new List<Money>();
+			List<Money> taxes = new();
 			if (record.FeeUK != null)
 			{
 				taxes.Add(new Money(record.FeeUKCurrency, record.FeeUK.Value, record.Time));
