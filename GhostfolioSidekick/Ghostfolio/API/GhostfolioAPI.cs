@@ -197,7 +197,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 					foreach (var identifier in allIdentifiers)
 					{
-						var foundSymbol = r.SingleOrDefault(x => x.Symbol == identifier || x.ISIN == identifier || x.Identifiers.Contains(identifier));
+						var foundSymbol = r
+							.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
+							.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
+							.SingleOrDefault(x =>
+							x.Symbol == identifier ||
+							x.ISIN == identifier ||
+							x.Identifiers.Contains(identifier));
 						if (foundSymbol != null)
 						{
 							return foundSymbol;
