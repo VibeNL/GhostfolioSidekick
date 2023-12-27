@@ -164,18 +164,20 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return cacheValue.Asset;
 			}
 
-			foreach (var identifier in identifiers)
-			{
-				var mappedIdentifier = mapper.MapSymbol(identifier);
-				var foundAsset = await FindByMarketData(identifier);
-				foundAsset ??= await FindByDataProvider(identifier, expectedCurrency, expectedAssetClass, expectedAssetSubClass, mappedIdentifier);
+			var allIdentifiers = identifiers
+				.Union(identifiers.Select(x => mapper.MapSymbol(x)))
+				.Union(identifiers.Select(x => CreateCryptoForYahoo(x)))
+				.Where(x => !string.IsNullOrWhiteSpace(x))
+				.Distinct();
 
-				if (foundAsset != null)
-				{
-					AddToCache(key, foundAsset, memoryCache);
-					await UpdateKnownIdentifiers(foundAsset, identifiers);
-					return foundAsset;
-				}
+			var foundAsset = await FindByMarketData(allIdentifiers);
+			foundAsset ??= await FindByDataProvider(allIdentifiers, expectedCurrency, expectedAssetClass, expectedAssetSubClass);
+
+			if (foundAsset != null)
+			{
+				AddToCache(key, foundAsset, memoryCache);
+				await UpdateKnownIdentifiers(foundAsset, identifiers);
+				return foundAsset;
 			}
 
 			AddToCache(key, null, memoryCache);
@@ -187,49 +189,90 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				cache.Set(key, new CacheValue(asset), CacheDuration.Long());
 			}
 
-			async Task<Model.SymbolProfile?> FindByMarketData(string? identifier)
+			async Task<Model.SymbolProfile?> FindByMarketData(IEnumerable<string> allIdentifiers)
 			{
 				try
 				{
 					var r = (await GetMarketData()).Select(x => x.AssetProfile);
-					return r.SingleOrDefault(x => x.Symbol == identifier || x.ISIN == identifier || x.Identifiers.Contains(identifier));
+
+					foreach (var identifier in allIdentifiers)
+					{
+						var foundSymbol = r.SingleOrDefault(x => x.Symbol == identifier || x.ISIN == identifier || x.Identifiers.Contains(identifier));
+						if (foundSymbol != null)
+						{
+							return foundSymbol;
+						}
+					}
 				}
 				catch (NotAuthorizedException)
 				{
-					return null;
-				}
-			}
-
-			async Task<Model.SymbolProfile?> FindByDataProvider(string? identifier, Currency? expectedCurrency, AssetClass?[] expectedAssetClass, AssetSubClass?[] expectedAssetSubClass, string? mappedIdentifier)
-			{
-				for (var i = 0; i < 5; i++)
-				{
-					var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={mappedIdentifier.Trim()}", CacheDuration.None());
-					var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
-
-					var assets = symbolProfileList.Items.Select(x => ContractToModelMapper.ParseSymbolProfile(x));
-
-					if (!assets.Any())
-					{
-						continue;
-					}
-
-					var filteredAsset = assets
-						.Select(FixYahooCrypto)
-						.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
-						.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
-						.OrderBy(x => x.ISIN == identifier ? 0 : 1)
-						.ThenBy(x => x.Symbol == identifier ? 0 : 1)
-						.ThenBy(x => x.Name == identifier ? 0 : 1)
-						.ThenBy(x => x.Currency.Symbol == expectedCurrency?.Symbol ? 0 : 1)
-						.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer wellknown currencies
-						.ThenByDescending(x => x.DataSource) // prefer Yahoo above Coingecko
-.ThenBy(x => x.Name?.Length ?? int.MaxValue)
-						.FirstOrDefault();
-					return filteredAsset;
+					// Ignore for now
 				}
 
 				return null;
+			}
+
+			async Task<Model.SymbolProfile?> FindByDataProvider(
+				IEnumerable<string> ids,
+				Currency? expectedCurrency,
+				AssetClass?[] expectedAssetClass,
+				AssetSubClass?[] expectedAssetSubClass)
+			{
+				var identifiers = ids.ToList();
+				var allAssets = new List<Model.SymbolProfile>();
+
+				foreach (var identifier in identifiers)
+				{
+					for (var i = 0; i < 5; i++)
+					{
+						var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.None());
+						var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
+
+						var assets = symbolProfileList.Items.Select(ContractToModelMapper.ParseSymbolProfile);
+
+						if (assets.Any())
+						{
+							allAssets.AddRange(assets);
+							break;
+						}
+					}
+				}
+
+				var filteredAsset = allAssets
+					.Select(FixYahooCrypto)
+					.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
+					.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
+					.OrderBy(x => identifiers.Any(y => MatchId(x, y)) ? 0 : 1)
+					.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
+					.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
+					.ThenByDescending(x => x.DataSource) // prefer Yahoo above Coingecko due to performance
+					.ThenBy(x => x.Name?.Length ?? int.MaxValue)
+					.FirstOrDefault();
+				return filteredAsset;
+			}
+
+			bool MatchId(Model.SymbolProfile x, string id)
+			{
+				if (string.Equals(x.ISIN, id, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return true;
+				}
+
+				if (string.Equals(x.Symbol, id, StringComparison.InvariantCultureIgnoreCase) ||
+					(x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY &&
+					string.Equals(x.Symbol, id + "-USD", StringComparison.InvariantCultureIgnoreCase)) || // Add USD for Yahoo crypto
+					(x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY &&
+					string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase))) // Add dashes for CoinGecko
+				{
+					return true;
+				}
+
+				if (string.Equals(x.Name, id, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return true;
+				}
+
+				return false;
 			}
 
 			Model.SymbolProfile FixYahooCrypto(Model.SymbolProfile x)
@@ -242,6 +285,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}
 
 				return x;
+			}
+
+			string CreateCryptoForYahoo(string x)
+			{
+				return x + "-USD";
 			}
 		}
 

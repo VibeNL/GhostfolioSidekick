@@ -86,5 +86,10 @@ namespace GhostfolioSidekick.Model
 		{
 			Comment = $"Known Identifiers: [{string.Join(",", identifiers.Union(new[] { identifier }))}]";
 		}
+
+		public override string ToString()
+		{
+			return $"{Symbol} {DataSource}";
+		}
 	}
 }
