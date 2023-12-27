@@ -813,7 +813,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 						}
 
 						var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
-						logger.LogInformation($"Updated symbol {foundAsset.Symbol}");
+						logger.LogInformation($"Updated symbol {foundAsset.Symbol} by adding id {identifier}");
 					}
 					catch
 					{
