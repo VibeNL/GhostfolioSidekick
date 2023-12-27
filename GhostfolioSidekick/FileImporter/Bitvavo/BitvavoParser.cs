@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					Comment = TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
 					Quantity = Math.Abs(record.Amount),
 					ActivityType = activityType,
-					UnitPrice = new Money(CurrencyHelper.EUR, record.Price ?? 0, dateTime),// TODO
+					UnitPrice = await GetCorrectUnitPrice(new Money(CurrencyHelper.EUR, record.Price ?? 0, dateTime), asset, dateTime),
 					ReferenceCode = record.Transaction,
 					Fees = fees
 				};
