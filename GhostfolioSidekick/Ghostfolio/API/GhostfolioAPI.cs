@@ -186,7 +186,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			static void AddToCache(CacheKey key, Model.SymbolProfile? asset, IMemoryCache cache)
 			{
-				cache.Set(key, new CacheValue(asset), CacheDuration.Long());
+				cache.Set(key, new CacheValue(asset), asset != null ? CacheDuration.Long() : Cache duration.Short());
 			}
 
 			async Task<Model.SymbolProfile?> FindByMarketData(IEnumerable<string> allIdentifiers)
