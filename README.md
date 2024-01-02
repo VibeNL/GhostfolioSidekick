@@ -106,7 +106,7 @@ Maintaining symbols in ghostfolio
 |--|--|--|--|--|--|
 | Generic importer | See below | X | X | X | X |
 | Trading 212 | Export of transaction history | X | X | X | X |
-| De Giro | Export of transaction history | X | X | X | X |
+| De Giro | Export of account history | X | X | X | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | Nexo (Experimental) | Export of transaction history | X | - | - | X |
