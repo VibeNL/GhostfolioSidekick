@@ -71,6 +71,7 @@
 				case ActivityType.LearningReward:
 				case ActivityType.StakingReward:
 				case ActivityType.Convert:
+				case ActivityType.Fee:
 					return true;
 				// Not needed at the time, is in the balance
 				case ActivityType.CashDeposit:
