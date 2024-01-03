@@ -98,5 +98,33 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -10, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc)));
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleFee_Converted()
+		{
+			// Arrange
+			var parser = new GenericParser(api.Object);
+			var fixture = new Fixture();
+
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Generic/CashTransactions/single_fee.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -0.25M, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc)));
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
+				Asset = null,
+				Comment = "Transaction Reference: [Fee_USD_2023-08-08] (Details: asset USD)",
+				Date = new DateTime(2023,08,8, 0,0,0, DateTimeKind.Utc),
+				Fees = new[] { new Money(DefaultCurrency.USD, 0.25M, new DateTime(2023,08,8, 0,0,0, DateTimeKind.Utc)) },
+				Quantity = 1,
+				ActivityType = ActivityType.Fee,
+				UnitPrice = new Money(DefaultCurrency.USD, 0, new DateTime(2023,08,8, 0,0,0, DateTimeKind.Utc)),
+				ReferenceCode = "Fee_USD_2023-08-08"
+			} });
+		}
 	}
 }

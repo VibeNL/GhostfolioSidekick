@@ -18,6 +18,8 @@
 
 		Gift,
 
+		Fee,
+
 		LearningReward,
 
 		StakingReward,
