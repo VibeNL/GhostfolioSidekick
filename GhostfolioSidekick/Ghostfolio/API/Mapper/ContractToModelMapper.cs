@@ -92,6 +92,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					return Model.ActivityType.Dividend;
 				case Contract.ActivityType.INTEREST:
 					return Model.ActivityType.Interest;
+				case Contract.ActivityType.FEE:
+					return Model.ActivityType.Fee;
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");
 			}

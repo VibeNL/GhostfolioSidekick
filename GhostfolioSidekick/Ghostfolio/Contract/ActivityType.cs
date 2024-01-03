@@ -1,14 +1,17 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.Contract
 {
-    public enum ActivityType
-    {
-        BUY,
+	public enum ActivityType
+	{
+		BUY,
 
-        SELL,
+		SELL,
 
-        DIVIDEND,
+		DIVIDEND,
 
-        INTEREST,
-        IGNORE
-    }
+		INTEREST,
+
+		FEE,
+
+		IGNORE,
+	}
 }

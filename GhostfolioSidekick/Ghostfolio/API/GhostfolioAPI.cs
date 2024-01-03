@@ -580,7 +580,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
-			if (activity.Type == Ghostfolio.Contract.ActivityType.IGNORE)
+			if (activity.Type == Contract.ActivityType.IGNORE)
 			{
 				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
 			}
@@ -652,9 +652,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			o["fee"] = activity.Fee;
 			o["quantity"] = activity.Quantity;
 
-			if (activity.Type == Ghostfolio.Contract.ActivityType.INTEREST)
+			if (activity.Type == Contract.ActivityType.INTEREST)
 			{
 				o["symbol"] = "Interest";
+			}
+			else if (activity.Type == Contract.ActivityType.FEE)
+			{
+				o["symbol"] = "Fee";
 			}
 			else
 			{
@@ -712,7 +716,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private bool AreEquals(Contract.Activity fo, Contract.Activity eo)
 		{
 			return
-				(fo.SymbolProfile?.Symbol == eo.SymbolProfile?.Symbol || fo.Type == Ghostfolio.Contract.ActivityType.INTEREST) && // Interest create manual symbols
+				(fo.SymbolProfile?.Symbol == eo.SymbolProfile?.Symbol ||
+					fo.Type == Contract.ActivityType.INTEREST || fo.Type == Contract.ActivityType.FEE) && // Interest & Fee create manual symbols
 				fo.Quantity == eo.Quantity &&
 				fo.UnitPrice == eo.UnitPrice &&
 				fo.Fee == eo.Fee &&
