@@ -60,37 +60,42 @@ namespace GhostfolioSidekick.FileImporter
 
 	internal class Holding
 	{
-		public SortedList<DateTime, Activity> Activities { get; } = [];
+		public List<Activity> Activities { get; } = [];
 
 		internal void AddActivity(Activity item)
 		{
-			this.Activities.Add(item.Date, item);
+			if (item.ActivityType != ActivityType.StakingReward)
+			{
+				Activities.Add(item);
+			}
 		}
 
 		internal void ApplyDustCorrection()
 		{
 			var amount = GetAmount();
-			Activity lastActivity = Activities.Last().Value;
+			Activity lastActivity = Activities.OrderBy(x => x.Date).Last();
 			var lastKnownPrice = lastActivity.UnitPrice.Amount;
 			decimal dustValue = amount * lastKnownPrice;
-			if (Math.Abs(dustValue) < 0.01M && dustValue != 0) // less than one cent
+			if (Math.Abs(dustValue) < 0.01M && dustValue != 0) // less than one cent we should correct. TODO: Make configurable
 			{
-				lastActivity.Quantity -= amount;
+				// Should always be a sell as we have dust!
+				lastActivity.Quantity += amount;
 			}
 		}
 
 		private decimal GetAmount()
 		{
-			return Activities.Values.Sum(x => GetFactor(x) * x.Quantity);
+			return Activities.Sum(x => GetFactor(x) * x.Quantity);
 		}
 
 		private decimal GetFactor(Activity x)
 		{
 			switch (x.ActivityType)
 			{
+				case ActivityType.StakingReward:
+					return 0;
 				case ActivityType.Gift:
 				case ActivityType.LearningReward:
-				case ActivityType.StakingReward:
 				case ActivityType.Buy:
 				case ActivityType.Receive:
 					return 1;
