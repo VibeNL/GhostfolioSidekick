@@ -7,7 +7,9 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 {
 	public class BitvavoParser : CryptoRecordBaseImporter<BitvavoRecord>
 	{
-		public BitvavoParser(IGhostfolioAPI api) : base(api)
+		public BitvavoParser(
+			ApplicationSettings applicationSettings,
+			IGhostfolioAPI api) : base(applicationSettings.ConfigurationInstance, api)
 		{
 		}
 

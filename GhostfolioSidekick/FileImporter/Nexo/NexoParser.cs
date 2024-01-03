@@ -14,7 +14,9 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			new SymbolProfile(new Currency("USD"), "USD",null, "USD", null, null, null)
 		};
 
-		public NexoParser(IGhostfolioAPI api) : base(api)
+		public NexoParser(
+			ApplicationSettings applicationSettings,
+			IGhostfolioAPI api) : base(applicationSettings.ConfigurationInstance, api)
 		{
 		}
 
