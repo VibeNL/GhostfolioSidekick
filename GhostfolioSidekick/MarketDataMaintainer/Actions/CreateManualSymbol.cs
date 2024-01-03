@@ -1,96 +1,39 @@
 ﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.Ghostfolio.API;
-using GhostfolioSidekick.MarketDataMaintainer.Actions;
 using GhostfolioSidekick.Model;
-using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick.MarketDataMaintainer
+namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 {
-	public class MarketDataMaintainerTask : IScheduledWork
+	internal class CreateManualSymbol
 	{
-		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
 		private readonly ConfigurationInstance configurationInstance;
-		private int counter = -1;
 
-		public int Priority => 9999;
-
-		public MarketDataMaintainerTask(
-			ILogger<FileImporterTask> logger,
+		public CreateManualSymbol(
 			IGhostfolioAPI api,
-			IApplicationSettings applicationSettings)
+			ConfigurationInstance configurationInstance)
 		{
-			ArgumentNullException.ThrowIfNull(applicationSettings);
-
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.api = api ?? throw new ArgumentNullException(nameof(api));
-			this.configurationInstance = applicationSettings.ConfigurationInstance;
+			this.api = api;
+			this.configurationInstance = configurationInstance;
 		}
 
-		public async Task DoWork()
+		internal async Task ManageManualSymbols()
 		{
-			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Starting to do work");
+			var marketData = (await api.GetMarketData()).ToList();
+			var activities = (await api.GetAllActivities()).ToList();
 
-			await DeleteUnusedSymbols();
-			await ManageManualSymbols();
-			await SetTrackingInsightOnSymbols();
-
-			counter = (counter + 1) % 24; // HACK: once a day
-			if (counter == 0)
+			var symbolConfigurations = configurationInstance.Symbols;
+			foreach (var symbolConfiguration in symbolConfigurations)
 			{
-				await GatherAllData();
-			}
-
-			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
-		}
-
-		private async Task GatherAllData()
-		{
-			// Bug Ghostfolio: Currencies are not updated until a new one is added.
-			// Workaround: Adding and removing a dummy
-			await api.AddAndRemoveDummyCurrency();
-			await api.GatherAllMarktData();
-		}
-
-		private async Task SetTrackingInsightOnSymbols()
-		{
-			var marketDataInfoList = await api.GetMarketData();
-			foreach (var marketDataInfo in marketDataInfoList)
-			{
-				var symbolConfiguration = configurationInstance.FindSymbol(marketDataInfo.AssetProfile.Symbol);
-				if (symbolConfiguration == null)
+				var manualSymbolConfiguration = symbolConfiguration.ManualSymbolConfiguration;
+				if (manualSymbolConfiguration == null)
 				{
 					continue;
 				}
 
-				var marketData = await api.GetMarketData(marketDataInfo.AssetProfile.Symbol, marketDataInfo.AssetProfile.DataSource);
-
-				string trackingInsightSymbol = symbolConfiguration.TrackingInsightSymbol ?? string.Empty;
-				if ((marketData.AssetProfile.Mappings.TrackInsight ?? string.Empty) != trackingInsightSymbol)
-				{
-					marketData.AssetProfile.Mappings.TrackInsight = trackingInsightSymbol;
-					await api.UpdateMarketData(marketData.AssetProfile);
-				}
+				await AddOrUpdateSymbol(symbolConfiguration, manualSymbolConfiguration);
+				await SetKnownPrices(symbolConfiguration, marketData, activities);
 			}
-		}
-
-		private async Task DeleteUnusedSymbols()
-		{
-			var marketDataList = await api.GetMarketData();
-			foreach (var marketData in marketDataList)
-			{
-				if (marketData.AssetProfile.ActivitiesCount == 0)
-				{
-					await api.DeleteSymbol(marketData.AssetProfile);
-				}
-			}
-		}
-
-		private async Task ManageManualSymbols()
-		{
-			var action = new CreateManualSymbol(api, configurationInstance);
-			await action.ManageManualSymbols();
 		}
 
 		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<MarketDataList> marketData, List<Activity> activities)
@@ -109,7 +52,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				return;
 			}
 
-			var sortedActivities = activitiesForSymbol.OrderBy(x => x.Date).ToList();
+			var sortedActivities = activitiesForSymbol.Where(x => x.UnitPrice?.Amount != 0).OrderBy(x => x.Date).ToList();
 
 			for (var i = 0; i < sortedActivities.Count(); i++)
 			{
@@ -137,7 +80,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					var price = md.MarketData.FirstOrDefault(x => x.Date.Date == date.Date);
 
 					var diff = (price?.MarketPrice ?? 0) - expectedPrice;
-					if (Math.Abs(diff) >= 0.0000001M)
+					if (Math.Abs(diff) >= 0.00001M)
 					{
 						await api.SetMarketPrice(md.AssetProfile, new Money(fromActivity.UnitPrice.Currency, expectedPrice, date));
 					}
