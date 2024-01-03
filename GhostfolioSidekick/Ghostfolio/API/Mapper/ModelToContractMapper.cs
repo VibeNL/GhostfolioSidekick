@@ -13,6 +13,18 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 
 		public Contract.Activity ConvertToGhostfolioActivity(Account account, Activity activity)
 		{
+			decimal CalculateFee(IEnumerable<Money> fees, Currency targetCurrency)
+			{
+				decimal amount = 0;
+
+				foreach (var fee in fees)
+				{
+					amount += currentPriceCalculator.GetConvertedPrice(fee, targetCurrency, fee.TimeOfRecord)?.Amount ?? 0;
+				}
+
+				return amount;
+			}
+
 			if (activity.ActivityType == ActivityType.Interest || activity.ActivityType == ActivityType.Fee)
 			{
 				return new Contract.Activity
@@ -91,18 +103,6 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");
 			}
-		}
-
-		private decimal CalculateFee(IEnumerable<Money> fees, Currency targetCurrency)
-		{
-			decimal amount = 0;
-
-			foreach (var fee in fees)
-			{
-				amount += currentPriceCalculator.GetConvertedPrice(fee, targetCurrency, fee.TimeOfRecord)?.Amount ?? 0;
-			}
-
-			return amount;
 		}
 	}
 }
