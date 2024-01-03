@@ -159,9 +159,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return cacheValue.Asset;
 			}
 
+			bool isCrypto = expectedAssetSubClass?.Contains(AssetSubClass.CRYPTOCURRENCY) ?? false;
 			var allIdentifiers = identifiers
 				.Union(identifiers.Select(x => mapper.MapSymbol(x)))
-				.Union(identifiers.Select(CreateCryptoForYahoo))
+				.Union((IEnumerable<string>)(isCrypto ? identifiers.Select(CreateCryptoForYahoo) : []))
 				.Where(x => !string.IsNullOrWhiteSpace(x))
 				.Distinct();
 
@@ -788,10 +789,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			foreach (var identifier in identifiers)
 			{
+				var change = false;
 				if (!foundAsset.Identifiers.Contains(identifier))
 				{
 					foundAsset.AddIdentifier(identifier);
+					change = true;
+				}
 
+				if (change)
+				{
 					var o = new JObject();
 					o["comment"] = foundAsset.Comment;
 					var res = o.ToString();
@@ -812,7 +818,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 						}
 
 						var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
-						logger.LogInformation($"Updated symbol {foundAsset.Symbol} by adding id {identifier}");
+						logger.LogInformation($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifier)}");
 					}
 					catch
 					{

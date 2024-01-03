@@ -14,7 +14,10 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
 		{
-			account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
+			if (!record.Omschrijving.Contains("Cash Sweep"))
+			{
+				account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
+			}
 
 			var activityType = GetActivityType(record);
 			if (activityType == null)
