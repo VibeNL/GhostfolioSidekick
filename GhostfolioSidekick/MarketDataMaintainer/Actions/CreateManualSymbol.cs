@@ -52,7 +52,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 				return;
 			}
 
-			var sortedActivities = activitiesForSymbol.Where(x => x.UnitPrice?.Amount != 0).OrderBy(x => x.Date).ToList();
+			var sortedActivities = activitiesForSymbol
+				.Where(x => x.UnitPrice?.Amount != 0)
+				.GroupBy(x => x.Date)
+				.Select(x => x
+					.OrderBy(x => x.ReferenceCode)
+					.ThenByDescending(x => x.UnitPrice)
+					.ThenByDescending(x => x.Quantity)
+					.ThenByDescending(x => x.ActivityType).First())
+				.OrderBy(x => x.Date)
+				.ToList();
 
 			for (var i = 0; i < sortedActivities.Count(); i++)
 			{
@@ -73,17 +82,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 					var a = (decimal)(date - fromActivity.Date).TotalDays;
 					var b = (decimal)(toActivity.Date - date).TotalDays;
 
-					if (a + b == 0)
-					{
-						continue;
-					}
-
 					var percentage = a / (a + b);
 					decimal amountFrom = fromActivity.UnitPrice.Amount;
 					decimal amountTo = toActivity.UnitPrice.Amount;
 					var expectedPrice = amountFrom + (percentage * (amountTo - amountFrom));
 
-					var price = md.MarketData.FirstOrDefault(x => x.Date.Date == date.Date);
+					var price = md.MarketData.SingleOrDefault(x => x.Date.Date == date.Date);
 
 					var diff = (price?.MarketPrice ?? 0) - expectedPrice;
 					if (Math.Abs(diff) >= 0.00001M)
