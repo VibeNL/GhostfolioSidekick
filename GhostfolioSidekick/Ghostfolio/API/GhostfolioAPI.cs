@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var allIdentifiers = identifiers
 				.Union(identifiers.Select(x => mapper.MapSymbol(x)))
-				.Union(identifiers.Select(CreateCryptoForYahoo))
+				.Union(expectedAssetSubClass.Contains(AssetSubClass.CRYPTOCURRENCY) ? identifiers.Select(CreateCryptoForYahoo) : [])
 				.Where(x => !string.IsNullOrWhiteSpace(x))
 				.Distinct();
 

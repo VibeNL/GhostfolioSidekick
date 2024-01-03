@@ -37,5 +37,10 @@
 		{
 			return new Money(Currency, Amount * quantity, TimeOfRecord);
 		}
+
+		public override string ToString()
+		{
+			return $"{Amount} {Currency} ({TimeOfRecord})";
+		}
 	}
 }

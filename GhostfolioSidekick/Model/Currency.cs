@@ -31,5 +31,10 @@
 		}
 
 		public static bool operator !=(Currency obj1, Currency obj2) => !(obj1 == obj2);
+
+		public override string ToString()
+		{
+			return $"{Symbol}";
+		}
 	}
 }
