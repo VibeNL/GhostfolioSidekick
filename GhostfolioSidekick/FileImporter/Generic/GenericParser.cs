@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.FileImporter.Generic
 
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
-				record.Id = $"{record.ActivityType}_{record.Symbol}_{record.Date.ToInvariantDateOnlyString()}";
+				record.Id = $"{record.ActivityType}_{record.Symbol}_{record.Date.ToInvariantDateOnlyString()}_{record.Quantity}_{record.Currency}_{record.Fee}";
 			}
 
 			var order = new Model.Activity(

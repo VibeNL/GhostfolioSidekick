@@ -72,6 +72,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 				{
 					var a = (decimal)(date - fromActivity.Date).TotalDays;
 					var b = (decimal)(toActivity.Date - date).TotalDays;
+
+					if (a + b == 0)
+					{
+						continue;
+					}
+
 					var percentage = a / (a + b);
 					decimal amountFrom = fromActivity.UnitPrice.Amount;
 					decimal amountTo = toActivity.UnitPrice.Amount;
