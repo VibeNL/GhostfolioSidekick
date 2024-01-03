@@ -18,10 +18,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			IGhostfolioAPI api,
 			IApplicationSettings applicationSettings)
 		{
-			if (applicationSettings is null)
-			{
-				throw new ArgumentNullException(nameof(applicationSettings));
-			}
+			ArgumentNullException.ThrowIfNull(applicationSettings);
 
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.api = api ?? throw new ArgumentNullException(nameof(api));
