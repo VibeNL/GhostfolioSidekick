@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/BuyOrders/single_buy.csv" });
@@ -96,8 +96,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset2);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/BuyOrders/single_convert.csv" });
@@ -139,7 +139,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_cashback_crypto.csv" });
@@ -202,7 +202,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier("BTC", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier("BTC", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_referralbonus_pending.csv" });
@@ -224,7 +224,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_referralbonus_approved.csv" });

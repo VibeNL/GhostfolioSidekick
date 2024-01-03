@@ -93,8 +93,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 			var symbol = await api.FindSymbolByIdentifier(
 				symbolConfiguration.Symbol,
 				null,
-				new AssetClass?[] { Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass) },
-				new AssetSubClass?[] { Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass) });
+				[Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass)],
+				[Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass)],
+				false);
 			if (symbol == null)
 			{
 				await api.CreateManualSymbol(new SymbolProfile

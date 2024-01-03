@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
@@ -101,7 +101,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
@@ -179,7 +179,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
@@ -218,7 +218,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByIdentifier("NL0011794037", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
@@ -268,7 +268,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByIdentifier("NL0009690239", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
@@ -308,7 +308,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 			api.Setup(x => x.FindSymbolByIdentifier("NL0009690239", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>())).ReturnsAsync(asset);
+				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,

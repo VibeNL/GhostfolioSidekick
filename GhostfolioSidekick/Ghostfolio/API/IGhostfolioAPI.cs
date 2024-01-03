@@ -8,15 +8,17 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			string?[] identifiers,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass);
+			AssetSubClass?[] expectedAssetSubClass,
+			bool checkExternalDataProviders = true);
 
 		Task<SymbolProfile?> FindSymbolByIdentifier(
 			string? identifier,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass)
+			AssetSubClass?[] expectedAssetSubClass,
+			bool checkExternalDataProviders = true)
 		{
-			return FindSymbolByIdentifier(new[] { identifier }, expectedCurrency, expectedAssetClass, expectedAssetSubClass);
+			return FindSymbolByIdentifier(new[] { identifier }, expectedCurrency, expectedAssetClass, expectedAssetSubClass, checkExternalDataProviders);
 		}
 
 		Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date);

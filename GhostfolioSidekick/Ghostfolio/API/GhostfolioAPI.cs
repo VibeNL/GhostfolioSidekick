@@ -144,7 +144,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			string[]? identifiers,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass)
+			AssetSubClass?[] expectedAssetSubClass,
+			bool checkExternalDataProviders)
 		{
 			if (identifiers == null || !identifiers.Any())
 			{
@@ -160,12 +161,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var allIdentifiers = identifiers
 				.Union(identifiers.Select(x => mapper.MapSymbol(x)))
-				.Union(identifiers.Select(x => CreateCryptoForYahoo(x)))
+				.Union(identifiers.Select(CreateCryptoForYahoo))
 				.Where(x => !string.IsNullOrWhiteSpace(x))
 				.Distinct();
 
 			var foundAsset = await FindByMarketData(allIdentifiers);
-			foundAsset ??= await FindByDataProvider(allIdentifiers, expectedCurrency, expectedAssetClass, expectedAssetSubClass);
+
+			if (checkExternalDataProviders)
+			{
+				foundAsset ??= await FindByDataProvider(allIdentifiers, expectedCurrency, expectedAssetClass, expectedAssetSubClass);
+			}
 
 			if (foundAsset != null)
 			{
