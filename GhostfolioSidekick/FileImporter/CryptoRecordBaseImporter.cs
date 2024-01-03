@@ -35,13 +35,43 @@ namespace GhostfolioSidekick.FileImporter
 
 		protected override void SetActivitiesToAccount(Account account, ICollection<Activity> values)
 		{
+			// Add Staking as Dividends & Buys. TODO Make configurable
+			var activities = StakeWorkaround(values).ToList();
+
 			// Add Dust detection
-			foreach (var holding in CalculateHoldings(values))
+			foreach (var holding in CalculateHoldings(activities))
 			{
 				holding.ApplyDustCorrection();
 			}
 
-			base.SetActivitiesToAccount(account, values);
+			base.SetActivitiesToAccount(account, activities);
+		}
+
+		private IEnumerable<Activity> StakeWorkaround(ICollection<Activity> activities)
+		{
+			foreach (var activity in activities)
+			{
+				if (activity.ActivityType != ActivityType.StakingReward)
+				{
+					yield return activity;
+					continue;
+				}
+
+				activity.ActivityType = ActivityType.Buy;
+				activity.Comment += " Stake Reward";
+				yield return activity;
+
+				var div = new Activity(
+					ActivityType.Dividend,
+					activity.Asset,
+					activity.Date,
+					activity.Quantity,
+					activity.UnitPrice.Times(activity.Quantity),
+					[],
+					activity.Comment + " workaround",
+					activity.ReferenceCode + " workaround");
+				yield return div;
+			}
 		}
 
 		private IEnumerable<Holding> CalculateHoldings(ICollection<Activity> values)
@@ -92,12 +122,13 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			switch (x.ActivityType)
 			{
-				case ActivityType.StakingReward:
+				case ActivityType.Dividend:
 					return 0;
 				case ActivityType.Gift:
 				case ActivityType.LearningReward:
 				case ActivityType.Buy:
 				case ActivityType.Receive:
+				case ActivityType.StakingReward:
 					return 1;
 				case ActivityType.Sell:
 				case ActivityType.Send:
