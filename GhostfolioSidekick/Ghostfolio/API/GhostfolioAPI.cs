@@ -656,6 +656,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			{
 				o["symbol"] = "Interest";
 			}
+			else if (activity.Type == Ghostfolio.Contract.ActivityType.FEE)
+			{
+				o["symbol"] = "Fee";
+			}
 			else
 			{
 				o["symbol"] = activity.SymbolProfile?.Symbol;
