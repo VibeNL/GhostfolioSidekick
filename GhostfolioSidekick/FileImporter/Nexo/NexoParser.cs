@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		};
 
 		public NexoParser(
-			ApplicationSettings applicationSettings,
+			IApplicationSettings applicationSettings,
 			IGhostfolioAPI api) : base(applicationSettings.ConfigurationInstance, api)
 		{
 		}
