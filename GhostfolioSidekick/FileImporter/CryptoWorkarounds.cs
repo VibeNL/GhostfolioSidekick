@@ -69,7 +69,12 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				var amount = GetAmount();
 				// Should always be a sell or send as we have dust!
-				var lastActivity = Activities.Where(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send).OrderBy(x => x.Date).Last();
+				var lastActivity = Activities.Where(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send).OrderBy(x => x.Date).LastOrDefault();
+				if (lastActivity == null)
+				{
+					return;
+				}
+
 				var lastKnownPrice = lastActivity.UnitPrice.Amount;
 				decimal dustValue = amount * lastKnownPrice;
 				if (Math.Abs(dustValue) < dustThreashold && dustValue != 0)
