@@ -29,6 +29,7 @@ namespace ConsoleHelper
 			MemoryCache memoryCache = new(new MemoryCacheOptions { });
 			GhostfolioAPI api = new(cs, memoryCache, logger);
 			var tasks = new IScheduledWork[]{
+			new DisplayInformationTask(logger, cs),
 			new AccountMaintainerTask(logger, api, cs),
 			new CreateManualSymbolTask(logger, api, cs),
 			new FileImporterTask(logger, api, cs, new IFileImporter[] {

@@ -45,6 +45,7 @@ namespace GhostfolioSidekick
 				services.AddScoped<IScheduledWork, FileImporterTask>();
 				services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();
 				services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+				services.AddScoped<IScheduledWork, DisplayInformationTask>();
 
 				services.AddScoped<IFileImporter, BitvavoParser>();
 				services.AddScoped<IFileImporter, BunqParser>();
