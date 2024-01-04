@@ -9,5 +9,8 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("use.crypto.workaround.dust")]
 		public bool CryptoWorkaroundDust { get; set; }
+
+		[JsonPropertyName("use.crypto.workaround.dust.threshold")]
+		public decimal CryptoWorkaroundDustThreshold { get; set; } = 0;
 	}
 }
