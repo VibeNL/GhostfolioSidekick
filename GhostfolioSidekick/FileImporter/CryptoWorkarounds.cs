@@ -68,12 +68,12 @@ namespace GhostfolioSidekick.FileImporter
 			internal void ApplyDustCorrection(decimal dustThreashold)
 			{
 				var amount = GetAmount();
-				Activity lastActivity = Activities.OrderBy(x => x.Date).Last();
+				// Should always be a sell or send as we have dust!
+				var lastActivity = Activities.Where(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send).OrderBy(x => x.Date).Last();
 				var lastKnownPrice = lastActivity.UnitPrice.Amount;
 				decimal dustValue = amount * lastKnownPrice;
-				if (Math.Abs(dustValue) < dustThreashold && dustValue != 0) // less than one cent we should correct. TODO: Make configurable
+				if (Math.Abs(dustValue) < dustThreashold && dustValue != 0)
 				{
-					// Should always be a sell as we have dust!
 					lastActivity.UnitPrice = lastActivity.UnitPrice.Times(lastActivity.Quantity / (lastActivity.Quantity + amount));
 					lastActivity.Quantity += amount;
 				}
