@@ -189,7 +189,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 				Fees = Enumerable.Empty < Money >(),
 				Quantity = 0.06548358M,
 				ActivityType = ActivityType.Receive,
-				UnitPrice = new Money("EURX", 1M, new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc)),
+				UnitPrice = new Money(DefaultCurrency.EUR, 1M, new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc)),
 				ReferenceCode = "NXT6asbYnZqniNoTss0nyuIxM"
 			}});
 		}
