@@ -89,12 +89,6 @@ This settings does control if a workaround is used for dust (very small amount o
 This settings is the threshold of local currency of the asset if a value is considered dust.
 Any holding less than this value is considered dust and will be added to the last sell/send activity.
 
-#### Note 
-The following parser also map to a list of known cryptocurrencies. i.e. BTC becomes bitcoin
-
-- Nexo
-- Bitvavo
-
 #### Platform and Account
 Creates platforms and accounts if not yet created
 
@@ -129,6 +123,8 @@ Maintaining symbols in ghostfolio
 | assetClass | one of: 'CASH', 'COMMODITY', 'EQUITY', 'FIXED_INCOME', 'REAL_ESTATE' | Same list as Ghostfolio |
 
 ### Supported formats
+The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.
+
 | Platform | Source of the files | Buy | Sell | Dividend | Interest & Cash balance |
 |--|--|--|--|--|--|
 | Generic importer | See below | X | X | X | X |
@@ -136,6 +132,7 @@ Maintaining symbols in ghostfolio
 | De Giro | Export of account history | X | X | X | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
+| NIBC (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | Nexo (Experimental) | Export of transaction history | X | - | - | X |
 | Bitvavo (Experimental) | Export of transaction history | X | X | - | X |
 

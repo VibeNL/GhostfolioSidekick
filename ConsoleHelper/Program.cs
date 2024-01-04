@@ -4,6 +4,7 @@ using GhostfolioSidekick.FileImporter.Bunq;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.Nexo;
+using GhostfolioSidekick.FileImporter.NIBC;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
@@ -18,8 +19,6 @@ namespace ConsoleHelper
 
 		static void Main(string[] args)
 		{
-			Console.WriteLine("Hello, World!");
-
 			foreach (var item in args)
 			{
 				var split = item.Split('=');
@@ -33,11 +32,12 @@ namespace ConsoleHelper
 			new AccountMaintainerTask(logger, api, cs),
 			new CreateManualSymbolTask(logger, api, cs),
 			new FileImporterTask(logger, api, cs, new IFileImporter[] {
+				new BitvavoParser(cs, api),
 				new BunqParser(api),
 				new DeGiroParser(api),
 				new GenericParser(api),
 				new NexoParser(cs, api),
-				new BitvavoParser(cs, api),
+				new NIBCParser(api),
 				new ScalableCapitalParser(api),
 				new Trading212Parser(api)
 			}),

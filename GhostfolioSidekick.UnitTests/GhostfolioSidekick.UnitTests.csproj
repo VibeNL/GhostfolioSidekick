@@ -110,6 +110,18 @@
     <None Update="FileImporter\TestFiles\Nexo\Specials\single_referralbonus_pending.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\NIBC\CashTransactions\single_deposit.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\NIBC\CashTransactions\single_bonus_interest.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\NIBC\CashTransactions\single_interest.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\NIBC\CashTransactions\single_withdrawal.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\ScalableCapital\BuyOrders\SingleBuy\rkk.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
