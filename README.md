@@ -42,6 +42,11 @@ Also allows the following sybol settings
 
 ```
 {
+    "settings" : {
+		"use.crypto.workaround.stakereward.as.dividends" : true, // default is false
+		"use.crypto.workaround.dust" : true // default is false,
+		"use.crypto.workaround.dust.threshold": 0.01 // default is 0
+	},
 	"platforms":[
 		{ "name": "De Giro", "url":"https://www.degiro.nl/" }
 	],
@@ -62,8 +67,30 @@ Also allows the following sybol settings
 
 ```
 
+#### Settings
+
+##### use.crypto.workaround.stakereward.as.dividends (Experimental)
+This settings does control if a workaround is used for stakerewards.
+
+| Value           | Action |
+| -----           | ------ |
+| false (default) | Ignore stake activities |
+| true            | Convert the Stake reward activity to a Buy & Dividend activity | 
+
+##### use.crypto.workaround.dust (Experimental)
+This settings does control if a workaround is used for dust (very small amount of cryptocurrency that cannot be sold).
+
+| Value           | Action |
+| -----           | ------ |
+| false (default) | Do nothing |
+| true            | Adjust the last sell activity as if the dust was also sold |
+
+##### use.crypto.workaround.threshold (Experimental)
+This settings is the threshold of local currency of the asset if a value is considered dust.
+Any holding less than this value is considered dust and will be added to the last sell/send activity.
+
 #### Note 
-The following parser first try to map the known cryptocurrencies. i.e. BTC becomes bitcoin
+The following parser also map to a list of known cryptocurrencies. i.e. BTC becomes bitcoin
 
 - Nexo
 - Bitvavo

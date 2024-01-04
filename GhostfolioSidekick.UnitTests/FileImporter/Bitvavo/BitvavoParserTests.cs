@@ -1,5 +1,6 @@
 using AutoFixture;
 using FluentAssertions;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter.Nexo;
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
@@ -10,17 +11,20 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 	public class BitvavoParserTests
 	{
 		readonly Mock<IGhostfolioAPI> api;
+		private readonly Mock<IApplicationSettings> cs;
 
 		public BitvavoParserTests()
 		{
 			api = new Mock<IGhostfolioAPI>();
+			cs = new Mock<IApplicationSettings>();
+			cs.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance());
 		}
 
 		[Fact]
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange
-			var parser = new BitvavoParser(api.Object);
+			var parser = new BitvavoParser(cs.Object, api.Object);
 
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/Bitvavo/", "*.csv", SearchOption.AllDirectories))
 			{
@@ -36,7 +40,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 		public async Task ConvertActivitiesForAccount_SingleBuy_Converted()
 		{
 			// Arrange
-			var parser = new BitvavoParser(api.Object);
+			var parser = new BitvavoParser(cs.Object, api.Object);
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
@@ -66,7 +70,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 		public async Task ConvertActivitiesForAccount_SingleReceive_Converted()
 		{
 			// Arrange
-			var parser = new BitvavoParser(api.Object);
+			var parser = new BitvavoParser(cs.Object, api.Object);
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
@@ -97,7 +101,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
 		{
 			// Arrange
-			var parser = new BitvavoParser(api.Object);
+			var parser = new BitvavoParser(cs.Object, api.Object);
 			var fixture = new Fixture();
 
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
@@ -115,7 +119,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
 		{
 			// Arrange
-			var parser = new BitvavoParser(api.Object);
+			var parser = new BitvavoParser(cs.Object, api.Object);
 			var fixture = new Fixture();
 
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
@@ -133,7 +137,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 		public async Task ConvertActivitiesForAccount_SingleSell_Converted()
 		{
 			// Arrange
-			var parser = new BitvavoParser(api.Object);
+			var parser = new BitvavoParser(cs.Object, api.Object);
 			var fixture = new Fixture();
 
 			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();

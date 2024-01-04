@@ -23,17 +23,17 @@
 
 		public DateTime TimeOfRecord { get; set; }
 
-		internal Money Absolute()
+		public Money Absolute()
 		{
 			return new Money(Currency, Math.Abs(Amount), TimeOfRecord);
 		}
 
-		internal Money Negate()
+		public Money Negate()
 		{
 			return new Money(Currency, Amount * -1, TimeOfRecord);
 		}
 
-		internal Money Times(decimal quantity)
+		public Money Times(decimal quantity)
 		{
 			return new Money(Currency, Amount * quantity, TimeOfRecord);
 		}

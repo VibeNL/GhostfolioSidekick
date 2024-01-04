@@ -1,12 +1,18 @@
-﻿using GhostfolioSidekick.Ghostfolio.API;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.FileImporter
 {
 	public abstract class CryptoRecordBaseImporter<T> : RecordBaseImporter<T>
 	{
-		protected CryptoRecordBaseImporter(IGhostfolioAPI api) : base(api)
+		private readonly Settings settings;
+
+		protected CryptoRecordBaseImporter(
+			ConfigurationInstance configurationInstance,
+			IGhostfolioAPI api) : base(api)
 		{
+			settings = configurationInstance.Settings;
 		}
 
 		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, SymbolProfile? symbol, DateTime date)
@@ -30,6 +36,25 @@ namespace GhostfolioSidekick.FileImporter
 				account.Balance.Currency,
 				DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);
+		}
+
+		protected override void SetActivitiesToAccount(Account account, ICollection<Activity> values)
+		{
+			var activities = values;
+
+			if (settings.CryptoWorkaroundStakeReward)
+			{
+				// Add Staking as Dividends & Buys.
+				activities = CryptoWorkarounds.StakeWorkaround(activities).ToList();
+			}
+
+			if (settings.CryptoWorkaroundDust)
+			{
+				// Add Dust detection
+				CryptoWorkarounds.DustWorkaround(activities, settings.CryptoWorkaroundDustThreshold);
+			}
+
+			base.SetActivitiesToAccount(account, activities);
 		}
 	}
 }

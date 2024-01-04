@@ -7,14 +7,16 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 {
 	public class NexoParser : CryptoRecordBaseImporter<NexoRecord>
 	{
-		private SymbolProfile[] fiatCoin = new[] {
-			new SymbolProfile(new Currency("EUR"), "EURX",null, "EURX", null, null, null),
-			new SymbolProfile(new Currency("USD"), "USDX",null, "USDX", null, null, null),
-			new SymbolProfile(new Currency("EUR"), "EUR", null,"EUR", null, null, null),
-			new SymbolProfile(new Currency("USD"), "USD",null, "USD", null, null, null)
-		};
+		private SymbolProfile[] fiatCoin = [
+			new SymbolProfile(CurrencyHelper.EUR, "EURX", null, "EURX", null, null, null),
+			new SymbolProfile(CurrencyHelper.USD, "USDX", null, "USDX", null, null, null),
+			new SymbolProfile(CurrencyHelper.EUR, "EUR", null, "EUR", null, null, null),
+			new SymbolProfile(CurrencyHelper.USD, "USD", null, "USD", null, null, null)
+		];
 
-		public NexoParser(IGhostfolioAPI api) : base(api)
+		public NexoParser(
+			IApplicationSettings applicationSettings,
+			IGhostfolioAPI api) : base(applicationSettings.ConfigurationInstance, api)
 		{
 		}
 
@@ -81,7 +83,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					return HandleConversion(inputActivity, outputActivity, record);
 				case "Interest":
 				case "Fixed Term Interest":
-				// return new[] { SetActivity(outputActivity, ActivityType.Interest) }; // Staking rewards are not yet supported
+					return new[] { SetActivity(outputActivity, outputActivity.Asset == null ? ActivityType.Interest : ActivityType.StakingReward) }; // Staking rewards are not yet supported
 				case "Deposit To Exchange":
 				case "Locking Term Deposit":
 				case "Unlocking Term Deposit":
@@ -134,10 +136,15 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			if (!fiatCoinCurrency)
 			{
-				return new Money("USD", Math.Abs(record.GetUSDEquivalent() / amount), record.DateTime);
+				return new Money(CurrencyHelper.USD, Math.Abs(record.GetUSDEquivalent() / amount), record.DateTime);
 			}
 
-			return new Money(currency, 1, record.DateTime);
+			return new Money(MapToCorrectCurrency(currency), 1, record.DateTime);
+		}
+
+		private Currency MapToCorrectCurrency(string currency)
+		{
+			return fiatCoin.Single(x => x.Symbol == currency).Currency;
 		}
 
 		protected override CsvConfiguration GetConfig()
