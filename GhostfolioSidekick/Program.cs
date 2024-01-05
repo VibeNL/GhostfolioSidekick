@@ -37,7 +37,8 @@ namespace GhostfolioSidekick
 			})
 			.ConfigureServices((hostContext, services) =>
 			{
-				services.AddSingleton<IMemoryCache, MemoryCache>();
+				services.AddSingleton<MemoryCache, MemoryCache>();
+				services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
 				services.AddScoped<IHostedService, TimedHostedService>();
