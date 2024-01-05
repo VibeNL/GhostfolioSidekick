@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.FileImporter
 					activity.Quantity,
 					activity.UnitPrice,
 					[],
-					TransactionReferenceUtilities.GetComment(activity.ReferenceCode + "_stake_reward_workaround", activity.UnitPrice.Currency.Symbol),
+					TransactionReferenceUtilities.GetComment(activity.ReferenceCode + "_stake_reward_workaround", activity?.UnitPrice?.Currency?.Symbol),
 					activity.ReferenceCode + "_stake_reward_workaround");
 				yield return div;
 			}
