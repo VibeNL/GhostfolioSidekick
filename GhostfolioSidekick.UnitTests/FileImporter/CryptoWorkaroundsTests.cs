@@ -75,9 +75,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 								.ToList();
 
 			// Act
-			CryptoWorkarounds.DustWorkaround(activities, 1M);
+			var resultingActivities = CryptoWorkarounds.DustWorkaround(activities, 1M);
 
 			// Assert
+			resultingActivities.Should().HaveCount(1);
 			activities.Single().Quantity.Should().Be(quantity);
 		}
 
@@ -106,11 +107,53 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			IEnumerable<Activity> activities = [buy, sell];
 
 			// Act
-			CryptoWorkarounds.DustWorkaround(activities, 1M);
+			var resultingActivities = CryptoWorkarounds.DustWorkaround(activities, 1M);
 
 			// Assert
+			resultingActivities.Should().HaveCount(2);
 			sell.Quantity.Should().Be(quantity);
 			sell.UnitPrice.Amount.Should().Be(0.099M);
+		}
+
+		[Fact]
+		public async Task DustWorkaround_DustAndStakingRewards_LastActivityUpdatedAndStakingRewardsRemoved()
+		{
+			// Arrange
+			var quantity = 100;
+			var asset = new Fixture().Create<SymbolProfile>();
+			var buy = new Fixture()
+								.Build<Activity>()
+								.With(x => x.Asset, asset)
+								.With(x => x.ActivityType, ActivityType.Buy)
+								.With(x => x.UnitPrice, new Money(DefaultCurrency.USD, 0.1M, DateTime.Now))
+								.With(x => x.Quantity, quantity)
+								.With(x => x.Date, DateTime.Today.AddDays(-3))
+								.Create();
+			var sell = new Fixture()
+								.Build<Activity>()
+								.With(x => x.Asset, asset)
+								.With(x => x.ActivityType, ActivityType.Sell)
+								.With(x => x.UnitPrice, new Money(DefaultCurrency.USD, 0.1M, DateTime.Now))
+								.With(x => x.Quantity, quantity - 1)
+								.With(x => x.Date, DateTime.Today.AddDays(-2))
+								.Create();
+			var stakeReward = new Fixture()
+								.Build<Activity>()
+								.With(x => x.Asset, asset)
+								.With(x => x.ActivityType, ActivityType.StakingReward)
+								.With(x => x.UnitPrice, new Money(DefaultCurrency.USD, 0.1M, DateTime.Now))
+								.With(x => x.Quantity, 0.0000001M)
+								.With(x => x.Date, DateTime.Today.AddDays(-1))
+								.Create();
+			IEnumerable<Activity> activities = [buy, sell, stakeReward];
+
+			// Act
+			var resultingActivities = CryptoWorkarounds.DustWorkaround(activities, 1M);
+
+			// Assert
+			resultingActivities.Should().HaveCount(2);
+			sell.Quantity.Should().Be(quantity + 0.0000001M);
+			sell.UnitPrice.Amount.Should().Be(0.0989999999010000000989999999M);
 		}
 	}
 }

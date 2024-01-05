@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.FileImporter
 			if (settings.CryptoWorkaroundDust)
 			{
 				// Add Dust detection
-				CryptoWorkarounds.DustWorkaround(activities, settings.CryptoWorkaroundDustThreshold);
+				activities = CryptoWorkarounds.DustWorkaround(activities, settings.CryptoWorkaroundDustThreshold).ToList();
 			}
 
 			base.SetActivitiesToAccount(account, activities);

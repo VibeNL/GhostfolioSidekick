@@ -32,11 +32,15 @@ namespace GhostfolioSidekick.FileImporter
 			}
 		}
 
-		public static void DustWorkaround(IEnumerable<Activity> activities, decimal dustThreashold)
+		public static IEnumerable<Activity> DustWorkaround(IEnumerable<Activity> activities, decimal dustThreashold)
 		{
 			foreach (var holding in CalculateHoldings(activities))
 			{
 				holding.ApplyDustCorrection(dustThreashold);
+				foreach (var activity in holding.Activities)
+				{
+					yield return activity;
+				}
 			}
 		}
 
@@ -59,10 +63,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			internal void AddActivity(Activity item)
 			{
-				if (item.ActivityType != ActivityType.StakingReward)
-				{
-					Activities.Add(item);
-				}
+				Activities.Add(item);
 			}
 
 			internal void ApplyDustCorrection(decimal dustThreashold)
@@ -81,7 +82,15 @@ namespace GhostfolioSidekick.FileImporter
 				{
 					lastActivity.UnitPrice = lastActivity.UnitPrice.Times(lastActivity.Quantity / (lastActivity.Quantity + amount));
 					lastActivity.Quantity += amount;
+
+					RemoveActivitiesAfter(lastActivity);
 				}
+			}
+
+			private void RemoveActivitiesAfter(Activity lastActivity)
+			{
+				int index = Activities.IndexOf(lastActivity);
+				Activities.RemoveRange(index, Activities.Count - index - 1);
 			}
 
 			private decimal GetAmount()
