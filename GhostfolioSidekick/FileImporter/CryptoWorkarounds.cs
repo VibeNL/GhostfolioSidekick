@@ -76,7 +76,9 @@ namespace GhostfolioSidekick.FileImporter
 					return;
 				}
 
-				var lastKnownPrice = lastActivity.UnitPrice.Amount;
+				var lastKnownPrice = lastActivity.UnitPrice?.Amount;
+
+if(lastKnownPrice == null){return;}
 				decimal dustValue = amount * lastKnownPrice;
 				if (Math.Abs(dustValue) < dustThreashold && dustValue != 0)
 				{
