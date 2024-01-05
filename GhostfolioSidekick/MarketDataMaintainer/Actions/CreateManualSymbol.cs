@@ -92,6 +92,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 					var diff = (price?.MarketPrice ?? 0) - expectedPrice;
 					if (Math.Abs(diff) >= 0.00001M)
 					{
+						var scraperDefined = symbolConfiguration?.ManualSymbolConfiguration?.ScraperConfiguration != null;
+						var priceIsAvailable = price?.MarketPrice != null;
+						var isToday = date >= DateTime.Today;
+						var shouldSkip = scraperDefined && (priceIsAvailable || isToday);
+
+						if (shouldSkip)
+						{
+							continue;
+						}
+
 						await api.SetMarketPrice(md.AssetProfile, new Money(fromActivity.UnitPrice.Currency, expectedPrice, date));
 					}
 				}
@@ -120,7 +130,27 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 				});
 			}
 
-			// TODO: update on difference???
+			symbol = await api.FindSymbolByIdentifier(
+				symbolConfiguration.Symbol,
+				null,
+				[Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass)],
+				[Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass)],
+				false);
+			if (symbol == null)
+			{
+				throw new NotSupportedException($"Symbol creation failed for symbol {symbolConfiguration.Symbol}");
+			}
+
+			// TODO: update symbol on difference???
+
+			// Set scraper
+			if (symbol.ScraperConfiguration.Url != manualSymbolConfiguration?.ScraperConfiguration?.Url ||
+				symbol.ScraperConfiguration.Selector != manualSymbolConfiguration?.ScraperConfiguration?.Selector)
+			{
+				symbol.ScraperConfiguration.Url = manualSymbolConfiguration.ScraperConfiguration.Url;
+				symbol.ScraperConfiguration.Selector = manualSymbolConfiguration.ScraperConfiguration.Selector;
+				await api.UpdateSymbol(symbol);
+			}
 		}
 
 		private bool IsBuyOrSell(ActivityType activityType)
