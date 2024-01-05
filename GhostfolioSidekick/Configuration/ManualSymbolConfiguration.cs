@@ -19,8 +19,10 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("assetSubClass")]
 		public string AssetSubClass { get; set; }
 
-
 		[JsonPropertyName("assetClass")]
 		public string AssetClass { get; set; }
+
+		[JsonPropertyName("scraperConfiguration")]
+		public ScraperConfiguration ScraperConfiguration { get; set; }
 	}
 }
