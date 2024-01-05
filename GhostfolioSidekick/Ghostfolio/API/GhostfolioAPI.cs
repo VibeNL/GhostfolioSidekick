@@ -301,7 +301,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			int FussyMatch(List<string> identifiers, Model.SymbolProfile profile)
 			{
-				return identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile.Name), FuzzySharp.Fuzz.Ratio(x, profile.Symbol)));
+				return identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile?.Name ?? string.Empty), FuzzySharp.Fuzz.Ratio(x, profile?.Symbol ?? string.Empty)));
 			}
 		}
 
