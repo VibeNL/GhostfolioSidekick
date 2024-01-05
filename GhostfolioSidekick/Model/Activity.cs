@@ -15,7 +15,7 @@
 			Fees = fees ?? Enumerable.Empty<Money>();
 			Quantity = quantity;
 			ActivityType = activityType;
-			UnitPrice = unitPrice ?? throw new ArgumentNullException(nameof(unitPrice));
+			UnitPrice = unitPrice;
 			ReferenceCode = referenceCode;
 		}
 
