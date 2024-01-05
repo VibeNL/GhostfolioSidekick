@@ -858,7 +858,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.AllowAdminCalls = isallowed;
 		}
 
-		private void ClearCache()
+		public void ClearCache()
 		{
 			this.memoryCache.Clear();
 		}

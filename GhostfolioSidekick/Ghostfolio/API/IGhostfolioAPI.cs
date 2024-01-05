@@ -54,5 +54,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		Task AddAndRemoveDummyCurrency();
 
 		void SetAllowAdmin(bool isallowed);
+
+		void ClearCache();
 	}
 }

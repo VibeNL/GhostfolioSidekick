@@ -92,9 +92,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 					var diff = (price?.MarketPrice ?? 0) - expectedPrice;
 					if (Math.Abs(diff) >= 0.00001M)
 					{
-						if (symbolConfiguration?.ManualSymbolConfiguration?.ScraperConfiguration != null)
+						var scraperDefined = symbolConfiguration?.ManualSymbolConfiguration?.ScraperConfiguration != null;
+						var priceIsAvailable = price?.MarketPrice != null;
+						var isToday = date >= DateTime.Today;
+						var shouldSkip = scraperDefined && (priceIsAvailable || isToday);
+
+						if (shouldSkip)
 						{
-							throw new NotImplementedException();
+							continue;
 						}
 
 						await api.SetMarketPrice(md.AssetProfile, new Money(fromActivity.UnitPrice.Currency, expectedPrice, date));
