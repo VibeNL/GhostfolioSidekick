@@ -35,11 +35,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		Task<MarketDataList> GetMarketData(string symbol, string dataSource);
 
-		Task UpdateMarketData(SymbolProfile marketData);
-
 		Task DeleteSymbol(SymbolProfile marketData);
 
 		Task CreateManualSymbol(SymbolProfile asset);
+
+		Task UpdateSymbol(SymbolProfile asset);
 
 		Task<IEnumerable<Activity>> GetAllActivities();
 

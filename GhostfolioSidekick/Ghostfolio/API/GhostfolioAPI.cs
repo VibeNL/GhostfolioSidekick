@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	public partial class GhostfolioAPI : IGhostfolioAPI
 	{
 		private readonly IApplicationSettings settings;
-		private readonly IMemoryCache memoryCache;
+		private readonly MemoryCache memoryCache;
 		private ILogger<GhostfolioAPI> logger;
 		private readonly ModelToContractMapper modelToContractMapper;
 		private readonly SymbolMapper mapper;
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public GhostfolioAPI(
 			IApplicationSettings settings,
-			IMemoryCache memoryCache,
+			MemoryCache memoryCache,
 			ILogger<GhostfolioAPI> logger)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			restCall = new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken);
 			modelToContractMapper = new ModelToContractMapper(new CurrentPriceCalculator(this));
-			this.mapper = new SymbolMapper(settings.ConfigurationInstance.Mappings);
+			mapper = new SymbolMapper(settings.ConfigurationInstance.Mappings);
 		}
 
 		public async Task<Model.Account?> GetAccountByName(string name)
@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			if (memoryCache.TryGetValue(key, out CacheValue cacheValue))
 			{
-				return cacheValue.Asset;
+				return cacheValue!.Asset;
 			}
 
 			bool isCrypto = expectedAssetSubClass?.Contains(AssetSubClass.CRYPTOCURRENCY) ?? false;
@@ -249,6 +249,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
 					.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
 					.OrderBy(x => identifiers.Any(y => MatchId(x, y)) ? 0 : 1)
+					.ThenByDescending(x => FussyMatch(identifiers, x))
 					.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
 					.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
 					.ThenByDescending(x => x.DataSource) // prefer Yahoo above Coingecko due to performance
@@ -296,6 +297,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			string CreateCryptoForYahoo(string x)
 			{
 				return x + "-USD";
+			}
+
+			int FussyMatch(List<string> identifiers, Model.SymbolProfile profile)
+			{
+				return identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile.Name), FuzzySharp.Fuzz.Ratio(x, profile.Symbol)));
 			}
 		}
 
@@ -357,6 +363,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				["symbol"] = asset.Symbol,
 				["isin"] = asset.ISIN,
 				["name"] = asset.Name,
+				["comment"] = asset.Comment,
 				["assetClass"] = asset.AssetClass?.ToString(),
 				["assetSubClass"] = asset.AssetSubClass?.ToString(),
 				["currency"] = asset.Currency.Symbol,
@@ -370,33 +377,61 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				throw new NotSupportedException($"Creation failed {asset.Symbol}");
 			}
 
+			logger.LogInformation($"Created symbol {asset.Symbol}");
+
 			// Set name and assetClass (BUG / Quirk Ghostfolio?)
-			o = new JObject
+			await UpdateSymbol(asset);
+
+			ClearCache();
+		}
+
+		public async Task UpdateSymbol(Model.SymbolProfile asset)
+		{
+			if (!AllowAdminCalls)
+			{
+				return;
+			}
+
+			JObject mappingObject = new();
+			if (asset.Mappings.TrackInsight != null)
+			{
+				mappingObject.Add("TRACKINSIGHT", asset.Mappings.TrackInsight);
+			}
+
+			JObject scraperConfiguration = new();
+			if (asset.ScraperConfiguration.IsValid)
+			{
+				scraperConfiguration.Add("url", asset.ScraperConfiguration.Url);
+				scraperConfiguration.Add("selector", asset.ScraperConfiguration.Selector);
+			}
+
+			var o = new JObject
 			{
 				["name"] = asset.Name,
 				["assetClass"] = asset.AssetClass?.ToString(),
 				["assetSubClass"] = asset.AssetSubClass?.ToString(),
-				["comment"] = string.Empty,
-				["comment"] = string.Empty,
-				["scraperConfiguration"] = new JObject(),
-				["symbolMapping"] = new JObject()
+				["comment"] = asset.Comment,
+				["scraperConfiguration"] = scraperConfiguration,
+				["symbolMapping"] = mappingObject
 			};
-			res = o.ToString();
+			var res = o.ToString();
 
 			try
 			{
-				r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{asset.DataSource}/{asset.Symbol}", res);
+				var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{asset.DataSource}/{asset.Symbol}", res);
 				if (!r.IsSuccessStatusCode)
 				{
-					throw new NotSupportedException($"Creation failed on update {asset.Symbol}");
+					throw new NotSupportedException($"Update failed on symbol {asset.Symbol}");
 				}
 			}
 			catch
 			{
-				throw new NotSupportedException($"Creation failed on update {asset.Symbol}.");
+				throw new NotSupportedException($"Update failed on symbol {asset.Symbol}.");
 			}
 
-			logger.LogInformation($"Created symbol {asset.Symbol}");
+			logger.LogInformation($"Updated symbol {asset.Symbol}");
+
+			ClearCache();
 		}
 
 		public async Task<Model.MarketDataList> GetMarketData(string symbol, string dataSource)
@@ -405,32 +440,6 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			return ContractToModelMapper.MapMarketDataList(market);
-		}
-
-		public async Task UpdateMarketData(Model.SymbolProfile marketData)
-		{
-			if (!AllowAdminCalls)
-			{
-				return;
-			}
-
-			var o = new JObject();
-			JObject mappingObject = new();
-			if (marketData.Mappings.TrackInsight != null)
-			{
-				mappingObject.Add("TRACKINSIGHT", marketData.Mappings.TrackInsight);
-			}
-
-			o["symbolMapping"] = mappingObject;
-			var res = o.ToString();
-
-			var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{marketData.DataSource}/{marketData.Symbol}", res);
-			if (!r.IsSuccessStatusCode)
-			{
-				throw new NotSupportedException($"Deletion failed {marketData.Symbol}");
-			}
-
-			logger.LogInformation($"Updated symbol {marketData.Symbol}");
 		}
 
 		public async Task<IEnumerable<Model.Activity>> GetAllActivities()
@@ -791,43 +800,55 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				return;
 			}
 
+
+			var change = false;
 			foreach (var identifier in identifiers)
 			{
-				var change = false;
 				if (!foundAsset.Identifiers.Contains(identifier))
 				{
 					foundAsset.AddIdentifier(identifier);
 					change = true;
 				}
+			}
 
-				if (change)
+			if (change)
+			{
+				var o = new JObject
 				{
-					var o = new JObject();
-					o["comment"] = foundAsset.Comment;
-					var res = o.ToString();
+					["comment"] = foundAsset.Comment
+				};
+				var res = o.ToString();
 
-					try
+				try
+				{
+					// Check if exists
+					var md = await GetMarketData(foundAsset.Symbol, foundAsset.DataSource);
+
+					if (string.IsNullOrWhiteSpace(md?.AssetProfile.Name) && md?.AssetProfile?.Currency?.Symbol == "-")
 					{
-						// Check if exists
-						var md = await GetMarketData(foundAsset.Symbol, foundAsset.DataSource);
-
-						if (string.IsNullOrWhiteSpace(md?.AssetProfile.Name) && md?.AssetProfile?.Currency?.Symbol == "-")
+						var newO = new JObject
 						{
-							var newO = new JObject();
-							newO["symbol"] = foundAsset.Symbol;
-							newO["dataSource"] = foundAsset.DataSource;
-							var newRes = newO.ToString();
+							["symbol"] = foundAsset.Symbol,
+							["dataSource"] = foundAsset.DataSource
+						};
+						var newRes = newO.ToString();
+						try
+						{
 							await restCall.DoRestPost($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", newRes);
 							logger.LogInformation($"Created symbol {foundAsset.Symbol}");
 						}
+						catch
+						{
+							// Ignore for now
+						}
+					}
 
-						var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
-						logger.LogInformation($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifier)}");
-					}
-					catch
-					{
-						// Ignore for now
-					}
+					var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+					logger.LogInformation($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifiers)}");
+				}
+				catch
+				{
+					// Ignore for now
 				}
 			}
 		}
@@ -835,6 +856,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		public void SetAllowAdmin(bool isallowed)
 		{
 			this.AllowAdminCalls = isallowed;
+		}
+
+		private void ClearCache()
+		{
+			this.memoryCache.Clear();
 		}
 	}
 }

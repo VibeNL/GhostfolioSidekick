@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				if ((marketData.AssetProfile.Mappings.TrackInsight ?? string.Empty) != trackingInsightSymbol)
 				{
 					marketData.AssetProfile.Mappings.TrackInsight = trackingInsightSymbol;
-					await api.UpdateMarketData(marketData.AssetProfile);
+					await api.UpdateSymbol(marketData.AssetProfile);
 				}
 			}
 		}
