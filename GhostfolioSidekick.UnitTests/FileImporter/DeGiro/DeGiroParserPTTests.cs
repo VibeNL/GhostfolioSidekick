@@ -109,5 +109,57 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				}
 			});
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
+		{
+			// Arrange
+			var parser = new DeGiroParserPT(api.Object);
+			var fixture = new Fixture();
+
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/PT/CashTransactions/single_deposit.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1000.01M, new DateTime(2021, 09, 15, 8, 50, 0, DateTimeKind.Utc)));
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleFee_Converted()
+		{
+			// Arrange
+			var parser = new DeGiroParserPT(api.Object);
+			var fixture = new Fixture();
+
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/PT/CashTransactions/single_fee.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 102.18M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)));
+			account.Activities.Should().BeEquivalentTo(new[]
+				{
+				new Activity
+				{
+					Asset = null,
+					Comment =
+						"Transaction Reference: [Fee2023-01-03]",
+					Date = new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc),
+					Fees = new Money[0],
+					Quantity = 1,
+					ActivityType = ActivityType.Fee,
+					UnitPrice = new Money(DefaultCurrency.EUR, 2.50M,
+						new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)),
+					ReferenceCode = "Fee2023-01-03"
+				}
+			});
+		}
 	}
 }

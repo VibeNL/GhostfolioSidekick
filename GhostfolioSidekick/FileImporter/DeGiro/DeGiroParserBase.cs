@@ -40,7 +40,10 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			}
 
 			Activity activity;
-			if (activityType == ActivityType.CashDeposit || activityType == ActivityType.CashWithdrawal)
+			if (activityType == ActivityType.CashDeposit || 
+				activityType == ActivityType.CashWithdrawal || 
+				activityType == ActivityType.Interest ||
+				activityType == ActivityType.Fee)
 			{
 				activity = new Activity(
 					activityType.Value,

@@ -73,6 +73,16 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				return ActivityType.CashDeposit;
 			}
 
+			if (Description.Contains("Flatex Interest Income"))
+			{
+				return ActivityType.Interest;
+			}
+
+			if (Description.Contains("Custo de Conectividade DEGIRO"))
+			{
+				return ActivityType.Fee;
+			}
+
 			// TODO, implement other options
 			return null;
 		}
