@@ -1,4 +1,7 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using GhostfolioSidekick.Model;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
@@ -42,5 +45,71 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		[Name("ID da Ordem")]
 		public override string TransactionId { get; set; }
+
+		public override ActivityType? GetActivityType()
+		{
+			if (Description.Contains("Venda"))
+			{
+				return ActivityType.Sell;
+			}
+
+			if (Description.Contains("Compra"))
+			{
+				return ActivityType.Buy;
+			}
+
+			if (Description.Equals("Dividendo"))
+			{
+				return ActivityType.Dividend;
+			}
+
+			if (Description.Equals("Processed Flatex Withdrawal"))
+			{
+				return ActivityType.CashWithdrawal;
+			}
+
+			if (Description.Contains("Depósitos"))
+			{
+				return ActivityType.CashDeposit;
+			}
+
+			// TODO, implement other options
+			return null;
+		}
+
+		public override decimal GetQuantity()
+		{
+			var quantity = Regex.Match(Description, $"[Venda|Compra] (?<amount>\\d+) @(?<price>[0-9]+,[0-9]+)").Groups[1].Value;
+
+			return decimal.Parse(quantity, GetCultureForParsingNumbers());
+		}
+
+		public override decimal GetUnitPrice()
+		{
+			var quantity = Regex.Match(Description, $"[Venda|Compra] (?<amount>\\d+) @(?<price>[0-9]+,[0-9]+)").Groups[2].Value;
+
+			return decimal.Parse(quantity, GetCultureForParsingNumbers());
+		}
+
+		public override bool IsFee()
+		{
+			return Description == "Comissões de transação DEGIRO e/ou taxas de terceiros";
+		}
+
+		public override bool IsTaxes()
+		{
+			return false; // Not implemented
+		}
+
+		private CultureInfo GetCultureForParsingNumbers()
+		{
+			return new CultureInfo("en")
+			{
+				NumberFormat =
+				{
+					NumberDecimalSeparator = ","
+				}
+			};
+		}
 	}
 }

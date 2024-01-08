@@ -1,6 +1,4 @@
-﻿using CsvHelper.Configuration;
-using GhostfolioSidekick.Ghostfolio.API;
-using System.Globalization;
+﻿using GhostfolioSidekick.Ghostfolio.API;
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
@@ -8,16 +6,6 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 	{
 		public DeGiroParserPT(IGhostfolioAPI api) : base(api)
 		{
-		}
-
-		protected override CsvConfiguration GetConfig()
-		{
-			return new CsvConfiguration(new CultureInfo("pt-PT"))
-			{
-				HasHeaderRecord = true,
-				CacheFields = true,
-				Delimiter = ",",
-			};
 		}
 	}
 }

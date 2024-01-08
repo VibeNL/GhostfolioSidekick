@@ -1,8 +1,8 @@
-﻿using CsvHelper.Configuration.Attributes;
+﻿using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
-	public class DeGiroRecordBase
+	public abstract class DeGiroRecordBase
 	{
 		public virtual DateOnly Date { get; set; }
 
@@ -27,5 +27,15 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		public virtual decimal Balance { get; set; }
 
 		public virtual string TransactionId { get; set; }
+
+		public abstract ActivityType? GetActivityType();
+
+		public abstract bool IsFee();
+
+		public abstract bool IsTaxes();
+
+		public abstract decimal GetQuantity();
+
+		public abstract decimal GetUnitPrice();
 	}
 }

@@ -1,4 +1,7 @@
 ﻿using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
