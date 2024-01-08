@@ -2,11 +2,10 @@
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using System.Globalization;
-using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
-	public abstract class DeGiroParserBase<T> : RecordBaseImporter<T> where T:DeGiroRecordBase
+	public abstract class DeGiroParserBase<T> : RecordBaseImporter<T> where T : DeGiroRecordBase
 	{
 		public DeGiroParserBase(IGhostfolioAPI api) : base(api)
 		{
@@ -40,8 +39,8 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			}
 
 			Activity activity;
-			if (activityType == ActivityType.CashDeposit || 
-				activityType == ActivityType.CashWithdrawal || 
+			if (activityType == ActivityType.CashDeposit ||
+				activityType == ActivityType.CashWithdrawal ||
 				activityType == ActivityType.Interest ||
 				activityType == ActivityType.Fee)
 			{
@@ -100,10 +99,10 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		protected Tuple<decimal?, string>? GetFee(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
 		{
 			// Costs of stocks
-			var feeRecord = allRecords.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.TransactionId) && x.TransactionId == record.TransactionId && x.IsFee());
-			if (feeRecord != null)
+			var feeRecords = allRecords.Where(x => !string.IsNullOrWhiteSpace(x.TransactionId) && x.TransactionId == record.TransactionId && x.IsFee());
+			if (feeRecords.Any())
 			{
-				return Tuple.Create(feeRecord.Total, feeRecord.Mutation);
+				return Tuple.Create(feeRecords.Sum(x => x.Total), feeRecords.First().Mutation);
 			}
 
 			return null;
