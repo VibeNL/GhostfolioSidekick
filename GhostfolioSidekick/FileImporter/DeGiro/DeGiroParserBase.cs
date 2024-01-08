@@ -6,13 +6,13 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
-	public class DeGiroParser : RecordBaseImporter<DeGiroRecordNL>
+	public class DeGiroParserBase<T> : RecordBaseImporter<T> where T:DeGiroRecordBase
 	{
-		public DeGiroParser(IGhostfolioAPI api) : base(api)
+		public DeGiroParserBase(IGhostfolioAPI api) : base(api)
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecordNL record, Account account, IEnumerable<DeGiroRecordNL> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(T record, Account account, IEnumerable<T> allRecords)
 		{
 			account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.BalanceCurrency), record.Balance, record.Date.ToDateTime(record.Time)));
 
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			};
 		}
 
-		private Tuple<decimal?, string>? GetFee(DeGiroRecordNL record, IEnumerable<DeGiroRecordNL> allRecords)
+		private Tuple<decimal?, string>? GetFee(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
 		{
 			// Costs of stocks
 			var feeRecord = allRecords.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.TransactionId) && x.TransactionId == record.TransactionId && x.Description == "DEGIRO Transactiekosten en/of kosten van derden");
@@ -106,7 +106,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private Tuple<decimal?, string>? GetTaxes(DeGiroRecordNL record, IEnumerable<DeGiroRecordNL> allRecords)
+		private Tuple<decimal?, string>? GetTaxes(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
 		{
 			// Taxes of dividends
 			var feeRecord = allRecords.SingleOrDefault(x => x.Date == record.Date && x.ISIN == record.ISIN && x.Description == "Dividendbelasting");
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private ActivityType? GetActivityType(DeGiroRecordNL record)
+		private ActivityType? GetActivityType(DeGiroRecordBase record)
 		{
 			if (record.Description.Contains("Verkoop")) // check Verkoop first because otherwise koop get's triggered
 			{
@@ -154,7 +154,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private decimal GetQuantity(DeGiroRecordNL record)
+		private decimal GetQuantity(DeGiroRecordBase record)
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
@@ -163,7 +163,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		private decimal GetUnitPrice(DeGiroRecordNL record)
+		private decimal GetUnitPrice(DeGiroRecordBase record)
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR

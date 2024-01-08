@@ -2,7 +2,6 @@
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
-	[Delimiter(",")]
 	public class DeGiroRecordBase
 	{
 		public virtual DateOnly Date { get; set; }
