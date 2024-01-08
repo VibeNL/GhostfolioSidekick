@@ -11,11 +11,11 @@ namespace GhostfolioSidekick.FileImporter.Generic
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(GenericRecord record, IEnumerable<GenericRecord> allRecords, Currency defaultCurrency)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(GenericRecord record, IEnumerable<GenericRecord> allRecords, Balance accountBalance)
 		{
 			var asset = string.IsNullOrWhiteSpace(record.Symbol) ? null : await api.FindSymbolByIdentifier(
 				record.Symbol,
-				CurrencyHelper.ParseCurrency(record.Currency) ?? defaultCurrency,
+				CurrencyHelper.ParseCurrency(record.Currency) ?? accountBalance.Currency,
 				null,
 				null);
 

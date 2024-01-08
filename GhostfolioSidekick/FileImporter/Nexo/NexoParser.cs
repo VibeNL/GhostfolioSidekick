@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(NexoRecord record, IEnumerable<NexoRecord> allRecords, Currency defaultCurrency)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(NexoRecord record, IEnumerable<NexoRecord> allRecords, Balance accountBalance)
 		{
 			if (!record.Details.StartsWith("approved"))
 			{
@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			var activities = new List<Activity>();
 
-			var inputAsset = await GetAsset(record.InputCurrency, defaultCurrency);
+			var inputAsset = await GetAsset(record.InputCurrency, accountBalance.Currency);
 			var inputActivity = new Activity
 			{
 				Asset = inputAsset,
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 				ReferenceCode = record.Transaction,
 			};
 
-			var outputAsset = await GetAsset(record.OutputCurrency, defaultCurrency);
+			var outputAsset = await GetAsset(record.OutputCurrency, accountBalance.Currency);
 			var refCode = record.Transaction;
 			var outputActivity = new Activity
 			{

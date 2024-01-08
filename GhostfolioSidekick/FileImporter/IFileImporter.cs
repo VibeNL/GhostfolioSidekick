@@ -6,6 +6,6 @@ namespace GhostfolioSidekick.FileImporter
 	{
 		Task<bool> CanParseActivities(string fileName);
 
-		Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Currency defaultCurrency);
+		Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Balance accountBalance);
 	}
 }

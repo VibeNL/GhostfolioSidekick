@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		}
 
 
-		public async Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Currency defaultCurrency)
+		public async Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Balance accountBalance)
 		{
 			var list = new ConcurrentDictionary<Tuple<SymbolProfile, Currency, DateTime, decimal, decimal>, Activity>();
 			Tuple<SymbolProfile, Currency, DateTime, decimal, decimal> GetKey(Activity x)
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 			foreach (var record in wumRecords)
 			{
-				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Currency) ?? defaultCurrency, record, rkkRecords);
+				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Currency) ?? accountBalance.Currency, record, rkkRecords);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 			foreach (var record in rkkRecords)
 			{
 				BaaderBankRKKRecord r = record.Value;
-				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Value.Currency) ?? defaultCurrency, r);
+				var order = await ConvertToOrder(CurrencyHelper.ParseCurrency(record.Value.Currency) ?? accountBalance.Currency, r);
 				if (order != null)
 				{
 					list.TryAdd(GetKey(order), order);

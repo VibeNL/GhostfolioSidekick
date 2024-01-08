@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.FileImporter
 					foreach (var file in files)
 					{
 						var importer = importers.SingleOrDefault(x => x.CanParseActivities(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
-						activities.AddRange(await importer.ConvertToActivities(file, account.Balance.Currency));
+						activities.AddRange(await importer.ConvertToActivities(file, account.Balance));
 					}
 
 					activities = ApplyCryptoWorkarounds(activities);

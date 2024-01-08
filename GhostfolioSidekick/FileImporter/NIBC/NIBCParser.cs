@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(NIBCRecord record, IEnumerable<NIBCRecord> allRecords, Currency defaultCurrency)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(NIBCRecord record, IEnumerable<NIBCRecord> allRecords, Balance accountBalance)
 		{
 			var activityType = GetActivityType(record);
 
