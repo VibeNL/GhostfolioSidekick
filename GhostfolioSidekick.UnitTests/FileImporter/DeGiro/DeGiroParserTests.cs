@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			// Arrange
 			var parser = new DeGiroParser(api.Object);
 
-			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/DeGiro/", "*.csv", SearchOption.AllDirectories))
+			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/DeGiro/NL//", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
 				var canParse = await parser.CanParseActivities(new[] { file });
@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/CashTransactions/single_deposit.csv" });
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/NL//CashTransactions/single_deposit.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 43.17M, new DateTime(2023, 12, 29, 18, 47, 0, DateTimeKind.Utc)));
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/BuyOrders/single_buy_euro.csv" });
+				new[] { "./FileImporter/TestFiles/DeGiro/NL//BuyOrders/single_buy_euro.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/BuyOrders/single_buy_usd.csv" });
+				new[] { "./FileImporter/TestFiles/DeGiro/NL//BuyOrders/single_buy_usd.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD,
@@ -144,7 +144,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/SellOrders/single_sell_euro.csv" });
+				new[] { "./FileImporter/TestFiles/DeGiro/NL//SellOrders/single_sell_euro.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
@@ -183,7 +183,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/SellOrders/single_sell_usd.csv" });
+				new[] { "./FileImporter/TestFiles/DeGiro/NL//SellOrders/single_sell_usd.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD,
@@ -222,7 +222,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/BuyOrders/single_buy_euro_multipart.csv" });
+				new[] { "./FileImporter/TestFiles/DeGiro/NL//BuyOrders/single_buy_euro_multipart.csv" });
 
 			// Assert
 			account.Activities.Should().BeEquivalentTo(new[]
@@ -272,7 +272,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/CashTransactions/single_dividend.csv" });
+				new[] { "./FileImporter/TestFiles/DeGiro/NL//CashTransactions/single_dividend.csv" });
 
 			Console.WriteLine(account.Activities.Select(a => a.Comment).First().ToString());
 			// Assert
@@ -312,7 +312,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/CashTransactions/single_dividend_notax.csv" });
+				new[] { "./FileImporter/TestFiles/DeGiro/NL//CashTransactions/single_dividend_notax.csv" });
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
