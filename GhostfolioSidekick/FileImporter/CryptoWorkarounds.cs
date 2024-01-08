@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
 using System.Collections.Concurrent;
-using System.Reflection.Metadata.Ecma335;
 
 namespace GhostfolioSidekick.FileImporter
 {
