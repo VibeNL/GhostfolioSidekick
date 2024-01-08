@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Ghostfolio.API;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
 using System.Data;
@@ -11,6 +12,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
+		private readonly IApplicationSettings settings;
 		private readonly IEnumerable<IFileImporter> importers;
 
 		public int Priority => 3;
@@ -21,11 +23,9 @@ namespace GhostfolioSidekick.FileImporter
 			IApplicationSettings settings,
 			IEnumerable<IFileImporter> importers)
 		{
-			ArgumentNullException.ThrowIfNull(settings);
-
-			fileLocation = settings.FileImporterPath;
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.api = api ?? throw new ArgumentNullException(nameof(api));
+			this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
 			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
 		}
 
@@ -62,6 +62,7 @@ namespace GhostfolioSidekick.FileImporter
 						activities.AddRange(await importer.ConvertToActivities(file, account.Balance.Currency));
 					}
 
+					activities = ApplyCryptoWorkarounds(activities);
 					account.ReplaceActivities(activities);
 					await api.UpdateAccount(account);
 				}
@@ -86,6 +87,23 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
+		}
+
+		private List<Activity> ApplyCryptoWorkarounds(List<Activity> activities)
+		{
+			if (settings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward)
+			{
+				// Add Staking as Dividends & Buys.
+				activities = CryptoWorkarounds.StakeWorkaround(activities).ToList();
+			}
+
+			if (settings.ConfigurationInstance.Settings.CryptoWorkaroundDust)
+			{
+				// Add Dust detection
+				activities = CryptoWorkarounds.DustWorkaround(activities, settings.ConfigurationInstance.Settings.CryptoWorkaroundDustThreshold).ToList();
+			}
+
+			return activities;
 		}
 	}
 }

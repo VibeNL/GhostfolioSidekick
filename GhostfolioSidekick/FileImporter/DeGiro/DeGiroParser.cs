@@ -14,10 +14,10 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, IEnumerable<DeGiroRecord> allRecords, Currency defaultCurrency)
 		{
-			if (!record.Omschrijving.Contains("Cash Sweep"))
-			{
-				account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
-			}
+			//if (!record.Omschrijving.Contains("Cash Sweep"))
+			//{
+			//	account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
+			//}
 
 			var activityType = GetActivityType(record);
 			if (activityType == null)
@@ -83,7 +83,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					orderId);
 			}
 
-			return new[] { activity, saldo };
+			return new[] { activity };
 		}
 
 		protected override CsvConfiguration GetConfig()

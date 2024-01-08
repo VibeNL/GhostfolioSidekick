@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model;
 using System.Collections.Concurrent;
+using System.Reflection.Metadata.Ecma335;
 
 namespace GhostfolioSidekick.FileImporter
 {
@@ -68,6 +69,11 @@ namespace GhostfolioSidekick.FileImporter
 
 			internal void ApplyDustCorrection(decimal dustThreashold)
 			{
+				if (Activities.FirstOrDefault()?.Asset?.AssetSubClass != AssetSubClass.CRYPTOCURRENCY)
+				{
+					return;
+				}
+
 				var amount = GetAmount();
 				// Should always be a sell or send as we have dust!
 				var lastActivity = Activities.Where(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send).OrderBy(x => x.Date).LastOrDefault();

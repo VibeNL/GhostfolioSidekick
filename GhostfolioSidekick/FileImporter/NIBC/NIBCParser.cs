@@ -1,5 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.NIBC
@@ -10,7 +11,7 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 		{
 		}
 
-		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(NIBCRecord record, Model.Account account, IEnumerable<NIBCRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(NIBCRecord record, IEnumerable<NIBCRecord> allRecords, Currency defaultCurrency)
 		{
 			var activityType = GetActivityType(record);
 
@@ -21,12 +22,12 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 
 			var id = record.TransactionID + (record.Description == "Bonusrente" ? "Bonus" : string.Empty);
 
-			var order = new Model.Activity(
+			var order = new Activity(
 				activityType.Value,
 				null,
 				record.Date,
 				1,
-				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), Math.Abs(record.Amount), record.Date),
+				new Money(CurrencyHelper.ParseCurrency(record.Currency), Math.Abs(record.Amount), record.Date),
 				null,
 				TransactionReferenceUtilities.GetComment(id),
 				id
@@ -35,21 +36,21 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 			return new[] { order };
 		}
 
-		private Model.ActivityType? GetActivityType(NIBCRecord record)
+		private ActivityType? GetActivityType(NIBCRecord record)
 		{
 			if (record.Description == "Inkomende overboeking")
 			{
-				return Model.ActivityType.CashDeposit;
+				return ActivityType.CashDeposit;
 			}
 
 			if (record.Description == "Uitgaande overboeking")
 			{
-				return Model.ActivityType.CashWithdrawal;
+				return ActivityType.CashWithdrawal;
 			}
 
 			if (record.Description == "Renteuitkering" || record.Description == "Bonusrente")
 			{
-				return Model.ActivityType.Interest;
+				return ActivityType.Interest;
 			}
 
 			return null;
