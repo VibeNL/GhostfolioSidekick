@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/Nexo/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(new[] { file });
+				var canParse = await parser.CanParseActivities(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -48,11 +48,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/CashTransactions/single_deposit.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Nexo/CashTransactions/single_deposit.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 150, new DateTime(2023, 08, 25, 14, 44, 44, DateTimeKind.Utc)));
-			account.Activities.Should().BeEmpty();
+			activities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -70,11 +70,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/BuyOrders/single_buy.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Nexo/BuyOrders/single_buy.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -161.9M, new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset1,
 				Comment = "Transaction Reference: [NXTyPxhiopNL3] (Details: asset USDC)",
@@ -104,11 +104,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset2);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/BuyOrders/single_convert.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Nexo/BuyOrders/single_convert.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset1,
 				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc] (Details: asset USDC)",
@@ -146,11 +146,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_cashback_crypto.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Nexo/Specials/single_cashback_crypto.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(0001, 01, 01, 00, 00, 00, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [NXT2yQdOutpLLE1Lz51xXt6uW] (Details: asset BTC)",
@@ -177,11 +177,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_cashback_fiat.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Nexo/Specials/single_cashback_fiat.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(0001, 01, 01, 00, 00, 00, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = null,
 				Comment = "Transaction Reference: [NXT6asbYnZqniNoTss0nyuIxM] (Details: asset EURX)",
@@ -209,11 +209,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			api.Setup(x => x.FindSymbolByIdentifier("BTC", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_referralbonus_pending.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Nexo/Specials/single_referralbonus_pending.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0, new DateTime(0001, 01, 01, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEmpty();
+			activities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -231,11 +231,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_referralbonus_approved.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Nexo/Specials/single_referralbonus_approved.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0, new DateTime(0001, 01, 01, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{ new Activity {
 				Asset = asset1,
 				Comment = "Transaction Reference: [NXTk6FBYyxOqH] (Details: asset BTC)",

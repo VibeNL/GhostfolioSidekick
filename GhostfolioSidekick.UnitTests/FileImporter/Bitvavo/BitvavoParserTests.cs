@@ -50,11 +50,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Storj", "STORJ" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bitvavo/BuyOrders/single_buy.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Bitvavo/BuyOrders/single_buy.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -25M, new DateTime(2023, 12, 13, 14, 39, 02, 473, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
+			activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [16eed6ae-65f9-4a9d-8f19-bd66a75fc745] (Details: asset STORJ)",
 				Date = new DateTime(2023, 12, 13, 14, 39, 02, 473, DateTimeKind.Utc),
@@ -81,11 +81,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Cosmos", "ATOM" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bitvavo/Receive/single_receive.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Bitvavo/Receive/single_receive.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, 0, new DateTime(1, 1, 1, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
+			activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [af86c3d8-ff57-4866-b6ce-7a549db31eda] (Details: asset ATOM)",
 				Date = new DateTime(2023, 10, 13, 22, 38, 36, DateTimeKind.Utc),
@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bitvavo/CashTransactions/single_deposit.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Bitvavo/CashTransactions/single_deposit.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, 1, new DateTime(2023, 04, 21, 08, 48, 55, DateTimeKind.Utc)));
@@ -127,7 +127,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bitvavo/CashTransactions/single_withdrawal.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Bitvavo/CashTransactions/single_withdrawal.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -101.88M, new DateTime(2023, 10, 24, 21, 23, 37, DateTimeKind.Utc)));
@@ -147,11 +147,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Cardano", "ADA" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bitvavo/SellOrders/single_sell.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Bitvavo/SellOrders/single_sell.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, 25.93000000000M, new DateTime(2023, 12, 13, 14, 45, 51, 803, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
+			activities.Should().BeEquivalentTo(new[] { new Activity {
 				Asset = asset,
 				Comment = "Transaction Reference: [14ae873a-4fce-4a12-ba0f-387522c67d46] (Details: asset ADA)",
 				Date = new DateTime(2023, 12, 13, 14, 45, 51, 803, DateTimeKind.Utc),
