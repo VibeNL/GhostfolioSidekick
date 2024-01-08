@@ -8,15 +8,17 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			string?[] identifiers,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass);
+			AssetSubClass?[] expectedAssetSubClass,
+			bool checkExternalDataProviders = true);
 
 		Task<SymbolProfile?> FindSymbolByIdentifier(
 			string? identifier,
 			Currency? expectedCurrency,
 			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass)
+			AssetSubClass?[] expectedAssetSubClass,
+			bool checkExternalDataProviders = true)
 		{
-			return FindSymbolByIdentifier(new[] { identifier }, expectedCurrency, expectedAssetClass, expectedAssetSubClass);
+			return FindSymbolByIdentifier(new[] { identifier }, expectedCurrency, expectedAssetClass, expectedAssetSubClass, checkExternalDataProviders);
 		}
 
 		Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date);
@@ -33,11 +35,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		Task<MarketDataList> GetMarketData(string symbol, string dataSource);
 
-		Task UpdateMarketData(SymbolProfile marketData);
-
 		Task DeleteSymbol(SymbolProfile marketData);
 
 		Task CreateManualSymbol(SymbolProfile asset);
+
+		Task UpdateSymbol(SymbolProfile asset);
 
 		Task<IEnumerable<Activity>> GetAllActivities();
 
@@ -52,5 +54,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		Task AddAndRemoveDummyCurrency();
 
 		void SetAllowAdmin(bool isallowed);
+
+		void ClearCache();
 	}
 }

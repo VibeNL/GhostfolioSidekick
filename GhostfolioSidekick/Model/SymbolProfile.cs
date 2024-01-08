@@ -1,5 +1,4 @@
-﻿
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Model
 {
@@ -47,6 +46,8 @@ namespace GhostfolioSidekick.Model
 
 		public MarketDataMappings Mappings { get; private set; } = new MarketDataMappings();
 
+		public ScraperConfiguration ScraperConfiguration { get; private set; } = new ScraperConfiguration();
+
 		public string Comment
 		{
 			get => comment;
@@ -85,6 +86,11 @@ namespace GhostfolioSidekick.Model
 		public void AddIdentifier(string identifier)
 		{
 			Comment = $"Known Identifiers: [{string.Join(",", identifiers.Union(new[] { identifier }))}]";
+		}
+
+		public override string ToString()
+		{
+			return $"{Symbol} {DataSource}";
 		}
 	}
 }

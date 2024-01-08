@@ -60,6 +60,7 @@
 						break;
 					case ActivityType.CashWithdrawal:
 					case ActivityType.Buy:
+					case ActivityType.Fee:
 
 						MoneyTrail.Add(CalculateActivityTotal(activity).Negate());
 						break;

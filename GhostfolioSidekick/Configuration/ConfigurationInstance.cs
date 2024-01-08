@@ -18,9 +18,12 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("symbols")]
 		public SymbolConfiguration[] Symbols { get; set; }
 
+		[JsonPropertyName("settings")]
+		public Settings Settings { get; set; } = new Settings();
+
 		public static ConfigurationInstance? Parse(string configuration)
 		{
-			JsonSerializerOptions options = new JsonSerializerOptions
+			JsonSerializerOptions options = new()
 			{
 				Converters ={
 					new JsonStringEnumConverter()

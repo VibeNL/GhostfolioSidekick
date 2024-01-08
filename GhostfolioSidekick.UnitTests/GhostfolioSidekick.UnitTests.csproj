@@ -38,6 +38,9 @@
     <None Update="FileImporter\TestFiles\Bitvavo\CashTransactions\single_withdrawal.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\Bitvavo\Receive\single_receive.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\Bitvavo\SellOrders\single_sell.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -63,6 +66,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\DeGiro\CashTransactions\single_dividend.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\Generic\CashTransactions\single_fee.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\Generic\CashTransactions\single_deposit.csv">
@@ -102,6 +108,18 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\Nexo\Specials\single_referralbonus_pending.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\NIBC\CashTransactions\single_deposit.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\NIBC\CashTransactions\single_bonus_interest.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\NIBC\CashTransactions\single_interest.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FileImporter\TestFiles\NIBC\CashTransactions\single_withdrawal.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="FileImporter\TestFiles\ScalableCapital\BuyOrders\SingleBuy\rkk.csv">
@@ -168,6 +186,7 @@
 
   <ItemGroup>
     <Folder Include="FileImporter\TestFiles\Bitvavo\Interest\" />
+    <Folder Include="FileImporter\TestFiles\Bitvavo\Receive\" />
     <Folder Include="FileImporter\TestFiles\Bitvavo\Specials\" />
     <Folder Include="FileImporter\TestFiles\Generic\SellOrders\" />
     <Folder Include="FileImporter\TestFiles\Nexo\SellOrders\" />

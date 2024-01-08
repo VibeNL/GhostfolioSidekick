@@ -21,10 +21,7 @@ namespace GhostfolioSidekick.FileImporter
 			IApplicationSettings settings,
 			IEnumerable<IFileImporter> importers)
 		{
-			if (settings is null)
-			{
-				throw new ArgumentNullException(nameof(settings));
-			}
+			ArgumentNullException.ThrowIfNull(settings);
 
 			fileLocation = settings.FileImporterPath;
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
