@@ -3,7 +3,6 @@ using GhostfolioSidekick.FileImporter.Bunq;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.Nexo;
-using GhostfolioSidekick.FileImporter.NIBC;
 using GhostfolioSidekick.FileImporter.ScalableCaptial;
 using GhostfolioSidekick.FileImporter.Trading212;
 using GhostfolioSidekick.Ghostfolio.API;
@@ -37,8 +36,7 @@ namespace GhostfolioSidekick
 			})
 			.ConfigureServices((hostContext, services) =>
 			{
-				services.AddSingleton<MemoryCache, MemoryCache>();
-				services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+				services.AddSingleton<IMemoryCache, MemoryCache>();
 				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
 				services.AddScoped<IHostedService, TimedHostedService>();
@@ -46,14 +44,13 @@ namespace GhostfolioSidekick
 				services.AddScoped<IScheduledWork, FileImporterTask>();
 				services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();
 				services.AddScoped<IScheduledWork, AccountMaintainerTask>();
-				services.AddScoped<IScheduledWork, DisplayInformationTask>();
 
-				services.AddScoped<IFileImporter, BitvavoParser>();
 				services.AddScoped<IFileImporter, BunqParser>();
-				services.AddScoped<IFileImporter, DeGiroParser>();
+				services.AddScoped<IFileImporter, DeGiroParserNL>();
+				services.AddScoped<IFileImporter, DeGiroParserPT>();
 				services.AddScoped<IFileImporter, GenericParser>();
 				services.AddScoped<IFileImporter, NexoParser>();
-				services.AddScoped<IFileImporter, NIBCParser>();
+				services.AddScoped<IFileImporter, BitvavoParser>();
 				services.AddScoped<IFileImporter, ScalableCapitalParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 
