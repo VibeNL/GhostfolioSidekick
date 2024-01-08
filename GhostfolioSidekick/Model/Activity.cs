@@ -35,5 +35,15 @@
 
 		// Internal use
 		public string ReferenceCode { get; set; }
+
+		internal static Activity GetKnownBalance(Money money)
+		{
+			return new Activity
+			{
+				ActivityType = ActivityType.CashBalance,
+				Quantity = 1,
+				UnitPrice = money
+			};
+		}
 	}
 }

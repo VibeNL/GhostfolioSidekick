@@ -1,9 +1,11 @@
-﻿namespace GhostfolioSidekick.FileImporter
+﻿using GhostfolioSidekick.Model;
+
+namespace GhostfolioSidekick.FileImporter
 {
 	public interface IFileImporter
 	{
-		Task<bool> CanParseActivities(IEnumerable<string> filenames);
+		Task<bool> CanParseActivities(string fileName);
 
-		Task<Model.Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames);
+		Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Balance accountBalance);
 	}
 }

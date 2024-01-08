@@ -27,34 +27,15 @@ namespace GhostfolioSidekick.FileImporter
 			return price;
 		}
 
-		protected async Task<SymbolProfile?> GetAsset(string assetName, Account account)
+		protected async Task<SymbolProfile?> GetAsset(string assetName, Currency defaultCurrency)
 		{
 			var mappedName = CryptoMapper.Instance.GetFullname(assetName);
 
 			return await api.FindSymbolByIdentifier(
 				new[] { mappedName, assetName },
-				account.Balance.Currency,
+				defaultCurrency,
 				DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.CryptoBrokerDefaultSetAssetSubClasses);
-		}
-
-		protected override void SetActivitiesToAccount(Account account, ICollection<Activity> values)
-		{
-			var activities = values;
-
-			if (settings.CryptoWorkaroundStakeReward)
-			{
-				// Add Staking as Dividends & Buys.
-				activities = CryptoWorkarounds.StakeWorkaround(activities).ToList();
-			}
-
-			if (settings.CryptoWorkaroundDust)
-			{
-				// Add Dust detection
-				activities = CryptoWorkarounds.DustWorkaround(activities, settings.CryptoWorkaroundDustThreshold).ToList();
-			}
-
-			base.SetActivitiesToAccount(account, activities);
 		}
 	}
 }

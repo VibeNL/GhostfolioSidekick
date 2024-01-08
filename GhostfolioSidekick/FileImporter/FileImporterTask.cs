@@ -1,5 +1,8 @@
-﻿using GhostfolioSidekick.Ghostfolio.API;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
+using System.Data;
 using System.Text;
 
 namespace GhostfolioSidekick.FileImporter
@@ -9,6 +12,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
+		private readonly IApplicationSettings settings;
 		private readonly IEnumerable<IFileImporter> importers;
 
 		public int Priority => 3;
@@ -19,11 +23,9 @@ namespace GhostfolioSidekick.FileImporter
 			IApplicationSettings settings,
 			IEnumerable<IFileImporter> importers)
 		{
-			ArgumentNullException.ThrowIfNull(settings);
-
-			fileLocation = settings.FileImporterPath;
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.api = api ?? throw new ArgumentNullException(nameof(api));
+			this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
 			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
 		}
 
@@ -40,9 +42,28 @@ namespace GhostfolioSidekick.FileImporter
 
 				try
 				{
-					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName).Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
-					var importer = importers.SingleOrDefault(x => x.CanParseActivities(files).Result) ?? throw new NoImporterAvailableException($"Directory {accountName} has no importer");
-					var account = await importer.ConvertActivitiesForAccount(accountName, files);
+					var account = await api.GetAccountByName(accountName);
+
+					if (account == null)
+					{
+						logger.LogError($"Error Account {accountName} not found");
+						continue;
+					}
+
+					var files = directory
+						.GetFiles("*.*", SearchOption.AllDirectories)
+						.Select(x => x.FullName)
+						.Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
+
+					var activities = new List<Activity>();
+					foreach (var file in files)
+					{
+						var importer = importers.SingleOrDefault(x => x.CanParseActivities(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
+						activities.AddRange(await importer.ConvertToActivities(file, account.Balance));
+					}
+
+					activities = ApplyCryptoWorkarounds(activities);
+					account.ReplaceActivities(activities);
 					await api.UpdateAccount(account);
 				}
 				catch (NoImporterAvailableException)
@@ -52,7 +73,7 @@ namespace GhostfolioSidekick.FileImporter
 
 					foreach (var file in files)
 					{
-						var importerString = string.Join(", ", importers.Select(x => $"Importer: {x.GetType().Name} CanConvert: {x.CanParseActivities(new[] { file }).Result}"));
+						var importerString = string.Join(", ", importers.Select(x => $"Importer: {x.GetType().Name} CanConvert: {x.CanParseActivities(file).Result}"));
 						sb.AppendLine($"{accountName} | {file} can be imported by {importerString}");
 					}
 
@@ -66,6 +87,23 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
+		}
+
+		private List<Activity> ApplyCryptoWorkarounds(List<Activity> activities)
+		{
+			if (settings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward)
+			{
+				// Add Staking as Dividends & Buys.
+				activities = CryptoWorkarounds.StakeWorkaround(activities).ToList();
+			}
+
+			if (settings.ConfigurationInstance.Settings.CryptoWorkaroundDust)
+			{
+				// Add Dust detection
+				activities = CryptoWorkarounds.DustWorkaround(activities, settings.ConfigurationInstance.Settings.CryptoWorkaroundDustThreshold).ToList();
+			}
+
+			return activities;
 		}
 	}
 }

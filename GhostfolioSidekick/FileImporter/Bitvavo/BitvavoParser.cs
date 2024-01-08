@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(BitvavoRecord record, Account account, IEnumerable<BitvavoRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(BitvavoRecord record, IEnumerable<BitvavoRecord> allRecords, Balance accountBalance)
 		{
 			if (record.Status != "Completed" && record.Status != "Distributed")
 			{
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			}
 			else
 			{
-				var asset = await GetAsset(record.Currency, account);
+				var asset = await GetAsset(record.Currency, accountBalance.Currency);
 
 				var fees = new List<Money>();
 

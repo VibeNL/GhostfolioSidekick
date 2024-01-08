@@ -1,5 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.Generic
@@ -10,11 +11,11 @@ namespace GhostfolioSidekick.FileImporter.Generic
 		{
 		}
 
-		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(GenericRecord record, Model.Account account, IEnumerable<GenericRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(GenericRecord record, IEnumerable<GenericRecord> allRecords, Balance accountBalance)
 		{
 			var asset = string.IsNullOrWhiteSpace(record.Symbol) ? null : await api.FindSymbolByIdentifier(
 				record.Symbol,
-				CurrencyHelper.ParseCurrency(record.Currency) ?? account.Balance.Currency,
+				CurrencyHelper.ParseCurrency(record.Currency) ?? accountBalance.Currency,
 				null,
 				null);
 
@@ -23,13 +24,13 @@ namespace GhostfolioSidekick.FileImporter.Generic
 				record.Id = $"{record.ActivityType}_{record.Symbol}_{record.Date.ToInvariantDateOnlyString()}_{record.Quantity.ToString(CultureInfo.InvariantCulture)}_{record.Currency}_{record.Fee?.ToString(CultureInfo.InvariantCulture)}";
 			}
 
-			var order = new Model.Activity(
+			var order = new Activity(
 				record.ActivityType,
 				asset,
 				record.Date,
 				record.Quantity,
-				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.UnitPrice, record.Date),
-				new[] { new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date) },
+				new Money(CurrencyHelper.ParseCurrency(record.Currency), record.UnitPrice, record.Date),
+				new[] { new Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date) },
 				TransactionReferenceUtilities.GetComment(record.Id, record.Symbol),
 				record.Id
 				);

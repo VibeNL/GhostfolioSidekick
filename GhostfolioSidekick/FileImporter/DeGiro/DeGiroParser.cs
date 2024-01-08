@@ -12,11 +12,11 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, IEnumerable<DeGiroRecord> allRecords, Balance accountBalance)
 		{
 			if (!record.Omschrijving.Contains("Cash Sweep"))
 			{
-				account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
+				accountBalance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
 			}
 
 			var activityType = GetActivityType(record);
@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(
 				record.ISIN,
-				CurrencyHelper.ParseCurrency(record.Mutatie) ?? account.Balance.Currency,
+				CurrencyHelper.ParseCurrency(record.Mutatie) ?? accountBalance.Currency,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses
 			);
