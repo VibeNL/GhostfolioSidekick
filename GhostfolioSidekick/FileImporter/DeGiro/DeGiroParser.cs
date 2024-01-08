@@ -6,18 +6,15 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.FileImporter.DeGiro
 {
-	public class DeGiroParser : RecordBaseImporter<DeGiroRecord>
+	public class DeGiroParser : RecordBaseImporter<DeGiroRecordNL>
 	{
 		public DeGiroParser(IGhostfolioAPI api) : base(api)
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecord record, Account account, IEnumerable<DeGiroRecord> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(DeGiroRecordNL record, Account account, IEnumerable<DeGiroRecordNL> allRecords)
 		{
-			if (!record.Omschrijving.Contains("Cash Sweep"))
-			{
-				account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.Saldo), record.SaldoValue, record.Datum.ToDateTime(record.Tijd)));
-			}
+			account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.BalanceCurrency), record.Balance, record.Date.ToDateTime(record.Time)));
 
 			var activityType = GetActivityType(record);
 			if (activityType == null)
@@ -27,19 +24,19 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(
 				record.ISIN,
-				CurrencyHelper.ParseCurrency(record.Mutatie) ?? account.Balance.Currency,
+				CurrencyHelper.ParseCurrency(record.Mutation) ?? account.Balance.Currency,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses
 			);
 
-			var orderNumber = allRecords.Where(x => x.OrderId == record.OrderId).Where(x => GetActivityType(x) == activityType).ToList().IndexOf(record);
+			var orderNumber = allRecords.Where(x => x.TransactionId == record.TransactionId).Where(x => GetActivityType(x) == activityType).ToList().IndexOf(record);
 
 			var fee = GetFee(record, allRecords);
 			var taxes = GetTaxes(record, allRecords);
 
-			if (string.IsNullOrWhiteSpace(record.OrderId))
+			if (string.IsNullOrWhiteSpace(record.TransactionId))
 			{
-				record.OrderId = $"{activityType}_{record.Datum.ToInvariantString()}_{record.Tijd.ToInvariantString()}_{record.ISIN}";
+				record.TransactionId = $"{activityType}_{record.Date.ToInvariantString()}_{record.Time.ToInvariantString()}_{record.ISIN}";
 			}
 
 			Activity activity;
@@ -48,12 +45,12 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				activity = new Activity(
 					activityType.Value,
 					null,
-					record.Datum.ToDateTime(record.Tijd),
+					record.Date.ToDateTime(record.Time),
 					1,
-					new Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault(), record.Datum.ToDateTime(record.Tijd)).Absolute(),
+					new Money(CurrencyHelper.ParseCurrency(record.Mutation), record.Total.GetValueOrDefault(), record.Date.ToDateTime(record.Time)).Absolute(),
 					null,
-					$"Transaction Reference: [{activityType}{record.Datum.ToInvariantString()}]",
-					$"{activityType}{record.Datum.ToInvariantString()}"
+					$"Transaction Reference: [{activityType}{record.Date.ToInvariantString()}]",
+					$"{activityType}{record.Date.ToInvariantString()}"
 					);
 			}
 			else if (activityType == ActivityType.Dividend)
@@ -61,24 +58,24 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 				activity = new Activity(
 					activityType.Value,
 					asset,
-					record.Datum.ToDateTime(record.Tijd),
+					record.Date.ToDateTime(record.Time),
 					1,
-					new Money(CurrencyHelper.ParseCurrency(record.Mutatie), record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0), record.Datum.ToDateTime(record.Tijd)),
+					new Money(CurrencyHelper.ParseCurrency(record.Mutation), record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0), record.Date.ToDateTime(record.Time)),
 					null,
-					TransactionReferenceUtilities.GetComment(record.OrderId, record.ISIN),
-					record.OrderId);
+					TransactionReferenceUtilities.GetComment(record.TransactionId, record.ISIN),
+					record.TransactionId);
 			}
 			else
 			{
-				var orderId = record.OrderId + (orderNumber == 0 ? string.Empty : $" {orderNumber + 1}"); // suborders are suffixed with an odernumber
+				var orderId = record.TransactionId + (orderNumber == 0 ? string.Empty : $" {orderNumber + 1}"); // suborders are suffixed with an odernumber
 
 				activity = new Activity(
 					activityType.Value,
 					asset,
-					record.Datum.ToDateTime(record.Tijd),
+					record.Date.ToDateTime(record.Time),
 					GetQuantity(record),
-					new Money(CurrencyHelper.ParseCurrency(record.Mutatie), GetUnitPrice(record), record.Datum.ToDateTime(record.Tijd)),
-					new[] { new Money(CurrencyHelper.ParseCurrency(fee?.Item2 ?? record.Mutatie), Math.Abs(orderNumber == 0 ? (fee?.Item1 ?? 0) : 0), record.Datum.ToDateTime(record.Tijd)) },
+					new Money(CurrencyHelper.ParseCurrency(record.Mutation), GetUnitPrice(record), record.Date.ToDateTime(record.Time)),
+					new[] { new Money(CurrencyHelper.ParseCurrency(fee?.Item2 ?? record.Mutation), Math.Abs(orderNumber == 0 ? (fee?.Item1 ?? 0) : 0), record.Date.ToDateTime(record.Time)) },
 					TransactionReferenceUtilities.GetComment(orderId, record.ISIN),
 					orderId);
 			}
@@ -97,58 +94,58 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			};
 		}
 
-		private Tuple<decimal?, string>? GetFee(DeGiroRecord record, IEnumerable<DeGiroRecord> allRecords)
+		private Tuple<decimal?, string>? GetFee(DeGiroRecordNL record, IEnumerable<DeGiroRecordNL> allRecords)
 		{
 			// Costs of stocks
-			var feeRecord = allRecords.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.OrderId) && x.OrderId == record.OrderId && x.Omschrijving == "DEGIRO Transactiekosten en/of kosten van derden");
+			var feeRecord = allRecords.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.TransactionId) && x.TransactionId == record.TransactionId && x.Description == "DEGIRO Transactiekosten en/of kosten van derden");
 			if (feeRecord != null)
 			{
-				return Tuple.Create(feeRecord.Total, feeRecord.Mutatie);
+				return Tuple.Create(feeRecord.Total, feeRecord.Mutation);
 			}
 
 			return null;
 		}
 
-		private Tuple<decimal?, string>? GetTaxes(DeGiroRecord record, IEnumerable<DeGiroRecord> allRecords)
+		private Tuple<decimal?, string>? GetTaxes(DeGiroRecordNL record, IEnumerable<DeGiroRecordNL> allRecords)
 		{
 			// Taxes of dividends
-			var feeRecord = allRecords.SingleOrDefault(x => x.Datum == record.Datum && x.ISIN == record.ISIN && x.Omschrijving == "Dividendbelasting");
+			var feeRecord = allRecords.SingleOrDefault(x => x.Date == record.Date && x.ISIN == record.ISIN && x.Description == "Dividendbelasting");
 			if (feeRecord != null)
 			{
-				return Tuple.Create(feeRecord.Total * -1, feeRecord.Mutatie);
+				return Tuple.Create(feeRecord.Total * -1, feeRecord.Mutation);
 			}
 
 			return null;
 		}
 
-		private ActivityType? GetActivityType(DeGiroRecord record)
+		private ActivityType? GetActivityType(DeGiroRecordNL record)
 		{
-			if (record.Omschrijving.Contains("Verkoop")) // check Verkoop first because otherwise koop get's triggered
+			if (record.Description.Contains("Verkoop")) // check Verkoop first because otherwise koop get's triggered
 			{
 				return ActivityType.Sell;
 			}
 
-			if (record.Omschrijving.Contains("Koop"))
+			if (record.Description.Contains("Koop"))
 			{
 				return ActivityType.Buy;
 			}
 
-			if (record.Omschrijving.Equals("Dividend"))
+			if (record.Description.Equals("Dividend"))
 			{
 				return ActivityType.Dividend;
 			}
 
-			if (record.Omschrijving.Equals("flatex terugstorting"))
+			if (record.Description.Equals("flatex terugstorting"))
 			{
 				return ActivityType.CashWithdrawal;
 			}
 
-			if (record.Omschrijving.Contains("Deposit") && !record.Omschrijving.Contains("Reservation"))
+			if (record.Description.Contains("Deposit") && !record.Description.Contains("Reservation"))
 			{
 				return ActivityType.CashDeposit;
 			}
 
-			if (record.Omschrijving.Equals("DEGIRO Verrekening Promotie"))
+			if (record.Description.Equals("DEGIRO Verrekening Promotie"))
 			{
 				return ActivityType.CashDeposit; // TODO: Gift?
 			}
@@ -157,20 +154,20 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			return null;
 		}
 
-		private decimal GetQuantity(DeGiroRecord record)
+		private decimal GetQuantity(DeGiroRecordNL record)
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
-			var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[1].Value;
+			var quantity = Regex.Match(record.Description, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[1].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		private decimal GetUnitPrice(DeGiroRecord record)
+		private decimal GetUnitPrice(DeGiroRecordNL record)
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
-			var quantity = Regex.Match(record.Omschrijving, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[2].Value;
+			var quantity = Regex.Match(record.Description, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
