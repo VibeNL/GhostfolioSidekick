@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					asset,
 					record.Date.ToDateTime(record.Time),
 					1,
-					taxes,
+					new Money(CurrencyHelper.ParseCurrency(record.Mutation), record.Total.GetValueOrDefault() - taxes.Amount, record.Date.ToDateTime(record.Time)),
 					null,
 					TransactionReferenceUtilities.GetComment(record.TransactionId, record.ISIN),
 					record.TransactionId);
