@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			var orderNumber = allRecords.Where(x => x.TransactionId == record.TransactionId).Where(x => x.GetActivityType() == activityType).ToList().IndexOf(record);
 
-			var fee = GetFee(record, allRecords);
+			var fees = GetFee(record, allRecords);
 			var taxes = GetTaxes(record, allRecords);
 
 			if (string.IsNullOrWhiteSpace(record.TransactionId))
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					asset,
 					record.Date.ToDateTime(record.Time),
 					1,
-					new Money(CurrencyHelper.ParseCurrency(record.Mutation), record.Total.GetValueOrDefault() - (taxes?.Item1 ?? 0), record.Date.ToDateTime(record.Time)),
+					taxes,
 					null,
 					TransactionReferenceUtilities.GetComment(record.TransactionId, record.ISIN),
 					record.TransactionId);
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 					record.Date.ToDateTime(record.Time),
 					record.GetQuantity(),
 					new Money(CurrencyHelper.ParseCurrency(record.Mutation), record.GetUnitPrice(), record.Date.ToDateTime(record.Time)),
-					new[] { new Money(CurrencyHelper.ParseCurrency(fee?.Item2 ?? record.Mutation), Math.Abs(orderNumber == 0 ? (fee?.Item1 ?? 0) : 0), record.Date.ToDateTime(record.Time)) },
+					orderNumber == 0 ? fees : [],
 					TransactionReferenceUtilities.GetComment(orderId, record.ISIN),
 					orderId);
 			}
@@ -96,25 +96,20 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			};
 		}
 
-		protected Tuple<decimal?, string>? GetFee(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
+		protected IEnumerable<Money> GetFee(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
 		{
-			// Costs of stocks
+			// Costs of stocks.
 			var feeRecords = allRecords.Where(x => !string.IsNullOrWhiteSpace(x.TransactionId) && x.TransactionId == record.TransactionId && x.IsFee());
-			if (feeRecords.Any())
-			{
-				return Tuple.Create(feeRecords.Sum(x => x.Total), feeRecords.First().Mutation);
-			}
-
-			return null;
+			return feeRecords.Where(x => x.Total != null).Select(x => new Money(CurrencyHelper.ParseCurrency(x.Mutation), x.Total.Value * -1, x.Date.ToDateTime(x.Time)));
 		}
 
-		protected Tuple<decimal?, string>? GetTaxes(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
+		protected Money GetTaxes(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
 		{
 			// Taxes of dividends
 			var feeRecord = allRecords.SingleOrDefault(x => x.Date == record.Date && x.ISIN == record.ISIN && x.IsTaxes());
 			if (feeRecord != null)
 			{
-				return Tuple.Create(feeRecord.Total * -1, feeRecord.Mutation);
+				return new Money(CurrencyHelper.ParseCurrency(feeRecord.Mutation), feeRecord.Total.Value * -1, feeRecord.Date.ToDateTime(feeRecord.Time));
 			}
 
 			return null;

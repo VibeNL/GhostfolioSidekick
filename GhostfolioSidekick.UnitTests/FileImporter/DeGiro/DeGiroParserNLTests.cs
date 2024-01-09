@@ -246,7 +246,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 					Comment =
 						"Transaction Reference: [35d4345a-467c-42bd-848c-f6087737dd36 2] (Details: asset NL0011794037)",
 					Date = new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-					Fees = new[] { new Money(DefaultCurrency.EUR, 0, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)) },
+					Fees = new Money[0],
 					Quantity = 4,
 					ActivityType = ActivityType.Buy,
 					UnitPrice = new Money(DefaultCurrency.EUR, 26.88M,
