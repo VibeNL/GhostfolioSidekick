@@ -14,7 +14,8 @@ namespace GhostfolioSidekick.Model
 			string name,
 			string dataSource,
 			AssetClass assetClass,
-			AssetSubClass? assetSubClass)
+			AssetSubClass? assetSubClass,
+			string? comment)
 		{
 			Currency = currency;
 			Symbol = symbol;
@@ -22,6 +23,7 @@ namespace GhostfolioSidekick.Model
 			Name = name;
 			DataSource = dataSource;
 			AssetSubClass = assetSubClass;
+			Comment = comment;
 			AssetClass = assetClass;
 		}
 		public Currency Currency { get; set; }

@@ -52,7 +52,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				symbolProfile.Name,
 				symbolProfile.DataSource,
 				Utilities.ParseEnum<AssetClass>(symbolProfile.AssetClass),
-				Utilities.ParseOptionalEnum<AssetSubClass>(symbolProfile.AssetSubClass));
+				Utilities.ParseOptionalEnum<AssetSubClass>(symbolProfile.AssetSubClass),
+				symbolProfile.Comment);
 		}
 
 		public static MarketDataList MapMarketDataList(Contract.MarketDataList market)
@@ -69,7 +70,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					assetProfile.Name,
 					assetProfile.DataSource,
 					Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
-					Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass)),
+					Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass),
+					assetProfile.Comment),
 				MarketData = market.MarketData.Select(MapMarketData).ToList()
 			};
 

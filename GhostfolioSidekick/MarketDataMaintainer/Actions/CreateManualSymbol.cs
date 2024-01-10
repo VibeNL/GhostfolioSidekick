@@ -128,7 +128,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 					manualSymbolConfiguration.Name,
 					"MANUAL",
 					Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass),
-					Utilities.ParseOptionalEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass)
+					Utilities.ParseOptionalEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass),
+					null
 					));
 			}
 

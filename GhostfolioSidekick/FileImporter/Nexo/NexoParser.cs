@@ -8,10 +8,10 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 	public class NexoParser : CryptoRecordBaseImporter<NexoRecord>
 	{
 		private SymbolProfile[] fiatCoin = [
-			new SymbolProfile(CurrencyHelper.EUR, "EURX", null, "EURX", "X", AssetClass.CASH, null),
-			new SymbolProfile(CurrencyHelper.USD, "USDX", null, "USDX", "X", AssetClass.CASH, null),
-			new SymbolProfile(CurrencyHelper.EUR, "EUR", null, "EUR", "X", AssetClass.CASH, null),
-			new SymbolProfile(CurrencyHelper.USD, "USD", null, "USD", "X", AssetClass.CASH, null)
+			new SymbolProfile(CurrencyHelper.EUR, "EURX", null, "EURX", "X", AssetClass.CASH, null, null),
+			new SymbolProfile(CurrencyHelper.USD, "USDX", null, "USDX", "X", AssetClass.CASH, null, null),
+			new SymbolProfile(CurrencyHelper.EUR, "EUR", null, "EUR", "X", AssetClass.CASH, null, null),
+			new SymbolProfile(CurrencyHelper.USD, "USD", null, "USD", "X", AssetClass.CASH, null, null)
 		];
 
 		public NexoParser(
