@@ -98,6 +98,22 @@ jobs:
           cache-to: type=gha,mode=max
           file: ./GhostfolioSidekick/Dockerfile
 
+      - name: Create a PR comment with the published version
+        uses: thollander/actions-comment-pull-request@v2
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          message: |
+            ### Development container published
+
+            Install with:
+
+            ```
+            docker pull vibenl/ghostfoliosidekick:${{ github.event.number }}
+            ```
+          comment_tag: "development-ghostfoliosidekick-published"
+          mode: "recreate"
+          pr_number: ${{ github.event.number }}
+
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
       # repository is public to avoid leaking data.  If you would like to publish
