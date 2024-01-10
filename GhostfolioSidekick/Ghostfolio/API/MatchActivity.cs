@@ -4,7 +4,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public class MatchActivity
 	{
-		public Activity Activity { get; set; }
+		public required Activity Activity { get; set; }
+
 		public bool IsMatched { get; set; }
 	}
 }

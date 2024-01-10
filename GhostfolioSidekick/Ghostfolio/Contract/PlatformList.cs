@@ -1,7 +1,7 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.Contract
 {
-    public class AccountList
-    {
-        public Account[] Accounts { get; set; }
-    }
+	public class AccountList
+	{
+		public required Account[] Accounts { get; set; }
+	}
 }

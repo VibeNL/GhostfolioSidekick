@@ -10,13 +10,13 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 		{
 		}
 
-		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(NIBCRecord record, Model.Account account, IEnumerable<NIBCRecord> allRecords)
+		protected override Task<IEnumerable<Model.Activity>> ConvertOrders(NIBCRecord record, Model.Account account, IEnumerable<NIBCRecord> allRecords)
 		{
 			var activityType = GetActivityType(record);
 
 			if (activityType == null)
 			{
-				return [];
+				return Task.FromResult(Enumerable.Empty<Model.Activity>());
 			}
 
 			var id = record.TransactionID + (record.Description == "Bonusrente" ? "Bonus" : string.Empty);
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 				id
 				);
 
-			return new[] { order };
+			return Task.FromResult<IEnumerable<Model.Activity>>(new[] { order });
 		}
 
 		private Model.ActivityType? GetActivityType(NIBCRecord record)
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 				HasHeaderRecord = true,
 				CacheFields = true,
 				Delimiter = ";",
-				ShouldSkipRecord = (r) => r.Row[0].StartsWith("Nr v/d rekening"),
+				ShouldSkipRecord = (r) => r.Row[0]!.StartsWith("Nr v/d rekening"),
 			};
 		}
 	}

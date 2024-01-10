@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.ghostfolioAPI = ghostfolioAPI;
 		}
 
-		public Money GetConvertedPrice(Money item, Currency targetCurrency, DateTime timeOfRecord)
+		public Money? GetConvertedPrice(Money? item, Currency targetCurrency, DateTime timeOfRecord)
 		{
 			return ghostfolioAPI.GetConvertedPrice(item, targetCurrency, timeOfRecord).Result;
 		}

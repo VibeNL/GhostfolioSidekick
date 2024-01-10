@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					FeeCurrency = account.Balance.Currency.Symbol,
 					Quantity = activity.Quantity,
 					Type = ParseType(activity.ActivityType),
-					UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, account.Balance.Currency, activity.Date).Amount,
+					UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, account.Balance.Currency, activity.Date)!.Amount,
 					ReferenceCode = activity.ReferenceCode
 				};
 			}

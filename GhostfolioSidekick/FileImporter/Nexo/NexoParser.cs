@@ -8,10 +8,10 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 	public class NexoParser : CryptoRecordBaseImporter<NexoRecord>
 	{
 		private SymbolProfile[] fiatCoin = [
-			new SymbolProfile(CurrencyHelper.EUR, "EURX", null, "EURX", null, AssetClass.CASH, null),
-			new SymbolProfile(CurrencyHelper.USD, "USDX", null, "USDX", null, AssetClass.CASH, null),
-			new SymbolProfile(CurrencyHelper.EUR, "EUR", null, "EUR", null, AssetClass.CASH, null),
-			new SymbolProfile(CurrencyHelper.USD, "USD", null, "USD", null, AssetClass.CASH, null)
+			new SymbolProfile(CurrencyHelper.EUR, "EURX", null, "EURX", "X", AssetClass.CASH, null),
+			new SymbolProfile(CurrencyHelper.USD, "USDX", null, "USDX", "X", AssetClass.CASH, null),
+			new SymbolProfile(CurrencyHelper.EUR, "EUR", null, "EUR", "X", AssetClass.CASH, null),
+			new SymbolProfile(CurrencyHelper.USD, "USD", null, "USD", "X", AssetClass.CASH, null)
 		];
 
 		public NexoParser(
@@ -30,29 +30,29 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			var activities = new List<Activity>();
 
 			var inputAsset = await GetAsset(record.InputCurrency);
-			var inputActivity = new Activity
-			{
-				Asset = inputAsset,
-				Date = record.DateTime,
-				Comment = TransactionReferenceUtilities.GetComment(record.Transaction, record.InputCurrency),
-				Quantity = Math.Abs(record.InputAmount),
-				ActivityType = ActivityType.Undefined,
-				UnitPrice = GetUnitPrice(record, false),
-				ReferenceCode = record.Transaction,
-			};
+			var inputActivity = new Activity(
+				ActivityType.Undefined,
+				inputAsset,
+				record.DateTime,
+				Math.Abs(record.InputAmount),
+				GetUnitPrice(record, false),
+				null,
+				TransactionReferenceUtilities.GetComment(record.Transaction, record.InputCurrency),
+				record.Transaction
+				);
 
 			var outputAsset = await GetAsset(record.OutputCurrency);
 			var refCode = record.Transaction;
-			var outputActivity = new Activity
-			{
-				Asset = outputAsset,
-				Date = record.DateTime,
-				Comment = TransactionReferenceUtilities.GetComment(refCode, record.OutputCurrency),
-				Quantity = Math.Abs(record.OutputAmount),
-				ActivityType = ActivityType.Undefined,
-				UnitPrice = GetUnitPrice(record, true),
-				ReferenceCode = refCode,
-			};
+			var outputActivity = new Activity(
+				ActivityType.Undefined,
+				outputAsset,
+				record.DateTime,
+				Math.Abs(record.OutputAmount),
+				GetUnitPrice(record, true),
+				null,
+				TransactionReferenceUtilities.GetComment(refCode, record.OutputCurrency),
+				refCode
+				);
 
 			activities.AddRange(HandleRecord(record, inputActivity, outputActivity));
 

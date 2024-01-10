@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(
 				record.ISIN,
-				CurrencyHelper.ParseCurrency(record.Currency) ?? account.Balance.Currency,
+				!string.IsNullOrWhiteSpace(record.Currency) ? CurrencyHelper.ParseCurrency(record.Currency) : account.Balance.Currency,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses);
 
@@ -62,12 +62,13 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				activityType == ActivityType.CashWithdrawal ||
 				activityType == ActivityType.Interest)
 			{
+				var currency = !string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency;
 				var activity = new Activity(
 					activityType.Value,
 					asset,
 					record.Time,
 					1,
-					new Money(record.Currency == string.Empty ? record.CurrencyTotal : record.Currency, record.Total.GetValueOrDefault(0), record.Time),
+					new Money(currency!, record.Total.GetValueOrDefault(0), record.Time),
 					fees,
 					TransactionReferenceUtilities.GetComment(record.Id),
 					record.Id
@@ -80,8 +81,8 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 					activityType.Value,
 					asset,
 					record.Time,
-					record.NumberOfShares.Value,
-					new Money(record.Currency, record.Price.Value, record.Time),
+					record.NumberOfShares!.Value,
+					new Money(record.Currency!, record.Price!.Value, record.Time),
 					fees,
 					TransactionReferenceUtilities.GetComment(record.Id, record.ISIN),
 					record.Id
@@ -94,10 +95,16 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		{
 			// "0.01 GBP -> 0.01 EUR"
 			var note = record.Notes;
+
+			if (string.IsNullOrWhiteSpace(note))
+			{
+				throw new NotSupportedException("Conversion without Notes");
+			}
+
 			var splitted = note.Split(' ');
 
-			Money source = new(splitted[1], Decimal.Parse(splitted[0], CultureInfo.InvariantCulture), record.Time);
-			Money target = new(splitted[4], Decimal.Parse(splitted[3], CultureInfo.InvariantCulture), record.Time);
+			Money source = new(splitted[1], decimal.Parse(splitted[0], CultureInfo.InvariantCulture), record.Time);
+			Money target = new(splitted[4], decimal.Parse(splitted[3], CultureInfo.InvariantCulture), record.Time);
 
 			return (source, target);
 		}
@@ -117,17 +124,17 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 			List<Money> taxes = new();
 			if (record.FeeUK != null)
 			{
-				taxes.Add(new Money(record.FeeUKCurrency, record.FeeUK.Value, record.Time));
+				taxes.Add(new Money(record.FeeUKCurrency!, record.FeeUK.Value, record.Time));
 			}
 
 			if (record.FeeFrance != null)
 			{
-				taxes.Add(new Money(record.FeeFranceCurrency, record.FeeFrance.Value, record.Time));
+				taxes.Add(new Money(record.FeeFranceCurrency!, record.FeeFrance.Value, record.Time));
 			}
 
 			if (record.ConversionFee != null)
 			{
-				taxes.Add(new Money(record.ConversionFeeCurrency, record.ConversionFee.Value, record.Time));
+				taxes.Add(new Money(record.ConversionFeeCurrency!, record.ConversionFee.Value, record.Time));
 			}
 
 			return taxes;

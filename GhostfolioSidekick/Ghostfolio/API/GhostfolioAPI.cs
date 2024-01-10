@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			restCall = new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken);
 			modelToContractMapper = new ModelToContractMapper(new CurrentPriceCalculator(this));
-			mapper = new SymbolMapper(settings.ConfigurationInstance.Mappings);
+			mapper = new SymbolMapper(settings.ConfigurationInstance.Mappings ?? []);
 		}
 
 		public async Task<Model.Account?> GetAccountByName(string name)
@@ -122,17 +122,17 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					switch (mergeOrder.Operation)
 					{
 						case Operation.New:
-							await WriteOrder(mergeOrder.Order1);
+							await WriteOrder(mergeOrder.Order1!);
 							break;
 						case Operation.Duplicate:
 							// Nothing to do!
 							break;
 						case Operation.Updated:
-							await DeleteOrder(mergeOrder.Order2);
-							await WriteOrder(mergeOrder.Order1);
+							await DeleteOrder(mergeOrder.Order2!);
+							await WriteOrder(mergeOrder.Order1!);
 							break;
 						case Operation.Removed:
-							await DeleteOrder(mergeOrder.Order2);
+							await DeleteOrder(mergeOrder.Order2!);
 							break;
 						default:
 							throw new NotSupportedException();
@@ -229,7 +229,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					foreach (var identifier in allIdentifiers)
 					{
 						var foundSymbol = r
-							.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
+							.Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
 							.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
 							.SingleOrDefault(x =>
 							x.Symbol == identifier ||
@@ -280,8 +280,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				}
 
 				var filteredAsset = allAssets
+					.Where(x => x != null)
 					.Select(FixYahooCrypto)
-					.Where(x => expectedAssetClass?.Contains(x.AssetClass.GetValueOrDefault()) ?? true)
+					.Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
 					.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
 					.OrderBy(x => identifiers.Any(y => MatchId(x, y)) ? 0 : 1)
 					.ThenByDescending(x => FussyMatch(identifiers, x))
@@ -320,10 +321,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			Model.SymbolProfile FixYahooCrypto(Model.SymbolProfile x)
 			{
 				// Workaround for bug Ghostfolio
-				if (x != null && x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY && x.DataSource == "YAHOO" && x.Symbol.Length >= 6)
+				if (x.AssetSubClass == AssetSubClass.CRYPTOCURRENCY && x.DataSource == "YAHOO" && x.Symbol.Length >= 6)
 				{
 					var t = x.Symbol;
-					x.Symbol = t.Substring(0, t.Length - 3) + "-" + t.Substring(t.Length - 3, 3);
+					x.Symbol = string.Concat(t.AsSpan(0, t.Length - 3), "-", t.AsSpan(t.Length - 3, 3));
 				}
 
 				return x;
@@ -340,11 +341,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date)
+		public async Task<Money?> GetConvertedPrice(Money? money, Currency targetCurrency, DateTime date)
 		{
 			if (money == null || money.Currency.Symbol == targetCurrency.Symbol || (money.Amount) == 0)
 			{
-				return money;
+				return money!;
 			}
 
 			var sourceCurrency = mapper.MapCurrency(money.Currency.Symbol);
@@ -369,7 +370,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
-			var benchmarks = (await GetInfo()).BenchMarks;
+			var benchmarks = (await GetInfo()).BenchMarks ?? [];
 
 			var filtered = market?.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol));
 
@@ -405,7 +406,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				["isin"] = asset.ISIN,
 				["name"] = asset.Name,
 				["comment"] = asset.Comment,
-				["assetClass"] = asset.AssetClass?.ToString(),
+				["assetClass"] = asset.AssetClass.ToString(),
 				["assetSubClass"] = asset.AssetSubClass?.ToString(),
 				["currency"] = asset.Currency.Symbol,
 				["datasource"] = asset.DataSource
@@ -449,7 +450,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			var o = new JObject
 			{
 				["name"] = asset.Name,
-				["assetClass"] = asset.AssetClass?.ToString(),
+				["assetClass"] = asset.AssetClass.ToString(),
 				["assetSubClass"] = asset.AssetSubClass?.ToString(),
 				["comment"] = asset.Comment,
 				["scraperConfiguration"] = scraperConfiguration,

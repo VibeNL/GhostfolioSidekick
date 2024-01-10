@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Model
 			string symbol,
 			string? isin,
 			string name,
-			string? dataSource,
+			string dataSource,
 			AssetClass assetClass,
 			AssetSubClass? assetSubClass)
 		{
@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Model
 
 		public string Name { get; set; }
 
-		public string? DataSource { get; set; }
+		public string DataSource { get; set; }
 
 		public AssetSubClass? AssetSubClass { get; set; }
 
