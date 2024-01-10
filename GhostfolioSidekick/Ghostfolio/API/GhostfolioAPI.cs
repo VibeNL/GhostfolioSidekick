@@ -84,13 +84,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.Where(x => x != null)
 				.Where(x => x.Type != Contract.ActivityType.IGNORE)
 				.Select(Round)
-				.Where(x=> x.UnitPrice * x.Quantity != 0 || x.Fee != 0)
+				.Where(x => x.UnitPrice * x.Quantity != 0 || x.Fee != 0)
 				.ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.Short());
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
 
-			var mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).ToList();
+			var mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).OrderBy(x => x.Order1?.Date ?? x.Order2?.Date ?? DateTime.MaxValue).ToList();
 			foreach (var mergeOrder in mergeOrders)
 			{
 				try
