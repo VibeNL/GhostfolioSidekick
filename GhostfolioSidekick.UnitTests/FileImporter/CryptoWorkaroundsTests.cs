@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		}
 
 		[Fact]
-		public async Task StakeWorkaround_NoStakeReward_Unchanged()
+		public void StakeWorkaround_NoStakeReward_Unchanged()
 		{
 			// Arrange
 			var activities = new Fixture()
@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		}
 
 		[Fact]
-		public async Task StakeWorkaround_SingleStakeReward_Converted()
+		public void StakeWorkaround_SingleStakeReward_Converted()
 		{
 			// Arrange
 			var activities = new Fixture()
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		}
 
 		[Fact]
-		public async Task DustWorkaround_NoDust_Unchanged()
+		public void DustWorkaround_NoDust_Unchanged()
 		{
 			// Arrange
 			var quantity = 42;
@@ -83,7 +83,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		}
 
 		[Fact]
-		public async Task DustWorkaround_Dust_LastActivityUpdated()
+		public void DustWorkaround_Dust_LastActivityUpdated()
 		{
 			// Arrange
 			var quantity = 100;
@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		}
 
 		[Fact]
-		public async Task DustWorkaround_DustAndStakingRewards_LastActivityUpdatedAndStakingRewardsRemoved()
+		public void DustWorkaround_DustAndStakingRewards_LastActivityUpdatedAndStakingRewardsRemoved()
 		{
 			// Arrange
 			var quantity = 100;

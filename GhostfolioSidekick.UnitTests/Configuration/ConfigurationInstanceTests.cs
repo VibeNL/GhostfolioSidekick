@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 			var config = ConfigurationInstance.Parse(MappingsAndSymbols);
 
 			// Assert
-			config.Mappings.Should().BeEquivalentTo(new[] {
+			config!.Mappings.Should().BeEquivalentTo(new[] {
 				new Mapping{ MappingType = MappingType.Currency, Source = "GBX", Target = "GBp" },
 				new Mapping{ MappingType = MappingType.Symbol, Source = "IE00077FRP95", Target = "SDIV.L" }
 			});
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 			var config = ConfigurationInstance.Parse(ManualSymbol);
 
 			// Assert
-			config.Symbols.Should().BeEquivalentTo(new[] {
+			config!.Symbols.Should().BeEquivalentTo(new[] {
 				new SymbolConfiguration{
 					Symbol="Manual1",
 					ManualSymbolConfiguration = new ManualSymbolConfiguration{
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 			var config = ConfigurationInstance.Parse(AccountsAndPlatforms);
 
 			// Assert
-			config.Platforms.Should().BeEquivalentTo(new[] {
+			config!.Platforms.Should().BeEquivalentTo(new[] {
 				new PlatformConfiguration{
 					Name = "Platform1",
 					Url = "someurl"
