@@ -83,8 +83,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.Select(x => modelToContractMapper.ConvertToGhostfolioActivity(account, x))
 				.Where(x => x != null)
 				.Where(x => x.Type != Contract.ActivityType.IGNORE)
+				.Select(Round)
+				.Where(x=> x.UnitPrice * x.Quantity != 0 || x.Fee != 0)
 				.ToList();
-			newActivities = newActivities.Select(Round).ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.Short());
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
