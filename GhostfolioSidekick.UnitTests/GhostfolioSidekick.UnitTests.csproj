@@ -56,6 +56,9 @@
     <None Update="FileImporter\TestFiles\Bunq\CashTransactions\multiple_deposits.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\DeGiro\NL\BuyOrders\single_buy_euro_whole_number.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\DeGiro\NL\BuyOrders\single_buy_euro_multipart.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		[Name("Mutatie")]
 		public override string Mutation { get; set; }
-		
+
 		[Index(8)]
 		public override decimal? Total { get; set; }
 
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
-			var quantity = Regex.Match(Description, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[1].Value;
+			var quantity = Regex.Match(Description, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[1].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
-			var quantity = Regex.Match(Description, $"oop (?<amount>\\d+) @ (?<price>[0-9]+,[0-9]+)").Groups[2].Value;
+			var quantity = Regex.Match(Description, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
