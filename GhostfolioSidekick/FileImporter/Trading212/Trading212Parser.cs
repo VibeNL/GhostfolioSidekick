@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 				activityType == ActivityType.CashWithdrawal ||
 				activityType == ActivityType.Interest)
 			{
-				var currency = !string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency;
+				var currency = string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency;
 				var activity = new Activity(
 					activityType.Value,
 					asset,
