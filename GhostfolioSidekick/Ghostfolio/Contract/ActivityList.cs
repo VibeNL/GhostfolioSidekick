@@ -2,6 +2,6 @@
 {
 	public class ActivityList
 	{
-		public Activity[] Activities { get; set; }
+		public required Activity[] Activities { get; set; }
 	}
 }

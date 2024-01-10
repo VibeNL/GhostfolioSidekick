@@ -10,23 +10,23 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		public virtual DateOnly CurrencyDate { get; set; }
 
-		public virtual string Product { get; set; }
+		public virtual string? Product { get; set; }
 
-		public virtual string ISIN { get; set; }
+		public virtual string? ISIN { get; set; }
 
-		public virtual string Description { get; set; }
+		public virtual string? Description { get; set; }
 
-		public virtual string FX { get; set; }
+		public virtual string? FX { get; set; }
 
-		public virtual string Mutation { get; set; }
-		
+		public virtual required string Mutation { get; set; }
+
 		public virtual decimal? Total { get; set; }
 
-		public virtual string BalanceCurrency { get; set; }
+		public virtual required string BalanceCurrency { get; set; }
 
 		public virtual decimal Balance { get; set; }
 
-		public virtual string TransactionId { get; set; }
+		public virtual string? TransactionId { get; set; }
 
 		public abstract ActivityType? GetActivityType();
 

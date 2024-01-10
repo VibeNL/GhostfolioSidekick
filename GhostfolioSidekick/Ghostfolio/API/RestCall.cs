@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<RestResponse?> DoRestPost(string suffixUrl, string body)
+		public async Task<RestResponse> DoRestPost(string suffixUrl, string body)
 		{
 			DeleteCache(suffixUrl);
 
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		internal async Task<RestResponse?> DoRestPut(string suffixUrl, string body)
+		internal async Task<RestResponse> DoRestPut(string suffixUrl, string body)
 		{
 			DeleteCache(suffixUrl);
 
@@ -217,7 +217,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<RestResponse?> DoRestPatch(string suffixUrl, string body)
+		public async Task<RestResponse> DoRestPatch(string suffixUrl, string body)
 		{
 			DeleteCache(suffixUrl);
 
@@ -258,7 +258,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<RestResponse?> DoRestDelete(string suffixUrl)
+		public async Task<RestResponse> DoRestDelete(string suffixUrl)
 		{
 			DeleteCache(suffixUrl);
 

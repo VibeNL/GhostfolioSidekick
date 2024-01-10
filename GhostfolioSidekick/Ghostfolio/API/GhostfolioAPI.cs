@@ -100,9 +100,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var newActivities = account.Activities
 				.Select(x => modelToContractMapper.ConvertToGhostfolioActivity(account, x))
-				.Where(x => x != null)
-				.Where(x => x.Type != Contract.ActivityType.IGNORE)
-				.Select(Round)
+				.Where(x => x != null && x.Type != Contract.ActivityType.IGNORE)
+				.Select(Round!)
 				.Where(x => x.UnitPrice * x.Quantity != 0 || x.Fee != 0)
 				.ToList();
 
@@ -479,15 +478,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		public async Task<Model.MarketDataList> GetMarketData(string symbol, string dataSource)
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
-			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
+			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content!);
 
-			return ContractToModelMapper.MapMarketDataList(market);
+			return ContractToModelMapper.MapMarketDataList(market!);
 		}
 
 		public async Task<IEnumerable<Model.Activity>> GetAllActivities()
 		{
 			var content = await restCall.DoRestGet($"api/v1/order", CacheDuration.None());
-			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities;
 
 			var assets = new ConcurrentDictionary<string, Model.SymbolProfile>();
 			return existingActivities.Select(x => ContractToModelMapper.MapActivity(x, assets));
@@ -621,40 +620,40 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private async Task<GenericInfo> GetInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
-			return JsonConvert.DeserializeObject<GenericInfo>(content);
+			return JsonConvert.DeserializeObject<GenericInfo>(content!)!;
 		}
 
 		private async Task WriteOrder(Contract.Activity activity)
 		{
 			if (activity.UnitPrice == 0 && activity.Quantity == 0)
 			{
-				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
+				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
-			if (activity.Type == Ghostfolio.Contract.ActivityType.IGNORE)
+			if (activity.Type == Contract.ActivityType.IGNORE)
 			{
-				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
+				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
 			var url = $"api/v1/order";
 			var r = await restCall.DoRestPost(url, await ConvertToBody(activity));
 			bool emptyResponse = false;
-			if (!r.IsSuccessStatusCode || (emptyResponse = r.Content.Equals("{\"activities\":[]}")))
+			if (!r.IsSuccessStatusCode || (emptyResponse = r.Content?.Equals("{\"activities\":[]}") ?? true))
 			{
 				var isduplicate = emptyResponse || (r.Content?.Contains("activities.1 is a duplicate activity") ?? false);
 				if (isduplicate)
 				{
-					logger.LogDebug($"Duplicate transaction {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
+					logger.LogDebug($"Duplicate transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 					return;
 				}
 
-				throw new NotSupportedException($"Insert Failed {activity.Date} {activity.SymbolProfile.Symbol} {activity.Quantity} {activity.Type}");
+				throw new NotSupportedException($"Insert Failed {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 			}
 
 			logger.LogInformation($"Added transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 		}
 
-		private async Task DeleteOrder(Contract.Activity? order)
+		private async Task DeleteOrder(Contract.Activity order)
 		{
 			var r = await restCall.DoRestDelete($"api/v1/order/{order.Id}");
 			if (!r.IsSuccessStatusCode)
@@ -662,15 +661,20 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				throw new NotSupportedException($"Deletion failed {order.Id}");
 			}
 
-			logger.LogInformation($"Deleted transaction {order.Id} {order.SymbolProfile.Symbol} {order.Date}");
+			logger.LogInformation($"Deleted transaction {order.Id} {order.SymbolProfile?.Symbol} {order.Date}");
 		}
 
 		private async Task UpdateBalance(Model.Account account, decimal balance)
 		{
 			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
 
-			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
-			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Id, account.Id, StringComparison.InvariantCultureIgnoreCase));
+			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content!);
+			var rawAccount = rawAccounts?.Accounts?.SingleOrDefault(x => string.Equals(x.Id, account.Id, StringComparison.InvariantCultureIgnoreCase));
+
+			if (rawAccount == null)
+			{
+				throw new NotSupportedException("Account not found");
+			}
 
 			if (Math.Round(rawAccount.Balance, 10) == Math.Round(balance, 10))
 			{
@@ -692,7 +696,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			await restCall.DoRestPut($"api/v1/account/{account.Id}", res);
 		}
 
-		private async Task<string> ConvertToBody(Contract.Activity activity)
+		private Task<string> ConvertToBody(Contract.Activity activity)
 		{
 			var o = new JObject();
 			o["accountId"] = activity.AccountId;
@@ -718,7 +722,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			o["type"] = activity.Type.ToString();
 			o["unitPrice"] = activity.UnitPrice;
 			var res = o.ToString();
-			return res;
+			return Task.FromResult(res);
 		}
 
 		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Contract.Activity> ordersFromFiles, IEnumerable<Contract.Activity> existingOrders)
@@ -813,14 +817,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 						try
 						{
 							var content = await restCall.DoRestGet($"api/v1/exchange-rate/{fromCurrency.Symbol}-{toCurrency.Symbol}/{date:yyyy-MM-dd}", CacheDuration.Short(), true);
-							if (content != null)
+							if (content == null)
 							{
-								dynamic stuff = JsonConvert.DeserializeObject(content);
-								var token = stuff.marketPrice.ToString();
-
-								var amount = pairFrom.CalculateRate(sourceCurrency, true) * pairTo.CalculateRate(targetCurrency, false);
-								return amount * ((decimal)decimal.Parse(token));
+								continue;
 							}
+
+							dynamic stuff = JsonConvert.DeserializeObject(content)!;
+							var token = stuff!.marketPrice.ToString();
+
+							var amount = pairFrom.CalculateRate(sourceCurrency, true) * pairTo.CalculateRate(targetCurrency, false);
+							return amount * ((decimal)decimal.Parse(token));
 						}
 						catch
 						{

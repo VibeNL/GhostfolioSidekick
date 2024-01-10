@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				rawAccount.Id,
 				rawAccount.Name,
 				new Balance(new Money(CurrencyHelper.ParseCurrency(rawAccount.Currency), rawAccount.Balance, DateTime.MinValue)),
+				rawAccount.Comment,
+				rawAccount.PlatformId,
 				rawOrders.Select(x =>
 				{
 					return MapActivity(x, assets);
@@ -23,7 +25,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 
 		public static Activity MapActivity(Contract.Activity x, ConcurrentDictionary<string, SymbolProfile> assets)
 		{
-			var asset = assets.GetOrAdd(x.SymbolProfile.Symbol, (y) => ParseSymbolProfile(x.SymbolProfile));
+			var asset = assets.GetOrAdd(x.SymbolProfile!.Symbol!, (y) => ParseSymbolProfile(x.SymbolProfile));
 			return new Activity(
 								ParseType(x.Type),
 								asset,
@@ -44,39 +46,34 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 		public static SymbolProfile ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
 			return new SymbolProfile(
-				CurrencyHelper.ParseCurrency(symbolProfile.Currency),
+				CurrencyHelper.ParseCurrency(symbolProfile.Currency!),
 				symbolProfile.Symbol,
 				symbolProfile.ISIN,
 				symbolProfile.Name,
 				symbolProfile.DataSource,
 				Utilities.ParseEnum<AssetClass>(symbolProfile.AssetClass),
-				Utilities.ParseEnum<AssetSubClass>(symbolProfile.AssetSubClass));
+				Utilities.ParseOptionalEnum<AssetSubClass>(symbolProfile.AssetSubClass));
 		}
 
-		public static MarketDataList MapMarketDataList(Contract.MarketDataList? market)
+		public static MarketDataList MapMarketDataList(Contract.MarketDataList market)
 		{
 			string? trackinsight = null;
 			market.AssetProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out trackinsight);
 			Contract.SymbolProfile assetProfile = market.AssetProfile;
 			var mdl = new MarketDataList()
 			{
-				AssetProfile = new SymbolProfile
-				{
-					Currency = CurrencyHelper.ParseCurrency(assetProfile.Currency),
-					DataSource = assetProfile.DataSource,
-					Symbol = assetProfile.Symbol,
-					ActivitiesCount = assetProfile.ActivitiesCount,
-					AssetClass = Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
-					AssetSubClass = Utilities.ParseEnum<AssetSubClass>(assetProfile.AssetSubClass),
-					ISIN = assetProfile.ISIN,
-					Name = assetProfile.Name,
-					Comment = assetProfile.Comment
-					// Ignore Mapping for now
-				},
-				MarketData = market.MarketData.Select(x => MapMarketData(x)).ToList()
+				AssetProfile = new SymbolProfile(
+					CurrencyHelper.ParseCurrency(assetProfile.Currency),
+					assetProfile.Symbol,
+					assetProfile.ISIN,
+					assetProfile.Name,
+					assetProfile.DataSource,
+					Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
+					Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass)),
+				MarketData = market.MarketData.Select(MapMarketData).ToList()
 			};
-			mdl.AssetProfile.Mappings.TrackInsight = trackinsight;
 
+			mdl.AssetProfile.Mappings.TrackInsight = trackinsight;
 			return mdl;
 		}
 
@@ -99,7 +96,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			}
 		}
 
-		private static string ParseReference(string comment)
+		private static string? ParseReference(string? comment)
 		{
 			if (string.IsNullOrWhiteSpace(comment))
 			{

@@ -6,7 +6,7 @@
 
 		public required string Symbol { get; set; }
 
-		public string? DataSource { get; set; }
+		public required string DataSource { get; set; }
 
 		public required string Name { get; set; }
 

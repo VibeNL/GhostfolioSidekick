@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			this.currentPriceCalculator = currentPriceCalculator;
 		}
 
-		public Contract.Activity ConvertToGhostfolioActivity(Account account, Activity activity)
+		public Contract.Activity? ConvertToGhostfolioActivity(Account account, Activity activity)
 		{
 			decimal CalculateFee(IEnumerable<Money> fees, Currency targetCurrency)
 			{
@@ -55,10 +55,10 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				SymbolProfile = new Contract.SymbolProfile
 				{
 					Symbol = activity.Asset.Symbol,
-					AssetClass = activity.Asset.AssetClass?.ToString(),
+					AssetClass = activity.Asset.AssetClass.ToString(),
 					AssetSubClass = activity.Asset.AssetSubClass?.ToString(),
-					Currency = activity.Asset.Currency.Symbol,
-					DataSource = activity.Asset.DataSource,
+					Currency = activity.Asset.Currency!.Symbol,
+					DataSource = activity.Asset.DataSource!,
 					Name = activity.Asset.Name
 				},
 				Comment = activity.Comment,
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				FeeCurrency = activity.Asset.Currency?.Symbol,
 				Quantity = activity.Quantity,
 				Type = ParseType(activity.ActivityType),
-				UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, activity.Asset.Currency, activity.Date)?.Amount ?? 0,
+				UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, activity.Asset.Currency!, activity.Date)?.Amount ?? 0,
 				ReferenceCode = activity.ReferenceCode
 			};
 		}
