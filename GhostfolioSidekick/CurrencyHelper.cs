@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick
 {
@@ -16,11 +17,11 @@ namespace GhostfolioSidekick
 			new CurrencyPair(GBP, GBp, 100)
 		];
 
-		public static Currency? ParseCurrency(string currency)
+		public static Currency ParseCurrency([NotNull] string currency)
 		{
 			if (string.IsNullOrWhiteSpace(currency))
 			{
-				return null;
+				throw new NotSupportedException("Empty Currency");
 			}
 
 			return new Currency(currency);

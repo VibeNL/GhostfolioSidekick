@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 {
@@ -108,7 +109,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 			}
 		}
 
-		private async Task AddOrUpdateSymbol(SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration? manualSymbolConfiguration)
+		private async Task AddOrUpdateSymbol(SymbolConfiguration symbolConfiguration, [NotNull] ManualSymbolConfiguration manualSymbolConfiguration)
 		{
 			var symbol = await api.FindSymbolByIdentifier(
 				symbolConfiguration.Symbol,
@@ -147,8 +148,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 			if (symbol.ScraperConfiguration.Url != manualSymbolConfiguration?.ScraperConfiguration?.Url ||
 				symbol.ScraperConfiguration.Selector != manualSymbolConfiguration?.ScraperConfiguration?.Selector)
 			{
-				symbol.ScraperConfiguration.Url = manualSymbolConfiguration.ScraperConfiguration.Url;
-				symbol.ScraperConfiguration.Selector = manualSymbolConfiguration.ScraperConfiguration.Selector;
+				symbol.ScraperConfiguration.Url = manualSymbolConfiguration?.ScraperConfiguration.Url;
+				symbol.ScraperConfiguration.Selector = manualSymbolConfiguration?.ScraperConfiguration.Selector;
 				await api.UpdateSymbol(symbol);
 			}
 		}

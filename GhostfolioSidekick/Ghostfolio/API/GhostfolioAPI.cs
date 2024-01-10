@@ -41,9 +41,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		public async Task<Model.Account?> GetAccountByName(string name)
 		{
 			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
+			if (content == null)
+			{
+				return null;
+			}
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
-			var rawAccount = rawAccounts.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+			var rawAccount = rawAccounts!.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 
 			if (rawAccount == null)
 			{
@@ -51,7 +55,12 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			content = await restCall.DoRestGet($"api/v1/order?accounts={rawAccount.Id}", CacheDuration.None());
-			var activities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
+			var activities = JsonConvert.DeserializeObject<ActivityList>(content!)?.Activities;
+
+			if (activities == null)
+			{
+				return null;
+			}
 
 			return ContractToModelMapper.MapAccount(rawAccount, activities);
 		}
@@ -60,8 +69,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		{
 			var content = await restCall.DoRestGet($"api/v1/platform", CacheDuration.None());
 
+			if (content == null)
+			{
+				return null;
+			}
+
 			var rawPlatforms = JsonConvert.DeserializeObject<Contract.Platform[]>(content);
-			var rawPlatform = rawPlatforms.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+			var rawPlatform = rawPlatforms?.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 
 			if (rawPlatform == null)
 			{
@@ -74,6 +88,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		public async Task UpdateAccount(Model.Account account)
 		{
 			var existingAccount = await GetAccountByName(account.Name);
+
+			if (existingAccount == null)
+			{
+				return;
+			}
 
 			var balance = GetBalance(account.Balance);
 
@@ -88,7 +107,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				.ToList();
 
 			var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.Short());
-			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content).Activities;
+
+			if (content == null)
+			{
+				return;
+			}
+
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content)?.Activities ?? [];
 
 			var mergeOrders = MergeOrders(newActivities, existingActivities).OrderBy(x => x.Operation).OrderBy(x => x.Order1?.Date ?? x.Order2?.Date ?? DateTime.MaxValue).ToList();
 			foreach (var mergeOrder in mergeOrders)
@@ -129,9 +154,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{asset.DataSource}/{asset.Symbol}", CacheDuration.None());
+
+			if (content == null)
+			{
+				return null;
+			}
+
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
-			var marketData = market.MarketData.FirstOrDefault(x => x.Date == date.Date);
+			var marketData = market?.MarketData?.FirstOrDefault(x => x.Date == date.Date);
 
 			if (marketData == null)
 			{
@@ -142,10 +173,10 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		}
 
 		public async Task<Model.SymbolProfile?> FindSymbolByIdentifier(
-			string[]? identifiers,
+			string[] identifiers,
 			Currency? expectedCurrency,
-			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass,
+			AssetClass[]? expectedAssetClass,
+			AssetSubClass[]? expectedAssetSubClass,
 			bool checkExternalDataProviders)
 		{
 			if (identifiers == null || !identifiers.Any())
@@ -155,7 +186,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var key = new CacheKey(identifiers, expectedAssetClass, expectedAssetSubClass);
 
-			if (memoryCache.TryGetValue(key, out CacheValue cacheValue))
+			if (memoryCache.TryGetValue(key, out CacheValue? cacheValue))
 			{
 				return cacheValue!.Asset;
 			}
@@ -222,8 +253,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			async Task<Model.SymbolProfile?> FindByDataProvider(
 				IEnumerable<string> ids,
 				Currency? expectedCurrency,
-				AssetClass?[] expectedAssetClass,
-				AssetSubClass?[] expectedAssetSubClass)
+				AssetClass[]? expectedAssetClass,
+				AssetSubClass[]? expectedAssetSubClass)
 			{
 				var identifiers = ids.ToList();
 				var allAssets = new List<Model.SymbolProfile>();
@@ -233,11 +264,15 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					for (var i = 0; i < 5; i++)
 					{
 						var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.None());
+						if (content == null)
+						{
+							continue;
+						}
+
 						var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
+						var assets = symbolProfileList?.Items.Select(ContractToModelMapper.ParseSymbolProfile);
 
-						var assets = symbolProfileList.Items.Select(ContractToModelMapper.ParseSymbolProfile);
-
-						if (assets.Any())
+						if (assets?.Any() ?? false)
 						{
 							allAssets.AddRange(assets);
 							break;
@@ -327,13 +362,19 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
+
+			if (content == null)
+			{
+				return [];
+			}
+
 			var market = JsonConvert.DeserializeObject<Contract.MarketDataList>(content);
 
 			var benchmarks = (await GetInfo()).BenchMarks;
 
-			var filtered = market.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol));
+			var filtered = market?.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol));
 
-			return filtered.Select(x => GetMarketData(x.Symbol, x.DataSource).Result).ToList();
+			return filtered?.Select(x => GetMarketData(x.Symbol, x.DataSource).Result)?.ToList() ?? [];
 		}
 
 		public async Task DeleteSymbol(Model.SymbolProfile marketData)

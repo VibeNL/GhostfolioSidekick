@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.FileImporter
 
 		public static readonly CryptoMapper Instance = new();
 
-		internal string? GetFullname(string symbol)
+		internal string GetFullname(string symbol)
 		{
 			return mappings.TryGetValue(symbol, out var value) ? value : symbol;
 		}

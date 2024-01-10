@@ -5,14 +5,14 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	internal class CacheKey : IEquatable<CacheKey>
 	{
 		public string[] Identifiers { get; }
-		private AssetClass?[] expectedAssetClass;
-		private AssetSubClass?[] expectedAssetSubClass;
+		private AssetClass[] expectedAssetClass;
+		private AssetSubClass[] expectedAssetSubClass;
 
-		public CacheKey(string[] identifiers, AssetClass?[] expectedAssetClass, AssetSubClass?[] expectedAssetSubClass)
+		public CacheKey(string[] identifiers, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass)
 		{
 			Identifiers = identifiers;
-			this.expectedAssetClass = expectedAssetClass;
-			this.expectedAssetSubClass = expectedAssetSubClass;
+			this.expectedAssetClass = expectedAssetClass ?? [];
+			this.expectedAssetSubClass = expectedAssetSubClass ?? [];
 		}
 
 		private string CompareString
@@ -20,8 +20,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			get
 			{
 				var a = string.Join(",", Identifiers);
-				var b = expectedAssetClass != null ? string.Join(",", expectedAssetClass.Select(x => x?.ToString())) : string.Empty;
-				var c = expectedAssetSubClass != null ? string.Join(",", expectedAssetSubClass.Select(x => x?.ToString())) : string.Empty;
+				var b = expectedAssetClass != null ? string.Join(",", expectedAssetClass.Select(x => x.ToString())) : string.Empty;
+				var c = expectedAssetSubClass != null ? string.Join(",", expectedAssetSubClass.Select(x => x.ToString())) : string.Empty;
 				var r = string.Join("|", a, b, c);
 				return r;
 			}
@@ -29,11 +29,22 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public bool Equals(CacheKey? other)
 		{
-			return string.Equals(this.CompareString, other.CompareString, StringComparison.InvariantCultureIgnoreCase);
+			if (other == null)
+			{
+				return false;
+			}
+
+			return string.Equals(CompareString, other.CompareString, StringComparison.InvariantCultureIgnoreCase);
 		}
-		public override bool Equals(object obj)
+
+		public override bool Equals(object? obj)
 		{
-			return Equals(obj as CacheKey);
+			if (obj is not CacheKey)
+			{
+				return false;
+			}
+
+			return Equals((CacheKey)obj);
 		}
 
 		public override int GetHashCode()
