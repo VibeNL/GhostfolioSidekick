@@ -19,6 +19,8 @@ namespace ConsoleHelper
 
 		static void Main(string[] args)
 		{
+			Console.WriteLine("Hello, World!");
+
 			foreach (var item in args)
 			{
 				var split = item.Split('=');
@@ -35,7 +37,8 @@ namespace ConsoleHelper
 			new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new BitvavoParser(cs, api),
 				new BunqParser(api),
-				new DeGiroParser(api),
+				new DeGiroParserNL(api),
+				new DeGiroParserPT(api),
 				new GenericParser(api),
 				new NexoParser(cs, api),
 				new NIBCParser(api),

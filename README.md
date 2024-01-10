@@ -131,7 +131,7 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 |--|--|--|--|--|--|
 | Generic importer | See below | X | X | X | X |
 | Trading 212 | Export of transaction history | X | X | X | X |
-| De Giro | Export of account history | X | X | X | X |
+| De Giro | Export of account history (Language dependend, NL and PT supported currently) | X | X | X | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | NIBC (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
