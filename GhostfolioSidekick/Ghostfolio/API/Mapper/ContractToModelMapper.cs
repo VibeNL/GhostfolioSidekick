@@ -71,8 +71,11 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					assetProfile.DataSource,
 					Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
 					Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass),
-					assetProfile.Comment),
-				MarketData = market.MarketData.Select(MapMarketData).ToList()
+					assetProfile.Comment)
+				{
+					ActivitiesCount = assetProfile.ActivitiesCount
+				},
+				MarketData = market.MarketData.Select(MapMarketData).ToList(),
 			};
 
 			mdl.AssetProfile.Mappings.TrackInsight = trackinsight;

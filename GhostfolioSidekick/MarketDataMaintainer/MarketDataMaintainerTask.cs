@@ -77,7 +77,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		private async Task DeleteUnusedSymbols()
 		{
-			api.ClearCache();
 			var marketDataList = await api.GetMarketData();
 			foreach (var marketData in marketDataList)
 			{
