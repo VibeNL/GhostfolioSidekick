@@ -54,7 +54,6 @@ namespace GhostfolioSidekick.Model
 			}
 		}
 
-
 		public IEnumerable<string> Identifiers => identifiers;
 
 		private void ParseIdentifiers()

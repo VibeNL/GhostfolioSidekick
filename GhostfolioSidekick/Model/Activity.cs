@@ -2,12 +2,15 @@
 {
 	public class Activity
 	{
-		public Activity()
-		{
-			Fees = Enumerable.Empty<Money>();
-		}
-
-		public Activity(ActivityType activityType, SymbolProfile? asset, DateTime date, decimal quantity, Money unitPrice, IEnumerable<Money>? fees, string comment, string referenceCode)
+		public Activity(
+			ActivityType activityType,
+			SymbolProfile? asset,
+			DateTime date,
+			decimal quantity,
+			Money unitPrice,
+			IEnumerable<Money>? fees,
+			string comment,
+			string referenceCode)
 		{
 			Asset = asset;
 			Comment = comment;

@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (account == null)
 				{
-					await CreateAccount(accountConfig, platforms.SingleOrDefault(x => x.Name == accountConfig.Platform));
+					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
 				}
 
 				//UpdateAccount(accountConfig, platforms.SingleOrDefault(x => x.Name == accountConfig.Platform));

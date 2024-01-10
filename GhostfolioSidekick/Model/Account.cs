@@ -36,11 +36,12 @@
 			Balance = new Balance(new Money(currency, 0, DateTime.Now));
 			Comment = comment;
 			Platform = platform;
+			Activities = [];
 		}
 
 		public string Name { get; set; }
 
-		public string Id { get; set; }
+		public string? Id { get; set; }
 
 		public Balance Balance { get; set; }
 
