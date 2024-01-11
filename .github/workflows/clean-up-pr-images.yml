@@ -17,5 +17,3 @@ jobs:
               -H "Accept: application/json" \
               -H "Authorization: JWT $HUB_TOKEN" \
               https://hub.docker.com/v2/namespaces/vibenl/repositories/ghostfoliosidekick/tags/pr-${{ github.event.number }}
-      - name: Dummy step to have green pipeline
-        run: echo "Dummy step to have green pipeline"
