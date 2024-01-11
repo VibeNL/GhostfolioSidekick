@@ -1,7 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.FileImporter.Nexo;
+using GhostfolioSidekick.FileImporter.Bitvavo;
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using Moq;

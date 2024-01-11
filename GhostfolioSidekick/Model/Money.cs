@@ -7,7 +7,6 @@
 			Currency = CurrencyHelper.ParseCurrency(currency);
 			Amount = amount;
 			TimeOfRecord = timeOfRecord;
-
 		}
 
 		public Money(Currency currency, decimal amount, DateTime timeOfRecord)

@@ -1,0 +1,9 @@
+"You can use this transaction report to inform your likely tax obligations. For US customers, Sells, Converts, Rewards Income, Learning Rewards, and Donations are taxable events. For final tax obligations, please consult your tax advisor."
+
+
+
+Transactions
+User,xxxxxx,xxxxxxxxxxxxxxxxxxx
+
+Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+2023-04-20T04:05:40Z,Convert,ETH,0.00087766,EUR,1709.09,1.46,1.50,0.040000,Converted 0.00087766 ETH to 1.629352 USDC

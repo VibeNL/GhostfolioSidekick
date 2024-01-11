@@ -3,7 +3,7 @@ using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using System.Globalization;
 
-namespace GhostfolioSidekick.FileImporter.Nexo
+namespace GhostfolioSidekick.FileImporter.Bitvavo
 {
 	public class BitvavoParser : CryptoRecordBaseImporter<BitvavoRecord>
 	{
@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			DateTime dateTime = record.Date.ToDateTime(record.Time);
 
 			Activity activity;
-			ActivityType activityType = MapType(record);
+			var activityType = MapType(record);
 			if (activityType == ActivityType.CashDeposit || activityType == ActivityType.CashWithdrawal)
 			{
 				var factor = activityType == ActivityType.CashWithdrawal ? -1 : 1;

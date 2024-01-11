@@ -1,5 +1,7 @@
 ﻿using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.FileImporter.Bitvavo;
 using GhostfolioSidekick.FileImporter.Bunq;
+using GhostfolioSidekick.FileImporter.Coinbase;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.Nexo;
@@ -50,6 +52,7 @@ namespace GhostfolioSidekick
 
 				services.AddScoped<IFileImporter, BitvavoParser>();
 				services.AddScoped<IFileImporter, BunqParser>();
+				services.AddScoped<IFileImporter, CoinbaseParser>();
 				services.AddScoped<IFileImporter, DeGiroParserNL>();
 				services.AddScoped<IFileImporter, DeGiroParserPT>();
 				services.AddScoped<IFileImporter, GenericParser>();

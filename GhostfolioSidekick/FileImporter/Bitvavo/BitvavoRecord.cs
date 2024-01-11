@@ -1,6 +1,6 @@
 ﻿using CsvHelper.Configuration.Attributes;
 
-namespace GhostfolioSidekick.FileImporter.Nexo
+namespace GhostfolioSidekick.FileImporter.Bitvavo
 {
 	[Delimiter(",")]
 	public class BitvavoRecord
