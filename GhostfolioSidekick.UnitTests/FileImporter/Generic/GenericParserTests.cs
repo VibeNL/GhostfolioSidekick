@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/Generic/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(new[] { file });
+				var canParse = await parser.CanParseActivities(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -46,11 +46,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			api.Setup(x => x.FindSymbolByIdentifier("US67066G1040", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Generic/BuyOrders/single_buy.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Generic/BuyOrders/single_buy.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -12.123956333000M, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+			activities.Should().BeEquivalentTo(new[] { new Activity(
 				ActivityType.Buy,
 				asset,
 				new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Generic/CashTransactions/single_deposit.csv" });
+			await parser.ConvertToActivities("./FileImporter/TestFiles/Generic/CashTransactions/single_deposit.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, 1000, new DateTime(2023, 08, 6, 0, 0, 0, DateTimeKind.Utc)));
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Generic/CashTransactions/single_withdrawal.csv" });
+			await parser.ConvertToActivities("./FileImporter/TestFiles/Generic/CashTransactions/single_withdrawal.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -10, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc)));
@@ -112,11 +112,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Generic/CashTransactions/single_fee.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Generic/CashTransactions/single_fee.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -0.25M, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+			activities.Should().BeEquivalentTo(new[] { new Activity(
 				ActivityType.Fee,
 				null,
 				new DateTime(2023,08,8, 0,0,0, DateTimeKind.Utc),
@@ -143,11 +143,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 			api.Setup(x => x.FindSymbolByIdentifier("US2546871060", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Generic/CashTransactions/single_dividend.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Generic/CashTransactions/single_dividend.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, 0.067669M, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+			activities.Should().BeEquivalentTo(new[] { new Activity(
 				ActivityType.Dividend,
 				asset,
 				new DateTime(2023,08,8, 0,0,0, DateTimeKind.Utc),

@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(
 				record.ISIN,
-				CurrencyHelper.ParseCurrency(record.Currency) ?? accountBalance.Currency,
+				record.Currency != null ? CurrencyHelper.ParseCurrency(record.Currency) : accountBalance.Currency,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses);
 

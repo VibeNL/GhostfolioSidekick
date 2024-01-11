@@ -13,6 +13,9 @@
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="FileImporter\DeGiro\DeGiroParser.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="FileImporter\cryptocurrencies.json" />
   </ItemGroup>
   <ItemGroup>

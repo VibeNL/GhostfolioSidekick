@@ -41,12 +41,15 @@
 
 		internal static Activity GetKnownBalance(Money money)
 		{
-			return new Activity
-			{
-				ActivityType = ActivityType.CashBalance,
-				Quantity = 1,
-				UnitPrice = money
-			};
+			return new Activity(
+				ActivityType.CashBalance,
+				null,
+				money.TimeOfRecord,
+				1,
+				money,
+				null,
+				null,
+				null);
 		}
 	}
 }

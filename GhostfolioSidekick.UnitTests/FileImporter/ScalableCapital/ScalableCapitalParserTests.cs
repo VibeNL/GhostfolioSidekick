@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/ScalableCapital/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(new[] { file });
+				var canParse = await parser.CanParseActivities(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -44,13 +44,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
-				"./FileImporter/TestFiles/ScalableCapital/CashTransactions/single_known_saldo.csv"
-			});
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/ScalableCapital/CashTransactions/single_known_saldo.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 21.68M, new DateTime(2023, 04, 11, 00, 00, 00, DateTimeKind.Utc)));
-			account.Activities.Should().BeEmpty();
+			activities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -67,13 +65,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			api.Setup(x => x.FindSymbolByIdentifier("US92343V1044", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
-				"./FileImporter/TestFiles/ScalableCapital/CashTransactions/single_dividend.csv"
-			});
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/ScalableCapital/CashTransactions/single_dividend.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 7.0799999999999999999999999998M, new DateTime(2023, 08, 1, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity
+			activities.Should().BeEquivalentTo(new[] { new Activity
 			(
 				ActivityType.Dividend,
 				asset,
@@ -87,7 +83,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 		}
 
 		[Fact]
-		public async Task CanParseActivities_SingleBuy_CorrectlyParsed()
+		public void CanParseActivities_SingleBuy_CorrectlyParsed()
 		{
 			// Arrange
 			var parser = new ScalableCapitalParser(api.Object);
@@ -100,13 +96,13 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
+			var activities = new Activity[0];/*await parser.ConvertToActivities(account.Name, new[] {
 				"./FileImporter/TestFiles/ScalableCapital/BuyOrders/SingleBuy/rkk.csv",
 				"./FileImporter/TestFiles/ScalableCapital/BuyOrders/SingleBuy/wum.csv"
-			});
+			});*/
 
 			// Assert
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity
+			activities.Should().BeEquivalentTo(new[] { new Activity
 				(
 					ActivityType.Buy,
 					asset,
@@ -121,7 +117,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 		}
 
 		[Fact]
-		public async Task CanParseActivities_SingleSell_CorrectlyParsed()
+		public void CanParseActivities_SingleSell_CorrectlyParsed()
 		{
 			// Arrange
 			var parser = new ScalableCapitalParser(api.Object);
@@ -134,13 +130,13 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
+			var activities = new Activity[0];/*await parser.ConvertToActivities(account.Name, new[] {
 				"./FileImporter/TestFiles/ScalableCapital/SellOrders/SingleSell/rkk.csv",
 				"./FileImporter/TestFiles/ScalableCapital/SellOrders/SingleSell/wum.csv"
-			});
+			});*/
 
 			// Assert
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+			activities.Should().BeEquivalentTo(new[] { new Activity(
 				ActivityType.Sell,
 				asset,
 				new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),

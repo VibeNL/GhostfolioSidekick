@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 
 			var activities = new List<Activity>();
 
-			var inputAsset = await GetAsset(record.InputCurrency);
+			var inputAsset = await GetAsset(record.InputCurrency, accountBalance.Currency);
 			var inputActivity = new Activity(
 				ActivityType.Undefined,
 				inputAsset,

@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.FileImporter
 			this.api = api;
 		}
 
-		public virtual async Task<bool> CanParseActivities(string fileName)
+		public virtual Task<bool> CanParseActivities(string fileName)
 		{
 			try
 			{
@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.FileImporter
 			}
 			catch
 			{
-				return false;
+				return Task.FromResult(false);
 			}
 
 			return Task.FromResult(true);

@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.NIBC
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/NIBC/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(new[] { file });
+				var canParse = await parser.CanParseActivities(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.NIBC
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/NIBC/CashTransactions/single_deposit.csv" });
+			await parser.ConvertToActivities("./FileImporter/TestFiles/NIBC/CashTransactions/single_deposit.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 250M, new DateTime(2020, 01, 27, 0, 0, 0, DateTimeKind.Utc)));
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.NIBC
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/NIBC/CashTransactions/single_withdrawal.csv" });
+			await parser.ConvertToActivities("./FileImporter/TestFiles/NIBC/CashTransactions/single_withdrawal.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -10000M, new DateTime(2022, 01, 06, 0, 0, 0, DateTimeKind.Utc)));
@@ -80,11 +80,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.NIBC
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/NIBC/CashTransactions/single_interest.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/NIBC/CashTransactions/single_interest.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.51M, new DateTime(2021, 09, 30, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+			activities.Should().BeEquivalentTo(new[] { new Activity(
 				ActivityType.Interest,
 				null,
 				new DateTime(2021, 09, 30, 0,0,0, DateTimeKind.Utc),
@@ -109,11 +109,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.NIBC
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/NIBC/CashTransactions/single_bonus_interest.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/NIBC/CashTransactions/single_bonus_interest.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1.1M, new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+			activities.Should().BeEquivalentTo(new[] { new Activity(
 				ActivityType.Interest,
 				null,
 				new DateTime(2021,6,30, 0,0,0, DateTimeKind.Utc),

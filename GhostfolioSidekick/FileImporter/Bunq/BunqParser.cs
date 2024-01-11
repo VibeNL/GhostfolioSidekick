@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(BunqRecord record, IEnumerable<BunqRecord> allRecords, Balance accountBalance)
+		protected override Task<IEnumerable<Activity>> ConvertOrders(BunqRecord record, IEnumerable<BunqRecord> allRecords, Balance accountBalance)
 		{
 			var activityType = GetActivityType(record);
 

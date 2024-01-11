@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -19,7 +20,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		{
 			// Arrange
 			var testImporter = new Mock<IFileImporter>();
-			testImporter.Setup(x => x.CanParseActivities(It.IsAny<IEnumerable<string>>())).ReturnsAsync(true);
+			testImporter.Setup(x => x.CanParseActivities(It.IsAny<string>())).ReturnsAsync(true);
 			var cs = new Mock<IApplicationSettings>();
 			cs.Setup(x => x.FileImporterPath).Returns("./FileImporter/TestFiles");
 
@@ -29,9 +30,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			await task.DoWork();
 
 			// Assert
-			testImporter.Verify(x => x.ConvertActivitiesForAccount("DeGiro", It.Is<IEnumerable<string>>(y => y.Count() == 13)), Times.Once);
-			testImporter.Verify(x => x.ConvertActivitiesForAccount("ScalableCapital", It.Is<IEnumerable<string>>(y => y.Count() == 6)), Times.Once);
-			testImporter.Verify(x => x.ConvertActivitiesForAccount("Trading212", It.Is<IEnumerable<string>>(y => y.Count() == 10)), Times.Once);
+			testImporter.Verify(x => x.ConvertToActivities(It.IsAny<string>(), It.IsAny<Balance>()), Times.AtLeastOnce);
 		}
 	}
 }

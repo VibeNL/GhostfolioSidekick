@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/DeGiro/PT/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(new[] { file });
+				var canParse = await parser.CanParseActivities(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -47,8 +47,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/PT/BuyOrders/single_buy_euro.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/DeGiro/PT/BuyOrders/single_buy_euro.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
@@ -83,13 +82,12 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name,
-				new[] { "./FileImporter/TestFiles/DeGiro/PT/SellOrders/single_sell_euro.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/DeGiro/PT/SellOrders/single_sell_euro.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
 				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 			{
 				new Activity(
 					ActivityType.Sell,
@@ -116,7 +114,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/PT/CashTransactions/single_deposit.csv" });
+			await parser.ConvertToActivities("./FileImporter/TestFiles/DeGiro/PT/CashTransactions/single_deposit.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1000.01M, new DateTime(2021, 09, 15, 8, 50, 0, DateTimeKind.Utc)));
@@ -134,11 +132,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/PT/CashTransactions/single_fee.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/DeGiro/PT/CashTransactions/single_fee.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 102.18M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
+			activities.Should().BeEquivalentTo(new[]
 				{
 				new Activity(
 					ActivityType.Fee,

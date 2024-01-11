@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/Bunq/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(new[] { file });
+				var canParse = await parser.CanParseActivities(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_deposit.csv" });
+			await parser.ConvertToActivities("./FileImporter/TestFiles/Bunq/CashTransactions/single_deposit.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1000M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_withdrawal.csv" });
+			await parser.ConvertToActivities("./FileImporter/TestFiles/Bunq/CashTransactions/single_withdrawal.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -100M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
@@ -80,11 +80,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_interest.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Bunq/CashTransactions/single_interest.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+			activities.Should().BeEquivalentTo(new[] { new Activity(
 				ActivityType.Interest,
 				null,
 				new DateTime(2023,07,27, 0,0,0, DateTimeKind.Utc),
@@ -109,11 +109,11 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/multiple_deposits.csv" });
+			var activities = await parser.ConvertToActivities("./FileImporter/TestFiles/Bunq/CashTransactions/multiple_deposits.csv", account.Balance);
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 3000M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEmpty();
+			activities.Should().BeEmpty();
 		}
 	}
 }

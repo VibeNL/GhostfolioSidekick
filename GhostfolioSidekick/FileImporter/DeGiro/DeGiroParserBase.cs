@@ -11,9 +11,9 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 		}
 
-		protected override async Task<IEnumerable<Activity>> ConvertOrders(T record, Account account, IEnumerable<T> allRecords)
+		protected override async Task<IEnumerable<Activity>> ConvertOrders(T record, IEnumerable<T> allRecords, Balance accountBalance)
 		{
-			account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.BalanceCurrency), record.Balance, record.Date.ToDateTime(record.Time)));
+			accountBalance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.BalanceCurrency), record.Balance, record.Date.ToDateTime(record.Time)));
 
 			var activityType = record.GetActivityType();
 			if (activityType == null || activityType == ActivityType.Undefined)
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 			var asset = string.IsNullOrWhiteSpace(record.ISIN) ? null : await api.FindSymbolByIdentifier(
 				record.ISIN,
-				CurrencyHelper.ParseCurrency(record.Mutation) ?? account.Balance.Currency,
+				CurrencyHelper.ParseCurrency(record.Mutation) ?? accountBalance.Currency,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssestClasses,
 				DefaultSetsOfAssetClasses.StockBrokerDefaultSetAssetSubClasses
 			);

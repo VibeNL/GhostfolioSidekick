@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Ghostfolio.API;
+﻿using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
 using System.Data;
@@ -9,7 +8,6 @@ namespace GhostfolioSidekick.FileImporter
 {
 	public class FileImporterTask : IScheduledWork
 	{
-		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IGhostfolioAPI api;
 		private readonly IApplicationSettings settings;
@@ -33,7 +31,7 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
 
-			var directories = Directory.GetDirectories(fileLocation);
+			var directories = Directory.GetDirectories(settings.FileImporterPath);
 
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))
 			{
