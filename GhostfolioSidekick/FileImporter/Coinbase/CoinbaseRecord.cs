@@ -16,6 +16,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 		public required string Asset { get; set; }
 
 		[Name("Quantity Transacted")]
+  [NumberStyles(NumberStyles.Number | NumberStyles.AllowExponent)]
 		public decimal Quantity { get; set; }
 
 		[Name("Spot Price Currency")]
