@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
+using System.Globalization;
 
 namespace GhostfolioSidekick.FileImporter.Coinbase
 {
@@ -16,7 +17,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 		public required string Asset { get; set; }
 
 		[Name("Quantity Transacted")]
-  [NumberStyles(NumberStyles.Number | NumberStyles.AllowExponent)]
+		[NumberStyles(NumberStyles.Number | NumberStyles.AllowExponent)]
 		public decimal Quantity { get; set; }
 
 		[Name("Spot Price Currency")]
