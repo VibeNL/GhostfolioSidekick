@@ -1,2 +1,2 @@
-Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time
+Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time (UTC)
 NXTJXwdAl7oDx,Locking Term Deposit,BTC,-0.00445142,BTC,0.00445142,$115.89390996,"approved / Transfer from Savings Wallet to Term Wallet",2023-08-26 13:31:47

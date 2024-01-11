@@ -1,2 +1,2 @@
-﻿Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time
+﻿Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time (UTC)
 NXTVDI4DJFWqB63pTcCuTpgc,Exchange,USDC,-200.00000000,BTC,0.00716057,$199.76,"approved / Exchange USD Coin to Bitcoin",2023-10-08 19:54:20

@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		[Name("Details")]
 		public required string Details { get; set; }
 
-		[Name("Date / Time")]
+		[Name("Date / Time (UTC)")]
 		[Format("yyyy-MM-dd HH:mm:ss")]
 		public DateTime DateTime { get; set; }
 
