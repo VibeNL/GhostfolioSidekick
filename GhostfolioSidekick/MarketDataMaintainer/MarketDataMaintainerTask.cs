@@ -32,14 +32,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Starting to do work");
 
 			api.ClearCache();
-			await DeleteUnusedSymbols();
-			await ManageManualSymbols();
-			await SetTrackingInsightOnSymbols();
+
+			await TryCatch(DeleteUnusedSymbols());
+			await TryCatch(ManageManualSymbols());
+			await TryCatch(SetTrackingInsightOnSymbols());
+			await TryCatch(CreateBenchmarks());
 
 			counter = (counter + 1) % 24; // HACK: once a day
 			if (counter == 0)
 			{
-				await GatherAllData();
+				await TryCatch(GatherAllData());
 			}
 
 			logger.LogInformation($"{nameof(MarketDataMaintainerTask)} Done");
@@ -91,6 +93,31 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			var action = new CreateManualSymbol(api, configurationInstance);
 			await action.ManageManualSymbols();
+		}
+
+		private async Task CreateBenchmarks()
+		{
+			var benchMarks = configurationInstance.Benchmarks;
+			foreach (var symbolConfiguration in benchMarks ?? [])
+			{
+				var symbol = await api.FindSymbolByIdentifier(symbolConfiguration.Symbol, null, null, null, true, true);
+				if (symbol != null)
+				{
+					await api.SetSymbolAsBenchmark(symbol.Symbol, symbol.DataSource);
+				}
+			}
+		}
+
+		private async Task TryCatch(Task task)
+		{
+			try
+			{
+				await task;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex.Message);
+			}
 		}
 	}
 }

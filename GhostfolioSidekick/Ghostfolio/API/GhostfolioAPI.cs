@@ -180,7 +180,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			Currency? expectedCurrency,
 			AssetClass[]? expectedAssetClass,
 			AssetSubClass[]? expectedAssetSubClass,
-			bool checkExternalDataProviders)
+			bool checkExternalDataProviders,
+			bool includeIndexes)
 		{
 			if (identifiers == null || !identifiers.Any())
 			{
@@ -205,7 +206,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			if (checkExternalDataProviders)
 			{
-				foundAsset ??= await FindByDataProvider(allIdentifiers, expectedCurrency, expectedAssetClass, expectedAssetSubClass);
+				foundAsset ??= await FindByDataProvider(allIdentifiers, expectedCurrency, expectedAssetClass, expectedAssetSubClass, includeIndexes);
 			}
 
 			if (foundAsset != null)
@@ -257,7 +258,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				IEnumerable<string> ids,
 				Currency? expectedCurrency,
 				AssetClass[]? expectedAssetClass,
-				AssetSubClass[]? expectedAssetSubClass)
+				AssetSubClass[]? expectedAssetSubClass,
+				bool includeIndexes)
 			{
 				var identifiers = ids.ToList();
 				var allAssets = new List<Model.SymbolProfile>();
@@ -266,7 +268,9 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				{
 					for (var i = 0; i < 5; i++)
 					{
-						var content = await restCall.DoRestGet($"api/v1/symbol/lookup?query={identifier.Trim()}", CacheDuration.None());
+						var content = await restCall.DoRestGet(
+							$"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices={includeIndexes.ToString().ToLowerInvariant()}",
+							CacheDuration.None());
 						if (content == null)
 						{
 							continue;
@@ -406,7 +410,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			logger.LogInformation($"Deleted symbol {marketData.Symbol}");
 		}
 
-		public async Task CreateManualSymbol(Model.SymbolProfile asset)
+		public async Task CreateSymbol(Model.SymbolProfile asset)
 		{
 			if (!AllowAdminCalls)
 			{
@@ -923,6 +927,25 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		public void ClearCache()
 		{
 			this.memoryCache.Clear();
+		}
+
+		public async Task SetSymbolAsBenchmark(string symbol, string dataSource)
+		{
+			var o = new JObject
+			{
+				["datasource"] = dataSource,
+				["symbol"] = symbol
+
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/benchmark/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Updating symbol failed to mark as a benchmark {symbol}");
+			}
+
+			logger.LogInformation($"Updated symbol to be a benchmark {symbol}");
 		}
 	}
 }

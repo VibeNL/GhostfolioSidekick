@@ -21,6 +21,9 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("settings")]
 		public Settings Settings { get; set; } = new Settings();
 
+		[JsonPropertyName("benchmarks")]
+		public SymbolConfiguration[]? Benchmarks { get; set; }
+
 		public static ConfigurationInstance? Parse(string configuration)
 		{
 			JsonSerializerOptions options = new()

@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Storj", "STORJ" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Storj", "STORJ" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bitvavo/BuyOrders/single_buy.csv" });
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 
 			api.Setup(x => x.GetMarketPrice(It.IsAny<SymbolProfile>(), It.IsAny<DateTime>())).ReturnsAsync(new Money(DefaultCurrency.EUR, 42, new DateTime(2023, 10, 13, 22, 38, 36, DateTimeKind.Utc)));
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Cosmos", "ATOM" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Cosmos", "ATOM" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bitvavo/Receive/single_receive.csv" });
@@ -144,7 +144,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bitvavo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Cardano", "ADA" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Cardano", "ADA" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bitvavo/SellOrders/single_sell.csv" });
