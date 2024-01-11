@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 				.GroupBy(x => x.Date)
 				.Select(x => x
 					.OrderBy(x => x.ReferenceCode)
-					.ThenByDescending(x => x.UnitPrice)
+					.ThenByDescending(x => x.UnitPrice.Amount)
 					.ThenByDescending(x => x.Quantity)
 					.ThenByDescending(x => x.ActivityType).First())
 				.OrderBy(x => x.Date)

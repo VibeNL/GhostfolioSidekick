@@ -19,6 +19,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		private readonly SymbolMapper mapper;
 		private RestCall restCall;
 
+		private List<string> SortorderDataSources { get; set; }
+
 		public bool AllowAdminCalls { get; private set; } = true;
 
 		public GhostfolioAPI(
@@ -36,6 +38,8 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			restCall = new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken);
 			modelToContractMapper = new ModelToContractMapper(new CurrentPriceCalculator(this));
 			mapper = new SymbolMapper(settings.ConfigurationInstance.Mappings ?? []);
+
+			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',') ?? []];
 		}
 
 		public async Task<Model.Account?> GetAccountByName(string name)
@@ -288,7 +292,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 					.ThenByDescending(x => FussyMatch(identifiers, x))
 					.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
 					.ThenBy(x => new[] { CurrencyHelper.EUR.Symbol, CurrencyHelper.USD.Symbol, CurrencyHelper.GBP.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
-					.ThenByDescending(x => x.DataSource) // prefer Yahoo above Coingecko due to performance
+					.ThenBy(x =>
+					{
+						var index = SortorderDataSources.IndexOf(x.DataSource);
+						if (index < 0)
+						{
+							index = int.MaxValue;
+						}
+
+						return index;
+					}) // prefer Yahoo above Coingecko due to performance
 					.ThenBy(x => x.Name?.Length ?? int.MaxValue)
 					.FirstOrDefault();
 				return filteredAsset;
