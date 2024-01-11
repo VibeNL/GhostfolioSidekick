@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		Task UpdateAccount(Account account);
 
-		Task<IEnumerable<MarketDataList>> GetMarketData();
+		Task<IEnumerable<MarketDataList>> GetMarketData(bool filterBenchmarks = true);
 
 		Task<MarketDataList> GetMarketData(string symbol, string dataSource);
 

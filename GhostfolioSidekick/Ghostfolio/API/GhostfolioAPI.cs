@@ -229,7 +229,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			{
 				try
 				{
-					var r = (await GetMarketData()).Select(x => x.AssetProfile);
+					var r = (await GetMarketData(false)).Select(x => x.AssetProfile);
 
 					foreach (var identifier in allIdentifiers)
 					{
@@ -371,7 +371,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			return new Money(targetCurrency, rate * money.Amount, date);
 		}
 
-		public async Task<IEnumerable<Model.MarketDataList>> GetMarketData()
+		public async Task<IEnumerable<Model.MarketDataList>> GetMarketData(bool filterBenchmarks = true)
 		{
 			if (!AllowAdminCalls)
 			{
@@ -389,7 +389,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 			var benchmarks = (await GetInfo()).BenchMarks ?? [];
 
-			var filtered = market?.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol));
+			var filtered = filterBenchmarks ? market?.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol)) : market?.MarketData;
 
 			return filtered?.Select(x => GetMarketData(x.Symbol, x.DataSource).Result)?.ToList() ?? [];
 		}
@@ -931,6 +931,12 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		public async Task SetSymbolAsBenchmark(string symbol, string dataSource)
 		{
+			var currentBanchmarks = (await GetInfo()).BenchMarks!;
+			if (currentBanchmarks.Any(x => x.Symbol == symbol))
+			{
+				return;
+			}
+
 			var o = new JObject
 			{
 				["datasource"] = dataSource,
