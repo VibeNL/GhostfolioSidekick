@@ -17,6 +17,9 @@
 		public decimal? Fee { get; set; }
 
 		[CsvHelper.Configuration.Attributes.Optional]
+		public decimal? Tax { get; set; }
+
+		[CsvHelper.Configuration.Attributes.Optional]
 		public string? Id { get; set; }
 	}
 }

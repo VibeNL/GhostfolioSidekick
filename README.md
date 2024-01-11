@@ -157,7 +157,10 @@ Beside the supported exchanges and brokers there is also a generic format. This 
 | Currency | The currency of the unitprice and fee |
 | Quantity | The amount of units |
 | UnitPrice | The paid price per unit |
-| Fee | The total fee paid for the transaction |
+| Fee | The total fee paid for the transaction. Is optional |
+| Tax | The total tax on the transaction, is used to adjust the unitprice. Is optional |
+| Description | A description, not used in ghostfolio itself. Is optional |
+| Id | The transaction id. Is optional |
 
 ##### Example
 

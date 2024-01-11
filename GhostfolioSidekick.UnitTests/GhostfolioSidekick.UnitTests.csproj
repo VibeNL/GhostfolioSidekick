@@ -91,6 +91,9 @@
     <None Update="FileImporter\TestFiles\DeGiro\PT\SellOrders\single_sell_euro.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FileImporter\TestFiles\Generic\CashTransactions\single_dividend.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FileImporter\TestFiles\Generic\CashTransactions\single_fee.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
