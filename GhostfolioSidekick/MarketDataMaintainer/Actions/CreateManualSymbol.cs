@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 			var activities = (await api.GetAllActivities()).ToList();
 
 			var symbolConfigurations = configurationInstance.Symbols;
-			foreach (var symbolConfiguration in symbolConfigurations)
+			foreach (var symbolConfiguration in symbolConfigurations ?? [])
 			{
 				var manualSymbolConfiguration = symbolConfiguration.ManualSymbolConfiguration;
 				if (manualSymbolConfiguration == null)
@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<MarketDataList> marketData, List<Activity> activities)
 		{
 			var mdi = marketData.SingleOrDefault(x => x.AssetProfile.Symbol == symbolConfiguration.Symbol);
-			if (mdi == null || mdi.AssetProfile.ActivitiesCount <= 0)
+			if (mdi == null || mdi.AssetProfile.ActivitiesCount <= 0 || mdi.AssetProfile.DataSource == null)
 			{
 				return;
 			}
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 				.GroupBy(x => x.Date)
 				.Select(x => x
 					.OrderBy(x => x.ReferenceCode)
-					.ThenByDescending(x => x.UnitPrice)
+					.ThenByDescending(x => x.UnitPrice.Amount)
 					.ThenByDescending(x => x.Quantity)
 					.ThenByDescending(x => x.ActivityType).First())
 				.OrderBy(x => x.Date)
@@ -74,7 +74,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 				}
 				else
 				{
-					toActivity = new Activity { Date = DateTime.Today.AddDays(1), UnitPrice = fromActivity.UnitPrice };
+					toActivity = new Activity
+					(ActivityType.Undefined, fromActivity.Asset, DateTime.Today.AddDays(1), 0, fromActivity.UnitPrice, [], string.Empty, string.Empty);
 				}
 
 				for (var date = fromActivity.Date; date <= toActivity.Date; date = date.AddDays(1))
@@ -108,33 +109,35 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 			}
 		}
 
-		private async Task AddOrUpdateSymbol(SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration? manualSymbolConfiguration)
+		private async Task AddOrUpdateSymbol(SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)
 		{
+			AssetSubClass[]? expectedAssetSubClass = manualSymbolConfiguration.AssetSubClass != null ?
+				[Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass)] : null;
 			var symbol = await api.FindSymbolByIdentifier(
 				symbolConfiguration.Symbol,
 				null,
 				[Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass)],
-				[Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass)],
+				expectedAssetSubClass,
 				false);
 			if (symbol == null)
 			{
-				await api.CreateManualSymbol(new SymbolProfile
-				{
-					AssetClass = Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass),
-					AssetSubClass = Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass),
-					Currency = CurrencyHelper.ParseCurrency(manualSymbolConfiguration.Currency),
-					DataSource = "MANUAL",
-					Name = manualSymbolConfiguration.Name,
-					Symbol = symbolConfiguration.Symbol,
-					ISIN = manualSymbolConfiguration.ISIN
-				});
+				await api.CreateSymbol(new SymbolProfile(
+					CurrencyHelper.ParseCurrency(manualSymbolConfiguration.Currency),
+					symbolConfiguration.Symbol,
+					manualSymbolConfiguration.ISIN,
+					manualSymbolConfiguration.Name,
+					"MANUAL",
+					Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass),
+					Utilities.ParseOptionalEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass),
+					null
+					));
 			}
 
 			symbol = await api.FindSymbolByIdentifier(
 				symbolConfiguration.Symbol,
 				null,
 				[Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass)],
-				[Utilities.ParseEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass)],
+				expectedAssetSubClass,
 				false);
 			if (symbol == null)
 			{
@@ -147,13 +150,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 			if (symbol.ScraperConfiguration.Url != manualSymbolConfiguration?.ScraperConfiguration?.Url ||
 				symbol.ScraperConfiguration.Selector != manualSymbolConfiguration?.ScraperConfiguration?.Selector)
 			{
-				symbol.ScraperConfiguration.Url = manualSymbolConfiguration.ScraperConfiguration.Url;
-				symbol.ScraperConfiguration.Selector = manualSymbolConfiguration.ScraperConfiguration.Selector;
+				symbol.ScraperConfiguration.Url = manualSymbolConfiguration?.ScraperConfiguration?.Url;
+				symbol.ScraperConfiguration.Selector = manualSymbolConfiguration?.ScraperConfiguration?.Selector;
 				await api.UpdateSymbol(symbol);
 			}
 		}
 
-		private bool IsBuyOrSell(ActivityType activityType)
+		private static bool IsBuyOrSell(ActivityType activityType)
 		{
 			return activityType == ActivityType.Buy || activityType == ActivityType.Sell;
 		}

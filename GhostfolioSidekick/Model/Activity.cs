@@ -2,12 +2,15 @@
 {
 	public class Activity
 	{
-		public Activity()
-		{
-			Fees = Enumerable.Empty<Money>();
-		}
-
-		public Activity(ActivityType activityType, SymbolProfile? asset, DateTime date, decimal quantity, Money unitPrice, IEnumerable<Money>? fees, string comment, string referenceCode)
+		public Activity(
+			ActivityType activityType,
+			SymbolProfile? asset,
+			DateTime date,
+			decimal quantity,
+			Money unitPrice,
+			IEnumerable<Money>? fees,
+			string? comment,
+			string? referenceCode)
 		{
 			Asset = asset;
 			Comment = comment;
@@ -21,7 +24,7 @@
 
 		public SymbolProfile? Asset { get; set; }
 
-		public string Comment { get; set; }
+		public string? Comment { get; set; }
 
 		public DateTime Date { get; set; }
 
@@ -34,6 +37,6 @@
 		public Money UnitPrice { get; set; }
 
 		// Internal use
-		public string ReferenceCode { get; set; }
+		public string? ReferenceCode { get; set; }
 	}
 }

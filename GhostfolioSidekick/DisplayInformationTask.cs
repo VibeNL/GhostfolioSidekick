@@ -19,9 +19,10 @@ namespace GhostfolioSidekick
 			this.applicationSettings = applicationSettings;
 		}
 
-		public async Task DoWork()
+		public Task DoWork()
 		{
 			PrintUsedSettings();
+			return Task.CompletedTask;
 		}
 
 		private void PrintUsedSettings()
@@ -32,6 +33,7 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"GhostfolioUrl : {applicationSettings.GhostfolioUrl}");
 			sb.AppendLine($"FileImporterPath : {applicationSettings.FileImporterPath}");
 
+			sb.AppendLine($"DataProviderPreference : {applicationSettings.ConfigurationInstance.Settings.DataProviderPreference}");
 			sb.AppendLine($"CryptoWorkaroundStakeReward : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward}");
 			sb.AppendLine($"CryptoWorkaroundDust : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundDust}");
 			sb.AppendLine($"CryptoWorkaroundDustThreshold : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundDustThreshold.ToString(CultureInfo.InvariantCulture)}");

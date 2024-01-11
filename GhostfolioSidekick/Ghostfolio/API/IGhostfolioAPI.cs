@@ -4,21 +4,31 @@ namespace GhostfolioSidekick.Ghostfolio.API
 {
 	public interface IGhostfolioAPI
 	{
+		// Find a symbol.
+		// Note: When a symbol does not yet exists, it is created!
 		Task<SymbolProfile?> FindSymbolByIdentifier(
-			string?[] identifiers,
+			string[] identifiers,
 			Currency? expectedCurrency,
-			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass,
-			bool checkExternalDataProviders = true);
+			AssetClass[]? expectedAssetClass,
+			AssetSubClass[]? expectedAssetSubClass,
+			bool checkExternalDataProviders = true,
+			bool includeIndexes = false);
 
 		Task<SymbolProfile?> FindSymbolByIdentifier(
-			string? identifier,
+			string identifier,
 			Currency? expectedCurrency,
-			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass,
-			bool checkExternalDataProviders = true)
+			AssetClass[]? expectedAssetClass,
+			AssetSubClass[]? expectedAssetSubClass,
+			bool checkExternalDataProviders = true,
+			bool includeIndexes = false)
 		{
-			return FindSymbolByIdentifier(new[] { identifier }, expectedCurrency, expectedAssetClass, expectedAssetSubClass, checkExternalDataProviders);
+			return FindSymbolByIdentifier(
+				new[] { identifier },
+				expectedCurrency,
+				expectedAssetClass,
+				expectedAssetSubClass,
+				checkExternalDataProviders,
+				includeIndexes);
 		}
 
 		Task<Money?> GetConvertedPrice(Money money, Currency targetCurrency, DateTime date);
@@ -31,13 +41,13 @@ namespace GhostfolioSidekick.Ghostfolio.API
 
 		Task UpdateAccount(Account account);
 
-		Task<IEnumerable<MarketDataList>> GetMarketData();
+		Task<IEnumerable<MarketDataList>> GetMarketData(bool filterBenchmarks = true);
 
 		Task<MarketDataList> GetMarketData(string symbol, string dataSource);
 
 		Task DeleteSymbol(SymbolProfile marketData);
 
-		Task CreateManualSymbol(SymbolProfile asset);
+		Task CreateSymbol(SymbolProfile asset);
 
 		Task UpdateSymbol(SymbolProfile asset);
 
@@ -56,5 +66,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 		void SetAllowAdmin(bool isallowed);
 
 		void ClearCache();
+
+		Task SetSymbolAsBenchmark(string symbol, string dataSource);
 	}
 }

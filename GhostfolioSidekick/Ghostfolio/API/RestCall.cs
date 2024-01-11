@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using GhostfolioSidekick.Ghostfolio.Contract;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -40,7 +41,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				!x.IsSuccessful
 				&& x.StatusCode != System.Net.HttpStatusCode.Forbidden
 				&& x.StatusCode != System.Net.HttpStatusCode.BadRequest)
-				.WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, async (iRestResponse, timeSpan, retryCount, context) =>
+				.WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, (iRestResponse, timeSpan, retryCount, context) =>
 				{
 					logger.LogDebug($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
 				});
@@ -134,7 +135,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<RestResponse?> DoRestPost(string suffixUrl, string body)
+		public async Task<RestResponse> DoRestPost(string suffixUrl, string body)
 		{
 			DeleteCache(suffixUrl);
 
@@ -175,7 +176,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		internal async Task<RestResponse?> DoRestPut(string suffixUrl, string body)
+		internal async Task<RestResponse> DoRestPut(string suffixUrl, string body)
 		{
 			DeleteCache(suffixUrl);
 
@@ -216,7 +217,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<RestResponse?> DoRestPatch(string suffixUrl, string body)
+		public async Task<RestResponse> DoRestPatch(string suffixUrl, string body)
 		{
 			DeleteCache(suffixUrl);
 
@@ -257,7 +258,7 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		public async Task<RestResponse?> DoRestDelete(string suffixUrl)
+		public async Task<RestResponse> DoRestDelete(string suffixUrl)
 		{
 			DeleteCache(suffixUrl);
 
@@ -297,12 +298,12 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			}
 		}
 
-		private async Task<string> GetAuthenticationToken()
+		private Task<string> GetAuthenticationToken()
 		{
 			var suffixUrl = "api/v1/auth/anonymous";
-			if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
+			if (memoryCache.TryGetValue<string>(suffixUrl, out var result))
 			{
-				return result;
+				return Task.FromResult(result!);
 			}
 
 			var options = new RestClientOptions(url)
@@ -331,11 +332,16 @@ namespace GhostfolioSidekick.Ghostfolio.API
 				throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 			}
 
-			dynamic stuff = JsonConvert.DeserializeObject(r.Content);
-			string token = stuff.authToken.ToString();
+			var content = r.Content;
+			if (content == null)
+			{
+				throw new NotSupportedException($"No token found [{r.StatusCode}]: {url}/{suffixUrl}");
+			}
+
+			var token = JsonConvert.DeserializeObject<Token>(content)?.AuthToken ?? throw new NotSupportedException($"No token found [{r.StatusCode}]: {url}/{suffixUrl}");
 
 			memoryCache.Set(suffixUrl, token, CacheDuration.Short());
-			return token;
+			return Task.FromResult(token);
 		}
 
 		private void DeleteCache(string suffixUrl)

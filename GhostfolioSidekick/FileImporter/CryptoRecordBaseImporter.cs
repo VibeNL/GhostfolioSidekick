@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.FileImporter
 			settings = configurationInstance.Settings;
 		}
 
-		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, SymbolProfile? symbol, DateTime date)
+		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, SymbolProfile symbol, DateTime date)
 		{
 			if (originalUnitPrice.Amount > 0)
 			{

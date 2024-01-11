@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset1);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/BuyOrders/single_buy.csv" });
@@ -75,16 +75,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -161.9M, new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
-			{ new Activity {
-				Asset = asset1,
-				Comment = "Transaction Reference: [NXTyPxhiopNL3] (Details: asset USDC)",
-				Date = new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc),
-				Fees = Enumerable.Empty<Money>(),
-				Quantity = 161.90485771M,
-				ActivityType = ActivityType.Buy,
-				UnitPrice = new Money(asset1.Currency, 0.999969996514813032906620872M, new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc)),
-				ReferenceCode = "NXTyPxhiopNL3"
-			}});
+			{ new Activity(
+				ActivityType.Buy,
+				asset1,
+				new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc),
+				161.90485771M,
+				new Money(asset1.Currency, 0.999969996514813032906620872M, new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc)),
+				Enumerable.Empty<Money>(),
+				"Transaction Reference: [NXTyPxhiopNL3] (Details: asset USDC)",
+				"NXTyPxhiopNL3"
+				)
+			});
 		}
 
 		[Fact]
@@ -100,8 +101,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset2);
+			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "USD Coin", "USDC" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset2);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/BuyOrders/single_convert.csv" });
@@ -109,26 +110,27 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
-			{ new Activity {
-				Asset = asset1,
-				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc] (Details: asset USDC)",
-				Date = new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
-				Fees = Enumerable.Empty<Money>(),
-				Quantity = 200M,
-				ActivityType = ActivityType.Sell,
-				UnitPrice = new Money(asset1.Currency, 0.9988M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)),
-				ReferenceCode = "NXTVDI4DJFWqB63pTcCuTpgc"
-			},
-			new Activity {
-				Asset = asset2,
-				Comment = "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc_2] (Details: asset BTC)",
-				Date = new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
-				Fees = Enumerable.Empty < Money >(),
-				Quantity = 0.00716057M,
-				ActivityType = ActivityType.Buy,
-				UnitPrice = new Money(asset2.Currency, 27897.220472671868300987211912M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)),
-				ReferenceCode = "NXTVDI4DJFWqB63pTcCuTpgc_2"
-			}});
+			{ new Activity(
+				ActivityType.Sell,
+				asset1,
+				new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
+				200M,
+				new Money(asset1.Currency, 0.9988M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)),
+				Enumerable.Empty<Money>(),
+				 "Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc] (Details: asset USDC)",
+				 "NXTVDI4DJFWqB63pTcCuTpgc"
+				),
+			new Activity(
+				ActivityType.Buy,
+				asset2,
+				new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
+				0.00716057M,
+				new Money(asset2.Currency, 27897.220472671868300987211912M, new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc)),
+				Enumerable.Empty<Money>(),
+				"Transaction Reference: [NXTVDI4DJFWqB63pTcCuTpgc_2] (Details: asset BTC)",
+				"NXTVDI4DJFWqB63pTcCuTpgc_2"
+				)
+			});
 		}
 
 		[Fact]
@@ -143,7 +145,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_cashback_crypto.csv" });
@@ -151,16 +153,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(0001, 01, 01, 00, 00, 00, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
-			{ new Activity {
-				Asset = asset,
-				Comment = "Transaction Reference: [NXT2yQdOutpLLE1Lz51xXt6uW] (Details: asset BTC)",
-				Date = new DateTime(2023,10,12,10,44,32, DateTimeKind.Utc),
-				Fees = Enumerable.Empty < Money >(),
-				Quantity = 0.00000040M,
-				ActivityType = ActivityType.Receive,
-				UnitPrice = new Money(asset.Currency, 26811.1M, new DateTime(2023,10,12,10,44,32, DateTimeKind.Utc)),
-				ReferenceCode = "NXT2yQdOutpLLE1Lz51xXt6uW"
-			}});
+			{ new Activity(
+				ActivityType.Receive,
+				asset,
+				new DateTime(2023,10,12,10,44,32, DateTimeKind.Utc),
+				0.00000040M,
+				new Money(asset.Currency, 26811.1M, new DateTime(2023,10,12,10,44,32, DateTimeKind.Utc)),
+				Enumerable.Empty < Money >(),
+				"Transaction Reference: [NXT2yQdOutpLLE1Lz51xXt6uW] (Details: asset BTC)",
+				"NXT2yQdOutpLLE1Lz51xXt6uW"
+				)
+			});
 		}
 
 		[Fact]
@@ -182,16 +185,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0M, new DateTime(0001, 01, 01, 00, 00, 00, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
-			{ new Activity {
-				Asset = null,
-				Comment = "Transaction Reference: [NXT6asbYnZqniNoTss0nyuIxM] (Details: asset EURX)",
-				Date = new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc),
-				Fees = Enumerable.Empty < Money >(),
-				Quantity = 0.06548358M,
-				ActivityType = ActivityType.Receive,
-				UnitPrice = new Money(DefaultCurrency.EUR, 1M, new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc)),
-				ReferenceCode = "NXT6asbYnZqniNoTss0nyuIxM"
-			}});
+			{ new Activity(
+				ActivityType.Receive,
+				null,
+				new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc),
+				0.06548358M,
+				new Money(DefaultCurrency.EUR, 1M, new DateTime(2023,10,8,20,5,12, DateTimeKind.Utc)),
+				Enumerable.Empty < Money >(),
+				"Transaction Reference: [NXT6asbYnZqniNoTss0nyuIxM] (Details: asset EURX)",
+				"NXT6asbYnZqniNoTss0nyuIxM"
+				)
+			});
 		}
 
 		[Fact]
@@ -206,7 +210,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier("BTC", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier("BTC", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset1);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_referralbonus_pending.csv" });
@@ -228,7 +232,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier(new string?[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset1);
+			api.Setup(x => x.FindSymbolByIdentifier(new string[] { "Bitcoin", "BTC" }, It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset1);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Nexo/Specials/single_referralbonus_approved.csv" });
@@ -236,15 +240,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0, new DateTime(0001, 01, 01, 0, 0, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
-			{ new Activity {
-				Asset = asset1,
-				Comment = "Transaction Reference: [NXTk6FBYyxOqH] (Details: asset BTC)",
-				Date = new DateTime(2023,08,25,16,43,55, DateTimeKind.Utc),
-				Fees = Enumerable.Empty < Money >(),
-				Quantity = 0.00096332M,
-				ActivityType = ActivityType.Receive,
-				UnitPrice = new Money(asset1.Currency, 25951.855302495536270398206204M, new DateTime(2023,08,25,16,43,55, DateTimeKind.Utc)),
-				ReferenceCode = "NXTk6FBYyxOqH"} });
+			{ new Activity(
+				ActivityType.Receive,
+				asset1,
+				new DateTime(2023,08,25,16,43,55, DateTimeKind.Utc),
+				0.00096332M,
+				new Money(asset1.Currency, 25951.855302495536270398206204M, new DateTime(2023,08,25,16,43,55, DateTimeKind.Utc)),
+				Enumerable.Empty < Money >(),
+				"Transaction Reference: [NXTk6FBYyxOqH] (Details: asset BTC)",
+				"NXTk6FBYyxOqH"
+				)
+			});
 		}
 	}
 }

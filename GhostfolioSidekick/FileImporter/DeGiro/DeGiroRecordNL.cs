@@ -20,31 +20,31 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		public override DateOnly CurrencyDate { get; set; }
 
 		[Name("Product")]
-		public override string Product { get; set; }
+		public override string? Product { get; set; }
 
 		[Name("ISIN")]
-		public override string ISIN { get; set; }
+		public override string? ISIN { get; set; }
 
 		[Name("Omschrijving")]
-		public override string Description { get; set; }
+		public override string? Description { get; set; }
 
 		[Name("FX")]
-		public override string FX { get; set; }
+		public override string? FX { get; set; }
 
 		[Name("Mutatie")]
-		public override string Mutation { get; set; }
+		public override required string Mutation { get; set; }
 
 		[Index(8)]
 		public override decimal? Total { get; set; }
 
 		[Name("Saldo")]
-		public override string BalanceCurrency { get; set; }
+		public override required string BalanceCurrency { get; set; }
 
 		[Index(10)]
 		public override decimal Balance { get; set; }
 
 		[Name("Order Id")]
-		public override string TransactionId { get; set; }
+		public override string? TransactionId { get; set; }
 
 		public override bool IsFee()
 		{
@@ -58,6 +58,11 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		public override ActivityType? GetActivityType()
 		{
+			if (Description == null)
+			{
+				return null;
+			}
+
 			if (Description.Contains("Verkoop")) // check Verkoop first because otherwise koop get's triggered
 			{
 				return ActivityType.Sell;
@@ -96,7 +101,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
-			var quantity = Regex.Match(Description, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[1].Value;
+			var quantity = Regex.Match(Description!, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[1].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
@@ -105,7 +110,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
-			var quantity = Regex.Match(Description, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[2].Value;
+			var quantity = Regex.Match(Description!, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}

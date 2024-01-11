@@ -1,2 +1,2 @@
-Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time
+Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time (UTC)
 NXT6MIn1vd9eRGVUzGMClmRsR,Interest,USDC,0.00184300,USDC,0.00184300,$0.00184294,"approved / USDC Interest Earned",2023-09-21 07:00:00

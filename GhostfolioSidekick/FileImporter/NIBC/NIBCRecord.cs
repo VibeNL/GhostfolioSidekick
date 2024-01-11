@@ -9,16 +9,16 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 		public DateTime Date { get; set; }
 
 		[Name("Beschrijving")]
-		public string Description { get; set; }
+		public required string Description { get; set; }
 
 		[Name("Bedrag v/d verrichting")]
 		[CultureInfo("nl-NL")]
 		public decimal Amount { get; set; }
 
 		[Name("Munt")]
-		public string Currency { get; set; }
+		public required string Currency { get; set; }
 
 		[Name("Ref. v/d verrichting")]
-		public string TransactionID { get; set; }
+		public required string TransactionID { get; set; }
 	}
 }

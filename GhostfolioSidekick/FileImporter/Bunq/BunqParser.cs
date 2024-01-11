@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 		{
 		}
 
-		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(BunqRecord record, Model.Account account, IEnumerable<BunqRecord> allRecords)
+		protected override Task<IEnumerable<Model.Activity>> ConvertOrders(BunqRecord record, Model.Account account, IEnumerable<BunqRecord> allRecords)
 		{
 			var activityType = GetActivityType(record);
 
@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 				id
 				);
 
-			return new[] { order };
+			return Task.FromResult<IEnumerable<Model.Activity>>(new[] { order });
 		}
 
 		private string ConvertRowNumber(BunqRecord record, IEnumerable<BunqRecord> allRecords)

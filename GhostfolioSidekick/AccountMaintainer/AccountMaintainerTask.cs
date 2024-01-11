@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (account == null)
 				{
-					await CreateAccount(accountConfig, platforms.SingleOrDefault(x => x.Name == accountConfig.Platform));
+					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
 				}
 
 				//UpdateAccount(accountConfig, platforms.SingleOrDefault(x => x.Name == accountConfig.Platform));
@@ -64,7 +64,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			await CreateOrUpdatePlatform(platformConfiguration);
 
-			await api.CreateAccount(new Model.Account(accountConfig.Name, accountConfig.Currency, accountConfig.Comment, accountConfig.Platform));
+			await api.CreateAccount(new Model.Account(
+				Guid.Empty.ToString(),
+				accountConfig.Name,
+				new Model.Balance(new Model.Money(accountConfig.Currency, 0, DateTime.Now)),
+				accountConfig.Comment,
+				accountConfig.Platform,
+				[]));
 		}
 
 		private async Task CreateOrUpdatePlatform(PlatformConfiguration? platformConfiguration)

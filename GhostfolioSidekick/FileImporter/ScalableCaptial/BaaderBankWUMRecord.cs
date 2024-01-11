@@ -17,22 +17,22 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 		public decimal? UnitPrice { get; set; }
 
 		[Name("XXX-WHGAB")]
-		public string Currency { get; set; }
+		public required string Currency { get; set; }
 
 		[Name("XXX-NW")]
 		[CultureInfo("nl-NL")]
 		public decimal? Quantity { get; set; }
 
 		[Name("XXX-WPNR")]
-		public string Isin { get; set; }
+		public required string Isin { get; set; }
 
 		[Name("XXX-WPGART")]
-		public string OrderType { get; set; }
+		public required string OrderType { get; set; }
 
 		[Name("XXX-EXTORDID")]
-		public string Reference { get; set; }
+		public required string Reference { get; set; }
 
 		[Name("XXX-BELEGU")]
-		public string SavingsPlanIdentification { get; set; }
+		public string? SavingsPlanIdentification { get; set; }
 	}
 }

@@ -43,6 +43,7 @@ Also allows the following sybol settings
 ```
 {
     "settings" : {
+	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
 		"use.crypto.workaround.stakereward.as.dividends" : true, // default is false
 		"use.crypto.workaround.dust" : true // default is false,
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0
@@ -63,6 +64,10 @@ Also allows the following sybol settings
 		{ "symbol": "VFEM.L", "trackinsight": "VDEM" },
 		{ "symbol": "DE0001102333", "manualSymbolConfiguration": { "currency":"EUR", "isin":"DE0001102333","name":"Bond Germany Feb 2024","assetSubClass":"BOND","assetClass":"EQUITY" } },
 		{ "symbol": "PhysicalGoldEuroPerKilogram", "manualSymbolConfiguration": { "currency":"EUR", "isin":"PhysicalGoldEuroPerKilogram","name":"Physical Gold EUR/KG","assetSubClass":"PRECIOUS_METAL","assetClass":"COMMODITY", "scraperConfiguration":{ "url": "<url>", "selector":"<selector>"} } }
+	],
+	"benchmarks":[
+		{ "symbol": "^AEX" },
+		{ "symbol": "^SPX" },
 	]
 }
 
@@ -94,6 +99,9 @@ Any holding less than this value is considered dust and will be added to the las
 Creates platforms and accounts if not yet created
 
 Fields are identical to the UI
+
+#### Benchmarks
+Add a symbol as a benchmark
 
 #### Mappings
 Change an identifier from the imported files to be compatible with Ghostfolio (for example certain symbols may not be found by Ghostfolio, so we can substituting the identifier with one that is recognized). 
@@ -149,7 +157,10 @@ Beside the supported exchanges and brokers there is also a generic format. This 
 | Currency | The currency of the unitprice and fee |
 | Quantity | The amount of units |
 | UnitPrice | The paid price per unit |
-| Fee | The total fee paid for the transaction |
+| Fee | The total fee paid for the transaction. Is optional |
+| Tax | The total tax on the transaction, is used to adjust the unitprice. Is optional |
+| Description | A description, not used in ghostfolio itself. Is optional |
+| Id | The transaction id. Is optional |
 
 ##### Example
 

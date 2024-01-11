@@ -43,8 +43,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(),
+				It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
@@ -55,19 +55,16 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
 			{
-				new Activity
-				{
-					Asset = asset,
-					Comment =
-						"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-					Date = new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					Fees = new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-					Quantity = 1,
-					ActivityType = ActivityType.Buy,
-					UnitPrice = new Money(DefaultCurrency.EUR, 77.30M,
-						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-					ReferenceCode = "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-				}
+				new Activity(
+					ActivityType.Buy,
+					asset,
+					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
+					1,
+					new Money(DefaultCurrency.EUR, 77.30M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
+					new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
+					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
+					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
+					)
 			});
 		}
 
@@ -82,8 +79,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(),
-				It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(),
+				It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name,
@@ -94,19 +91,16 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
 			{
-				new Activity
-				{
-					Asset = asset,
-					Comment =
-						"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-					Date = new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					Fees = new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-					Quantity = 1,
-					ActivityType = ActivityType.Sell,
-					UnitPrice = new Money(DefaultCurrency.EUR, 77.30M,
-						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-					ReferenceCode = "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-				}
+				new Activity(
+					ActivityType.Sell,
+					asset,
+					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
+					1,
+					new Money(DefaultCurrency.EUR, 77.30M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
+					new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
+					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
+					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
+					)
 			});
 		}
 
@@ -146,19 +140,16 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.DeGiro
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 102.18M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)));
 			account.Activities.Should().BeEquivalentTo(new[]
 				{
-				new Activity
-				{
-					Asset = null,
-					Comment =
-						"Transaction Reference: [Fee2023-01-03]",
-					Date = new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc),
-					Fees = new Money[0],
-					Quantity = 1,
-					ActivityType = ActivityType.Fee,
-					UnitPrice = new Money(DefaultCurrency.EUR, 2.50M,
-						new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)),
-					ReferenceCode = "Fee2023-01-03"
-				}
+				new Activity(
+					ActivityType.Fee,
+					null,
+					new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc),
+					1,
+					new Money(DefaultCurrency.EUR, 2.50M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)),
+					new Money[0],
+					"Transaction Reference: [Fee2023-01-03]",
+					"Fee2023-01-03"
+					)
 			});
 		}
 	}

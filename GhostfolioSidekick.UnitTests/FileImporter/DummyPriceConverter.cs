@@ -4,9 +4,9 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 {
 	internal class DummyPriceConverter : ICurrentPriceCalculator
 	{
-		public Money GetConvertedPrice(Money item, Currency targetCurrency, DateTime timeOfRecord)
+		public Money? GetConvertedPrice(Money? item, Currency targetCurrency, DateTime timeOfRecord)
 		{
-			return new Money(targetCurrency, item.Amount, timeOfRecord);
+			return new Money(targetCurrency, item?.Amount ?? 0, timeOfRecord);
 		}
 
 		public static DummyPriceConverter Instance { get { return new DummyPriceConverter(); } }

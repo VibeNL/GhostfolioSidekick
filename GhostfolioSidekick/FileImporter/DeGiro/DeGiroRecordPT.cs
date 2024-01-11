@@ -20,34 +20,39 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		public override DateOnly CurrencyDate { get; set; }
 
 		[Name("Produto")]
-		public override string Product { get; set; }
+		public override string? Product { get; set; }
 
 		[Name("ISIN")]
-		public override string ISIN { get; set; }
+		public override string? ISIN { get; set; }
 
 		[Name("Descrição")]
-		public override string Description { get; set; }
+		public override string? Description { get; set; }
 
 		[Name("T.")]
-		public override string FX { get; set; }
+		public override string? FX { get; set; }
 
 		[Name("Mudança")]
-		public override string Mutation { get; set; }
+		public override required string Mutation { get; set; }
 
 		[Index(8)]
 		public override decimal? Total { get; set; }
 
 		[Name("Saldo")]
-		public override string BalanceCurrency { get; set; }
+		public override required string BalanceCurrency { get; set; }
 
 		[Index(10)]
 		public override decimal Balance { get; set; }
 
 		[Name("ID da Ordem")]
-		public override string TransactionId { get; set; }
+		public override string? TransactionId { get; set; }
 
 		public override ActivityType? GetActivityType()
 		{
+			if (Description == null)
+			{
+				return null;
+			}
+
 			if (Description.Contains("Venda"))
 			{
 				return ActivityType.Sell;
@@ -89,14 +94,14 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 
 		public override decimal GetQuantity()
 		{
-			var quantity = Regex.Match(Description, $"[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+)").Groups[2].Value;
+			var quantity = Regex.Match(Description!, $"[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		public override decimal GetUnitPrice()
 		{
-			var quantity = Regex.Match(Description, $"[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+)").Groups[3].Value;
+			var quantity = Regex.Match(Description!, $"[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+)").Groups[3].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}

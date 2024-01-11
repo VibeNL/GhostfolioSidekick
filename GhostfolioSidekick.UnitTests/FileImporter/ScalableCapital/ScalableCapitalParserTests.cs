@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier("US92343V1044", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("US92343V1044", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
@@ -73,16 +73,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 7.0799999999999999999999999998M, new DateTime(2023, 08, 1, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
-				Asset = asset,
-				Comment = "Transaction Reference: [WWEK 16100100] (Details: asset ISIN US92343V1044)",
-				Date = new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
-				Fees = Enumerable.Empty < Money >(),
-				Quantity = 14,
-				ActivityType = ActivityType.Dividend,
-				UnitPrice = new Money(DefaultCurrency.EUR, 0.5057142857142857142857142857M, new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc)),
-				ReferenceCode = "WWEK 16100100"
-			} });
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity
+			(
+				ActivityType.Dividend,
+				asset,
+				new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc),
+				14,
+				new Money(DefaultCurrency.EUR, 0.5057142857142857142857142857M, new DateTime(2023,8,1, 0,0,0, DateTimeKind.Utc)),
+				Enumerable.Empty < Money >(),
+				"Transaction Reference: [WWEK 16100100] (Details: asset ISIN US92343V1044)",
+				"WWEK 16100100")
+			});
 		}
 
 		[Fact]
@@ -96,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
@@ -105,16 +106,18 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			});
 
 			// Assert
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
-				Asset = asset,
-				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ] (Details: asset IE00077FRP95)",
-				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
-				Fees = new[] { new Money(DefaultCurrency.EUR, 0.99M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)) },
-				Quantity = 5,
-				ActivityType = ActivityType.Buy,
-				UnitPrice = new Money(DefaultCurrency.EUR, 8.685M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
-				ReferenceCode = "SCALQbWiZnN9DtQ"
-			} });
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity
+				(
+					ActivityType.Buy,
+					asset,
+					new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
+					5,
+					new Money(DefaultCurrency.EUR, 8.685M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
+					new[] { new Money(DefaultCurrency.EUR, 0.99M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)) },
+					"Transaction Reference: [SCALQbWiZnN9DtQ] (Details: asset IE00077FRP95)",
+					"SCALQbWiZnN9DtQ"
+				)
+			});
 		}
 
 		[Fact]
@@ -128,7 +131,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
 
 			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", It.IsAny<Currency>(), It.IsAny<AssetClass?[]>(), It.IsAny<AssetSubClass?[]>(), true)).ReturnsAsync(asset);
+			api.Setup(x => x.FindSymbolByIdentifier("IE00077FRP95", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
 
 			// Act
 			account = await parser.ConvertActivitiesForAccount(account.Name, new[] {
@@ -137,16 +140,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
 			});
 
 			// Assert
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
-				Asset = asset,
-				Comment = "Transaction Reference: [SCALQbWiZnN9DtQ] (Details: asset IE00077FRP95)",
-				Date = new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
-				Fees = new[] { new Money(DefaultCurrency.EUR, 0.99M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)) },
-				Quantity = 5,
-				ActivityType = ActivityType.Sell,
-				UnitPrice = new Money(DefaultCurrency.EUR, 8.685M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
-				ReferenceCode = "SCALQbWiZnN9DtQ"
-			} });
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+				ActivityType.Sell,
+				asset,
+				new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc),
+				5,
+				new Money(DefaultCurrency.EUR, 8.685M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)),
+				new[] { new Money(DefaultCurrency.EUR, 0.99M, new DateTime(2023,8,3, 14,43,17, 650, DateTimeKind.Utc)) },
+				"Transaction Reference: [SCALQbWiZnN9DtQ] (Details: asset IE00077FRP95)",
+				"SCALQbWiZnN9DtQ"
+				)
+			});
 		}
 	}
 }
