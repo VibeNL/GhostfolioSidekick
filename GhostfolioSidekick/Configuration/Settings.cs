@@ -1,9 +1,18 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace GhostfolioSidekick.Configuration
 {
 	public class Settings
 	{
+		[SetsRequiredMembers]
+		public Settings()
+		{
+		}
+
+		[JsonPropertyName("dataprovider.preference.order")]
+		public required string DataProviderPreference { get; set; } = "YAHOO;COINGECKO";
+
 		[JsonPropertyName("use.crypto.workaround.stakereward.as.dividends")]
 		public bool CryptoWorkaroundStakeReward { get; set; }
 
