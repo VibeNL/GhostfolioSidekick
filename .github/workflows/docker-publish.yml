@@ -110,7 +110,7 @@ jobs:
             Install with:
 
             ```
-            docker pull vibenl/ghostfoliosidekick:${{ github.event.number }}
+            docker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}
             ```
           comment_tag: "development-ghostfoliosidekick-published"
           mode: "recreate"
