@@ -128,5 +128,36 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
 				)
 			});
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDividend_Converted()
+		{
+			// Arrange
+			var parser = new GenericParser(api.Object);
+			var fixture = new Fixture();
+
+			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.USD).Create();
+			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.USD)).Create();
+
+			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			api.Setup(x => x.FindSymbolByIdentifier("US2546871060", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(), It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
+
+			// Act
+			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Generic/CashTransactions/single_dividend.csv" });
+
+			// Assert
+			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, 0.067669M, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc)));
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+				ActivityType.Dividend,
+				asset,
+				new DateTime(2023,08,8, 0,0,0, DateTimeKind.Utc),
+				0.3247M,
+				new Money(DefaultCurrency.EUR, 0.2084046812442254388666461349M, new DateTime(2023,08,8, 0,0,0, DateTimeKind.Utc)),
+				new[] { new Money(DefaultCurrency.EUR, 0, new DateTime(2023,08,8, 0,0,0, DateTimeKind.Utc)) },
+				"Transaction Reference: [Dividend_US2546871060_2023-08-08_0.3247_EUR_0] (Details: asset US2546871060)",
+				"Dividend_US2546871060_2023-08-08_0.3247_EUR_0"
+				)
+			});
+		}
 	}
 }
