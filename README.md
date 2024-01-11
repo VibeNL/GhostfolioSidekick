@@ -64,6 +64,10 @@ Also allows the following sybol settings
 		{ "symbol": "VFEM.L", "trackinsight": "VDEM" },
 		{ "symbol": "DE0001102333", "manualSymbolConfiguration": { "currency":"EUR", "isin":"DE0001102333","name":"Bond Germany Feb 2024","assetSubClass":"BOND","assetClass":"EQUITY" } },
 		{ "symbol": "PhysicalGoldEuroPerKilogram", "manualSymbolConfiguration": { "currency":"EUR", "isin":"PhysicalGoldEuroPerKilogram","name":"Physical Gold EUR/KG","assetSubClass":"PRECIOUS_METAL","assetClass":"COMMODITY", "scraperConfiguration":{ "url": "<url>", "selector":"<selector>"} } }
+	],
+	"benchmarks":[
+		{ "symbol": "^AEX" },
+		{ "symbol": "^SPX" },
 	]
 }
 
@@ -95,6 +99,9 @@ Any holding less than this value is considered dust and will be added to the las
 Creates platforms and accounts if not yet created
 
 Fields are identical to the UI
+
+#### Benchmarks
+Add a symbol as a benchmark
 
 #### Mappings
 Change an identifier from the imported files to be compatible with Ghostfolio (for example certain symbols may not be found by Ghostfolio, so we can substituting the identifier with one that is recognized). 

@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 				false);
 			if (symbol == null)
 			{
-				await api.CreateManualSymbol(new SymbolProfile(
+				await api.CreateSymbol(new SymbolProfile(
 					CurrencyHelper.ParseCurrency(manualSymbolConfiguration.Currency),
 					symbolConfiguration.Symbol,
 					manualSymbolConfiguration.ISIN,
