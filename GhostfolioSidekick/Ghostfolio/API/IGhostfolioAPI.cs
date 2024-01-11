@@ -5,17 +5,17 @@ namespace GhostfolioSidekick.Ghostfolio.API
 	public interface IGhostfolioAPI
 	{
 		Task<SymbolProfile?> FindSymbolByIdentifier(
-			string?[] identifiers,
+			string[] identifiers,
 			Currency? expectedCurrency,
-			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass,
+			AssetClass[]? expectedAssetClass,
+			AssetSubClass[]? expectedAssetSubClass,
 			bool checkExternalDataProviders = true);
 
 		Task<SymbolProfile?> FindSymbolByIdentifier(
-			string? identifier,
+			string identifier,
 			Currency? expectedCurrency,
-			AssetClass?[] expectedAssetClass,
-			AssetSubClass?[] expectedAssetSubClass,
+			AssetClass[]? expectedAssetClass,
+			AssetSubClass[]? expectedAssetSubClass,
 			bool checkExternalDataProviders = true)
 		{
 			return FindSymbolByIdentifier(new[] { identifier }, expectedCurrency, expectedAssetClass, expectedAssetSubClass, checkExternalDataProviders);

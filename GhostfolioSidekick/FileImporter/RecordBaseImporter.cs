@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.FileImporter
 			this.api = api;
 		}
 
-		public virtual async Task<bool> CanParseActivities(IEnumerable<string> filenames)
+		public virtual Task<bool> CanParseActivities(IEnumerable<string> filenames)
 		{
 			foreach (var file in filenames)
 			{
@@ -30,11 +30,11 @@ namespace GhostfolioSidekick.FileImporter
 				}
 				catch
 				{
-					return false;
+					return Task.FromResult(false);
 				}
 			}
 
-			return true;
+			return Task.FromResult(true);
 		}
 
 		public async Task<Model.Account> ConvertActivitiesForAccount(string accountName, IEnumerable<string> filenames)
@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.FileImporter
 					{
 						foreach (var order in orders)
 						{
-							list.TryAdd(order.ReferenceCode, order);
+							list.TryAdd(order.ReferenceCode ?? Guid.NewGuid().ToString(), order);
 						}
 					}
 				};

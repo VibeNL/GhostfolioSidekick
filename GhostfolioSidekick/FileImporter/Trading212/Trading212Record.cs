@@ -7,15 +7,15 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 {
 	public class Trading212Record
 	{
-		public string Action { get; set; }
+		public required string Action { get; set; }
 
 		public DateTime Time { get; set; }
 
-		public string ISIN { get; set; }
+		public string? ISIN { get; set; }
 
-		public string Ticker { get; set; }
+		public string? Ticker { get; set; }
 
-		public string Name { get; set; }
+		public string? Name { get; set; }
 
 		[Name("No. of shares")]
 		public decimal? NumberOfShares { get; set; }
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 		public decimal? Price { get; set; }
 
 		[Name("Currency (Price / share)")]
-		public string Currency { get; set; }
+		public string? Currency { get; set; }
 
 		[Optional]
 		[Name("Exchange rate")]
@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		[Optional]
 		[Name("Currency (Result)")]
-		public string CurrencySource { get; set; }
+		public string? CurrencySource { get; set; }
 
 		[Optional]
 		[Name("Stamp duty reserve tax")]
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		[Optional]
 		[Name("Currency (Stamp duty reserve tax)")]
-		public string FeeUKCurrency { get; set; }
+		public string? FeeUKCurrency { get; set; }
 
 		[Optional]
 		[Name("French transaction tax")]
@@ -49,12 +49,12 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		[Optional]
 		[Name("Currency (French transaction tax)")]
-		public string FeeFranceCurrency { get; set; }
+		public string? FeeFranceCurrency { get; set; }
 
-		public string Notes { get; set; }
+		public string? Notes { get; set; }
 
 		[Name("ID")]
-		public string Id { get; set; }
+		public string? Id { get; set; }
 
 		[Optional]
 		[Name("Currency conversion fee")]
@@ -62,29 +62,26 @@ namespace GhostfolioSidekick.FileImporter.Trading212
 
 		[Optional]
 		[Name("Currency (Currency conversion fee)")]
-		public string ConversionFeeCurrency { get; set; }
+		public string? ConversionFeeCurrency { get; set; }
 
 		public decimal? Total { get; set; }
 
 		[Name("Currency (Total)")]
-		public string CurrencyTotal { get; set; }
+		public string? CurrencyTotal { get; set; }
 
 
 	}
 
 	internal class ExchangeRateConverter : DefaultTypeConverter
 	{
-		public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 		{
-			switch (text)
+			return text switch
 			{
-				case "":
-					return null;
-				case "Not available":
-					return null;
-			}
-
-			return decimal.Parse(text);
+				null or "" => null,
+				"Not available" => null,
+				_ => decimal.Parse(text),
+			};
 		}
 	}
 }

@@ -2,6 +2,6 @@
 {
 	public class SymbolProfileList
 	{
-		public SymbolProfile[] Items { get; set; }
+		public required SymbolProfile[] Items { get; set; }
 	}
 }

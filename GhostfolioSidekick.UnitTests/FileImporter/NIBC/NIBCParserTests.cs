@@ -84,16 +84,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.NIBC
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.51M, new DateTime(2021, 09, 30, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
-				Asset = null,
-				Comment = "Transaction Reference: [C1I30IN0000A000Q]",
-				Date = new DateTime(2021, 09, 30, 0,0,0, DateTimeKind.Utc),
-				Fees = Enumerable.Empty<Money>(),
-				Quantity = 1m,
-				ActivityType = ActivityType.Interest,
-				UnitPrice = new Money(DefaultCurrency.EUR, 0.51M, new DateTime(2021, 09, 30, 0,0,0, DateTimeKind.Utc)),
-				ReferenceCode = "C1I30IN0000A000Q"
-			} });
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+				ActivityType.Interest,
+				null,
+				new DateTime(2021, 09, 30, 0,0,0, DateTimeKind.Utc),
+				1m,
+				new Money(DefaultCurrency.EUR, 0.51M, new DateTime(2021, 09, 30, 0,0,0, DateTimeKind.Utc)),
+				Enumerable.Empty<Money>(),
+				"Transaction Reference: [C1I30IN0000A000Q]",
+				"C1I30IN0000A000Q"
+				)
+			});
 		}
 
 		[Fact]
@@ -112,16 +113,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.NIBC
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1.1M, new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
-				Asset = null,
-				Comment = "Transaction Reference: [C1F30IN0000A000QBonus]",
-				Date = new DateTime(2021,6,30, 0,0,0, DateTimeKind.Utc),
-				Fees = Enumerable.Empty<Money>(),
-				Quantity = 1m,
-				ActivityType = ActivityType.Interest,
-				UnitPrice = new Money(DefaultCurrency.EUR, 1.1M, new DateTime(2021,6,30, 0,0,0, DateTimeKind.Utc)),
-				ReferenceCode = "C1F30IN0000A000QBonus"
-			} });
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+				ActivityType.Interest,
+				null,
+				new DateTime(2021,6,30, 0,0,0, DateTimeKind.Utc),
+				1m,
+				new Money(DefaultCurrency.EUR, 1.1M, new DateTime(2021,6,30, 0,0,0, DateTimeKind.Utc)),
+				Enumerable.Empty<Money>(),
+				"Transaction Reference: [C1F30IN0000A000QBonus]",
+				"C1F30IN0000A000QBonus"
+				)
+			});
 		}
 	}
 }

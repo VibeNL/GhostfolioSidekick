@@ -8,7 +8,7 @@
 
 		public DateTime Date { get; set; }
 
-		public string Currency { get; set; }
+		public required string Currency { get; set; }
 
 		public decimal Quantity { get; set; }
 

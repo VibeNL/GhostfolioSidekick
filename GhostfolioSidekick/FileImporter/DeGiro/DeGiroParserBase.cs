@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 			account.Balance.SetKnownBalance(new Money(CurrencyHelper.ParseCurrency(record.BalanceCurrency), record.Balance, record.Date.ToDateTime(record.Time)));
 
 			var activityType = record.GetActivityType();
-			if (activityType == null)
+			if (activityType == null || activityType == ActivityType.Undefined)
 			{
 				return Array.Empty<Activity>();
 			}
@@ -100,16 +100,16 @@ namespace GhostfolioSidekick.FileImporter.DeGiro
 		{
 			// Costs of stocks.
 			var feeRecords = allRecords.Where(x => !string.IsNullOrWhiteSpace(x.TransactionId) && x.TransactionId == record.TransactionId && x.IsFee());
-			return feeRecords.Where(x => x.Total != null).Select(x => new Money(CurrencyHelper.ParseCurrency(x.Mutation), x.Total.Value * -1, x.Date.ToDateTime(x.Time)));
+			return feeRecords.Where(x => x.Total != null).Select(x => new Money(CurrencyHelper.ParseCurrency(x.Mutation), x.Total!.Value * -1, x.Date.ToDateTime(x.Time)));
 		}
 
-		protected Money GetTaxes(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
+		protected Money? GetTaxes(DeGiroRecordBase record, IEnumerable<DeGiroRecordBase> allRecords)
 		{
 			// Taxes of dividends
 			var feeRecord = allRecords.SingleOrDefault(x => x.Date == record.Date && x.ISIN == record.ISIN && x.IsTaxes());
 			if (feeRecord != null)
 			{
-				return new Money(CurrencyHelper.ParseCurrency(feeRecord.Mutation), feeRecord.Total.Value * -1, feeRecord.Date.ToDateTime(feeRecord.Time));
+				return new Money(CurrencyHelper.ParseCurrency(feeRecord.Mutation), feeRecord.Total!.Value * -1, feeRecord.Date.ToDateTime(feeRecord.Time));
 			}
 
 			return null;

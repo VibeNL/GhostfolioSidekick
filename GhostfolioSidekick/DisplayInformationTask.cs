@@ -19,9 +19,10 @@ namespace GhostfolioSidekick
 			this.applicationSettings = applicationSettings;
 		}
 
-		public async Task DoWork()
+		public Task DoWork()
 		{
 			PrintUsedSettings();
+			return Task.CompletedTask;
 		}
 
 		private void PrintUsedSettings()

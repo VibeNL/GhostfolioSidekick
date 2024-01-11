@@ -1,7 +1,7 @@
 ﻿namespace GhostfolioSidekick.Ghostfolio.Contract
 {
-    public class GenericInfo
-    {
-        public BenchMark[] BenchMarks { get; set; }
-    }
+	public class GenericInfo
+	{
+		public BenchMark[]? BenchMarks { get; set; }
+	}
 }

@@ -5,10 +5,10 @@ namespace GhostfolioSidekick.Configuration
 	public class AccountConfiguration
 	{
 		[JsonPropertyName("name")]
-		public string Name { get; set; }
+		public required string Name { get; set; }
 
 		[JsonPropertyName("currency")]
-		public string Currency { get; set; }
+		public required string Currency { get; set; }
 
 		[JsonPropertyName("comment")]
 		public string? Comment { get; set; }

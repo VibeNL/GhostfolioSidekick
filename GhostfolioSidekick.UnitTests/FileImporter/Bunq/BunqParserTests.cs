@@ -84,16 +84,17 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 
 			// Assert
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity {
-				Asset = null,
-				Comment = "Transaction Reference: [Interest_2023-07-27]",
-				Date = new DateTime(2023,07,27, 0,0,0, DateTimeKind.Utc),
-				Fees = Enumerable.Empty<Money>(),
-				Quantity = 1m,
-				ActivityType = ActivityType.Interest,
-				UnitPrice = new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023,7,27, 0,0,0, DateTimeKind.Utc)),
-				ReferenceCode = "Interest_2023-07-27"
-			} });
+			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
+				ActivityType.Interest,
+				null,
+				new DateTime(2023,07,27, 0,0,0, DateTimeKind.Utc),
+				1m,
+				new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023,7,27, 0,0,0, DateTimeKind.Utc)),
+				Enumerable.Empty<Money>(),
+				"Transaction Reference: [Interest_2023-07-27]",
+				"Interest_2023-07-27"
+				)
+			});
 		}
 
 		[Fact]

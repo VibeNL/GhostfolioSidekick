@@ -9,14 +9,14 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 		public DateTime Date { get; set; }
 
 		[Name("Interest Date")]
-		public string InterestDate { get; set; }
+		public required string InterestDate { get; set; }
 
 		[CultureInfo("nl-NL")]
 		public decimal Amount { get; set; }
 
-		public string Name { get; set; }
+		public required string Name { get; set; }
 
-		public string Description { get; set; }
+		public required string Description { get; set; }
 
 		[LineNumber]
 		public int RowNumber { get; set; }

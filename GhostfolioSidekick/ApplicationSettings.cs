@@ -11,19 +11,19 @@ namespace GhostfolioSidekick
 
 		public ApplicationSettings()
 		{
-			configuration = ConfigurationInstance.Parse(File.ReadAllText(Environment.GetEnvironmentVariable(CONFIGURATIONFILE)));
+			configuration = ConfigurationInstance.Parse(File.ReadAllText(Environment.GetEnvironmentVariable(CONFIGURATIONFILE)!));
 		}
 
-		public string FileImporterPath => Environment.GetEnvironmentVariable(PATHFILES);
+		public string FileImporterPath => Environment.GetEnvironmentVariable(PATHFILES)!;
 
-		public string GhostfolioAccessToken => Environment.GetEnvironmentVariable(ACCESSTOKEN);
+		public string GhostfolioAccessToken => Environment.GetEnvironmentVariable(ACCESSTOKEN)!;
 
 		public string GhostfolioUrl
 		{
 			get
 			{
-				var url = ghostfolioUrl;
-				if (url != null && url.EndsWith('/'))
+				string url = ghostfolioUrl;
+				if (url.EndsWith('/'))
 				{
 					url = url[..^1];
 				}
@@ -36,11 +36,11 @@ namespace GhostfolioSidekick
 		{
 			get
 			{
-				return configuration;
+				return configuration ?? new ConfigurationInstance();
 			}
 		}
 
-		private readonly string ghostfolioUrl = Environment.GetEnvironmentVariable(URL);
-		private readonly ConfigurationInstance configuration;
+		private readonly string ghostfolioUrl = Environment.GetEnvironmentVariable(URL)!;
+		private readonly ConfigurationInstance? configuration;
 	}
 }
