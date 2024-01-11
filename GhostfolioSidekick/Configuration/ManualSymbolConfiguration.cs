@@ -5,24 +5,24 @@ namespace GhostfolioSidekick.Configuration
 	public class ManualSymbolConfiguration
 	{
 		[JsonPropertyName("currency")]
-		public string Currency { get; set; }
+		public required string Currency { get; set; }
 
 
 		[JsonPropertyName("isin")]
-		public string ISIN { get; set; }
+		public string? ISIN { get; set; }
 
 
 		[JsonPropertyName("name")]
-		public string Name { get; set; }
+		public required string Name { get; set; }
 
 
 		[JsonPropertyName("assetSubClass")]
-		public string AssetSubClass { get; set; }
+		public string? AssetSubClass { get; set; }
 
 		[JsonPropertyName("assetClass")]
-		public string AssetClass { get; set; }
+		public required string AssetClass { get; set; }
 
 		[JsonPropertyName("scraperConfiguration")]
-		public ScraperConfiguration ScraperConfiguration { get; set; }
+		public ScraperConfiguration? ScraperConfiguration { get; set; }
 	}
 }

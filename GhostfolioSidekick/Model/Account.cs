@@ -1,46 +1,33 @@
-﻿namespace GhostfolioSidekick.Model
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GhostfolioSidekick.Model
 {
 	public class Account
 	{
-		public Account(string id, string name, Balance balance, List<Activity> activities)
+		[SetsRequiredMembers]
+		public Account(string id, string name, Balance balance, string? comment, string? platform, List<Activity> activities)
 		{
-			if (string.IsNullOrEmpty(id))
+			if (string.IsNullOrWhiteSpace(id))
 			{
-				throw new ArgumentException($"'{nameof(id)}' cannot be null or empty.", nameof(id));
+				throw new ArgumentException($"'{nameof(id)}' cannot be null or whitespace.", nameof(id));
 			}
 
-			if (string.IsNullOrEmpty(name))
+			if (string.IsNullOrWhiteSpace(name))
 			{
-				throw new ArgumentException($"'{nameof(name)}' cannot be null or empty.", nameof(name));
+				throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace.", nameof(name));
 			}
 
 			Id = id;
 			Name = name;
 			Balance = balance ?? throw new ArgumentNullException(nameof(balance));
+			Comment = comment;
+			Platform = platform;
 			Activities = activities ?? throw new ArgumentNullException(nameof(activities));
 		}
 
-		public Account(string name, string currency, string? comment, string? platform)
-		{
-			if (string.IsNullOrEmpty(name))
-			{
-				throw new ArgumentException($"'{nameof(name)}' cannot be null or empty.", nameof(name));
-			}
+		public required string Name { get; set; }
 
-			if (string.IsNullOrEmpty(currency))
-			{
-				throw new ArgumentException($"'{nameof(currency)}' cannot be null or empty.", nameof(currency));
-			}
-
-			Name = name;
-			Balance = new Balance(new Money(currency, 0, DateTime.Now));
-			Comment = comment;
-			Platform = platform;
-		}
-
-		public string Name { get; set; }
-
-		public string Id { get; set; }
+		public required string Id { get; set; }
 
 		public Balance Balance { get; set; }
 

@@ -1,2 +1,2 @@
-﻿Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time
+﻿Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time (UTC)
 NXT2yQdOutpLLE1Lz51xXt6uW,Exchange Cashback,BTC,0.00000040,BTC,0.00000040,$0.01072444,"approved / 0.1 % on top of your Exchange transaction",2023-10-12 10:44:32

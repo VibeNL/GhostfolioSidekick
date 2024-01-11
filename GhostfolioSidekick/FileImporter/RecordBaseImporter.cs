@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.FileImporter
 				return false;
 			}
 
-			return true;
+			return Task.FromResult(true);
 		}
 
 		public async Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Balance accountBalance)
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.FileImporter
 				{
 					foreach (var order in orders)
 					{
-						list.TryAdd(order.ReferenceCode, order);
+						list.TryAdd(order.ReferenceCode ?? Guid.NewGuid().ToString(), order);
 					}
 				}
 			};

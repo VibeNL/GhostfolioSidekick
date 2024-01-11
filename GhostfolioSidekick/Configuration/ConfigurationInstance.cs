@@ -7,19 +7,22 @@ namespace GhostfolioSidekick.Configuration
 	public class ConfigurationInstance
 	{
 		[JsonPropertyName("platforms")]
-		public PlatformConfiguration[] Platforms { get; set; }
+		public PlatformConfiguration[]? Platforms { get; set; }
 
 		[JsonPropertyName("accounts")]
-		public AccountConfiguration[] Accounts { get; set; }
+		public AccountConfiguration[]? Accounts { get; set; }
 
 		[JsonPropertyName("mappings")]
-		public Mapping[] Mappings { get; set; }
+		public Mapping[]? Mappings { get; set; }
 
 		[JsonPropertyName("symbols")]
-		public SymbolConfiguration[] Symbols { get; set; }
+		public SymbolConfiguration[]? Symbols { get; set; }
 
 		[JsonPropertyName("settings")]
 		public Settings Settings { get; set; } = new Settings();
+
+		[JsonPropertyName("benchmarks")]
+		public SymbolConfiguration[]? Benchmarks { get; set; }
 
 		public static ConfigurationInstance? Parse(string configuration)
 		{
@@ -35,7 +38,7 @@ namespace GhostfolioSidekick.Configuration
 
 		internal SymbolConfiguration? FindSymbol(string symbol)
 		{
-			return Symbols.SingleOrDefault(x => x.Symbol == symbol);
+			return Symbols?.SingleOrDefault(x => x.Symbol == symbol);
 		}
 	}
 }

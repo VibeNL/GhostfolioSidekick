@@ -5,20 +5,17 @@ namespace GhostfolioSidekick.Model
 	public class SymbolProfile
 	{
 		private string[] identifiers = new string[0];
-		private string comment;
-
-		public SymbolProfile()
-		{
-		}
+		private string? comment;
 
 		public SymbolProfile(
 			Currency currency,
 			string symbol,
-			string isin,
+			string? isin,
 			string name,
 			string dataSource,
-			AssetClass? assetClass,
-			AssetSubClass? assetSubClass)
+			AssetClass assetClass,
+			AssetSubClass? assetSubClass,
+			string? comment)
 		{
 			Currency = currency;
 			Symbol = symbol;
@@ -26,6 +23,7 @@ namespace GhostfolioSidekick.Model
 			Name = name;
 			DataSource = dataSource;
 			AssetSubClass = assetSubClass;
+			Comment = comment;
 			AssetClass = assetClass;
 		}
 		public Currency Currency { get; set; }
@@ -38,9 +36,9 @@ namespace GhostfolioSidekick.Model
 
 		public AssetSubClass? AssetSubClass { get; set; }
 
-		public AssetClass? AssetClass { get; set; }
+		public AssetClass AssetClass { get; set; }
 
-		public string ISIN { get; set; }
+		public string? ISIN { get; set; }
 
 		public int ActivitiesCount { get; set; }
 
@@ -48,7 +46,7 @@ namespace GhostfolioSidekick.Model
 
 		public ScraperConfiguration ScraperConfiguration { get; private set; } = new ScraperConfiguration();
 
-		public string Comment
+		public string? Comment
 		{
 			get => comment;
 			set
@@ -58,11 +56,7 @@ namespace GhostfolioSidekick.Model
 			}
 		}
 
-
-		public IEnumerable<string> Identifiers
-		{
-			get => identifiers;
-		}
+		public IEnumerable<string> Identifiers => identifiers;
 
 		private void ParseIdentifiers()
 		{

@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 	public class BitvavoRecord
 	{
 		[Name("Transaction ID")]
-		public string Transaction { get; set; }
+		public required string Transaction { get; set; }
 
 		[Format("yyyy-MM-dd")]
 		public DateOnly Date { get; set; }
@@ -14,9 +14,9 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		[Format("HH:mm:ss.fff", "HH:mm:ss")]
 		public TimeOnly Time { get; set; }
 
-		public string Type { get; set; }
+		public required string Type { get; set; }
 
-		public string Currency { get; set; }
+		public required string Currency { get; set; }
 
 		public decimal Amount { get; set; }
 
@@ -24,12 +24,12 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 		public decimal? Price { get; set; }
 
 		[Name("Fee currency")]
-		public string FeeCurrency { get; set; }
+		public required string FeeCurrency { get; set; }
 
 		[Name("Fee amount")]
 		public decimal? Fee { get; set; }
 
 		[Name("Status")]
-		public string Status { get; set; }
+		public required string Status { get; set; }
 	}
 }

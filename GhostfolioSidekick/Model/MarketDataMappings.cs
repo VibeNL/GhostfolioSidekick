@@ -2,6 +2,6 @@
 {
 	public class MarketDataMappings
 	{
-		public string TrackInsight { get; set; }
+		public string? TrackInsight { get; set; }
 	}
 }

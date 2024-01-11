@@ -1,5 +1,7 @@
 # GhostfolioSidekick
 
+[![Build & deploy application](https://github.com/VibeNL/GhostfolioSidekick/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/VibeNL/GhostfolioSidekick/actions/workflows/docker-publish.yml)
+
 A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. 
 The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). 
 It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
@@ -43,6 +45,7 @@ Also allows the following sybol settings
 ```
 {
     "settings" : {
+	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
 		"use.crypto.workaround.stakereward.as.dividends" : true, // default is false
 		"use.crypto.workaround.dust" : true // default is false,
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0
@@ -63,6 +66,10 @@ Also allows the following sybol settings
 		{ "symbol": "VFEM.L", "trackinsight": "VDEM" },
 		{ "symbol": "DE0001102333", "manualSymbolConfiguration": { "currency":"EUR", "isin":"DE0001102333","name":"Bond Germany Feb 2024","assetSubClass":"BOND","assetClass":"EQUITY" } },
 		{ "symbol": "PhysicalGoldEuroPerKilogram", "manualSymbolConfiguration": { "currency":"EUR", "isin":"PhysicalGoldEuroPerKilogram","name":"Physical Gold EUR/KG","assetSubClass":"PRECIOUS_METAL","assetClass":"COMMODITY", "scraperConfiguration":{ "url": "<url>", "selector":"<selector>"} } }
+	],
+	"benchmarks":[
+		{ "symbol": "^AEX" },
+		{ "symbol": "^SPX" },
 	]
 }
 
@@ -94,6 +101,9 @@ Any holding less than this value is considered dust and will be added to the las
 Creates platforms and accounts if not yet created
 
 Fields are identical to the UI
+
+#### Benchmarks
+Add a symbol as a benchmark
 
 #### Mappings
 Change an identifier from the imported files to be compatible with Ghostfolio (for example certain symbols may not be found by Ghostfolio, so we can substituting the identifier with one that is recognized). 
@@ -131,7 +141,7 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 |--|--|--|--|--|--|
 | Generic importer | See below | X | X | X | X |
 | Trading 212 | Export of transaction history | X | X | X | X |
-| De Giro | Export of account history | X | X | X | X |
+| De Giro | Export of account history (Language dependend, NL and PT supported currently) | X | X | X | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | NIBC (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
@@ -149,7 +159,10 @@ Beside the supported exchanges and brokers there is also a generic format. This 
 | Currency | The currency of the unitprice and fee |
 | Quantity | The amount of units |
 | UnitPrice | The paid price per unit |
-| Fee | The total fee paid for the transaction |
+| Fee | The total fee paid for the transaction. Is optional |
+| Tax | The total tax on the transaction, is used to adjust the unitprice. Is optional |
+| Description | A description, not used in ghostfolio itself. Is optional |
+| Id | The transaction id. Is optional |
 
 ##### Example
 

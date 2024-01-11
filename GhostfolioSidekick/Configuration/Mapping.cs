@@ -8,9 +8,9 @@ namespace GhostfolioSidekick.Configuration
 		public MappingType MappingType { get; set; }
 
 		[JsonPropertyName("source")]
-		public string Source { get; set; }
+		public required string Source { get; set; }
 
 		[JsonPropertyName("target")]
-		public string Target { get; set; }
+		public required string Target { get; set; }
 	}
 }

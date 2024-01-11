@@ -29,16 +29,15 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 			if (activityType == ActivityType.CashDeposit || activityType == ActivityType.CashWithdrawal)
 			{
 				var factor = activityType == ActivityType.CashWithdrawal ? -1 : 1;
-				activity = new Activity
-				{
-					Asset = null,
-					Date = dateTime,
-					Comment = TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
-					Quantity = 1,
-					ActivityType = activityType,
-					UnitPrice = new Money(CurrencyHelper.EUR, factor * record.Amount, dateTime),
-					ReferenceCode = record.Transaction,
-				};
+				activity = new Activity(
+					activityType,
+					null,
+					dateTime,
+					1,
+					new Money(CurrencyHelper.EUR, factor * record.Amount, dateTime),
+					null,
+					TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
+					record.Transaction);
 			}
 			else
 			{
@@ -51,17 +50,23 @@ namespace GhostfolioSidekick.FileImporter.Nexo
 					fees.Add(new Money(record.FeeCurrency, record.Fee.GetValueOrDefault(0), dateTime));
 				}
 
-				activity = new Activity
+				var unitprice = new Money(CurrencyHelper.EUR, 0, dateTime);
+
+				if (asset != null)
 				{
-					Asset = asset,
-					Date = dateTime,
-					Comment = TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
-					Quantity = Math.Abs(record.Amount),
-					ActivityType = activityType,
-					UnitPrice = await GetCorrectUnitPrice(new Money(CurrencyHelper.EUR, record.Price ?? 0, dateTime), asset, dateTime),
-					ReferenceCode = record.Transaction,
-					Fees = fees
-				};
+					unitprice = await GetCorrectUnitPrice(new Money(CurrencyHelper.EUR, record.Price ?? 0, dateTime), asset, dateTime);
+				}
+
+				activity = new Activity(
+					activityType,
+					asset,
+					dateTime,
+					Math.Abs(record.Amount),
+					unitprice,
+					fees,
+					TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
+					record.Transaction
+					);
 			}
 
 			activities.Add(activity);

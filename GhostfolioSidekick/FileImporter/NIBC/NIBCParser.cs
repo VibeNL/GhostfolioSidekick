@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 
 			if (activityType == null)
 			{
-				return [];
+				return Task.FromResult(Enumerable.Empty<Model.Activity>());
 			}
 
 			var id = record.TransactionID + (record.Description == "Bonusrente" ? "Bonus" : string.Empty);
@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 				id
 				);
 
-			return new[] { order };
+			return Task.FromResult<IEnumerable<Model.Activity>>(new[] { order });
 		}
 
 		private ActivityType? GetActivityType(NIBCRecord record)
@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.FileImporter.NIBC
 				HasHeaderRecord = true,
 				CacheFields = true,
 				Delimiter = ";",
-				ShouldSkipRecord = (r) => r.Row[0].StartsWith("Nr v/d rekening"),
+				ShouldSkipRecord = (r) => r.Row[0]!.StartsWith("Nr v/d rekening"),
 			};
 		}
 	}

@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.FileImporter.Bunq
 				id
 				);
 
-			return new[] { order };
+			return Task.FromResult<IEnumerable<Model.Activity>>(new[] { order });
 		}
 
 		private string ConvertRowNumber(BunqRecord record, IEnumerable<BunqRecord> allRecords)

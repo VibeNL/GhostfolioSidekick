@@ -2,6 +2,6 @@
 {
 	public class PlatformList
 	{
-		public Platform[] Platforms { get; set; }
+		public required Platform[] Platforms { get; set; }
 	}
 }

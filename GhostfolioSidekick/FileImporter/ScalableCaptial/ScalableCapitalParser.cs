@@ -41,8 +41,8 @@ namespace GhostfolioSidekick.FileImporter.ScalableCaptial
 
 		public async Task<IEnumerable<Activity>> ConvertToActivities(string fileName, Balance accountBalance)
 		{
-			var list = new ConcurrentDictionary<Tuple<SymbolProfile, Currency, DateTime, decimal, decimal>, Activity>();
-			Tuple<SymbolProfile, Currency, DateTime, decimal, decimal> GetKey(Activity x)
+			var list = new ConcurrentDictionary<Tuple<SymbolProfile?, Currency, DateTime, decimal, decimal>, Activity>();
+			Tuple<SymbolProfile?, Currency, DateTime, decimal, decimal> GetKey(Activity x)
 			{
 				return Tuple.Create(x.Asset, x.UnitPrice.Currency, x.Date, x.UnitPrice.Amount, x.Quantity);
 			};

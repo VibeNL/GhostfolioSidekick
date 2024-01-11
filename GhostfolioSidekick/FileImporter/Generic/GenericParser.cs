@@ -24,13 +24,22 @@ namespace GhostfolioSidekick.FileImporter.Generic
 				record.Id = $"{record.ActivityType}_{record.Symbol}_{record.Date.ToInvariantDateOnlyString()}_{record.Quantity.ToString(CultureInfo.InvariantCulture)}_{record.Currency}_{record.Fee?.ToString(CultureInfo.InvariantCulture)}";
 			}
 
-			var order = new Activity(
+			var unitPrice = new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.UnitPrice, record.Date);
+
+			if (record.Tax != null)
+			{
+				var totalWithTaxesSubtracted = (unitPrice.Amount * record.Quantity) - record.Tax.Value;
+				var newUnitPrice = totalWithTaxesSubtracted / record.Quantity;
+				unitPrice = new Model.Money(unitPrice.Currency, newUnitPrice, unitPrice.TimeOfRecord);
+			}
+
+			var order = new Model.Activity(
 				record.ActivityType,
 				asset,
 				record.Date,
 				record.Quantity,
-				new Money(CurrencyHelper.ParseCurrency(record.Currency), record.UnitPrice, record.Date),
-				new[] { new Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date) },
+				unitPrice,
+				new[] { new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date) },
 				TransactionReferenceUtilities.GetComment(record.Id, record.Symbol),
 				record.Id
 				);

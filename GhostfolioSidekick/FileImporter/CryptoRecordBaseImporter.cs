@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.FileImporter
 			settings = configurationInstance.Settings;
 		}
 
-		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, SymbolProfile? symbol, DateTime date)
+		protected async Task<Money> GetCorrectUnitPrice(Money originalUnitPrice, SymbolProfile symbol, DateTime date)
 		{
 			if (originalUnitPrice.Amount > 0)
 			{
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			// GetPrice from Ghostfolio
 			var price = await api.GetMarketPrice(symbol, date);
-			return price;
+			return price ?? new Money(symbol.Currency, 0, date);
 		}
 
 		protected async Task<SymbolProfile?> GetAsset(string assetName, Currency defaultCurrency)

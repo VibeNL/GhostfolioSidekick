@@ -5,9 +5,9 @@ namespace GhostfolioSidekick.Configuration
 	public class ScraperConfiguration
 	{
 		[JsonPropertyName("url")]
-		public string Url { get; set; }
+		public required string Url { get; set; }
 
 		[JsonPropertyName("selector")]
-		public string Selector { get; set; }
+		public required string Selector { get; set; }
 	}
 }
