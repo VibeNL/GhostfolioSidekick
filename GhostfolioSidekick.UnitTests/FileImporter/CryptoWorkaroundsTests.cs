@@ -87,7 +87,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		{
 			// Arrange
 			var quantity = 100;
-			var asset = new Fixture().Create<SymbolProfile>();
+			var asset = new Fixture()
+				.Build<SymbolProfile>()
+				.With(x => x.AssetSubClass, AssetSubClass.CRYPTOCURRENCY)
+				.Create();
 			var buy = new Fixture()
 								.Build<Activity>()
 								.With(x => x.Asset, asset)
@@ -120,7 +123,10 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		{
 			// Arrange
 			var quantity = 100;
-			var asset = new Fixture().Create<SymbolProfile>();
+			var asset = new Fixture()
+				.Build<SymbolProfile>()
+				.With(x => x.AssetSubClass, AssetSubClass.CRYPTOCURRENCY)
+				.Create();
 			var buy = new Fixture()
 								.Build<Activity>()
 								.With(x => x.Asset, asset)
