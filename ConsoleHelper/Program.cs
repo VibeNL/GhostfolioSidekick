@@ -1,6 +1,8 @@
 ﻿using GhostfolioSidekick;
 using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.FileImporter.Bitvavo;
 using GhostfolioSidekick.FileImporter.Bunq;
+using GhostfolioSidekick.FileImporter.Coinbase;
 using GhostfolioSidekick.FileImporter.DeGiro;
 using GhostfolioSidekick.FileImporter.Generic;
 using GhostfolioSidekick.FileImporter.Nexo;
@@ -37,6 +39,7 @@ namespace ConsoleHelper
 			new FileImporterTask(logger, api, cs, new IFileImporter[] {
 				new BitvavoParser(cs, api),
 				new BunqParser(api),
+				new CoinbaseParser(cs, api),
 				new DeGiroParserNL(api),
 				new DeGiroParserPT(api),
 				new GenericParser(api),

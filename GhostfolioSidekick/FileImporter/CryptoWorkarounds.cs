@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.FileImporter
 
 		internal class Holding
 		{
-			public List<Activity> Activities { get; } = [];
+			public List<Activity> Activities { get; private set; } = [];
 
 			internal void AddActivity(Activity item)
 			{
@@ -68,9 +68,13 @@ namespace GhostfolioSidekick.FileImporter
 
 			internal void ApplyDustCorrection(decimal dustThreashold)
 			{
+				Activities = Activities.OrderBy(x => x.Date).ToList();
+
 				var amount = GetAmount();
 				// Should always be a sell or send as we have dust!
-				var lastActivity = Activities.Where(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send).OrderBy(x => x.Date).LastOrDefault();
+				var lastActivity = Activities
+					.Where(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send)
+					.LastOrDefault();
 				if (lastActivity?.UnitPrice == null)
 				{
 					return;
