@@ -149,8 +149,8 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 
 		private string ConvertRowNumber(CoinbaseRecord record, IEnumerable<CoinbaseRecord> allRecords)
 		{
-			var groupedByDate = allRecords.GroupBy(x => x.Timestamp);
-			IGrouping<DateTime, CoinbaseRecord> group = groupedByDate.Single(x => x.Key == record.Timestamp);
+			var groupedByDate = allRecords.GroupBy(x => x.Timestamp.Date);
+			IGrouping<DateTime, CoinbaseRecord> group = groupedByDate.Single(x => x.Key == record.Timestamp.Date);
 			if (group.Count() == 1)
 			{
 				return string.Empty;
