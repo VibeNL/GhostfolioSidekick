@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 			}
 
 			id = $"{ActivityType.Sell}{ConvertRowNumber(record, allRecords)}_{date.ToInvariantDateOnlyString()}";
-			var buyActivity = new Activity(
+			var sellActivity = new Activity(
 					ActivityType.Sell,
 					asset,
 					date,
@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 
 			var unitprice2 = await GetCorrectUnitPrice(new Money(record.Currency, 0, date), asset2!, date);
 			var id2 = $"{ActivityType.Buy}{ConvertRowNumber(record, allRecords)}_{date.ToInvariantDateOnlyString()}";
-			var sellActivity = new Activity(
+			var buyActivity = new Activity(
 					ActivityType.Buy,
 					asset2,
 					date,
@@ -95,13 +95,13 @@ namespace GhostfolioSidekick.FileImporter.Coinbase
 					TransactionReferenceUtilities.GetComment(id2, parsedAsset),
 					id2
 					);
-			return [buyActivity, sellActivity];
+			return [sellActivity, buyActivity];
 		}
 
 		private (decimal, string) ParseNote(string note)
 		{
 			// Converted 0.00087766 ETH to 1.629352 USDC
-			var match = Regex.Match(note, "Converted ([+-]?(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*)) ([A-Za-z0-9]+) to ([+-]?(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*)) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+			var match = Regex.Match(note, "Converted ([0-9.,]+) ([A-Za-z0-9]+) to ([0-9.,]+) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
 			var quantity = match.Groups[3].Value;
 			var asset = match.Groups[4].Value;
 
