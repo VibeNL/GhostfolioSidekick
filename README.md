@@ -48,7 +48,8 @@ Also allows the following sybol settings
 	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
 		"use.crypto.workaround.stakereward.as.dividends" : true, // default is false
 		"use.crypto.workaround.dust" : true // default is false,
-		"use.crypto.workaround.dust.threshold": 0.01 // default is 0
+		"use.crypto.workaround.dust.threshold": 0.01 // default is 0,
+		"delete.unused.symbols": false // default is true
 	},
 	"platforms":[
 		{ "name": "De Giro", "url":"https://www.degiro.nl/" }
@@ -65,7 +66,7 @@ Also allows the following sybol settings
 		{ "symbol": "VDUC.L", "trackinsight": "VUSC" },
 		{ "symbol": "VFEM.L", "trackinsight": "VDEM" },
 		{ "symbol": "DE0001102333", "manualSymbolConfiguration": { "currency":"EUR", "isin":"DE0001102333","name":"Bond Germany Feb 2024","assetSubClass":"BOND","assetClass":"EQUITY" } },
-		{ "symbol": "PhysicalGoldEuroPerKilogram", "manualSymbolConfiguration": { "currency":"EUR", "isin":"PhysicalGoldEuroPerKilogram","name":"Physical Gold EUR/KG","assetSubClass":"PRECIOUS_METAL","assetClass":"COMMODITY", "scraperConfiguration":{ "url": "<url>", "selector":"<selector>"} } }
+		{ "symbol": "PhysicalGoldEuroPerKilogram", "manualSymbolConfiguration": { "currency":"EUR", "isin":"PhysicalGoldEuroPerKilogram","name":"Physical Gold EUR/KG","assetSubClass":"PRECIOUS_METAL","assetClass":"COMMODITY", "scraperConfiguration":{ "url": "<url>", "selector":"<selector>", "locale":"<locale>"} } }
 	],
 	"benchmarks":[
 		{ "symbol": "^AEX" },
@@ -132,7 +133,7 @@ Maintaining symbols in ghostfolio
 | name | any string | The name of the symbol |
 | assetSubClass | one of: 'CRYPTOCURRENCY', 'ETF', 'STOCK', 'MUTUALFUND', 'BOND', 'COMMODITY', 'PRECIOUS_METAL', 'PRIVATE_EQUITY'| Same list as Ghostfolio |
 | assetClass | one of: 'CASH', 'COMMODITY', 'EQUITY', 'FIXED_INCOME', 'REAL_ESTATE' | Same list as Ghostfolio |
-| scraperConfiguration| object with url and selector | The scraperconfiguration as used in Ghostfolio (NOTE: no support for headers yet)|
+| scraperConfiguration| object with url, selector and optional locale | The scraperconfiguration as used in Ghostfolio (NOTE: no support for headers yet)|
 
 ### Supported formats
 The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.

@@ -33,7 +33,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			api.ClearCache();
 
-			await TryCatch(DeleteUnusedSymbols());
+			if (configurationInstance.Settings.DeleteUnusedSymbols)
+			{
+				await TryCatch(DeleteUnusedSymbols());
+			}
+
 			await TryCatch(ManageManualSymbols());
 			await TryCatch(SetTrackingInsightOnSymbols());
 			await TryCatch(CreateBenchmarks());
