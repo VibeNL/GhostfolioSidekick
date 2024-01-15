@@ -463,6 +463,11 @@ namespace GhostfolioSidekick.Ghostfolio.API
 			{
 				scraperConfiguration.Add("url", asset.ScraperConfiguration.Url);
 				scraperConfiguration.Add("selector", asset.ScraperConfiguration.Selector);
+
+				if (!string.IsNullOrWhiteSpace(asset.ScraperConfiguration.Locale))
+				{
+					scraperConfiguration.Add("locale", asset.ScraperConfiguration.Locale);
+				}
 			}
 
 			var o = new JObject
