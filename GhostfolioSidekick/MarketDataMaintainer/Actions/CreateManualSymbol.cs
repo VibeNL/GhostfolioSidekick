@@ -148,10 +148,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer.Actions
 
 			// Set scraper
 			if (symbol.ScraperConfiguration.Url != manualSymbolConfiguration?.ScraperConfiguration?.Url ||
-				symbol.ScraperConfiguration.Selector != manualSymbolConfiguration?.ScraperConfiguration?.Selector)
+				symbol.ScraperConfiguration.Selector != manualSymbolConfiguration?.ScraperConfiguration?.Selector ||
+				symbol.ScraperConfiguration.Locale != manualSymbolConfiguration?.ScraperConfiguration?.Locale
+				)
 			{
 				symbol.ScraperConfiguration.Url = manualSymbolConfiguration?.ScraperConfiguration?.Url;
 				symbol.ScraperConfiguration.Selector = manualSymbolConfiguration?.ScraperConfiguration?.Selector;
+				symbol.ScraperConfiguration.Locale = manualSymbolConfiguration?.ScraperConfiguration?.Locale;
 				await api.UpdateSymbol(symbol);
 			}
 		}

@@ -9,5 +9,8 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("selector")]
 		public required string Selector { get; set; }
+
+		[JsonPropertyName("locale")]
+		public string? Locale { get; set; }
 	}
 }
