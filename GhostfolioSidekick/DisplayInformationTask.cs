@@ -33,11 +33,12 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"GhostfolioUrl : {applicationSettings.GhostfolioUrl}");
 			sb.AppendLine($"FileImporterPath : {applicationSettings.FileImporterPath}");
 
-			sb.AppendLine($"DataProviderPreference : {applicationSettings.ConfigurationInstance.Settings.DataProviderPreference}");
-			sb.AppendLine($"CryptoWorkaroundStakeReward : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward}");
 			sb.AppendLine($"CryptoWorkaroundDust : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundDust}");
 			sb.AppendLine($"CryptoWorkaroundDustThreshold : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundDustThreshold.ToString(CultureInfo.InvariantCulture)}");
-
+			sb.AppendLine($"CryptoWorkaroundStakeReward : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward}");
+			sb.AppendLine($"DataProviderPreference : {applicationSettings.ConfigurationInstance.Settings.DataProviderPreference}");
+			sb.AppendLine($"DeleteUnusedSymbols : {applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols}");
+			
 			logger.LogInformation(sb.ToString());
 		}
 	}

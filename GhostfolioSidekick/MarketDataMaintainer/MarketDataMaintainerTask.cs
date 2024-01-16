@@ -3,6 +3,8 @@ using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.MarketDataMaintainer.Actions;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
@@ -80,12 +82,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private async Task DeleteUnusedSymbols()
 		{
 			var marketDataList = await api.GetMarketData();
-			foreach (var marketData in marketDataList)
+			foreach (var marketData in from marketData in marketDataList
+									   where marketData.AssetProfile.ActivitiesCount == 0 && (configurationInstance.Settings.DeleteUnusedSymbols || IsGeneratedSymbol(marketData.AssetProfile))
+									   select marketData)
 			{
-				if (marketData.AssetProfile.ActivitiesCount == 0)
-				{
-					await api.DeleteSymbol(marketData.AssetProfile);
-				}
+				await api.DeleteSymbol(marketData.AssetProfile);
+			}
+
+			static bool IsGeneratedSymbol(Model.SymbolProfile assetProfile)
+			{
+				var guidRegex = new Regex("^(?:\\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\\}{0,1})$");
+				return guidRegex.IsMatch(assetProfile.Symbol) && assetProfile.DataSource == "MANUAL";
 			}
 		}
 
