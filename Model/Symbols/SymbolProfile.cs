@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Market;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
@@ -23,5 +24,9 @@ namespace GhostfolioSidekick.Model.Symbols
 		public AssetSubClass? AssetSubClass { get; set; } = assetSubClass;
 
 		public string? ISIN { get; set; }
+
+		public MarketDataMappings Mappings { get; private set; } = new MarketDataMappings();
+
+		public ScraperConfiguration ScraperConfiguration { get; private set; } = new ScraperConfiguration();
 	}
 }

@@ -19,7 +19,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
 {
-	internal class Program
+	internal static class Program
 	{
 		static async Task Main(string[] args)
 		{

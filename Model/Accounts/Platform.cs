@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Account
+﻿namespace GhostfolioSidekick.Model.Accounts
 {
 	public class Platform(
 		string name,
