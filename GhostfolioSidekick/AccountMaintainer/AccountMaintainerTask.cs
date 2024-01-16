@@ -3,7 +3,7 @@ using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.Ghostfolio.API;
 using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick.MarketDataMaintainer
+namespace GhostfolioSidekick.AccountMaintainer
 {
 	public class AccountMaintainerTask : IScheduledWork
 	{
@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.api = api ?? throw new ArgumentNullException(nameof(api));
-			this.configurationInstance = applicationSettings.ConfigurationInstance;
+			configurationInstance = applicationSettings.ConfigurationInstance;
 		}
 
 		public async Task DoWork()
