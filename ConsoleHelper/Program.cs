@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick;
+using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.FileImporter.Bitvavo;
 using GhostfolioSidekick.FileImporter.Bunq;
@@ -15,7 +16,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace ConsoleHelper
 {
-	internal class Program
+	internal static class Program
 	{
 		private static ConsoleLogger logger = new();
 
