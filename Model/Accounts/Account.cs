@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick.Model
+﻿using GhostfolioSidekick.Model.Accounts;
+
+namespace GhostfolioSidekick.Model.Account
 {
 	public class Account(string name, Balance balance)
 	{

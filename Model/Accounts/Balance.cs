@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model
+﻿namespace GhostfolioSidekick.Model.Accounts
 {
 	public class Balance(Currency currency)
 	{

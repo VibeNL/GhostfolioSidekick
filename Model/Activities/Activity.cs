@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick.Model
+﻿using GhostfolioSidekick.Model.Symbols;
+
+namespace GhostfolioSidekick.Model.Activities
 {
 	public class Activity(
 		ActivityType activityType,

@@ -1,10 +1,12 @@
-﻿namespace GhostfolioSidekick.Model
+﻿using GhostfolioSidekick.Model.Activities;
+
+namespace GhostfolioSidekick.Model.Symbols
 {
 	public class SymbolProfile(
 		string symbol,
 		string name,
 		Currency currency,
-		string dataSource,
+		Datasource dataSource,
 		AssetClass assetClass,
 		AssetSubClass? assetSubClass)
 	{
@@ -14,7 +16,7 @@
 
 		public string Name { get; set; } = name;
 
-		public string DataSource { get; set; } = dataSource;
+		public Datasource DataSource { get; set; } = dataSource;
 
 		public AssetClass AssetClass { get; set; } = assetClass;
 
