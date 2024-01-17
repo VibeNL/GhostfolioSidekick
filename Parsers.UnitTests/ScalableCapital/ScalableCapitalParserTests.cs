@@ -5,7 +5,7 @@ using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests.FileImporter.ScalableCapital
+namespace Parsers.UnitTests.ScalableCapital
 {
 	public class ScalableCapitalParserTests
 	{

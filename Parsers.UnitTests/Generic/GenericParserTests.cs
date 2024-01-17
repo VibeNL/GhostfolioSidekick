@@ -5,7 +5,7 @@ using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests.FileImporter.Generic
+namespace Parsers.UnitTests.Generic
 {
 	public class GenericParserTests
 	{

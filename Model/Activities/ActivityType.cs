@@ -32,6 +32,8 @@
 
 		CashConvert,
 
-		Tax
+		Tax,
+
+		KnownBalance
 	}
 }

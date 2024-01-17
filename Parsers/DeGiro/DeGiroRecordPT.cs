@@ -48,6 +48,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public override ActivityType? GetActivityType()
 		{
+			if (string.IsNullOrWhiteSpace(Description))
+			{
+				return null;
+			}
+
 			if (Description == "Comissões de transação DEGIRO e/ou taxas de terceiros")
 			{
 				return ActivityType.Fee;

@@ -5,7 +5,7 @@ using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests.FileImporter.Trading212
+namespace Parsers.UnitTests.Trading212
 {
 	public class Trading212Tests
 	{

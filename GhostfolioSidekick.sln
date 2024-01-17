@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model", "Model\Model.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GhostfolioAPI", "GhostfolioAPI\GhostfolioAPI.csproj", "{189A9D4D-BD1D-4A00-873C-7A784A8C0C54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parsers", "Parsers\Parsers.csproj", "{2058275F-39F1-4CAE-BD39-56C5D6ACE086}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parsers", "Parsers\Parsers.csproj", "{2058275F-39F1-4CAE-BD39-56C5D6ACE086}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parsers.UnitTests", "Parsers.UnitTests\Parsers.UnitTests.csproj", "{74E7BD86-97AA-43F7-858A-992B611F31BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{2058275F-39F1-4CAE-BD39-56C5D6ACE086}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2058275F-39F1-4CAE-BD39-56C5D6ACE086}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2058275F-39F1-4CAE-BD39-56C5D6ACE086}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74E7BD86-97AA-43F7-858A-992B611F31BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74E7BD86-97AA-43F7-858A-992B611F31BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74E7BD86-97AA-43F7-858A-992B611F31BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74E7BD86-97AA-43F7-858A-992B611F31BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

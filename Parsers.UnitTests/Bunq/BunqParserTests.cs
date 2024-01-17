@@ -1,31 +1,34 @@
 using AutoFixture;
 using FluentAssertions;
-using GhostfolioSidekick.FileImporter.Bunq;
-using GhostfolioSidekick.Ghostfolio.API;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Parsers.Bunq;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
+namespace Parsers.UnitTests.Bunq
 {
 	public class BunqParserTests
 	{
-		readonly Mock<IGhostfolioAPI> api;
+		private string accountName = "ABC";
+		private Account account;
 
 		public BunqParserTests()
 		{
-			api = new Mock<IGhostfolioAPI>();
+			var fixture = new Fixture();
+			account = fixture.Build<Account>().With(x => x.Balance, new Balance(Currency.EUR)).Create();
 		}
 
 		[Fact]
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange
-			var parser = new BunqParser(api.Object);
+			var parser = new BunqParser();
 
 			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/Bunq/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(new[] { file });
+				var canParse = await parser.CanParseActivities(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -36,17 +39,20 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Bunq
 		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
 		{
 			// Arrange
-			var parser = new BunqParser(api.Object);
-			var fixture = new Fixture();
-
-			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
-
-			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			var parser = new BunqParser();
+			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_deposit.csv" });
+			await parser.ParseActivities("./FileImporter/TestFiles/Bunq/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, accountName);
 
 			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				new PartialActivity()
+				{
+
+				}
+				);
+
 			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1000M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
 		}
 

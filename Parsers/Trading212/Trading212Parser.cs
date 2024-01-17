@@ -14,7 +14,8 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		protected override IEnumerable<PartialActivity> ParseRow(Trading212Record record, int rowNumber)
 		{
 			var lst = new List<PartialActivity>();
-			var currency = new Currency(string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency);
+			string? currencySymbol = string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency;
+			var currency = new Currency(currencySymbol!);
 
 			switch (record.Action)
 			{

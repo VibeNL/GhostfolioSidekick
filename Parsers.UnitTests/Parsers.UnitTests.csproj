@@ -1,0 +1,225 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoFixture" Version="4.18.1" />
+		<PackageReference Include="FluentAssertions" Version="6.12.0" />
+
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
+
+		<PackageReference Include="Moq" Version="4.20.70" />
+		<PackageReference Include="xunit" Version="2.4.2" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="coverlet.collector" Version="6.0.0">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="TestFiles\Bitvavo\Interest\" />
+		<Folder Include="TestFiles\Bitvavo\Specials\" />
+		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
+		<Folder Include="TestFiles\Generic\SellOrders\" />
+		<Folder Include="TestFiles\Nexo\SellOrders\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Parsers\Parsers.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="TestFiles\Bitvavo\BuyOrders\single_buy.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\CashTransactions\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\CashTransactions\single_withdrawal.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\Receive\single_receive.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\SellOrders\single_sell.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bunq\CashTransactions\multiple_deposits.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bunq\CashTransactions\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bunq\CashTransactions\single_interest.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bunq\CashTransactions\single_withdrawal.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Coinbase\BuyOrders\single_buy.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Coinbase\BuyOrders\single_convert.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Coinbase\SellOrders\single_sell.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_euro.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_euro_multipart.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_euro_whole_number.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_usd.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\CashTransactions\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\CashTransactions\single_dividend.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\CashTransactions\single_dividend_notax.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\SellOrders\single_sell_euro.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\NL\SellOrders\single_sell_usd.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\PT\BuyOrders\single_buy_euro.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\PT\CashTransactions\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\PT\CashTransactions\single_fee.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\PT\SellOrders\single_sell_euro.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\BuyOrders\single_buy.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\CashTransactions\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\CashTransactions\single_dividend.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\CashTransactions\single_fee.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\CashTransactions\single_withdrawal.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\BuyOrders\single_buy.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\BuyOrders\single_convert.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\CashTransactions\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Interest\single_interest_crypto.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Specials\single_cashback_crypto.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Specials\single_cashback_fiat.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Specials\single_lock_fix_term.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Specials\single_referralbonus_approved.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Specials\single_referralbonus_pending.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Specials\single_unlock_fix_term.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\NIBC\CashTransactions\single_bonus_interest.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\NIBC\CashTransactions\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\NIBC\CashTransactions\single_interest.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\NIBC\CashTransactions\single_withdrawal.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\BuyOrders\SingleBuy\rkk.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\BuyOrders\SingleBuy\wum.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\CashTransactions\single_dividend.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\CashTransactions\single_known_saldo.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\SellOrders\SingleSell\rkk.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\SellOrders\SingleSell\wum.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\BuyOrders\single_buy_euro_french_taxes.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\BuyOrders\single_buy_euro_uk_taxes.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\BuyOrders\single_buy_gbp.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\BuyOrders\single_buy_usd.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\CashTransactions\single_convert_currencies.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\CashTransactions\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\CashTransactions\single_dividend.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\CashTransactions\single_interest.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\CashTransactions\single_withdrawal.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\SellOrders\single_sell_euro.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+</Project>
