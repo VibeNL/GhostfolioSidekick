@@ -174,28 +174,15 @@ namespace Parsers.UnitTests.DeGiro
 			await parser.ParseActivities("./TestFiles/DeGiro/NL//CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
+			var transactionId = holdingsAndAccountsCollection.PartialActivities.Single(x => x.ActivityType == ActivityType.Dividend).TransactionId;
+			transactionId.Should().NotBeNullOrWhiteSpace();
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M, null),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 24.39M, null),
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 9.57M, string.Empty),
-					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 1.44M, string.Empty)
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 9.57M, transactionId),
+					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 1.44M, transactionId)
 				]);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
-				24.39M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
-			{
-				new Activity(
-					ActivityType.Dividend,
-					asset,
-					new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
-					1,
-					new Money(DefaultCurrency.EUR, 8.13M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)),
-					Enumerable.Empty<Money>(),
-					"Transaction Reference: [Dividend_2023-09-14_06:32_NL0009690239] (Details: asset NL0009690239)",
-					"Dividend_2023-09-14_06:32_NL0009690239"
-					)
-			});*/
 		}
 
 		[Fact]
@@ -212,21 +199,6 @@ namespace Parsers.UnitTests.DeGiro
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M, null),
 					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 9.57M, string.Empty),
 				]);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
-				33.96M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
-			{
-				new Activity(
-					ActivityType.Dividend,
-					asset,
-					new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
-					1,
-					new Money(DefaultCurrency.EUR, 9.57M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)),
-					Enumerable.Empty<Money>(),
-					"Transaction Reference: [Dividend_2023-09-14_06:32_NL0009690239] (Details: asset NL0009690239)",
-					"Dividend_2023-09-14_06:32_NL0009690239"
-					)
-			});*/
 		}
 	}
 }
