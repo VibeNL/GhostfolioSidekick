@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
@@ -29,10 +29,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		public virtual string? TransactionId { get; set; }
 
 		public abstract ActivityType? GetActivityType();
-
-		public abstract bool IsFee();
-
-		public abstract bool IsTaxes();
 
 		public abstract decimal GetQuantity();
 

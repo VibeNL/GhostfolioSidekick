@@ -1,5 +1,5 @@
 ﻿using CsvHelper.Configuration.Attributes;
-using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -48,9 +48,9 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public override ActivityType? GetActivityType()
 		{
-			if (Description == null)
+			if (Description == "Comissões de transação DEGIRO e/ou taxas de terceiros")
 			{
-				return null;
+				return ActivityType.Fee;
 			}
 
 			if (Description.Contains("Venda"))
@@ -104,16 +104,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			var quantity = Regex.Match(Description!, $"[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+)").Groups[3].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
-		}
-
-		public override bool IsFee()
-		{
-			return Description == "Comissões de transação DEGIRO e/ou taxas de terceiros";
-		}
-
-		public override bool IsTaxes()
-		{
-			return false; // Not implemented
 		}
 
 		private CultureInfo GetCultureForParsingNumbers()

@@ -1,8 +1,10 @@
-﻿namespace GhostfolioSidekick.Parsers.Generic
+﻿using GhostfolioSidekick.Model.Activities;
+
+namespace GhostfolioSidekick.Parsers.Generic
 {
 	public class GenericRecord
 	{
-		public Model.ActivityType ActivityType { get; set; }
+		public ActivityType ActivityType { get; set; }
 
 		public string? Symbol { get; set; }
 

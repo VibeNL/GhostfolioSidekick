@@ -1,49 +1,75 @@
 ﻿using CsvHelper.Configuration;
-using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Generic
 {
 	public class GenericParser : RecordBaseImporter<GenericRecord>
 	{
-		public GenericParser(IGhostfolioAPI api) : base(api)
+		public GenericParser()
 		{
 		}
 
-		protected override async Task<IEnumerable<Model.Activity>> ConvertOrders(GenericRecord record, Model.Account account, IEnumerable<GenericRecord> allRecords)
+		protected override async Task<IEnumerable<PartialActivity>> ParseRow(GenericRecord record, int rowNumber)
 		{
-			var asset = string.IsNullOrWhiteSpace(record.Symbol) ? null : await api.FindSymbolByIdentifier(
-				record.Symbol,
-				CurrencyHelper.ParseCurrency(record.Currency) ?? account.Balance.Currency,
-				null,
-				null);
-
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
 				record.Id = $"{record.ActivityType}_{record.Symbol}_{record.Date.ToInvariantDateOnlyString()}_{record.Quantity.ToString(CultureInfo.InvariantCulture)}_{record.Currency}_{record.Fee?.ToString(CultureInfo.InvariantCulture)}";
 			}
 
-			var unitPrice = new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.UnitPrice, record.Date);
+			var lst = new List<PartialActivity>();
+			var currency = new Currency(record.Currency);
+			var unitPrice = new Money(currency, record.UnitPrice);
 
 			if (record.Tax != null)
 			{
-				var totalWithTaxesSubtracted = unitPrice.Amount * record.Quantity - record.Tax.Value;
-				var newUnitPrice = totalWithTaxesSubtracted / record.Quantity;
-				unitPrice = new Model.Money(unitPrice.Currency, newUnitPrice, unitPrice.TimeOfRecord);
+				lst.Add(PartialActivity.CreateTax(currency, record.Date, record.Tax.Value, record.Id));
+			}
+			if (record.Fee != null)
+			{
+				lst.Add(PartialActivity.CreateFee(currency, record.Date, record.Fee.Value, record.Id));
 			}
 
-			var order = new Model.Activity(
-				record.ActivityType,
-				asset,
-				record.Date,
-				record.Quantity,
-				unitPrice,
-				new[] { new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), record.Fee ?? 0, record.Date) },
-				TransactionReferenceUtilities.GetComment(record.Id, record.Symbol),
-				record.Id
-				);
+			switch (record.ActivityType)
+			{
+				case ActivityType.Receive: // TODO
+				case ActivityType.Buy:
+					lst.Add(PartialActivity.CreateBuy(currency, record.Date, record.Symbol!, record.Quantity, unitPrice, record.Id));
+					break;
+				case ActivityType.Send: // TODO
+				case ActivityType.Sell:
+					lst.Add(PartialActivity.CreateSell(currency, record.Date, record.Symbol!, record.Quantity, unitPrice, record.Id));
+					break;
+				case ActivityType.Dividend:
+					lst.Add(PartialActivity.CreateDividend(currency, record.Date, record.Symbol!, record.UnitPrice, record.Id));
+					break;
+				case ActivityType.Interest:
+					lst.Add(PartialActivity.CreateInterest(currency, record.Date, record.UnitPrice, record.Id));
+					break;
+				case ActivityType.Fee:
+					lst.Add(PartialActivity.CreateFee(currency, record.Date, record.UnitPrice, record.Id));
+					break;
+				case ActivityType.Gift:
+					lst.Add(PartialActivity.CreateGift(currency, record.Date, record.UnitPrice, record.Id));
+					break;
+				case ActivityType.CashDeposit:
+					lst.Add(PartialActivity.CreateCashDeposit(currency, record.Date, record.UnitPrice, record.Id));
+					break;
+				case ActivityType.CashWithdrawal:
+					lst.Add(PartialActivity.CreateCashWithdrawal(currency, record.Date, record.UnitPrice, record.Id));
+					break;
+				case ActivityType.Tax:
+					lst.Add(PartialActivity.CreateTax(currency, record.Date, record.UnitPrice, record.Id));
+					break;
+				case ActivityType.LearningReward:
+				case ActivityType.StakingReward:
+				case ActivityType.Convert:
+				default:
+					throw new NotSupportedException();
+			}
 
-			return new[] { order };
+			return lst.ToList();
 		}
 
 		protected override CsvConfiguration GetConfig()

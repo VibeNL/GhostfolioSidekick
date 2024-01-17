@@ -1,5 +1,5 @@
 ﻿using CsvHelper.Configuration.Attributes;
-using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -46,21 +46,21 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		[Name("Order Id")]
 		public override string? TransactionId { get; set; }
 
-		public override bool IsFee()
-		{
-			return Description == "DEGIRO Transactiekosten en/of kosten van derden";
-		}
-
-		public override bool IsTaxes()
-		{
-			return Description == "Dividendbelasting";
-		}
-
 		public override ActivityType? GetActivityType()
 		{
 			if (Description == null)
 			{
 				return null;
+			}
+
+			if (Description == "DEGIRO Transactiekosten en/of kosten van derden")
+			{
+				return ActivityType.Fee;
+			}
+
+			if (Description == "Dividendbelasting")
+			{
+				return ActivityType.Tax;
 			}
 
 			if (Description.Contains("Verkoop")) // check Verkoop first because otherwise koop get's triggered

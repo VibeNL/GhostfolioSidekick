@@ -1,33 +1,37 @@
 ﻿namespace GhostfolioSidekick.Model.Activities
 {
-    public enum ActivityType
-    {
-        Undefined = 0,
+	public enum ActivityType
+	{
+		Undefined = 0,
 
-        Buy,
+		Buy,
 
-        Sell,
+		Sell,
 
-        Dividend,
+		Dividend,
 
-        Send,
+		Send,
 
-        Receive,
+		Receive,
 
-        Interest,
+		Interest,
 
-        Fee,
+		Fee,
 
-        Gift,
+		Gift,
 
-        LearningReward,
+		LearningReward,
 
-        StakingReward,
+		StakingReward,
 
-        Convert,
+		Convert,
 
-        CashDeposit,
+		CashDeposit,
 
-        CashWithdrawal
-    }
+		CashWithdrawal,
+
+		CashConvert,
+
+		Tax
+	}
 }

@@ -1,58 +1,35 @@
 ﻿using CsvHelper.Configuration;
-using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.NIBC
 {
 	public class NIBCParser : RecordBaseImporter<NIBCRecord>
 	{
-		public NIBCParser(IGhostfolioAPI api) : base(api)
+		public NIBCParser()
 		{
 		}
 
-		protected override Task<IEnumerable<Model.Activity>> ConvertOrders(NIBCRecord record, Model.Account account, IEnumerable<NIBCRecord> allRecords)
+		protected override async Task<IEnumerable<PartialActivity>> ParseRow(NIBCRecord record, int rowNumber)
 		{
-			var activityType = GetActivityType(record);
-
-			if (activityType == null)
-			{
-				return Task.FromResult(Enumerable.Empty<Model.Activity>());
-			}
-
-			var id = record.TransactionID + (record.Description == "Bonusrente" ? "Bonus" : string.Empty);
-
-			var order = new Model.Activity(
-				activityType.Value,
-				null,
-				record.Date,
-				1,
-				new Model.Money(CurrencyHelper.ParseCurrency(record.Currency), Math.Abs(record.Amount), record.Date),
-				null,
-				TransactionReferenceUtilities.GetComment(id),
-				id
-				);
-
-			return Task.FromResult<IEnumerable<Model.Activity>>(new[] { order });
-		}
-
-		private Model.ActivityType? GetActivityType(NIBCRecord record)
-		{
+			var currency = new Currency(record.Currency);
 			if (record.Description == "Inkomende overboeking")
 			{
-				return Model.ActivityType.CashDeposit;
+				return [PartialActivity.CreateCashDeposit(currency, record.Date, Math.Abs(record.Amount), null)];
 			}
 
 			if (record.Description == "Uitgaande overboeking")
 			{
-				return Model.ActivityType.CashWithdrawal;
+				return [PartialActivity.CreateCashWithdrawal(currency, record.Date, Math.Abs(record.Amount), null)];
 			}
 
 			if (record.Description == "Renteuitkering" || record.Description == "Bonusrente")
 			{
-				return Model.ActivityType.Interest;
+				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), null)];
 			}
 
-			return null;
+			return [];
 		}
 
 		protected override CsvConfiguration GetConfig()

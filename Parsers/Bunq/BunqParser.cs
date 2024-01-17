@@ -16,12 +16,12 @@ namespace GhostfolioSidekick.Parsers.Bunq
 			var currency = new Currency("EUR");
 			if (record.Name == "bunq" && record.Description.Contains("bunq Payday"))
 			{
-				return [PartialActivity.CreateInterest(currency, Math.Abs(record.Amount), record.Date)];
+				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount))];
 			}
 
 			return record.Amount >= 0 ?
-				[PartialActivity.CreateCashDeposit(currency, Math.Abs(record.Amount), record.Date)] :
-				[PartialActivity.CreateCashWithdrawal(currency, Math.Abs(record.Amount), record.Date)];
+				[PartialActivity.CreateCashDeposit(currency, record.Date, Math.Abs(record.Amount))] :
+				[PartialActivity.CreateCashWithdrawal(currency, record.Date, Math.Abs(record.Amount))];
 		}
 
 		protected override CsvConfiguration GetConfig()
