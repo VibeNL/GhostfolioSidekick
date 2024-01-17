@@ -87,7 +87,7 @@ namespace Parsers.UnitTests.DeGiro
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 42.92M, null),
-					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, "2023-12-28 04:51:00:+01:00___EUR")
+					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, "CashDeposit_2023-12-28 04:51:00:+01:00___EUR")
 				]);
 		}
 
@@ -103,22 +103,8 @@ namespace Parsers.UnitTests.DeGiro
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc), 102.18M, null),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc), 2.5M, "2023-01-03 14:06:00:+01:00___EUR")
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc), 2.5M, "Fee_2023-01-03 14:06:00:+01:00___EUR")
 				]);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 102.18M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
-				{
-				new Activity(
-					ActivityType.Fee,
-					null,
-					new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc),
-					1,
-					new Money(DefaultCurrency.EUR, 2.50M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)),
-					new Money[0],
-					"Transaction Reference: [Fee2023-01-03]",
-					"Fee2023-01-03"
-					)
-			});*/
 		}
 	}
 }

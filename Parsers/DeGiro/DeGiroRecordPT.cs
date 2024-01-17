@@ -118,9 +118,10 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				return;
 			}
 
+			var activity = GetActivityType();
 			var mutation = Mutation;
 
-			TransactionId = $"{Date.ToDateTime(Time).ToInvariantString()}_{Product}_{ISIN}_{mutation}";
+			TransactionId = $"{activity}_{Date.ToDateTime(Time).ToInvariantString()}_{Product}_{ISIN}_{mutation}";
 		}
 
 		private CultureInfo GetCultureForParsingNumbers()
