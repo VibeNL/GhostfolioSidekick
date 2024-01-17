@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 		{
 		}
 
-		protected override async Task<IEnumerable<PartialActivity>> ParseRow(GenericRecord record, int rowNumber)
+		protected override IEnumerable<PartialActivity> ParseRow(GenericRecord record, int rowNumber)
 		{
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 			var lst = new List<PartialActivity>();
 			var currency = new Currency(record.Currency);
-			var unitPrice = new Money(currency, record.UnitPrice);
+			var unitPrice = record.UnitPrice;
 
 			if (record.Tax != null)
 			{

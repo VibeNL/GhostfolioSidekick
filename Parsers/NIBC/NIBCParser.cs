@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.NIBC
 		{
 		}
 
-		protected override async Task<IEnumerable<PartialActivity>> ParseRow(NIBCRecord record, int rowNumber)
+		protected override IEnumerable<PartialActivity> ParseRow(NIBCRecord record, int rowNumber)
 		{
 			var currency = new Currency(record.Currency);
 			if (record.Description == "Inkomende overboeking")

@@ -11,17 +11,17 @@ namespace GhostfolioSidekick.Parsers.Bunq
 		{
 		}
 
-		protected override async Task<IEnumerable<PartialActivity>> ParseRow(BunqRecord record, int rowNumber)
+		protected override IEnumerable<PartialActivity> ParseRow(BunqRecord record, int rowNumber)
 		{
 			var currency = new Currency("EUR");
 			if (record.Name == "bunq" && record.Description.Contains("bunq Payday"))
 			{
-				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount))];
+				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), null)];
 			}
 
 			return record.Amount >= 0 ?
-				[PartialActivity.CreateCashDeposit(currency, record.Date, Math.Abs(record.Amount))] :
-				[PartialActivity.CreateCashWithdrawal(currency, record.Date, Math.Abs(record.Amount))];
+				[PartialActivity.CreateCashDeposit(currency, record.Date, Math.Abs(record.Amount), null)] :
+				[PartialActivity.CreateCashWithdrawal(currency, record.Date, Math.Abs(record.Amount), null)];
 		}
 
 		protected override CsvConfiguration GetConfig()

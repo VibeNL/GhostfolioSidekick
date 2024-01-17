@@ -11,11 +11,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		{
 		}
 
-		protected override Task<IEnumerable<PartialActivity>> ParseRow(T record, int rowNumber)
+		protected override IEnumerable<PartialActivity> ParseRow(T record, int rowNumber)
 		{
 			var recordDate = record.Date.ToDateTime(record.Time);
 
-			var knownBalance = PartialActivity.CreateKnownBalance(new Currency(record.BalanceCurrency), recordDate, record.Balance);
+			var knownBalance = PartialActivity.CreateKnownBalance(new Currency(record.BalanceCurrency), recordDate, record.Balance, null);
 			PartialActivity? partialActivity = null;
 
 			var activityType = record.GetActivityType();
@@ -27,36 +27,36 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			{
 				case null:
 				case ActivityType.Undefined:
-					return Task.FromResult<IEnumerable<PartialActivity>>([knownBalance]);
+					return [knownBalance];
 				case ActivityType.Buy:
 					partialActivity = PartialActivity.CreateBuy(
 						currencyRecord,
 						recordDate,
 						record.ISIN!,
 						record.GetQuantity(),
-						new Money(currencyRecord, record.GetUnitPrice()),
+						record.GetUnitPrice(),
 						record.TransactionId!);
 					break;
 				case ActivityType.CashDeposit:
-					partialActivity = PartialActivity.CreateCashDeposit(currencyRecord, recordDate, recordTotal);
+					partialActivity = PartialActivity.CreateCashDeposit(currencyRecord, recordDate, recordTotal, null);
 					break;
 				case ActivityType.CashWithdrawal:
-					partialActivity = PartialActivity.CreateCashWithdrawal(currencyRecord, recordDate, recordTotal);
+					partialActivity = PartialActivity.CreateCashWithdrawal(currencyRecord, recordDate, recordTotal, null);
 					break;
 				case ActivityType.Dividend:
-					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordTotal, recordDate);
+					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate, record.ISIN!, recordTotal, null);
 					break;
 				case ActivityType.Fee:
-					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal);
+					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal, null);
 					break;
 				case ActivityType.Tax:
-					partialActivity = PartialActivity.CreateTax(currencyRecord, recordDate, recordTotal);
+					partialActivity = PartialActivity.CreateTax(currencyRecord, recordDate, recordTotal, null);
 					break;
 				case ActivityType.Gift:
-					partialActivity = PartialActivity.CreateGift(currencyRecord, recordDate, recordTotal);
+					partialActivity = PartialActivity.CreateGift(currencyRecord, recordDate, recordTotal, null);
 					break;
 				case ActivityType.Interest:
-					partialActivity = PartialActivity.CreateInterest(currencyRecord, recordDate, recordTotal);
+					partialActivity = PartialActivity.CreateInterest(currencyRecord, recordDate, recordTotal, null);
 					break;
 				case ActivityType.Sell:
 					partialActivity = PartialActivity.CreateSell(
@@ -64,14 +64,14 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						recordDate,
 						record.ISIN!,
 						record.GetQuantity(),
-						new Money(currencyRecord, record.GetUnitPrice()),
+						record.GetUnitPrice(),
 						record.TransactionId!);
 					break;
 				default:
 					throw new NotSupportedException();
 			}
 
-			return Task.FromResult<IEnumerable<PartialActivity>>([knownBalance, partialActivity]);
+			return [knownBalance, partialActivity];
 		}
 
 		protected override CsvConfiguration GetConfig()

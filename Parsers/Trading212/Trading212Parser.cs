@@ -11,10 +11,10 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		{
 		}
 
-		protected override Task<IEnumerable<PartialActivity>> ParseRow(Trading212Record record, int rowNumber)
+		protected override IEnumerable<PartialActivity> ParseRow(Trading212Record record, int rowNumber)
 		{
 			var lst = new List<PartialActivity>();
-			var currency = new Currency(string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency!);
+			var currency = new Currency(string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency);
 
 			switch (record.Action)
 			{
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 
 			lst.AddRange(GetFees(record));
 
-			return Task.FromResult<IEnumerable<PartialActivity>>(lst);
+			return lst;
 		}
 
 		private (Money Source, Money Target) ParserConvertion(Trading212Record record)

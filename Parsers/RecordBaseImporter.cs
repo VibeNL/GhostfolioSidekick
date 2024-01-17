@@ -42,12 +42,12 @@ namespace GhostfolioSidekick.Parsers
 			var account = holdingsAndAccountsCollection.GetAccount(accountName);
 			for (int i = 0; i < records.Count; i++)
 			{
-				var partialActivity = await ParseRow(records[i], i + 1);
+				var partialActivity = ParseRow(records[i], i + 1);
 				holdingsAndAccountsCollection.AddPartialActivity(partialActivity);
 			};
 		}
 
-		protected abstract Task<IEnumerable<PartialActivity>> ParseRow(T record, int rowNumber);
+		protected abstract IEnumerable<PartialActivity> ParseRow(T record, int rowNumber);
 
 		protected abstract CsvConfiguration GetConfig();
 
