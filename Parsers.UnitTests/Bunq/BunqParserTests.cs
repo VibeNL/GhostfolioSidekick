@@ -4,28 +4,18 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Bunq;
-using Moq;
 
 namespace Parsers.UnitTests.Bunq
 {
 	public class BunqParserTests
 	{
-		private string accountName = "ABC";
-		private Account account;
-
-		public BunqParserTests()
-		{
-			var fixture = new Fixture();
-			account = fixture.Build<Account>().With(x => x.Balance, new Balance(Currency.EUR)).Create();
-		}
-
 		[Fact]
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange
 			var parser = new BunqParser();
 
-			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/Bunq/", "*.csv", SearchOption.AllDirectories))
+			foreach (var file in Directory.GetFiles("./TestFiles/Bunq/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
 				var canParse = await parser.CanParseActivities(file);
@@ -40,86 +30,85 @@ namespace Parsers.UnitTests.Bunq
 		{
 			// Arrange
 			var parser = new BunqParser();
+			var fixture = new Fixture();
+			var account = fixture
+				.Build<Account>()
+				.With(x => x.Balance, new Balance(Currency.EUR))
+				.Create();
 			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
-			await parser.ParseActivities("./FileImporter/TestFiles/Bunq/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, accountName);
+			await parser.ParseActivities("./TestFiles/Bunq/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
-				new PartialActivity()
-				{
-
-				}
+				[PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 1000, null)]
 				);
-
-			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1000M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
 		}
 
 		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
 		{
 			// Arrange
-			var parser = new BunqParser(api.Object);
+			var parser = new BunqParser();
 			var fixture = new Fixture();
-
-			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
-
-			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			var account = fixture
+				.Build<Account>()
+				.With(x => x.Balance, new Balance(Currency.EUR))
+				.Create();
+			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_withdrawal.csv" });
+			await parser.ParseActivities("./TestFiles/Bunq/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
-			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -100M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateCashWithdrawal(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 100, null)]
+				);
 		}
 
 		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleInterest_Converted()
 		{
 			// Arrange
-			var parser = new BunqParser(api.Object);
+			var parser = new BunqParser();
 			var fixture = new Fixture();
-
-			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
-
-			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			var account = fixture
+				.Build<Account>()
+				.With(x => x.Balance, new Balance(Currency.EUR))
+				.Create();
+			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/single_interest.csv" });
+			await parser.ParseActivities("./TestFiles/Bunq/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
-			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
-				ActivityType.Interest,
-				null,
-				new DateTime(2023,07,27, 0,0,0, DateTimeKind.Utc),
-				1m,
-				new Money(DefaultCurrency.EUR, 3.5M, new DateTime(2023,7,27, 0,0,0, DateTimeKind.Utc)),
-				Enumerable.Empty<Money>(),
-				"Transaction Reference: [Interest_2023-07-27]",
-				"Interest_2023-07-27"
-				)
-			});
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc), 3.5M, null)]
+				);
 		}
 
 		[Fact]
 		public async Task ConvertActivitiesForAccount_TestMultipleDepositsOn1Day_Converted()
 		{
 			// Arrange
-			var parser = new BunqParser(api.Object);
+			var parser = new BunqParser();
 			var fixture = new Fixture();
-
-			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
-
-			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			var account = fixture
+				.Build<Account>()
+				.With(x => x.Balance, new Balance(Currency.EUR))
+				.Create();
+			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
-			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/Bunq/CashTransactions/multiple_deposits.csv" });
+			await parser.ParseActivities("./TestFiles/Bunq/CashTransactions/multiple_deposits.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
-			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 3000M, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEmpty();
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 1000, null),
+					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 1000, null),
+					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 1000, null)]
+				);
 		}
 	}
 }

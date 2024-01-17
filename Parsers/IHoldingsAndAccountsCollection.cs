@@ -5,9 +5,9 @@ namespace GhostfolioSidekick.Parsers
 {
 	public interface IHoldingsAndAccountsCollection
 	{
-		IReadOnlyList<Account> Accounts { get; set; }
+		IReadOnlyList<Account> Accounts { get; }
 
-		IReadOnlyList<Holding> Holdings { get; set; }
+		IReadOnlyList<Holding> Holdings { get; }
 
 		void AddPartialActivity(Account account, IEnumerable<PartialActivity> partialActivity);
 

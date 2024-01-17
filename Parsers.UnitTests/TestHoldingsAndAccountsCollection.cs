@@ -7,11 +7,11 @@ namespace Parsers.UnitTests
 {
 	internal class TestHoldingsAndAccountsCollection : IHoldingsAndAccountsCollection
 	{
-		private static readonly List<Holding> holdings = [];
-		private static readonly List<Account> accounts = [];
+		private readonly List<Holding> holdings = [];
+		private readonly List<Account> accounts = [];
 
-		public IReadOnlyList<Account> Accounts { get; set; }
-		public IReadOnlyList<Holding> Holdings { get; set; }
+		public IReadOnlyList<Account> Accounts => accounts;
+		public IReadOnlyList<Holding> Holdings => holdings;
 
 		public List<PartialActivity> PartialActivities { get; set; } = [];
 
