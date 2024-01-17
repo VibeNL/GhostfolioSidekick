@@ -51,7 +51,7 @@ namespace Parsers.UnitTests.DeGiro
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 42.92M, null),
-					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, null)
+					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, string.Empty)
 				]);
 		}
 
@@ -71,21 +71,6 @@ namespace Parsers.UnitTests.DeGiro
 					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77.30M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
-				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
-			{
-				new Activity(
-					ActivityType.Buy,
-					asset,
-					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					1,
-					new Money(DefaultCurrency.EUR, 77.30M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-					new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-					)
-			});*/
 		}
 
 		[Fact]
@@ -99,24 +84,11 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
 					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")]
-				);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
-				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
-			{
-				new Activity(
-					ActivityType.Buy,
-					asset,
-					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					1,
-					new Money(DefaultCurrency.EUR, 77M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-					new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-					)
-			});*/
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
+				]);
 		}
 
 		[Fact]
@@ -130,24 +102,11 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
-					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")]
-				);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD,
-				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
-			{
-				new Activity(
-					ActivityType.Buy,
-					asset,
-					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					1,
-					new Money(DefaultCurrency.USD, 77.30M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-					new[] { new Money(DefaultCurrency.USD, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-					)
-			});*/
+					PartialActivity.CreateKnownBalance(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateKnownBalance(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
+				]);
 		}
 
 		[Fact]
@@ -161,24 +120,11 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")]
-				);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
-				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
-			{
-				new Activity(
-					ActivityType.Sell,
-					asset,
-					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					1,
-					new Money(DefaultCurrency.EUR, 77.30M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-					new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-					)
-			});*/
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
+				]);
 		}
 
 		[Fact]
@@ -192,24 +138,11 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
-					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")]
-				);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD,
-				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[]
-			{
-				new Activity(
-					ActivityType.Sell,
-					asset,
-					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-					1,
-					new Money(DefaultCurrency.USD, 77.30M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-					new[] { new Money(DefaultCurrency.USD, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-					)
-			});*/
+					PartialActivity.CreateKnownBalance(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateKnownBalance(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
+				]);
 		}
 
 		[Fact]
@@ -223,33 +156,13 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 9.77M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 12.77M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 926.69M, null),
 					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), "NL0011794037", 34, 26.88M, "35d4345a-467c-42bd-848c-f6087737dd36"),
 					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), "NL0011794037", 4, 26.88M, "35d4345a-467c-42bd-848c-f6087737dd36"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "35d4345a-467c-42bd-848c-f6087737dd36")]
-				);
-			/*account.Activities.Should().BeEquivalentTo(new[]
-			{
-				new Activity(
-					ActivityType.Buy,
-					asset,
-					new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-					34,
-					new Money(DefaultCurrency.EUR, 26.88M, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)),
-					new[] { new Money(DefaultCurrency.EUR, 3, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)) },
-					"Transaction Reference: [35d4345a-467c-42bd-848c-f6087737dd36] (Details: asset NL0011794037)",
-					"35d4345a-467c-42bd-848c-f6087737dd36"
-					),
-				new Activity(
-					ActivityType.Buy,
-					asset,
-					new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-					4,
-					new Money(DefaultCurrency.EUR, 26.88M, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc)),
-					new Money[0],
-					"Transaction Reference: [35d4345a-467c-42bd-848c-f6087737dd36 2] (Details: asset NL0011794037)",
-					"35d4345a-467c-42bd-848c-f6087737dd36 2"
-					)
-			});*/
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 3M, "35d4345a-467c-42bd-848c-f6087737dd36")
+				]);
 		}
 
 		[Fact]
@@ -263,8 +176,10 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 8.13M, null),
-					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 1.44M, null)
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 24.39M, null),
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 9.57M, string.Empty),
+					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 1.44M, string.Empty)
 				]);
 			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
 				24.39M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)));
@@ -289,12 +204,13 @@ namespace Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./FileImporter/TestFiles/DeGiro/NL//CashTransactions/single_dividend_notax.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL//CashTransactions/single_dividend_notax.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 9.57M, null)
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M, null),
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 9.57M, string.Empty),
 				]);
 			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
 				33.96M, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc)));
