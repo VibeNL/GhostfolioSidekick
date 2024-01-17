@@ -9,12 +9,26 @@ namespace Parsers.UnitTests.Bunq
 {
 	public class BunqParserTests
 	{
+		BunqParser parser;
+		private Account account;
+		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
+
+		public BunqParserTests()
+		{
+			parser = new BunqParser();
+
+			var fixture = new Fixture();
+			account = fixture
+				.Build<Account>()
+				.With(x => x.Balance, new Balance(Currency.EUR))
+				.Create();
+			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+		}
+
 		[Fact]
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange
-			var parser = new BunqParser();
-
 			foreach (var file in Directory.GetFiles("./TestFiles/Bunq/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
@@ -29,13 +43,6 @@ namespace Parsers.UnitTests.Bunq
 		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
 		{
 			// Arrange
-			var parser = new BunqParser();
-			var fixture = new Fixture();
-			var account = fixture
-				.Build<Account>()
-				.With(x => x.Balance, new Balance(Currency.EUR))
-				.Create();
-			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/Bunq/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
@@ -50,13 +57,6 @@ namespace Parsers.UnitTests.Bunq
 		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
 		{
 			// Arrange
-			var parser = new BunqParser();
-			var fixture = new Fixture();
-			var account = fixture
-				.Build<Account>()
-				.With(x => x.Balance, new Balance(Currency.EUR))
-				.Create();
-			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/Bunq/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
@@ -71,13 +71,6 @@ namespace Parsers.UnitTests.Bunq
 		public async Task ConvertActivitiesForAccount_SingleInterest_Converted()
 		{
 			// Arrange
-			var parser = new BunqParser();
-			var fixture = new Fixture();
-			var account = fixture
-				.Build<Account>()
-				.With(x => x.Balance, new Balance(Currency.EUR))
-				.Create();
-			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/Bunq/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
@@ -92,13 +85,6 @@ namespace Parsers.UnitTests.Bunq
 		public async Task ConvertActivitiesForAccount_TestMultipleDepositsOn1Day_Converted()
 		{
 			// Arrange
-			var parser = new BunqParser();
-			var fixture = new Fixture();
-			var account = fixture
-				.Build<Account>()
-				.With(x => x.Balance, new Balance(Currency.EUR))
-				.Create();
-			var holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/Bunq/CashTransactions/multiple_deposits.csv", holdingsAndAccountsCollection, account.Name);
