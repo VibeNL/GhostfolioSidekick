@@ -23,6 +23,8 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			var currencyRecord = new Currency(record.Mutation);
 			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
 
+			record.SetGenerateTransactionIdIfEmpty();
+
 			switch (activityType)
 			{
 				case null:

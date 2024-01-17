@@ -51,7 +51,7 @@ namespace Parsers.UnitTests.DeGiro
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 42.92M, null),
-					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, string.Empty)
+					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, "2023-12-28 04:51:00:+01:00___EUR")
 				]);
 		}
 
@@ -197,7 +197,7 @@ namespace Parsers.UnitTests.DeGiro
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M, null),
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 9.57M, string.Empty),
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), "NL0009690239", 9.57M, "2023-09-14 06:32:00:+02:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),
 				]);
 		}
 	}

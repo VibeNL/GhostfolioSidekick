@@ -53,12 +53,12 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				return null;
 			}
 
-			if (Description == "DEGIRO Transactiekosten en/of kosten van derden")
+			if (Description.Equals("DEGIRO Transactiekosten en/of kosten van derden"))
 			{
 				return ActivityType.Fee;
 			}
 
-			if (Description == "Dividendbelasting")
+			if (Description.Equals("Dividendbelasting"))
 			{
 				return ActivityType.Tax;
 			}
@@ -113,6 +113,23 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			var quantity = Regex.Match(Description!, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
+		}
+
+		internal override void SetGenerateTransactionIdIfEmpty()
+		{
+			if (!string.IsNullOrWhiteSpace(TransactionId))
+			{
+				return;
+			}
+
+			var mutation = Mutation;
+			const string dividendText = "Dividend";
+			if (Description?.StartsWith(dividendText) ?? false)
+			{
+				mutation = dividendText;
+			}
+
+			TransactionId = $"{Date.ToDateTime(Time).ToInvariantString()}_{Product}_{ISIN}_{mutation}";
 		}
 
 		private CultureInfo GetCultureForParsingNumbers()

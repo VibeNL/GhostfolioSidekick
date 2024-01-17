@@ -111,6 +111,18 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
+		internal override void SetGenerateTransactionIdIfEmpty()
+		{
+			if (!string.IsNullOrWhiteSpace(TransactionId))
+			{
+				return;
+			}
+
+			var mutation = Mutation;
+
+			TransactionId = $"{Date.ToDateTime(Time).ToInvariantString()}_{Product}_{ISIN}_{mutation}";
+		}
+
 		private CultureInfo GetCultureForParsingNumbers()
 		{
 			return new CultureInfo("en")
