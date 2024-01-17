@@ -1,6 +1,8 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.AccountMaintainer
@@ -8,14 +10,14 @@ namespace GhostfolioSidekick.AccountMaintainer
 	public class AccountMaintainerTask : IScheduledWork
 	{
 		private readonly ILogger<FileImporterTask> logger;
-		private readonly IGhostfolioAPI api;
+		private readonly IAccountManager api;
 		private readonly ConfigurationInstance configurationInstance;
 
 		public int Priority => 1;
 
 		public AccountMaintainerTask(
 			ILogger<FileImporterTask> logger,
-			IGhostfolioAPI api,
+			IAccountManager api,
 			IApplicationSettings applicationSettings)
 		{
 			ArgumentNullException.ThrowIfNull(applicationSettings);
@@ -56,38 +58,43 @@ namespace GhostfolioSidekick.AccountMaintainer
 					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
 				}
 
-				//UpdateAccount(accountConfig, platforms.SingleOrDefault(x => x.Name == accountConfig.Platform));
+				// TODO Update account
 			}
 		}
 
 		private async Task CreateAccount(AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
 		{
-			await CreateOrUpdatePlatform(platformConfiguration);
+			var platform = await CreateOrUpdatePlatform(platformConfiguration);
 
-			await api.CreateAccount(new Model.Account(
-				Guid.Empty.ToString(),
+			await api.CreateAccount(new Account(
 				accountConfig.Name,
-				new Model.Balance(new Model.Money(accountConfig.Currency, 0, DateTime.Now)),
-				accountConfig.Comment,
-				accountConfig.Platform,
-				[]));
+				new Balance(new Currency(accountConfig.Currency)))
+			{
+				Comment = accountConfig.Comment,
+				Platform = platform,
+			});
 		}
 
-		private async Task CreateOrUpdatePlatform(PlatformConfiguration? platformConfiguration)
+		private async Task<Platform?> CreateOrUpdatePlatform(PlatformConfiguration? platformConfiguration)
 		{
 			if (platformConfiguration is null)
 			{
-				return;
+				return null;
 			}
 
 			var platform = await api.GetPlatformByName(platformConfiguration.Name);
 
 			if (platform == null)
 			{
-				await api.CreatePlatform(new Model.Platform(null, platformConfiguration.Name, platformConfiguration.Url));
+				await api.CreatePlatform(new Platform(platformConfiguration.Name)
+				{
+					Url = platformConfiguration.Url,
+				});
 			}
 
-			// TODO Update
+			// TODO Update platform
+
+			return await api.GetPlatformByName(platformConfiguration.Name);
 		}
 	}
 }

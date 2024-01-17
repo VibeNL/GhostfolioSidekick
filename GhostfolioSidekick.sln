@@ -15,7 +15,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "Model\Model.csproj", "{6692B54A-EF60-4D64-83D9-3AD11AFC3150}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model", "Model\Model.csproj", "{6692B54A-EF60-4D64-83D9-3AD11AFC3150}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GhostfolioAPI", "GhostfolioAPI\GhostfolioAPI.csproj", "{189A9D4D-BD1D-4A00-873C-7A784A8C0C54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parsers", "Parsers\Parsers.csproj", "{2058275F-39F1-4CAE-BD39-56C5D6ACE086}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{6692B54A-EF60-4D64-83D9-3AD11AFC3150}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6692B54A-EF60-4D64-83D9-3AD11AFC3150}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6692B54A-EF60-4D64-83D9-3AD11AFC3150}.Release|Any CPU.Build.0 = Release|Any CPU
+		{189A9D4D-BD1D-4A00-873C-7A784A8C0C54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{189A9D4D-BD1D-4A00-873C-7A784A8C0C54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{189A9D4D-BD1D-4A00-873C-7A784A8C0C54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{189A9D4D-BD1D-4A00-873C-7A784A8C0C54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2058275F-39F1-4CAE-BD39-56C5D6ACE086}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2058275F-39F1-4CAE-BD39-56C5D6ACE086}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2058275F-39F1-4CAE-BD39-56C5D6ACE086}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2058275F-39F1-4CAE-BD39-56C5D6ACE086}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

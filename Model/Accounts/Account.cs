@@ -8,8 +8,8 @@
 
 		public string? Id { get; set; }
 
-		public string? Comment { get; }
+		public string? Comment { get; set; }
 
-		public Platform? Platform { get; }
+		public Platform? Platform { get; set; }
 	}
 }

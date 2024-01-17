@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Model
 {
-	public class Money(decimal amount, Currency currency)
+	public class Money(Currency currency, decimal amount)
 	{
 		public decimal Amount { get; set; } = amount;
 
