@@ -1,156 +1,124 @@
-//using AutoFixture;
-//using FluentAssertions;
-//using GhostfolioSidekick.FileImporter.DeGiro;
-//using GhostfolioSidekick.Ghostfolio.API;
-//using GhostfolioSidekick.Model;
-//using Moq;
+using AutoFixture;
+using FluentAssertions;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Parsers.DeGiro;
 
-//namespace Parsers.UnitTests.DeGiro
-//{
-//	public class DeGiroParserPTTests
-//	{
-//		readonly Mock<IGhostfolioAPI> api;
+namespace Parsers.UnitTests.DeGiro
+{
+	public class DeGiroParserPTTests
+	{
+		private DeGiroParserPT parser;
+		private Account account;
+		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
 
-//		public DeGiroParserPTTests()
-//		{
-//			api = new Mock<IGhostfolioAPI>();
-//		}
+		public DeGiroParserPTTests()
+		{
+			parser = new DeGiroParserPT();
 
-//		[Fact]
-//		public async Task CanParseActivities_TestFiles_True()
-//		{
-//			// Arrange
-//			var parser = new DeGiroParserPT(api.Object);
+			var fixture = new Fixture();
+			account = fixture
+				.Build<Account>()
+				.With(x => x.Balance, new Balance(Currency.EUR))
+				.Create();
+			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+		}
 
-//			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/DeGiro/PT/", "*.csv", SearchOption.AllDirectories))
-//			{
-//				// Act
-//				var canParse = await parser.CanParseActivities(new[] { file });
+		[Fact]
+		public async Task CanParseActivities_TestFiles_True()
+		{
+			// Arrange
+			foreach (var file in Directory.GetFiles("./TestFiles/DeGiro/PT/", "*.csv", SearchOption.AllDirectories))
+			{
+				// Act
+				var canParse = await parser.CanParseActivities(file);
 
-//				// Assert
-//				canParse.Should().BeTrue($"File {file}  cannot be parsed");
-//			}
-//		}
+				// Assert
+				canParse.Should().BeTrue($"File {file}  cannot be parsed");
+			}
+		}
 
-//		[Fact]
-//		public async Task ConvertActivitiesForAccount_SingleBuyEuro_Converted()
-//		{
-//			// Arrange
-//			var parser = new DeGiroParserPT(api.Object);
-//			var fixture = new Fixture();
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyEuro_Converted()
+		{
+			// Arrange
 
-//			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-//			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/PT/BuyOrders/single_buy_euro.csv", holdingsAndAccountsCollection, account.Name);
 
-//			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-//			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(),
-//				It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77.30M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
+				]);
+		}
 
-//			// Act
-//			account = await parser.ConvertActivitiesForAccount(account.Name,
-//				new[] { "./FileImporter/TestFiles/DeGiro/PT/BuyOrders/single_buy_euro.csv" });
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleSellEuro_Converted()
+		{
+			// Arrange
 
-//			// Assert
-//			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
-//				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
-//			account.Activities.Should().BeEquivalentTo(new[]
-//			{
-//				new Activity(
-//					ActivityType.Buy,
-//					asset,
-//					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-//					1,
-//					new Money(DefaultCurrency.EUR, 77.30M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-//					new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-//					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-//					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-//					)
-//			});
-//		}
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/PT/SellOrders/single_sell_euro.csv", holdingsAndAccountsCollection, account.Name);
 
-//		[Fact]
-//		public async Task ConvertActivitiesForAccount_SingleSellEuro_Converted()
-//		{
-//			// Arrange
-//			var parser = new DeGiroParserPT(api.Object);
-//			var fixture = new Fixture();
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
+				]);
+		}
 
-//			var asset = fixture.Build<Model.SymbolProfile>().With(x => x.Currency, DefaultCurrency.EUR).Create();
-//			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
+		{
+			// Arrange
 
-//			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-//			api.Setup(x => x.FindSymbolByIdentifier("IE00B3XXRP09", It.IsAny<Currency>(), It.IsAny<AssetClass[]>(),
-//				It.IsAny<AssetSubClass[]>(), true, false)).ReturnsAsync(asset);
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/PT/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
 
-//			// Act
-//			account = await parser.ConvertActivitiesForAccount(account.Name,
-//				new[] { "./FileImporter/TestFiles/DeGiro/PT/SellOrders/single_sell_euro.csv" });
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 42.92M, null),
+					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, "2023-12-28 04:51:00:+01:00___EUR")
+				]);
+		}
 
-//			// Assert
-//			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR,
-//				21.70M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)));
-//			account.Activities.Should().BeEquivalentTo(new[]
-//			{
-//				new Activity(
-//					ActivityType.Sell,
-//					asset,
-//					new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-//					1,
-//					new Money(DefaultCurrency.EUR, 77.30M, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)),
-//					new[] { new Money(DefaultCurrency.EUR, 1, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc)) },
-//					"Transaction Reference: [b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a] (Details: asset IE00B3XXRP09)",
-//					"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"
-//					)
-//			});
-//		}
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleFee_Converted()
+		{
+			// Arrange
 
-//		[Fact]
-//		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
-//		{
-//			// Arrange
-//			var parser = new DeGiroParserPT(api.Object);
-//			var fixture = new Fixture();
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/PT/CashTransactions/single_fee.csv", holdingsAndAccountsCollection, account.Name);
 
-//			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
-
-//			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-
-//			// Act
-//			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/PT/CashTransactions/single_deposit.csv" });
-
-//			// Assert
-//			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1000.01M, new DateTime(2021, 09, 15, 8, 50, 0, DateTimeKind.Utc)));
-//		}
-
-//		[Fact]
-//		public async Task ConvertActivitiesForAccount_SingleFee_Converted()
-//		{
-//			// Arrange
-//			var parser = new DeGiroParserPT(api.Object);
-//			var fixture = new Fixture();
-
-//			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
-
-//			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-
-//			// Act
-//			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/DeGiro/PT/CashTransactions/single_fee.csv" });
-
-//			// Assert
-//			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 102.18M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)));
-//			account.Activities.Should().BeEquivalentTo(new[]
-//				{
-//				new Activity(
-//					ActivityType.Fee,
-//					null,
-//					new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc),
-//					1,
-//					new Money(DefaultCurrency.EUR, 2.50M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)),
-//					new Money[0],
-//					"Transaction Reference: [Fee2023-01-03]",
-//					"Fee2023-01-03"
-//					)
-//			});
-//		}
-//	}
-//}
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc), 102.18M, null),
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc), 2.5M, "2023-01-03 14:06:00:+01:00___EUR")
+				]);
+			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 102.18M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)));
+			account.Activities.Should().BeEquivalentTo(new[]
+				{
+				new Activity(
+					ActivityType.Fee,
+					null,
+					new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc),
+					1,
+					new Money(DefaultCurrency.EUR, 2.50M, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc)),
+					new Money[0],
+					"Transaction Reference: [Fee2023-01-03]",
+					"Fee2023-01-03"
+					)
+			});*/
+		}
+	}
+}
