@@ -8,18 +8,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	internal static class ContractToModelMapper
 	{
-		public static Model.Accounts.Platform? MapPlatform(Contract.Platform rawPlatform)
+		public static Platform? MapPlatform(Contract.Platform rawPlatform)
 		{
-			return new Model.Accounts.Platform(rawPlatform.Name)
+			return new Platform(rawPlatform.Name)
 			{
 				Id = rawPlatform.Id,
 				Url = rawPlatform.Url,
 			};
 		}
 
-		public static Model.Accounts.Account MapAccount(Contract.Account rawAccount, Model.Accounts.Platform platform)
+		public static Account MapAccount(Contract.Account rawAccount, Platform platform)
 		{
-			return new Model.Accounts.Account(
+			return new Account(
 				rawAccount.Name,
 				new Balance(new Money(new Currency(rawAccount.Currency), rawAccount.Balance)))
 			{
@@ -29,9 +29,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			};
 		}
 
-		public static Model.Symbols.SymbolProfile ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
+		public static SymbolProfile ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
-			return new Model.Symbols.SymbolProfile(
+			return new SymbolProfile(
 				symbolProfile.Symbol,
 				symbolProfile.Name,
 				new Currency(symbolProfile.Currency!),
@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			var assetProfile = market.AssetProfile;
 			var mdl = new MarketDataProfile()
 			{
-				AssetProfile = new Model.Symbols.SymbolProfile(
+				AssetProfile = new SymbolProfile(
 					assetProfile.Symbol,
 					assetProfile.Name,
 					new Currency(assetProfile.Currency),
@@ -70,9 +70,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			return mdl;
 		}
 
-		public static Model.Market.MarketData MapMarketData(Contract.MarketData marketData)
+		public static MarketData MapMarketData(Contract.MarketData marketData)
 		{
-			return new Model.Market.MarketData(marketData.Symbol, Utilities.ParseEnum<Datasource>(marketData.DataSource), marketData.MarketPrice, marketData.Date);
+			return new MarketData(marketData.Symbol, Utilities.ParseEnum<Datasource>(marketData.DataSource), marketData.MarketPrice, marketData.Date);
 		}
 
 		/*

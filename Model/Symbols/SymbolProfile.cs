@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
@@ -11,6 +12,8 @@ namespace GhostfolioSidekick.Model.Symbols
 		AssetClass assetClass,
 		AssetSubClass? assetSubClass) : IEquatable<SymbolProfile>
 	{
+		private string? comment;
+
 		public Currency Currency { get; set; } = currency;
 
 		public string Symbol { get; set; } = symbol;
@@ -31,7 +34,15 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public List<string> Identifiers { get; } = [];
 
-		public string? Comment { get; set; }
+		public string? Comment
+		{
+			get => comment;
+			set
+			{
+				comment = value;
+				ParseIdentifiers();
+			}
+		}
 
 		public int ActivitiesCount { get; set; }
 
@@ -43,6 +54,26 @@ namespace GhostfolioSidekick.Model.Symbols
 				Symbol == other?.Symbol &&
 				AssetClass == other?.AssetClass &&
 				AssetSubClass == other?.AssetSubClass;
+		}
+
+		private void ParseIdentifiers()
+		{
+			if (comment == null)
+			{
+				return;
+			}
+
+			var pattern = @"Known Identifiers: \[(.*?)\]";
+			var match = Regex.Match(comment, pattern);
+			var ids = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
+
+			if (string.IsNullOrEmpty(ids))
+			{
+				return;
+			}
+
+			Identifiers.Clear();
+			Identifiers.AddRange(ids.Split(','));
 		}
 	}
 }

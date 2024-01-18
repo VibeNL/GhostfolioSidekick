@@ -49,11 +49,7 @@ namespace GhostfolioSidekick.FileImporter
 			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == ActivityType.Fee).ToList();
 			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == ActivityType.Tax).ToList();
 
-			// Sanity check
-			if (transactions.Count != 1 + fees.Count() + taxes.Count())
-			{
-				throw new NotSupportedException("Counts of activities do not match!");
-			}
+			var otherTransactions = transactions.Except([sourceTransaction]).Except(fees).Except(taxes);
 
 			var activity = new Activity(
 				sourceTransaction.ActivityType,
@@ -64,8 +60,17 @@ namespace GhostfolioSidekick.FileImporter
 				Fees = fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 				Taxes = taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 			};
-
 			holding.Activities.Add(activity);
+
+			foreach (var transaction in otherTransactions)
+			{
+				activity = new Activity(
+				transaction.ActivityType,
+				transaction.Date,
+				transaction.Amount,
+				new Money(transaction.Currency, transaction.UnitPrice ?? 0));
+				holding.Activities.Add(activity);
+			}
 		}
 
 		private async Task<Holding> GetorAddHolding(PartialActivity activity)

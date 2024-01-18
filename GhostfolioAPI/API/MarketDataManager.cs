@@ -38,6 +38,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant()) ?? []];
 
 			symbolMapper = new SymbolMapper(settings.ConfigurationInstance.Mappings ?? []);
+			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
 		}
 
 		public async Task<SymbolProfile?> FindSymbolByIdentifier(
