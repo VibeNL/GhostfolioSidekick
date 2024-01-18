@@ -11,5 +11,10 @@
 		public string? Comment { get; set; }
 
 		public Platform? Platform { get; set; }
+
+		public override string ToString()
+		{
+			return Name;
+		}
 	}
 }

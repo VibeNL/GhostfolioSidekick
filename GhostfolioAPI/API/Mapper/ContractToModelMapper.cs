@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	internal static class ContractToModelMapper
 	{
-		public static Platform? MapPlatform(Contract.Platform rawPlatform)
+		public static Platform MapPlatform(Contract.Platform rawPlatform)
 		{
 			return new Platform(rawPlatform.Name)
 			{
@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			};
 		}
 
-		public static Account MapAccount(Contract.Account rawAccount, Platform platform)
+		public static Account MapAccount(Contract.Account rawAccount, Platform? platform)
 		{
 			return new Account(
 				rawAccount.Name,

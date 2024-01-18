@@ -35,11 +35,16 @@ namespace GhostfolioSidekick.ConsoleHelper
 				memoryCache,
 				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken),
 				logger);
+			IAccountManager accountManager = new AccountManager(
+				settings,
+				memoryCache,
+				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken),
+				logger);
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, settings),
 			//new AccountMaintainerTask(logger, api, cs),
 			//new CreateManualSymbolTask(logger, api, cs),
-			new FileImporterTask(logger, settings, marketDataManager, new IFileImporter[] {
+			new FileImporterTask(logger, settings, accountManager, marketDataManager, new IFileImporter[] {
 				//new BitvavoParser(cs, api),
 				new BunqParser(),
 				//new CoinbaseParser(cs, api),

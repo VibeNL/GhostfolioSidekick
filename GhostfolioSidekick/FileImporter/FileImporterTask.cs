@@ -10,6 +10,7 @@ namespace GhostfolioSidekick.FileImporter
 	{
 		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
+		private readonly IAccountManager accountManager;
 		private readonly IMarketDataManager marketDataManager;
 		private readonly IEnumerable<IFileImporter> importers;
 
@@ -18,6 +19,7 @@ namespace GhostfolioSidekick.FileImporter
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
 			IApplicationSettings settings,
+			IAccountManager accountManager,
 			IMarketDataManager marketDataManager,
 			IEnumerable<IFileImporter> importers)
 		{
@@ -25,6 +27,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			fileLocation = settings.FileImporterPath;
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
 			this.marketDataManager = marketDataManager ?? throw new ArgumentNullException(nameof(marketDataManager));
 			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
 		}
@@ -35,7 +38,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			var directories = Directory.GetDirectories(fileLocation);
 
-			var holdingsCollection = new HoldingsCollection(marketDataManager);
+			var holdingsCollection = new HoldingsCollection(accountManager, marketDataManager);
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))
 			{
 				var accountName = directory.Name;

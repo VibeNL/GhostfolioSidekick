@@ -1,11 +1,14 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers;
 
 namespace GhostfolioSidekick.FileImporter
 {
-	internal class HoldingsCollection(IMarketDataManager marketDataManager) : IHoldingsCollection
+	internal class HoldingsCollection(
+		IAccountManager accountManager,
+		IMarketDataManager marketDataManager) : IHoldingsCollection
 	{
 		private readonly List<Holding> holdings = [new Holding(null)];
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
@@ -27,6 +30,7 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			foreach (var partialActivityPerAccount in unusedPartialActivities)
 			{
+				var account = await GetAccount(partialActivityPerAccount.Key);
 				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
 					var sourceTransaction = transaction.FirstOrDefault(x => x.SymbolIdentifiers.Length != 0);
@@ -37,12 +41,14 @@ namespace GhostfolioSidekick.FileImporter
 						holding = await GetorAddHolding(sourceTransaction);
 					}
 
-					DetermineActivity(holding, transaction.ToList());
+					DetermineActivity(account, holding, [.. transaction]);
 				}
 			}
+
+			unusedPartialActivities.Clear();
 		}
 
-		private void DetermineActivity(Holding holding, List<PartialActivity> transactions)
+		private void DetermineActivity(Account account, Holding holding, List<PartialActivity> transactions)
 		{
 			var sourceTransaction = transactions.FirstOrDefault(x => x.SymbolIdentifiers.Length != 0) ?? transactions.First();
 
@@ -52,6 +58,7 @@ namespace GhostfolioSidekick.FileImporter
 			var otherTransactions = transactions.Except([sourceTransaction]).Except(fees).Except(taxes);
 
 			var activity = new Activity(
+				account,
 				sourceTransaction.ActivityType,
 				sourceTransaction.Date,
 				sourceTransaction.Amount,
@@ -65,10 +72,11 @@ namespace GhostfolioSidekick.FileImporter
 			foreach (var transaction in otherTransactions)
 			{
 				activity = new Activity(
-				transaction.ActivityType,
-				transaction.Date,
-				transaction.Amount,
-				new Money(transaction.Currency, transaction.UnitPrice ?? 0));
+					account,
+					transaction.ActivityType,
+					transaction.Date,
+					transaction.Amount,
+					new Money(transaction.Currency, transaction.UnitPrice ?? 0));
 				holding.Activities.Add(activity);
 			}
 		}
@@ -92,5 +100,11 @@ namespace GhostfolioSidekick.FileImporter
 
 			return holding;
 		}
+
+		private async Task<Account> GetAccount(string key)
+		{
+			return await accountManager.GetAccountByName(key);
+		}
+
 	}
 }

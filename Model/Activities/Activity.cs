@@ -1,11 +1,16 @@
-﻿namespace GhostfolioSidekick.Model.Activities
+﻿using GhostfolioSidekick.Model.Accounts;
+
+namespace GhostfolioSidekick.Model.Activities
 {
 	public class Activity(
+		Account account,
 		ActivityType activityType,
 		DateTime dateTime,
 		decimal quantity,
 		Money unitPrice)
 	{
+		public Account Account { get; } = account;
+
 		public ActivityType ActivityType { get; } = activityType;
 
 		public DateTime Date { get; set; } = dateTime;
@@ -17,5 +22,10 @@
 		public Money UnitPrice { get; set; } = unitPrice;
 
 		public IEnumerable<Money> Taxes { get; set; } = [];
+
+		public override string ToString()
+		{
+			return $"{Account}_{ActivityType}_{Date}";
+		}
 	}
 }
