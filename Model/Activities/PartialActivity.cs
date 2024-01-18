@@ -131,9 +131,20 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateCurrencyConvert(DateTime date, Money source, Money target, string? transactionId)
+		public static IEnumerable<PartialActivity> CreateCurrencyConvert(DateTime date, Money source, Money target, string? transactionId)
 		{
-			throw new NotSupportedException();
+			yield return new PartialActivity(ActivityType.CashWithdrawal, source.Currency)
+			{
+				Date = date,
+				Amount = source.Amount,
+				TransactionId = transactionId
+			};
+			yield return new PartialActivity(ActivityType.CashDeposit, target.Currency)
+			{
+				Date = date,
+				Amount = target.Amount,
+				TransactionId = transactionId
+			};
 		}
 	}
 }
