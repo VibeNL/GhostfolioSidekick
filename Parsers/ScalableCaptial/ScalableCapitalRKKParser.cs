@@ -34,6 +34,11 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					)];
 			}
 
+			if (record.Symbol == "ORDERGEBUEHR")
+			{
+				return [PartialActivity.CreateFee(new Currency(record.Currency), date, Math.Abs(record.UnitPrice.GetValueOrDefault(0)), record.Reference)];
+			}
+
 			return [];
 		}
 
