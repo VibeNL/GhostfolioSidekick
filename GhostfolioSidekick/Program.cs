@@ -1,16 +1,12 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.FileImporter.Bitvavo;
-using GhostfolioSidekick.FileImporter.Bunq;
-using GhostfolioSidekick.FileImporter.Coinbase;
-using GhostfolioSidekick.FileImporter.DeGiro;
-using GhostfolioSidekick.FileImporter.Generic;
-using GhostfolioSidekick.FileImporter.Nexo;
-using GhostfolioSidekick.FileImporter.NIBC;
-using GhostfolioSidekick.FileImporter.ScalableCaptial;
-using GhostfolioSidekick.FileImporter.Trading212;
-using GhostfolioSidekick.Ghostfolio.API;
-using GhostfolioSidekick.MarketDataMaintainer;
+using GhostfolioSidekick.Parsers;
+using GhostfolioSidekick.Parsers.Bunq;
+using GhostfolioSidekick.Parsers.DeGiro;
+using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.NIBC;
+using GhostfolioSidekick.Parsers.ScalableCaptial;
+using GhostfolioSidekick.Parsers.Trading212;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,21 +41,22 @@ namespace GhostfolioSidekick
 				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
 				services.AddScoped<IHostedService, TimedHostedService>();
-				services.AddSingleton<IGhostfolioAPI, GhostfolioAPI>();
+				//services.AddSingleton<IGhostfolioAPI, GhostfolioAPI>();
 				services.AddScoped<IScheduledWork, FileImporterTask>();
 				services.AddScoped<IScheduledWork, DisplayInformationTask>();
-				services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();
+				//services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();
 				services.AddScoped<IScheduledWork, AccountMaintainerTask>();
 
-				services.AddScoped<IFileImporter, BitvavoParser>();
+				//services.AddScoped<IFileImporter, BitvavoParser>();
 				services.AddScoped<IFileImporter, BunqParser>();
-				services.AddScoped<IFileImporter, CoinbaseParser>();
+				//services.AddScoped<IFileImporter, CoinbaseParser>();
 				services.AddScoped<IFileImporter, DeGiroParserNL>();
 				services.AddScoped<IFileImporter, DeGiroParserPT>();
 				services.AddScoped<IFileImporter, GenericParser>();
-				services.AddScoped<IFileImporter, NexoParser>();
+				//services.AddScoped<IFileImporter, NexoParser>();
 				services.AddScoped<IFileImporter, NIBCParser>();
-				services.AddScoped<IFileImporter, ScalableCapitalParser>();
+				services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
+				services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 
 			});

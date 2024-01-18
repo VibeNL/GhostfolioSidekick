@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Parsers
+﻿namespace GhostfolioSidekick.FileImporter
 {
 	[Serializable]
 	internal class NoImporterAvailableException : Exception
