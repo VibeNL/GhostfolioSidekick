@@ -1,17 +1,12 @@
 ﻿using GhostfolioSidekick;
-using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.FileImporter.Bitvavo;
-using GhostfolioSidekick.FileImporter.Bunq;
-using GhostfolioSidekick.FileImporter.Coinbase;
-using GhostfolioSidekick.FileImporter.DeGiro;
-using GhostfolioSidekick.FileImporter.Generic;
-using GhostfolioSidekick.FileImporter.Nexo;
-using GhostfolioSidekick.FileImporter.NIBC;
-using GhostfolioSidekick.FileImporter.ScalableCaptial;
-using GhostfolioSidekick.FileImporter.Trading212;
-using GhostfolioSidekick.Ghostfolio.API;
-using GhostfolioSidekick.MarketDataMaintainer;
+using GhostfolioSidekick.Parsers;
+using GhostfolioSidekick.Parsers.Bunq;
+using GhostfolioSidekick.Parsers.DeGiro;
+using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.NIBC;
+using GhostfolioSidekick.Parsers.ScalableCaptial;
+using GhostfolioSidekick.Parsers.Trading212;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ConsoleHelper
@@ -32,24 +27,25 @@ namespace ConsoleHelper
 
 			var cs = new ApplicationSettings();
 			MemoryCache memoryCache = new(new MemoryCacheOptions { });
-			GhostfolioAPI api = new(cs, memoryCache, logger);
+			//GhostfolioAPI api = new(cs, memoryCache, logger);
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, cs),
-			new AccountMaintainerTask(logger, api, cs),
-			new CreateManualSymbolTask(logger, api, cs),
-			new FileImporterTask(logger, api, cs, new IFileImporter[] {
-				new BitvavoParser(cs, api),
-				new BunqParser(api),
-				new CoinbaseParser(cs, api),
-				new DeGiroParserNL(api),
-				new DeGiroParserPT(api),
-				new GenericParser(api),
-				new NexoParser(cs, api),
-				new NIBCParser(api),
-				new ScalableCapitalParser(api),
-				new Trading212Parser(api)
+			//new AccountMaintainerTask(logger, api, cs),
+			//new CreateManualSymbolTask(logger, api, cs),
+			new FileImporterTask(logger, cs, new IFileImporter[] {
+				//new BitvavoParser(cs, api),
+				new BunqParser(),
+				//new CoinbaseParser(cs, api),
+				new DeGiroParserNL(),
+				new DeGiroParserPT(),
+				new GenericParser(),
+				//new NexoParser(cs, api),
+				new NIBCParser(),
+				new ScalableCapitalRKKParser(),
+				new ScalableCapitalWUMParser(),
+				new Trading212Parser()
 			}),
-			new MarketDataMaintainerTask(logger, api, cs)
+			//new MarketDataMaintainerTask(logger, api, cs)
 			};
 
 			foreach (var t in tasks.OrderBy(x => x.Priority))

@@ -1,11 +1,13 @@
 ﻿using GhostfolioSidekick;
 using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.Ghostfolio.API;
 using Microsoft.Extensions.Logging;
 
 namespace ConsoleHelper
 {
-	internal class ConsoleLogger : ILogger<GhostfolioAPI>, ILogger<FileImporterTask>, ILogger<DisplayInformationTask>, IDisposable
+	internal class ConsoleLogger :
+		ILogger<FileImporterTask>,
+		ILogger<DisplayInformationTask>,
+		IDisposable
 	{
 		public IDisposable? BeginScope<TState>(TState state) where TState : notnull
 		{
