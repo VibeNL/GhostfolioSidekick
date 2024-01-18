@@ -13,6 +13,11 @@ namespace GhostfolioSidekick.Parsers.Trading212
 
 		protected override IEnumerable<PartialActivity> ParseRow(Trading212Record record, int rowNumber)
 		{
+			if (string.IsNullOrWhiteSpace(record.Id))
+			{
+				record.Id = $"{record.Action}_{record.ISIN}_{record.Time.ToInvariantDateOnlyString()}_{record.Total?.ToString(CultureInfo.InvariantCulture)}_{record.Currency}";
+			}
+
 			var lst = new List<PartialActivity>();
 			string? currencySymbol = string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency;
 			var currency = new Currency(currencySymbol!);
@@ -82,12 +87,12 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		{
 			if (record.FeeUK != null)
 			{
-				yield return PartialActivity.CreateFee(new Currency(record.FeeUKCurrency!), record.Time, record.FeeUK.Value, record.Id);
+				yield return PartialActivity.CreateTax(new Currency(record.FeeUKCurrency!), record.Time, record.FeeUK.Value, record.Id);
 			}
 
 			if (record.FeeFrance != null)
 			{
-				yield return PartialActivity.CreateFee(new Currency(record.FeeFranceCurrency!), record.Time, record.FeeFrance.Value, record.Id);
+				yield return PartialActivity.CreateTax(new Currency(record.FeeFranceCurrency!), record.Time, record.FeeFrance.Value, record.Id);
 			}
 
 			if (record.ConversionFee != null)
