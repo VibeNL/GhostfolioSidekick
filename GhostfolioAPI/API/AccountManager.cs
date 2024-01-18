@@ -28,6 +28,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
 		}
+
 		public Task CreateAccount(Model.Accounts.Account account)
 		{
 			throw new NotImplementedException();

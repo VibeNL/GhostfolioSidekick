@@ -5,6 +5,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public interface IActivitiesManager
 	{
-		Task<IEnumerable<Activity>> GetAllActivities();
+		void UpdateActivities(IEnumerable<Holding> activities);
 	}
 }

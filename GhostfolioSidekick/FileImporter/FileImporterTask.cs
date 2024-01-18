@@ -10,6 +10,7 @@ namespace GhostfolioSidekick.FileImporter
 	{
 		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
+		private readonly IActivitiesManager activitiesManager;
 		private readonly IAccountManager accountManager;
 		private readonly IMarketDataManager marketDataManager;
 		private readonly IEnumerable<IFileImporter> importers;
@@ -19,6 +20,7 @@ namespace GhostfolioSidekick.FileImporter
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
 			IApplicationSettings settings,
+			IActivitiesManager activitiesManager,
 			IAccountManager accountManager,
 			IMarketDataManager marketDataManager,
 			IEnumerable<IFileImporter> importers)
@@ -27,6 +29,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			fileLocation = settings.FileImporterPath;
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.activitiesManager = activitiesManager ?? throw new ArgumentNullException(nameof(activitiesManager));
 			this.accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
 			this.marketDataManager = marketDataManager ?? throw new ArgumentNullException(nameof(marketDataManager));
 			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
@@ -75,11 +78,10 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			// TODO Update Ghostfolio
 			await holdingsCollection.GenerateActivities();
-			throw new NotImplementedException();
+			activitiesManager.UpdateActivities(holdingsCollection.Holdings);
 
-			//logger.LogInformation($"{nameof(FileImporterTask)} Done");
+			logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}
 	}
 }
