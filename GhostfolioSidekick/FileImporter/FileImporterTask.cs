@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Parsers;
+﻿using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
 using System.Text;
 
@@ -8,6 +9,7 @@ namespace GhostfolioSidekick.FileImporter
 	{
 		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
+		private readonly IMarketDataManager marketDataManager;
 		private readonly IEnumerable<IFileImporter> importers;
 
 		public int Priority => 3;
@@ -15,12 +17,14 @@ namespace GhostfolioSidekick.FileImporter
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
 			IApplicationSettings settings,
+			IMarketDataManager marketDataManager,
 			IEnumerable<IFileImporter> importers)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
 
 			fileLocation = settings.FileImporterPath;
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.marketDataManager = marketDataManager ?? throw new ArgumentNullException(nameof(marketDataManager));
 			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
 		}
 
@@ -30,7 +34,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			var directories = Directory.GetDirectories(fileLocation);
 
-			var holdingsAndAccountsCollection = new HoldingsAndAccountsCollection();
+			var holdingsCollection = new HoldingsCollection(marketDataManager);
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))
 			{
 				var accountName = directory.Name;
@@ -44,7 +48,7 @@ namespace GhostfolioSidekick.FileImporter
 					foreach (var file in files)
 					{
 						var importer = importers.SingleOrDefault(x => x.CanParseActivities(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
-						await importer.ParseActivities(file, holdingsAndAccountsCollection, accountName);
+						await importer.ParseActivities(file, holdingsCollection, accountName);
 					}
 				}
 				catch (NoImporterAvailableException)
@@ -67,7 +71,11 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			logger.LogInformation($"{nameof(FileImporterTask)} Done");
+			// TODO Update Ghostfolio
+			await holdingsCollection.GenerateActivities();
+			throw new NotImplementedException();
+
+			//logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}
 	}
 }

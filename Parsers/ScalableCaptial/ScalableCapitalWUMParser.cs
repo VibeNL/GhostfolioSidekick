@@ -18,9 +18,9 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			switch (record.OrderType)
 			{
 				case "Verkauf":
-					return [PartialActivity.CreateSell(currency, date, record.Isin, Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
+					return [PartialActivity.CreateSell(currency, date, [record.Isin], Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
 				case "Kauf":
-					return [PartialActivity.CreateBuy(currency, date, record.Isin, Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
+					return [PartialActivity.CreateBuy(currency, date, [record.Isin], Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
 				default:
 					throw new NotSupportedException();
 			}

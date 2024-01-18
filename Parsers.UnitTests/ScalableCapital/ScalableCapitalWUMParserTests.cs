@@ -11,7 +11,7 @@ namespace Parsers.UnitTests.ScalableCapital
 	{
 		private ScalableCapitalWUMParser parser;
 		private Account account;
-		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
+		private TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public ScalableCapitalWUMParserTests()
 		{
@@ -22,7 +22,7 @@ namespace Parsers.UnitTests.ScalableCapital
 				.Build<Account>()
 				.With(x => x.Balance, new Balance(Currency.EUR))
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}
 
 		[Fact]
@@ -50,7 +50,7 @@ namespace Parsers.UnitTests.ScalableCapital
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), "IE00077FRP95", 5, 8.685M, "SCALQbWiZnN9DtQ")
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), ["IE00077FRP95"], 5, 8.685M, "SCALQbWiZnN9DtQ")
 				]);
 		}
 
@@ -65,7 +65,7 @@ namespace Parsers.UnitTests.ScalableCapital
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), "IE00077FRP95", 5, 8.685M, "SCALQbWiZnN9DtQ")
+					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), ["IE00077FRP95"], 5, 8.685M, "SCALQbWiZnN9DtQ")
 				]);
 		}
 	}

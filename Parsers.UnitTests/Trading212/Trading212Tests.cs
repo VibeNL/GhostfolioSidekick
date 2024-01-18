@@ -11,7 +11,7 @@ namespace Parsers.UnitTests.Trading212
 	{
 		private Trading212Parser parser;
 		private Account account;
-		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
+		private TestHoldingsCollection holdingsAndAccountsCollection;
 
 
 		public Trading212Tests()
@@ -23,7 +23,7 @@ namespace Parsers.UnitTests.Trading212
 				.Build<Account>()
 				.With(x => x.Balance, new Balance(Currency.EUR))
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}
 
 		[Fact]
@@ -96,7 +96,7 @@ namespace Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc), "US67066G1040", 0.0267001M, 453.33M, "EOF3219953148"),
+					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc), ["US67066G1040"], 0.0267001M, 453.33M, "EOF3219953148"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc), 0.02M, "EOF3219953148"),
 				]);
 		}
@@ -137,7 +137,7 @@ namespace Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.USD, new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc), "US0378331005", 0.02M, "Dividend (Dividends paid by us corporations)_US0378331005_2023-08-17_0.02_USD")
+					PartialActivity.CreateDividend(Currency.USD, new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc), ["US0378331005"], 0.02M, "Dividend (Dividends paid by us corporations)_US0378331005_2023-08-17_0.02_USD")
 				]);
 		}
 
@@ -152,7 +152,7 @@ namespace Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.GBp, new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), "GB0007188757", 0.18625698M, 4947.00M, "EOF3224031549"),
+					PartialActivity.CreateBuy(Currency.GBp, new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), ["GB0007188757"], 0.18625698M, 4947.00M, "EOF3224031549"),
 					PartialActivity.CreateTax(Currency.GBP, new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), 0.05M, "EOF3224031549"),
 				]);
 		}
@@ -186,7 +186,7 @@ namespace Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), "FR0010828137", 14.7252730000M, 13.88M, "EOF4500547227"),
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), ["FR0010828137"], 14.7252730000M, 13.88M, "EOF4500547227"),
 					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), 0.61M, "EOF4500547227")
 				]);
 		}
@@ -202,7 +202,7 @@ namespace Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), "US7561091049", 0.2534760000M, 50.38M, "EOF4500546889"),
+					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), ["US7561091049"], 0.2534760000M, 50.38M, "EOF4500546889"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), 0.02M, "EOF4500546889"),
 				]);
 		}

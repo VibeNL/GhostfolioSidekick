@@ -1,5 +1,7 @@
 ﻿using GhostfolioSidekick;
 using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bunq;
 using GhostfolioSidekick.Parsers.DeGiro;
@@ -28,11 +30,12 @@ namespace ConsoleHelper
 			var cs = new ApplicationSettings();
 			MemoryCache memoryCache = new(new MemoryCacheOptions { });
 			//GhostfolioAPI api = new(cs, memoryCache, logger);
+			IMarketDataManager marketDataManager = new MarketDataManager();
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, cs),
 			//new AccountMaintainerTask(logger, api, cs),
 			//new CreateManualSymbolTask(logger, api, cs),
-			new FileImporterTask(logger, cs, new IFileImporter[] {
+			new FileImporterTask(logger, cs, marketDataManager, new IFileImporter[] {
 				//new BitvavoParser(cs, api),
 				new BunqParser(),
 				//new CoinbaseParser(cs, api),

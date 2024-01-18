@@ -1,17 +1,12 @@
-﻿using GhostfolioSidekick.Model.Symbols;
-
-namespace GhostfolioSidekick.Model.Activities
+﻿namespace GhostfolioSidekick.Model.Activities
 {
 	public class Activity(
 		ActivityType activityType,
-		SymbolProfile? asset,
 		DateTime dateTime,
 		decimal quantity,
 		Money unitPrice)
 	{
 		public ActivityType ActivityType { get; } = activityType;
-
-		public SymbolProfile? Asset { get; } = asset;
 
 		public DateTime Date { get; set; } = dateTime;
 
@@ -21,6 +16,6 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public Money UnitPrice { get; set; } = unitPrice;
 
-		public Money? Taxes { get; set; }
+		public IEnumerable<Money> Taxes { get; set; } = [];
 	}
 }

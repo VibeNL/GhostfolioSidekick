@@ -11,7 +11,7 @@ namespace Parsers.UnitTests.ScalableCapital
 	{
 		private ScalableCapitalRKKParser parser;
 		private Account account;
-		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
+		private TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public ScalableCapitalRKKParserTests()
 		{
@@ -22,7 +22,7 @@ namespace Parsers.UnitTests.ScalableCapital
 				.Build<Account>()
 				.With(x => x.Balance, new Balance(Currency.EUR))
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}
 
 		[Fact]
@@ -65,7 +65,7 @@ namespace Parsers.UnitTests.ScalableCapital
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 8, 1, 0, 0, 0, DateTimeKind.Utc), "US92343V1044", 14 * 0.5057142857142857142857142857M, "WWEK 16100100")
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 8, 1, 0, 0, 0, DateTimeKind.Utc), ["US92343V1044"], 14 * 0.5057142857142857142857142857M, "WWEK 16100100")
 				]);
 		}
 

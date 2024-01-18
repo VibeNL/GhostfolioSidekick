@@ -10,8 +10,10 @@ namespace GhostfolioSidekick.Model.Activities
 		public DateTime Date { get; private set; }
 		public decimal Amount { get; private set; }
 		public string? TransactionId { get; private set; }
-		public string? SymbolIdentifier { get; private set; }
+		public string[] SymbolIdentifiers { get; private set; } = [];
 		public decimal? UnitPrice { get; private set; }
+		public AssetClass[]? AllowedAssetClasses { get; set; }
+		public AssetSubClass[]? AllowedAssetSubClasses { get; set; }
 
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string? transactionId)
 		{
@@ -86,14 +88,14 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateBuy(
 			Currency currency,
 			DateTime date,
-			string symbolIdentifier,
+			string[] symbolIdentifiers,
 			decimal amount,
 			decimal unitPrice,
 			string? transactionId)
 		{
 			return new PartialActivity(ActivityType.Buy, currency)
 			{
-				SymbolIdentifier = symbolIdentifier,
+				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
 				Amount = amount,
 				UnitPrice = unitPrice,
@@ -104,14 +106,14 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateSell(
 			Currency currency,
 			DateTime date,
-			string symbolIdentifier,
+			string[] symbolIdentifiers,
 			decimal amount,
 			decimal unitPrice,
 			string? transactionId)
 		{
 			return new PartialActivity(ActivityType.Sell, currency)
 			{
-				SymbolIdentifier = symbolIdentifier,
+				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
 				Amount = amount,
 				UnitPrice = unitPrice,
@@ -119,11 +121,11 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateDividend(Currency currency, DateTime date, string symbolIdentifier, decimal amount, string? transactionId)
+		public static PartialActivity CreateDividend(Currency currency, DateTime date, string[] symbolIdentifiers, decimal amount, string? transactionId)
 		{
 			return new PartialActivity(ActivityType.Dividend, currency)
 			{
-				SymbolIdentifier = symbolIdentifier,
+				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
 				Amount = amount,
 				UnitPrice = 1,

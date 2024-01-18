@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Model.Symbols
 		Currency currency,
 		Datasource dataSource,
 		AssetClass assetClass,
-		AssetSubClass? assetSubClass)
+		AssetSubClass? assetSubClass) : IEquatable<SymbolProfile>
 	{
 		public Currency Currency { get; set; } = currency;
 
@@ -28,5 +28,15 @@ namespace GhostfolioSidekick.Model.Symbols
 		public MarketDataMappings Mappings { get; private set; } = new MarketDataMappings();
 
 		public ScraperConfiguration ScraperConfiguration { get; private set; } = new ScraperConfiguration();
+
+		public bool Equals(SymbolProfile? other)
+		{
+			return
+				Currency.Symbol == other?.Currency.Symbol &&
+				Name == other?.Name &&
+				Symbol == other?.Symbol &&
+				AssetClass == other?.AssetClass &&
+				AssetSubClass == other?.AssetSubClass;
+		}
 	}
 }

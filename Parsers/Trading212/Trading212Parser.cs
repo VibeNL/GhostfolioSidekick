@@ -38,13 +38,13 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.AddRange(PartialActivity.CreateCurrencyConvert(record.Time, parsed.Source, parsed.Target, record.Id));
 					break;
 				case "Market buy":
-					lst.Add(PartialActivity.CreateBuy(currency, record.Time, record.ISIN!, record.NumberOfShares!.Value, record.Price!.Value, record.Id));
+					lst.Add(PartialActivity.CreateBuy(currency, record.Time, [record.ISIN!], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
 					break;
 				case "Market sell":
-					lst.Add(PartialActivity.CreateSell(currency, record.Time, record.ISIN!, record.NumberOfShares!.Value, record.Price!.Value, record.Id));
+					lst.Add(PartialActivity.CreateSell(currency, record.Time, [record.ISIN!], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
 					break;
 				case string d when d.Contains("Dividend"):
-					lst.Add(PartialActivity.CreateDividend(currency, record.Time, record.ISIN!, record.Total!.Value, record.Id));
+					lst.Add(PartialActivity.CreateDividend(currency, record.Time, [record.ISIN!], record.Total!.Value, record.Id));
 					break;
 				default:
 					throw new NotSupportedException();

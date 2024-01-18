@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Parsers
 			return Task.FromResult(true);
 		}
 
-		public Task ParseActivities(string filename, IHoldingsAndAccountsCollection holdingsAndAccountsCollection, string accountName)
+		public Task ParseActivities(string filename, IHoldingsCollection holdingsAndAccountsCollection, string accountName)
 		{
 			var csvConfig = GetConfig();
 			using var streamReader = GetStreamReader(filename);
@@ -39,11 +39,10 @@ namespace GhostfolioSidekick.Parsers
 			csvReader.ReadHeader();
 			var records = csvReader.GetRecords<T>().ToList();
 
-			var account = holdingsAndAccountsCollection.GetAccount(accountName);
 			for (int i = 0; i < records.Count; i++)
 			{
 				var partialActivity = ParseRow(records[i], i + 1);
-				holdingsAndAccountsCollection.AddPartialActivity(account, partialActivity);
+				holdingsAndAccountsCollection.AddPartialActivity(accountName, partialActivity);
 			};
 
 			return Task.CompletedTask;

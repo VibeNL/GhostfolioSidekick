@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 				return [PartialActivity.CreateDividend(
 					currency,
 					date,
-					record.Isin.Replace("ISIN ", string.Empty),
+					[record.Isin.Replace("ISIN ", string.Empty)],
 					quantity * unitPrice,
 					record.Reference
 					)];

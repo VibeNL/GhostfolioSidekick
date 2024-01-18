@@ -11,7 +11,7 @@ namespace Parsers.UnitTests.Generic
 	{
 		private GenericParser parser;
 		private Account account;
-		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
+		private TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public GenericParserTests()
 		{
@@ -22,7 +22,7 @@ namespace Parsers.UnitTests.Generic
 				.Build<Account>()
 				.With(x => x.Balance, new Balance(Currency.EUR))
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}
 
 		[Fact]
@@ -50,7 +50,7 @@ namespace Parsers.UnitTests.Generic
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), "US67066G1040", 0.0267001000M, 453.33M, "Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
+					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), ["US67066G1040"], 0.0267001000M, 453.33M, "Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 0.02M, "Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
 				]);
 		}
@@ -112,7 +112,7 @@ namespace Parsers.UnitTests.Generic
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), "US2546871060", (decimal)(0.3247 * 0.27), "Dividend_US2546871060_2023-08-08_0.3247_EUR_0"),
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), ["US2546871060"], (decimal)(0.3247 * 0.27), "Dividend_US2546871060_2023-08-08_0.3247_EUR_0"),
 					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 0.02M, "Dividend_US2546871060_2023-08-08_0.3247_EUR_0")
 				]);
 		}

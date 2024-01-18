@@ -35,14 +35,14 @@ namespace GhostfolioSidekick.Parsers.Generic
 			{
 				case ActivityType.Receive: // TODO
 				case ActivityType.Buy:
-					lst.Add(PartialActivity.CreateBuy(currency, record.Date, record.Symbol!, record.Quantity, unitPrice, record.Id));
+					lst.Add(PartialActivity.CreateBuy(currency, record.Date, [record.Symbol!], record.Quantity, unitPrice, record.Id));
 					break;
 				case ActivityType.Send: // TODO
 				case ActivityType.Sell:
-					lst.Add(PartialActivity.CreateSell(currency, record.Date, record.Symbol!, record.Quantity, unitPrice, record.Id));
+					lst.Add(PartialActivity.CreateSell(currency, record.Date, [record.Symbol!], record.Quantity, unitPrice, record.Id));
 					break;
 				case ActivityType.Dividend:
-					lst.Add(PartialActivity.CreateDividend(currency, record.Date, record.Symbol!, record.Quantity * record.UnitPrice, record.Id));
+					lst.Add(PartialActivity.CreateDividend(currency, record.Date, [record.Symbol!], record.Quantity * record.UnitPrice, record.Id));
 					break;
 				case ActivityType.Interest:
 					lst.Add(PartialActivity.CreateInterest(currency, record.Date, record.UnitPrice, record.Id));

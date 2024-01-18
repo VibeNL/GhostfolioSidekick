@@ -11,7 +11,7 @@ namespace Parsers.UnitTests.Bunq
 	{
 		BunqParser parser;
 		private Account account;
-		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
+		private TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public BunqParserTests()
 		{
@@ -22,7 +22,7 @@ namespace Parsers.UnitTests.Bunq
 				.Build<Account>()
 				.With(x => x.Balance, new Balance(Currency.EUR))
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}
 
 		[Fact]

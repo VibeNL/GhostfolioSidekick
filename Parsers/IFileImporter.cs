@@ -4,6 +4,6 @@
 	{
 		Task<bool> CanParseActivities(string filenames);
 
-		Task ParseActivities(string filename, IHoldingsAndAccountsCollection holdingsAndAccountsCollection, string accountName);
+		Task ParseActivities(string filename, IHoldingsCollection holdingsAndAccountsCollection, string accountName);
 	}
 }

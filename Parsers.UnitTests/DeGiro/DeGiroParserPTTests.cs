@@ -11,7 +11,7 @@ namespace Parsers.UnitTests.DeGiro
 	{
 		private DeGiroParserPT parser;
 		private Account account;
-		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
+		private TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public DeGiroParserPTTests()
 		{
@@ -22,7 +22,7 @@ namespace Parsers.UnitTests.DeGiro
 				.Build<Account>()
 				.With(x => x.Balance, new Balance(Currency.EUR))
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}
 
 		[Fact]
@@ -52,7 +52,7 @@ namespace Parsers.UnitTests.DeGiro
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77.30M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77.30M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
@@ -70,7 +70,7 @@ namespace Parsers.UnitTests.DeGiro
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
-					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), "IE00B3XXRP09", 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
