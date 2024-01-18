@@ -53,18 +53,6 @@ namespace Parsers.UnitTests.Generic
 					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), "US67066G1040", 0.0267001000M, 453.33M, "Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 0.02M, "Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
 				]);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.USD, -12.123956333000M, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc)));
-			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
-				ActivityType.Buy,
-				asset,
-				new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc),
-				0.0267001M,
-				new Money(DefaultCurrency.USD, 453.33M, new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc)),
-				new[] { new Money(DefaultCurrency.USD, 0.02M, new DateTime(2023,08,7, 0,0,0, DateTimeKind.Utc)) },
-				"Transaction Reference: [Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02] (Details: asset US67066G1040)",
-				"Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02"
-				)
-			});*/
 		}
 
 
