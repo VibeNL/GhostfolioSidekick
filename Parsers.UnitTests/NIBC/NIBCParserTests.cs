@@ -1,129 +1,102 @@
-//using AutoFixture;
-//using FluentAssertions;
-//using GhostfolioSidekick.FileImporter.NIBC;
-//using GhostfolioSidekick.Ghostfolio.API;
-//using GhostfolioSidekick.Model;
-//using Moq;
+using AutoFixture;
+using FluentAssertions;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Parsers.NIBC;
 
-//namespace Parsers.UnitTests.NIBC
-//{
-//	public class NIBCParserTests
-//	{
-//		readonly Mock<IGhostfolioAPI> api;
+namespace Parsers.UnitTests.NIBC
+{
+	public class NIBCParserTests
+	{
+		private NIBCParser parser;
+		private Account account;
+		private TestHoldingsAndAccountsCollection holdingsAndAccountsCollection;
 
-//		public NIBCParserTests()
-//		{
-//			api = new Mock<IGhostfolioAPI>();
-//		}
+		public NIBCParserTests()
+		{
+			parser = new NIBCParser();
 
-//		[Fact]
-//		public async Task CanParseActivities_TestFiles_True()
-//		{
-//			// Arrange
-//			var parser = new NIBCParser(api.Object);
+			var fixture = new Fixture();
+			account = fixture
+				.Build<Account>()
+				.With(x => x.Balance, new Balance(Currency.EUR))
+				.Create();
+			holdingsAndAccountsCollection = new TestHoldingsAndAccountsCollection(account);
+		}
 
-//			foreach (var file in Directory.GetFiles("./FileImporter/TestFiles/NIBC/", "*.csv", SearchOption.AllDirectories))
-//			{
-//				// Act
-//				var canParse = await parser.CanParseActivities(new[] { file });
+		[Fact]
+		public async Task CanParseActivities_TestFiles_True()
+		{
+			// Arrange
+			foreach (var file in Directory.GetFiles("./TestFiles/NIBC/", "*.csv", SearchOption.AllDirectories))
+			{
+				// Act
+				var canParse = await parser.CanParseActivities(file);
 
-//				// Assert
-//				canParse.Should().BeTrue($"File {file}  cannot be parsed");
-//			}
-//		}
+				// Assert
+				canParse.Should().BeTrue($"File {file}  cannot be parsed");
+			}
+		}
 
-//		[Fact]
-//		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
-//		{
-//			// Arrange
-//			var parser = new NIBCParser(api.Object);
-//			var fixture = new Fixture();
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
+		{
+			// Arrange
 
-//			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
 
-//			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2020, 01, 27, 0, 0, 0, 0, DateTimeKind.Utc), 250M, "C0A27XM003000782")
+				]);
+		}
 
-//			// Act
-//			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/NIBC/CashTransactions/single_deposit.csv" });
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
+		{
+			// Arrange
 
-//			// Assert
-//			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 250M, new DateTime(2020, 01, 27, 0, 0, 0, DateTimeKind.Utc)));
-//		}
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
 
-//		[Fact]
-//		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
-//		{
-//			// Arrange
-//			var parser = new NIBCParser(api.Object);
-//			var fixture = new Fixture();
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashWithdrawal(Currency.EUR, new DateTime(2022, 01, 06, 0, 0, 0, 0, DateTimeKind.Utc), 10000M, "C2A06CW1G00A044D")
+				]);
+		}
 
-//			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleInterest_Converted()
+		{
+			// Arrange
 
-//			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
 
-//			// Act
-//			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/NIBC/CashTransactions/single_withdrawal.csv" });
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 09, 30, 0, 0, 0, 0, DateTimeKind.Utc), 0.51M, "C1I30IN0000A000Q")
+				]);
+		}
 
-//			// Assert
-//			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, -10000M, new DateTime(2022, 01, 06, 0, 0, 0, DateTimeKind.Utc)));
-//		}
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBonusInterest_Converted()
+		{
+			// Arrange
 
-//		[Fact]
-//		public async Task ConvertActivitiesForAccount_SingleInterest_Converted()
-//		{
-//			// Arrange
-//			var parser = new NIBCParser(api.Object);
-//			var fixture = new Fixture();
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_bonus_interest.csv", holdingsAndAccountsCollection, account.Name);
 
-//			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
-
-//			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-
-//			// Act
-//			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/NIBC/CashTransactions/single_interest.csv" });
-
-//			// Assert
-//			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.51M, new DateTime(2021, 09, 30, 0, 0, 0, DateTimeKind.Utc)));
-//			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
-//				ActivityType.Interest,
-//				null,
-//				new DateTime(2021, 09, 30, 0,0,0, DateTimeKind.Utc),
-//				1m,
-//				new Money(DefaultCurrency.EUR, 0.51M, new DateTime(2021, 09, 30, 0,0,0, DateTimeKind.Utc)),
-//				Enumerable.Empty<Money>(),
-//				"Transaction Reference: [C1I30IN0000A000Q]",
-//				"C1I30IN0000A000Q"
-//				)
-//			});
-//		}
-
-//		[Fact]
-//		public async Task ConvertActivitiesForAccount_SingleBonusInterest_Converted()
-//		{
-//			// Arrange
-//			var parser = new NIBCParser(api.Object);
-//			var fixture = new Fixture();
-
-//			var account = fixture.Build<Account>().With(x => x.Balance, Balance.Empty(DefaultCurrency.EUR)).Create();
-
-//			api.Setup(x => x.GetAccountByName(account.Name)).ReturnsAsync(account);
-
-//			// Act
-//			account = await parser.ConvertActivitiesForAccount(account.Name, new[] { "./FileImporter/TestFiles/NIBC/CashTransactions/single_bonus_interest.csv" });
-
-//			// Assert
-//			account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 1.1M, new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc)));
-//			account.Activities.Should().BeEquivalentTo(new[] { new Activity(
-//				ActivityType.Interest,
-//				null,
-//				new DateTime(2021,6,30, 0,0,0, DateTimeKind.Utc),
-//				1m,
-//				new Money(DefaultCurrency.EUR, 1.1M, new DateTime(2021,6,30, 0,0,0, DateTimeKind.Utc)),
-//				Enumerable.Empty<Money>(),
-//				"Transaction Reference: [C1F30IN0000A000QBonus]",
-//				"C1F30IN0000A000QBonus"
-//				)
-//			});
-//		}
-//	}
-//}
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc), 1.1M, "C1F30IN0000A000Q")
+				]);
+		}
+	}
+}
