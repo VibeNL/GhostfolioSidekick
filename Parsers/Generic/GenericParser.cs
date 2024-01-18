@@ -22,11 +22,11 @@ namespace GhostfolioSidekick.Parsers.Generic
 			var currency = new Currency(record.Currency);
 			var unitPrice = record.UnitPrice;
 
-			if (record.Tax != null)
+			if (record.Tax != null && record.Tax != 0)
 			{
 				lst.Add(PartialActivity.CreateTax(currency, record.Date, record.Tax.Value, record.Id));
 			}
-			if (record.Fee != null)
+			if (record.Fee != null && record.Fee != 0)
 			{
 				lst.Add(PartialActivity.CreateFee(currency, record.Date, record.Fee.Value, record.Id));
 			}
@@ -42,13 +42,16 @@ namespace GhostfolioSidekick.Parsers.Generic
 					lst.Add(PartialActivity.CreateSell(currency, record.Date, record.Symbol!, record.Quantity, unitPrice, record.Id));
 					break;
 				case ActivityType.Dividend:
-					lst.Add(PartialActivity.CreateDividend(currency, record.Date, record.Symbol!, record.UnitPrice, record.Id));
+					lst.Add(PartialActivity.CreateDividend(currency, record.Date, record.Symbol!, record.Quantity * record.UnitPrice, record.Id));
 					break;
 				case ActivityType.Interest:
 					lst.Add(PartialActivity.CreateInterest(currency, record.Date, record.UnitPrice, record.Id));
 					break;
 				case ActivityType.Fee:
-					lst.Add(PartialActivity.CreateFee(currency, record.Date, record.UnitPrice, record.Id));
+					if (record.UnitPrice != 0)
+					{
+						lst.Add(PartialActivity.CreateFee(currency, record.Date, record.UnitPrice, record.Id));
+					}
 					break;
 				case ActivityType.Gift:
 					lst.Add(PartialActivity.CreateGift(currency, record.Date, record.UnitPrice, record.Id));
@@ -60,7 +63,10 @@ namespace GhostfolioSidekick.Parsers.Generic
 					lst.Add(PartialActivity.CreateCashWithdrawal(currency, record.Date, record.UnitPrice, record.Id));
 					break;
 				case ActivityType.Tax:
-					lst.Add(PartialActivity.CreateTax(currency, record.Date, record.UnitPrice, record.Id));
+					if (record.UnitPrice != 0)
+					{
+						lst.Add(PartialActivity.CreateTax(currency, record.Date, record.UnitPrice, record.Id));
+					}
 					break;
 				case ActivityType.LearningReward:
 				case ActivityType.StakingReward:
