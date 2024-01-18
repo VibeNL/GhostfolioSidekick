@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick;
+﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
@@ -11,7 +11,7 @@ using GhostfolioSidekick.Parsers.ScalableCaptial;
 using GhostfolioSidekick.Parsers.Trading212;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace ConsoleHelper
+namespace GhostfolioSidekick.ConsoleHelper
 {
 	internal static class Program
 	{
@@ -27,15 +27,19 @@ namespace ConsoleHelper
 				Environment.SetEnvironmentVariable(split[0], split[1]);
 			}
 
-			var cs = new ApplicationSettings();
+			var settings = new ApplicationSettings();
 			MemoryCache memoryCache = new(new MemoryCacheOptions { });
 			//GhostfolioAPI api = new(cs, memoryCache, logger);
-			IMarketDataManager marketDataManager = new MarketDataManager();
+			IMarketDataManager marketDataManager = new MarketDataManager(
+				settings,
+				memoryCache,
+				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken),
+				logger);
 			var tasks = new IScheduledWork[]{
-			new DisplayInformationTask(logger, cs),
+			new DisplayInformationTask(logger, settings),
 			//new AccountMaintainerTask(logger, api, cs),
 			//new CreateManualSymbolTask(logger, api, cs),
-			new FileImporterTask(logger, cs, marketDataManager, new IFileImporter[] {
+			new FileImporterTask(logger, settings, marketDataManager, new IFileImporter[] {
 				//new BitvavoParser(cs, api),
 				new BunqParser(),
 				//new CoinbaseParser(cs, api),

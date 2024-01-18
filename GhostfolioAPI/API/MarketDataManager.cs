@@ -1,26 +1,324 @@
-﻿using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Ghostfolio.API.Mapper;
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SymbolProfile = GhostfolioSidekick.Model.Symbols.SymbolProfile;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class MarketDataManager : IMarketDataManager
 	{
+		private readonly IApplicationSettings settings;
+		private readonly MemoryCache memoryCache;
+		private readonly ILogger<MarketDataManager> logger;
+		private readonly RestCall restCall;
+		private readonly SymbolMapper symbolMapper;
+
+		private List<string> SortorderDataSources { get; set; }
+
 		public MarketDataManager(
-			)
+				IApplicationSettings settings,
+				MemoryCache memoryCache,
+				RestCall restCall,
+				ILogger<MarketDataManager> logger)
 		{
+			ArgumentNullException.ThrowIfNull(settings);
+			ArgumentNullException.ThrowIfNull(memoryCache);
 
+			this.settings = settings;
+			this.memoryCache = memoryCache;
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant()) ?? []];
+
+			symbolMapper = new SymbolMapper(settings.ConfigurationInstance.Mappings ?? []);
 		}
 
-		public Task<SymbolProfile?> FindSymbolByIdentifier(string[] identifiers, Currency? expectedCurrency, AssetClass[]? allowedAssetClass, AssetSubClass[]? allowedAssetSubClass, bool checkExternalDataProviders, bool includeIndexes)
+		public async Task<SymbolProfile?> FindSymbolByIdentifier(
+			string[] identifiers,
+			Currency? expectedCurrency,
+			AssetClass[]? expectedAssetClass,
+			AssetSubClass[]? expectedAssetSubClass,
+			bool checkExternalDataProviders,
+			bool includeIndexes)
 		{
-			throw new NotImplementedException();
+			if (identifiers == null || !identifiers.Any())
+			{
+				return null;
+			}
+
+			var key = new CacheKey(identifiers, expectedAssetClass, expectedAssetSubClass);
+
+			if (memoryCache.TryGetValue(key, out CacheValue? cacheValue))
+			{
+				return cacheValue!.Asset;
+			}
+
+			bool isCrypto = expectedAssetSubClass?.Contains(AssetSubClass.CryptoCurrency) ?? false;
+			var allIdentifiers = identifiers
+				.Union(identifiers.Select(x => symbolMapper.MapSymbol(x)))
+				.Union((IEnumerable<string>)(isCrypto ? identifiers.Select(CreateCryptoForYahoo) : []))
+				.Where(x => !string.IsNullOrWhiteSpace(x))
+				.Distinct();
+
+			var foundAsset = await FindByMarketData(allIdentifiers);
+
+			if (checkExternalDataProviders)
+			{
+				foundAsset ??= await FindByDataProvider(allIdentifiers, expectedCurrency, expectedAssetClass, expectedAssetSubClass, includeIndexes);
+			}
+
+			if (foundAsset != null)
+			{
+				AddToCache(key, foundAsset, memoryCache);
+				await UpdateKnownIdentifiers(foundAsset, identifiers);
+				return foundAsset;
+			}
+
+			AddToCache(key, null, memoryCache);
+			logger.LogError($"Could not find any identifier [{string.Join(",", identifiers)}] as a symbol");
+			return null;
+
+			static void AddToCache(CacheKey key, SymbolProfile? asset, IMemoryCache cache)
+			{
+				cache.Set(key, new CacheValue(asset), asset != null ? CacheDuration.Long() : CacheDuration.Short());
+			}
+
+			async Task<SymbolProfile?> FindByMarketData(IEnumerable<string> allIdentifiers)
+			{
+				try
+				{
+					var r = (await GetMarketData(false)).Select(x => x.AssetProfile);
+
+					foreach (var identifier in allIdentifiers)
+					{
+						var foundSymbol = r
+							.Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
+							.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
+							.SingleOrDefault(x =>
+							x.Symbol == identifier ||
+							x.ISIN == identifier ||
+							x.Identifiers.Contains(identifier));
+						if (foundSymbol != null)
+						{
+							return foundSymbol;
+						}
+					}
+				}
+				catch (NotAuthorizedException)
+				{
+					// Ignore for now
+				}
+
+				return null;
+			}
+
+			async Task<SymbolProfile?> FindByDataProvider(
+				IEnumerable<string> ids,
+				Currency? expectedCurrency,
+				AssetClass[]? expectedAssetClass,
+				AssetSubClass[]? expectedAssetSubClass,
+				bool includeIndexes)
+			{
+				var identifiers = ids.ToList();
+				var allAssets = new List<SymbolProfile>();
+
+				foreach (var identifier in identifiers)
+				{
+					for (var i = 0; i < 5; i++)
+					{
+						var content = await restCall.DoRestGet(
+							$"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices={includeIndexes.ToString().ToLowerInvariant()}",
+							CacheDuration.None());
+						if (content == null)
+						{
+							continue;
+						}
+
+						var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
+						var assets = symbolProfileList?.Items.Select(ContractToModelMapper.ParseSymbolProfile);
+
+						if (assets?.Any() ?? false)
+						{
+							allAssets.AddRange(assets);
+							break;
+						}
+					}
+				}
+
+				var filteredAsset = allAssets
+					.Where(x => x != null)
+					.Select(FixYahooCrypto)
+					.Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
+					.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
+					.OrderBy(x => identifiers.Any(y => MatchId(x, y)) ? 0 : 1)
+					.ThenByDescending(x => FussyMatch(identifiers, x))
+					.ThenBy(x => x.AssetSubClass == AssetSubClass.CryptoCurrency && x.Name.Contains("[OLD]") ? 1 : 0)
+					.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
+					.ThenBy(x => new[] { Currency.EUR.Symbol, Currency.USD.Symbol, Currency.GBP.Symbol, Currency.GBp.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
+					.ThenBy(x =>
+					{
+						var index = SortorderDataSources.IndexOf(x.DataSource.ToString().ToUpperInvariant());
+						if (index < 0)
+						{
+							index = int.MaxValue;
+						}
+
+						return index;
+					}) // prefer Yahoo above Coingecko due to performance
+					.ThenBy(x => x.Name?.Length ?? int.MaxValue)
+					.FirstOrDefault();
+				return filteredAsset;
+			}
+
+			bool MatchId(SymbolProfile x, string id)
+			{
+				if (string.Equals(x.ISIN, id, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return true;
+				}
+
+				if (string.Equals(x.Symbol, id, StringComparison.InvariantCultureIgnoreCase) ||
+					(x.AssetSubClass == AssetSubClass.CryptoCurrency &&
+					string.Equals(x.Symbol, id + "-USD", StringComparison.InvariantCultureIgnoreCase)) || // Add USD for Yahoo crypto
+					(x.AssetSubClass == AssetSubClass.CryptoCurrency &&
+					string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase))) // Add dashes for CoinGecko
+				{
+					return true;
+				}
+
+				if (string.Equals(x.Name, id, StringComparison.InvariantCultureIgnoreCase))
+				{
+					return true;
+				}
+
+				return false;
+			}
+
+			SymbolProfile FixYahooCrypto(SymbolProfile x)
+			{
+				// Workaround for bug Ghostfolio
+				if (x.AssetSubClass == AssetSubClass.CryptoCurrency && x.DataSource == Model.Symbols.Datasource.YAHOO && x.Symbol.Length >= 6)
+				{
+					var t = x.Symbol;
+					x.Symbol = string.Concat(t.AsSpan(0, t.Length - 3), "-", t.AsSpan(t.Length - 3, 3));
+				}
+
+				return x;
+			}
+
+			string CreateCryptoForYahoo(string x)
+			{
+				return x + "-USD";
+			}
+
+			int FussyMatch(List<string> identifiers, SymbolProfile profile)
+			{
+				return identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile?.Name ?? string.Empty), FuzzySharp.Fuzz.Ratio(x, profile?.Symbol ?? string.Empty)));
+			}
 		}
 
-		public Task<IEnumerable<MarketDataProfile>> GetMarketData()
+		public async Task<IEnumerable<MarketDataProfile>> GetMarketData(bool filterBenchmarks = true)
 		{
-			throw new NotImplementedException();
+			/*if (!AllowAdminCalls)
+			{
+				return Enumerable.Empty<Model.MarketDataList>();
+			}*/
+
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
+
+			if (content == null)
+			{
+				return [];
+			}
+
+			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
+
+			var benchmarks = (await GetInfo()).BenchMarks ?? [];
+
+			var filtered = filterBenchmarks ? market?.MarketData.Where(x => !benchmarks.Any(y => y.Symbol == x.Symbol)) : market?.MarketData;
+
+			return filtered?.Select(x => GetMarketData(x.Symbol, x.DataSource).Result)?.ToList() ?? [];
+		}
+
+		public async Task<MarketDataProfile> GetMarketData(string symbol, string dataSource)
+		{
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
+			var market = JsonConvert.DeserializeObject<MarketDataList>(content!);
+
+			return ContractToModelMapper.MapMarketDataList(market!);
+		}
+
+		private async Task UpdateKnownIdentifiers(SymbolProfile foundAsset, params string[] identifiers)
+		{
+			/*if (!AllowAdminCalls)
+			{
+				return;
+			}*/
+
+
+			var change = false;
+			foreach (var identifier in identifiers)
+			{
+				if (!foundAsset.Identifiers.Contains(identifier))
+				{
+					foundAsset.Identifiers.Add(identifier);
+					change = true;
+				}
+			}
+
+			if (change)
+			{
+				var o = new JObject
+				{
+					["comment"] = foundAsset.Comment
+				};
+				var res = o.ToString();
+
+				try
+				{
+					// Check if exists
+					var md = await GetMarketData(foundAsset.Symbol, foundAsset.DataSource.ToString().ToUpperInvariant());
+
+					if (string.IsNullOrWhiteSpace(md?.AssetProfile.Name) && md?.AssetProfile?.Currency?.Symbol == "-")
+					{
+						var newO = new JObject
+						{
+							["symbol"] = foundAsset.Symbol,
+							["dataSource"] = foundAsset.DataSource.ToString().ToUpperInvariant(),
+						};
+						var newRes = newO.ToString();
+						try
+						{
+							await restCall.DoRestPost($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", newRes);
+							logger.LogInformation($"Created symbol {foundAsset.Symbol}");
+						}
+						catch
+						{
+							// Ignore for now
+						}
+					}
+
+					var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+					logger.LogInformation($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifiers)}");
+				}
+				catch
+				{
+					// Ignore for now
+				}
+			}
+		}
+
+		private async Task<GenericInfo> GetInfo()
+		{
+			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
+			return JsonConvert.DeserializeObject<GenericInfo>(content!)!;
 		}
 	}
 }

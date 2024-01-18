@@ -1,7 +1,7 @@
 ﻿namespace GhostfolioSidekick.Model.Accounts
 {
-	public class Balance(Currency currency)
+	public class Balance(Money money)
 	{
-		public Currency Currency { get; set; } = currency;
+		public Money Money { get; set; } = money;
 	}
 }

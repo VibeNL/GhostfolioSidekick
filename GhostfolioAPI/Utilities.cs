@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick
+﻿namespace GhostfolioSidekick.GhostfolioAPI
 {
 	internal class Utilities
 	{

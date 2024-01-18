@@ -29,6 +29,12 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public ScraperConfiguration ScraperConfiguration { get; private set; } = new ScraperConfiguration();
 
+		public List<string> Identifiers { get; } = [];
+
+		public string? Comment { get; set; }
+
+		public int ActivitiesCount { get; set; }
+
 		public bool Equals(SymbolProfile? other)
 		{
 			return

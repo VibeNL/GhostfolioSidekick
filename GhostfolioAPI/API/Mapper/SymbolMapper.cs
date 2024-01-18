@@ -1,34 +1,36 @@
-﻿//namespace GhostfolioSidekick.Ghostfolio.API.Mapper
-//{
-//	internal class SymbolMapper
-//	{
-//		private readonly List<Mapping> mappings;
+﻿using GhostfolioSidekick.Configuration;
 
-//		public SymbolMapper(IEnumerable<Mapping> mappings)
-//		{
-//			this.mappings = mappings.ToList();
-//		}
+namespace GhostfolioSidekick.Ghostfolio.API.Mapper
+{
+	internal class SymbolMapper
+	{
+		private readonly List<Mapping> mappings;
 
-//		internal string MapCurrency(string sourceCurrency)
-//		{
-//			return Map(MappingType.Currency, sourceCurrency);
-//		}
+		public SymbolMapper(IEnumerable<Mapping> mappings)
+		{
+			this.mappings = mappings.ToList();
+		}
 
-//		internal string MapSymbol(string identifier)
-//		{
-//			return Map(MappingType.Symbol, identifier);
-//		}
+		internal string MapCurrency(string sourceCurrency)
+		{
+			return Map(MappingType.Currency, sourceCurrency);
+		}
 
-//		private string Map(MappingType type, string sourceCurrency)
-//		{
-//			return mappings.SingleOrDefault(x => x.MappingType == type && x.Source == sourceCurrency)?.Target ?? sourceCurrency;
-//		}
-//	}
+		internal string MapSymbol(string identifier)
+		{
+			return Map(MappingType.Symbol, identifier);
+		}
 
-//	internal enum TypeOfMapping
-//	{
-//		CURRENCY,
+		private string Map(MappingType type, string sourceCurrency)
+		{
+			return mappings.SingleOrDefault(x => x.MappingType == type && x.Source == sourceCurrency)?.Target ?? sourceCurrency;
+		}
+	}
 
-//		IDENTIFIER
-//	}
-//}
+	internal enum TypeOfMapping
+	{
+		CURRENCY,
+
+		IDENTIFIER
+	}
+}

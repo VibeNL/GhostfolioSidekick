@@ -1,10 +1,12 @@
-﻿using GhostfolioSidekick;
-using GhostfolioSidekick.FileImporter;
+﻿using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.Logging;
 
-namespace ConsoleHelper
+namespace GhostfolioSidekick.ConsoleHelper
 {
 	internal class ConsoleLogger :
+		ILogger<RestCall>,
+		ILogger<MarketDataManager>,
 		ILogger<FileImporterTask>,
 		ILogger<DisplayInformationTask>,
 		IDisposable

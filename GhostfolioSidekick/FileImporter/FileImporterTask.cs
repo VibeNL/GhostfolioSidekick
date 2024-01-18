@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.GhostfolioAPI;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
 using System.Text;

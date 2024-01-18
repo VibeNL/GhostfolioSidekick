@@ -1,21 +1,21 @@
 ﻿namespace GhostfolioSidekick.Model.Activities
 {
-    public enum AssetSubClass
-    {
-        CryptoCurrency,
+	public enum AssetSubClass
+	{
+		CryptoCurrency,
 
-        Etf,
+		Etf,
 
-        Stock,
+		Stock,
 
-        MutualFund,
+		MutualFund,
 
-        Bond,
+		Bond,
 
-        Commodity,
+		Commodity,
 
-        PreciousMetal,
+		PreciousMetal,
 
-        PrivateEquity
-    }
+		PrivateEquity
+	}
 }

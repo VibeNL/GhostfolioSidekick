@@ -20,7 +20,7 @@ namespace Parsers.UnitTests.ScalableCapital
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(Currency.EUR))
+				.With(x => x.Balance, new Balance(new Money(Currency.EUR, 0)))
 				.Create();
 			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}

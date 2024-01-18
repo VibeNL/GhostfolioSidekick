@@ -26,6 +26,7 @@
     <PackageReference Include="RestSharp" Version="110.2.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Configuration\Configuration.csproj" />
     <ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
     <ProjectReference Include="..\Model\Model.csproj" />
     <ProjectReference Include="..\Parsers\Parsers.csproj" />

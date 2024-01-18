@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 	{
 		private readonly ILogger<FileImporterTask> logger;
 		private readonly IAccountManager api;
-		private readonly ConfigurationInstance configurationInstance;
+		private readonly IApplicationSettings applicationSettings;
 
 		public int Priority => 1;
 
@@ -20,11 +20,9 @@ namespace GhostfolioSidekick.AccountMaintainer
 			IAccountManager api,
 			IApplicationSettings applicationSettings)
 		{
-			ArgumentNullException.ThrowIfNull(applicationSettings);
-
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.api = api ?? throw new ArgumentNullException(nameof(api));
-			configurationInstance = applicationSettings.ConfigurationInstance;
+			this.applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		}
 
 		public async Task DoWork()
@@ -46,8 +44,8 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		private async Task AddOrUpdateAccountsAndPlatforms()
 		{
-			var platforms = configurationInstance.Platforms;
-			var accounts = configurationInstance.Accounts;
+			var platforms = applicationSettings.ConfigurationInstance.Platforms;
+			var accounts = applicationSettings.ConfigurationInstance.Accounts;
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{
@@ -68,7 +66,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			await api.CreateAccount(new Account(
 				accountConfig.Name,
-				new Balance(new Currency(accountConfig.Currency)))
+				new Balance(new Money(new Currency(accountConfig.Currency), 0)))
 			{
 				Comment = accountConfig.Comment,
 				Platform = platform,

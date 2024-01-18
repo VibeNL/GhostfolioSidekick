@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Parsers
+﻿namespace GhostfolioSidekick.GhostfolioAPI
 {
 	internal static class TransactionReferenceUtilities
 	{

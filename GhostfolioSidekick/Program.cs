@@ -1,5 +1,8 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bunq;
 using GhostfolioSidekick.Parsers.DeGiro;
@@ -40,8 +43,10 @@ namespace GhostfolioSidekick
 				services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
+				services.AddSingleton<IMarketDataManager, MarketDataManager>();
+
+
 				services.AddScoped<IHostedService, TimedHostedService>();
-				//services.AddSingleton<IGhostfolioAPI, GhostfolioAPI>();
 				services.AddScoped<IScheduledWork, FileImporterTask>();
 				services.AddScoped<IScheduledWork, DisplayInformationTask>();
 				//services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();

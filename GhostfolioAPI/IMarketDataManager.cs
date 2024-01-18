@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public interface IMarketDataManager
 	{
-		Task<IEnumerable<MarketDataProfile>> GetMarketData();
+		Task<IEnumerable<MarketDataProfile>> GetMarketData(bool filterBenchmarks = true);
 
 		Task<SymbolProfile?> FindSymbolByIdentifier(
 			string[] identifiers,

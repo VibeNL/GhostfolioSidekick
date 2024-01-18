@@ -1,6 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
-
-namespace GhostfolioSidekick
+﻿namespace GhostfolioSidekick.Configuration
 {
 	public class ApplicationSettings : IApplicationSettings
 	{
