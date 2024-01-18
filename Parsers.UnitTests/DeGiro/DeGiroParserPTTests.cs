@@ -50,8 +50,8 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
-					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
 					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77.30M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
@@ -68,8 +68,8 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
-					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
 					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
@@ -86,7 +86,7 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 42.92M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 42.92M),
 					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, "CashDeposit_2023-12-28 04:51:00:+01:00___EUR")
 				]);
 		}
@@ -102,7 +102,7 @@ namespace Parsers.UnitTests.DeGiro
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc), 102.18M, null),
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, 0, DateTimeKind.Utc), 102.18M),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc), 2.5M, "Fee_2023-01-03 14:06:00:+01:00___EUR")
 				]);
 		}

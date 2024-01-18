@@ -1,6 +1,4 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper.Configuration.Attributes;
 
 namespace GhostfolioSidekick.Parsers.Bunq
 {
@@ -17,20 +15,5 @@ namespace GhostfolioSidekick.Parsers.Bunq
 		public required string Name { get; set; }
 
 		public required string Description { get; set; }
-
-		[LineNumber]
-		public int RowNumber { get; set; }
-
-		private class LineNumber : Attribute, IMemberMapper, IParameterMapper
-		{
-			public void ApplyTo(MemberMap memberMap)
-			{
-				memberMap.Data.ReadingConvertExpression = (ConvertFromStringArgs args) => args.Row.Parser.Row;
-			}
-
-			public void ApplyTo(ParameterMap parameterMap)
-			{
-			}
-		}
 	}
 }

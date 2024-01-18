@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			var currency = new Currency(record.Currency);
 			if (record.OrderType == "Saldo")
 			{
-				return [PartialActivity.CreateKnownBalance(new Currency(record.Currency), date, record.UnitPrice.GetValueOrDefault(0), null)];
+				return [PartialActivity.CreateKnownBalance(new Currency(record.Currency), date, record.UnitPrice.GetValueOrDefault(0))];
 			}
 
 			if (record.OrderType == "Coupons/Dividende")

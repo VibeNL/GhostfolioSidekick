@@ -87,17 +87,17 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		{
 			if (record.FeeUK != null)
 			{
-				yield return PartialActivity.CreateTax(new Currency(record.FeeUKCurrency!), record.Time, record.FeeUK.Value, record.Id);
+				yield return PartialActivity.CreateTax(new Currency(record.FeeUKCurrency!), record.Time, record.FeeUK.Value, record.Id!);
 			}
 
 			if (record.FeeFrance != null)
 			{
-				yield return PartialActivity.CreateTax(new Currency(record.FeeFranceCurrency!), record.Time, record.FeeFrance.Value, record.Id);
+				yield return PartialActivity.CreateTax(new Currency(record.FeeFranceCurrency!), record.Time, record.FeeFrance.Value, record.Id!);
 			}
 
 			if (record.ConversionFee != null)
 			{
-				yield return PartialActivity.CreateFee(new Currency(record.ConversionFeeCurrency!), record.Time, record.ConversionFee.Value, record.Id);
+				yield return PartialActivity.CreateFee(new Currency(record.ConversionFeeCurrency!), record.Time, record.ConversionFee.Value, record.Id!);
 			}
 		}
 	}

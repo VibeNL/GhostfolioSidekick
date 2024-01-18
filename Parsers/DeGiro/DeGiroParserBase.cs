@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		{
 			var recordDate = record.Date.ToDateTime(record.Time);
 
-			var knownBalance = PartialActivity.CreateKnownBalance(new Currency(record.BalanceCurrency), recordDate, record.Balance, null);
+			var knownBalance = PartialActivity.CreateKnownBalance(new Currency(record.BalanceCurrency), recordDate, record.Balance);
 			PartialActivity? partialActivity = null;
 
 			var activityType = record.GetActivityType();
@@ -37,28 +37,28 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						[record.ISIN!],
 						record.GetQuantity(),
 						record.GetUnitPrice(),
-						record.TransactionId);
+						record.TransactionId!);
 					break;
 				case ActivityType.CashDeposit:
-					partialActivity = PartialActivity.CreateCashDeposit(currencyRecord, recordDate, recordTotal, record.TransactionId);
+					partialActivity = PartialActivity.CreateCashDeposit(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.CashWithdrawal:
-					partialActivity = PartialActivity.CreateCashWithdrawal(currencyRecord, recordDate, recordTotal, record.TransactionId);
+					partialActivity = PartialActivity.CreateCashWithdrawal(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Dividend:
-					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate, [record.ISIN!], recordTotal, record.TransactionId);
+					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate, [record.ISIN!], recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Fee:
-					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal, record.TransactionId);
+					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Tax:
-					partialActivity = PartialActivity.CreateTax(currencyRecord, recordDate, recordTotal, record.TransactionId);
+					partialActivity = PartialActivity.CreateTax(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Gift:
-					partialActivity = PartialActivity.CreateGift(currencyRecord, recordDate, recordTotal, record.TransactionId);
+					partialActivity = PartialActivity.CreateGift(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Interest:
-					partialActivity = PartialActivity.CreateInterest(currencyRecord, recordDate, recordTotal, record.TransactionId);
+					partialActivity = PartialActivity.CreateInterest(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Sell:
 					partialActivity = PartialActivity.CreateSell(
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						[record.ISIN!],
 						record.GetQuantity(),
 						record.GetUnitPrice(),
-						record.TransactionId);
+						record.TransactionId!);
 					break;
 				default:
 					throw new NotSupportedException();

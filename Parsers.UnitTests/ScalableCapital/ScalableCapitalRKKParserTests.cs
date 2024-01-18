@@ -50,7 +50,7 @@ namespace Parsers.UnitTests.ScalableCapital
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 04, 11, 00, 00, 00, DateTimeKind.Utc), 21.68M, null)
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 04, 11, 00, 00, 00, DateTimeKind.Utc), 21.68M)
 				]);
 		}
 
