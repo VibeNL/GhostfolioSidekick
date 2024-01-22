@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public DateTime Date { get; private set; }
 		public decimal Amount { get; private set; }
 		public string? TransactionId { get; } = transactionId;
-		public string[] SymbolIdentifiers { get; private set; } = [];
+		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
 		public decimal? UnitPrice { get; private set; }
 		public AssetClass[]? AllowedAssetClasses { get; set; }
 		public AssetSubClass[]? AllowedAssetSubClasses { get; set; }
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateBuy(
 			Currency currency,
 			DateTime date,
-			string[] symbolIdentifiers,
+			PartialSymbolIdentifier[] symbolIdentifiers,
 			decimal amount,
 			decimal unitPrice,
 			string transactionId)
@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateSell(
 			Currency currency,
 			DateTime date,
-			string[] symbolIdentifiers,
+			PartialSymbolIdentifier[] symbolIdentifiers,
 			decimal amount,
 			decimal unitPrice,
 			string transactionId)
@@ -112,7 +112,12 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateDividend(Currency currency, DateTime date, string[] symbolIdentifiers, decimal amount, string transactionId)
+		public static PartialActivity CreateDividend(
+		Currency currency, 
+		DateTime date,
+		PartialSymbolIdentifier[] symbolIdentifiers,
+		decimal amount, 
+		string transactionId)
 		{
 			return new PartialActivity(ActivityType.Dividend, currency, transactionId)
 			{
@@ -123,7 +128,11 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static IEnumerable<PartialActivity> CreateCurrencyConvert(DateTime date, Money source, Money target, string transactionId)
+		public static IEnumerable<PartialActivity> CreateCurrencyConvert(
+			DateTime date, 
+			Money source, 
+			Money target,
+			string transactionId)
 		{
 			yield return new PartialActivity(ActivityType.CashWithdrawal, source.Currency, transactionId)
 			{

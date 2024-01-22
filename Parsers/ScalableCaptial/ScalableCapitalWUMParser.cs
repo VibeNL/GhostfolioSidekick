@@ -5,6 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "<Pending>")]
 	public class ScalableCapitalWUMParser : RecordBaseImporter<BaaderBankWUMRecord>
 	{
 		public ScalableCapitalWUMParser()
@@ -18,9 +19,11 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			switch (record.OrderType)
 			{
 				case "Verkauf":
-					return [PartialActivity.CreateSell(currency, date, [record.Isin], Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
+					return [PartialActivity.CreateSell(currency, date,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)], Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
 				case "Kauf":
-					return [PartialActivity.CreateBuy(currency, date, [record.Isin], Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
+					return [PartialActivity.CreateBuy(currency, date,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)], Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
 				default:
 					throw new NotSupportedException();
 			}

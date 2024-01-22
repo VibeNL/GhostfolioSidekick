@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 {
 	public abstract class DeGiroParserBase<T> : RecordBaseImporter<T> where T : DeGiroRecordBase
 	{
-		public DeGiroParserBase()
+		protected DeGiroParserBase()
 		{
 		}
 
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateBuy(
 						currencyRecord,
 						recordDate,
-						[record.ISIN!],
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
 						record.GetUnitPrice(),
 						record.TransactionId!);
@@ -46,7 +46,8 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateCashWithdrawal(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Dividend:
-					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate, [record.ISIN!], recordTotal, record.TransactionId!);
+					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Fee:
 					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal, record.TransactionId!);
@@ -64,7 +65,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateSell(
 						currencyRecord,
 						recordDate,
-						[record.ISIN!],
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
 						record.GetUnitPrice(),
 						record.TransactionId!);

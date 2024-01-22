@@ -5,6 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "<Pending>")]
 	public class ScalableCapitalRKKParser : RecordBaseImporter<BaaderBankRKKRecord>
 	{
 		public ScalableCapitalRKKParser()
@@ -28,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 				return [PartialActivity.CreateDividend(
 					currency,
 					date,
-					[record.Isin.Replace("ISIN ", string.Empty)],
+					[PartialSymbolIdentifier.CreateStockAndETF(record.Isin.Replace("ISIN ", string.Empty))],
 					quantity * unitPrice,
 					record.Reference
 					)];

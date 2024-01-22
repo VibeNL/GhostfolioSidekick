@@ -74,7 +74,6 @@ namespace GhostfolioSidekick.FileImporter
 				catch (Exception ex)
 				{
 					logger.LogError($"Error {ex.Message}, {ex.StackTrace}");
-					// TODO
 				}
 			}
 
