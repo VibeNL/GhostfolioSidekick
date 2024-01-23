@@ -7,7 +7,8 @@ namespace GhostfolioSidekick.Model.Activities
 		ActivityType activityType,
 		DateTime dateTime,
 		decimal quantity,
-		Money unitPrice)
+		Money unitPrice,
+		string transactionId)
 	{
 		public Account Account { get; } = account;
 
@@ -22,6 +23,8 @@ namespace GhostfolioSidekick.Model.Activities
 		public Money UnitPrice { get; set; } = unitPrice;
 
 		public IEnumerable<Money> Taxes { get; set; } = [];
+
+		public string TransactionId { get; set; } = transactionId;
 
 		public override string ToString()
 		{

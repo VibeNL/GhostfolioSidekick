@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.FileImporter
 
 		private void DetermineActivity(Account account, Holding holding, List<PartialActivity> transactions)
 		{
-			var sourceTransaction = transactions.FirstOrDefault(x => x.SymbolIdentifiers.Length != 0) ?? transactions.First();
+			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Length != 0) ?? transactions[0];
 
 			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == ActivityType.Fee).ToList();
 			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == ActivityType.Tax).ToList();
@@ -66,9 +66,11 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				Fees = fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 				Taxes = taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
+				TransactionId = sourceTransaction.TransactionId,
 			};
 			holding.Activities.Add(activity);
 
+			int counter = 2;
 			foreach (var transaction in otherTransactions)
 			{
 				activity = new Activity(
@@ -76,7 +78,11 @@ namespace GhostfolioSidekick.FileImporter
 					transaction.ActivityType,
 					transaction.Date,
 					transaction.Amount,
-					new Money(transaction.Currency, transaction.UnitPrice ?? 0));
+					new Money(transaction.Currency, transaction.UnitPrice ?? 0))
+				{
+					TransactionId = sourceTransaction.TransactionId + $"_{counter++}",
+				};
+
 				holding.Activities.Add(activity);
 			}
 		}
@@ -84,10 +90,10 @@ namespace GhostfolioSidekick.FileImporter
 		private async Task<Holding> GetorAddHolding(PartialActivity activity)
 		{
 			var symbol = await marketDataManager.FindSymbolByIdentifier(
-				activity.SymbolIdentifiers,
+				activity.SymbolIdentifiers.Select(x => x.Identifier).ToArray(),
 				activity.Currency,
-				activity.AllowedAssetClasses,
-				activity.AllowedAssetSubClasses,
+				activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetClasses ?? []).ToArray(),
+				activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetSubClasses ?? []).ToArray(),
 				true,
 				false) ?? throw new NotSupportedException();
 

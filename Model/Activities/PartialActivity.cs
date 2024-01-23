@@ -12,8 +12,6 @@ namespace GhostfolioSidekick.Model.Activities
 		public string? TransactionId { get; } = transactionId;
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
 		public decimal? UnitPrice { get; private set; }
-		public AssetClass[]? AllowedAssetClasses { get; set; }
-		public AssetSubClass[]? AllowedAssetSubClasses { get; set; }
 
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
