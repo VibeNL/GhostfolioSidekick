@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers;
+using System.Transactions;
 
 namespace GhostfolioSidekick.FileImporter
 {
@@ -62,11 +63,11 @@ namespace GhostfolioSidekick.FileImporter
 				sourceTransaction.ActivityType,
 				sourceTransaction.Date,
 				sourceTransaction.Amount,
-				new Money(sourceTransaction.Currency, sourceTransaction.UnitPrice ?? 0))
+				new Money(sourceTransaction.Currency, sourceTransaction.UnitPrice ?? 0),
+				sourceTransaction.TransactionId)
 			{
 				Fees = fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
-				Taxes = taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
-				TransactionId = sourceTransaction.TransactionId,
+				Taxes = taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0))
 			};
 			holding.Activities.Add(activity);
 
@@ -78,10 +79,8 @@ namespace GhostfolioSidekick.FileImporter
 					transaction.ActivityType,
 					transaction.Date,
 					transaction.Amount,
-					new Money(transaction.Currency, transaction.UnitPrice ?? 0))
-				{
-					TransactionId = sourceTransaction.TransactionId + $"_{counter++}",
-				};
+					new Money(transaction.Currency, transaction.UnitPrice ?? 0),
+					sourceTransaction.TransactionId + $"_{counter++}");
 
 				holding.Activities.Add(activity);
 			}

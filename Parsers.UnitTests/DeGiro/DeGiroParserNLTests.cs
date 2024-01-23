@@ -68,7 +68,7 @@ namespace Parsers.UnitTests.DeGiro
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77.30M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")], 1, 77.30M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
@@ -86,7 +86,7 @@ namespace Parsers.UnitTests.DeGiro
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")], 1, 77M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
@@ -104,7 +104,7 @@ namespace Parsers.UnitTests.DeGiro
 				[
 					PartialActivity.CreateKnownBalance(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
 					PartialActivity.CreateKnownBalance(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
-					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")], 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
@@ -122,7 +122,7 @@ namespace Parsers.UnitTests.DeGiro
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
-					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")], 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
@@ -140,7 +140,7 @@ namespace Parsers.UnitTests.DeGiro
 				[
 					PartialActivity.CreateKnownBalance(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
 					PartialActivity.CreateKnownBalance(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M),
-					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), ["IE00B3XXRP09"], 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")], 1, 77.3M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
@@ -159,8 +159,8 @@ namespace Parsers.UnitTests.DeGiro
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 9.77M),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 12.77M),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 926.69M),
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), ["NL0011794037"], 34, 26.88M, "35d4345a-467c-42bd-848c-f6087737dd36"),
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), ["NL0011794037"], 4, 26.88M, "35d4345a-467c-42bd-848c-f6087737dd36"),
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("NL0011794037")], 34, 26.88M, "35d4345a-467c-42bd-848c-f6087737dd36"),
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("NL0011794037")], 4, 26.88M, "35d4345a-467c-42bd-848c-f6087737dd36"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 3M, "35d4345a-467c-42bd-848c-f6087737dd36")
 				]);
 		}
@@ -180,7 +180,7 @@ namespace Parsers.UnitTests.DeGiro
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M),
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 24.39M),
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), ["NL0009690239"], 9.57M, transactionId!),
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("NL0009690239")], 9.57M, transactionId!),
 					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 1.44M, transactionId!)
 				]);
 		}
@@ -197,7 +197,7 @@ namespace Parsers.UnitTests.DeGiro
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M),
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), ["NL0009690239"], 9.57M, "Dividend_2023-09-14 06:32:00:+02:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("NL0009690239")], 9.57M, "Dividend_2023-09-14 06:32:00:+02:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),
 				]);
 		}
 	}
