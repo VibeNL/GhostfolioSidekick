@@ -29,18 +29,21 @@ namespace GhostfolioSidekick.ConsoleHelper
 
 			var settings = new ApplicationSettings();
 			MemoryCache memoryCache = new(new MemoryCacheOptions { });
-			IExchangeRateService exchangeRateService = { };
+			RestCall restCall = new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken);
+			IExchangeRateService exchangeRateService = new ExchangeRateService(
+				restCall,
+				logger);
 			IMarketDataService marketDataManager = new MarketDataService(
 				settings,
 				memoryCache,
-				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken),
+				restCall,
 				logger);
 			IAccountService accountManager = new AccountService(
-				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken));
+				restCall);
 			IActivitiesService activitiesManager = new ActivitiesService(
 				exchangeRateService,
 				accountManager,
-				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken),
+				restCall,
 				logger);
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, settings),

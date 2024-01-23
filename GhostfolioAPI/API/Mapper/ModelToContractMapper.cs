@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 	public static class ModelToContractMapper
 	{
 		public static async Task<GhostfolioAPI.Contract.Activity?> ConvertToGhostfolioActivity(
-			GhostfolioAPI.API.IExchangeRateService exchangeRateService,
+			IExchangeRateService exchangeRateService,
 			Model.Symbols.SymbolProfile? symbolProfile,
 			Model.Activities.Activity activity)
 		{
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			};
 		}
 
-		private static async Task<decimal> ConvertPrice(GhostfolioAPI.API.IExchangeRateService exchangeRateService, Money money, Currency targetCurrency, DateTime dateTime)
+		private static async Task<decimal> ConvertPrice(IExchangeRateService exchangeRateService, Money money, Currency targetCurrency, DateTime dateTime)
 		{
 			var rate = await exchangeRateService.GetConversionRate(money.Currency, targetCurrency, dateTime);
 			return money.Amount * rate;

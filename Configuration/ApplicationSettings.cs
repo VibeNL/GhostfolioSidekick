@@ -38,6 +38,8 @@
 			}
 		}
 
+		public bool AllowAdminCalls => true;
+
 		private readonly string ghostfolioUrl = Environment.GetEnvironmentVariable(URL)!;
 		private readonly ConfigurationInstance? configuration;
 	}

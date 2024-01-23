@@ -7,6 +7,7 @@ namespace GhostfolioSidekick.ConsoleHelper
 {
 	internal class ConsoleLogger :
 		ILogger<RestCall>,
+		ILogger<ExchangeRateService>,
 		ILogger<MarketDataService>,
 		ILogger<AccountService>,
 		ILogger<ActivitiesService>,

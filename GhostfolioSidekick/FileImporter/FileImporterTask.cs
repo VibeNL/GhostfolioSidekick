@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			await holdingsCollection.GenerateActivities();
-			activitiesManager.UpdateActivities(accountNames, holdingsCollection.Holdings);
+			await activitiesManager.UpdateActivities(accountNames, holdingsCollection.Holdings);
 
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}
