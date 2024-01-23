@@ -9,5 +9,7 @@
 		string GhostfolioAccessToken { get; }
 
 		ConfigurationInstance ConfigurationInstance { get; }
+		
+		bool AllowAdminCalls { get; }
 	}
 }

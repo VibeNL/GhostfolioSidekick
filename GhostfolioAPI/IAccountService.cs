@@ -3,7 +3,7 @@ using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public interface IAccountManager
+	public interface IAccountService
 	{
 		Task CreateAccount(Account account);
 		Task CreatePlatform(Platform platform);

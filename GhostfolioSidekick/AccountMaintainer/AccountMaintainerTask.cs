@@ -10,14 +10,14 @@ namespace GhostfolioSidekick.AccountMaintainer
 	public class AccountMaintainerTask : IScheduledWork
 	{
 		private readonly ILogger<FileImporterTask> logger;
-		private readonly IAccountManager api;
+		private readonly IAccountService api;
 		private readonly IApplicationSettings applicationSettings;
 
 		public int Priority => 1;
 
 		public AccountMaintainerTask(
 			ILogger<FileImporterTask> logger,
-			IAccountManager api,
+			IAccountService api,
 			IApplicationSettings applicationSettings)
 		{
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

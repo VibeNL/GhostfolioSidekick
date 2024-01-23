@@ -10,9 +10,9 @@ namespace GhostfolioSidekick.FileImporter
 	{
 		private readonly string fileLocation;
 		private readonly ILogger<FileImporterTask> logger;
-		private readonly IActivitiesManager activitiesManager;
-		private readonly IAccountManager accountManager;
-		private readonly IMarketDataManager marketDataManager;
+		private readonly IActivitiesService activitiesManager;
+		private readonly IAccountService accountManager;
+		private readonly IMarketDataService marketDataManager;
 		private readonly IEnumerable<IFileImporter> importers;
 
 		public int Priority => 3;
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.FileImporter
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
 			IApplicationSettings settings,
-			IActivitiesManager activitiesManager,
-			IAccountManager accountManager,
-			IMarketDataManager marketDataManager,
+			IActivitiesService activitiesManager,
+			IAccountService accountManager,
+			IMarketDataService marketDataManager,
 			IEnumerable<IFileImporter> importers)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
@@ -42,6 +42,7 @@ namespace GhostfolioSidekick.FileImporter
 			var directories = Directory.GetDirectories(fileLocation);
 
 			var holdingsCollection = new HoldingsCollection(accountManager, marketDataManager);
+			var accountNames = new List<string>();
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))
 			{
 				var accountName = directory.Name;
@@ -57,6 +58,8 @@ namespace GhostfolioSidekick.FileImporter
 						var importer = importers.SingleOrDefault(x => x.CanParseActivities(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
 						await importer.ParseActivities(file, holdingsCollection, accountName);
 					}
+
+					accountNames.Add(accountName);
 				}
 				catch (NoImporterAvailableException)
 				{
@@ -78,7 +81,7 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			await holdingsCollection.GenerateActivities();
-			activitiesManager.UpdateActivities(holdingsCollection.Holdings);
+			activitiesManager.UpdateActivities(accountNames, holdingsCollection.Holdings);
 
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}

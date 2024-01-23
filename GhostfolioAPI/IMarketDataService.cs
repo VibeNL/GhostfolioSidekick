@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public interface IMarketDataManager
+	public interface IMarketDataService
 	{
 		Task<IEnumerable<MarketDataProfile>> GetMarketData(bool filterBenchmarks = true);
 

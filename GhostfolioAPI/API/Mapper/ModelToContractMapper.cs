@@ -1,107 +1,113 @@
-﻿//using GhostfolioSidekick.GhostfolioAPI;
-//using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Model;
 
-//namespace GhostfolioSidekick.Ghostfolio.API.Mapper
-//{
-//	public class ModelToContractMapper(GhostfolioAPI.API.IExchangeRateService exchangeRateService)
-//	{
-//		public GhostfolioAPI.Contract.Activity? ConvertToGhostfolioActivity(
-//			Model.Accounts.Account account, 
-//			Model.Activities.Activity activity)
-//		{
-//			decimal CalculateFee(IEnumerable<Money> fees, Currency targetCurrency, DateTime dateTime)
-//			{
-//				decimal amount = 0;
+namespace GhostfolioSidekick.Ghostfolio.API.Mapper
+{
+	public static class ModelToContractMapper
+	{
+		public static async Task<GhostfolioAPI.Contract.Activity?> ConvertToGhostfolioActivity(
+			GhostfolioAPI.API.IExchangeRateService exchangeRateService,
+			Model.Symbols.SymbolProfile? symbolProfile,
+			Model.Activities.Activity activity)
+		{
+			async Task<decimal> CalculateFee(IEnumerable<Money> fees, Currency targetCurrency, DateTime dateTime)
+			{
+				decimal amount = 0;
 
-//				foreach (var fee in fees)
-//				{
-//					var rate = exchangeRateService.GetConversionRate(fee.Currency, targetCurrency, dateTime);
+				foreach (var fee in fees)
+				{
+					amount += await ConvertPrice(exchangeRateService, fee, targetCurrency, dateTime);
+				}
 
-//					amount += rate * fee.Amount;
-//				}
+				return amount;
+			}
 
-//				return amount;
-//			}
+			if (activity.ActivityType == Model.Activities.ActivityType.Interest ||
+				activity.ActivityType == Model.Activities.ActivityType.Fee)
+			{
+				return new GhostfolioAPI.Contract.Activity
+				{
+					AccountId = activity.Account.Id,
+					Currency = activity.Account.Balance.Money.Currency.Symbol,
+					SymbolProfile = null,
+					Comment = TransactionReferenceUtilities.GetComment(activity.TransactionId),
+					Date = activity.Date,
+					Fee = await CalculateFee(activity.Fees, activity.Account.Balance.Money.Currency, activity.Date),
+					FeeCurrency = activity.Account.Balance.Money.Currency.Symbol,
+					Quantity = activity.Quantity,
+					Type = ParseType(activity.ActivityType),
+					UnitPrice = await ConvertPrice(exchangeRateService, activity.UnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
+					ReferenceCode = activity.TransactionId
+				};
+			}
 
-//			if (activity.ActivityType == Model.Activities.ActivityType.Interest ||
-//				activity.ActivityType == Model.Activities.ActivityType.Fee)
-//			{
-//				return new GhostfolioAPI.Contract.Activity
-//				{
-//					AccountId = account.Id,
-//					Currency = account.Balance.Money.Currency.Symbol,
-//					SymbolProfile = null,
-//					Comment = TransactionReferenceUtilities.GetComment(activity.TransactionId),
-//					Date = activity.Date,
-//					Fee = CalculateFee(activity.Fees, account.Balance.Money.Currency, activity.Date),
-//					FeeCurrency = account.Balance.Money.Currency.Symbol,
-//					Quantity = activity.Quantity,
-//					Type = ParseType(activity.ActivityType),
-//					UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, account.Balance.Money.Currency, activity.Date)!.Amount,
-//					ReferenceCode = activity.TransactionId
-//				};
-//			}
+			if (symbolProfile == null)
+			{
+				// Ignore for now
+				return null;
+			}
 
-//			if (activity.Asset == null)
-//			{
-//				return null;
-//			}
+			return new GhostfolioAPI.Contract.Activity
+			{
+				AccountId = activity.Account.Id,
+				Currency = symbolProfile.Currency.Symbol,
+				SymbolProfile = new GhostfolioAPI.Contract.SymbolProfile
+				{
+					Symbol = symbolProfile.Symbol,
+					AssetClass = symbolProfile.AssetClass.ToString(),
+					AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
+					Currency = symbolProfile.Currency!.Symbol,
+					DataSource = symbolProfile.DataSource.ToString(),
+					Name = symbolProfile.Name
+				},
+				Comment = TransactionReferenceUtilities.GetComment(activity.TransactionId),
+				Date = activity.Date,
+				Fee = await CalculateFee(activity.Fees, symbolProfile.Currency, activity.Date),
+				FeeCurrency = symbolProfile.Currency.Symbol,
+				Quantity = activity.Quantity,
+				Type = ParseType(activity.ActivityType),
+				UnitPrice = await ConvertPrice(exchangeRateService, activity.UnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
+				ReferenceCode = activity.TransactionId
+			};
+		}
 
-//			return new GhostfolioAPI.Contract.Activity
-//            {
-//				AccountId = account.Id,
-//				Currency = activity.Asset.Currency?.Symbol,
-//				SymbolProfile = new Contract.SymbolProfile
-//				{
-//					Symbol = activity.Asset.Symbol,
-//					AssetClass = activity.Asset.AssetClass.ToString(),
-//					AssetSubClass = activity.Asset.AssetSubClass?.ToString(),
-//					Currency = activity.Asset.Currency!.Symbol,
-//					DataSource = activity.Asset.DataSource!,
-//					Name = activity.Asset.Name
-//				},
-//				Comment = activity.Comment,
-//				Date = activity.Date,
-//				Fee = CalculateFee(activity.Fees, activity.Asset.Currency),
-//				FeeCurrency = activity.Asset.Currency?.Symbol,
-//				Quantity = activity.Quantity,
-//				Type = ParseType(activity.ActivityType),
-//				UnitPrice = currentPriceCalculator.GetConvertedPrice(activity.UnitPrice, activity.Asset.Currency!, activity.Date)?.Amount ?? 0,
-//				ReferenceCode = activity.TransactionId
-//			};
-//		}
+		private static async Task<decimal> ConvertPrice(GhostfolioAPI.API.IExchangeRateService exchangeRateService, Money money, Currency targetCurrency, DateTime dateTime)
+		{
+			var rate = await exchangeRateService.GetConversionRate(money.Currency, targetCurrency, dateTime);
+			return money.Amount * rate;
+		}
 
-//		private GhostfolioAPI.Contract.ActivityType ParseType(Model.Activities.ActivityType? type)
-//		{
-//			switch (type)
-//			{
-//				case null:
-//					return GhostfolioAPI.Contract.ActivityType.IGNORE;
-//				case Model.Activities.ActivityType.Buy:
-//					return GhostfolioAPI.Contract.ActivityType.BUY;
-//				case Model.Activities.ActivityType.Sell:
-//					return GhostfolioAPI.Contract.ActivityType.SELL;
-//				case Model.Activities.ActivityType.Dividend:
-//					return GhostfolioAPI.Contract.ActivityType.DIVIDEND;
-//				case Model.Activities.ActivityType.Send:
-//					return GhostfolioAPI.Contract.ActivityType.SELL;
-//				case Model.Activities.ActivityType.Receive:
-//					return GhostfolioAPI.Contract.ActivityType.BUY;
-//				case Model.Activities.ActivityType.Convert:
-//					return GhostfolioAPI.Contract.ActivityType.IGNORE;
-//				case Model.Activities.ActivityType.Interest:
-//					return GhostfolioAPI.Contract.ActivityType.INTEREST;
-//				case Model.Activities.ActivityType.Fee:
-//					return GhostfolioAPI.Contract.ActivityType.FEE;
-//				case Model.Activities.ActivityType.Gift:
-//					return GhostfolioAPI.Contract.ActivityType.BUY;
-//				case Model.Activities.ActivityType.LearningReward:
-//					return GhostfolioAPI.Contract.ActivityType.IGNORE;
-//				case Model.Activities.ActivityType.StakingReward:
-//					return GhostfolioAPI.Contract.ActivityType.IGNORE;
-//				default:
-//					throw new NotSupportedException($"ActivityType {type} not supported");
-//			}
-//		}
-//	}
-//}
+		private static GhostfolioAPI.Contract.ActivityType ParseType(Model.Activities.ActivityType? type)
+		{
+			switch (type)
+			{
+				case null:
+					return GhostfolioAPI.Contract.ActivityType.IGNORE;
+				case Model.Activities.ActivityType.Buy:
+					return GhostfolioAPI.Contract.ActivityType.BUY;
+				case Model.Activities.ActivityType.Sell:
+					return GhostfolioAPI.Contract.ActivityType.SELL;
+				case Model.Activities.ActivityType.Dividend:
+					return GhostfolioAPI.Contract.ActivityType.DIVIDEND;
+				case Model.Activities.ActivityType.Send:
+					return GhostfolioAPI.Contract.ActivityType.SELL;
+				case Model.Activities.ActivityType.Receive:
+					return GhostfolioAPI.Contract.ActivityType.BUY;
+				case Model.Activities.ActivityType.Convert:
+					return GhostfolioAPI.Contract.ActivityType.IGNORE;
+				case Model.Activities.ActivityType.Interest:
+					return GhostfolioAPI.Contract.ActivityType.INTEREST;
+				case Model.Activities.ActivityType.Fee:
+					return GhostfolioAPI.Contract.ActivityType.FEE;
+				case Model.Activities.ActivityType.Gift:
+					return GhostfolioAPI.Contract.ActivityType.BUY;
+				case Model.Activities.ActivityType.LearningReward:
+					return GhostfolioAPI.Contract.ActivityType.IGNORE;
+				case Model.Activities.ActivityType.StakingReward:
+					return GhostfolioAPI.Contract.ActivityType.IGNORE;
+				default:
+					throw new NotSupportedException($"ActivityType {type} not supported");
+			}
+		}
+	}
+}

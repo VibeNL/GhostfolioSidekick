@@ -8,8 +8,8 @@ using System.Transactions;
 namespace GhostfolioSidekick.FileImporter
 {
 	internal class HoldingsCollection(
-		IAccountManager accountManager,
-		IMarketDataManager marketDataManager) : IHoldingsCollection
+		IAccountService accountManager,
+		IMarketDataService marketDataManager) : IHoldingsCollection
 	{
 		private readonly List<Holding> holdings = [new Holding(null)];
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];

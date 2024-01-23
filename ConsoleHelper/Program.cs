@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.ConsoleHelper
 {
 	internal static class Program
 	{
-		private static ConsoleLogger logger = new();
+		private static readonly ConsoleLogger logger = new();
 
 		static void Main(string[] args)
 		{
@@ -29,20 +29,17 @@ namespace GhostfolioSidekick.ConsoleHelper
 
 			var settings = new ApplicationSettings();
 			MemoryCache memoryCache = new(new MemoryCacheOptions { });
-			//GhostfolioAPI api = new(cs, memoryCache, logger);
-			IMarketDataManager marketDataManager = new MarketDataManager(
+			IExchangeRateService exchangeRateService = { };
+			IMarketDataService marketDataManager = new MarketDataService(
 				settings,
 				memoryCache,
 				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken),
 				logger);
-			IAccountManager accountManager = new AccountManager(
-				settings,
-				memoryCache,
-				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken),
-				logger);
-			IActivitiesManager activitiesManager = new ActivitiesManager(
-				settings,
-				memoryCache,
+			IAccountService accountManager = new AccountService(
+				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken));
+			IActivitiesService activitiesManager = new ActivitiesService(
+				exchangeRateService,
+				accountManager,
 				new RestCall(memoryCache, logger, settings.GhostfolioUrl, settings.GhostfolioAccessToken),
 				logger);
 			var tasks = new IScheduledWork[]{

@@ -43,7 +43,7 @@ namespace GhostfolioSidekick
 				services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
-				services.AddSingleton<IMarketDataManager, MarketDataManager>();
+				services.AddSingleton<IMarketDataService, MarketDataService>();
 
 
 				services.AddScoped<IHostedService, TimedHostedService>();

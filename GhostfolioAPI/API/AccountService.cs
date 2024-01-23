@@ -7,25 +7,12 @@ using Newtonsoft.Json;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
-	public class AccountManager : IAccountManager
+	public class AccountService : IAccountService
 	{
-		private readonly IApplicationSettings settings;
-		private readonly MemoryCache memoryCache;
-		private readonly ILogger<MarketDataManager> logger;
 		private readonly RestCall restCall;
 
-		public AccountManager(
-				IApplicationSettings settings,
-				MemoryCache memoryCache,
-				RestCall restCall,
-				ILogger<MarketDataManager> logger)
+		public AccountService(RestCall restCall)
 		{
-			ArgumentNullException.ThrowIfNull(settings);
-			ArgumentNullException.ThrowIfNull(memoryCache);
-
-			this.settings = settings;
-			this.memoryCache = memoryCache;
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
 		}
 
