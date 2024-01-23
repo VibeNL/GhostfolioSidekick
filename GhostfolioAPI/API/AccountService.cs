@@ -4,26 +4,71 @@ using GhostfolioSidekick.GhostfolioAPI.Contract;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class AccountService : IAccountService
 	{
+		private readonly ApplicationSettings applicationSettings;
 		private readonly RestCall restCall;
+		private readonly ILogger<AccountService> logger;
 
-		public AccountService(RestCall restCall)
+		public AccountService(
+			ApplicationSettings applicationSettings,
+			RestCall restCall,
+			ILogger<AccountService> logger)
 		{
+			this.applicationSettings = applicationSettings;
 			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
+			this.logger = logger;
 		}
 
-		public Task CreateAccount(Model.Accounts.Account account)
+		public async Task CreatePlatform(Model.Accounts.Platform platform)
 		{
-			throw new NotImplementedException();
+			if (!applicationSettings.AllowAdminCalls)
+			{
+				return;
+			}
+
+			var o = new JObject
+			{
+				["name"] = platform.Name,
+				["url"] = platform.Url
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/platform/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Creation failed {platform.Name}");
+			}
+
+			logger.LogInformation($"Created platform {platform.Name}");
 		}
 
-		public Task CreatePlatform(Model.Accounts.Platform platform)
+		public async Task CreateAccount(Model.Accounts.Account account)
 		{
-			throw new NotImplementedException();
+			var platform = await GetPlatformByName(account.Name);
+
+			var o = new JObject
+			{
+				["name"] = account.Name,
+				["currency"] = account.Balance.Money.Currency.Symbol,
+				["comment"] = account.Comment,
+				["platformId"] = platform?.Id,
+				["isExcluded"] = false,
+				["balance"] = 0,
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/account/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Creation failed {account.Name}");
+			}
+
+			logger.LogInformation($"Created account {account.Name}");
 		}
 
 		public async Task<Model.Accounts.Account> GetAccountByName(string name)

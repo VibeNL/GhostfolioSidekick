@@ -39,7 +39,9 @@ namespace GhostfolioSidekick.ConsoleHelper
 				restCall,
 				logger);
 			IAccountService accountManager = new AccountService(
-				restCall);
+				settings,
+				restCall,
+				logger);
 			IActivitiesService activitiesManager = new ActivitiesService(
 				exchangeRateService,
 				accountManager,
