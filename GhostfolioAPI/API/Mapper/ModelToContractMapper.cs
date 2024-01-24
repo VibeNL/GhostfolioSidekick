@@ -47,6 +47,32 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				return null;
 			}
 
+			if (activity.ActivityType == Model.Activities.ActivityType.Dividend)
+			{
+				return new GhostfolioAPI.Contract.Activity
+				{
+					AccountId = activity.Account.Id,
+					Currency = symbolProfile.Currency.Symbol,
+					SymbolProfile = new GhostfolioAPI.Contract.SymbolProfile
+					{
+						Symbol = symbolProfile.Symbol,
+						AssetClass = symbolProfile.AssetClass.ToString(),
+						AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
+						Currency = symbolProfile.Currency!.Symbol,
+						DataSource = symbolProfile.DataSource.ToString(),
+						Name = symbolProfile.Name
+					},
+					Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
+					Date = activity.Date,
+					Fee = await CalculateFee(activity.Fees, symbolProfile.Currency, activity.Date),
+					FeeCurrency = symbolProfile.Currency.Symbol,
+					Quantity = activity.Quantity * await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, symbolProfile.Currency, activity.Date),
+					Type = ParseType(activity.ActivityType),
+					UnitPrice = 1, //await ConvertPrice(exchangeRateService, activity.UnitPrice, symbolProfile.Currency, activity.Date),
+					ReferenceCode = activity.TransactionId
+				};
+			}
+
 			return new GhostfolioAPI.Contract.Activity
 			{
 				AccountId = activity.Account.Id,

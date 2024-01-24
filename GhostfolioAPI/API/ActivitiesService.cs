@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Deletion failed {order.Id}");
 			}
 
-			logger.LogInformation($"Deleted transaction {order.Id} {order.SymbolProfile?.Symbol} {order.Date}");
+			logger.LogInformation($"Deleted transaction {order.Type} {order.SymbolProfile?.Symbol} {order.Date}");
 		}
 
 		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Contract.Activity> ordersFromFiles, IEnumerable<Contract.Activity> existingOrders)
