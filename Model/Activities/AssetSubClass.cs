@@ -2,6 +2,8 @@
 {
 	public enum AssetSubClass
 	{
+		Undefined = 0,
+
 		CryptoCurrency,
 
 		Etf,

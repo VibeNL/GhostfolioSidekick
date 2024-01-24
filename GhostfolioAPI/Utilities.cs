@@ -11,6 +11,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				return default;
 			}
 
+			if (new T() is AssetSubClass)
+			{
+				return (T)Convert.ChangeType(ParseOptionalEnumAssetSubClass(value)!.Value, typeof(T));
+			}
+
 			return Enum.Parse<T>(value, true);
 		}
 
@@ -29,7 +34,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			return Enum.Parse<T>(value, true);
 		}
 
-		private static AssetSubClass? ParseOptionalEnumAssetSubClass(string? assetSubClass)
+		private static AssetSubClass? ParseOptionalEnumAssetSubClass(string assetSubClass)
 		{
 			switch (assetSubClass)
 			{

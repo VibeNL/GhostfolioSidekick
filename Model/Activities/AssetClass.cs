@@ -1,15 +1,17 @@
 ﻿namespace GhostfolioSidekick.Model.Activities
 {
-    public enum AssetClass
-    {
-        Cash,
+	public enum AssetClass
+	{
+		Undefined = 0,
 
-        Commodity,
+		Cash,
 
-        Equity,
+		Commodity,
 
-        FixedIncome,
+		Equity,
 
-        RealEstate
-    }
+		FixedIncome,
+
+		RealEstate
+	}
 }
