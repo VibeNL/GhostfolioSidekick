@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					AccountId = activity.Account.Id,
 					Currency = activity.Account.Balance.Money.Currency.Symbol,
 					SymbolProfile = null,
-					Comment = TransactionReferenceUtilities.GetComment(activity.TransactionId),
+					Comment = TransactionReferenceUtilities.GetComment(activity),
 					Date = activity.Date,
 					Fee = await CalculateFee(activity.Fees, activity.Account.Balance.Money.Currency, activity.Date),
 					FeeCurrency = activity.Account.Balance.Money.Currency.Symbol,
@@ -60,13 +60,13 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					DataSource = symbolProfile.DataSource.ToString(),
 					Name = symbolProfile.Name
 				},
-				Comment = TransactionReferenceUtilities.GetComment(activity.TransactionId),
+				Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
 				Date = activity.Date,
 				Fee = await CalculateFee(activity.Fees, symbolProfile.Currency, activity.Date),
 				FeeCurrency = symbolProfile.Currency.Symbol,
 				Quantity = activity.Quantity,
 				Type = ParseType(activity.ActivityType),
-				UnitPrice = await ConvertPrice(exchangeRateService, activity.UnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
+				UnitPrice = await ConvertPrice(exchangeRateService, activity.UnitPrice, symbolProfile.Currency, activity.Date),
 				ReferenceCode = activity.TransactionId
 			};
 		}

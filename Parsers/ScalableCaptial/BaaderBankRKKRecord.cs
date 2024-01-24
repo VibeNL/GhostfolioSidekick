@@ -23,11 +23,10 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 		[Name("XXX-REFNR1")]
 		public required string Reference { get; set; }
 
-		[Name("XXX-VALUTA")]
-		[Format("yyyyMMdd")]
-		public DateOnly Date { get; set; }
-
 		[Name("XXX-TEXT3")]
 		public required string Quantity { get; set; }
+
+		[Name("XXX-BUDAT")]
+		public required string ExecutionDate { get; set; }
 	}
 }

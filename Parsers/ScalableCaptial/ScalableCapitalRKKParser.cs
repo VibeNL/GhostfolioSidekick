@@ -14,7 +14,13 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 
 		protected override IEnumerable<PartialActivity> ParseRow(BaaderBankRKKRecord record, int rowNumber)
 		{
-			var date = record.Date.ToDateTime(TimeOnly.MinValue);
+			if (record.ExecutionDate == "0")
+			{
+				return [];
+			}
+
+			var date = DateTime.ParseExact(record.ExecutionDate, "yyyyMMdd", null);
+
 			var currency = new Currency(record.Currency);
 			if (record.OrderType == "Saldo")
 			{

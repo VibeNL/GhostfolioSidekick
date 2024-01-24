@@ -1,25 +1,27 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI
+﻿using GhostfolioSidekick.Model.Symbols;
+
+namespace GhostfolioSidekick.GhostfolioAPI
 {
 	internal static class TransactionReferenceUtilities
 	{
-		internal static string GetComment(string? transactionId, string? assetId)
+		internal static string GetComment(Model.Activities.Activity activity, SymbolProfile? symbolProfile)
 		{
-			if (string.IsNullOrWhiteSpace(transactionId))
+			if (string.IsNullOrWhiteSpace(activity.TransactionId))
 			{
 				throw new NotSupportedException();
 			}
 
-			return $"Transaction Reference: [{transactionId}] (Details: asset {assetId ?? "<EMPTY>"})";
+			return $"Transaction Reference: [{activity.TransactionId}] (Details: asset {symbolProfile?.Symbol ?? "<EMPTY>"})";
 		}
 
-		internal static string GetComment(string? transactionId)
+		internal static string GetComment(Model.Activities.Activity activity)
 		{
-			if (string.IsNullOrWhiteSpace(transactionId))
+			if (string.IsNullOrWhiteSpace(activity.TransactionId))
 			{
 				throw new NotSupportedException();
 			}
 
-			return $"Transaction Reference: [{transactionId}]";
+			return $"Transaction Reference: [{activity.TransactionId}]";
 		}
 	}
 }
