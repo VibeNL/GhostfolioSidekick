@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public MarketDataMappings Mappings { get; private set; } = new MarketDataMappings();
 
-		public ScraperConfiguration ScraperConfiguration { get; private set; } = new ScraperConfiguration();
+		public ScraperConfiguration ScraperConfiguration { get; set; } = new ScraperConfiguration();
 
 		public List<string> Identifiers { get; } = [];
 

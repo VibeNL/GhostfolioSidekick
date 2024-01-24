@@ -1,7 +1,9 @@
-﻿using GhostfolioSidekick.Configuration;
+﻿using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bunq;
 using GhostfolioSidekick.Parsers.DeGiro;
@@ -49,8 +51,8 @@ namespace GhostfolioSidekick.ConsoleHelper
 				logger);
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, settings),
-			//new AccountMaintainerTask(logger, api, cs),
-			//new CreateManualSymbolTask(logger, api, cs),
+			new AccountMaintainerTask(logger, accountManager, settings),
+			new CreateManualSymbolTask(logger, accountManager, marketDataManager, activitiesManager, settings),
 			new FileImporterTask(logger, settings, activitiesManager, accountManager, marketDataManager, new IFileImporter[] {
 				//new BitvavoParser(cs, api),
 				new BunqParser(),

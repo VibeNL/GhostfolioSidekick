@@ -2,9 +2,9 @@
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	internal class Utilities
+	public class Utilities
 	{
-		internal static T ParseEnum<T>(string value) where T : struct
+		public static T ParseEnum<T>(string value) where T : struct
 		{
 			if (string.IsNullOrEmpty(value))
 			{
@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			return Enum.Parse<T>(value, true);
 		}
 
-		internal static T? ParseOptionalEnum<T>(string? value) where T : struct
+		public static T? ParseOptionalEnum<T>(string? value) where T : struct
 		{
 			if (string.IsNullOrEmpty(value))
 			{

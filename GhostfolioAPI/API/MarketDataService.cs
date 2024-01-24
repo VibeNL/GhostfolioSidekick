@@ -320,5 +320,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
 			return JsonConvert.DeserializeObject<GenericInfo>(content!)!;
 		}
+
+		public Task CreateSymbol(SymbolProfile symbolProfile)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task UpdateSymbol(SymbolProfile symbolProfile)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task SetMarketPrice(SymbolProfile assetProfile, Money money)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

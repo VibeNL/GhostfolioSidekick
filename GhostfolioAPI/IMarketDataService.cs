@@ -17,5 +17,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			AssetSubClass[]? allowedAssetSubClass,
 			bool checkExternalDataProviders,
 			bool includeIndexes);
+
+		Task CreateSymbol(SymbolProfile symbolProfile);
+
+		Task UpdateSymbol(SymbolProfile symbolProfile);
+
+		Task SetMarketPrice(SymbolProfile assetProfile, Money money);
 	}
 }

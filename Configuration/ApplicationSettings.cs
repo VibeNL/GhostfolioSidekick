@@ -38,7 +38,7 @@
 			}
 		}
 
-		public bool AllowAdminCalls => true;
+		public bool AllowAdminCalls { get; set; } = true;
 
 		private readonly string ghostfolioUrl = Environment.GetEnvironmentVariable(URL)!;
 		private readonly ConfigurationInstance? configuration;

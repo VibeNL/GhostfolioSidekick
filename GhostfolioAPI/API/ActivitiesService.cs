@@ -1,9 +1,12 @@
 ﻿using GhostfolioSidekick.Ghostfolio.API.Mapper;
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using Activity = GhostfolioSidekick.Model.Activities.Activity;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -92,6 +95,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					}
 				}
 			}
+		}
+
+		public async Task<IEnumerable<Holding>> GetAllActivities()
+		{
+			var content = await restCall.DoRestGet($"api/v1/order", CacheDuration.None());
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities;
+
+			return ContractToModelMapper.MapToHoldings(existingActivities);
 		}
 
 		private static Contract.Activity Round(Contract.Activity activity)
@@ -204,7 +215,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				fo.Type == eo.Type &&
 				fo.Date == eo.Date;
 		}
-
 
 		private Task<string> ConvertToBody(Contract.Activity activity)
 		{

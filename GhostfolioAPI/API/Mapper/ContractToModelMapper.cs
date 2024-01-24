@@ -51,18 +51,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			var assetProfile = market.AssetProfile;
 			var mdl = new MarketDataProfile()
 			{
-				AssetProfile = new SymbolProfile(
-					assetProfile.Symbol,
-					assetProfile.Name,
-					new Currency(assetProfile.Currency),
-					Utilities.ParseEnum<Datasource>(assetProfile.DataSource),
-					Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
-					Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass))
-				{
-					ActivitiesCount = assetProfile.ActivitiesCount,
-					ISIN = assetProfile.ISIN,
-					Comment = assetProfile.Comment,
-				},
+				AssetProfile = MapSymbolProfile(assetProfile),
 				MarketData = market.MarketData.Select(MapMarketData).ToList(),
 			};
 
@@ -70,9 +59,84 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			return mdl;
 		}
 
+		private static SymbolProfile MapSymbolProfile(Contract.SymbolProfile assetProfile)
+		{
+			return new SymbolProfile(
+								assetProfile.Symbol,
+								assetProfile.Name,
+								new Currency(assetProfile.Currency),
+								Utilities.ParseEnum<Datasource>(assetProfile.DataSource),
+								Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
+								Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass))
+			{
+				ActivitiesCount = assetProfile.ActivitiesCount,
+				ISIN = assetProfile.ISIN,
+				Comment = assetProfile.Comment,
+				ScraperConfiguration = new ScraperConfiguration
+				{
+					Locale = assetProfile?.ScraperConfiguration?.Locale,
+					Url = assetProfile?.ScraperConfiguration?.Url,
+					Selector = assetProfile?.ScraperConfiguration?.Selector
+				}
+			};
+		}
+
 		public static MarketData MapMarketData(Contract.MarketData marketData)
 		{
 			return new MarketData(marketData.Symbol, Utilities.ParseEnum<Datasource>(marketData.DataSource), marketData.MarketPrice, marketData.Date);
+		}
+
+		internal static IEnumerable<Holding> MapToHoldings(Contract.Activity[] existingActivities)
+		{
+			var dict = new List<Holding>();
+
+			foreach (var activity in existingActivities)
+			{
+				var profile = activity.SymbolProfile != null ? MapSymbolProfile(activity.SymbolProfile!) : null;
+				var holding = dict.SingleOrDefault(x => (profile == null && x.SymbolProfile == null) || (x.SymbolProfile?.Equals(profile) ?? false));
+				if (holding == null)
+				{
+					holding = new Holding(profile);
+					dict.Add(holding);
+				}
+
+				holding.Activities.Add(MapActivity(activity));
+			}
+
+			return dict;
+		}
+
+		private static Activity MapActivity(Contract.Activity activity)
+		{
+			return new Activity(null!,
+								ParseType(activity.Type),
+								activity.Date,
+								activity.Quantity,
+								new Money(new Currency(activity.Currency!), activity.UnitPrice),
+								null
+								)
+			{
+				Fees = new[] { new Money(new Currency(activity.Currency!), activity.Fee) }
+			};
+		}
+
+		private static ActivityType ParseType(Contract.ActivityType type)
+		{
+			switch (type)
+			{
+				case Contract.ActivityType.BUY:
+					return ActivityType.Buy;
+				case Contract.ActivityType.SELL:
+					return ActivityType.Sell;
+				case Contract.ActivityType.DIVIDEND:
+					return ActivityType.Dividend;
+				case Contract.ActivityType.INTEREST:
+					return ActivityType.Interest;
+				case Contract.ActivityType.FEE:
+					return ActivityType.Fee;
+				default:
+					throw new NotSupportedException($"ActivityType {type} not supported");
+			}
 		}
 	}
 }
