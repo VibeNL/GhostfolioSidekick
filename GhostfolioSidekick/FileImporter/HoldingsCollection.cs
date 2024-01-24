@@ -3,7 +3,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers;
-using System.Transactions;
 
 namespace GhostfolioSidekick.FileImporter
 {
@@ -94,7 +93,12 @@ namespace GhostfolioSidekick.FileImporter
 				activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetClasses ?? []).ToArray(),
 				activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetSubClasses ?? []).ToArray(),
 				true,
-				false) ?? throw new NotSupportedException();
+				false);
+
+			if (symbol == null)
+			{
+				throw new NotSupportedException();
+			}
 
 			var holding = holdings.SingleOrDefault(x => x.SymbolProfile?.Equals(symbol) ?? false);
 			if (holding == null)

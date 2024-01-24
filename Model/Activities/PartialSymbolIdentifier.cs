@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace GhostfolioSidekick.Model.Activities
+﻿namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialSymbolIdentifier
 	{
@@ -11,9 +9,14 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public string Identifier { get; private set; }
 
-		public List<AssetClass>? AllowedAssetClasses {  get; private set; }
+		public List<AssetClass>? AllowedAssetClasses { get; private set; }
 
 		public List<AssetSubClass>? AllowedAssetSubClasses { get; private set; }
+
+		public static PartialSymbolIdentifier CreateGeneric(string id)
+		{
+			return new PartialSymbolIdentifier(id);
+		}
 
 		public static PartialSymbolIdentifier CreateStockAndETF(string id)
 		{
