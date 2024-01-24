@@ -5,9 +5,11 @@ namespace GhostfolioSidekick.Model.Activities
 	[method: SetsRequiredMembers]
 	public class PartialActivity(ActivityType activityType, Currency currency, string? transactionId)
 	{
+		private DateTime date;
+
 		public ActivityType ActivityType { get; } = activityType;
 		public Currency Currency { get; } = currency;
-		public DateTime Date { get; private set; }
+		public DateTime Date { get => date; private set => date = value.ToUniversalTime(); }
 		public decimal Amount { get; private set; }
 		public string? TransactionId { get; } = transactionId;
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];

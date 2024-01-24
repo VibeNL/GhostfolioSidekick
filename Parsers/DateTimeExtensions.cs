@@ -4,7 +4,7 @@
 	{
 		internal static string ToInvariantString(this DateTime dateTime)
 		{
-			return dateTime.ToString("yyyy-MM-dd HH:mm:ss:zzz");
+			return dateTime.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss:zzz");
 		}
 
 		internal static string ToInvariantDateOnlyString(this DateTime dateTime)

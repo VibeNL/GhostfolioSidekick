@@ -4,6 +4,8 @@ namespace GhostfolioSidekick.Parsers.Bunq
 {
 	public class BunqRecord
 	{
+		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
+		[Format("yyyy-MM-dd")]
 		public DateTime Date { get; set; }
 
 		[Name("Interest Date")]
