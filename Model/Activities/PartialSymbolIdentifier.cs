@@ -26,5 +26,10 @@
 				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock]
 			};
 		}
+
+		public override string ToString()
+		{
+			return $"{Identifier} [{string.Join(",", AllowedAssetClasses ?? [])}] [{string.Join(",", AllowedAssetSubClasses ?? [])}]";
+		}
 	}
 }

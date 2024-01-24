@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -73,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<Model.Accounts.Account> GetAccountByName(string name)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.None());
 			if (content == null)
 			{
 				throw new NotSupportedException();

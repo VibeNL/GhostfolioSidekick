@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public decimal Amount { get; private set; }
 		public string? TransactionId { get; } = transactionId;
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
-		public decimal? UnitPrice { get; private set; }
+		public decimal? UnitPrice { get; private set; } = 1;
 
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
@@ -111,10 +111,10 @@ namespace GhostfolioSidekick.Model.Activities
 		}
 
 		public static PartialActivity CreateDividend(
-		Currency currency, 
+		Currency currency,
 		DateTime date,
 		PartialSymbolIdentifier[] symbolIdentifiers,
-		decimal amount, 
+		decimal amount,
 		string transactionId)
 		{
 			return new PartialActivity(ActivityType.Dividend, currency, transactionId)
@@ -127,8 +127,8 @@ namespace GhostfolioSidekick.Model.Activities
 		}
 
 		public static IEnumerable<PartialActivity> CreateCurrencyConvert(
-			DateTime date, 
-			Money source, 
+			DateTime date,
+			Money source,
 			Money target,
 			string transactionId)
 		{

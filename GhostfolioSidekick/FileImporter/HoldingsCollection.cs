@@ -87,11 +87,13 @@ namespace GhostfolioSidekick.FileImporter
 
 		private async Task<Holding> GetorAddHolding(PartialActivity activity)
 		{
+			var allowedAssetClass = EmptyToNull(activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetClasses ?? []).ToArray());
+			var allowedAssetSubClass = EmptyToNull(activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetSubClasses ?? []).ToArray());
 			var symbol = await marketDataManager.FindSymbolByIdentifier(
 				activity.SymbolIdentifiers.Select(x => x.Identifier).ToArray(),
 				activity.Currency,
-				activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetClasses ?? []).ToArray(),
-				activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetSubClasses ?? []).ToArray(),
+				allowedAssetClass,
+				allowedAssetSubClass,
 				true,
 				false);
 
@@ -108,6 +110,16 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			return holding;
+		}
+
+		private static T[]? EmptyToNull<T>(T[] array)
+		{
+			if (array.All(x => x == null))
+			{
+				return null;
+			}
+
+			return array.Where(x => x != null).ToArray();
 		}
 
 		private async Task<Account> GetAccount(string key)

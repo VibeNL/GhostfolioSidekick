@@ -1,13 +1,8 @@
-﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Ghostfolio.API.Mapper;
-using GhostfolioSidekick.Model.Accounts;
+﻿using GhostfolioSidekick.Ghostfolio.API.Mapper;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics.Contracts;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
@@ -34,7 +29,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		public async Task UpdateActivities(List<string> accountNames, IEnumerable<Holding> holdings)
 		{
 			var activityList = new List<Contract.Activity>();
-			foreach (Holding holding in holdings.Where(x => x.SymbolProfile != null))
+			foreach (Holding holding in holdings)
 				foreach (Activity activity in holding.Activities)
 				{
 					var converted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, holding.SymbolProfile, activity);
@@ -63,7 +58,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				var existingActivities = JsonConvert.DeserializeObject<Contract.ActivityList>(content)?.Activities ?? [];
 
-				var mergeOrders = MergeOrders(newActivities, existingActivities)
+				var ordersFromFiles = newActivities.Where(x => x.AccountId == existingAccount.Id).ToList();
+				var mergeOrders = MergeOrders(ordersFromFiles, existingActivities)
 					.OrderBy(x => x.Order1?.Date ?? x.Order2?.Date ?? DateTime.MaxValue)
 					.ThenBy(x => x.Operation)
 					.ToList();

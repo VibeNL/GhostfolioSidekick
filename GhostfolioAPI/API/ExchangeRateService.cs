@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<decimal> GetConversionRate(Currency sourceCurrency, Currency targetCurrency, DateTime dateTime)
 		{
-			if (sourceCurrency == null)
+			if (sourceCurrency == null || sourceCurrency.Symbol == targetCurrency.Symbol)
 			{
 				return 1;
 			}
