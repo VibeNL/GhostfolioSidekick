@@ -17,6 +17,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Ghostfolio\**" />
+    <EmbeddedResource Remove="Ghostfolio\**" />
+    <None Remove="Ghostfolio\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.18.1" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
@@ -34,10 +40,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Ghostfolio\" />
   </ItemGroup>
 
 </Project>
