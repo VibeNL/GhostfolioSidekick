@@ -65,7 +65,7 @@ namespace Parsers.UnitTests.ScalableCapital
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 8, 1, 0, 0, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US92343V1044")], 14 * 0.5057142857142857142857142857M, "WWEK 16100100")
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 8, 2, 0, 0, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US92343V1044")], 14 * 0.5057142857142857142857142857M, "WWEK 16100100")
 				]);
 		}
 
