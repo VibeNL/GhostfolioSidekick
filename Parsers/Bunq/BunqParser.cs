@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Parsers.Bunq
 
 		protected override IEnumerable<PartialActivity> ParseRow(BunqRecord record, int rowNumber)
 		{
-			var transactionId = $"{record.Date}_{rowNumber}";
+			var transactionId = $"{record.Date.ToInvariantString()}_{rowNumber}";
 			var currency = new Currency("EUR");
 			if (record.Name == "bunq" && record.Description.Contains("bunq Payday"))
 			{
