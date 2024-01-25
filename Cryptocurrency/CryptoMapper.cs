@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Cryptocurrency
 {
-	internal class CryptoMapper
+	public class CryptoMapper
 	{
 		private Dictionary<string, string> mappings = new();
 
@@ -21,8 +21,13 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 		public static readonly CryptoMapper Instance = new();
 
-		internal string GetFullname(string symbol)
+		public string GetFullname(string symbol)
 		{
+			if (string.IsNullOrWhiteSpace(symbol))
+			{
+				return symbol;
+			}
+
 			return mappings.TryGetValue(symbol, out var value) ? value : symbol;
 		}
 	}
