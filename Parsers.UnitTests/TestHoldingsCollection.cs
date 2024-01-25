@@ -3,7 +3,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers;
 
-namespace Parsers.UnitTests
+namespace GhostfolioSidekick.Parsers.UnitTests
 {
 	internal class TestHoldingsCollection : IHoldingsCollection
 	{

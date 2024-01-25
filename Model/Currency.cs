@@ -7,6 +7,8 @@
 		public static Currency GBP = new Currency("GBP");
 		public static Currency GBp = new Currency("GBp");
 
+		private static Currency[] knownCurrencies = [USD, EUR, GBP, GBp];
+
 		public Currency(string symbol)
 		{
 			if (symbol == "GBX")
@@ -18,5 +20,10 @@
 		}
 
 		public string Symbol { get; set; }
+
+		public static bool IsFiat(string currency)
+		{
+			return knownCurrencies.Any(x => x.Symbol == currency);
+		}
 	}
 }

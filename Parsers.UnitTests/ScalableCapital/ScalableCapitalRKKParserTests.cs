@@ -5,7 +5,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
 
-namespace Parsers.UnitTests.ScalableCapital
+namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 {
 	public class ScalableCapitalRKKParserTests
 	{

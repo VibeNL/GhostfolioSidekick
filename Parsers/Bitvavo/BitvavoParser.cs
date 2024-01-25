@@ -1,111 +1,121 @@
-﻿//using CsvHelper.Configuration;
-//using GhostfolioSidekick.Ghostfolio.API;
-//using GhostfolioSidekick.Model;
-//using System.Globalization;
+﻿using CsvHelper.Configuration;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
+using System.Globalization;
 
-//namespace GhostfolioSidekick.Parsers.Bitvavo
-//{
-//	public class BitvavoParser : CryptoRecordBaseImporter<BitvavoRecord>
-//	{
-//		public BitvavoParser(
-//			IApplicationSettings applicationSettings,
-//			IGhostfolioAPI api) : base(applicationSettings.ConfigurationInstance, api)
-//		{
-//		}
+namespace GhostfolioSidekick.Parsers.Bitvavo
+{
+	public class BitvavoParser : RecordBaseImporter<BitvavoRecord>
+	{
+		public BitvavoParser()
+		{
+		}
 
-//		protected override async Task<IEnumerable<Activity>> ConvertOrders(BitvavoRecord record, Account account, IEnumerable<BitvavoRecord> allRecords)
-//		{
-//			if (record.Status != "Completed" && record.Status != "Distributed")
-//			{
-//				return Array.Empty<Activity>();
-//			}
+		protected override IEnumerable<PartialActivity> ParseRow(BitvavoRecord record, int rowNumber)
+		{
+			if (record.Status != "Completed" && record.Status != "Distributed")
+			{
+				yield break;
+			}
 
-//			var activities = new List<Activity>();
+			DateTime dateTime = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 
-//			DateTime dateTime = record.Date.ToDateTime(record.Time);
+			var currency = Currency.EUR;
+			var isFiat = Currency.IsFiat(record.Currency);
 
-//			Activity activity;
-//			var activityType = MapType(record);
-//			if (activityType == ActivityType.CashDeposit || activityType == ActivityType.CashWithdrawal)
-//			{
-//				var factor = activityType == ActivityType.CashWithdrawal ? -1 : 1;
-//				activity = new Activity(
-//					activityType,
-//					null,
-//					dateTime,
-//					1,
-//					new Money(CurrencyHelper.EUR, factor * record.Amount, dateTime),
-//					null,
-//					TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
-//					record.Transaction);
-//			}
-//			else
-//			{
-//				var asset = await GetAsset(record.Currency, account);
+			if (record.Fee != null && Currency.IsFiat(record.FeeCurrency) && record.Fee != 0)
+			{
+				yield return PartialActivity.CreateFee(new Currency(record.FeeCurrency), dateTime, record.Fee.GetValueOrDefault(0), record.Transaction);
+			}
 
-//				var fees = new List<Money>();
+			yield return GetMainRecord(record, dateTime, currency, isFiat);
+		}
 
-//				if (record.Fee != null && CurrencyHelper.IsFiat(record.FeeCurrency))
-//				{
-//					fees.Add(new Money(record.FeeCurrency, record.Fee.GetValueOrDefault(0), dateTime));
-//				}
+		private static PartialActivity GetMainRecord(BitvavoRecord record, DateTime dateTime, Currency currency, bool isFiat)
+		{
+			switch (record.Type)
+			{
+				case "buy":
+					return PartialActivity.CreateBuy(
+						currency,
+						dateTime,
+						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						Math.Abs(record.Amount),
+						record.Price ?? 0,
+						record.Transaction);
+				case "sell":
+					return PartialActivity.CreateSell(
+						currency,
+						dateTime,
+						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						Math.Abs(record.Amount),
+						record.Price ?? 0,
+						record.Transaction);
+				case "staking":
+					return PartialActivity.CreateStakingReward(
+						dateTime,
+						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						Math.Abs(record.Amount),
+						record.Transaction);
+				case "withdrawal":
+					if (isFiat)
+					{
+						return PartialActivity.CreateCashWithdrawal(
+						currency,
+						dateTime,
+						Math.Abs(record.Amount),
+						record.Transaction);
+					}
+					else
+					{
+						return PartialActivity.CreateSend(
+						dateTime,
+						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						Math.Abs(record.Amount),
+						record.Transaction);
+					}
+				case "deposit":
+					if (isFiat)
+					{
+						return PartialActivity.CreateCashDeposit(
+						currency,
+						dateTime,
+						Math.Abs(record.Amount),
+						record.Transaction);
+					}
+					else
+					{
+						return PartialActivity.CreateRecieve(
+						dateTime,
+						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
+						Math.Abs(record.Amount),
+						record.Transaction);
+					}
+				case "rebate":
+					return PartialActivity.CreateCashDeposit(
+						currency,
+						dateTime,
+						Math.Abs(record.Amount),
+						record.Transaction);
+				case "affiliate":
+					return PartialActivity.CreateCashDeposit(
+						currency,
+						dateTime,
+						Math.Abs(record.Amount),
+						record.Transaction);
+				default:
+					throw new NotSupportedException();
+			}
+		}
 
-//				var unitprice = new Money(CurrencyHelper.EUR, 0, dateTime);
-
-//				if (asset != null)
-//				{
-//					unitprice = await GetCorrectUnitPrice(new Money(CurrencyHelper.EUR, record.Price ?? 0, dateTime), asset, dateTime);
-//				}
-
-//				activity = new Activity(
-//					activityType,
-//					asset,
-//					dateTime,
-//					Math.Abs(record.Amount),
-//					unitprice,
-//					fees,
-//					TransactionReferenceUtilities.GetComment(record.Transaction, record.Currency),
-//					record.Transaction
-//					);
-//			}
-
-//			activities.Add(activity);
-
-//			return activities;
-//		}
-
-//		private ActivityType MapType(BitvavoRecord record)
-//		{
-//			var isFiat = CurrencyHelper.IsFiat(record.Currency);
-//			switch (record.Type)
-//			{
-//				case "buy":
-//					return ActivityType.Buy;
-//				case "sell":
-//					return ActivityType.Sell;
-//				case "staking":
-//					return ActivityType.StakingReward;
-//				case "withdrawal":
-//					return isFiat ? ActivityType.CashWithdrawal : ActivityType.Send;
-//				case "deposit":
-//					return isFiat ? ActivityType.CashDeposit : ActivityType.Receive;
-//				case "rebate":
-//					return ActivityType.CashDeposit;
-//				case "affiliate":
-//					return ActivityType.CashDeposit;
-//				default:
-//					throw new NotSupportedException();
-//			}
-//		}
-
-//		protected override CsvConfiguration GetConfig()
-//		{
-//			return new CsvConfiguration(CultureInfo.InvariantCulture)
-//			{
-//				HasHeaderRecord = true,
-//				CacheFields = true,
-//				Delimiter = ",",
-//			};
-//		}
-//	}
-//}
+		protected override CsvConfiguration GetConfig()
+		{
+			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			{
+				HasHeaderRecord = true,
+				CacheFields = true,
+				Delimiter = ",",
+			};
+		}
+	}
+}

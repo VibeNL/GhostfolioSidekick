@@ -5,7 +5,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Trading212;
 
-namespace Parsers.UnitTests.Trading212
+namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 {
 	public class Trading212Tests
 	{

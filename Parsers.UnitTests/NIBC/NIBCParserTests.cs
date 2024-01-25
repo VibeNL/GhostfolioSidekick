@@ -4,8 +4,9 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.NIBC;
+using GhostfolioSidekick.Parsers.UnitTests;
 
-namespace Parsers.UnitTests.NIBC
+namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 {
 	public class NIBCParserTests
 	{

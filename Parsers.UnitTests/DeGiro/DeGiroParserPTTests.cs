@@ -4,8 +4,9 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.DeGiro;
+using GhostfolioSidekick.Parsers.UnitTests;
 
-namespace Parsers.UnitTests.DeGiro
+namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {
 	public class DeGiroParserPTTests
 	{

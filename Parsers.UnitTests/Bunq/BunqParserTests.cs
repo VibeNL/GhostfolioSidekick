@@ -5,7 +5,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Bunq;
 
-namespace Parsers.UnitTests.Bunq
+namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 {
 	public class BunqParserTests
 	{

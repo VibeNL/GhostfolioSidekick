@@ -4,8 +4,9 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.UnitTests;
 
-namespace Parsers.UnitTests.Generic
+namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 {
 	public class GenericParserTests
 	{

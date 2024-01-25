@@ -4,8 +4,9 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
+using GhostfolioSidekick.Parsers.UnitTests;
 
-namespace Parsers.UnitTests.ScalableCapital
+namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 {
 	public class ScalableCapitalWUMParserTests
 	{

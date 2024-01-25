@@ -145,5 +145,35 @@ namespace GhostfolioSidekick.Model.Activities
 				Amount = target.Amount
 			};
 		}
+
+		public static PartialActivity CreateStakingReward(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
+		{
+			return new PartialActivity(ActivityType.StakingReward, Currency.EUR, transactionId)
+			{
+				SymbolIdentifiers = symbolIdentifiers,
+				Date = date,
+				Amount = amount
+			};
+		}
+
+		public static PartialActivity CreateSend(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
+		{
+			return new PartialActivity(ActivityType.Sell, Currency.EUR, transactionId)
+			{
+				SymbolIdentifiers = symbolIdentifiers,
+				Date = date,
+				Amount = amount,
+			};
+		}
+
+		public static PartialActivity CreateRecieve(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
+		{
+			return new PartialActivity(ActivityType.Receive, Currency.EUR, transactionId)
+			{
+				SymbolIdentifiers = symbolIdentifiers,
+				Date = date,
+				Amount = amount,
+			};
+		}
 	}
 }

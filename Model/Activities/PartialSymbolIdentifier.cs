@@ -1,4 +1,5 @@
-﻿namespace GhostfolioSidekick.Model.Activities
+﻿
+namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialSymbolIdentifier
 	{
@@ -12,6 +13,15 @@
 		public List<AssetClass>? AllowedAssetClasses { get; private set; }
 
 		public List<AssetSubClass>? AllowedAssetSubClasses { get; private set; }
+
+		public static PartialSymbolIdentifier CreateCrypto(string id)
+		{
+			return new PartialSymbolIdentifier(id)
+			{
+				AllowedAssetClasses = [AssetClass.Cash],
+				AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
+			};
+		}
 
 		public static PartialSymbolIdentifier CreateGeneric(string id)
 		{
