@@ -6,12 +6,16 @@ namespace GhostfolioSidekick.Parsers
 {
 	public abstract class RecordBaseImporter<T> : IFileImporter
 	{
+		private Dictionary<string, bool> KnownHeaderCache = new Dictionary<string, bool>();
+
 		protected RecordBaseImporter()
 		{
 		}
 
 		public virtual Task<bool> CanParseActivities(string filename)
 		{
+			string? record = null;
+
 			try
 			{
 				CsvConfiguration csvConfig = GetConfig();
@@ -20,13 +24,26 @@ namespace GhostfolioSidekick.Parsers
 				using var csvReader = new CsvReader(streamReader, csvConfig);
 				csvReader.Read();
 				csvReader.ReadHeader();
+
+				record = string.Join("|", csvReader.HeaderRecord!);
+
+				if (KnownHeaderCache.TryGetValue(record, out var canParse))
+				{
+					return Task.FromResult(canParse);
+				}
+
 				csvReader.ValidateHeader<T>();
 			}
 			catch
 			{
+				if (record != null)
+				{
+					KnownHeaderCache.Add(record, false);
+				}
 				return Task.FromResult(false);
 			}
 
+			KnownHeaderCache.Add(record, true);
 			return Task.FromResult(true);
 		}
 
