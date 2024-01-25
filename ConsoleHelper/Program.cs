@@ -1,10 +1,9 @@
-﻿using GhostfolioSidekick.AccountMaintainer;
-using GhostfolioSidekick.Configuration;
+﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Parsers;
+using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
@@ -51,10 +50,10 @@ namespace GhostfolioSidekick.ConsoleHelper
 				logger);
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, settings),
-			new AccountMaintainerTask(logger, accountManager, settings),
-			new CreateManualSymbolTask(logger, accountManager, marketDataManager, activitiesManager, settings),
+			//new AccountMaintainerTask(logger, accountManager, settings),
+			//new CreateManualSymbolTask(logger, accountManager, marketDataManager, activitiesManager, settings),
 			new FileImporterTask(logger, settings, activitiesManager, accountManager, marketDataManager, new IFileImporter[] {
-				//new BitvavoParser(cs, api),
+				new BitvavoParser(),
 				new BunqParser(),
 				//new CoinbaseParser(cs, api),
 				new DeGiroParserNL(),
