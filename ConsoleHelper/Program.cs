@@ -1,8 +1,10 @@
-﻿using GhostfolioSidekick.Configuration;
+﻿using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Cryptocurrency.Workarouunds;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
@@ -54,8 +56,11 @@ namespace GhostfolioSidekick.ConsoleHelper
 				logger);
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, settings),
-			//new AccountMaintainerTask(logger, accountManager, settings),
-			//new CreateManualSymbolTask(logger, accountManager, marketDataManager, activitiesManager, settings),
+			new AccountMaintainerTask(logger, accountManager, settings),
+			new CreateManualSymbolTask(logger, accountManager, marketDataManager, activitiesManager, settings),
+			new DeleteUnusedSymbolsTask(logger, marketDataManager, settings),
+			new SetBenchmarksTask(logger, marketDataManager, settings),
+			new SetTrackingInsightOnSymbolsTask(logger, marketDataManager, settings),
 			new FileImporterTask(logger, settings, activitiesManager, accountManager, marketDataManager, new IFileImporter[] {
 				new BitvavoParser(),
 				new BunqParser(),
@@ -71,7 +76,6 @@ namespace GhostfolioSidekick.ConsoleHelper
 			}, new IHoldingStrategy[] {
 				new ApplyDust(settings.ConfigurationInstance.Settings),
 				new StakeAsDividend(settings.ConfigurationInstance.Settings) }),
-			//new MarketDataMaintainerTask(logger, api, cs)
 			};
 
 			foreach (var t in tasks.OrderBy(x => x.Priority))

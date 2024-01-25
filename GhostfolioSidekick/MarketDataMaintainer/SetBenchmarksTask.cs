@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class SetBenchmarksTask : IScheduledWork
+	public class SetBenchmarksTask : IScheduledWork
 	{
 		private readonly ILogger<SetTrackingInsightOnSymbolsTask> logger;
 		private readonly IMarketDataService marketDataService;

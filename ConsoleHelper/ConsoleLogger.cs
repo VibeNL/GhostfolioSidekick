@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.MarketDataMaintainer;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.ConsoleHelper
@@ -13,6 +13,9 @@ namespace GhostfolioSidekick.ConsoleHelper
 		ILogger<ActivitiesService>,
 		ILogger<FileImporterTask>,
 		ILogger<DisplayInformationTask>,
+		ILogger<DeleteUnusedSymbolsTask>,
+		ILogger<SetBenchmarksTask>,
+		ILogger<SetTrackingInsightOnSymbolsTask>,
 		IDisposable
 	{
 		public IDisposable? BeginScope<TState>(TState state) where TState : notnull
