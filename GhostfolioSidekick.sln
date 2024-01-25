@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GhostfolioAPI.UnitTests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cryptocurrency", "Cryptocurrency\Cryptocurrency.csproj", "{549BE74C-B9DF-4C37-90AA-1058AC5605B3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cryptocurrency.UnitTests", "Cryptocurrency.UnitTests\Cryptocurrency.UnitTests.csproj", "{F460E465-CB28-4496-9E71-C89EFD78E621}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{549BE74C-B9DF-4C37-90AA-1058AC5605B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{549BE74C-B9DF-4C37-90AA-1058AC5605B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{549BE74C-B9DF-4C37-90AA-1058AC5605B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F460E465-CB28-4496-9E71-C89EFD78E621}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F460E465-CB28-4496-9E71-C89EFD78E621}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F460E465-CB28-4496-9E71-C89EFD78E621}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F460E465-CB28-4496-9E71-C89EFD78E621}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
