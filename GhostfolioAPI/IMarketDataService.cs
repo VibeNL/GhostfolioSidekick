@@ -18,10 +18,14 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			bool checkExternalDataProviders,
 			bool includeIndexes);
 
+		Task SetMarketPrice(SymbolProfile symbolProfile, Money money);
+
 		Task CreateSymbol(SymbolProfile symbolProfile);
 
 		Task UpdateSymbol(SymbolProfile symbolProfile);
 
-		Task SetMarketPrice(SymbolProfile assetProfile, Money money);
+		Task DeleteSymbol(SymbolProfile symbolProfile);
+
+		Task SetSymbolAsBenchmark(SymbolProfile symbolProfile, Datasource dataSource);
 	}
 }

@@ -334,7 +334,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			throw new NotImplementedException();
 		}
 
-		public Task SetMarketPrice(SymbolProfile assetProfile, Money money)
+		public Task SetMarketPrice(SymbolProfile symbolProfile, Money money)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task DeleteSymbol(SymbolProfile symbolProfile)
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task SetSymbolAsBenchmark(SymbolProfile symbolProfile, Model.Symbols.Datasource dataSource)
 		{
 			throw new NotImplementedException();
 		}

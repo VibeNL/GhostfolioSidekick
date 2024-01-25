@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Configuration
 			return JsonSerializer.Deserialize<ConfigurationInstance>(configuration, options);
 		}
 
-		internal SymbolConfiguration? FindSymbol(string symbol)
+		public SymbolConfiguration? FindSymbol(string symbol)
 		{
 			return Symbols?.SingleOrDefault(x => x.Symbol == symbol);
 		}

@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 		private readonly IAccountService api;
 		private readonly IApplicationSettings applicationSettings;
 
-		public int Priority => 1;
+		public TaskPriority Priority => TaskPriority.AccountCreation;
 
 		public AccountMaintainerTask(
 			ILogger<FileImporterTask> logger,

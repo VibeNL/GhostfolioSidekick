@@ -10,7 +10,7 @@ namespace GhostfolioSidekick
 		private readonly ILogger<DisplayInformationTask> logger;
 		private readonly IApplicationSettings applicationSettings;
 
-		public int Priority => int.MinValue;
+		public TaskPriority Priority => TaskPriority.DisplayInformation;
 
 		public DisplayInformationTask(
 			ILogger<DisplayInformationTask> logger,

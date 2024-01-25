@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly IEnumerable<IFileImporter> importers;
 		private readonly IEnumerable<IHoldingStrategy> strategies;
 
-		public int Priority => 3;
+		public TaskPriority Priority => TaskPriority.FileImporter;
 
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
