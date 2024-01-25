@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 						Currency.EUR,
 						new DateTime(2023, 08, 25, 14, 44, 44, DateTimeKind.Utc),
 						150,
-						"Buy_ETH_2023-04-20 04:05:40:+00:00")
+						"NXTM6EtqQukSs")
 				]);
 		}
 
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 						new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						150,
-						0.999969996514813032906620872M,
+						0.9264700400075475907102725806M,
 						"NXTyPxhiopNL3")
 				]);
 		}
@@ -90,7 +90,6 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
-				[
 					PartialActivity.CreateAssetConvert(
 						new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
@@ -98,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 						[PartialSymbolIdentifier.CreateCrypto("BTC")],
 						0.00716057M,
 						"NXTVDI4DJFWqB63pTcCuTpgc")
-				]);
+				);
 		}
 
 		[Fact]
@@ -163,7 +162,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
-						new DateTime(2023, 10, 8, 20, 5, 12, DateTimeKind.Utc),
+						new DateTime(2023, 08, 25, 16, 43, 55, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("BTC")],
 						0.00096332M,
 						"NXTk6FBYyxOqH")

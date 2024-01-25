@@ -21,9 +21,9 @@
 
 		public string Symbol { get; set; }
 
-		public static bool IsFiat(string currency)
+		public bool IsFiat()
 		{
-			return knownCurrencies.Any(x => x.Symbol == currency);
+			return knownCurrencies.Any(x => x.Symbol == Symbol);
 		}
 	}
 }

@@ -21,9 +21,9 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 			DateTime dateTime = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 
 			var currency = Currency.EUR;
-			var isFiat = Currency.IsFiat(record.Currency);
+			var isFiat = new Currency(record.Currency).IsFiat();
 
-			if (record.Fee != null && Currency.IsFiat(record.FeeCurrency) && record.Fee != 0)
+			if (record.Fee != null && new Currency(record.FeeCurrency).IsFiat() && record.Fee != 0)
 			{
 				yield return PartialActivity.CreateFee(new Currency(record.FeeCurrency), dateTime, record.Fee.GetValueOrDefault(0), record.Transaction);
 			}
