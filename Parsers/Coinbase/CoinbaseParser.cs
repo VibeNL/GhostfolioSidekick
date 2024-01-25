@@ -1,168 +1,101 @@
-﻿//using CsvHelper.Configuration;
-//using GhostfolioSidekick.Ghostfolio.API;
-//using GhostfolioSidekick.Model;
-//using System.Globalization;
-//using System.Text.RegularExpressions;
+﻿using CsvHelper.Configuration;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
-//namespace GhostfolioSidekick.Parsers.Coinbase
-//{
-//	public class CoinbaseParser : CryptoRecordBaseImporter<CoinbaseRecord>
-//	{
-//		public CoinbaseParser(
-//			IApplicationSettings applicationSettings,
-//			IGhostfolioAPI api) : base(applicationSettings.ConfigurationInstance, api)
-//		{
-//		}
+namespace GhostfolioSidekick.Parsers.Coinbase
+{
+	public class CoinbaseParser : RecordBaseImporter<CoinbaseRecord>
+	{
+		public CoinbaseParser()
+		{
+		}
 
-//		protected override async Task<IEnumerable<Activity>> ConvertOrders(CoinbaseRecord record, Account account, IEnumerable<CoinbaseRecord> allRecords)
-//		{
-//			// Coinbase does not support balance
-//			account.Balance.SetKnownBalance(new Money(account.Balance.Currency, 0, DateTime.UtcNow));
+		protected override IEnumerable<PartialActivity> ParseRow(CoinbaseRecord record, int rowNumber)
+		{
+			var date = record.Timestamp;
 
-//			var activityType = MapType(record);
-//			var asset = await GetAsset(record.Asset, account);
+			var id = $"{record.Type}_{record.Asset}_{date.ToInvariantString()}";
 
-//			if (asset == null)
-//			{
-//				return [];
-//			}
+			var currency = new Currency(record.Currency);
+			if (record.Fee != null && record.Fee != 0)
+			{
+				yield return PartialActivity.CreateFee(currency, date, record.Fee ?? 0, id);
+			}
 
-//			var date = record.Timestamp.ToUniversalTime();
+			switch (record.Type)
+			{
+				case "Buy":
+					yield return PartialActivity.CreateBuy(currency, date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, record.Price ?? 0, id);
+					break;
+				case "Sell":
+					yield return PartialActivity.CreateSell(currency, date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, record.Price ?? 0, id);
+					break;
+				case "Receive":
+					yield return PartialActivity.CreateRecieve(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+					break;
+				case "Send":
+					yield return PartialActivity.CreateSend(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+					break;
+				case "Convert":
+					var result = ParseNote(record.Notes);
+					var parseAmount = result.Item1;
+					string parsedAsset = result.Item2;
 
-//			var fees = new List<Money>();
+					var lst = PartialActivity.CreateAssetConvert(
+						date,
+						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+						record.Quantity,
+						[PartialSymbolIdentifier.CreateCrypto(parsedAsset)],
+						parseAmount,
+						id);
 
-//			if (record.Fee != null)
-//			{
-//				fees.Add(new Money(record.Currency, record.Fee.GetValueOrDefault(0), date));
-//			}
+					foreach (var item in lst)
+					{
+						yield return item;
+					}
+					break;
+				case "Rewards Income":
+					yield return PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+					break;
+				case "Learning Reward":
+					yield return PartialActivity.CreateLearningReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+					break;
+				default:
+					throw new NotSupportedException();
+			}
+		}
 
-//			var unitprice = new Money(record.Currency, 0, date);
+		private (decimal, string) ParseNote(string note)
+		{
+			// Converted 0.00087766 ETH to 1.629352 USDC
+			var match = Regex.Match(note, "Converted ([0-9.,]+) ([A-Za-z0-9]+) to ([0-9.,]+) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+			var quantity = match.Groups[3].Value;
+			var asset = match.Groups[4].Value;
 
-//			if (asset != null)
-//			{
-//				unitprice = await GetCorrectUnitPrice(new Money(record.Currency, record.Price ?? 0, date), asset, date);
-//			}
+			var amount = decimal.Parse(quantity, GetCultureForParsingNumbers());
 
-//			var id = $"{activityType}{ConvertRowNumber(record, allRecords)}_{date.ToInvariantDateOnlyString()}";
+			return (amount, asset);
+		}
 
-//			if (activityType != ActivityType.Convert)
-//			{
-//				var activity = new Activity(
-//					activityType,
-//					asset,
-//					date,
-//					Math.Abs(record.Quantity),
-//					unitprice,
-//					fees,
-//					TransactionReferenceUtilities.GetComment(id, record.Asset),
-//					id
-//					);
+		protected override CsvConfiguration GetConfig()
+		{
+			return new CsvConfiguration(CultureInfo.InvariantCulture)
+			{
+				HasHeaderRecord = true,
+				CacheFields = true,
+				Delimiter = ",",
+				ShouldSkipRecord = (r) =>
+				{
+					return !r.Row[0]!.StartsWith("Timestamp") && !r.Row[0]!.StartsWith("20");
+				},
+			};
+		}
 
-//				return [activity];
-//			}
-
-//			id = $"{ActivityType.Sell}{ConvertRowNumber(record, allRecords)}_{date.ToInvariantDateOnlyString()}";
-//			var sellActivity = new Activity(
-//					ActivityType.Sell,
-//					asset,
-//					date,
-//					Math.Abs(record.Quantity),
-//					unitprice,
-//					fees,
-//					TransactionReferenceUtilities.GetComment(id, record.Asset),
-//					id
-//					);
-
-//			var result = ParseNote(record.Notes);
-//			var parseAmount = result.Item1;
-//			string parsedAsset = result.Item2;
-//			var asset2 = await GetAsset(parsedAsset, account);
-
-//			if (asset2 == null)
-//			{
-//				return [];
-//			}
-
-//			var unitprice2 = await GetCorrectUnitPrice(new Money(record.Currency, 0, date), asset2!, date);
-//			var id2 = $"{ActivityType.Buy}{ConvertRowNumber(record, allRecords)}_{date.ToInvariantDateOnlyString()}";
-//			var buyActivity = new Activity(
-//					ActivityType.Buy,
-//					asset2,
-//					date,
-//					Math.Abs(parseAmount),
-//					unitprice2,
-//					[],
-//					TransactionReferenceUtilities.GetComment(id2, parsedAsset),
-//					id2
-//					);
-//			return [sellActivity, buyActivity];
-//		}
-
-//		private (decimal, string) ParseNote(string note)
-//		{
-//			// Converted 0.00087766 ETH to 1.629352 USDC
-//			var match = Regex.Match(note, "Converted ([0-9.,]+) ([A-Za-z0-9]+) to ([0-9.,]+) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
-//			var quantity = match.Groups[3].Value;
-//			var asset = match.Groups[4].Value;
-
-//			var amount = decimal.Parse(quantity, GetCultureForParsingNumbers());
-
-//			return (amount, asset);
-//		}
-
-//		private ActivityType MapType(CoinbaseRecord record)
-//		{
-//			switch (record.Type)
-//			{
-//				case "Buy":
-//					return ActivityType.Buy;
-//				case "Sell":
-//					return ActivityType.Sell;
-//				case "Receive":
-//					return ActivityType.Receive;
-//				case "Send":
-//					return ActivityType.Send;
-//				case "Convert":
-//					return ActivityType.Convert;
-//				case "Rewards Income":
-//					return ActivityType.StakingReward;
-//				case "Learning Reward":
-//					return ActivityType.LearningReward;
-//				default:
-//					throw new NotSupportedException();
-//			}
-//		}
-
-//		protected override CsvConfiguration GetConfig()
-//		{
-//			return new CsvConfiguration(CultureInfo.InvariantCulture)
-//			{
-//				HasHeaderRecord = true,
-//				CacheFields = true,
-//				Delimiter = ",",
-//				ShouldSkipRecord = (r) =>
-//				{
-//					return !r.Row[0]!.StartsWith("Timestamp") && !r.Row[0]!.StartsWith("20");
-//				},
-//			};
-//		}
-
-//		private string ConvertRowNumber(CoinbaseRecord record, IEnumerable<CoinbaseRecord> allRecords)
-//		{
-//			var groupedByDate = allRecords.GroupBy(x => x.Timestamp.Date);
-//			IGrouping<DateTime, CoinbaseRecord> group = groupedByDate.Single(x => x.Key == record.Timestamp.Date);
-//			if (group.Count() == 1)
-//			{
-//				return string.Empty;
-//			}
-
-//			var sortedByRow = group.OrderBy(x => x.RowNumber).Select((x, i) => new { x, i }).ToList();
-//			return (sortedByRow.Single(x => x.x == record).i + 1).ToString();
-//		}
-
-//		private CultureInfo GetCultureForParsingNumbers()
-//		{
-//			return new CultureInfo("en");
-//		}
-//	}
-//}
+		private static CultureInfo GetCultureForParsingNumbers()
+		{
+			return new CultureInfo("en");
+		}
+	}
+}

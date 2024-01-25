@@ -5,6 +5,7 @@ using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
+using GhostfolioSidekick.Parsers.Coinbase;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
 using GhostfolioSidekick.Parsers.NIBC;
@@ -55,7 +56,7 @@ namespace GhostfolioSidekick.ConsoleHelper
 			new FileImporterTask(logger, settings, activitiesManager, accountManager, marketDataManager, new IFileImporter[] {
 				new BitvavoParser(),
 				new BunqParser(),
-				//new CoinbaseParser(cs, api),
+				new CoinbaseParser(),
 				new DeGiroParserNL(),
 				new DeGiroParserPT(),
 				new GenericParser(),

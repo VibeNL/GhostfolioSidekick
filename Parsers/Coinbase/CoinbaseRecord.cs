@@ -1,6 +1,4 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.Configuration.Attributes;
+﻿using CsvHelper.Configuration.Attributes;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
@@ -8,6 +6,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 	[Delimiter(",")]
 	public class CoinbaseRecord
 	{
+		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
 		[Format("yyyy-MM-ddTHH:mm:ssZ")]
 		public DateTime Timestamp { get; set; }
 
@@ -30,20 +29,5 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		public decimal? Fee { get; set; }
 
 		public required string Notes { get; set; }
-
-		[LineNumber]
-		public int RowNumber { get; set; }
-
-		private class LineNumber : Attribute, IMemberMapper, IParameterMapper
-		{
-			public void ApplyTo(MemberMap memberMap)
-			{
-				memberMap.Data.ReadingConvertExpression = (ConvertFromStringArgs args) => args.Row.Parser.Row;
-			}
-
-			public void ApplyTo(ParameterMap parameterMap)
-			{
-			}
-		}
 	}
 }

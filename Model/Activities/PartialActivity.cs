@@ -158,7 +158,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateSend(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
 		{
-			return new PartialActivity(ActivityType.Sell, Currency.EUR, transactionId)
+			return new PartialActivity(ActivityType.Send, Currency.EUR, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -173,6 +173,39 @@ namespace GhostfolioSidekick.Model.Activities
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
 				Amount = amount,
+			};
+		}
+
+		public static PartialActivity CreateLearningReward(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
+		{
+			return new PartialActivity(ActivityType.LearningReward, Currency.EUR, transactionId)
+			{
+				SymbolIdentifiers = symbolIdentifiers,
+				Date = date,
+				Amount = amount
+			};
+		}
+
+		public static IEnumerable<PartialActivity> CreateAssetConvert(
+			DateTime date,
+			PartialSymbolIdentifier[] source,
+			decimal sourceAmount,
+			PartialSymbolIdentifier[] target,
+			decimal targetAmount,
+			string transactionId)
+
+		{
+			yield return new PartialActivity(ActivityType.Send, Currency.EUR, transactionId)
+			{
+				SymbolIdentifiers = source,
+				Date = date,
+				Amount = sourceAmount,
+			};
+			yield return new PartialActivity(ActivityType.Receive, Currency.EUR, transactionId)
+			{
+				SymbolIdentifiers = target,
+				Date = date,
+				Amount = targetAmount,
 			};
 		}
 	}
