@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Configuration\Configuration.csproj" />
+    <ProjectReference Include="..\Cryptocurrency\Cryptocurrency.csproj" />
     <ProjectReference Include="..\Model\Model.csproj" />
   </ItemGroup>
 

@@ -1,7 +1,9 @@
 ﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Cryptocurrency.Workarouunds;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -66,7 +68,9 @@ namespace GhostfolioSidekick.ConsoleHelper
 				new ScalableCapitalRKKParser(),
 				new ScalableCapitalWUMParser(),
 				new Trading212Parser()
-			}),
+			}, new IHoldingStrategy[] {
+				new ApplyDust(settings.ConfigurationInstance.Settings),
+				new StakeAsDividend(settings.ConfigurationInstance.Settings) }),
 			//new MarketDataMaintainerTask(logger, api, cs)
 			};
 

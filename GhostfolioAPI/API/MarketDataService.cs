@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.Ghostfolio.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
@@ -61,8 +62,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			bool isCrypto = allowedAssetSubClass?.Contains(AssetSubClass.CryptoCurrency) ?? false;
+
 			var allIdentifiers = identifiers
 				.Union(identifiers.Select(x => symbolMapper.MapSymbol(x)))
+				.Union(isCrypto ? identifiers.Select(CryptoMapper.Instance.GetFullname) : [])
 				.Union(isCrypto ? identifiers.Select(CreateCryptoForYahoo) : [])
 				.Where(x => !string.IsNullOrWhiteSpace(x))
 				.Distinct();
@@ -102,9 +105,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 							.Where(x => allowedAssetClass?.Contains(x.AssetClass) ?? true)
 							.Where(x => allowedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
 							.SingleOrDefault(x =>
-							x.Symbol == identifier ||
-							x.ISIN == identifier ||
-							x.Identifiers.Contains(identifier));
+								x.Symbol == identifier ||
+								x.ISIN == identifier ||
+								x.Identifiers.Any(x => x.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)));
 						if (foundSymbol != null)
 						{
 							return foundSymbol;

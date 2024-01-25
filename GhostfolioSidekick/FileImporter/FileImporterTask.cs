@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -14,6 +15,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly IAccountService accountManager;
 		private readonly IMarketDataService marketDataManager;
 		private readonly IEnumerable<IFileImporter> importers;
+		private readonly IEnumerable<IHoldingStrategy> strategies;
 
 		public int Priority => 3;
 
@@ -23,7 +25,8 @@ namespace GhostfolioSidekick.FileImporter
 			IActivitiesService activitiesManager,
 			IAccountService accountManager,
 			IMarketDataService marketDataManager,
-			IEnumerable<IFileImporter> importers)
+			IEnumerable<IFileImporter> importers,
+			IEnumerable<IHoldingStrategy> strategies)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
 
@@ -33,6 +36,7 @@ namespace GhostfolioSidekick.FileImporter
 			this.accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
 			this.marketDataManager = marketDataManager ?? throw new ArgumentNullException(nameof(marketDataManager));
 			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
+			this.strategies = strategies;
 		}
 
 		public async Task DoWork()
@@ -81,9 +85,23 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			await holdingsCollection.GenerateActivities();
+
+			ApplyHoldingActions(holdingsCollection, strategies);
+
 			await activitiesManager.UpdateActivities(accountNames, holdingsCollection.Holdings);
 
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
+		}
+
+		private void ApplyHoldingActions(HoldingsCollection holdingsCollection, IEnumerable<IHoldingStrategy> strategies)
+		{
+			foreach (var strategy in strategies)
+			{
+				foreach (var holding in holdingsCollection.Holdings)
+				{
+					strategy.Execute(holding);
+				}
+			}
 		}
 	}
 }
