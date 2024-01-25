@@ -9,6 +9,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 	{
 		public required string Action { get; set; }
 
+		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
 		public DateTime Time { get; set; }
 
 		public string? ISIN { get; set; }

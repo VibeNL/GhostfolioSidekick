@@ -4,6 +4,7 @@ namespace GhostfolioSidekick.Parsers.NIBC
 {
 	public class NIBCRecord
 	{
+		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
 		[Name("Boekhdk. datum")]
 		[Format("dd-MM-yyyy")]
 		public DateTime Date { get; set; }

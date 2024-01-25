@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using CsvHelper.Configuration.Attributes;
+using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.Generic
 {
@@ -8,6 +9,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		public string? Symbol { get; set; }
 
+		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
 		public DateTime Date { get; set; }
 
 		public required string Currency { get; set; }

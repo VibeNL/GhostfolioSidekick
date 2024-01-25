@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 				return [];
 			}
 
-			var date = DateTime.ParseExact(record.ExecutionDate, "yyyyMMdd", null);
+			var date = DateTime.ParseExact(record.ExecutionDate, "yyyyMMdd", null, DateTimeStyles.AssumeUniversal);
 
 			var currency = new Currency(record.Currency);
 			if (record.OrderType == "Saldo")

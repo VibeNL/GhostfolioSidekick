@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 
 		protected override IEnumerable<PartialActivity> ParseRow(BaaderBankWUMRecord record, int rowNumber)
 		{
-			var date = record.Date.ToDateTime(record.Time);
+			var date = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 			var currency = new Currency(record.Currency);
 			switch (record.OrderType)
 			{
