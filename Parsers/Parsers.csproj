@@ -17,14 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="cryptocurrencies.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="cryptocurrencies.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="CsvHelper" Version="30.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>

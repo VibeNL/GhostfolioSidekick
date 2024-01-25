@@ -25,9 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parsers.UnitTests", "Parser
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Configuration", "Configuration\Configuration.csproj", "{92C757AA-09B7-4F19-8D18-71FBAACCC750}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Configuration.UnitTests", "Configuration.UnitTests\Configuration.UnitTests.csproj", "{45C97490-B1A4-4FAE-9450-11FAB7256629}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Configuration.UnitTests", "Configuration.UnitTests\Configuration.UnitTests.csproj", "{45C97490-B1A4-4FAE-9450-11FAB7256629}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GhostfolioAPI.UnitTests", "GhostfolioAPI.UnitTests\GhostfolioAPI.UnitTests.csproj", "{9F3A67B4-09DF-41DF-B41E-18898E95B92E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GhostfolioAPI.UnitTests", "GhostfolioAPI.UnitTests\GhostfolioAPI.UnitTests.csproj", "{9F3A67B4-09DF-41DF-B41E-18898E95B92E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cryptocurrency", "Cryptocurrency\Cryptocurrency.csproj", "{549BE74C-B9DF-4C37-90AA-1058AC5605B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,10 @@ Global
 		{9F3A67B4-09DF-41DF-B41E-18898E95B92E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F3A67B4-09DF-41DF-B41E-18898E95B92E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F3A67B4-09DF-41DF-B41E-18898E95B92E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{549BE74C-B9DF-4C37-90AA-1058AC5605B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{549BE74C-B9DF-4C37-90AA-1058AC5605B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{549BE74C-B9DF-4C37-90AA-1058AC5605B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{549BE74C-B9DF-4C37-90AA-1058AC5605B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

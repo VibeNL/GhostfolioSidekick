@@ -1,7 +1,9 @@
 ﻿using GhostfolioSidekick.Model.Activities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
+	[ExcludeFromCodeCoverage]
 	public abstract class DeGiroRecordBase
 	{
 		public virtual DateOnly Date { get; set; }
