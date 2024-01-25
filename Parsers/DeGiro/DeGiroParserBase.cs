@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		protected override IEnumerable<PartialActivity> ParseRow(T record, int rowNumber)
 		{
-			var recordDate = record.Date.ToDateTime(record.Time);
+			var recordDate = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 
 			var knownBalance = PartialActivity.CreateKnownBalance(new Currency(record.BalanceCurrency), recordDate, record.Balance);
 			PartialActivity? partialActivity = null;
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			var currencyRecord = new Currency(record.Mutation);
 			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
 
-			record.SetGenerateTransactionIdIfEmpty();
+			record.SetGenerateTransactionIdIfEmpty(recordDate);
 
 			switch (activityType)
 			{

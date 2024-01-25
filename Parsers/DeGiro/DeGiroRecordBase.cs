@@ -33,6 +33,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		public abstract decimal GetQuantity();
 
 		public abstract decimal GetUnitPrice();
-		internal abstract void SetGenerateTransactionIdIfEmpty();
+
+		internal abstract void SetGenerateTransactionIdIfEmpty(DateTime recordDate);
 	}
 }

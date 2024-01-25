@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		internal override void SetGenerateTransactionIdIfEmpty()
+		internal override void SetGenerateTransactionIdIfEmpty(DateTime recordDate)
 		{
 			if (!string.IsNullOrWhiteSpace(TransactionId))
 			{
@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				activity = ActivityType.Dividend;
 			}
 
-			TransactionId = $"{activity}_{Date.ToDateTime(Time).ToInvariantString()}_{Product}_{ISIN}_{mutation}";
+			TransactionId = $"{activity}_{recordDate.ToInvariantString()}_{Product}_{ISIN}_{mutation}";
 		}
 
 		private CultureInfo GetCultureForParsingNumbers()
