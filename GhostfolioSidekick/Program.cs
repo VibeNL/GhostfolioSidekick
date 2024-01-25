@@ -43,8 +43,19 @@ namespace GhostfolioSidekick
 				services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
+				services.AddSingleton(x =>
+				{
+					var settings = x.GetService<IApplicationSettings>();
+					return new RestCall(
+										x.GetService<MemoryCache>()!,
+										x.GetService<ILogger<RestCall>>()!,
+										settings!.GhostfolioUrl,
+										settings!.GhostfolioAccessToken);
+				});
+				services.AddSingleton<IExchangeRateService, ExchangeRateService>();
+				services.AddSingleton<IActivitiesService, ActivitiesService>();
+				services.AddSingleton<IAccountService, AccountService>();
 				services.AddSingleton<IMarketDataService, MarketDataService>();
-
 
 				services.AddScoped<IHostedService, TimedHostedService>();
 				services.AddScoped<IScheduledWork, FileImporterTask>();

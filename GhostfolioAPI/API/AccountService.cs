@@ -9,12 +9,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class AccountService : IAccountService
 	{
-		private readonly ApplicationSettings applicationSettings;
+		private readonly IApplicationSettings applicationSettings;
 		private readonly RestCall restCall;
 		private readonly ILogger<AccountService> logger;
 
 		public AccountService(
-			ApplicationSettings applicationSettings,
+			IApplicationSettings applicationSettings,
 			RestCall restCall,
 			ILogger<AccountService> logger)
 		{
