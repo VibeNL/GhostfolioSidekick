@@ -42,6 +42,16 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
+		public static PartialActivity CreateGift(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
+		{
+			return new PartialActivity(ActivityType.Gift, Currency.EUR, transactionId)
+			{
+				Date = date,
+				Amount = amount,
+				SymbolIdentifiers = symbolIdentifiers
+			};
+		}
+
 		public static PartialActivity CreateInterest(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
 			return new PartialActivity(ActivityType.Interest, currency, transactionId)

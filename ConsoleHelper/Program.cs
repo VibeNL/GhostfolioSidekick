@@ -8,6 +8,7 @@ using GhostfolioSidekick.Parsers.Bunq;
 using GhostfolioSidekick.Parsers.Coinbase;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.Nexo;
 using GhostfolioSidekick.Parsers.NIBC;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
 using GhostfolioSidekick.Parsers.Trading212;
@@ -60,7 +61,7 @@ namespace GhostfolioSidekick.ConsoleHelper
 				new DeGiroParserNL(),
 				new DeGiroParserPT(),
 				new GenericParser(),
-				//new NexoParser(cs, api),
+				new NexoParser(),
 				new NIBCParser(),
 				new ScalableCapitalRKKParser(),
 				new ScalableCapitalWUMParser(),
