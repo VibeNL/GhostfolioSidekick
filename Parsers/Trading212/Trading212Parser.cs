@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
 					break;
 				case string d when d.Contains("Dividend"):
-					lst.Add(PartialActivity.CreateDividend(currency, record.Time,
+					lst.Add(PartialActivity.CreateDividend(new Currency(record.CurrencyTotal!), record.Time,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.Total!.Value, record.Id));
 					break;
 				default:

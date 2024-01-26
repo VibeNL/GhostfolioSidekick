@@ -129,7 +129,22 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.USD, new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US0378331005")], 0.02M, "Dividend (Dividends paid by us corporations)_US0378331005_2023-08-17_0.02_USD")
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US0378331005")], 0.02M, "Dividend (Dividends paid by us corporations)_US0378331005_2023-08-17_0.02_USD")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDividendGbp_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_dividend_gbp.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2024, 01, 12, 13, 25, 07, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("GG00BYZSSY63")], 5.57M, "Dividend (Dividend)_GG00BYZSSY63_2024-01-12_5.57_GBX")
 				]);
 		}
 
