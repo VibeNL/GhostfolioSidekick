@@ -86,7 +86,7 @@ namespace GhostfolioSidekick
 
 				////services.AddScoped<IHoldingStrategy, DeterminePrice>();
 				////services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
-				services.AddScoped<IHoldingStrategy, ////StakeAsDividendWorkaround>();
+			////	services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
 			});
 
 			await hostBuilder.RunConsoleAsync();
