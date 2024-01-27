@@ -334,9 +334,25 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			throw new NotImplementedException();
 		}
 
-		public Task SetMarketPrice(SymbolProfile symbolProfile, Money money)
+		public async Task SetMarketPrice(SymbolProfile symbolProfile, Money money, DateTime dateTime)
 		{
-			throw new NotImplementedException();
+			if (!settings.AllowAdminCalls)
+			{
+				return;
+			}
+
+			var o = new JObject();
+			o["marketPrice"] = money.Amount;
+
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPut($"api/v1/admin/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}/{dateTime:yyyy-MM-dd}", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"SetMarketPrice failed {symbolProfile.Symbol} {dateTime}");
+			}
+
+			logger.LogInformation($"SetMarketPrice symbol {symbolProfile.Symbol} {dateTime} @ {money.Amount}");
 		}
 
 		public Task DeleteSymbol(SymbolProfile symbolProfile)

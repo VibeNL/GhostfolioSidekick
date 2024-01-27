@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			bool checkExternalDataProviders,
 			bool includeIndexes);
 
-		Task SetMarketPrice(SymbolProfile symbolProfile, Money money);
+		Task SetMarketPrice(SymbolProfile symbolProfile, Money money, DateTime dateTime);
 
 		Task CreateSymbol(SymbolProfile symbolProfile);
 

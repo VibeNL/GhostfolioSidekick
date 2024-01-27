@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							continue;
 						}
 
-						await marketDataService.SetMarketPrice(mdi.AssetProfile, new Money(fromActivity.UnitPrice.Currency, expectedPrice));
+						await marketDataService.SetMarketPrice(mdi.AssetProfile, new Money(fromActivity.UnitPrice.Currency, expectedPrice), date);
 					}
 				}
 			}
