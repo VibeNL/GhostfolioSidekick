@@ -2,10 +2,12 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioSidekick.Cryptocurrency.Workarouunds
+namespace GhostfolioSidekick.Cryptocurrency
 {
-	public class ApplyDust(Settings settings) : IHoldingStrategy
+	public class ApplyDustCorrectionWorkaround(Settings settings) : IHoldingStrategy
 	{
+		public int Priority => (int)CryptoStrategiesPriority.ApplyDustCorrection;
+
 		public Task Execute(Holding holding)
 		{
 			if (!settings.CryptoWorkaroundDust || !(holding.SymbolProfile?.AssetSubClass == AssetSubClass.CryptoCurrency))

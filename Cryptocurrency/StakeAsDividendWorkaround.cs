@@ -2,10 +2,12 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioSidekick.Cryptocurrency.Workarouunds
+namespace GhostfolioSidekick.Cryptocurrency
 {
-	public class StakeAsDividend(Settings settings) : IHoldingStrategy
+	public class StakeAsDividendWorkaround(Settings settings) : IHoldingStrategy
 	{
+		public int Priority => (int)CryptoStrategiesPriority.StakeRewardWorkaround;
+
 		public Task Execute(Holding holding)
 		{
 			if (!settings.CryptoWorkaroundStakeReward)

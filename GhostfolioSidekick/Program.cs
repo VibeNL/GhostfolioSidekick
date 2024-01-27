@@ -1,9 +1,12 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -81,6 +84,9 @@ namespace GhostfolioSidekick
 				services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 
+				services.AddScoped<IHoldingStrategy, DeterminePrice>();
+				services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
+				services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
 			});
 
 			await hostBuilder.RunConsoleAsync();

@@ -1,9 +1,10 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Cryptocurrency.Workarouunds;
+using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Parsers;
@@ -40,28 +41,28 @@ namespace GhostfolioSidekick.ConsoleHelper
 			IExchangeRateService exchangeRateService = new ExchangeRateService(
 				restCall,
 				logger);
-			IMarketDataService marketDataManager = new MarketDataService(
+			IMarketDataService marketDataService = new MarketDataService(
 				settings,
 				memoryCache,
 				restCall,
 				logger);
-			IAccountService accountManager = new AccountService(
+			IAccountService accountService = new AccountService(
 				settings,
 				restCall,
 				logger);
-			IActivitiesService activitiesManager = new ActivitiesService(
+			IActivitiesService activitiesService = new ActivitiesService(
 				exchangeRateService,
-				accountManager,
+				accountService,
 				restCall,
 				logger);
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, settings),
-			new AccountMaintainerTask(logger, accountManager, settings),
-			new CreateManualSymbolTask(logger, accountManager, marketDataManager, activitiesManager, settings),
-			new DeleteUnusedSymbolsTask(logger, marketDataManager, settings),
-			new SetBenchmarksTask(logger, marketDataManager, settings),
-			new SetTrackingInsightOnSymbolsTask(logger, marketDataManager, settings),
-			new FileImporterTask(logger, settings, activitiesManager, accountManager, marketDataManager, new IFileImporter[] {
+			new AccountMaintainerTask(logger, accountService, settings),
+			new CreateManualSymbolTask(logger, accountService, marketDataService, activitiesService, settings),
+			new DeleteUnusedSymbolsTask(logger, marketDataService, settings),
+			new SetBenchmarksTask(logger, marketDataService, settings),
+			new SetTrackingInsightOnSymbolsTask(logger, marketDataService, settings),
+			new FileImporterTask(logger, settings, activitiesService, accountService, marketDataService, new IFileImporter[] {
 				new BitvavoParser(),
 				new BunqParser(),
 				new CoinbaseParser(),
@@ -74,8 +75,9 @@ namespace GhostfolioSidekick.ConsoleHelper
 				new ScalableCapitalWUMParser(),
 				new Trading212Parser()
 			}, new IHoldingStrategy[] {
-				new ApplyDust(settings.ConfigurationInstance.Settings),
-				new StakeAsDividend(settings.ConfigurationInstance.Settings) }),
+				new DeterminePrice(marketDataService),
+				new ApplyDustCorrectionWorkaround(settings.ConfigurationInstance.Settings),
+				new StakeAsDividendWorkaround(settings.ConfigurationInstance.Settings) }),
 			};
 
 			foreach (var t in tasks.OrderBy(x => x.Priority))

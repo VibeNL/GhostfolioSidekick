@@ -1,14 +1,13 @@
 using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Cryptocurrency.Workarouunds;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
+namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 {
-	public class ApplyDustTests
+	public class ApplyDustCorrectionWorkaroundTests
 	{
 		private readonly DateTime now = DateTime.UtcNow;
 		private int c = 0;
@@ -16,7 +15,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 		private readonly SymbolProfile symbolProfileCrypto;
 		private readonly SymbolProfile symbolProfileStock;
 
-		public ApplyDustTests()
+		public ApplyDustCorrectionWorkaroundTests()
 		{
 			symbolProfileStock = fixture
 				.Build<SymbolProfile>()
@@ -39,7 +38,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 				CryptoWorkaroundDust = true,
 				CryptoWorkaroundDustThreshold = 1,
 			};
-			var dust = new ApplyDust(sg);
+			var dust = new ApplyDustCorrectionWorkaround(sg);
 
 			var holding = new Holding(symbolProfileCrypto)
 			{
@@ -69,7 +68,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 				CryptoWorkaroundDust = true,
 				CryptoWorkaroundDustThreshold = 1,
 			};
-			var dust = new ApplyDust(sg);
+			var dust = new ApplyDustCorrectionWorkaround(sg);
 
 			var holding = new Holding(symbolProfileCrypto)
 			{
@@ -101,7 +100,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 				CryptoWorkaroundDust = true,
 				CryptoWorkaroundDustThreshold = 1,
 			};
-			var dust = new ApplyDust(sg);
+			var dust = new ApplyDustCorrectionWorkaround(sg);
 
 			var holding = new Holding(symbolProfileCrypto)
 			{
@@ -129,7 +128,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 				CryptoWorkaroundDust = false,
 				CryptoWorkaroundDustThreshold = 1,
 			};
-			var dust = new ApplyDust(sg);
+			var dust = new ApplyDustCorrectionWorkaround(sg);
 
 			var holding = new Holding(symbolProfileCrypto)
 			{
@@ -158,7 +157,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 				CryptoWorkaroundDust = true,
 				CryptoWorkaroundDustThreshold = 1,
 			};
-			var dust = new ApplyDust(sg);
+			var dust = new ApplyDustCorrectionWorkaround(sg);
 
 			var holding = new Holding(symbolProfileStock)
 			{

@@ -1,14 +1,13 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Cryptocurrency.Workarouunds;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
+namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 {
-	public class StakeAsDividendTests
+	public class StakeAsDividendWorkaroundTests
 	{
 		private readonly DateTime now = DateTime.UtcNow;
 		private int c = 0;
@@ -16,7 +15,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 		private readonly SymbolProfile symbolProfileCrypto;
 		private readonly SymbolProfile symbolProfileStock;
 
-		public StakeAsDividendTests()
+		public StakeAsDividendWorkaroundTests()
 		{
 			symbolProfileStock = fixture
 				.Build<SymbolProfile>()
@@ -38,7 +37,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 			{
 				CryptoWorkaroundStakeReward = true
 			};
-			var stake = new StakeAsDividend(sg);
+			var stake = new StakeAsDividendWorkaround(sg);
 
 			var holding = new Holding(symbolProfileCrypto)
 			{
@@ -68,7 +67,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests.Workarounds
 			{
 				CryptoWorkaroundStakeReward = false
 			};
-			var stake = new StakeAsDividend(sg);
+			var stake = new StakeAsDividendWorkaround(sg);
 
 			var holding = new Holding(symbolProfileCrypto)
 			{

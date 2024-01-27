@@ -4,6 +4,8 @@ namespace GhostfolioSidekick.Model
 {
 	public interface IHoldingStrategy
 	{
+		int Priority { get; }
+
 		Task Execute(Holding holding);
 	}
 }
