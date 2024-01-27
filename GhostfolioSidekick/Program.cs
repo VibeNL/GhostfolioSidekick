@@ -3,6 +3,7 @@ using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -63,8 +64,10 @@ namespace GhostfolioSidekick
 				services.AddScoped<IHostedService, TimedHostedService>();
 				services.AddScoped<IScheduledWork, FileImporterTask>();
 				services.AddScoped<IScheduledWork, DisplayInformationTask>();
-				//services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();
 				services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+				services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+				services.AddScoped<IScheduledWork, SetBenchmarksTask>();
+				services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 
 				services.AddScoped<IFileImporter, BitvavoParser>();
 				services.AddScoped<IFileImporter, BunqParser>();
