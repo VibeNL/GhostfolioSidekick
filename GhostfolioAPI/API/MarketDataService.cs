@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			bool checkExternalDataProviders,
 			bool includeIndexes)
 		{
-			if (identifiers == null || !identifiers.Any())
+			if (identifiers == null || identifiers.Length == 0)
 			{
 				return null;
 			}
