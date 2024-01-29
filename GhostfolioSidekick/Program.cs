@@ -59,6 +59,12 @@ namespace GhostfolioSidekick
 										settings!.GhostfolioUrl,
 										settings!.GhostfolioAccessToken);
 				});
+				services.AddSingleton(x =>
+				{
+					var settings = x.GetService<IApplicationSettings>();
+					return settings!.ConfigurationInstance.Settings;
+				});
+
 				services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 				services.AddSingleton<IActivitiesService, ActivitiesService>();
 				services.AddSingleton<IAccountService, AccountService>();
@@ -84,9 +90,10 @@ namespace GhostfolioSidekick
 				services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 
-				////services.AddScoped<IHoldingStrategy, DeterminePrice>();
-				////services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
-			////	services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
+				
+				services.AddScoped<IHoldingStrategy, DeterminePrice>();
+				services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
+				services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
 			});
 
 			await hostBuilder.RunConsoleAsync();
