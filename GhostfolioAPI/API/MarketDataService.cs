@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 							.SingleOrDefault(x =>
 								x.Symbol == identifier ||
 								x.ISIN == identifier ||
-								x.Identifiers.Any(x => x.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)));
+								x.Identifiers.Exists(x => x.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)));
 						if (foundSymbol != null)
 						{
 							return foundSymbol;
@@ -324,14 +324,92 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return JsonConvert.DeserializeObject<GenericInfo>(content!)!;
 		}
 
-		public Task CreateSymbol(SymbolProfile symbolProfile)
+		public async Task CreateSymbol(SymbolProfile symbolProfile)
 		{
-			throw new NotImplementedException();
+			if (!settings.AllowAdminCalls)
+			{
+				return;
+			}
+
+			var o = new JObject
+			{
+				["symbol"] = symbolProfile.Symbol,
+				["isin"] = symbolProfile.ISIN,
+				["name"] = symbolProfile.Name,
+				["comment"] = symbolProfile.Comment,
+				["assetClass"] = symbolProfile.AssetClass.ToString(),
+				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
+				["currency"] = symbolProfile.Currency.Symbol,
+				["datasource"] = symbolProfile.DataSource.ToString()
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/admin/profile-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Creation failed {symbolProfile.Symbol}");
+			}
+
+			logger.LogInformation($"Created symbol {symbolProfile.Symbol}");
+
+			// Set name and assetClass (BUG / Quirk Ghostfolio?)
+			await UpdateSymbol(symbolProfile);
+
+			ClearCache();
 		}
 
-		public Task UpdateSymbol(SymbolProfile symbolProfile)
+		public async Task UpdateSymbol(SymbolProfile symbolProfile)
 		{
-			throw new NotImplementedException();
+			if (!settings.AllowAdminCalls)
+			{
+				return;
+			}
+
+			JObject mappingObject = new();
+			if (symbolProfile.Mappings.TrackInsight != null)
+			{
+				mappingObject.Add("TRACKINSIGHT", symbolProfile.Mappings.TrackInsight);
+			}
+
+			JObject scraperConfiguration = new();
+			if (symbolProfile.ScraperConfiguration.IsValid)
+			{
+				scraperConfiguration.Add("url", symbolProfile.ScraperConfiguration.Url);
+				scraperConfiguration.Add("selector", symbolProfile.ScraperConfiguration.Selector);
+
+				if (!string.IsNullOrWhiteSpace(symbolProfile.ScraperConfiguration.Locale))
+				{
+					scraperConfiguration.Add("locale", symbolProfile.ScraperConfiguration.Locale);
+				}
+			}
+
+			var o = new JObject
+			{
+				["name"] = symbolProfile.Name,
+				["assetClass"] = symbolProfile.AssetClass.ToString(),
+				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
+				["comment"] = symbolProfile.Comment,
+				["scraperConfiguration"] = scraperConfiguration,
+				["symbolMapping"] = mappingObject
+			};
+			var res = o.ToString();
+
+			try
+			{
+				var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}", res);
+				if (!r.IsSuccessStatusCode)
+				{
+					throw new NotSupportedException($"Update failed on symbol {symbolProfile.Symbol}");
+				}
+			}
+			catch
+			{
+				throw new NotSupportedException($"Update failed on symbol {symbolProfile.Symbol}.");
+			}
+
+			logger.LogInformation($"Updated symbol {symbolProfile.Symbol}");
+
+			ClearCache();
 		}
 
 		public async Task SetMarketPrice(SymbolProfile symbolProfile, Money money, DateTime dateTime)
@@ -355,14 +433,50 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation($"SetMarketPrice symbol {symbolProfile.Symbol} {dateTime} @ {money.Amount}");
 		}
 
-		public Task DeleteSymbol(SymbolProfile symbolProfile)
+		public async Task DeleteSymbol(SymbolProfile symbolProfile)
 		{
-			throw new NotImplementedException();
+			if (!settings.AllowAdminCalls)
+			{
+				return;
+			}
+
+			var r = await restCall.DoRestDelete($"api/v1/admin/profile-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}");
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Deletion failed {symbolProfile.Symbol}");
+			}
+
+			logger.LogInformation($"Deleted symbol {symbolProfile.Symbol}");
 		}
 
-		public Task SetSymbolAsBenchmark(SymbolProfile symbolProfile, Model.Symbols.Datasource dataSource)
+		public async Task SetSymbolAsBenchmark(SymbolProfile symbolProfile, Model.Symbols.Datasource dataSource)
 		{
-			throw new NotImplementedException();
+			var currentBanchmarks = (await GetInfo()).BenchMarks!;
+			if (Array.Exists(currentBanchmarks, x => x.Symbol == symbolProfile.Symbol))
+			{
+				return;
+			}
+
+			var o = new JObject
+			{
+				["datasource"] = dataSource.ToString(),
+				["symbol"] = symbolProfile.Symbol
+
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/benchmark/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Updating symbol failed to mark as a benchmark {symbolProfile.Symbol}");
+			}
+
+			logger.LogInformation($"Updated symbol to be a benchmark {symbolProfile.Symbol}");
+		}
+
+		public void ClearCache()
+		{
+			this.memoryCache.Clear();
 		}
 	}
 }
