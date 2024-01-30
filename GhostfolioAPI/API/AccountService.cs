@@ -1,9 +1,11 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Security.Principal;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -112,6 +114,36 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			return rawPlatforms.Select(ContractToModelMapper.MapPlatform).ToList();
+		}
+
+		public async Task UpdateBalance(Model.Accounts.Account existingAccount, Balance newBalance)
+		{
+			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
+
+			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content!);
+			var rawAccount = rawAccounts?.Accounts?.SingleOrDefault(x => string.Equals(x.Id, existingAccount.Id, StringComparison.InvariantCultureIgnoreCase));
+
+			if (rawAccount == null)
+			{
+				throw new NotSupportedException("Account not found");
+			}
+
+			if (Math.Round(rawAccount.Balance, 10) == Math.Round(newBalance.Money.Amount, 10))
+			{
+				return;
+			}
+
+			var o = new JObject();
+			o["balance"] = newBalance.Money.Amount;
+			o["comment"] = rawAccount.Comment;
+			o["currency"] = newBalance.Money.Currency.Symbol;
+			o["id"] = rawAccount.Id;
+			o["isExcluded"] = rawAccount.IsExcluded;
+			o["name"] = rawAccount.Name;
+			o["platformId"] = rawAccount.PlatformId;
+			var res = o.ToString();
+
+			await restCall.DoRestPut($"api/v1/account/{existingAccount.Id}", res);
 		}
 	}
 }

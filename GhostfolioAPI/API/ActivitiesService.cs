@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Ghostfolio.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -58,6 +59,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					// Account is missing
 					continue;
 				}
+
+				// Update Balance
+				var newBalance = BalanceCalculator.Calculate();
+				await accountService.UpdateBalance(existingAccount, newBalance);
 
 				var existingActivities = JsonConvert.DeserializeObject<Contract.ActivityList>(content)?.Activities ?? [];
 
