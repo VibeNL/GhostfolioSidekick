@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Ghostfolio.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -64,7 +63,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				var ordersFromFiles = newActivities.Where(x => x.AccountId == existingAccount.Id).ToList();
 
 				// Update Balance
-				var newBalance = BalanceCalculator.Calculate(holdings.SelectMany(x => x.Activities).Where(x => x.Account.Name == accountName));
+				var newBalance = await BalanceCalculator.Calculate(
+					existingAccount.Balance.Money.Currency,
+					exchangeRateService,
+					holdings.SelectMany(x => x.Activities).Where(x => x.Account.Name == accountName));
 				await accountService.UpdateBalance(existingAccount, newBalance);
 
 				var mergeOrders = MergeOrders(ordersFromFiles, existingActivities)
