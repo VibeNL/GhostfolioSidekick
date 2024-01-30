@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			IEnumerable<Activity> activities)
 		{
 			var sortedActivities = activities.OrderBy(x => x.Date);
-			var lastKnownBalance = sortedActivities.Last(x => x.ActivityType == ActivityType.KnownBalance);
+			var lastKnownBalance = sortedActivities.LastOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
 				return new Balance(new Money(lastKnownBalance.UnitPrice.Currency, lastKnownBalance.Quantity));
