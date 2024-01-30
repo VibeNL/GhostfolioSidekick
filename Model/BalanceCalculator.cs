@@ -1,15 +1,11 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Model
 {
 	public static class BalanceCalculator
 	{
-		public static Balance Calculate()
+		public static Balance Calculate(IEnumerable<Activity> ordersFromFiles)
 		{
 			throw new NotImplementedException();
 		}

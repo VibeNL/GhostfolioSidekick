@@ -60,13 +60,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					continue;
 				}
 
+				var existingActivities = JsonConvert.DeserializeObject<Contract.ActivityList>(content)?.Activities ?? [];
+				var ordersFromFiles = newActivities.Where(x => x.AccountId == existingAccount.Id).ToList();
+
 				// Update Balance
-				var newBalance = BalanceCalculator.Calculate();
+				var newBalance = BalanceCalculator.Calculate(holdings.SelectMany(x => x.Activities).Where(x => x.Account.Name == accountName));
 				await accountService.UpdateBalance(existingAccount, newBalance);
 
-				var existingActivities = JsonConvert.DeserializeObject<Contract.ActivityList>(content)?.Activities ?? [];
-
-				var ordersFromFiles = newActivities.Where(x => x.AccountId == existingAccount.Id).ToList();
 				var mergeOrders = MergeOrders(ordersFromFiles, existingActivities)
 					.OrderBy(x => x.Order1?.Date ?? x.Order2?.Date ?? DateTime.MaxValue)
 					.ThenBy(x => x.Operation)
