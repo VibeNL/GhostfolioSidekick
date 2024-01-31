@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using GhostfolioSidekick.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Text;
 
@@ -9,7 +10,7 @@ namespace GhostfolioSidekick
 		private readonly ILogger<DisplayInformationTask> logger;
 		private readonly IApplicationSettings applicationSettings;
 
-		public int Priority => int.MinValue;
+		public TaskPriority Priority => TaskPriority.DisplayInformation;
 
 		public DisplayInformationTask(
 			ILogger<DisplayInformationTask> logger,
@@ -38,7 +39,7 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"CryptoWorkaroundStakeReward : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward}");
 			sb.AppendLine($"DataProviderPreference : {applicationSettings.ConfigurationInstance.Settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols}");
-			
+
 			logger.LogInformation(sb.ToString());
 		}
 	}

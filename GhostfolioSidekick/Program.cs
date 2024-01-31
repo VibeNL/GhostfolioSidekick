@@ -1,15 +1,22 @@
-﻿using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.FileImporter.Bitvavo;
-using GhostfolioSidekick.FileImporter.Bunq;
-using GhostfolioSidekick.FileImporter.Coinbase;
-using GhostfolioSidekick.FileImporter.DeGiro;
-using GhostfolioSidekick.FileImporter.Generic;
-using GhostfolioSidekick.FileImporter.Nexo;
-using GhostfolioSidekick.FileImporter.NIBC;
-using GhostfolioSidekick.FileImporter.ScalableCaptial;
-using GhostfolioSidekick.FileImporter.Trading212;
-using GhostfolioSidekick.Ghostfolio.API;
+﻿using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Cryptocurrency;
+using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Parsers;
+using GhostfolioSidekick.Parsers.Bitvavo;
+using GhostfolioSidekick.Parsers.Bunq;
+using GhostfolioSidekick.Parsers.Coinbase;
+using GhostfolioSidekick.Parsers.DeGiro;
+using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.Nexo;
+using GhostfolioSidekick.Parsers.NIBC;
+using GhostfolioSidekick.Parsers.ScalableCaptial;
+using GhostfolioSidekick.Parsers.Trading212;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +25,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
 {
-	internal class Program
+	internal static class Program
 	{
 		static async Task Main(string[] args)
 		{
@@ -43,12 +50,33 @@ namespace GhostfolioSidekick
 				services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
+				services.AddSingleton(x =>
+				{
+					var settings = x.GetService<IApplicationSettings>();
+					return new RestCall(
+										x.GetService<MemoryCache>()!,
+										x.GetService<ILogger<RestCall>>()!,
+										settings!.GhostfolioUrl,
+										settings!.GhostfolioAccessToken);
+				});
+				services.AddSingleton(x =>
+				{
+					var settings = x.GetService<IApplicationSettings>();
+					return settings!.ConfigurationInstance.Settings;
+				});
+
+				services.AddSingleton<IExchangeRateService, ExchangeRateService>();
+				services.AddSingleton<IActivitiesService, ActivitiesService>();
+				services.AddSingleton<IAccountService, AccountService>();
+				services.AddSingleton<IMarketDataService, MarketDataService>();
+
 				services.AddScoped<IHostedService, TimedHostedService>();
-				services.AddSingleton<IGhostfolioAPI, GhostfolioAPI>();
 				services.AddScoped<IScheduledWork, FileImporterTask>();
 				services.AddScoped<IScheduledWork, DisplayInformationTask>();
-				services.AddScoped<IScheduledWork, MarketDataMaintainerTask>();
 				services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+				services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+				services.AddScoped<IScheduledWork, SetBenchmarksTask>();
+				services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 
 				services.AddScoped<IFileImporter, BitvavoParser>();
 				services.AddScoped<IFileImporter, BunqParser>();
@@ -58,9 +86,14 @@ namespace GhostfolioSidekick
 				services.AddScoped<IFileImporter, GenericParser>();
 				services.AddScoped<IFileImporter, NexoParser>();
 				services.AddScoped<IFileImporter, NIBCParser>();
-				services.AddScoped<IFileImporter, ScalableCapitalParser>();
+				services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
+				services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 
+				
+				services.AddScoped<IHoldingStrategy, DeterminePrice>();
+				services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
+				services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
 			});
 
 			await hostBuilder.RunConsoleAsync();

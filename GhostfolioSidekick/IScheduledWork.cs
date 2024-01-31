@@ -2,7 +2,7 @@
 {
 	public interface IScheduledWork
 	{
-		int Priority { get; }
+		TaskPriority Priority { get; }
 
 		Task DoWork();
 	}

@@ -1,28 +1,28 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.Ghostfolio.API;
+using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick.MarketDataMaintainer
+namespace GhostfolioSidekick.AccountMaintainer
 {
 	public class AccountMaintainerTask : IScheduledWork
 	{
 		private readonly ILogger<FileImporterTask> logger;
-		private readonly IGhostfolioAPI api;
-		private readonly ConfigurationInstance configurationInstance;
+		private readonly IAccountService api;
+		private readonly IApplicationSettings applicationSettings;
 
-		public int Priority => 1;
+		public TaskPriority Priority => TaskPriority.AccountCreation;
 
 		public AccountMaintainerTask(
 			ILogger<FileImporterTask> logger,
-			IGhostfolioAPI api,
+			IAccountService api,
 			IApplicationSettings applicationSettings)
 		{
-			ArgumentNullException.ThrowIfNull(applicationSettings);
-
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.api = api ?? throw new ArgumentNullException(nameof(api));
-			this.configurationInstance = applicationSettings.ConfigurationInstance;
+			this.applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		}
 
 		public async Task DoWork()
@@ -44,8 +44,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		private async Task AddOrUpdateAccountsAndPlatforms()
 		{
-			var platforms = configurationInstance.Platforms;
-			var accounts = configurationInstance.Accounts;
+			var platforms = applicationSettings.ConfigurationInstance.Platforms;
+			var accounts = applicationSettings.ConfigurationInstance.Accounts;
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{
@@ -56,38 +56,43 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
 				}
 
-				//UpdateAccount(accountConfig, platforms.SingleOrDefault(x => x.Name == accountConfig.Platform));
+				// TODO Update account
 			}
 		}
 
 		private async Task CreateAccount(AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
 		{
-			await CreateOrUpdatePlatform(platformConfiguration);
+			var platform = await CreateOrUpdatePlatform(platformConfiguration);
 
-			await api.CreateAccount(new Model.Account(
-				Guid.Empty.ToString(),
+			await api.CreateAccount(new Account(
 				accountConfig.Name,
-				new Model.Balance(new Model.Money(accountConfig.Currency, 0, DateTime.Now)),
-				accountConfig.Comment,
-				accountConfig.Platform,
-				[]));
+				new Balance(new Money(new Currency(accountConfig.Currency), 0)))
+			{
+				Comment = accountConfig.Comment,
+				Platform = platform,
+			});
 		}
 
-		private async Task CreateOrUpdatePlatform(PlatformConfiguration? platformConfiguration)
+		private async Task<Platform?> CreateOrUpdatePlatform(PlatformConfiguration? platformConfiguration)
 		{
 			if (platformConfiguration is null)
 			{
-				return;
+				return null;
 			}
 
 			var platform = await api.GetPlatformByName(platformConfiguration.Name);
 
 			if (platform == null)
 			{
-				await api.CreatePlatform(new Model.Platform(null, platformConfiguration.Name, platformConfiguration.Url));
+				await api.CreatePlatform(new Platform(platformConfiguration.Name)
+				{
+					Url = platformConfiguration.Url,
+				});
 			}
 
-			// TODO Update
+			// TODO Update platform
+
+			return await api.GetPlatformByName(platformConfiguration.Name);
 		}
 	}
 }
