@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				try
 				{
-					var r = (await GetMarketData(false)).Select(x => x.AssetProfile);
+					var r = (await GetAllSymbolProfiles(false));
 
 					foreach (var identifier in allIdentifiers)
 					{
@@ -226,11 +226,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		public async Task<IEnumerable<MarketDataProfile>> GetMarketData(bool filterBenchmarks = true)
+		public async Task<IEnumerable<SymbolProfile>> GetAllSymbolProfiles(bool filterBenchmarks = true)
 		{
 			if (!settings.AllowAdminCalls)
 			{
-				return Enumerable.Empty<MarketDataProfile>();
+				return Enumerable.Empty<SymbolProfile>();
 			}
 
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
@@ -246,8 +246,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			var filtered = filterBenchmarks ? market?.MarketData.Where(x => !benchmarks.Exists(y => y.Symbol == x.Symbol)) : market?.MarketData;
 
-			var lst = filtered?.Select(x => GetMarketData(x.Symbol, x.DataSource).Result);
-			return lst?.ToList() ?? [];
+			var profiles = new List<SymbolProfile>();
+			foreach (var f in filtered?.ToList() ?? [])
+			{
+				content = await restCall.DoRestGet($"api/v1/admin/market-data/{f.DataSource}/{f.Symbol}", CacheDuration.Short());
+				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
+				profiles.Add(ContractToModelMapper.MapSymbolProfile(data!.AssetProfile));
+			}
+
+			return profiles;
 		}
 
 		public async Task<MarketDataProfile> GetMarketData(string symbol, string dataSource)
