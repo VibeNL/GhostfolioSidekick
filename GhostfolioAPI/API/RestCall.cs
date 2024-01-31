@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private static int _maxRetryAttempts = 5;
 		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(1);
-
+		private readonly IRestClient restClient;
 		private readonly IMemoryCache memoryCache;
 		private readonly ILogger<RestCall> logger;
 		private readonly string url;
@@ -26,13 +26,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private readonly CircuitBreakerPolicy<RestResponse> basicCircuitBreakerPolicy;
 
 		public RestCall(
+			IRestClient restClient,
 			IMemoryCache memoryCache,
 			ILogger<RestCall> logger,
 			string url,
 			string accessToken)
 		{
-			this.memoryCache = memoryCache;
-			this.logger = logger;
+			if (string.IsNullOrEmpty(url))
+			{
+				throw new ArgumentException($"'{nameof(url)}' cannot be null or empty.", nameof(url));
+			}
+
+			this.restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+			this.memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.url = url;
 			this.accessToken = accessToken;
 
@@ -82,13 +89,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					return result2;
 				}
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false,
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -101,7 +101,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				stopwatch.Start();
 
-				var r = policy.Execute(() => client.ExecuteGetAsync(request).Result);
+				var r = policy.Execute(() => restClient.ExecuteGetAsync(request).Result);
 				stopwatch.Stop();
 
 				logger.LogDebug($"Url {url}/{suffixUrl} took {stopwatch.ElapsedMilliseconds}ms");
@@ -143,13 +143,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				mutex.WaitOne();
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -159,7 +152,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader("Content-Type", "application/json");
 
 				request.AddJsonBody(body);
-				var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
+				var r = retryPolicy.Execute(() => restClient.ExecutePostAsync(request).Result);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -176,7 +169,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		internal async Task<RestResponse> DoRestPut(string suffixUrl, string body)
+		public async Task<RestResponse> DoRestPut(string suffixUrl, string body)
 		{
 			DeleteCache(suffixUrl);
 
@@ -184,13 +177,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				mutex.WaitOne();
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -200,7 +186,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader("Content-Type", "application/json");
 
 				request.AddJsonBody(body);
-				var r = retryPolicy.Execute(() => client.ExecutePutAsync(request).Result);
+				var r = retryPolicy.Execute(() => restClient.ExecutePutAsync(request).Result);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -225,13 +211,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				mutex.WaitOne();
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -241,7 +220,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader("Content-Type", "application/json");
 
 				request.AddJsonBody(body);
-				var r = retryPolicy.Execute(() => client.PatchAsync(request).Result);
+				var r = retryPolicy.Execute(() => restClient.PatchAsync(request).Result);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -266,13 +245,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				mutex.WaitOne();
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -281,7 +253,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
 				request.AddHeader("Content-Type", "application/json");
 
-				var r = retryPolicy.Execute(() => client.DeleteAsync(request).Result);
+				var r = retryPolicy.Execute(() => restClient.DeleteAsync(request).Result);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -306,13 +278,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return Task.FromResult(result!);
 			}
 
-			var options = new RestClientOptions(url)
-			{
-				ThrowOnAnyError = false,
-				ThrowOnDeserializationError = false
-			};
-
-			var client = new RestClient(options);
 			var request = new RestRequest($"{url}/{suffixUrl}")
 			{
 				RequestFormat = DataFormat.Json
@@ -325,7 +290,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				["accessToken"] = accessToken
 			};
 			request.AddJsonBody(body.ToString());
-			var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
+			var r = retryPolicy.Execute(() => restClient.ExecutePostAsync(request).Result);
 
 			if (!r.IsSuccessStatusCode)
 			{

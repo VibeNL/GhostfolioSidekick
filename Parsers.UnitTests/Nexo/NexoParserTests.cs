@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Nexo;
 using GhostfolioSidekick.Parsers.UnitTests;
 
-namespace GhostfolioSidekick.UnitTests.FileImporter.Nexo
+namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 {
 	public class NexoParserTests
 	{

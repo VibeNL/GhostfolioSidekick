@@ -1,7 +1,6 @@
-using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioAPI.UnitTests
+namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 {
 
 	public class UtilitiesTests

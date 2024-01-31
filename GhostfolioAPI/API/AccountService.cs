@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Security.Principal;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {

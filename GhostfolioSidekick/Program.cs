@@ -22,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using RestSharp;
 
 namespace GhostfolioSidekick
 {
@@ -50,10 +51,22 @@ namespace GhostfolioSidekick
 				services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
+				services.AddSingleton<IRestClient, RestClient>(x =>
+				{
+					var settings = x.GetService<IApplicationSettings>();
+					var options = new RestClientOptions(settings!.GhostfolioUrl)
+					{
+						ThrowOnAnyError = false,
+						ThrowOnDeserializationError = false,
+					};
+
+					return new RestClient(options);
+				});
+
 				services.AddSingleton(x =>
 				{
 					var settings = x.GetService<IApplicationSettings>();
-					return new RestCall(
+					return new RestCall(x.GetService<IRestClient>()!,
 										x.GetService<MemoryCache>()!,
 										x.GetService<ILogger<RestCall>>()!,
 										settings!.GhostfolioUrl,
@@ -90,7 +103,7 @@ namespace GhostfolioSidekick
 				services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
 				services.AddScoped<IFileImporter, Trading212Parser>();
 
-				
+
 				services.AddScoped<IHoldingStrategy, DeterminePrice>();
 				services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
 				services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();

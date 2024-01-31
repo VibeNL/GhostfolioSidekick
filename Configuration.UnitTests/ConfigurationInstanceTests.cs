@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using GhostfolioSidekick.Configuration;
 
-namespace GhostfolioSidekick.UnitTests.Configuration
+namespace GhostfolioSidekick.Configuration.UnitTests
 {
 	public class ConfigurationInstanceTests
 	{
