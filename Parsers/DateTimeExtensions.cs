@@ -11,15 +11,5 @@
 		{
 			return dateTime.ToString("yyyy-MM-dd");
 		}
-
-		internal static string ToInvariantString(this DateOnly dateOnly)
-		{
-			return dateOnly.ToString("yyyy-MM-dd");
-		}
-
-		internal static string ToInvariantString(this TimeOnly timeOnly)
-		{
-			return timeOnly.ToString("HH:mm");
-		}
 	}
 }
