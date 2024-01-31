@@ -24,7 +24,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 
 			if (activity.ActivityType == Model.Activities.ActivityType.Interest ||
 				activity.ActivityType == Model.Activities.ActivityType.Fee ||
-				activity.ActivityType == Model.Activities.ActivityType.Valuable)
+				activity.ActivityType == Model.Activities.ActivityType.Valuable ||
+				activity.ActivityType == Model.Activities.ActivityType.Liability)
 			{
 				return new GhostfolioAPI.Contract.Activity
 				{
@@ -128,6 +129,8 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 					return GhostfolioAPI.Contract.ActivityType.FEE;
 				case Model.Activities.ActivityType.Valuable:
 					return GhostfolioAPI.Contract.ActivityType.ITEM;
+				case Model.Activities.ActivityType.Liability:
+					return GhostfolioAPI.Contract.ActivityType.LIABILITY;
 				case Model.Activities.ActivityType.Gift:
 					return GhostfolioAPI.Contract.ActivityType.BUY;
 				case Model.Activities.ActivityType.LearningReward:

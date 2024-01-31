@@ -236,5 +236,16 @@ namespace GhostfolioSidekick.Model.Activities
 				Description = description
 			};
 		}
+
+		public static PartialActivity CreateLiability(Currency currency, DateTime date, string description, decimal value, string transactionId)
+		{
+			return new PartialActivity(ActivityType.Liability, currency, transactionId)
+			{
+				Date = date,
+				Amount = 1,
+				UnitPrice = value,
+				Description = description
+			};
+		}
 	}
 }

@@ -71,6 +71,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleOrderTypeLiability_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_liability.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateLiability(Currency.EUR, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), "Giftcard", 250M, "Liability_Giftcard_2023-08-07_1_EUR_0"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
 		{
 			// Arrange

@@ -14,6 +14,8 @@
 
 		ITEM,
 
+		LIABILITY,
+
 		IGNORE,
 	}
 }

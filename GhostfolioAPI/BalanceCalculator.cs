@@ -42,6 +42,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					case ActivityType.Send:
 					case ActivityType.StakingReward:
 					case ActivityType.Valuable:
+					case ActivityType.Liability:
 						break;
 					case ActivityType.Convert:
 						throw new NotSupportedException();

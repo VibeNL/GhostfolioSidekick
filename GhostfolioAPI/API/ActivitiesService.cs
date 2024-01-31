@@ -218,7 +218,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				(fo.SymbolProfile?.Symbol == eo.SymbolProfile?.Symbol ||
 					fo.Type == Contract.ActivityType.INTEREST ||
 					fo.Type == Contract.ActivityType.FEE ||
-					fo.Type == Contract.ActivityType.ITEM) && // Interest & Fee create manual symbols
+					fo.Type == Contract.ActivityType.ITEM ||
+					fo.Type == Contract.ActivityType.LIABILITY) && // Interest & Fee create manual symbols
 				fo.Quantity == eo.Quantity &&
 				fo.UnitPrice == eo.UnitPrice &&
 				fo.Fee == eo.Fee &&

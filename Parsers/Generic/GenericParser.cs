@@ -55,7 +55,10 @@ namespace GhostfolioSidekick.Parsers.Generic
 					}
 					break;
 				case ActivityType.Valuable:
-					lst.Add(PartialActivity.CreateValuable(currency, record.Date, record.Symbol!, record.UnitPrice, record.Id));
+					lst.Add(PartialActivity.CreateValuable(currency, record.Date, record.Symbol!, record.Quantity * record.UnitPrice, record.Id));
+					break;
+				case ActivityType.Liability:
+					lst.Add(PartialActivity.CreateLiability(currency, record.Date, record.Symbol!, record.Quantity * record.UnitPrice, record.Id));
 					break;
 				case ActivityType.Gift:
 					lst.Add(PartialActivity.CreateGift(currency, record.Date, record.UnitPrice, record.Id));

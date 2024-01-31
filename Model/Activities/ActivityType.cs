@@ -36,6 +36,8 @@
 
 		KnownBalance,
 
-		Valuable
+		Valuable,
+
+		Liability
 	}
 }
