@@ -69,5 +69,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			await Assert.ThrowsAsync<NotSupportedException>(() =>
 				BalanceCalculator.Calculate(baseCurrency, exchangeRateServiceMock.Object, activities));
 		}
+
+		[Fact]
+		public async Task Calculate_WithNoActivities_ReturnsZeroBalance()
+		{
+			// Arrange
+			var activities = new List<Activity>();
+
+			// Act
+			var result = await BalanceCalculator.Calculate(baseCurrency, exchangeRateServiceMock.Object, activities);
+
+			// Assert
+			result.Money.Amount.Should().Be(0);
+		}
 	}
 }
