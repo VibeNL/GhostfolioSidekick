@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Security.Principal;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -50,17 +49,22 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task CreateAccount(Model.Accounts.Account account)
 		{
-			var platform = await GetPlatformByName(account.Name);
-
 			var o = new JObject
 			{
 				["name"] = account.Name,
 				["currency"] = account.Balance.Money.Currency.Symbol,
 				["comment"] = account.Comment,
-				["platformId"] = platform?.Id,
+
 				["isExcluded"] = false,
 				["balance"] = 0,
 			};
+
+			if (account.Platform != null)
+			{
+				var platform = await GetPlatformByName(account.Platform.Name);
+				o["platformId"] = platform?.Id;
+			}
+
 			var res = o.ToString();
 
 			var r = await restCall.DoRestPost($"api/v1/account/", res);
@@ -93,9 +97,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return ContractToModelMapper.MapAccount(rawAccount, platform);
 		}
 
-		public Task<Model.Accounts.Platform> GetPlatformByName(string name)
+		public async Task<Model.Accounts.Platform> GetPlatformByName(string name)
 		{
-			throw new NotImplementedException();
+			var platforms = await GetPlatforms();
+			return platforms.Single(x => x.Name == name);
 		}
 
 		public async Task<List<Model.Accounts.Platform>> GetPlatforms()

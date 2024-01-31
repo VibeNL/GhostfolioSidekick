@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Ghostfolio.API.Mapper;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+﻿using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
