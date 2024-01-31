@@ -25,6 +25,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public IEnumerable<Money> Taxes { get; set; } = [];
 
 		public string? TransactionId { get; set; } = transactionId;
+		public int? SortingPriority { get; set; }
 
 		public override string ToString()
 		{

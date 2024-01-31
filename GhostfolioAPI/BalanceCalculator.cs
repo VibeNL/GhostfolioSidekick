@@ -8,11 +8,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	{
 		public static async Task<Balance> Calculate(
 			Currency baseCurrency,
-			IExchangeRateService exchangeRateService, 
+			IExchangeRateService exchangeRateService,
 			IEnumerable<Activity> activities)
 		{
-			var sortedActivities = activities.OrderBy(x => x.Date);
-			var lastKnownBalance = sortedActivities.LastOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
+			var sortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
+			var lastKnownBalance = sortedActivities.FirstOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
 				return new Balance(new Money(lastKnownBalance.UnitPrice.Currency, lastKnownBalance.Quantity));
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						throw new NotSupportedException();
 				}
 
-				amount += factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) * 
+				amount += factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
 							activity.UnitPrice.Amount * activity.Quantity;
 			}
 

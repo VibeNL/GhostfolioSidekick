@@ -14,6 +14,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public string? TransactionId { get; } = transactionId;
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
 		public decimal? UnitPrice { get; private set; } = 1;
+		public int? SortingPriority { get; private set; }
 
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
@@ -61,12 +62,13 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateKnownBalance(Currency currency, DateTime date, decimal amount)
+		public static PartialActivity CreateKnownBalance(Currency currency, DateTime date, decimal amount, int? rownumber = 0)
 		{
 			return new PartialActivity(ActivityType.KnownBalance, currency, null)
 			{
 				Date = date,
-				Amount = amount
+				Amount = amount,
+				SortingPriority = rownumber
 			};
 		}
 

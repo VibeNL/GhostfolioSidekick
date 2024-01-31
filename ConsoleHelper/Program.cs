@@ -1,7 +1,22 @@
-﻿using GhostfolioSidekick.Configuration;
+﻿using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Cryptocurrency;
+using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Parsers;
+using GhostfolioSidekick.Parsers.Bitvavo;
+using GhostfolioSidekick.Parsers.Bunq;
+using GhostfolioSidekick.Parsers.Coinbase;
+using GhostfolioSidekick.Parsers.DeGiro;
+using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.Nexo;
+using GhostfolioSidekick.Parsers.NIBC;
+using GhostfolioSidekick.Parsers.ScalableCaptial;
+using GhostfolioSidekick.Parsers.Trading212;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace GhostfolioSidekick.ConsoleHelper
@@ -42,12 +57,12 @@ namespace GhostfolioSidekick.ConsoleHelper
 				logger);
 			var tasks = new IScheduledWork[]{
 			new DisplayInformationTask(logger, settings),
-			//new AccountMaintainerTask(logger, accountService, settings),
+			new AccountMaintainerTask(logger, accountService, settings),
 			new CreateManualSymbolTask(logger, accountService, marketDataService, activitiesService, settings),
 			new DeleteUnusedSymbolsTask(logger, marketDataService, settings),
 			new SetBenchmarksTask(logger, marketDataService, settings),
 			new SetTrackingInsightOnSymbolsTask(logger, marketDataService, settings),
-			/*new FileImporterTask(logger, settings, activitiesService, accountService, marketDataService, new IFileImporter[] {
+			new FileImporterTask(logger, settings, activitiesService, accountService, marketDataService, new IFileImporter[] {
 				new BitvavoParser(),
 				new BunqParser(),
 				new CoinbaseParser(),
@@ -62,7 +77,7 @@ namespace GhostfolioSidekick.ConsoleHelper
 			}, new IHoldingStrategy[] {
 				new DeterminePrice(marketDataService),
 				new ApplyDustCorrectionWorkaround(settings.ConfigurationInstance.Settings),
-				new StakeAsDividendWorkaround(settings.ConfigurationInstance.Settings) }),*/
+				new StakeAsDividendWorkaround(settings.ConfigurationInstance.Settings) }),
 			};
 
 			foreach (var t in tasks.OrderBy(x => x.Priority))

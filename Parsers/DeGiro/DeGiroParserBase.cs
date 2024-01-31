@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		{
 			var recordDate = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 
-			var knownBalance = PartialActivity.CreateKnownBalance(new Currency(record.BalanceCurrency), recordDate, record.Balance);
+			var knownBalance = PartialActivity.CreateKnownBalance(new Currency(record.BalanceCurrency), recordDate, record.Balance, rowNumber);
 			PartialActivity? partialActivity = null;
 
 			var activityType = record.GetActivityType();
