@@ -5,8 +5,6 @@ VisualStudioVersion = 17.6.33815.320
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GhostfolioSidekick", "GhostfolioSidekick\GhostfolioSidekick.csproj", "{5FC7797A-35AD-4E1E-A5C6-611F8E79F201}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleHelper", "ConsoleHelper\ConsoleHelper.csproj", "{EAE9D7C1-17CA-497C-AC21-E2F97E42CC54}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GhostfolioSidekick.UnitTests", "GhostfolioSidekick.UnitTests\GhostfolioSidekick.UnitTests.csproj", "{7EC54DCF-567D-48B9-8512-6714929C95F1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{56B3F201-0E55-45FB-90CA-24F16BE6CCED}"
@@ -43,10 +41,6 @@ Global
 		{5FC7797A-35AD-4E1E-A5C6-611F8E79F201}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FC7797A-35AD-4E1E-A5C6-611F8E79F201}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FC7797A-35AD-4E1E-A5C6-611F8E79F201}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EAE9D7C1-17CA-497C-AC21-E2F97E42CC54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EAE9D7C1-17CA-497C-AC21-E2F97E42CC54}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EAE9D7C1-17CA-497C-AC21-E2F97E42CC54}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EAE9D7C1-17CA-497C-AC21-E2F97E42CC54}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7EC54DCF-567D-48B9-8512-6714929C95F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7EC54DCF-567D-48B9-8512-6714929C95F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7EC54DCF-567D-48B9-8512-6714929C95F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
