@@ -17,8 +17,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="FileImporter\**" />
 		<Compile Remove="Ghostfolio\**" />
+		<EmbeddedResource Remove="FileImporter\**" />
 		<EmbeddedResource Remove="Ghostfolio\**" />
+		<None Remove="FileImporter\**" />
 		<None Remove="Ghostfolio\**" />
 	</ItemGroup>
 
@@ -40,10 +43,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="FileImporter\" />
 	</ItemGroup>
 
 </Project>
