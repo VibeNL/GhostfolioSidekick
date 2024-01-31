@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			var amount = 0M;
 			foreach (var activity in sortedActivities)
 			{
-				var factor = 1M;
+				var factor = 0M;
 				switch (activity.ActivityType)
 				{
 					case ActivityType.CashDeposit:
@@ -41,6 +41,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					case ActivityType.Receive:
 					case ActivityType.Send:
 					case ActivityType.StakingReward:
+					case ActivityType.Valuable:
 						break;
 					case ActivityType.Convert:
 						throw new NotSupportedException();

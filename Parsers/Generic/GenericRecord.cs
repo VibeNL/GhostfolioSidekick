@@ -20,10 +20,10 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		public decimal? Fee { get; set; }
 
-		[CsvHelper.Configuration.Attributes.Optional]
+		[Optional]
 		public decimal? Tax { get; set; }
 
-		[CsvHelper.Configuration.Attributes.Optional]
+		[Optional]
 		public string? Id { get; set; }
 	}
 }

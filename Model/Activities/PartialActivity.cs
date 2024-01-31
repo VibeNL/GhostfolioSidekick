@@ -15,6 +15,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
 		public decimal? UnitPrice { get; private set; } = 1;
 		public int? SortingPriority { get; private set; }
+		public string? Description { get; private set; }
 
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
@@ -39,7 +40,8 @@ namespace GhostfolioSidekick.Model.Activities
 			return new PartialActivity(ActivityType.Gift, currency, transactionId)
 			{
 				Date = date,
-				Amount = amount
+				Amount = amount,
+				Description = "Gift",
 			};
 		}
 
@@ -58,7 +60,8 @@ namespace GhostfolioSidekick.Model.Activities
 			return new PartialActivity(ActivityType.Interest, currency, transactionId)
 			{
 				Date = date,
-				Amount = amount
+				Amount = amount,
+				Description = "Interest",
 			};
 		}
 
@@ -77,7 +80,8 @@ namespace GhostfolioSidekick.Model.Activities
 			return new PartialActivity(ActivityType.Tax, currency, transactionId)
 			{
 				Date = date,
-				Amount = amount
+				Amount = amount,
+				Description = "Tax",
 			};
 		}
 
@@ -86,7 +90,8 @@ namespace GhostfolioSidekick.Model.Activities
 			return new PartialActivity(ActivityType.Fee, currency, transactionId)
 			{
 				Date = date,
-				Amount = amount
+				Amount = amount,
+				Description = "Fee",
 			};
 		}
 
@@ -218,6 +223,17 @@ namespace GhostfolioSidekick.Model.Activities
 				SymbolIdentifiers = target,
 				Date = date,
 				Amount = targetAmount,
+			};
+		}
+
+		public static PartialActivity CreateValuable(Currency currency, DateTime date, string description, decimal value, string transactionId)
+		{
+			return new PartialActivity(ActivityType.Valuable, currency, transactionId)
+			{
+				Date = date,
+				Amount = 1,
+				UnitPrice = value,
+				Description = description
 			};
 		}
 	}

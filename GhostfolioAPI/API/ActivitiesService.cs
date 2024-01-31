@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					continue;
 				}
 
-				var existingActivities = JsonConvert.DeserializeObject<Contract.ActivityList>(content)?.Activities ?? [];
+				var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content)?.Activities ?? [];
 				var ordersFromFiles = newActivities.Where(x => x.AccountId == existingAccount.Id).ToList();
 
 				// Update Balance
@@ -215,7 +215,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private bool AreEquals(Contract.Activity fo, Contract.Activity eo)
 		{
 			return
-				(fo.SymbolProfile?.Symbol == eo.SymbolProfile?.Symbol || fo.Type == Contract.ActivityType.INTEREST || fo.Type == Contract.ActivityType.FEE) && // Interest & Fee create manual symbols
+				(fo.SymbolProfile?.Symbol == eo.SymbolProfile?.Symbol ||
+					fo.Type == Contract.ActivityType.INTEREST ||
+					fo.Type == Contract.ActivityType.FEE ||
+					fo.Type == Contract.ActivityType.ITEM) && // Interest & Fee create manual symbols
 				fo.Quantity == eo.Quantity &&
 				fo.UnitPrice == eo.UnitPrice &&
 				fo.Fee == eo.Fee &&
@@ -233,19 +236,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			o["date"] = activity.Date.ToString("o");
 			o["fee"] = activity.Fee;
 			o["quantity"] = activity.Quantity;
-
-			if (activity.Type == Contract.ActivityType.INTEREST)
-			{
-				o["symbol"] = "Interest";
-			}
-			else if (activity.Type == Contract.ActivityType.FEE)
-			{
-				o["symbol"] = "Fee";
-			}
-			else
-			{
-				o["symbol"] = activity.SymbolProfile?.Symbol;
-			}
+			o["symbol"] = activity.SymbolProfile?.Symbol;
 			o["type"] = activity.Type.ToString();
 			o["unitPrice"] = activity.UnitPrice;
 			var res = o.ToString();

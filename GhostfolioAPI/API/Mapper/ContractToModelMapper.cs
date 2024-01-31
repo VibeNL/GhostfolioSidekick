@@ -134,6 +134,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					return ActivityType.Interest;
 				case Contract.ActivityType.FEE:
 					return ActivityType.Fee;
+				case Contract.ActivityType.ITEM:
+					return ActivityType.Valuable;
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");
 			}

@@ -34,6 +34,8 @@
 
 		Tax,
 
-		KnownBalance
+		KnownBalance,
+
+		Valuable
 	}
 }
