@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			return mdl;
 		}
 
-		private static SymbolProfile MapSymbolProfile(Contract.SymbolProfile assetProfile)
+		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile assetProfile)
 		{
 			return new SymbolProfile(
 								assetProfile.Symbol,

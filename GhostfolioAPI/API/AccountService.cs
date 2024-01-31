@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<Model.Accounts.Account> GetAccountByName(string name)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/account");
 			if (content == null)
 			{
 				throw new NotSupportedException();
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<List<Model.Accounts.Platform>> GetPlatforms()
 		{
-			var content = await restCall.DoRestGet($"api/v1/platform", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/platform");
 
 			if (content == null)
 			{
@@ -123,7 +123,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task UpdateBalance(Model.Accounts.Account existingAccount, Balance newBalance)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/account");
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content!);
 			var rawAccount = rawAccounts?.Accounts?.SingleOrDefault(x => string.Equals(x.Id, existingAccount.Id, StringComparison.InvariantCultureIgnoreCase));

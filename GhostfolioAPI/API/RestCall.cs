@@ -17,8 +17,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private static int _maxRetryAttempts = 5;
 		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(1);
-		private readonly IRestClient restClient;
 		private readonly IMemoryCache memoryCache;
+		private readonly IRestClient restClient;
 		private readonly ILogger<RestCall> logger;
 		private readonly string url;
 		private readonly string accessToken;
@@ -37,8 +37,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new ArgumentException($"'{nameof(url)}' cannot be null or empty.", nameof(url));
 			}
 
+			this.memoryCache = memoryCache;
 			this.restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
-			this.memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.url = url;
 			this.accessToken = accessToken;
@@ -67,13 +67,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				});
 		}
 
-		public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions? cacheEntryOptions, bool useCircuitBreaker = false)
+		public async Task<string?> DoRestGet(string suffixUrl, bool useCircuitBreaker = false)
 		{
-			if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
-			{
-				return result;
-			}
-
 			Policy<RestResponse> policy = retryPolicy;
 			if (useCircuitBreaker)
 			{
@@ -83,11 +78,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			try
 			{
 				mutex.WaitOne();
-
-				if (memoryCache.TryGetValue<string?>(suffixUrl, out var result2))
-				{
-					return result2;
-				}
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
@@ -116,11 +106,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 				}
 
-				if (cacheEntryOptions != null)
-				{
-					memoryCache.Set(suffixUrl, r.Content, cacheEntryOptions);
-				}
-
 				return r.Content;
 			}
 			catch (BrokenCircuitException)
@@ -137,8 +122,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestPost(string suffixUrl, string body)
 		{
-			DeleteCache(suffixUrl);
-
 			try
 			{
 				mutex.WaitOne();
@@ -171,8 +154,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestPut(string suffixUrl, string body)
 		{
-			DeleteCache(suffixUrl);
-
 			try
 			{
 				mutex.WaitOne();
@@ -205,8 +186,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestPatch(string suffixUrl, string body)
 		{
-			DeleteCache(suffixUrl);
-
 			try
 			{
 				mutex.WaitOne();
@@ -239,8 +218,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestDelete(string suffixUrl)
 		{
-			DeleteCache(suffixUrl);
-
 			try
 			{
 				mutex.WaitOne();
@@ -307,11 +284,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			memoryCache.Set(suffixUrl, token, CacheDuration.Short());
 			return Task.FromResult(token);
-		}
-
-		private void DeleteCache(string suffixUrl)
-		{
-			memoryCache.Remove(suffixUrl);
 		}
 	}
 }
