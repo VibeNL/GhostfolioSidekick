@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateSell(currency, date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, record.Price ?? 0, id);
 					break;
 				case "Receive":
-					yield return PartialActivity.CreateRecieve(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+					yield return PartialActivity.CreateReceive(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
 				case "Send":
 					yield return PartialActivity.CreateSend(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);

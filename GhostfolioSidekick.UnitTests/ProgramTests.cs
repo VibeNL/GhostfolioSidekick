@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.UnitTests
 				services.AddSingleton(st.Object);
 				services.AddSingleton(rc.Object);
 			})
-				.Build();
+			.Build();
 
 			// Act
 			var host = testHost.Services.GetService<IHostedService>();

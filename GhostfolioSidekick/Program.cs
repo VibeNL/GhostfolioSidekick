@@ -97,6 +97,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
 							services.AddScoped<IScheduledWork, SetBenchmarksTask>();
 							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
+							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 
 							services.AddScoped<IFileImporter, BitvavoParser>();
 							services.AddScoped<IFileImporter, BunqParser>();

@@ -98,5 +98,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 8, 2, 0, 0, 0, 0, DateTimeKind.Utc), 0.99M, "SCALQbWiZnN9DtQ")
 				]);
 		}
+
+		[Fact]
+		public async Task ParseActivities_Invalid_ResultsInEmptyActivities()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Invalid/empty_rkk.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ParseActivities_NotYetExecuted_ResultsInEmptyActivities()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Invalid/no_executiondate_rkk.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+		}
 	}
 }

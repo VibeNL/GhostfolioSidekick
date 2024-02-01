@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.NIBC;
-using GhostfolioSidekick.Parsers.UnitTests;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 {
@@ -98,6 +97,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 				[
 					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc), 1.1M, "C1F30IN0000A000Q")
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidDescription_Empty()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/NIBC/Invalid/invalid_description.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
 		}
 	}
 }

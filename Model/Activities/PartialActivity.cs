@@ -183,7 +183,7 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateRecieve(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
+		public static PartialActivity CreateReceive(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
 		{
 			return new PartialActivity(ActivityType.Receive, Currency.EUR, transactionId)
 			{

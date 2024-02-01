@@ -213,5 +213,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), 0.02M, "EOF4500546889"),
 				]);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidAction_ThrowNotSupported()
+		{
+			// Arrange
+
+			// Act
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/Trading212/Invalid/invalid_action.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			await a.Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidNote_ThrowNotSupported()
+		{
+			// Arrange
+
+			// Act
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/Trading212/Invalid/invalid_note.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			await a.Should().ThrowAsync<NotSupportedException>().WithMessage("Conversion without Notes");
+		}
 	}
 }

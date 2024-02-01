@@ -8,5 +8,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		Task<IEnumerable<Holding>> GetAllActivities();
 
 		Task UpdateActivities(List<string> accountNames, IEnumerable<Holding> holdings);
+
+		Task DeleteAll();
 	}
 }

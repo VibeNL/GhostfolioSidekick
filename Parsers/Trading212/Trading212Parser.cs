@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		{
 			if (string.IsNullOrWhiteSpace(record.Id))
 			{
-				record.Id = $"{record.Action}_{record.ISIN}_{record.Time.ToInvariantDateOnlyString()}_{record.Total?.ToString(CultureInfo.InvariantCulture)}_{record.Currency}";
+				record.Id = $"{record.Action}_{record.ISIN}_{record.Time.ToInvariantDateOnlyString()}_{record.Total!.Value.ToString(CultureInfo.InvariantCulture)}_{record.Currency}";
 			}
 
 			var lst = new List<PartialActivity>();
@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					break;
 				case string d when d.Contains("Dividend"):
 					lst.Add(PartialActivity.CreateDividend(currency, record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.Price!.Value*record.NumberOfShares!.Value, record.Id));
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.Price!.Value * record.NumberOfShares!.Value, record.Id));
 					break;
 				default:
 					throw new NotSupportedException();

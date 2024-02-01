@@ -130,7 +130,14 @@ namespace GhostfolioSidekick.FileImporter
 
 		private async Task<Account> GetAccount(string key)
 		{
-			return await accountManager.GetAccountByName(key);
+			var account = await accountManager.GetAccountByName(key);
+
+			if (account == null)
+			{
+				throw new NotSupportedException();
+			}
+
+			return account;
 		}
 
 	}

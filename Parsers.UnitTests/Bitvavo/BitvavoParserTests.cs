@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateRecieve(
+					PartialActivity.CreateReceive(
 						new DateTime(2023, 10, 13, 22, 38, 36, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
 						15.586311M,

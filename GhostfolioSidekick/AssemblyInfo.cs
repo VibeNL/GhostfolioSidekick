@@ -17,3 +17,4 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("fa3fb0df-1f43-43bd-a58d-95e218cb1cae")]
 [assembly: InternalsVisibleTo("GhostfolioSidekick.UnitTests")]
+[assembly: InternalsVisibleTo("GhostfolioSidekick.IntegrationTests")]

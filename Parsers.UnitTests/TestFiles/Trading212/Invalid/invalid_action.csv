@@ -1,0 +1,2 @@
+Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Currency (Result),Total,Currency (Total),Notes,ID,Currency conversion fee,Currency (Currency conversion fee)
+Market look,2023-08-07 19:56:02,US67066G1040,NVDA,"NVIDIA",0.0267001000,453.33,USD,1.10047,"EUR",11.02,"EUR",,EOF3219953148,0.02,"EUR"

@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.Model.Symbols
 		string symbol,
 		string name,
 		Currency currency,
-		Datasource dataSource,
+		string dataSource,
 		AssetClass assetClass,
 		AssetSubClass? assetSubClass) : IEquatable<SymbolProfile>
 	{
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string Name { get; set; } = name;
 
-		public Datasource DataSource { get; set; } = dataSource;
+		public string DataSource { get; set; } = dataSource;
 
 		public AssetClass AssetClass { get; set; } = assetClass;
 

@@ -28,14 +28,13 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			switch (record.Type)
 			{
 				case "Top up Crypto":
-					yield return PartialActivity.CreateRecieve(
+					yield return PartialActivity.CreateReceive(
 										record.DateTime,
 										[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
 										Math.Abs(record.OutputAmount),
 										record.Transaction);
 					break;
 				case "Exchange Cashback":
-
 				case "Referral Bonus":
 					if (outputCurrency.IsFiat())
 					{
@@ -66,7 +65,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				case "Exchange":
 					if (inputCurrency.IsFiat() && outputCurrency.IsFiat())
 					{
-						throw new NotImplementedException();
+						throw new NotSupportedException();
 					}
 					else if (!inputCurrency.IsFiat() && !outputCurrency.IsFiat())
 					{
@@ -127,7 +126,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				case "Locking Term Deposit":
 				case "Unlocking Term Deposit":
 					yield break;
-				default: throw new NotSupportedException($"{record.Type}");
+				default: throw new NotSupportedException(record.Type);
 			}
 		}
 

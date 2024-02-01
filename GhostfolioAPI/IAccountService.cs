@@ -7,7 +7,8 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	{
 		Task CreateAccount(Account account);
 		Task CreatePlatform(Platform platform);
-		Task<Account> GetAccountByName(string name);
+		Task DeleteAccount(string name);
+		Task<Account?> GetAccountByName(string name);
 		Task<Platform> GetPlatformByName(string name);
 		Task UpdateBalance(Account existingAccount, Balance newBalance);
 	}
