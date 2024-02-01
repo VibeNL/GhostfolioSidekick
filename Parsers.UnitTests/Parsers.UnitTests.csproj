@@ -196,6 +196,15 @@
 		<None Update="TestFiles\ScalableCapital\CashTransactions\single_known_saldo.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\ScalableCapital\Invalid\empty_rkk.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Invalid\invalid_action.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Invalid\no_executiondate_rkk.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\ScalableCapital\SellOrders\SingleSell\rkk.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -231,6 +240,12 @@
 		</None>
 		<None Update="TestFiles\Trading212\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\Invalid\invalid_action.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\Invalid\invalid_note.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trading212\SellOrders\single_sell_euro.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

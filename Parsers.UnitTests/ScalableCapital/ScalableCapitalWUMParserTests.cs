@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
-using GhostfolioSidekick.Parsers.UnitTests;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 {
@@ -41,7 +40,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 		}
 
 		[Fact]
-		public async Task CanParseActivities_SingleBuy_CorrectlyParsed()
+		public async Task ParseActivities_SingleBuy_CorrectlyParsed()
 		{
 			// Arrange
 
@@ -56,7 +55,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 		}
 
 		[Fact]
-		public async Task CanParseActivities_SingleSell_CorrectlyParsed()
+		public async Task ParseActivities_SingleSell_CorrectlyParsed()
 		{
 			// Arrange
 
@@ -68,6 +67,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 				[
 					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")], 5, 8.685M, "SCALQbWiZnN9DtQ")
 				]);
+		}
+
+		[Fact]
+		public async Task ParseActivities_Invalid_ThrowsException()
+		{
+			// Arrange
+
+			// Act
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/ScalableCapital/Invalid/invalid_action.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			await a.Should().ThrowAsync<NotSupportedException>();
 		}
 	}
 }
