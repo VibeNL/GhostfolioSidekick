@@ -1,6 +1,9 @@
-﻿namespace GhostfolioSidekick.FileImporter
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GhostfolioSidekick.FileImporter
 {
 	[Serializable]
+	[ExcludeFromCodeCoverage]
 	internal class NoImporterAvailableException : Exception
 	{
 		public NoImporterAvailableException()
