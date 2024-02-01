@@ -20,7 +20,7 @@ namespace IntegrationTests
 		public async Task TestSimpleImport()
 		{
 			// Arrange
-			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", "https://ghostfol.io/");
+			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", "https://ghostfol.io");
 			Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", "2026bcfd9b1f6e5ad608750babc5a949b84786394832173fe266428ea0c14263471c220a277ecc983e9e91234e3e4657fcf29112e5fe1d7a1e5e105ec1c9fe7b");
 			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
 			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
