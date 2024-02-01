@@ -150,5 +150,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			await restCall.DoRestPut($"api/v1/account/{existingAccount.Id}", res);
 		}
+
+		public async Task DeleteAccount(string name)
+		{
+			var account = await GetAccountByName(name);
+
+			if (account != null)
+			{
+				await restCall.DoRestDelete($"api/v1/account/{account.Id}");
+			}
+		}
 	}
 }

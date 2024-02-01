@@ -1,4 +1,6 @@
+using FluentAssertions;
 using GhostfolioSidekick;
+using GhostfolioSidekick.GhostfolioAPI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -7,8 +9,15 @@ namespace IntegrationTests
 {
 	public class Run
 	{
+		private const string AccountName = "TestAccount1";
+
+		public Run()
+		{
+
+		}
+
 		[Fact]
-		public async Task SetupInstance()
+		public async Task TestSimpleImport()
 		{
 			// Arrange
 			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", "https://ghostfol.io/");
@@ -25,6 +34,11 @@ namespace IntegrationTests
 			})
 			.Build();
 
+			// Delete all existing items if exists
+			var activitiesService = testHost.Services.GetService<IActivitiesService>();
+			var accountService = testHost.Services.GetService<IAccountService>();
+			await CleanInstance(activitiesService!, accountService!);
+
 			var host = testHost.Services.GetService<IHostedService>();
 			var c = new CancellationToken();
 
@@ -37,6 +51,25 @@ namespace IntegrationTests
 			}
 
 			// Assert
+			await VerifyInstance(activitiesService!, accountService!);
+		}
+
+		private static async Task CleanInstance(IActivitiesService activitiesService, IAccountService accountService)
+		{
+			await activitiesService.DeleteAll();
+			await accountService.DeleteAccount(AccountName);
+
+			var account = await accountService.GetAccountByName(AccountName);
+			account.Should().BeNull();
+		}
+
+		private static async Task VerifyInstance(IActivitiesService activitiesService, IAccountService accountService)
+		{
+			var account = await accountService.GetAccountByName(AccountName);
+			account.Should().NotBeNull();
+
+			var activities = await activitiesService.GetAllActivities();
+			activities.Should().HaveCount(1);
 		}
 	}
 }

@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				symbolProfile.Symbol,
 				symbolProfile.Name,
 				new Currency(symbolProfile.Currency!),
-				Utilities.ParseEnum<Datasource>(symbolProfile.DataSource),
+				symbolProfile.DataSource,
 				Utilities.ParseEnum<AssetClass>(symbolProfile.AssetClass),
 				Utilities.ParseOptionalEnum<AssetSubClass>(symbolProfile.AssetSubClass))
 			{
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 								assetProfile.Symbol,
 								assetProfile.Name,
 								new Currency(assetProfile.Currency),
-								Utilities.ParseEnum<Datasource>(assetProfile.DataSource),
+								assetProfile.DataSource,
 								Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
 								Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass))
 			{
@@ -83,7 +83,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		public static MarketData MapMarketData(Contract.MarketData marketData)
 		{
-			return new MarketData(marketData.Symbol, Utilities.ParseEnum<Datasource>(marketData.DataSource), marketData.MarketPrice, marketData.Date);
+			return new MarketData(marketData.Symbol, marketData.DataSource, marketData.MarketPrice, marketData.Date);
 		}
 
 		internal static IEnumerable<Holding> MapToHoldings(Contract.Activity[] existingActivities)

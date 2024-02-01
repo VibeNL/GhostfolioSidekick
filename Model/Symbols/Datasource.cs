@@ -1,11 +1,11 @@
 ﻿namespace GhostfolioSidekick.Model.Symbols
 {
-	public enum Datasource
+	public static class Datasource
 	{
-		YAHOO,
+		public static string YAHOO = "YAHOO";
 
-		COINGECKO,
+		public static string COINGECKO = "COINGECKO";
 
-		MANUAL
+		public static string MANUAL = "MANUAL";
 	}
 }

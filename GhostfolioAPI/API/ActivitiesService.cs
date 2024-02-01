@@ -117,6 +117,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return ContractToModelMapper.MapToHoldings(existingActivities);
 		}
 
+		public Task DeleteAll()
+		{
+			return restCall.DoRestDelete($"api/v1/order/");
+		}
+
 		private static Contract.Activity Round(Contract.Activity activity)
 		{
 			static decimal Round(decimal? value)
