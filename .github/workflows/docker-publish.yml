@@ -56,12 +56,16 @@ jobs:
       - name: Run Code coverage report generator
         run: reportgenerator -reports:**/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Cobertura
       
+        # See https://github.com/5monkeys/cobertura-action/issues/88
+      - name: Pre-processing Coverage Report
+        run: sed -i 's#filename="#filename="backend-api/src/#g' tests/TestResults/*/*.xml
       - name: Add to PR
         uses: 5monkeys/cobertura-action@master
         if: ${{ github.event_name == 'pull_request' }}
         with:
           path: ./CoverageReport/Cobertura.xml
           minimum_coverage: 60
+          only_changed_files: true
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
