@@ -31,6 +31,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateCashWithdrawal(currency, record.Time, record.Total.GetValueOrDefault(), record.Id));
 					break;
 				case "Interest on cash":
+case "Share lending interest":
 					lst.Add(PartialActivity.CreateInterest(currency, record.Time, record.Total.GetValueOrDefault(), record.Id));
 					break;
 				case "Currency conversion":
