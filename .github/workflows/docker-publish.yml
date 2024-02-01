@@ -41,9 +41,6 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Install extra tools
-        run: dotnet tool install --global dotnet-coverage
-
       - name: Install dependencies
         run: dotnet restore
 
@@ -52,19 +49,9 @@ jobs:
 
       - name: Test
         run: dotnet test GhostfolioSidekick.sln --configuration Release --no-build --logger "trx;logfilename=testResults.trx" --verbosity normal --collect:"XPlat Code Coverage"
-        
-      - name: Merge Code Coverage
-        run: dotnet-coverage merge -o merged.cobertura.xml -f cobertura **\*.coverage
-
-      - name: Code Coverage Report
-        uses: bibipkins/dotnet-test-reporter@v1.3.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-title: 'Unit Test Results'
-          results-path: '**/TestResults/*.trx'
-          coverage-path: '**/merged.cobertura.xml'
-          coverage-threshold: 60
-
+             dotnet tool install --global dotnet-reportgenerator-globaltool
+             reportgenerator -reports:<base-directory>/**/coverage.cobertura.xml -targetdir:<output-directory>/CoverageReport -reporttypes:Cobertura
+      
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
