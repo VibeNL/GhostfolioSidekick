@@ -62,7 +62,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-title: 'Unit Test Results'
           results-path: '**/TestResults/*.trx'
-          coverage-path: '**/TestResults/merged.cobertura.xml'
+          coverage-path: '**/merged.cobertura.xml'
           coverage-threshold: 60
 
       # Install the cosign tool except on PR
