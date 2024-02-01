@@ -259,6 +259,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleInterestFixedTerm_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_interest_fixed_term.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateInterest(
+						Currency.EUR,
+						new DateTime(2024, 01, 06, 06, 00, 00, DateTimeKind.Utc),
+						0.00140202M,
+						"NXTeNtMHyjLigvrx7nFo8TT9")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleInterestCrypto_Converted()
 		{
 			// Arrange
@@ -284,6 +303,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 
 			// Act
 			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_lock_fix_term.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_UnLockingFixTerm_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_unlock_fix_term.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();

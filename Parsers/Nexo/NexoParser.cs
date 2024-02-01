@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				case "Locking Term Deposit":
 				case "Unlocking Term Deposit":
 					yield break;
-				default: throw new NotSupportedException($"{record.Type}");
+				default: throw new NotSupportedException(record.Type);
 			}
 		}
 
