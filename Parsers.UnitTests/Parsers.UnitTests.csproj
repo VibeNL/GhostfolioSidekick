@@ -184,6 +184,9 @@
 		<None Update="TestFiles\NIBC\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\NIBC\Invalid\invalid_description.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\ScalableCapital\BuyOrders\SingleBuy\rkk.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
