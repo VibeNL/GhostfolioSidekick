@@ -22,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using RestSharp;
 
 namespace GhostfolioSidekick
 {
@@ -29,74 +30,91 @@ namespace GhostfolioSidekick
 	{
 		static async Task Main(string[] args)
 		{
-			var hostBuilder = new HostBuilder()
-			.ConfigureAppConfiguration((hostContext, configBuilder) =>
-			{
-				configBuilder.SetBasePath(Directory.GetCurrentDirectory());
-				configBuilder.AddJsonFile("appsettings.json", optional: true);
-				configBuilder.AddJsonFile(
-					$"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json",
-					optional: true);
-				configBuilder.AddEnvironmentVariables();
-			})
-			.ConfigureLogging((hostContext, configLogging) =>
-			{
-				configLogging.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
-				configLogging.AddConsole();
-			})
-			.ConfigureServices((hostContext, services) =>
-			{
-				services.AddSingleton<MemoryCache, MemoryCache>();
-				services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
-				services.AddSingleton<IApplicationSettings, ApplicationSettings>();
-
-				services.AddSingleton(x =>
-				{
-					var settings = x.GetService<IApplicationSettings>();
-					return new RestCall(
-										x.GetService<MemoryCache>()!,
-										x.GetService<ILogger<RestCall>>()!,
-										settings!.GhostfolioUrl,
-										settings!.GhostfolioAccessToken);
-				});
-				services.AddSingleton(x =>
-				{
-					var settings = x.GetService<IApplicationSettings>();
-					return settings!.ConfigurationInstance.Settings;
-				});
-
-				services.AddSingleton<IExchangeRateService, ExchangeRateService>();
-				services.AddSingleton<IActivitiesService, ActivitiesService>();
-				services.AddSingleton<IAccountService, AccountService>();
-				services.AddSingleton<IMarketDataService, MarketDataService>();
-
-				services.AddScoped<IHostedService, TimedHostedService>();
-				services.AddScoped<IScheduledWork, FileImporterTask>();
-				services.AddScoped<IScheduledWork, DisplayInformationTask>();
-				services.AddScoped<IScheduledWork, AccountMaintainerTask>();
-				services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
-				services.AddScoped<IScheduledWork, SetBenchmarksTask>();
-				services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
-
-				services.AddScoped<IFileImporter, BitvavoParser>();
-				services.AddScoped<IFileImporter, BunqParser>();
-				services.AddScoped<IFileImporter, CoinbaseParser>();
-				services.AddScoped<IFileImporter, DeGiroParserNL>();
-				services.AddScoped<IFileImporter, DeGiroParserPT>();
-				services.AddScoped<IFileImporter, GenericParser>();
-				services.AddScoped<IFileImporter, NexoParser>();
-				services.AddScoped<IFileImporter, NIBCParser>();
-				services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
-				services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
-				services.AddScoped<IFileImporter, Trading212Parser>();
-
-				
-				services.AddScoped<IHoldingStrategy, DeterminePrice>();
-				services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
-				services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
-			});
+			IHostBuilder hostBuilder = CreateHostBuilder();
 
 			await hostBuilder.RunConsoleAsync();
+		}
+
+		internal static IHostBuilder CreateHostBuilder()
+		{
+			return new HostBuilder()
+						.ConfigureAppConfiguration((hostContext, configBuilder) =>
+						{
+							configBuilder.SetBasePath(Directory.GetCurrentDirectory());
+							configBuilder.AddJsonFile("appsettings.json", optional: true);
+							configBuilder.AddJsonFile(
+								$"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json",
+								optional: true);
+							configBuilder.AddEnvironmentVariables();
+						})
+						.ConfigureLogging((hostContext, configLogging) =>
+						{
+							configLogging.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
+							configLogging.AddConsole();
+						})
+						.ConfigureServices((hostContext, services) =>
+						{
+							services.AddSingleton<MemoryCache, MemoryCache>();
+							services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+							services.AddSingleton<IApplicationSettings, ApplicationSettings>();
+
+							services.AddSingleton<IRestClient, RestClient>(x =>
+							{
+								var settings = x.GetService<IApplicationSettings>();
+								var options = new RestClientOptions(settings!.GhostfolioUrl)
+								{
+									ThrowOnAnyError = false,
+									ThrowOnDeserializationError = false,
+								};
+
+								return new RestClient(options);
+							});
+
+							services.AddSingleton(x =>
+							{
+								var settings = x.GetService<IApplicationSettings>();
+								return new RestCall(x.GetService<IRestClient>()!,
+													x.GetService<MemoryCache>()!,
+													x.GetService<ILogger<RestCall>>()!,
+													settings!.GhostfolioUrl,
+													settings!.GhostfolioAccessToken);
+							});
+							services.AddSingleton(x =>
+							{
+								var settings = x.GetService<IApplicationSettings>();
+								return settings!.ConfigurationInstance.Settings;
+							});
+
+							services.AddSingleton<IExchangeRateService, ExchangeRateService>();
+							services.AddSingleton<IActivitiesService, ActivitiesService>();
+							services.AddSingleton<IAccountService, AccountService>();
+							services.AddSingleton<IMarketDataService, MarketDataService>();
+
+							services.AddScoped<IHostedService, TimedHostedService>();
+							services.AddScoped<IScheduledWork, FileImporterTask>();
+							services.AddScoped<IScheduledWork, DisplayInformationTask>();
+							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+							services.AddScoped<IScheduledWork, SetBenchmarksTask>();
+							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
+
+							services.AddScoped<IFileImporter, BitvavoParser>();
+							services.AddScoped<IFileImporter, BunqParser>();
+							services.AddScoped<IFileImporter, CoinbaseParser>();
+							services.AddScoped<IFileImporter, DeGiroParserNL>();
+							services.AddScoped<IFileImporter, DeGiroParserPT>();
+							services.AddScoped<IFileImporter, GenericParser>();
+							services.AddScoped<IFileImporter, NexoParser>();
+							services.AddScoped<IFileImporter, NIBCParser>();
+							services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
+							services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
+							services.AddScoped<IFileImporter, Trading212Parser>();
+
+
+							services.AddScoped<IHoldingStrategy, DeterminePrice>();
+							services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
+							services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
+						});
 		}
 	}
 }

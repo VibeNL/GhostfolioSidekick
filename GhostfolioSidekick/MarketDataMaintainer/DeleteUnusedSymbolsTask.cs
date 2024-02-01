@@ -48,13 +48,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		private async Task DeleteUnusedSymbols()
 		{
-			var marketDataList = await marketDataManager.GetMarketData();
-			foreach (var marketData in from marketData in marketDataList
-									   where marketData.AssetProfile.ActivitiesCount == 0 &&
-											 IsGeneratedSymbol(marketData.AssetProfile)
-									   select marketData)
+			var profiles = await marketDataManager.GetAllSymbolProfiles();
+			foreach (var profile in from profile in profiles
+									where profile.ActivitiesCount == 0 &&
+										  IsGeneratedSymbol(profile)
+									select profile)
 			{
-				await marketDataManager.DeleteSymbol(marketData.AssetProfile);
+				await marketDataManager.DeleteSymbol(profile);
 			}
 
 			static bool IsGeneratedSymbol(SymbolProfile assetProfile)

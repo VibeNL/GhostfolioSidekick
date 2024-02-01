@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Security.Principal;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -50,17 +49,22 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task CreateAccount(Model.Accounts.Account account)
 		{
-			var platform = await GetPlatformByName(account.Name);
-
 			var o = new JObject
 			{
 				["name"] = account.Name,
 				["currency"] = account.Balance.Money.Currency.Symbol,
 				["comment"] = account.Comment,
-				["platformId"] = platform?.Id,
+
 				["isExcluded"] = false,
 				["balance"] = 0,
 			};
+
+			if (account.Platform != null)
+			{
+				var platform = await GetPlatformByName(account.Platform.Name);
+				o["platformId"] = platform?.Id;
+			}
+
 			var res = o.ToString();
 
 			var r = await restCall.DoRestPost($"api/v1/account/", res);
@@ -74,7 +78,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<Model.Accounts.Account> GetAccountByName(string name)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/account");
 			if (content == null)
 			{
 				throw new NotSupportedException();
@@ -93,14 +97,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return ContractToModelMapper.MapAccount(rawAccount, platform);
 		}
 
-		public Task<Model.Accounts.Platform> GetPlatformByName(string name)
+		public async Task<Model.Accounts.Platform> GetPlatformByName(string name)
 		{
-			throw new NotImplementedException();
+			var platforms = await GetPlatforms();
+			return platforms.Single(x => x.Name == name);
 		}
 
 		public async Task<List<Model.Accounts.Platform>> GetPlatforms()
 		{
-			var content = await restCall.DoRestGet($"api/v1/platform", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/platform");
 
 			if (content == null)
 			{
@@ -118,7 +123,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task UpdateBalance(Model.Accounts.Account existingAccount, Balance newBalance)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/account");
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content!);
 			var rawAccount = rawAccounts?.Accounts?.SingleOrDefault(x => string.Equals(x.Id, existingAccount.Id, StringComparison.InvariantCultureIgnoreCase));

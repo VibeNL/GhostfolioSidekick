@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -7,11 +8,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 	public class ExchangeRateService : IExchangeRateService
 	{
 		private readonly RestCall restCall;
+		private readonly IMemoryCache memoryCache;
 		private readonly ILogger<ExchangeRateService> logger;
 
-		public ExchangeRateService(RestCall restCall, ILogger<ExchangeRateService> logger)
+		public ExchangeRateService(RestCall restCall, IMemoryCache memoryCache, ILogger<ExchangeRateService> logger)
 		{
 			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
+			this.memoryCache = memoryCache;
 			this.logger = logger;
 		}
 
@@ -22,10 +25,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return 1;
 			}
 
+			var key = $"{nameof(ExchangeRateService)}{sourceCurrency.Symbol}{targetCurrency.Symbol}{dateTime.ToInvariantString()}";
+			if (memoryCache.TryGetValue(key, out decimal cacheValue))
+			{
+				return cacheValue;
+			}
+
 			try
 			{
 
-				var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency.Symbol}-{targetCurrency.Symbol}/{dateTime:yyyy-MM-dd}", CacheDuration.Short(), true);
+				var content = await restCall.DoRestGet($"api/v1/exchange-rate/{sourceCurrency.Symbol}-{targetCurrency.Symbol}/{dateTime:yyyy-MM-dd}", true);
 				if (content == null)
 				{
 					throw new NotSupportedException();
@@ -34,7 +43,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				dynamic stuff = JsonConvert.DeserializeObject(content)!;
 				var token = stuff!.marketPrice.ToString();
 
-				return (decimal)decimal.Parse(token);
+				var rate = (decimal)decimal.Parse(token);
+				memoryCache.Set(key, rate, CacheDuration.Short());
+
+				return rate;
 			}
 			catch
 			{

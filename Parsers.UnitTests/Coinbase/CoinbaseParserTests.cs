@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Coinbase;
 using GhostfolioSidekick.Parsers.UnitTests;
 
-namespace GhostfolioSidekick.UnitTests.FileImporter.Coinbase
+namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 {
 	public class CoinbaseParserTests
 	{

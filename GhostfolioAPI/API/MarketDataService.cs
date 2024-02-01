@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Cryptocurrency;
-using GhostfolioSidekick.Ghostfolio.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
@@ -97,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				try
 				{
-					var r = (await GetMarketData(false)).Select(x => x.AssetProfile);
+					var r = (await GetAllSymbolProfiles(false));
 
 					foreach (var identifier in allIdentifiers)
 					{
@@ -137,8 +136,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					for (var i = 0; i < 5; i++)
 					{
 						var content = await restCall.DoRestGet(
-							$"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices={includeIndexes.ToString().ToLowerInvariant()}",
-							CacheDuration.None());
+							$"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices={includeIndexes.ToString().ToLowerInvariant()}");
 						if (content == null)
 						{
 							continue;
@@ -227,14 +225,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		public async Task<IEnumerable<MarketDataProfile>> GetMarketData(bool filterBenchmarks = true)
+		public async Task<IEnumerable<SymbolProfile>> GetAllSymbolProfiles(bool filterBenchmarks = true)
 		{
 			if (!settings.AllowAdminCalls)
 			{
-				return Enumerable.Empty<MarketDataProfile>();
+				return Enumerable.Empty<SymbolProfile>();
 			}
 
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/", CacheDuration.Short());
+			var key = $"{nameof(MarketDataService)}{nameof(GetAllSymbolProfiles)}";
+			if (memoryCache.TryGetValue(key, out IEnumerable<SymbolProfile>? cacheValue))
+			{
+				return cacheValue!;
+			}
+
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/");
 
 			if (content == null)
 			{
@@ -247,16 +251,32 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			var filtered = filterBenchmarks ? market?.MarketData.Where(x => !benchmarks.Exists(y => y.Symbol == x.Symbol)) : market?.MarketData;
 
-			var lst = filtered?.Select(x => GetMarketData(x.Symbol, x.DataSource).Result);
-			return lst?.ToList() ?? [];
+			var profiles = new List<SymbolProfile>();
+			foreach (var f in filtered?.ToList() ?? [])
+			{
+				content = await restCall.DoRestGet($"api/v1/admin/market-data/{f.DataSource}/{f.Symbol}");
+				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
+				profiles.Add(ContractToModelMapper.MapSymbolProfile(data!.AssetProfile));
+			}
+
+			memoryCache.Set(key, profiles);
+			return profiles;
 		}
 
 		public async Task<MarketDataProfile> GetMarketData(string symbol, string dataSource)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}", CacheDuration.Short());
+			var key = $"{nameof(MarketDataService)}{nameof(GetMarketData)}{symbol}{dataSource}";
+			if (memoryCache.TryGetValue(key, out MarketDataProfile? cacheValue))
+			{
+				return cacheValue!;
+			}
+
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{dataSource}/{symbol}");
 			var market = JsonConvert.DeserializeObject<MarketDataList>(content!);
 
-			return ContractToModelMapper.MapMarketDataList(market!);
+			var r = ContractToModelMapper.MapMarketDataList(market!);
+			memoryCache.Set(key, r);
+			return r;
 		}
 
 		private async Task UpdateKnownIdentifiers(SymbolProfile foundAsset, params string[] identifiers)
@@ -320,7 +340,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private async Task<GenericInfo> GetInfo()
 		{
-			var content = await restCall.DoRestGet($"api/v1/info/", CacheDuration.Short());
+			var content = await restCall.DoRestGet($"api/v1/info/");
 			return JsonConvert.DeserializeObject<GenericInfo>(content!)!;
 		}
 
@@ -474,9 +494,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation($"Updated symbol to be a benchmark {symbolProfile.Symbol}");
 		}
 
-		public void ClearCache()
+		private void ClearCache()
 		{
-			this.memoryCache.Clear();
+			memoryCache.Clear();
 		}
+
 	}
 }

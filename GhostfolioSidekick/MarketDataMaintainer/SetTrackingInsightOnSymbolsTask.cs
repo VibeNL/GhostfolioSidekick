@@ -46,20 +46,20 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		private async Task SetTrackingInsightOnSymbols()
 		{
-			var marketDataInfoList = await marketDataService.GetMarketData();
-			foreach (var marketDataInfo in marketDataInfoList)
+			var profiles = await marketDataService.GetAllSymbolProfiles();
+			foreach (var profile in profiles)
 			{
-				var symbolConfiguration = applicationSettings.ConfigurationInstance.FindSymbol(marketDataInfo.AssetProfile.Symbol);
+				var symbolConfiguration = applicationSettings.ConfigurationInstance.FindSymbol(profile.Symbol);
 				if (symbolConfiguration == null)
 				{
 					continue;
 				}
 
 				var trackingInsightSymbol = symbolConfiguration.TrackingInsightSymbol ?? string.Empty;
-				if ((marketDataInfo.AssetProfile.Mappings.TrackInsight ?? string.Empty) != trackingInsightSymbol)
+				if ((profile.Mappings.TrackInsight ?? string.Empty) != trackingInsightSymbol)
 				{
-					marketDataInfo.AssetProfile.Mappings.TrackInsight = trackingInsightSymbol;
-					await marketDataService.UpdateSymbol(marketDataInfo.AssetProfile);
+					profile.Mappings.TrackInsight = trackingInsightSymbol;
+					await marketDataService.UpdateSymbol(profile);
 				}
 			}
 		}

@@ -23,14 +23,14 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      issues: write
-      pull-requests: write
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
-      id-token: write
+    permissions: write-all
+      # contents: read
+      # packages: write
+      # issues: write
+      # pull-requests: write
+      # # This is used to complete the identity challenge
+      # # with sigstore/fulcio when running outside of PRs.
+      # id-token: write
 
     steps:
       - name: Checkout repository
@@ -48,7 +48,16 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --no-restore --verbosity normal
+        run: dotnet test GhostfolioSidekick.sln --configuration Release --no-build --logger "trx;logfilename=testResults.trx" --verbosity normal --collect:"XPlat Code Coverage"
+      - run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - run: reportgenerator -reports:**/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Cobertura
+      
+      - name: R
+        uses: 5monkeys/cobertura-action@master
+        with:
+          path: ./CoverageReport/Cobertura.xml
+          minimum_coverage: 60
+          only_changed_files: true
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer

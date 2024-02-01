@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Ghostfolio.API.Mapper;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+﻿using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.Extensions.Logging;
@@ -51,7 +50,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			foreach (var accountName in accountNames)
 			{
 				var existingAccount = await accountService.GetAccountByName(accountName);
-				var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}", CacheDuration.None());
+				var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}");
 
 				if (content == null)
 				{
@@ -106,7 +105,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<IEnumerable<Holding>> GetAllActivities()
 		{
-			var content = await restCall.DoRestGet($"api/v1/order", CacheDuration.None());
+			var content = await restCall.DoRestGet($"api/v1/order");
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities;
 
 			return ContractToModelMapper.MapToHoldings(existingActivities);

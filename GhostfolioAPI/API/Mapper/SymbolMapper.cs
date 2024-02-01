@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 
-namespace GhostfolioSidekick.Ghostfolio.API.Mapper
+namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	internal class SymbolMapper
 	{

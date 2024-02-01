@@ -1,11 +1,10 @@
 ﻿using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
-	public class DeterminePrice(IMarketDataService marketDataService) : IHoldingStrategy
+	public class DeterminePrice(/*IMarketDataService marketDataService*/) : IHoldingStrategy
 	{
 		public int Priority => (int)CryptoStrategiesPriority.DeterminePrice;
 
@@ -21,13 +20,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 
 			return Task.CompletedTask;
 		}
-
+		/*
 		private async Task<Money> GetUnitPrice(SymbolProfile? symbolProfile, DateTime date)
 		{
-			var md = (await marketDataService.GetMarketData()).ToList();
-			var profile = md.Single(x => x.AssetProfile.Equals(symbolProfile));
+			var md = (await marketDataService.GetAllSymbolProfiles()).ToList();
+			var profile = md.Single(x => x.Equals(symbolProfile));
 			var marketDate = profile.MarketData.Single(x => x.Date == date);
 			return new Money(symbolProfile!.Currency, marketDate.MarketPrice);
-		}
+		}*/
 	}
 }

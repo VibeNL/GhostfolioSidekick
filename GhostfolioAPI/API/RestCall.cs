@@ -17,8 +17,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private static int _maxRetryAttempts = 5;
 		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(1);
-
 		private readonly IMemoryCache memoryCache;
+		private readonly IRestClient restClient;
 		private readonly ILogger<RestCall> logger;
 		private readonly string url;
 		private readonly string accessToken;
@@ -26,13 +26,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private readonly CircuitBreakerPolicy<RestResponse> basicCircuitBreakerPolicy;
 
 		public RestCall(
+			IRestClient restClient,
 			IMemoryCache memoryCache,
 			ILogger<RestCall> logger,
 			string url,
 			string accessToken)
 		{
+			if (string.IsNullOrEmpty(url))
+			{
+				throw new ArgumentException($"'{nameof(url)}' cannot be null or empty.", nameof(url));
+			}
+
 			this.memoryCache = memoryCache;
-			this.logger = logger;
+			this.restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.url = url;
 			this.accessToken = accessToken;
 
@@ -60,13 +67,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				});
 		}
 
-		public async Task<string?> DoRestGet(string suffixUrl, MemoryCacheEntryOptions? cacheEntryOptions, bool useCircuitBreaker = false)
+		public async Task<string?> DoRestGet(string suffixUrl, bool useCircuitBreaker = false)
 		{
-			if (memoryCache.TryGetValue<string?>(suffixUrl, out var result))
-			{
-				return result;
-			}
-
 			Policy<RestResponse> policy = retryPolicy;
 			if (useCircuitBreaker)
 			{
@@ -77,18 +79,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				mutex.WaitOne();
 
-				if (memoryCache.TryGetValue<string?>(suffixUrl, out var result2))
-				{
-					return result2;
-				}
-
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false,
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -101,7 +91,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				stopwatch.Start();
 
-				var r = policy.Execute(() => client.ExecuteGetAsync(request).Result);
+				var r = policy.Execute(() => restClient.ExecuteGetAsync(request).Result);
 				stopwatch.Stop();
 
 				logger.LogDebug($"Url {url}/{suffixUrl} took {stopwatch.ElapsedMilliseconds}ms");
@@ -114,11 +104,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					}
 
 					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
-				}
-
-				if (cacheEntryOptions != null)
-				{
-					memoryCache.Set(suffixUrl, r.Content, cacheEntryOptions);
 				}
 
 				return r.Content;
@@ -137,19 +122,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestPost(string suffixUrl, string body)
 		{
-			DeleteCache(suffixUrl);
-
 			try
 			{
 				mutex.WaitOne();
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -159,7 +135,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader("Content-Type", "application/json");
 
 				request.AddJsonBody(body);
-				var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
+				var r = retryPolicy.Execute(() => restClient.ExecutePostAsync(request).Result);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -176,21 +152,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		internal async Task<RestResponse> DoRestPut(string suffixUrl, string body)
+		public async Task<RestResponse> DoRestPut(string suffixUrl, string body)
 		{
-			DeleteCache(suffixUrl);
-
 			try
 			{
 				mutex.WaitOne();
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -200,7 +167,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader("Content-Type", "application/json");
 
 				request.AddJsonBody(body);
-				var r = retryPolicy.Execute(() => client.ExecutePutAsync(request).Result);
+				var r = retryPolicy.Execute(() => restClient.ExecutePutAsync(request).Result);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -219,19 +186,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestPatch(string suffixUrl, string body)
 		{
-			DeleteCache(suffixUrl);
-
 			try
 			{
 				mutex.WaitOne();
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -241,7 +199,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader("Content-Type", "application/json");
 
 				request.AddJsonBody(body);
-				var r = retryPolicy.Execute(() => client.PatchAsync(request).Result);
+				var r = retryPolicy.Execute(() => restClient.PatchAsync(request).Result);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -260,19 +218,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<RestResponse> DoRestDelete(string suffixUrl)
 		{
-			DeleteCache(suffixUrl);
-
 			try
 			{
 				mutex.WaitOne();
 
-				var options = new RestClientOptions(url)
-				{
-					ThrowOnAnyError = false,
-					ThrowOnDeserializationError = false
-				};
-
-				var client = new RestClient(options);
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
 					RequestFormat = DataFormat.Json
@@ -281,7 +230,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
 				request.AddHeader("Content-Type", "application/json");
 
-				var r = retryPolicy.Execute(() => client.DeleteAsync(request).Result);
+				var r = retryPolicy.Execute(() => restClient.DeleteAsync(request).Result);
 
 				if (!r.IsSuccessStatusCode)
 				{
@@ -306,13 +255,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return Task.FromResult(result!);
 			}
 
-			var options = new RestClientOptions(url)
-			{
-				ThrowOnAnyError = false,
-				ThrowOnDeserializationError = false
-			};
-
-			var client = new RestClient(options);
 			var request = new RestRequest($"{url}/{suffixUrl}")
 			{
 				RequestFormat = DataFormat.Json
@@ -325,7 +267,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				["accessToken"] = accessToken
 			};
 			request.AddJsonBody(body.ToString());
-			var r = retryPolicy.Execute(() => client.ExecutePostAsync(request).Result);
+			var r = retryPolicy.Execute(() => restClient.ExecutePostAsync(request).Result);
 
 			if (!r.IsSuccessStatusCode)
 			{
@@ -342,11 +284,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			memoryCache.Set(suffixUrl, token, CacheDuration.Short());
 			return Task.FromResult(token);
-		}
-
-		private void DeleteCache(string suffixUrl)
-		{
-			memoryCache.Remove(suffixUrl);
 		}
 	}
 }

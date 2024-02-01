@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
-using GhostfolioSidekick.Configuration;
 
-namespace GhostfolioSidekick.UnitTests.Configuration
+namespace GhostfolioSidekick.Configuration.UnitTests
 {
 	public class ConfigurationInstanceTests
 	{
@@ -41,6 +40,34 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 					 Currency = "EUR",
 					 ISIN = "QWERTY",
 					 Name = "TESTSymbol",
+					} },
+			});
+		}
+
+		[Fact]
+		public void Parse_OnlyManualSymbolWithParserConfiguration_ParsedCorrectly()
+		{
+			// Arrange
+
+			// Act
+			var config = ConfigurationInstance.Parse(ManualSymbolWithScraperConfiguration);
+
+			// Assert
+			config!.Symbols.Should().BeEquivalentTo(new[] {
+				new SymbolConfiguration{
+					Symbol="Manual1",
+					ManualSymbolConfiguration = new ManualSymbolConfiguration{
+					 AssetClass = "Equity",
+					 AssetSubClass = "Stock",
+					 Currency = "EUR",
+					 ISIN = "QWERTY",
+					 Name = "TESTSymbol",
+						ScraperConfiguration = new ScraperConfiguration
+						{
+							Url = "https://www.google.com",
+							Selector="$.AU.spot",
+							Locale = "nl-NL"
+					 }
 					} },
 			});
 		}
@@ -100,6 +127,24 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 						""name"":""TESTSymbol"",
 						""assetSubClass"":""Stock"",
 						""assetClass"":""Equity""
+					} 
+				}
+			]
+				}
+			";
+
+		private string ManualSymbolWithScraperConfiguration =
+		@"
+			{
+			""symbols"":[
+				{ ""symbol"": ""Manual1"", ""manualSymbolConfiguration"": 
+					{
+						""currency"":""EUR"",
+						""isin"":""QWERTY"",
+						""name"":""TESTSymbol"",
+						""assetSubClass"":""Stock"",
+						""assetClass"":""Equity"",
+						""scraperConfiguration"":{ ""url"": ""https://www.google.com"", ""selector"":""$.AU.spot"", ""locale"":""nl-NL""}
 					} 
 				}
 			]

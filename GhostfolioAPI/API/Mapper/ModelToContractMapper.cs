@@ -1,11 +1,11 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.Ghostfolio.API.Mapper
+namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	public static class ModelToContractMapper
 	{
-		public static async Task<GhostfolioAPI.Contract.Activity?> ConvertToGhostfolioActivity(
+		public static async Task<Contract.Activity?> ConvertToGhostfolioActivity(
 			IExchangeRateService exchangeRateService,
 			Model.Symbols.SymbolProfile? symbolProfile,
 			Model.Activities.Activity activity)
@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				activity.ActivityType == Model.Activities.ActivityType.Valuable ||
 				activity.ActivityType == Model.Activities.ActivityType.Liability)
 			{
-				return new GhostfolioAPI.Contract.Activity
+				return new Contract.Activity
 				{
 					AccountId = activity.Account.Id,
 					Currency = activity.Account.Balance.Money.Currency.Symbol,
@@ -51,11 +51,11 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 
 			if (activity.ActivityType == Model.Activities.ActivityType.Dividend)
 			{
-				return new GhostfolioAPI.Contract.Activity
+				return new Contract.Activity
 				{
 					AccountId = activity.Account.Id,
 					Currency = symbolProfile.Currency.Symbol,
-					SymbolProfile = new GhostfolioAPI.Contract.SymbolProfile
+					SymbolProfile = new Contract.SymbolProfile
 					{
 						Symbol = symbolProfile.Symbol,
 						AssetClass = symbolProfile.AssetClass.ToString(),
@@ -75,11 +75,11 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				};
 			}
 
-			return new GhostfolioAPI.Contract.Activity
+			return new Contract.Activity
 			{
 				AccountId = activity.Account.Id,
 				Currency = symbolProfile.Currency.Symbol,
-				SymbolProfile = new GhostfolioAPI.Contract.SymbolProfile
+				SymbolProfile = new Contract.SymbolProfile
 				{
 					Symbol = symbolProfile.Symbol,
 					AssetClass = symbolProfile.AssetClass.ToString(),
@@ -105,26 +105,26 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 			return money.Amount * rate;
 		}
 
-		private static GhostfolioAPI.Contract.ActivityType ParseType(Model.Activities.ActivityType? type)
+		private static Contract.ActivityType ParseType(Model.Activities.ActivityType? type)
 		{
 			switch (type)
 			{
 				case null:
-					return GhostfolioAPI.Contract.ActivityType.IGNORE;
+					return Contract.ActivityType.IGNORE;
 				case Model.Activities.ActivityType.Buy:
-					return GhostfolioAPI.Contract.ActivityType.BUY;
+					return Contract.ActivityType.BUY;
 				case Model.Activities.ActivityType.Sell:
-					return GhostfolioAPI.Contract.ActivityType.SELL;
+					return Contract.ActivityType.SELL;
 				case Model.Activities.ActivityType.Dividend:
-					return GhostfolioAPI.Contract.ActivityType.DIVIDEND;
+					return Contract.ActivityType.DIVIDEND;
 				case Model.Activities.ActivityType.Send:
-					return GhostfolioAPI.Contract.ActivityType.SELL;
+					return Contract.ActivityType.SELL;
 				case Model.Activities.ActivityType.Receive:
-					return GhostfolioAPI.Contract.ActivityType.BUY;
+					return Contract.ActivityType.BUY;
 				case Model.Activities.ActivityType.Convert:
-					return GhostfolioAPI.Contract.ActivityType.IGNORE;
+					return Contract.ActivityType.IGNORE;
 				case Model.Activities.ActivityType.Interest:
-					return GhostfolioAPI.Contract.ActivityType.INTEREST;
+					return Contract.ActivityType.INTEREST;
 				case Model.Activities.ActivityType.Fee:
 					return GhostfolioAPI.Contract.ActivityType.FEE;
 				case Model.Activities.ActivityType.Valuable:
@@ -132,11 +132,11 @@ namespace GhostfolioSidekick.Ghostfolio.API.Mapper
 				case Model.Activities.ActivityType.Liability:
 					return GhostfolioAPI.Contract.ActivityType.LIABILITY;
 				case Model.Activities.ActivityType.Gift:
-					return GhostfolioAPI.Contract.ActivityType.BUY;
+					return Contract.ActivityType.BUY;
 				case Model.Activities.ActivityType.LearningReward:
-					return GhostfolioAPI.Contract.ActivityType.IGNORE;
+					return Contract.ActivityType.IGNORE;
 				case Model.Activities.ActivityType.StakingReward:
-					return GhostfolioAPI.Contract.ActivityType.IGNORE;
+					return Contract.ActivityType.IGNORE;
 				default:
 					throw new NotSupportedException($"ActivityType {type} not supported");
 			}

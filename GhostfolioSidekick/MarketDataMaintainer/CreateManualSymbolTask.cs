@@ -3,7 +3,6 @@ using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 
@@ -41,7 +40,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			try
 			{
-				var marketData = (await marketDataService.GetMarketData()).ToList();
+				var profiles = (await marketDataService.GetAllSymbolProfiles()).ToList();
 				var holdings = (await activitiesService.GetAllActivities()).ToList();
 
 				var symbolConfigurations = applicationSettings.ConfigurationInstance.Symbols;
@@ -54,7 +53,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					}
 
 					await AddOrUpdateSymbol(symbolConfiguration, manualSymbolConfiguration);
-					await SetKnownPrices(symbolConfiguration, marketData, holdings);
+					await SetKnownPrices(symbolConfiguration, profiles, holdings);
 				}
 			}
 			catch (NotAuthorizedException)
@@ -66,22 +65,21 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Done");
 		}
 
-		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<MarketDataProfile> marketData, List<Holding> holdings)
+		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<SymbolProfile> profiles, List<Holding> holdings)
 		{
-			var mdi = marketData.SingleOrDefault(x =>
-				x.AssetProfile.Symbol == symbolConfiguration.Symbol &&
-				x.AssetProfile.DataSource == Datasource.MANUAL &&
-				x.AssetProfile.AssetClass == Utilities.ParseEnum<AssetClass>(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
-				x.AssetProfile.AssetSubClass == Utilities.ParseOptionalEnum<AssetSubClass>(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass));
-			if (mdi == null || mdi.AssetProfile.ActivitiesCount <= 0)
+			var mdi = profiles.SingleOrDefault(x =>
+				x.Symbol == symbolConfiguration.Symbol &&
+				x.DataSource == Datasource.MANUAL &&
+				x.AssetClass == Utilities.ParseEnum<AssetClass>(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
+				x.AssetSubClass == Utilities.ParseOptionalEnum<AssetSubClass>(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass));
+			if (mdi == null || mdi.ActivitiesCount <= 0)
 			{
 				return;
 			}
 
-			var md = mdi.MarketData;
 			var activitiesForSymbol = holdings
 				.Where(x =>
-					x.SymbolProfile?.Symbol == mdi.AssetProfile.Symbol &&
+					x.SymbolProfile?.Symbol == mdi.Symbol &&
 					x.SymbolProfile.DataSource == Datasource.MANUAL &&
 					x.SymbolProfile.AssetClass == Utilities.ParseEnum<AssetClass>(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
 					x.SymbolProfile.AssetSubClass == Utilities.ParseOptionalEnum<AssetSubClass>(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass))
@@ -93,6 +91,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				return;
 			}
 
+			var md = (await marketDataService.GetMarketData(mdi.Symbol, mdi.DataSource.ToString())).MarketData;
 			var sortedActivities = activitiesForSymbol
 				.Where(x => x.UnitPrice?.Amount != 0)
 				.GroupBy(x => x.Date.Date)
@@ -140,7 +139,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							continue;
 						}
 
-						await marketDataService.SetMarketPrice(mdi.AssetProfile, new Money(fromActivity.UnitPrice.Currency, expectedPrice), date);
+						await marketDataService.SetMarketPrice(mdi, new Money(fromActivity.UnitPrice.Currency, expectedPrice), date);
 					}
 				}
 			}
