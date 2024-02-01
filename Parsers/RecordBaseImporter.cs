@@ -40,6 +40,7 @@ namespace GhostfolioSidekick.Parsers
 				{
 					KnownHeaderCache.Add(record, false);
 				}
+
 				return Task.FromResult(false);
 			}
 
