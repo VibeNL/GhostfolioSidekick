@@ -48,7 +48,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test GhostfolioSidekick.sln --configuration Release --no-build --logger trx --verbosity normal /p:CollectCoverage=true
+        run: dotnet test GhostfolioSidekick.sln --configuration Release --no-build --logger "trx;logfilename=testResults.trx" --verbosity normal /p:CollectCoverage=true
         
       - name: Code Coverage Report
         uses: bibipkins/dotnet-test-reporter@v1.3.0
