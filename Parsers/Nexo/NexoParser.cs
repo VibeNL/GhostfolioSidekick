@@ -35,7 +35,6 @@ namespace GhostfolioSidekick.Parsers.Nexo
 										record.Transaction);
 					break;
 				case "Exchange Cashback":
-
 				case "Referral Bonus":
 					if (outputCurrency.IsFiat())
 					{

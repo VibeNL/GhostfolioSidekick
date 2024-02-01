@@ -190,6 +190,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleExchangeCashbackCrypto_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_cashback_crypto.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						new DateTime(2023, 10, 12, 10, 44, 32, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						0.00000040M,
+						"NXT2yQdOutpLLE1Lz51xXt6uW")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleReceive_Converted()
 		{
 			// Arrange

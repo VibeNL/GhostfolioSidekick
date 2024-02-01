@@ -63,7 +63,6 @@ jobs:
           path: ./CoverageReport/Cobertura.xml
           minimum_coverage: 60
           show_class_names: true
-          show_branch: false
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer

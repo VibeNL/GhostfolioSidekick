@@ -32,10 +32,5 @@ namespace GhostfolioSidekick.Parsers.Nexo
 		[Name("Date / Time (UTC)")]
 		[Format("yyyy-MM-dd HH:mm:ss")]
 		public DateTime DateTime { get; set; }
-
-		public decimal GetUSDEquivalent()
-		{
-			return decimal.Parse(USDEquivalent, NumberStyles.Currency, new NumberFormatInfo { CurrencyDecimalSeparator = ".", CurrencySymbol = "$" });
-		}
 	}
 }
