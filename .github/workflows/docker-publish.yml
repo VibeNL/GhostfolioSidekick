@@ -49,8 +49,8 @@ jobs:
 
       - name: Test
         run: dotnet test GhostfolioSidekick.sln --configuration Release --no-build --logger "trx;logfilename=testResults.trx" --verbosity normal --collect:"XPlat Code Coverage"
-             dotnet tool install --global dotnet-reportgenerator-globaltool
-             reportgenerator -reports:<base-directory>/**/coverage.cobertura.xml -targetdir:<output-directory>/CoverageReport -reporttypes:Cobertura
+      - run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - run: reportgenerator -reports:<base-directory>/**/coverage.cobertura.xml -targetdir:<output-directory>/CoverageReport -reporttypes:Cobertura
       
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
