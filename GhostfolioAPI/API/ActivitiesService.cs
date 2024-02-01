@@ -50,12 +50,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			foreach (var accountName in accountNames)
 			{
 				var existingAccount = await accountService.GetAccountByName(accountName);
+
+				if (existingAccount == null)
+				{
+					// Account is missing
+					continue;
+				}
+
 				var content = await restCall.DoRestGet($"api/v1/order?accounts={existingAccount.Id}");
 
 				if (content == null)
 				{
-					// Account is missing
-					continue;
+					throw new NotSupportedException();
 				}
 
 				var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content)?.Activities ?? [];

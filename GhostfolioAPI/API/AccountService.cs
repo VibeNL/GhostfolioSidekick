@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				["name"] = account.Name,
 				["currency"] = account.Balance.Money.Currency.Symbol,
 				["comment"] = account.Comment,
-
+				["platformId"] = null,
 				["isExcluded"] = false,
 				["balance"] = 0,
 			};
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation($"Created account {account.Name}");
 		}
 
-		public async Task<Model.Accounts.Account> GetAccountByName(string name)
+		public async Task<Model.Accounts.Account?> GetAccountByName(string name)
 		{
 			var content = await restCall.DoRestGet($"api/v1/account");
 			if (content == null)
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			if (rawAccount == null)
 			{
-				throw new NotSupportedException();
+				return null;
 			}
 
 			var platforms = await GetPlatforms();
