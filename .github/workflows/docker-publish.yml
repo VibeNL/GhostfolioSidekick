@@ -52,6 +52,12 @@ jobs:
       - run: dotnet tool install --global dotnet-reportgenerator-globaltool
       - run: reportgenerator -reports:**/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Cobertura
       
+      - name: R
+        uses: 5monkeys/cobertura-action@master
+        with:
+          path: ./CoverageReport/Cobertura.xml
+          minimum_coverage: 60
+
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
