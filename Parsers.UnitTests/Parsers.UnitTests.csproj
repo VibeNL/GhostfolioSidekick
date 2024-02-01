@@ -38,7 +38,6 @@
 		<Folder Include="TestFiles\Bitvavo\Specials\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
 		<Folder Include="TestFiles\Generic\SellOrders\" />
-		<Folder Include="TestFiles\Nexo\SellOrders\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -142,6 +141,18 @@
 		<None Update="TestFiles\Generic\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Nexo\CashTransactions\single_interest.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Invalid\fiat_to_fiat.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Invalid\invalid_action.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Receive\single_receive.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Nexo\BuyOrders\single_buy.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -154,11 +165,17 @@
 		<None Update="TestFiles\Nexo\Interest\single_interest_crypto.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Nexo\SellOrders\single_sell.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Nexo\Specials\single_cashback_crypto.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Nexo\Specials\single_cashback_fiat.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\Specials\single_interest_crypto.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Nexo\Specials\single_lock_fix_term.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			switch (record.Type)
 			{
 				case "Top up Crypto":
-					yield return PartialActivity.CreateRecieve(
+					yield return PartialActivity.CreateReceive(
 										record.DateTime,
 										[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
 										Math.Abs(record.OutputAmount),
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				case "Exchange":
 					if (inputCurrency.IsFiat() && outputCurrency.IsFiat())
 					{
-						throw new NotImplementedException();
+						throw new NotSupportedException();
 					}
 					else if (!inputCurrency.IsFiat() && !outputCurrency.IsFiat())
 					{

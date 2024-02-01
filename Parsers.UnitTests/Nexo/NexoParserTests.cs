@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Nexo;
-using GhostfolioSidekick.Parsers.UnitTests;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 {
@@ -76,6 +75,27 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						150,
 						0.9264700400075475907102725806M,
+						"NXTyPxhiopNL3")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleSell_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/SellOrders/single_sell.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("USDC")],
+						161.90485771M,
+						1.0793657180666666666666666667M,
 						"NXTyPxhiopNL3")
 				]);
 		}
@@ -167,6 +187,99 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						0.00096332M,
 						"NXTk6FBYyxOqH")
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleReceive_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/Receive/single_receive.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateReceive(
+						new DateTime(2023, 12, 7, 19, 37, 32, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("OP")],
+						9.32835820M,
+						"NXT53xOZQ1kJJOpfGPXe4RxWo")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleConvertFiatToFiat_Unsupported()
+		{
+			// Arrange
+
+			// Act
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/Nexo/Invalid/fiat_to_fiat.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			await a.Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleInterest_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateInterest(
+						Currency.EUR,
+						new DateTime(2024, 01, 06, 06, 00, 00, DateTimeKind.Utc),
+						0.00140202M,
+						"NXTeNtMHyjLigvrx7nFo8TT9")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleInterestCrypto_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_interest_crypto.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2024, 01, 10, 06, 00, 00, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						0.00000083M,
+						"NXT4t20tunYP8Bjy5diZEOCk7")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_LockingFixTerm_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_lock_fix_term.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidType_ThrowsException()
+		{
+			// Arrange
+
+			// Act
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/Nexo/Invalid/invalid_action.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			await a.Should().ThrowAsync<NotSupportedException>();
 		}
 	}
 }

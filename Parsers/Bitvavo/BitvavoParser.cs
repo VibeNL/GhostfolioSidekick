@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 					}
 					else
 					{
-						return PartialActivity.CreateRecieve(
+						return PartialActivity.CreateReceive(
 						dateTime,
 						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
 						Math.Abs(record.Amount),
