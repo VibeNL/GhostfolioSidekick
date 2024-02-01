@@ -68,6 +68,7 @@ namespace GhostfolioSidekick.FileImporter
 				Fees = fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 				Taxes = taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 				SortingPriority = sourceTransaction.SortingPriority,
+				Description = sourceTransaction.Description,
 			};
 			holding.Activities.Add(activity);
 
@@ -83,6 +84,7 @@ namespace GhostfolioSidekick.FileImporter
 					sourceTransaction.TransactionId + $"_{counter++}")
 				{
 					SortingPriority = transaction.SortingPriority,
+					Description = sourceTransaction.Description,
 				};
 
 				holding.Activities.Add(activity);

@@ -49,15 +49,20 @@ jobs:
 
       - name: Test
         run: dotnet test GhostfolioSidekick.sln --configuration Release --no-build --logger "trx;logfilename=testResults.trx" --verbosity normal --collect:"XPlat Code Coverage"
-      - run: dotnet tool install --global dotnet-reportgenerator-globaltool
-      - run: reportgenerator -reports:**/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Cobertura
       
-      - name: R
+      - name: Install Code coverage report generator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Run Code coverage report generator
+        run: reportgenerator -reports:**/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Cobertura
+      
+      - name: Add to PR
         uses: 5monkeys/cobertura-action@master
+        if: ${{ github.event_name == 'pull_request' }}
         with:
           path: ./CoverageReport/Cobertura.xml
           minimum_coverage: 60
-          only_changed_files: true
+          show_class_names: true
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer

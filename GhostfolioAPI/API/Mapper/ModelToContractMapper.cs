@@ -23,13 +23,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			}
 
 			if (activity.ActivityType == Model.Activities.ActivityType.Interest ||
-				activity.ActivityType == Model.Activities.ActivityType.Fee)
+				activity.ActivityType == Model.Activities.ActivityType.Fee ||
+				activity.ActivityType == Model.Activities.ActivityType.Valuable ||
+				activity.ActivityType == Model.Activities.ActivityType.Liability)
 			{
 				return new Contract.Activity
 				{
 					AccountId = activity.Account.Id,
 					Currency = activity.Account.Balance.Money.Currency.Symbol,
-					SymbolProfile = null,
+					SymbolProfile = GhostfolioAPI.Contract.SymbolProfile.Empty(activity.Description),
 					Comment = TransactionReferenceUtilities.GetComment(activity),
 					Date = activity.Date,
 					Fee = await CalculateFee(activity.Fees, activity.Account.Balance.Money.Currency, activity.Date),
@@ -37,7 +39,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					Quantity = activity.Quantity,
 					Type = ParseType(activity.ActivityType),
 					UnitPrice = await ConvertPrice(exchangeRateService, activity.UnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
-					ReferenceCode = activity.TransactionId
+					ReferenceCode = activity.TransactionId,
 				};
 			}
 
@@ -68,7 +70,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					FeeCurrency = symbolProfile.Currency.Symbol,
 					Quantity = activity.Quantity * await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, symbolProfile.Currency, activity.Date),
 					Type = ParseType(activity.ActivityType),
-					UnitPrice = 1, //await ConvertPrice(exchangeRateService, activity.UnitPrice, symbolProfile.Currency, activity.Date),
+					UnitPrice = 1,
 					ReferenceCode = activity.TransactionId
 				};
 			}
@@ -124,7 +126,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				case Model.Activities.ActivityType.Interest:
 					return Contract.ActivityType.INTEREST;
 				case Model.Activities.ActivityType.Fee:
-					return Contract.ActivityType.FEE;
+					return GhostfolioAPI.Contract.ActivityType.FEE;
+				case Model.Activities.ActivityType.Valuable:
+					return GhostfolioAPI.Contract.ActivityType.ITEM;
+				case Model.Activities.ActivityType.Liability:
+					return GhostfolioAPI.Contract.ActivityType.LIABILITY;
 				case Model.Activities.ActivityType.Gift:
 					return Contract.ActivityType.BUY;
 				case Model.Activities.ActivityType.LearningReward:

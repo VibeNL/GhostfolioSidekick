@@ -12,6 +12,10 @@
 
 		FEE,
 
+		ITEM,
+
+		LIABILITY,
+
 		IGNORE,
 	}
 }

@@ -34,6 +34,10 @@
 
 		Tax,
 
-		KnownBalance
+		KnownBalance,
+
+		Valuable,
+
+		Liability
 	}
 }
