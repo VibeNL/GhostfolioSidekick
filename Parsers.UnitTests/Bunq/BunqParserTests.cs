@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
-				[PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc), 3.5M, "2023-07-27 00:00:00:+00:00_1")]
+				[PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc), 3.5M, "bunq Payday 2023-07-27 EUR", "2023-07-27 00:00:00:+00:00_1")]
 				);
 		}
 

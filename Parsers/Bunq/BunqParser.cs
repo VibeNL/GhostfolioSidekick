@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Parsers.Bunq
 			var currency = new Currency("EUR");
 			if (record.Name == "bunq" && record.Description.Contains("bunq Payday"))
 			{
-				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), transactionId)];
+				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), record.Description, transactionId)];
 			}
 
 			return record.Amount >= 0 ?

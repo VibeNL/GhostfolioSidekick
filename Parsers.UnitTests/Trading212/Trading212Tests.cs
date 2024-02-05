@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 08, 11, 21, 08, 18, DateTimeKind.Utc), 0.01M, "82f82014-23a3-4ddf-bc09-658419823f4c")
+					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 08, 11, 21, 08, 18, DateTimeKind.Utc), 0.01M, "Interest on cash", "82f82014-23a3-4ddf-bc09-658419823f4c")
 				]);
 		}
 

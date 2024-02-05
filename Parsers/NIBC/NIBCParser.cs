@@ -5,6 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.NIBC
 {
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "Name of bank")]
 	public class NIBCParser : RecordBaseImporter<NIBCRecord>
 	{
 		public NIBCParser()
@@ -26,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.NIBC
 
 			if (record.Description == "Renteuitkering" || record.Description == "Bonusrente")
 			{
-				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), record.TransactionID)];
+				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), record.Description, record.TransactionID)];
 			}
 
 			return [];
