@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 					lst.Add(PartialActivity.CreateDividend(currency, record.Date, [PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity * record.UnitPrice, record.Id));
 					break;
 				case ActivityType.Interest:
-					lst.Add(PartialActivity.CreateInterest(currency, record.Date, record.UnitPrice, record.Id));
+					lst.Add(PartialActivity.CreateInterest(currency, record.Date, record.UnitPrice, "Interest" ,record.Id));
 					break;
 				case ActivityType.Fee:
 					if (record.UnitPrice != 0)

@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 09, 30, 0, 0, 0, 0, DateTimeKind.Utc), 0.51M, "C1I30IN0000A000Q")
+					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 09, 30, 0, 0, 0, 0, DateTimeKind.Utc), 0.51M, "Renteuitkering", "C1I30IN0000A000Q")
 				]);
 		}
 
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc), 1.1M, "C1F30IN0000A000Q")
+					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc), 1.1M, "Bonusrente", "C1F30IN0000A000Q")
 				]);
 		}
 

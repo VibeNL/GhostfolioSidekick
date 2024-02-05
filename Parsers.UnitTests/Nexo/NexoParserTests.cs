@@ -253,7 +253,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 					PartialActivity.CreateInterest(
 						Currency.EUR,
 						new DateTime(2024, 01, 06, 06, 00, 00, DateTimeKind.Utc),
-						0.00140202M,
+						0.00140202M, 
+						"Interest",
 						"NXTeNtMHyjLigvrx7nFo8TT9")
 				]);
 		}
@@ -273,6 +274,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						Currency.EUR,
 						new DateTime(2024, 01, 06, 06, 00, 00, DateTimeKind.Utc),
 						0.00140202M,
+						"Fixed Term Interest",
 						"NXTeNtMHyjLigvrx7nFo8TT9")
 				]);
 		}

@@ -110,6 +110,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 												outputCurrency,
 												record.DateTime,
 												Math.Abs(record.OutputAmount),
+												record.Type,
 												record.Transaction);
 					}
 					else

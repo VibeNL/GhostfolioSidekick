@@ -55,13 +55,18 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateInterest(Currency currency, DateTime date, decimal amount, string transactionId)
+		public static PartialActivity CreateInterest(
+			Currency currency, 
+			DateTime date, 
+			decimal amount,
+			string description,
+			string transactionId)
 		{
 			return new PartialActivity(ActivityType.Interest, currency, transactionId)
 			{
 				Date = date,
 				Amount = amount,
-				Description = "Interest",
+				Description = description,
 			};
 		}
 

@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateGift(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
 				case ActivityType.Interest:
-					partialActivity = PartialActivity.CreateInterest(currencyRecord, recordDate, recordTotal, record.TransactionId!);
+					partialActivity = PartialActivity.CreateInterest(currencyRecord, recordDate, recordTotal, "Interest", record.TransactionId!);
 					break;
 				case ActivityType.Sell:
 					partialActivity = PartialActivity.CreateSell(
