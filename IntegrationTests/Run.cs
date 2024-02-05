@@ -69,7 +69,7 @@ namespace IntegrationTests
 			account.Should().NotBeNull();
 
 			var activities = await activitiesService.GetAllActivities();
-			activities.Should().HaveCount(1);
+			activities.Should().HaveCount(2);
 		}
 	}
 }

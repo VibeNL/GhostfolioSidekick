@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
@@ -35,6 +36,8 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		public abstract decimal GetQuantity();
 
 		public abstract decimal GetUnitPrice();
+
+		internal abstract Currency GetCurrency();
 
 		internal abstract void SetGenerateTransactionIdIfEmpty(DateTime recordDate);
 	}

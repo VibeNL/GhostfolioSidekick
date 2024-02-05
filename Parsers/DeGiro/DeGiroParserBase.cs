@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					return [knownBalance];
 				case ActivityType.Buy:
 					partialActivity = PartialActivity.CreateBuy(
-						currencyRecord,
+						record.GetCurrency(),
 						recordDate,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					break;
 				case ActivityType.Sell:
 					partialActivity = PartialActivity.CreateSell(
-						currencyRecord,
+						record.GetCurrency(),
 						recordDate,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
