@@ -100,16 +100,23 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public override decimal GetQuantity()
 		{
-			var quantity = Regex.Match(Description!, $"[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+)").Groups[2].Value;
+			var quantity = Regex.Match(Description!, "[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		public override decimal GetUnitPrice()
 		{
-			var quantity = Regex.Match(Description!, $"[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+)").Groups[3].Value;
+			var quantity = Regex.Match(Description!, "[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[3].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
+		}
+
+		internal override Currency GetCurrency()
+		{
+			var currency = Regex.Match(Description!, "[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[4].Value;
+
+			return new Currency(currency);
 		}
 
 		internal override void SetGenerateTransactionIdIfEmpty(DateTime recordDate)

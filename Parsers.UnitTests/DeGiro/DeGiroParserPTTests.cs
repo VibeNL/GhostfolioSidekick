@@ -54,7 +54,23 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 21.70M, 2),
 					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")], 1, 77.30M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), 1M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
-				]); ;
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyGBX_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/PT/BuyOrders/single_buy_GBX.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(Currency.GBP, new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), -49.35M, 1),
+					PartialActivity.CreateBuy(new Currency("GBX"), new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("AU000000GBP6")], 1, 235M, "b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+				]);
 		}
 
 		[Fact]

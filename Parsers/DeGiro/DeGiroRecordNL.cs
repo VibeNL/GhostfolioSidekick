@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
-			var quantity = Regex.Match(Description!, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[1].Value;
+			var quantity = Regex.Match(Description!, "oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[1].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
@@ -111,9 +111,16 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		{
 			// oop is the same for both buy and sell or Koop and Verkoop in dutch
 			// dont include currency at the end, this can be other things than EUR
-			var quantity = Regex.Match(Description!, $"oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+)").Groups[2].Value;
+			var quantity = Regex.Match(Description!, "oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
+		}
+
+		internal override Currency GetCurrency()
+		{
+			var currency = Regex.Match(Description!, "oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[3].Value;
+
+			return new Currency(currency);
 		}
 
 		internal override void SetGenerateTransactionIdIfEmpty(DateTime recordDate)

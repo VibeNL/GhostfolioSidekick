@@ -108,6 +108,9 @@
 		<None Update="TestFiles\DeGiro\NL\SellOrders\single_sell_usd.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\DeGiro\PT\BuyOrders\single_buy_GBX.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\DeGiro\PT\BuyOrders\single_buy_euro.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
