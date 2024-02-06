@@ -1,5 +1,6 @@
 ﻿
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
@@ -7,7 +8,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	{
 		Task<IEnumerable<Holding>> GetAllActivities();
 
-		Task UpdateActivities(List<string> accountNames, IEnumerable<Holding> holdings);
+		Task InsertActivity(SymbolProfile symbolProfile, Activity activity);
+
+		Task UpdateActivity(SymbolProfile symbolProfile, Activity activity);
+
+		Task DeleteActivity(SymbolProfile symbolProfile, Activity activity);
 
 		Task DeleteAll();
 	}

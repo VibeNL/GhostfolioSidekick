@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -179,63 +180,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation($"Deleted transaction {order.Type} {order.SymbolProfile?.Symbol} {order.Date}");
 		}
 
-		private IEnumerable<MergeOrder> MergeOrders(IEnumerable<Contract.Activity> ordersFromFiles, IEnumerable<Contract.Activity> existingOrders)
-		{
-			var pattern = @"Transaction Reference: \[(.*?)\]";
+		
 
-			var existingOrdersWithMatchFlag = existingOrders.Select(x => new MatchActivity { Activity = x, IsMatched = false }).ToList();
-			return ordersFromFiles.GroupJoin(existingOrdersWithMatchFlag,
-				fo => fo.ReferenceCode,
-				eo =>
-				{
-					if (string.IsNullOrWhiteSpace(eo.Activity.Comment))
-					{
-						return Guid.NewGuid().ToString();
-					}
-
-					var match = Regex.Match(eo.Activity.Comment, pattern);
-					var key = (match.Groups.Count > 1 ? match.Groups[1]?.Value : null) ?? string.Empty;
-					return key;
-				},
-				(fo, eo) =>
-				{
-					if (fo != null && eo != null && eo.Any())
-					{
-						var other = eo.Single();
-						other.IsMatched = true;
-
-						if (AreEquals(fo, other.Activity))
-						{
-							return new MergeOrder(Operation.Duplicate, fo);
-						}
-
-						return new MergeOrder(Operation.Updated, fo, other.Activity);
-					}
-					else if (fo != null)
-					{
-						return new MergeOrder(Operation.New, fo);
-					}
-					else
-					{
-						throw new NotSupportedException();
-					}
-				}).Union(existingOrdersWithMatchFlag.Where(x => !x.IsMatched).Select(x => new MergeOrder(Operation.Removed, null, x.Activity)));
-		}
-
-		private bool AreEquals(Contract.Activity fo, Contract.Activity eo)
-		{
-			return
-				(fo.SymbolProfile?.Symbol == eo.SymbolProfile?.Symbol ||
-					fo.Type == Contract.ActivityType.INTEREST ||
-					fo.Type == Contract.ActivityType.FEE ||
-					fo.Type == Contract.ActivityType.ITEM ||
-					fo.Type == Contract.ActivityType.LIABILITY) && // Interest & Fee create manual symbols
-				fo.Quantity == eo.Quantity &&
-				fo.UnitPrice == eo.UnitPrice &&
-				fo.Fee == eo.Fee &&
-				fo.Type == eo.Type &&
-				fo.Date == eo.Date;
-		}
 
 		private Task<string> ConvertToBody(Contract.Activity activity)
 		{

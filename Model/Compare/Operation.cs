@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI.API
+﻿namespace GhostfolioSidekick.Model.Compare
 {
 	public enum Operation
 	{
