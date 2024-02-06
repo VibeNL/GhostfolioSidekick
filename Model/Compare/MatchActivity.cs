@@ -7,6 +7,5 @@ namespace GhostfolioSidekick.Model.Compare
 		public required Activity Activity { get; set; }
 
 		public bool IsMatched { get; set; }
-
 	}
 }
