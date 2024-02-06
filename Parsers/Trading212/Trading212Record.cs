@@ -2,6 +2,7 @@
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using CsvHelper.TypeConversion;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.Trading212
 {
@@ -14,8 +15,10 @@ namespace GhostfolioSidekick.Parsers.Trading212
 
 		public string? ISIN { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		public string? Ticker { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		public string? Name { get; set; }
 
 		[Name("No. of shares")]
@@ -27,11 +30,13 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		[Name("Currency (Price / share)")]
 		public string? Currency { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		[Optional]
 		[Name("Exchange rate")]
 		[TypeConverter(typeof(ExchangeRateConverter))]
 		public decimal? ExchangeRate { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		[Optional]
 		[Name("Currency (Result)")]
 		public string? CurrencySource { get; set; }

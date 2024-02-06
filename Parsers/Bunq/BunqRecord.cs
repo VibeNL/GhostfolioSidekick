@@ -1,4 +1,5 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.Bunq
 {
@@ -8,6 +9,7 @@ namespace GhostfolioSidekick.Parsers.Bunq
 		[Format("yyyy-MM-dd")]
 		public DateTime Date { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		[Name("Interest Date")]
 		public required string InterestDate { get; set; }
 

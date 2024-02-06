@@ -1,4 +1,5 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Nexo
@@ -22,6 +23,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 		[Name("Output Amount")]
 		public decimal OutputAmount { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		[Name("USD Equivalent")]
 		public required string USDEquivalent { get; set; }
 

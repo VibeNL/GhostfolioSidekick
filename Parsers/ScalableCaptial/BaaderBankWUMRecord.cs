@@ -31,8 +31,5 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 
 		[Name("XXX-EXTORDID")]
 		public required string Reference { get; set; }
-
-		[Name("XXX-BELEGU")]
-		public string? SavingsPlanIdentification { get; set; }
 	}
 }
