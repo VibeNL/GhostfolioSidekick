@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Text.RegularExpressions;
 using Activity = GhostfolioSidekick.Model.Activities.Activity;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
@@ -101,7 +100,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		public async Task InsertActivity(Model.Symbols.SymbolProfile symbolProfile, Activity activity)
 		{
 			var converted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, activity);
-			await WriteOrder(converted);
+
+			if (converted != null)
+			{
+				await WriteOrder(converted);
+			}
 		}
 
 		public async Task UpdateActivity(Model.Symbols.SymbolProfile symbolProfile, Activity oldActivity, Activity newActivity)
@@ -109,14 +112,25 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var oldActivityConverted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, oldActivity);
 			var newActivityConverted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, newActivity);
 
-			await DeleteOrder(oldActivityConverted);
-			await WriteOrder(newActivityConverted);
+			if (oldActivityConverted != null)
+			{
+				await DeleteOrder(oldActivityConverted);
+			}
+
+			if (newActivityConverted != null)
+			{
+				await WriteOrder(newActivityConverted);
+			}
 		}
 
 		public async Task DeleteActivity(Model.Symbols.SymbolProfile symbolProfile, Activity activity)
 		{
 			var converted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, activity);
-			await DeleteOrder(converted);
+
+			if (converted != null)
+			{
+				await DeleteOrder(converted);
+			}
 		}
 	}
 }

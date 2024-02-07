@@ -205,7 +205,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			SymbolProfile FixYahooCrypto(SymbolProfile x)
 			{
 				// Workaround for bug Ghostfolio
-				if (x.AssetSubClass == AssetSubClass.CryptoCurrency && x.DataSource == Model.Symbols.Datasource.YAHOO && x.Symbol.Length >= 6)
+				if (x.AssetSubClass == AssetSubClass.CryptoCurrency && Model.Symbols.Datasource.YAHOO.ToString().Equals(x.DataSource, StringComparison.InvariantCultureIgnoreCase) && x.Symbol.Length >= 6)
 				{
 					var t = x.Symbol;
 					x.Symbol = string.Concat(t.AsSpan(0, t.Length - 3), "-", t.AsSpan(t.Length - 3, 3));

@@ -95,7 +95,9 @@ namespace GhostfolioSidekick.FileImporter
 			var existingHoldings = await activitiesManager.GetAllActivities();
 			var mergeOrders = (await new MergeActivities(exchangeRateService)
 				.Merge(existingHoldings, holdingsCollection.Holdings))
-				.Where(x => x.Order1.ActivityType != Model.Activities.ActivityType.KnownBalance);
+				.Where(x => x.Order1.ActivityType != Model.Activities.ActivityType.KnownBalance)
+				.Where(x => x.Operation != Operation.Duplicate)
+				.OrderBy(x => x.Order1.Date);
 
 			foreach (var item in mergeOrders)
 			{
@@ -105,9 +107,6 @@ namespace GhostfolioSidekick.FileImporter
 					{
 						case Operation.New:
 							await activitiesManager.InsertActivity(item.SymbolProfile, item.Order1);
-							break;
-						case Operation.Duplicate:
-							// Ignore
 							break;
 						case Operation.Updated:
 							await activitiesManager.DeleteActivity(item.SymbolProfile, item.Order1);
@@ -132,6 +131,7 @@ namespace GhostfolioSidekick.FileImporter
 				try
 				{
 					await accountManager.UpdateBalance(account, account.Balance);
+					logger.LogInformation($"Update account {account.Name} with balance {account.Balance}");
 				}
 				catch (Exception ex)
 				{

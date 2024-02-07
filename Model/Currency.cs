@@ -39,5 +39,10 @@
 		{
 			return HashCode.Combine(Symbol);
 		}
+
+		public override string ToString()
+		{
+			return Symbol;
+		}
 	}
 }

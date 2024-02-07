@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	public static class ModelToContractMapper
 	{
-		public static async Task<Contract.Activity> ConvertToGhostfolioActivity(
+		public static async Task<Contract.Activity?> ConvertToGhostfolioActivity(
 			IExchangeRateService exchangeRateService,
 			Model.Symbols.SymbolProfile? symbolProfile,
 			Model.Activities.Activity activity)
@@ -22,10 +22,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				return amount;
 			}
 
+			if (activity.ActivityType == Model.Activities.ActivityType.CashConvert ||
+				activity.ActivityType == Model.Activities.ActivityType.CashDeposit ||
+				activity.ActivityType == Model.Activities.ActivityType.CashWithdrawal ||
+				activity.ActivityType == Model.Activities.ActivityType.KnownBalance ||
+				activity.ActivityType == Model.Activities.ActivityType.Gift)
+			{
+				return null;
+			}
+
 			if (activity.ActivityType == Model.Activities.ActivityType.Interest ||
-				activity.ActivityType == Model.Activities.ActivityType.Fee ||
-				activity.ActivityType == Model.Activities.ActivityType.Valuable ||
-				activity.ActivityType == Model.Activities.ActivityType.Liability)
+			activity.ActivityType == Model.Activities.ActivityType.Fee ||
+			activity.ActivityType == Model.Activities.ActivityType.Valuable ||
+			activity.ActivityType == Model.Activities.ActivityType.Liability)
 			{
 				return new Contract.Activity
 				{

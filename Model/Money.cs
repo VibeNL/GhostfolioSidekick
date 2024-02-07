@@ -17,5 +17,10 @@
 		{
 			return HashCode.Combine(Currency, Amount);
 		}
+
+		public override string ToString()
+		{
+			return $"{Amount} {Currency}";
+		}
 	}
 }
