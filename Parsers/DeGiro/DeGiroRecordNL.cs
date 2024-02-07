@@ -1,6 +1,7 @@
 ﻿using CsvHelper.Configuration.Attributes;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -16,6 +17,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		[Name("Tijd")]
 		public override TimeOnly Time { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		[Name("Valutadatum")]
 		[Format("dd-MM-yyyy")]
 		public override DateOnly CurrencyDate { get; set; }
@@ -29,6 +31,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		[Name("Omschrijving")]
 		public override string? Description { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		[Name("FX")]
 		public override string? FX { get; set; }
 
