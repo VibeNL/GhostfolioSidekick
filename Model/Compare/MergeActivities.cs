@@ -88,9 +88,9 @@ namespace GhostfolioSidekick.Model.Compare
 		private async Task<bool> AreEquals(Activity newActivity, Activity existingActivity)
 		{
 			var existingUnitPrice = await RoundAndConvert(existingActivity.UnitPrice, newActivity.UnitPrice.Currency, newActivity.Date);
-			var quantityTimesUnitPriceEquals = Math.Abs(
-				(newActivity.Quantity * newActivity.UnitPrice.Amount) -
-				existingActivity.Quantity * existingUnitPrice.Amount) < 0.00001M;
+			var quantityTimesUnitPriceEquals = AreEquals(
+				newActivity.Quantity * newActivity.UnitPrice.Amount,
+				existingActivity.Quantity * existingUnitPrice.Amount);
 			var feesAndTaxesEquals = AreEquals(
 				existingActivity.UnitPrice.Currency,
 				existingActivity.Date,
@@ -107,17 +107,22 @@ namespace GhostfolioSidekick.Model.Compare
 			return equals;
 		}
 
+		private static bool AreEquals(decimal a, decimal b)
+		{
+			return Math.Abs(a - b) < 0.00001M;
+		}
+
 		private bool AreEquals(Currency target, DateTime dateTime, List<Money> money1, List<Money> money2)
 		{
-			return money1.Sum(x =>
+			return AreEquals(money1.Sum(x =>
 			{
 				var rate = exchangeRateService.GetConversionRate(x.Currency, target, dateTime).Result;
 				return rate * x.Amount;
-			}) == money2.Sum(x =>
+			}), money2.Sum(x =>
 			{
 				var rate = exchangeRateService.GetConversionRate(x.Currency, target, dateTime).Result;
 				return rate * x.Amount;
-			});
+			}));
 		}
 
 		private async Task<Money> RoundAndConvert(Money value, Currency target, DateTime dateTime)
