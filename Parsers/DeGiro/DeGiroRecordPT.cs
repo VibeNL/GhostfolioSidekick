@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		public override string? ISIN { get; set; }
 
 		[Name("Descrição")]
-		public override string? Description { get; set; }
+		public override required string Description { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		[Name("T.")]

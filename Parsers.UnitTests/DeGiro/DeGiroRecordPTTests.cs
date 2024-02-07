@@ -31,10 +31,10 @@ namespace GhostfolioSidekick.UnitTests.Parsers.DeGiro
 		}
 
 		[Fact]
-		public void GetActivityType_WhenDescriptionIsNull_ShouldReturnNull()
+		public void GetActivityType_WhenDescriptionIsNull_ShouldReturnEmpty()
 		{
 			// Arrange
-			var record = DefaultFixture.Create().Build<DeGiroRecordPT>().Without(x => x.Description).Create();
+			var record = DefaultFixture.Create().Build<DeGiroRecordPT>().With(x => x.Description, string.Empty).Create();
 
 			// Act
 			var result = record.GetActivityType();

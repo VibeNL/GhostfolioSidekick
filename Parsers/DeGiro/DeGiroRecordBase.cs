@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public virtual string? ISIN { get; set; }
 
-		public virtual string? Description { get; set; }
+		public virtual required string Description { get; set; }
 
 		public virtual string? FX { get; set; }
 

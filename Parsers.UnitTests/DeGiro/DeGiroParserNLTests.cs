@@ -200,5 +200,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("NL0009690239")], 9.57M, "Dividend_2023-09-14 06:32:00:+00:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),
 				]);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidNoDescription_OnlyKnownBalance()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/Invalid/no_description.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M, 1),
+				]);
+		}
 	}
 }

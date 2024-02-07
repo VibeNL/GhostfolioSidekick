@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		public override string? ISIN { get; set; }
 
 		[Name("Omschrijving")]
-		public override string? Description { get; set; }
+		public override required string Description { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		[Name("FX")]
@@ -52,11 +52,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public override ActivityType? GetActivityType()
 		{
-			if (Description == null)
-			{
-				return null;
-			}
-
 			if (Description.Equals("DEGIRO Transactiekosten en/of kosten van derden"))
 			{
 				return ActivityType.Fee;
@@ -136,7 +131,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			var activity = GetActivityType();
 			var mutation = Mutation;
 			const string dividendText = "Dividend";
-			if (Description?.StartsWith(dividendText) ?? false)
+			if (Description.StartsWith(dividendText))
 			{
 				mutation = dividendText;
 				activity = ActivityType.Dividend;

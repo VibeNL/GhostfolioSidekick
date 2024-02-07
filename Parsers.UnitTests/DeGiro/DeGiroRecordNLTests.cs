@@ -30,10 +30,10 @@ namespace GhostfolioSidekick.UnitTests.Parsers.DeGiro
 		}
 
 		[Fact]
-		public void GetActivityType_ShouldReturnNull_WhenDescriptionIsNull()
+		public void GetActivityType_ShouldReturnNull_WhenDescriptionIsEmpty()
 		{
 			// Arrange
-			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroRecordNL>().Without(x => x.Description).Create();
+			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroRecordNL>().With(x => x.Description, string.Empty).Create();
 
 			// Act
 			var activityType = deGiroRecordNL.GetActivityType();
