@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Model.Compare
 
 			foreach (var newHolding in newHoldings)
 			{
-				var existingHolding = existingHoldings.FirstOrDefault(x => x.SymbolProfile == newHolding.SymbolProfile);
+				var existingHolding = existingHoldings.FirstOrDefault(x => SymbolEquals(x, newHolding));
 				if (existingHolding != null)
 				{
 					mergeOrders.AddRange(await Merge(existingHolding.SymbolProfile!, existingHolding.Activities, newHolding.Activities));
@@ -33,6 +33,21 @@ namespace GhostfolioSidekick.Model.Compare
 			}
 
 			return mergeOrders;
+		}
+
+		private static bool SymbolEquals(Holding oldHolding, Holding newHolding)
+		{
+			if (oldHolding.SymbolProfile?.Equals(newHolding.SymbolProfile) ?? false)
+			{
+				return true;
+			}
+
+			if (oldHolding.SymbolProfile == null && newHolding.SymbolProfile == null)
+			{
+				return true;
+			}
+
+			return false;
 		}
 
 		private Task<List<MergeOrder>> Merge(SymbolProfile symbolProfile, IEnumerable<Activity> existingActivities, IEnumerable<Activity> newActivities)
@@ -78,13 +93,15 @@ namespace GhostfolioSidekick.Model.Compare
 			var taxesEquals = AreEquals(fo.Taxes.ToList(), eo.Taxes.ToList());
 			var activityEquals = fo.ActivityType == eo.ActivityType;
 			var dateEquals = fo.Date == eo.Date;
-			return
-				quantityEquals &&
+			var descriptionEquals = fo.Description == eo.Description;
+			var equals = quantityEquals &&
 				unitPriceEquals &&
 				feesEquals &&
 				taxesEquals &&
 				activityEquals &&
-				dateEquals;
+				dateEquals &&
+				descriptionEquals;
+			return equals;
 		}
 
 		private static bool AreEquals(List<Money> money1, List<Money> money2)

@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
@@ -14,17 +13,17 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
 
 		public HoldingsCollection(
-			IAccountService accountManager,
-			IMarketDataService marketDataManager)
+			IAccountService accountService,
+			IMarketDataService marketDataService)
 		{
-			AccountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
-			MarketDataManager = marketDataManager ?? throw new ArgumentNullException(nameof(marketDataManager));
+			AccountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+			MarketDataService = marketDataService ?? throw new ArgumentNullException(nameof(marketDataService));
 		}
 
 		public IReadOnlyList<Holding> Holdings { get { return holdings; } }
 
-		public IAccountService AccountManager { get; }
-		public IMarketDataService MarketDataManager { get; }
+		public IAccountService AccountService { get; }
+		public IMarketDataService MarketDataService { get; }
 
 		public Task AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities)
 		{
@@ -39,9 +38,10 @@ namespace GhostfolioSidekick.FileImporter
 
 		public async Task GenerateActivities()
 		{
+			var accounts = await AccountService.GetAllAccounts();
 			foreach (var partialActivityPerAccount in unusedPartialActivities)
 			{
-				var account = await GetAccount(partialActivityPerAccount.Key);
+				var account = accounts.Single(x => string.Equals(x.Name, partialActivityPerAccount.Key, StringComparison.InvariantCultureIgnoreCase));
 				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
 					var sourceTransaction = transaction.FirstOrDefault(x => x.SymbolIdentifiers.Length != 0);
@@ -106,7 +106,7 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			var allowedAssetClass = EmptyToNull(activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetClasses ?? []));
 			var allowedAssetSubClass = EmptyToNull(activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetSubClasses ?? []));
-			var symbol = await MarketDataManager.FindSymbolByIdentifier(
+			var symbol = await MarketDataService.FindSymbolByIdentifier(
 				activity.SymbolIdentifiers.Select(x => x.Identifier).ToArray(),
 				activity.Currency,
 				allowedAssetClass?.ToArray(),
@@ -137,18 +137,6 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			return array.Where(x => x != null).ToList();
-		}
-
-		private async Task<Account> GetAccount(string key)
-		{
-			var account = await AccountManager.GetAccountByName(key);
-
-			if (account == null)
-			{
-				throw new NotSupportedException();
-			}
-
-			return account;
 		}
 
 		public async Task<IEnumerable<Account>> UpdateAccountBalances(IExchangeRateService exchangeRateService)

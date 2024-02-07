@@ -14,15 +14,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private readonly IExchangeRateService exchangeRateService;
 		private readonly ILogger<ActivitiesService> logger;
 		private readonly RestCall restCall;
+		private readonly IAccountService accountService;
 
 		public ActivitiesService(
 				IExchangeRateService exchangeRateService,
+				IAccountService accountService,
 				RestCall restCall,
 				ILogger<ActivitiesService> logger)
 		{
 			this.exchangeRateService = exchangeRateService ?? throw new ArgumentNullException(nameof(exchangeRateService));
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
+			this.accountService = accountService;
 		}
 
 		public async Task<IEnumerable<Holding>> GetAllActivities()
@@ -30,7 +33,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var content = await restCall.DoRestGet($"api/v1/order");
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities;
 
-			return ContractToModelMapper.MapToHoldings(existingActivities);
+			var accounts = await accountService.GetAllAccounts();
+
+			return ContractToModelMapper.MapToHoldings(accounts, existingActivities);
 		}
 
 		public Task DeleteAll()
@@ -85,7 +90,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var o = new JObject();
 			o["accountId"] = activity.AccountId;
 			o["comment"] = activity.Comment;
-			o["currency"] = activity.Currency;
+			o["currency"] = activity.SymbolProfile?.Currency;
 			o["dataSource"] = activity.SymbolProfile?.DataSource;
 			o["date"] = activity.Date.ToString("o");
 			o["fee"] = activity.Fee;

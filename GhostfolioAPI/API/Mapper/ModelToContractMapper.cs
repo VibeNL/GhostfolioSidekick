@@ -39,8 +39,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				return new Contract.Activity
 				{
 					AccountId = activity.Account.Id,
-					Currency = activity.Account.Balance.Money.Currency.Symbol,
-					SymbolProfile = GhostfolioAPI.Contract.SymbolProfile.Empty(activity.Description),
+					SymbolProfile = GhostfolioAPI.Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, activity.Description),
 					Comment = TransactionReferenceUtilities.GetComment(activity),
 					Date = activity.Date,
 					Fee = await CalculateFee(activity.Fees, activity.Account.Balance.Money.Currency, activity.Date),
@@ -62,7 +61,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				return new Contract.Activity
 				{
 					AccountId = activity.Account.Id,
-					Currency = symbolProfile.Currency.Symbol,
 					SymbolProfile = new Contract.SymbolProfile
 					{
 						Symbol = symbolProfile.Symbol,
@@ -86,7 +84,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			return new Contract.Activity
 			{
 				AccountId = activity.Account.Id,
-				Currency = symbolProfile.Currency.Symbol,
 				SymbolProfile = new Contract.SymbolProfile
 				{
 					Symbol = symbolProfile.Symbol,

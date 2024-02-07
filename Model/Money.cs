@@ -9,7 +9,7 @@
 		public override bool Equals(object? obj)
 		{
 			return obj is Money money &&
-				   Currency == money.Currency &&
+				   Currency.Equals(money.Currency) &&
 				   Amount == money.Amount;
 		}
 

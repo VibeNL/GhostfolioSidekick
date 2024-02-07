@@ -78,23 +78,31 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<Model.Accounts.Account?> GetAccountByName(string name)
 		{
+			var accounts = await GetAllAccounts();
+			return accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+		}
+
+		public async Task<Model.Accounts.Account[]> GetAllAccounts()
+		{
 			var content = await restCall.DoRestGet($"api/v1/account");
+
 			if (content == null)
 			{
 				throw new NotSupportedException();
 			}
 
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
-			var rawAccount = rawAccounts!.Accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+			var accounts = rawAccounts?.Accounts;
 
-			if (rawAccount == null)
+			if (accounts == null)
 			{
-				return null;
+				return new Model.Accounts.Account[0];
 			}
 
 			var platforms = await GetPlatforms();
-			var platform = platforms.SingleOrDefault(x => x.Id == rawAccount.PlatformId);
-			return ContractToModelMapper.MapAccount(rawAccount, platform);
+			var mappedAccounts = accounts.Select(x => ContractToModelMapper.MapAccount(x, platforms.SingleOrDefault(p => p.Id == x.PlatformId))).ToArray();
+
+			return mappedAccounts;
 		}
 
 		public async Task<Model.Accounts.Platform> GetPlatformByName(string name)
