@@ -88,15 +88,19 @@ namespace GhostfolioSidekick.Model.Compare
 		private async Task<bool> AreEquals(Activity newActivity, Activity existingActivity)
 		{
 			var existingUnitPrice = await RoundAndConvert(existingActivity.UnitPrice, newActivity.UnitPrice.Currency, newActivity.Date);
-			var quantityTimesUnitPriceEquals = Math.Abs(newActivity.Quantity * newActivity.UnitPrice.Amount - existingActivity.Quantity * existingUnitPrice.Amount) < 0.00001M;
-			var feesEquals = AreEquals(existingActivity.UnitPrice.Currency, existingActivity.Date, newActivity.Fees.ToList(), existingActivity.Fees.ToList());
-			var taxesEquals = AreEquals(existingActivity.UnitPrice.Currency, existingActivity.Date, newActivity.Taxes.ToList(), existingActivity.Taxes.ToList());
+			var quantityTimesUnitPriceEquals = Math.Abs(
+				(newActivity.Quantity * newActivity.UnitPrice.Amount) -
+				existingActivity.Quantity * existingUnitPrice.Amount) < 0.00001M;
+			var feesAndTaxesEquals = AreEquals(
+				existingActivity.UnitPrice.Currency,
+				existingActivity.Date,
+				newActivity.Fees.Union(newActivity.Taxes).ToList(),
+				existingActivity.Fees.Union(existingActivity.Taxes).ToList());
 			var activityEquals = newActivity.ActivityType == existingActivity.ActivityType;
 			var dateEquals = newActivity.Date == existingActivity.Date;
 			var descriptionEquals = newActivity.Description == null || newActivity.Description == existingActivity.Description; // We do not create descrptions when Ghostfolio will ignore them
 			var equals = quantityTimesUnitPriceEquals &&
-				feesEquals &&
-				taxesEquals &&
+				feesAndTaxesEquals &&
 				activityEquals &&
 				dateEquals &&
 				descriptionEquals;

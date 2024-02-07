@@ -10,13 +10,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			Model.Symbols.SymbolProfile? symbolProfile,
 			Model.Activities.Activity activity)
 		{
-			async Task<decimal> CalculateFee(IEnumerable<Money> fees, Currency targetCurrency, DateTime dateTime)
+			async Task<decimal> CalculateFeeAndTaxes(IEnumerable<Money> fees, IEnumerable<Money> taxes, Currency targetCurrency, DateTime dateTime)
 			{
 				decimal amount = 0;
 
-				foreach (var fee in fees)
+				foreach (var money in fees.Union(taxes))
 				{
-					amount += await ConvertPrice(exchangeRateService, fee, targetCurrency, dateTime);
+					amount += await ConvertPrice(exchangeRateService, money, targetCurrency, dateTime);
 				}
 
 				return amount;
@@ -39,10 +39,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				return new Contract.Activity
 				{
 					AccountId = activity.Account.Id,
-					SymbolProfile = GhostfolioAPI.Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, activity.Description),
+					SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, activity.Description),
 					Comment = TransactionReferenceUtilities.GetComment(activity),
 					Date = activity.Date,
-					Fee = await CalculateFee(activity.Fees, activity.Account.Balance.Money.Currency, activity.Date),
+					Fee = await CalculateFeeAndTaxes(activity.Fees, activity.Taxes, activity.Account.Balance.Money.Currency, activity.Date),
 					FeeCurrency = activity.Account.Balance.Money.Currency.Symbol,
 					Quantity = activity.Quantity,
 					Type = ParseType(activity.ActivityType),
@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					},
 					Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
 					Date = activity.Date,
-					Fee = await CalculateFee(activity.Fees, symbolProfile.Currency, activity.Date),
+					Fee = await CalculateFeeAndTaxes(activity.Fees, activity.Taxes, symbolProfile.Currency, activity.Date),
 					FeeCurrency = symbolProfile.Currency.Symbol,
 					Quantity = activity.Quantity * await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, symbolProfile.Currency, activity.Date),
 					Type = ParseType(activity.ActivityType),
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				},
 				Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
 				Date = activity.Date,
-				Fee = await CalculateFee(activity.Fees, symbolProfile.Currency, activity.Date),
+				Fee = await CalculateFeeAndTaxes(activity.Fees, activity.Taxes, symbolProfile.Currency, activity.Date),
 				FeeCurrency = symbolProfile.Currency.Symbol,
 				Quantity = activity.Quantity,
 				Type = ParseType(activity.ActivityType),
