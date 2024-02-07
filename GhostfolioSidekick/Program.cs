@@ -92,11 +92,11 @@ namespace GhostfolioSidekick
 							services.AddScoped<IHostedService, TimedHostedService>();
 							services.AddScoped<IScheduledWork, FileImporterTask>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
-							//services.AddScoped<IScheduledWork, AccountMaintainerTask>();
-							//services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
-							//services.AddScoped<IScheduledWork, SetBenchmarksTask>();
-							//services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
-							//services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
+							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+							services.AddScoped<IScheduledWork, SetBenchmarksTask>();
+							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
+							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 
 							services.AddScoped<IFileImporter, BitvavoParser>();
 							services.AddScoped<IFileImporter, BunqParser>();

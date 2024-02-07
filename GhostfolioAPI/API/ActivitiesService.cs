@@ -49,11 +49,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			if (activity.UnitPrice == 0 && activity.Quantity == 0)
 			{
 				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
+				return;
 			}
 
 			if (activity.Type == Contract.ActivityType.IGNORE)
 			{
 				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
+				return;
 			}
 
 			var url = $"api/v1/order";
@@ -76,6 +78,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private async Task DeleteOrder(Contract.Activity order)
 		{
+			if (string.IsNullOrWhiteSpace(order.Id))
+			{
+				throw new NotSupportedException($"Deletion failed, no Id");
+			}
+
 			var r = await restCall.DoRestDelete($"api/v1/order/{order.Id}");
 			if (!r.IsSuccessStatusCode)
 			{
@@ -106,10 +113,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			var converted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, activity);
 
-			if (converted != null)
-			{
-				await WriteOrder(converted);
-			}
+			await WriteOrder(converted);
 		}
 
 		public async Task UpdateActivity(Model.Symbols.SymbolProfile symbolProfile, Activity oldActivity, Activity newActivity)
@@ -117,25 +121,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var oldActivityConverted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, oldActivity);
 			var newActivityConverted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, newActivity);
 
-			if (oldActivityConverted != null)
-			{
-				await DeleteOrder(oldActivityConverted);
-			}
-
-			if (newActivityConverted != null)
-			{
-				await WriteOrder(newActivityConverted);
-			}
+			await DeleteOrder(oldActivityConverted);
+			await WriteOrder(newActivityConverted);
 		}
 
 		public async Task DeleteActivity(Model.Symbols.SymbolProfile symbolProfile, Activity activity)
 		{
 			var converted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, activity);
 
-			if (converted != null)
-			{
-				await DeleteOrder(converted);
-			}
+			await DeleteOrder(converted);
 		}
 	}
 }

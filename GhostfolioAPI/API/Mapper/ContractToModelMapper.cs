@@ -138,6 +138,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			{
 				Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
 				Description = activity.SymbolProfile.Name,
+				Id = activity.Id,
 			};
 		}
 

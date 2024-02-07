@@ -27,6 +27,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public string? TransactionId { get; set; } = transactionId;
 		public int? SortingPriority { get; set; }
 		public string? Description { get; set; }
+		public string? Id { get; set; }
 
 		public override string ToString()
 		{

@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	public static class ModelToContractMapper
 	{
-		public static async Task<Contract.Activity?> ConvertToGhostfolioActivity(
+		public static async Task<Contract.Activity> ConvertToGhostfolioActivity(
 			IExchangeRateService exchangeRateService,
 			Model.Symbols.SymbolProfile? symbolProfile,
 			Model.Activities.Activity activity)
@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				activity.ActivityType == Model.Activities.ActivityType.KnownBalance ||
 				activity.ActivityType == Model.Activities.ActivityType.Gift)
 			{
-				return null;
+				return new Contract.Activity { Type = Contract.ActivityType.IGNORE };
 			}
 
 			if (activity.ActivityType == Model.Activities.ActivityType.Interest ||
@@ -38,6 +38,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			{
 				return new Contract.Activity
 				{
+					Id = activity.Id,
 					AccountId = activity.Account.Id,
 					SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, activity.Description),
 					Comment = TransactionReferenceUtilities.GetComment(activity),
@@ -60,6 +61,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			{
 				return new Contract.Activity
 				{
+					Id = activity.Id,
 					AccountId = activity.Account.Id,
 					SymbolProfile = new Contract.SymbolProfile
 					{
@@ -83,6 +85,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 			return new Contract.Activity
 			{
+				Id = activity.Id,
 				AccountId = activity.Account.Id,
 				SymbolProfile = new Contract.SymbolProfile
 				{
