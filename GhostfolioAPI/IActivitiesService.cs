@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		Task InsertActivity(SymbolProfile symbolProfile, Activity activity);
 
-		Task UpdateActivity(SymbolProfile symbolProfile, Activity activity);
+		Task UpdateActivity(SymbolProfile symbolProfile, Activity oldActivity, Activity newActivity);
 
 		Task DeleteActivity(SymbolProfile symbolProfile, Activity activity);
 

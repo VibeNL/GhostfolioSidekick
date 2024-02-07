@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
-	public class SymbolProfile(
+	public sealed class SymbolProfile(
 		string symbol,
 		string name,
 		Currency currency,
@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.Model.Symbols
 				Name == other?.Name &&
 				Symbol == other?.Symbol &&
 				AssetClass == other?.AssetClass &&
-				AssetSubClass == other?.AssetSubClass;
+				AssetSubClass == other.AssetSubClass;
 		}
 
 		private void ParseIdentifiers()
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 			var pattern = @"Known Identifiers: \[(.*?)\]";
 			var match = Regex.Match(comment, pattern);
-			var ids = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
+			var ids = (match.Groups.Count > 1 ? match.Groups[1]?.Value : null) ?? string.Empty;
 
 			if (string.IsNullOrEmpty(ids))
 			{

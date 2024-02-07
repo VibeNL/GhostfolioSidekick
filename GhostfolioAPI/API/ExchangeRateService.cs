@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

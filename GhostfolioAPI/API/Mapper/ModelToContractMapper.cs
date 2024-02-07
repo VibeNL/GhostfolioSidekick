@@ -1,11 +1,11 @@
-﻿using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Compare;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	public static class ModelToContractMapper
 	{
-		public static async Task<Contract.Activity?> ConvertToGhostfolioActivity(
+		public static async Task<Contract.Activity> ConvertToGhostfolioActivity(
 			IExchangeRateService exchangeRateService,
 			Model.Symbols.SymbolProfile? symbolProfile,
 			Model.Activities.Activity activity)
@@ -45,8 +45,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 			if (symbolProfile == null)
 			{
-				// Ignore for now
-				return null;
+				throw new NotSupportedException("Activity unable to convert");
 			}
 
 			if (activity.ActivityType == Model.Activities.ActivityType.Dividend)

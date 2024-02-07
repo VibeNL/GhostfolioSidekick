@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Compare;
 using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests

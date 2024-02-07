@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Model.Activities
 {
-	public class Activity(
+	public record class Activity(
 		Account account,
 		ActivityType activityType,
 		DateTime dateTime,
