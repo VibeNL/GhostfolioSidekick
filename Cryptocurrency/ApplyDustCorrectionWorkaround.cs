@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 			var lastActivity = activities
 				.Where(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send)
 				.LastOrDefault();
-			if (lastActivity?.UnitPrice == null)
+			if (lastActivity == null || lastActivity.UnitPrice == null)
 			{
 				return Task.CompletedTask;
 			}

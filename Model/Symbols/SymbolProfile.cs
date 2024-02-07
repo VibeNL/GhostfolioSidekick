@@ -75,5 +75,36 @@ namespace GhostfolioSidekick.Model.Symbols
 			Identifiers.Clear();
 			Identifiers.AddRange(ids.Split(','));
 		}
+
+		public static bool operator ==(SymbolProfile? left, SymbolProfile? right)
+		{
+			if (ReferenceEquals(left, null))
+			{
+				return ReferenceEquals(right, null);
+			}
+
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(SymbolProfile? left, SymbolProfile? right)
+		{
+			return !(left == right);
+		}
+
+		public override bool Equals(object? obj)
+		{
+			return Equals(obj as SymbolProfile);
+		}
+
+		public override int GetHashCode()
+		{
+			int hash = 17;
+			hash = hash * 23 + (Currency?.Symbol?.GetHashCode() ?? 0);
+			hash = hash * 23 + (Name?.GetHashCode() ?? 0);
+			hash = hash * 23 + (Symbol?.GetHashCode() ?? 0);
+			hash = hash * 23 + AssetClass.GetHashCode();
+			hash = hash * 23 + (AssetSubClass?.GetHashCode() ?? 0);
+			return hash;
+		}
 	}
 }

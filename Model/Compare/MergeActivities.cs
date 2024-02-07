@@ -54,8 +54,8 @@ namespace GhostfolioSidekick.Model.Compare
 		{
 			var existingOrdersWithMatchFlag = existingActivities.Select(x => new MatchActivity { Activity = x, IsMatched = false }).ToList();
 			var r = newActivities.GroupJoin(existingOrdersWithMatchFlag,
-				fo => fo.TransactionId,
-				eo => eo.Activity.TransactionId,
+				newActivity => newActivity.TransactionId,
+				existingActivity => existingActivity.Activity.TransactionId,
 				(fo, eo) =>
 				{
 					if (fo != null && eo != null && eo.Any())
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.Model.Compare
 							return new MergeOrder(Operation.Duplicate, symbolProfile, fo);
 						}
 
-						return new MergeOrder(Operation.Updated, symbolProfile, fo, other.Activity);
+						return new MergeOrder(Operation.Updated, symbolProfile, other.Activity, fo);
 					}
 					else if (fo != null)
 					{
@@ -85,17 +85,16 @@ namespace GhostfolioSidekick.Model.Compare
 			return Task.FromResult(r);
 		}
 
-		private async Task<bool> AreEquals(Activity fo, Activity eo)
+		private async Task<bool> AreEquals(Activity newActivity, Activity existingActivity)
 		{
-			var quantityEquals = fo.Quantity == eo.Quantity;
-			var unitPriceEquals = fo.UnitPrice.Equals(await RoundAndConvert(eo.UnitPrice, fo.UnitPrice.Currency, fo.Date));
-			var feesEquals = AreEquals(fo.Fees.ToList(), eo.Fees.ToList());
-			var taxesEquals = AreEquals(fo.Taxes.ToList(), eo.Taxes.ToList());
-			var activityEquals = fo.ActivityType == eo.ActivityType;
-			var dateEquals = fo.Date == eo.Date;
-			var descriptionEquals = fo.Description == eo.Description;
-			var equals = quantityEquals &&
-				unitPriceEquals &&
+			var existingUnitPrice = await RoundAndConvert(existingActivity.UnitPrice, newActivity.UnitPrice.Currency, newActivity.Date);
+			var quantityTimesUnitPriceEquals = Math.Abs(newActivity.Quantity * newActivity.UnitPrice.Amount - existingActivity.Quantity * existingUnitPrice.Amount) < 0.00001M;
+			var feesEquals = AreEquals(existingActivity.UnitPrice.Currency, existingActivity.Date, newActivity.Fees.ToList(), existingActivity.Fees.ToList());
+			var taxesEquals = AreEquals(existingActivity.UnitPrice.Currency, existingActivity.Date, newActivity.Taxes.ToList(), existingActivity.Taxes.ToList());
+			var activityEquals = newActivity.ActivityType == existingActivity.ActivityType;
+			var dateEquals = newActivity.Date == existingActivity.Date;
+			var descriptionEquals = newActivity.Description == null || newActivity.Description == existingActivity.Description; // We do not create descrptions when Ghostfolio will ignore them
+			var equals = quantityTimesUnitPriceEquals &&
 				feesEquals &&
 				taxesEquals &&
 				activityEquals &&
@@ -104,9 +103,17 @@ namespace GhostfolioSidekick.Model.Compare
 			return equals;
 		}
 
-		private static bool AreEquals(List<Money> money1, List<Money> money2)
+		private bool AreEquals(Currency target, DateTime dateTime, List<Money> money1, List<Money> money2)
 		{
-			return money1.Count == money2.Count && money1.TrueForAll(money2.Contains);
+			return money1.Sum(x =>
+			{
+				var rate = exchangeRateService.GetConversionRate(x.Currency, target, dateTime).Result;
+				return rate * x.Amount;
+			}) == money2.Sum(x =>
+			{
+				var rate = exchangeRateService.GetConversionRate(x.Currency, target, dateTime).Result;
+				return rate * x.Amount;
+			});
 		}
 
 		private async Task<Money> RoundAndConvert(Money value, Currency target, DateTime dateTime)
@@ -118,7 +125,7 @@ namespace GhostfolioSidekick.Model.Compare
 			}
 
 			var rate = await exchangeRateService.GetConversionRate(value.Currency, target, dateTime);
-			return new Money(value.Currency, Round(value.Amount * rate));
+			return new Money(target, Round(value.Amount * rate));
 		}
 	}
 }

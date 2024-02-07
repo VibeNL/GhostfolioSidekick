@@ -22,5 +22,26 @@
 		{
 			return $"{Amount} {Currency}";
 		}
+
+		public static bool operator ==(Money a, Money? b)
+		{
+			if (ReferenceEquals(a, b))
+			{
+				return true;
+			}
+
+			if ((a is null) || (b is null))
+			{
+				return false;
+			}
+
+			return a.Currency == b.Currency && a.Amount == b.Amount;
+		}
+
+		public static bool operator !=(Money a, Money? b)
+		{
+			return !(a == b);
+		}
+
 	}
 }

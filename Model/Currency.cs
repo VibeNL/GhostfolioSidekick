@@ -44,5 +44,27 @@
 		{
 			return Symbol;
 		}
+
+		public static bool operator ==(Currency a, Currency? b)
+		{
+			if (ReferenceEquals(a, b))
+			{
+				return true;
+			}
+
+			if ((a is null) || (b is null))
+			{
+				return false;
+			}
+
+			return a.Symbol == b.Symbol;
+		}
+
+
+		public static bool operator !=(Currency a, Currency? b)
+		{
+			return !(a == b);
+		}
+
 	}
 }
