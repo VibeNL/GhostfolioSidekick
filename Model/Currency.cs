@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick.Model
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GhostfolioSidekick.Model
 {
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S2223:Non-constant static fields should not be visible", Justification = "<Pending>")]
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "<Pending>")]
@@ -29,6 +31,7 @@
 			return knownCurrencies.Exists(x => x.Symbol == Symbol);
 		}
 
+		[ExcludeFromCodeCoverage]
 		public override bool Equals(object? obj)
 		{
 			return obj is Currency currency &&
@@ -45,6 +48,7 @@
 			return Symbol;
 		}
 
+		[ExcludeFromCodeCoverage]
 		public static bool operator ==(Currency a, Currency? b)
 		{
 			if (ReferenceEquals(a, b))
