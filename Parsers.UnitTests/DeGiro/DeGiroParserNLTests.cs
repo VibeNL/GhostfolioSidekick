@@ -56,6 +56,22 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/NL//CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 42.92M, 1),
+					PartialActivity.CreateCashWithdrawal(Currency.EUR, new DateTime(2023, 12, 28, 04, 51, 0, DateTimeKind.Utc), 1000, "CashWithdrawal_2023-12-28 04:51:00:+00:00___EUR")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleBuyEuro_Converted()
 		{
 			// Arrange
