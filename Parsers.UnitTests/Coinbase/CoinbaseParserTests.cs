@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Coinbase;
-using GhostfolioSidekick.Parsers.UnitTests;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 {
@@ -113,6 +112,94 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						0.886900M,
 						"Sell_USDC_2023-07-14 10:40:14:+00:00")
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleReceiveBuy_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Receive/single_receive.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateReceive(
+						new DateTime(2023, 04, 22, 06, 24, 44, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						0.000000010M,
+						"Receive_ETH_2023-04-22 06:24:44:+00:00")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleReceiveSend_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Send/single_send.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSend(
+						new DateTime(2023, 08, 19, 17, 23, 39, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						0.00205323M,
+						"Send_BTC_2023-08-19 17:23:39:+00:00")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStakeReward_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2023, 5, 19, 18, 14, 56, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						0.00002103M,
+						"Rewards Income_ETH2_2023-05-19 18:14:56:+00:00")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleGift_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_learningreward.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateLearningReward(
+						new DateTime(2023, 04, 20, 06, 02, 33, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("GRT")],
+						6.40204865M,
+						"Learning Reward_GRT_2023-04-20 06:02:33:+00:00")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidType_ThrowsException()
+		{
+			// Arrange
+
+			// Act
+			Func<Task> a = async () => await parser.ParseActivities("./TestFiles/Coinbase/Invalid/invalid_type.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			await a.Should().ThrowAsync<NotSupportedException>();
 		}
 	}
 }
