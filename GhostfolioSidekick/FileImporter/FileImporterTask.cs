@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.FileImporter
 				try
 				{
 					await accountManager.UpdateBalance(account, account.Balance);
-					logger.LogInformation($"Update account {account.Name} with balance {account.Balance}");
+					logger.LogInformation($"Set account {account.Name} balance to: {account.Balance}");
 				}
 				catch (Exception ex)
 				{
