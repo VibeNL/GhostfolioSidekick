@@ -21,11 +21,39 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 		}
 
 		[Fact]
-		public void Equals_ShouldReturnFalse_WhenObjectsAreNotEqual()
+		public void EqualsNull_ShouldReturnFalse_WhenObjectsAreEqual()
 		{
 			// Arrange
 			var symbolProfile1 = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf);
-			var symbolProfile2 = new SymbolProfile("symbol2", "name2", new Currency("EUR"), "dataSource2", AssetClass.FixedIncome, AssetSubClass.Stock);
+
+			// Act
+			var result = symbolProfile1.Equals(null);
+
+			// Assert
+			result.Should().BeFalse();
+		}
+
+		[Fact]
+		public void NullProfile_ShouldReturnFalse()
+		{
+			// Arrange
+			var symbolProfile2 = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf);
+
+			// Act
+			var result = ((SymbolProfile)null) == ((object)symbolProfile2);
+
+			// Assert
+			result.Should().BeFalse();
+		}
+
+		[Theory]
+		[InlineData(null)]
+		[InlineData(AssetSubClass.Stock)]
+		public void Equals_ShouldReturnFalse_WhenObjectsAreNotEqual(AssetSubClass? assetSubClass)
+		{
+			// Arrange
+			var symbolProfile1 = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf);
+			var symbolProfile2 = new SymbolProfile("symbol2", "name2", new Currency("EUR"), "dataSource2", AssetClass.FixedIncome, assetSubClass);
 
 			// Act
 			var result = symbolProfile1.Equals((object)symbolProfile2);
@@ -50,29 +78,17 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 			symbolProfile.Identifiers.Should().Contain(new[] { "id1", "id2", "id3" });
 		}
 
-		[Fact]
-		public void ParseIdentifiers_EmptyComment_ShouldParseIdentifiersFromComment()
+		[Theory]
+		[InlineData(null)]
+		[InlineData("")]
+		[InlineData("Known Identifiers:")]
+		[InlineData("[a,b,c]")]
+		public void ParseIdentifiers_EmptyComment_ShouldParseIdentifiersFromComment(string comment)
 		{
 			// Arrange
 			var symbolProfile = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf)
 			{
-				Comment = string.Empty
-			};
-
-			// Act
-			// The ParseIdentifiers method is called inside the Comment setter
-
-			// Assert
-			symbolProfile.Identifiers.Should().BeEmpty();
-		}
-
-		[Fact]
-		public void ParseIdentifiers_InvalidComment_ShouldParseIdentifiersFromComment()
-		{
-			// Arrange
-			var symbolProfile = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf)
-			{
-				Comment = "No ids"
+				Comment = comment
 			};
 
 			// Act
@@ -268,7 +284,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 		{
 			// Arrange
 			var symbolProfile1 = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf);
-			var symbolProfile2 = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Stock);
+			var symbolProfile2 = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, null);
 
 			// Act
 			var hashCode1 = symbolProfile1.GetHashCode();

@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Model.Symbols
@@ -46,6 +47,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public int ActivitiesCount { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		public bool Equals(SymbolProfile? other)
 		{
 			return
@@ -65,7 +67,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 			var pattern = @"Known Identifiers: \[(.*?)\]";
 			var match = Regex.Match(comment, pattern);
-			var ids = (match.Groups.Count > 1 ? match.Groups[1]?.Value : null) ?? string.Empty;
+			var ids = match.Groups.Count > 1 ? match.Groups[1].Value : null;
 
 			if (string.IsNullOrEmpty(ids))
 			{
@@ -99,9 +101,9 @@ namespace GhostfolioSidekick.Model.Symbols
 		public override int GetHashCode()
 		{
 			int hash = 17;
-			hash = hash * 23 + (Currency?.Symbol?.GetHashCode() ?? 0);
-			hash = hash * 23 + (Name?.GetHashCode() ?? 0);
-			hash = hash * 23 + (Symbol?.GetHashCode() ?? 0);
+			hash = hash * 23 + Currency.Symbol.GetHashCode();
+			hash = hash * 23 + Name.GetHashCode();
+			hash = hash * 23 + Symbol.GetHashCode();
 			hash = hash * 23 + AssetClass.GetHashCode();
 			hash = hash * 23 + (AssetSubClass?.GetHashCode() ?? 0);
 			return hash;
