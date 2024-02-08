@@ -1,5 +1,8 @@
-﻿namespace GhostfolioSidekick.Model.Symbols
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GhostfolioSidekick.Model.Symbols
 {
+	[ExcludeFromCodeCoverage]
 	public static class Datasource
 	{
 		public static string YAHOO = "YAHOO";

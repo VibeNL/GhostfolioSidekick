@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick.Model
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GhostfolioSidekick.Model
 {
 	public class Money(Currency currency, decimal amount)
 	{
@@ -23,6 +25,7 @@
 			return $"{Amount} {Currency}";
 		}
 
+		[ExcludeFromCodeCoverage]
 		public static bool operator ==(Money a, Money? b)
 		{
 			if (ReferenceEquals(a, b))
