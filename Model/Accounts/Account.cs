@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick.Model.Accounts
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GhostfolioSidekick.Model.Accounts
 {
 	public class Account(string name, Balance balance)
 	{
@@ -12,6 +14,7 @@
 
 		public Platform? Platform { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return Name;

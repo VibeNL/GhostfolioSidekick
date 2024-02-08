@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities
 {
@@ -29,6 +30,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public string? Description { get; set; }
 		public string? Id { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"{Account}_{ActivityType}_{Date}";
