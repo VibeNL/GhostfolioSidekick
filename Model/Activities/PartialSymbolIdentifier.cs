@@ -1,4 +1,6 @@
 ﻿
+using System.Diagnostics.CodeAnalysis;
+
 namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialSymbolIdentifier
@@ -37,6 +39,7 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
+		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"{Identifier} [{string.Join(",", AllowedAssetClasses ?? [])}] [{string.Join(",", AllowedAssetSubClasses ?? [])}]";
