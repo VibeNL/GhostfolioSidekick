@@ -80,9 +80,6 @@ namespace GhostfolioSidekick.Parsers.Generic
 						lst.Add(PartialActivity.CreateTax(currency, record.Date, record.UnitPrice, record.Id));
 					}
 					break;
-				case ActivityType.LearningReward:
-				case ActivityType.StakingReward:
-				case ActivityType.Convert:
 				default:
 					throw new NotSupportedException();
 			}

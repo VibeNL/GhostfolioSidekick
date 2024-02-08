@@ -18,6 +18,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		public decimal UnitPrice { get; set; }
 
+		[Optional]
 		public decimal? Fee { get; set; }
 
 		[Optional]

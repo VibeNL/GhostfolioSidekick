@@ -135,11 +135,20 @@
 		<None Update="TestFiles\Generic\BuyOrders\single_buy.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Generic\CashTransactions\double_tax.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Generic\CashTransactions\single_deposit.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Generic\CashTransactions\single_dividend.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\CashTransactions\double_fee.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\CashTransactions\single_tax.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Generic\CashTransactions\single_interest.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -150,6 +159,9 @@
 		<None Update="TestFiles\Generic\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Generic\Invalid\invalid.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Generic\Receive\single_receive.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -157,6 +169,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Generic\Send\single_send.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\Specials\single_gift.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Nexo\CashTransactions\single_interest_fixed_term.csv">

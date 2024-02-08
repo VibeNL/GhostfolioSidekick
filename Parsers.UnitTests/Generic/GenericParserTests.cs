@@ -194,6 +194,53 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_DoubleFee_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/double_fee.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 3M, "Fee_USD_2023-08-08_1_USD_0.25"),
+					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 0.25M, "Fee_USD_2023-08-08_1_USD_0.25"),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleTax_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_tax.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateTax(Currency.USD, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 0.25M, "Tax_USD_2023-08-08_1_USD_"),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_DoubleTax_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/double_tax.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateTax(Currency.USD, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 3M, "Tax_USD_2023-08-08_1_USD_"),
+					PartialActivity.CreateTax(Currency.USD, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 0.25M, "Tax_USD_2023-08-08_1_USD_"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDividend_Converted()
 		{
 			// Arrange
@@ -207,6 +254,33 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 					PartialActivity.CreateDividend(Currency.EUR, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateGeneric("US2546871060")], (decimal)(0.3247 * 0.27), "Dividend_US2546871060_2023-08-08_0.3247_EUR_0"),
 					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 0.02M, "Dividend_US2546871060_2023-08-08_0.3247_EUR_0")
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleGift_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/Specials/single_gift.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 25M, "Gift_EUR_2023-08-07_1_USD_"),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleInvalid_NotConverted()
+		{
+			// Arrange
+
+			// Act
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/Generic/Invalid/invalid.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			await a.Should().ThrowAsync<NotSupportedException>();
 		}
 	}
 }
