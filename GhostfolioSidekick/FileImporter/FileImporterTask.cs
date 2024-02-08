@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -14,6 +15,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly IActivitiesService activitiesManager;
 		private readonly IAccountService accountManager;
 		private readonly IMarketDataService marketDataManager;
+		private readonly IExchangeRateService exchangeRateService;
 		private readonly IEnumerable<IFileImporter> importers;
 		private readonly IEnumerable<IHoldingStrategy> strategies;
 
@@ -25,6 +27,7 @@ namespace GhostfolioSidekick.FileImporter
 			IActivitiesService activitiesManager,
 			IAccountService accountManager,
 			IMarketDataService marketDataManager,
+			IExchangeRateService exchangeRateService,
 			IEnumerable<IFileImporter> importers,
 			IEnumerable<IHoldingStrategy> strategies)
 		{
@@ -35,6 +38,7 @@ namespace GhostfolioSidekick.FileImporter
 			this.activitiesManager = activitiesManager ?? throw new ArgumentNullException(nameof(activitiesManager));
 			this.accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
 			this.marketDataManager = marketDataManager ?? throw new ArgumentNullException(nameof(marketDataManager));
+			this.exchangeRateService = exchangeRateService ?? throw new ArgumentNullException(nameof(exchangeRateService));
 			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
 			this.strategies = strategies;
 		}
@@ -88,7 +92,57 @@ namespace GhostfolioSidekick.FileImporter
 
 			ApplyHoldingActions(holdingsCollection, strategies);
 
-			await activitiesManager.UpdateActivities(accountNames, holdingsCollection.Holdings);
+			var existingHoldings = await activitiesManager.GetAllActivities();
+			var mergeOrders = (await new MergeActivities(exchangeRateService)
+				.Merge(existingHoldings, holdingsCollection.Holdings))
+				.Where(x => x.Order1.ActivityType != Model.Activities.ActivityType.KnownBalance)
+				.Where(x => x.Operation != Operation.Duplicate)
+				.OrderBy(x => x.Order1.Date);
+
+			foreach (var item in mergeOrders)
+			{
+				try
+				{
+					switch (item.Operation)
+					{
+						case Operation.New:
+							await activitiesManager.InsertActivity(item.SymbolProfile, item.Order1);
+							break;
+						case Operation.Updated:
+							await activitiesManager.DeleteActivity(item.SymbolProfile, item.Order1);
+							await activitiesManager.InsertActivity(item.SymbolProfile, item.Order2!);
+							break;
+						case Operation.Removed:
+							await activitiesManager.DeleteActivity(item.SymbolProfile, item.Order1);
+							break;
+						default:
+							throw new NotSupportedException();
+					}
+				}
+				catch (Exception ex)
+				{
+					logger.LogError($"Transaction failed to write {ex}, skipping");
+				}
+			}
+
+			var accounts = await holdingsCollection.GetAccountBalances(exchangeRateService);
+			foreach (var account in accounts)
+			{
+				if (Math.Abs(account.Key.Balance.Money.Amount - account.Value.Money.Amount) < Constants.Epsilon)
+				{
+					logger.LogDebug($"Account {account.Key.Name} balance unchanged on: {account.Value}");
+					continue;
+				}
+				try
+				{
+					await accountManager.UpdateBalance(account.Key, account.Value);
+					logger.LogInformation($"Set account {account.Key.Name} balance to: {account.Value}");
+				}
+				catch (Exception ex)
+				{
+					logger.LogError($"Account balance for account {account.Key.Name} failed to update {ex}, skipping");
+				}
+			}
 
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}

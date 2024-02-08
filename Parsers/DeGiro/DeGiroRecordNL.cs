@@ -1,6 +1,7 @@
 ﻿using CsvHelper.Configuration.Attributes;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -16,6 +17,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		[Name("Tijd")]
 		public override TimeOnly Time { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		[Name("Valutadatum")]
 		[Format("dd-MM-yyyy")]
 		public override DateOnly CurrencyDate { get; set; }
@@ -27,8 +29,9 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		public override string? ISIN { get; set; }
 
 		[Name("Omschrijving")]
-		public override string? Description { get; set; }
+		public override required string Description { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		[Name("FX")]
 		public override string? FX { get; set; }
 
@@ -49,11 +52,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public override ActivityType? GetActivityType()
 		{
-			if (Description == null)
-			{
-				return null;
-			}
-
 			if (Description.Equals("DEGIRO Transactiekosten en/of kosten van derden"))
 			{
 				return ActivityType.Fee;
@@ -133,7 +131,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			var activity = GetActivityType();
 			var mutation = Mutation;
 			const string dividendText = "Dividend";
-			if (Description?.StartsWith(dividendText) ?? false)
+			if (Description.StartsWith(dividendText))
 			{
 				mutation = dividendText;
 				activity = ActivityType.Dividend;

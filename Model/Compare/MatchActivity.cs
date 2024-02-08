@@ -1,6 +1,6 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
+﻿using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioSidekick.GhostfolioAPI.API
+namespace GhostfolioSidekick.Model.Compare
 {
 	public class MatchActivity
 	{

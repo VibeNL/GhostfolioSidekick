@@ -1,4 +1,5 @@
 ﻿
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Contract
@@ -27,13 +28,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.Contract
 
 		public string? Comment { get; set; }
 
-		internal static SymbolProfile Empty(string? name)
+		internal static SymbolProfile Empty(Currency currency, string? name)
 		{
 			return new SymbolProfile()
 			{
 				Name = name ?? string.Empty,
 				Symbol = name ?? string.Empty,
-				Currency = string.Empty,
+				Currency = currency.Symbol,
 				AssetClass = string.Empty,
 				DataSource = Datasource.MANUAL.ToString(),
 			};

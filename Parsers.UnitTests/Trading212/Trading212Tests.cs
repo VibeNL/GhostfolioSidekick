@@ -86,6 +86,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleLendingShares_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_lending_shares.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 08, 11, 21, 08, 18, DateTimeKind.Utc), 0.01M, "Lending interest", "82f82014-23a3-4ddf-bc09-658419823f4c")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleBuyUSD_Converted()
 		{
 			// Arrange

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
-	public class SymbolProfile(
+	public sealed class SymbolProfile(
 		string symbol,
 		string name,
 		Currency currency,
@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.Model.Symbols
 				Name == other?.Name &&
 				Symbol == other?.Symbol &&
 				AssetClass == other?.AssetClass &&
-				AssetSubClass == other?.AssetSubClass;
+				AssetSubClass == other.AssetSubClass;
 		}
 
 		private void ParseIdentifiers()
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 			var pattern = @"Known Identifiers: \[(.*?)\]";
 			var match = Regex.Match(comment, pattern);
-			var ids = (match.Groups.Count > 1 ? match?.Groups[1]?.Value : null) ?? string.Empty;
+			var ids = (match.Groups.Count > 1 ? match.Groups[1]?.Value : null) ?? string.Empty;
 
 			if (string.IsNullOrEmpty(ids))
 			{
@@ -74,6 +74,37 @@ namespace GhostfolioSidekick.Model.Symbols
 
 			Identifiers.Clear();
 			Identifiers.AddRange(ids.Split(','));
+		}
+
+		public static bool operator ==(SymbolProfile? left, SymbolProfile? right)
+		{
+			if (ReferenceEquals(left, null))
+			{
+				return ReferenceEquals(right, null);
+			}
+
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(SymbolProfile? left, SymbolProfile? right)
+		{
+			return !(left == right);
+		}
+
+		public override bool Equals(object? obj)
+		{
+			return Equals(obj as SymbolProfile);
+		}
+
+		public override int GetHashCode()
+		{
+			int hash = 17;
+			hash = hash * 23 + (Currency?.Symbol?.GetHashCode() ?? 0);
+			hash = hash * 23 + (Name?.GetHashCode() ?? 0);
+			hash = hash * 23 + (Symbol?.GetHashCode() ?? 0);
+			hash = hash * 23 + AssetClass.GetHashCode();
+			hash = hash * 23 + (AssetSubClass?.GetHashCode() ?? 0);
+			return hash;
 		}
 	}
 }

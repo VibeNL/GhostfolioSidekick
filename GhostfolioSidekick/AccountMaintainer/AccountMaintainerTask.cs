@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -9,14 +8,14 @@ namespace GhostfolioSidekick.AccountMaintainer
 {
 	public class AccountMaintainerTask : IScheduledWork
 	{
-		private readonly ILogger<FileImporterTask> logger;
+		private readonly ILogger<AccountMaintainerTask> logger;
 		private readonly IAccountService api;
 		private readonly IApplicationSettings applicationSettings;
 
 		public TaskPriority Priority => TaskPriority.AccountCreation;
 
 		public AccountMaintainerTask(
-			ILogger<FileImporterTask> logger,
+			ILogger<AccountMaintainerTask> logger,
 			IAccountService api,
 			IApplicationSettings applicationSettings)
 		{
@@ -46,10 +45,11 @@ namespace GhostfolioSidekick.AccountMaintainer
 		{
 			var platforms = applicationSettings.ConfigurationInstance.Platforms;
 			var accounts = applicationSettings.ConfigurationInstance.Accounts;
+			var existingAccounts = await api.GetAllAccounts();
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{
-				var account = await api.GetAccountByName(accountConfig.Name);
+				var account = existingAccounts.SingleOrDefault(x => x.Name == accountConfig.Name);
 
 				if (account == null)
 				{
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		private async Task<Platform?> CreateOrUpdatePlatform(PlatformConfiguration? platformConfiguration)
 		{
-			if (platformConfiguration is null)
+			if (platformConfiguration is null || !applicationSettings.AllowAdminCalls)
 			{
 				return null;
 			}
@@ -84,14 +84,21 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			if (platform == null)
 			{
-				await api.CreatePlatform(new Platform(platformConfiguration.Name)
+				try
 				{
-					Url = platformConfiguration.Url,
-				});
+					await api.CreatePlatform(new Platform(platformConfiguration.Name)
+					{
+						Url = platformConfiguration.Url,
+					});
+				}
+				catch (NotAuthorizedException)
+				{
+					// Running against a managed instance?
+					applicationSettings.AllowAdminCalls = false;
+				}
 			}
 
 			// TODO Update platform
-
 			return await api.GetPlatformByName(platformConfiguration.Name);
 		}
 	}
