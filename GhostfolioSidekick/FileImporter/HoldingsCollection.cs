@@ -59,6 +59,26 @@ namespace GhostfolioSidekick.FileImporter
 			unusedPartialActivities.Clear();
 		}
 
+		public async Task<Dictionary<Account, Balance>> GetAccountBalances(IExchangeRateService exchangeRateService)
+		{
+			if (unusedPartialActivities.Count != 0)
+			{
+				throw new NotSupportedException();
+			}
+
+			var list = new Dictionary<Account, Balance>();
+			foreach (var account in holdings
+									.SelectMany(x => x.Activities)
+									.Select(x => x.Account)
+									.Distinct())
+			{
+				var balance = await GetBalance(exchangeRateService, account);
+				list.Add(account, balance);
+			}
+
+			return list;
+		}
+
 		private void DetermineActivity(Account account, Holding holding, List<PartialActivity> transactions)
 		{
 			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Length != 0) ?? transactions[0];
@@ -137,26 +157,6 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			return array.Where(x => x != null).ToList();
-		}
-
-		public async Task<IEnumerable<Account>> UpdateAccountBalances(IExchangeRateService exchangeRateService)
-		{
-			if (unusedPartialActivities.Any())
-			{
-				throw new NotSupportedException();
-			}
-
-			var accounts = new List<Account>();
-			foreach (var account in holdings
-									.SelectMany(x => x.Activities)
-									.Select(x => x.Account)
-									.Distinct())
-			{
-				account.Balance = await GetBalance(exchangeRateService, account);
-				accounts.Add(account);
-			}
-
-			return accounts;
 		}
 
 		private Task<Balance> GetBalance(IExchangeRateService exchangeRateService, Account account)

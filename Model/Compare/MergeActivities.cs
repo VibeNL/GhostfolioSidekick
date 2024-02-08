@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.Model.Compare
 
 		private static bool AreEquals(decimal a, decimal b)
 		{
-			return Math.Abs(a - b) < 0.00001M;
+			return Math.Abs(a - b) < Constants.Epsilon;
 		}
 
 		private bool AreEquals(Currency target, DateTime dateTime, List<Money> money1, List<Money> money2)

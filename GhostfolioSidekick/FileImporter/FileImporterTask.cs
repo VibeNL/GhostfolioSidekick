@@ -125,17 +125,22 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			var accounts = await holdingsCollection.UpdateAccountBalances(exchangeRateService);
+			var accounts = await holdingsCollection.GetAccountBalances(exchangeRateService);
 			foreach (var account in accounts)
 			{
+				if (Math.Abs(account.Key.Balance.Money.Amount - account.Value.Money.Amount) < Constants.Epsilon)
+				{
+					logger.LogDebug($"Account {account.Key.Name} balance unchanged on: {account.Value}");
+					continue;
+				}
 				try
 				{
-					await accountManager.UpdateBalance(account, account.Balance);
-					logger.LogInformation($"Set account {account.Name} balance to: {account.Balance}");
+					await accountManager.UpdateBalance(account.Key, account.Value);
+					logger.LogInformation($"Set account {account.Key.Name} balance to: {account.Value}");
 				}
 				catch (Exception ex)
 				{
-					logger.LogError($"Account balance for account {account.Name} failed to update {ex}, skipping");
+					logger.LogError($"Account balance for account {account.Key.Name} failed to update {ex}, skipping");
 				}
 			}
 

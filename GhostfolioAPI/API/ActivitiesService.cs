@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			if (activity.Type == Contract.ActivityType.IGNORE)
 			{
-				logger.LogDebug($"Skipping ignore transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
+				logger.LogTrace($"Skipping ignore transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 				return;
 			}
 
