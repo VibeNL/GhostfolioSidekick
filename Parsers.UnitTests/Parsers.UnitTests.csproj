@@ -265,6 +265,9 @@
 		<None Update="TestFiles\Trading212\CashTransactions\single_dividend_gbp.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Trading212\CashTransactions\single_lending_shares.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Trading212\CashTransactions\single_interest.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
