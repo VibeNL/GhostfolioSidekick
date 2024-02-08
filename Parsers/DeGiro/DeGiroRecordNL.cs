@@ -114,14 +114,14 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		internal override Currency GetCurrency()
+		public override Currency GetCurrency()
 		{
 			var currency = Regex.Match(Description!, "oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[3].Value;
 
 			return new Currency(currency);
 		}
 
-		internal override void SetGenerateTransactionIdIfEmpty(DateTime recordDate)
+		public override void SetGenerateTransactionIdIfEmpty(DateTime recordDate)
 		{
 			if (!string.IsNullOrWhiteSpace(TransactionId))
 			{

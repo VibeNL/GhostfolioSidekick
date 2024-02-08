@@ -122,5 +122,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 1, 3, 14, 6, 0, DateTimeKind.Utc), 2.5M, "Fee_2023-01-03 14:06:00:+00:00___EUR")
 				]);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleInterest_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/PT/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2024, 01, 02, 16, 51, 00, DateTimeKind.Utc), 0, 1),
+					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2024, 01, 02, 16, 51, 00, DateTimeKind.Utc), 1M, "Flatex Interest Income", "Interest_2024-01-02 16:51:00:+00:00___EUR")
+				]);
+		}
 	}
 }
