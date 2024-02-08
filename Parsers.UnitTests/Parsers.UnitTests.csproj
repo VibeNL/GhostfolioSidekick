@@ -141,6 +141,9 @@
 		<None Update="TestFiles\Generic\CashTransactions\single_dividend.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Generic\CashTransactions\single_interest.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Generic\CashTransactions\single_fee.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

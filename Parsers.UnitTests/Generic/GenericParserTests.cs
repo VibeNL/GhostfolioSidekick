@@ -164,6 +164,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleInterest_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateInterest(Currency.USD, new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 3.3M, "Interest", "Interest_USD_2023-08-08_1_USD_0"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleFee_Converted()
 		{
 			// Arrange
