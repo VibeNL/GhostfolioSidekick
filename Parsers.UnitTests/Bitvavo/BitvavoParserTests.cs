@@ -85,6 +85,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleSend_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Bitvavo/Send/single_send.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSend(
+						new DateTime(2023, 09, 07, 21, 39, 25, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("XLM")],
+						87.339658M,
+						"7d62b00a-60c2-42ac-b10e-4199e54cf4c8"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
 		{
 			// Arrange
@@ -146,6 +165,87 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						0.04645763986M,
 						"14ae873a-4fce-4a12-ba0f-387522c67d46"),
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStakeReward_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_stakingreward.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2023, 12, 11, 10, 32, 26, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("AXS")],
+						0.00000272M,
+						"15895215-8c11-4497-8151-eb5e5701180e")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleAffiliate_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_affiliate.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						Currency.EUR,
+						new DateTime(2023, 05, 15, 04, 00, 43, DateTimeKind.Utc),
+						0.03M,
+						"2f963a7d-891a-481d-84df-90ac7aea2f8d")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleRebate_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_rebate.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						Currency.EUR,
+						new DateTime(2023, 04, 25, 21, 54, 06, DateTimeKind.Utc),
+						0.06M,
+						"d9c2f368-ee69-4fe6-a448-dd363953bb2b")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuy_Pending_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Bitvavo/Invalid/single_buy_pending.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_InvalidType_ThrowsException()
+		{
+			// Arrange
+
+			// Act
+			Func<Task> a = async () => await parser.ParseActivities("./TestFiles/Bitvavo/Invalid/invalid_type.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			await a.Should().ThrowAsync<NotSupportedException>();
 		}
 	}
 }

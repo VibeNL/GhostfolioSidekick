@@ -36,7 +36,6 @@
 
 	<ItemGroup>
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
-		<Folder Include="TestFiles\Bitvavo\Specials\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
 	</ItemGroup>
 
@@ -54,11 +53,29 @@
 		<None Update="TestFiles\Bitvavo\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Bitvavo\Invalid\invalid_type.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\Invalid\single_buy_pending.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Bitvavo\Receive\single_receive.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Bitvavo\SellOrders\single_sell.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\Send\single_send.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\Specials\single_rebate.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\Specials\single_affiliate.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Bitvavo\Specials\single_stakingreward.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Bunq\CashTransactions\multiple_deposits.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
