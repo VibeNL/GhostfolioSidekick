@@ -105,10 +105,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return mappedAccounts;
 		}
 
-		public async Task<Model.Accounts.Platform> GetPlatformByName(string name)
+		public async Task<Model.Accounts.Platform?> GetPlatformByName(string name)
 		{
 			var platforms = await GetPlatforms();
-			return platforms.Single(x => x.Name == name);
+			return platforms.SingleOrDefault(x => x.Name == name);
 		}
 
 		public async Task<List<Model.Accounts.Platform>> GetPlatforms()

@@ -139,6 +139,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				if (!r.IsSuccessStatusCode)
 				{
+					if (r.StatusCode == System.Net.HttpStatusCode.Forbidden)
+					{
+						throw new NotAuthorizedException($"Not authorized executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+					}
+
 					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 				}
 
@@ -171,6 +176,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				if (!r.IsSuccessStatusCode)
 				{
+					if (r.StatusCode == System.Net.HttpStatusCode.Forbidden)
+					{
+						throw new NotAuthorizedException($"Not authorized executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+					}
+
 					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 				}
 
@@ -203,6 +213,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				if (!r.IsSuccessStatusCode)
 				{
+					if (r.StatusCode == System.Net.HttpStatusCode.Forbidden)
+					{
+						throw new NotAuthorizedException($"Not authorized executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+					}
+
 					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 				}
 

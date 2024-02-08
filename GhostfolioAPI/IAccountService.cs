@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		Task<Account[]> GetAllAccounts();
 
-		Task<Platform> GetPlatformByName(string name);
+		Task<Platform?> GetPlatformByName(string name);
 
 		Task UpdateBalance(Account existingAccount, Balance newBalance);
 	}
