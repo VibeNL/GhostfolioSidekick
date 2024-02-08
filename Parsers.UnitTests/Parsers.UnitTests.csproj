@@ -38,7 +38,6 @@
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Bitvavo\Specials\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
-		<Folder Include="TestFiles\Generic\SellOrders\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -147,6 +146,15 @@
 		</None>
 		<None Update="TestFiles\Generic\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\Receive\single_receive.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\SellOrders\single_sell.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\Send\single_send.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Nexo\CashTransactions\single_interest_fixed_term.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>

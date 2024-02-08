@@ -34,11 +34,16 @@ namespace GhostfolioSidekick.Parsers.Generic
 			switch (record.ActivityType)
 			{
 				case ActivityType.Receive:
+					lst.Add(PartialActivity.CreateReceive(record.Date,
+						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity, record.Id));
+					break;
 				case ActivityType.Buy:
 					lst.Add(PartialActivity.CreateBuy(currency, record.Date,
 						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity, unitPrice, record.Id));
 					break;
 				case ActivityType.Send:
+					lst.Add(PartialActivity.CreateSend(record.Date, [PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity, record.Id));
+					break;
 				case ActivityType.Sell:
 					lst.Add(PartialActivity.CreateSell(currency, record.Date, [PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity, unitPrice, record.Id));
 					break;
@@ -46,7 +51,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 					lst.Add(PartialActivity.CreateDividend(currency, record.Date, [PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity * record.UnitPrice, record.Id));
 					break;
 				case ActivityType.Interest:
-					lst.Add(PartialActivity.CreateInterest(currency, record.Date, record.UnitPrice, "Interest" ,record.Id));
+					lst.Add(PartialActivity.CreateInterest(currency, record.Date, record.UnitPrice, "Interest", record.Id));
 					break;
 				case ActivityType.Fee:
 					if (record.UnitPrice != 0)

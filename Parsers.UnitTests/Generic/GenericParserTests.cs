@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 		}
 
 		[Fact]
-		public async Task ConvertActivitiesForAccount_TestFileSingleOrder_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileSingleBuy_Converted()
 		{
 			// Arrange
 
@@ -52,6 +52,54 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 				[
 					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateGeneric("US67066G1040")], 0.0267001000M, 453.33M, "Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 0.02M, "Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleSell_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/SellOrders/single_sell.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateGeneric("US67066G1040")], 0.0267001000M, 453.33M, "Sell_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
+					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 0.02M, "Sell_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleReceive_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/Receive/single_receive.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateReceive(new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateGeneric("US67066G1040")], 0.0267001000M, "Receive_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
+					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 0.02M, "Receive_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleSend_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/Send/single_send.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSend(new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateGeneric("US67066G1040")], 0.0267001000M, "Send_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
+					PartialActivity.CreateFee(Currency.USD, new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 0.02M, "Send_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
 				]);
 		}
 
