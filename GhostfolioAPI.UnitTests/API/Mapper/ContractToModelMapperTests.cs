@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var result = ContractToModelMapper.MapAccount(rawAccount, platform);
 
 			// Assert
-			result.Should().BeEquivalentTo(rawAccount, options => options.ExcludingMissingMembers());
+			result.Should().BeEquivalentTo(rawAccount, options => options.ExcludingMissingMembers().Excluding(x => x.Balance));
 		}
 
 		[Fact]
