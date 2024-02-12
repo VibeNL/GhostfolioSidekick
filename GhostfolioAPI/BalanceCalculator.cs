@@ -2,20 +2,32 @@
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Compare;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public static class BalanceCalculator
+	public class BalanceCalculator
 	{
-		public static async Task<Balance> Calculate(
-			Currency baseCurrency,
+		private readonly IExchangeRateService exchangeRateService;
+		private readonly ILogger logger;
+
+		public BalanceCalculator(
 			IExchangeRateService exchangeRateService,
+			ILogger logger)
+		{
+			this.exchangeRateService = exchangeRateService ?? throw new ArgumentNullException(nameof(exchangeRateService));
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+		}
+
+		public async Task<Balance> Calculate(
+			Currency baseCurrency,
 			IEnumerable<Activity> activities)
 		{
 			var sortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
 			var lastKnownBalance = sortedActivities.FirstOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
+				logger.LogDebug($"Known balance {lastKnownBalance.Quantity} {lastKnownBalance.UnitPrice.Currency.Symbol}");
 				return new Balance(new Money(lastKnownBalance.UnitPrice.Currency, lastKnownBalance.Quantity));
 			}
 
@@ -51,8 +63,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						throw new NotSupportedException();
 				}
 
-				amount += factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
+				var totalAmount = factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
 							activity.UnitPrice.Amount * activity.Quantity;
+				logger.LogDebug($"Activity {activity.ActivityType} {factor} {totalAmount}");
+				amount += totalAmount;
 			}
 
 			return new Balance(new Money(baseCurrency, amount));
