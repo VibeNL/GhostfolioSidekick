@@ -23,16 +23,16 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			Currency baseCurrency,
 			IEnumerable<Activity> activities)
 		{
-			var sortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
-			var lastKnownBalance = sortedActivities.FirstOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
+			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
+			var lastKnownBalance = descendingSortedActivities.FirstOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
 				logger.LogDebug($"Known balance {lastKnownBalance.Quantity} {lastKnownBalance.UnitPrice.Currency.Symbol}");
 				return new Balance(new Money(lastKnownBalance.UnitPrice.Currency, lastKnownBalance.Quantity));
 			}
 
-			var amount = 0M;
-			foreach (var activity in sortedActivities)
+			var totalAmount = 0M;
+			foreach (var activity in activities.OrderBy(x => x.Date).ThenBy(x => x.SortingPriority))
 			{
 				var factor = 0M;
 				switch (activity.ActivityType)
@@ -63,13 +63,14 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						throw new NotSupportedException();
 				}
 
-				var totalAmount = factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
+				var activityAmount = factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
 							activity.UnitPrice.Amount * activity.Quantity;
-				logger.LogDebug($"Activity {activity.ActivityType} {factor} {totalAmount}");
-				amount += totalAmount;
+				totalAmount += activityAmount;
+				logger.LogDebug($"Activity {activity.ActivityType} {factor} {activityAmount}. Total is now: {totalAmount}");
+				
 			}
 
-			return new Balance(new Money(baseCurrency, amount));
+			return new Balance(new Money(baseCurrency, totalAmount));
 		}
 	}
 }
