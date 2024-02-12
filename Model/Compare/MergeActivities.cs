@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.Model.Compare
 				existingActivity => existingActivity.Activity.TransactionId,
 				(fo, eo) =>
 				{
-					if (fo != null && eo != null && eo.Any())
+					if (eo.Any())
 					{
 						var other = eo.Single();
 						other.IsMatched = true;
@@ -70,14 +70,9 @@ namespace GhostfolioSidekick.Model.Compare
 
 						return new MergeOrder(Operation.Updated, symbolProfile, other.Activity, fo);
 					}
-					else if (fo != null)
-					{
-						return new MergeOrder(Operation.New, symbolProfile, fo);
-					}
-					else
-					{
-						throw new NotSupportedException();
-					}
+
+					return new MergeOrder(Operation.New, symbolProfile, fo);
+
 				}).Union(existingOrdersWithMatchFlag
 				.Where(x => !x.IsMatched)
 				.Select(x => new MergeOrder(Operation.Removed, symbolProfile, x.Activity)))

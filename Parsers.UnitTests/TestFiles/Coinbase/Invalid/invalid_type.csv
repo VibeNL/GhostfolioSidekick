@@ -1,0 +1,9 @@
+"You can use this transaction report to inform your likely tax obligations. For US customers, Sells, Converts, Rewards Income, Learning Rewards, and Donations are taxable events. For final tax obligations, please consult your tax advisor."
+
+
+
+Transactions
+User,xxxxxx,xxxxxxxxxxxxxxxxxxx
+
+Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+2023-04-20T04:05:40Z,Unknown,ETH,0.00213232,EUR,1810.23,3.86,4.85,0.990000,Bought 0.00213232 ETH for €4.85 EUR

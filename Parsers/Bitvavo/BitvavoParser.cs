@@ -92,13 +92,13 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						record.Transaction);
 					}
 				case "rebate":
-					return PartialActivity.CreateCashDeposit(
+					return PartialActivity.CreateGift(
 						currency,
 						dateTime,
 						Math.Abs(record.Amount),
 						record.Transaction);
 				case "affiliate":
-					return PartialActivity.CreateCashDeposit(
+					return PartialActivity.CreateGift(
 						currency,
 						dateTime,
 						Math.Abs(record.Amount),
