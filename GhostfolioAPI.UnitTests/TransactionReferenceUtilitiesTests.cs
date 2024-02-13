@@ -39,6 +39,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 
 		[Fact]
+		public void GetComment_WithNullSymbolProfile_ShouldReturnExpectedString()
+		{
+			// Arrange
+			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, "123").Create();
+
+			// Act
+			var result = TransactionReferenceUtilities.GetComment(activity, null);
+
+			// Assert
+			result.Should().Be("Transaction Reference: [123] (Details: asset <EMPTY>)");
+		}
+
+		[Fact]
 		public void GetComment_SymbolProfile_WithEmptyTransactionId_ShouldThrowNotSupportedException()
 		{
 			// Arrange
