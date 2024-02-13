@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Compare;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
@@ -10,6 +11,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 	{
 		Currency baseCurrency = Currency.USD;
 		Mock<IExchangeRateService> exchangeRateServiceMock;
+		ILogger logger = new Mock<ILogger>().Object;
 
 		public BalanceCalculatorTests()
 		{
@@ -33,7 +35,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await BalanceCalculator.Calculate(baseCurrency, exchangeRateServiceMock.Object, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(knownBalanceActivity.Quantity);
@@ -50,7 +52,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await BalanceCalculator.Calculate(baseCurrency, exchangeRateServiceMock.Object, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(25);
@@ -68,7 +70,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Act & Assert
 			await Assert.ThrowsAsync<NotSupportedException>(() =>
-				BalanceCalculator.Calculate(baseCurrency, exchangeRateServiceMock.Object, activities));
+				new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities));
 		}
 
 		[Fact]
@@ -78,7 +80,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var activities = new List<Activity>();
 
 			// Act
-			var result = await BalanceCalculator.Calculate(baseCurrency, exchangeRateServiceMock.Object, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(0);

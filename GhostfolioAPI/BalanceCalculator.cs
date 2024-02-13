@@ -2,25 +2,40 @@
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Compare;
+using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public static class BalanceCalculator
+	public class BalanceCalculator
 	{
-		public static async Task<Balance> Calculate(
-			Currency baseCurrency,
+		private readonly IExchangeRateService exchangeRateService;
+		private readonly ILogger logger;
+
+		public BalanceCalculator(
 			IExchangeRateService exchangeRateService,
+			ILogger logger)
+		{
+			this.exchangeRateService = exchangeRateService ?? throw new ArgumentNullException(nameof(exchangeRateService));
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+		}
+
+		public async Task<Balance> Calculate(
+			Currency baseCurrency,
 			IEnumerable<Activity> activities)
 		{
-			var sortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
-			var lastKnownBalance = sortedActivities.FirstOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
+			var sb = new StringBuilder();
+
+			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
+			var lastKnownBalance = descendingSortedActivities.FirstOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
+				sb.AppendLine($"Known balance {lastKnownBalance.Quantity} {lastKnownBalance.UnitPrice.Currency.Symbol}");
 				return new Balance(new Money(lastKnownBalance.UnitPrice.Currency, lastKnownBalance.Quantity));
 			}
 
-			var amount = 0M;
-			foreach (var activity in sortedActivities)
+			var totalAmount = 0M;
+			foreach (var activity in activities.OrderBy(x => x.Date).ThenBy(x => x.SortingPriority))
 			{
 				var factor = 0M;
 				switch (activity.ActivityType)
@@ -51,11 +66,16 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						throw new NotSupportedException();
 				}
 
-				amount += factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
+				var activityAmount = factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
 							activity.UnitPrice.Amount * activity.Quantity;
+				totalAmount += activityAmount;
+				sb.AppendLine($"Activity {activity.ActivityType} {factor} {activityAmount}. Total is now: {totalAmount}");
+
 			}
 
-			return new Balance(new Money(baseCurrency, amount));
+			logger.LogDebug(sb.ToString());
+
+			return new Balance(new Money(baseCurrency, totalAmount));
 		}
 	}
 }

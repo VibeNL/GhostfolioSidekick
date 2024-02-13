@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			var directories = Directory.GetDirectories(fileLocation);
 
-			var holdingsCollection = new HoldingsCollection(accountManager, marketDataManager);
+			var holdingsCollection = new HoldingsCollection(logger, accountManager, marketDataManager);
 			var accountNames = new List<string>();
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))
 			{
