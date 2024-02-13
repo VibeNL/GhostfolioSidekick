@@ -84,6 +84,31 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			holding.Activities.Should().BeEquivalentTo([CreateDummyActivity(ActivityType.StakingReward, 42, 0)]);
 		}
 
+		[Fact]
+		public async Task Execute_NoStakeRewards_NotExecuted()
+		{
+			// Arrange
+			var sg = new Settings()
+			{
+				CryptoWorkaroundStakeReward = false
+			};
+			var stake = new StakeAsDividendWorkaround(sg);
+
+			var holding = new Holding(symbolProfileCrypto)
+			{
+				Activities = [
+					CreateDummyActivity(ActivityType.Buy, 42)
+				]
+			};
+
+			// Act
+			await stake.Execute(holding);
+
+			// Assert
+			holding.Activities.Should().HaveCount(1);
+			holding.Activities.Should().BeEquivalentTo([CreateDummyActivity(ActivityType.Buy, 42, 0)]);
+		}
+
 		private Activity CreateDummyActivity(ActivityType type, decimal amount, int? defaultC = null)
 		{
 			return new Activity(null!, type, now.AddMinutes(defaultC ?? c++), amount, new Money(Currency.EUR, 1), "A");
