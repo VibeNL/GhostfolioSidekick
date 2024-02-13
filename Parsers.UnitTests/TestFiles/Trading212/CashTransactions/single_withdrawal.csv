@@ -1,2 +1,2 @@
 Action,Time,ISIN,Ticker,Name,No. of shares,Price / share,Currency (Price / share),Exchange rate,Currency (Result),Total,Currency (Total),Withholding tax,Currency (Withholding tax),Charge amount,Currency (Charge amount),Stamp duty reserve tax,Currency (Stamp duty reserve tax),Notes,ID,French transaction tax,Currency (French transaction tax),Currency conversion fee,Currency (Currency conversion fee)
-Withdrawal,2023-11-17 05:49:12.337,,,,,,,,,1000.00,"EUR",,,,,,,"Sent to Bank Account ABNANL2A / ********",5d72520a-388c-428a-90bf-6d9fcff55534,,,,
+Withdrawal,2023-11-17 05:49:12.337,,,,,,,,,-1000.00,"EUR",,,,,,,"Sent to Bank Account ********",5d72520a-388c-428a-90bf-6d9fcff55534,,,,

@@ -25,10 +25,10 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			switch (record.Action)
 			{
 				case "Deposit":
-					lst.Add(PartialActivity.CreateCashDeposit(currency, record.Time, record.Total.GetValueOrDefault(), record.Id));
+					lst.Add(PartialActivity.CreateCashDeposit(currency, record.Time, Math.Abs(record.Total.GetValueOrDefault()), record.Id));
 					break;
 				case "Withdrawal":
-					lst.Add(PartialActivity.CreateCashWithdrawal(currency, record.Time, record.Total.GetValueOrDefault(), record.Id));
+					lst.Add(PartialActivity.CreateCashWithdrawal(currency, record.Time, Math.Abs(record.Total.GetValueOrDefault()), record.Id));
 					break;
 				case "Interest on cash":
 				case "Lending interest":
