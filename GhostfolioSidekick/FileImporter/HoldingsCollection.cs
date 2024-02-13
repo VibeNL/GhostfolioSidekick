@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Parsers;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.FileImporter
 {
@@ -11,11 +12,14 @@ namespace GhostfolioSidekick.FileImporter
 	{
 		private readonly List<Holding> holdings = [new Holding(null)];
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
+		private readonly ILogger logger;
 
 		public HoldingsCollection(
+			ILogger logger,
 			IAccountService accountService,
 			IMarketDataService marketDataService)
 		{
+			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			AccountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
 			MarketDataService = marketDataService ?? throw new ArgumentNullException(nameof(marketDataService));
 		}
@@ -161,8 +165,11 @@ namespace GhostfolioSidekick.FileImporter
 
 		private Task<Balance> GetBalance(IExchangeRateService exchangeRateService, Account account)
 		{
-			var allActivities = holdings.SelectMany(x => x.Activities).Where(x => x.Account == account).ToList();
-			return BalanceCalculator.Calculate(account.Balance.Money.Currency, exchangeRateService, allActivities);
+			using (logger.BeginScope($"Balance for account {account.Name}"))
+			{
+				var allActivities = holdings.SelectMany(x => x.Activities).Where(x => x.Account == account).ToList();
+				return new BalanceCalculator(exchangeRateService, logger).Calculate(account.Balance.Money.Currency, allActivities);
+			}
 		}
 	}
 }

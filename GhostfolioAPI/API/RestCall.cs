@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class RestCall
 	{
-		private Mutex mutex = new();
+		private readonly Mutex mutex = new();
 
 		private static int _maxRetryAttempts = 5;
 		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(1);
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				var r = policy.Execute(() => restClient.ExecuteGetAsync(request).Result);
 				stopwatch.Stop();
 
-				logger.LogDebug($"Url {url}/{suffixUrl} took {stopwatch.ElapsedMilliseconds}ms");
+				logger.LogTrace($"Url {url}/{suffixUrl} took {stopwatch.ElapsedMilliseconds}ms");
 
 				if (!r.IsSuccessStatusCode)
 				{
