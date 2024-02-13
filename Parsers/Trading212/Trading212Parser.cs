@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					var parsed = ParserConvertion(record);
 					lst.AddRange(PartialActivity.CreateCurrencyConvert(record.Time, parsed.Source, parsed.Target, record.Id));
 					break;
-    case "Limit buy":
+				case "Limit buy":
 				case "Market buy":
 					lst.Add(PartialActivity.CreateBuy(currency, record.Time,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
