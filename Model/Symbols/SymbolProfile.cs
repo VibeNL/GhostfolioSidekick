@@ -5,27 +5,37 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
-	public sealed class SymbolProfile(
-		string symbol,
-		string name,
-		Currency currency,
-		string dataSource,
-		AssetClass assetClass,
-		AssetSubClass? assetSubClass) : IEquatable<SymbolProfile>
+	public sealed class SymbolProfile : IEquatable<SymbolProfile>
 	{
 		private string? comment;
 
-		public Currency Currency { get; set; } = currency;
+		public SymbolProfile(
+			string symbol,
+			string name,
+			Currency currency,
+			string dataSource,
+			AssetClass assetClass,
+			AssetSubClass? assetSubClass)
+		{
+			Symbol = symbol;
+			Name = name;
+			Currency = currency;
+			DataSource = dataSource;
+			AssetClass = assetClass;
+			AssetSubClass = assetSubClass;
+		}
 
-		public string Symbol { get; set; } = symbol;
+		public Currency Currency { get; set; }
 
-		public string Name { get; set; } = name;
+		public string Symbol { get; set; }
 
-		public string DataSource { get; set; } = dataSource;
+		public string Name { get; set; }
 
-		public AssetClass AssetClass { get; set; } = assetClass;
+		public string DataSource { get; set; }
 
-		public AssetSubClass? AssetSubClass { get; set; } = assetSubClass;
+		public AssetClass AssetClass { get; set; }
+
+		public AssetSubClass? AssetSubClass { get; set; }
 
 		public string? ISIN { get; set; }
 
@@ -47,17 +57,6 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public int ActivitiesCount { get; set; }
 
-		[ExcludeFromCodeCoverage]
-		public bool Equals(SymbolProfile? other)
-		{
-			return
-				Currency.Symbol == other?.Currency.Symbol &&
-				Name == other?.Name &&
-				Symbol == other?.Symbol &&
-				AssetClass == other?.AssetClass &&
-				AssetSubClass == other.AssetSubClass;
-		}
-
 		private void ParseIdentifiers()
 		{
 			if (comment == null)
@@ -76,6 +75,17 @@ namespace GhostfolioSidekick.Model.Symbols
 
 			Identifiers.Clear();
 			Identifiers.AddRange(ids.Split(','));
+		}
+		
+		[ExcludeFromCodeCoverage]
+		public bool Equals(SymbolProfile? other)
+		{
+			return
+				Currency.Symbol == other?.Currency.Symbol &&
+				Name == other?.Name &&
+				Symbol == other?.Symbol &&
+				AssetClass == other?.AssetClass &&
+				AssetSubClass == other.AssetSubClass;
 		}
 
 		public static bool operator ==(SymbolProfile? left, SymbolProfile? right)

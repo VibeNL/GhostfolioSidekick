@@ -1,8 +1,13 @@
 ﻿namespace GhostfolioSidekick.Model.Accounts
 {
-	public class Platform(string name)
+	public class Platform
 	{
-		public string Name { get; set; } = name;
+		public Platform(string name)
+		{
+			Name = name;
+		}
+
+		public string Name { get; set; }
 
 		public string? Url { get; set; }
 

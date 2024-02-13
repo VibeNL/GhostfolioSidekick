@@ -1,8 +1,13 @@
 ﻿namespace GhostfolioSidekick.Model.Accounts
 {
-	public class Balance(Money money)
+	public class Balance
 	{
-		public Money Money { get; set; } = money;
+		public Balance(Money money)
+		{
+			Money = money;
+		}
+
+		public Money Money { get; set; }
 
 		public override string ToString()
 		{
