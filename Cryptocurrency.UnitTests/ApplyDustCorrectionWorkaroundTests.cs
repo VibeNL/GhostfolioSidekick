@@ -204,7 +204,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			await dust.Execute(holding);
 
 			// Assert
-			holding.Activities.Should().HaveCount(6);
+			holding.Activities.Should().HaveCount(5);
 		}
 
 		[Fact]
