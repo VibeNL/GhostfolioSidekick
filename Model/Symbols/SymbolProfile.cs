@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string? ISIN { get; set; }
 
-		public MarketDataMappings Mappings { get; private set; } = new MarketDataMappings();
+		public MarketDataMappings Mappings { get; } = new MarketDataMappings();
 
 		public ScraperConfiguration ScraperConfiguration { get; set; } = new ScraperConfiguration();
 

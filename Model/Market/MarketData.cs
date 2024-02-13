@@ -2,9 +2,9 @@
 {
 	public class MarketData(string symbol, string dataSource, decimal marketPrice, DateTime date)
 	{
-		public string Symbol { get; set; } = symbol;
+		public string Symbol { get; } = symbol;
 
-		public string DataSource { get; set; } = dataSource;
+		public string DataSource { get; } = dataSource;
 
 		public decimal MarketPrice { get; } = marketPrice;
 
