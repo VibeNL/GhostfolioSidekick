@@ -25,6 +25,8 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			return $"Transaction Reference: [{activity.TransactionId}]";
 		}
 
+
+
 		internal static string? ParseComment(Contract.Activity activity)
 		{
 			var comment = activity.Comment;
@@ -35,8 +37,8 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			var pattern = @"Transaction Reference: \[(.*?)\]";
 			var match = Regex.Match(comment, pattern);
-			var key = (match.Groups.Count > 1 ? match.Groups[1]?.Value : null) ?? string.Empty;
-			return key;
+			var key = match.Groups.Count > 1 ? match.Groups[1].Value : null;
+			return key ?? string.Empty;
 		}
 	}
 }
