@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Arrange
 			var sg = new Settings()
 			{
-				CryptoWorkaroundStakeReward = false
+				CryptoWorkaroundStakeReward = true
 			};
 			var stake = new StakeAsDividendWorkaround(sg);
 
