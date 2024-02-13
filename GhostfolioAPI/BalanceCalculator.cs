@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
@@ -23,11 +24,13 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			Currency baseCurrency,
 			IEnumerable<Activity> activities)
 		{
+			var sb = new StringBuilder();
+
 			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
 			var lastKnownBalance = descendingSortedActivities.FirstOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
-				logger.LogDebug($"Known balance {lastKnownBalance.Quantity} {lastKnownBalance.UnitPrice.Currency.Symbol}");
+				sb.AppendLine($"Known balance {lastKnownBalance.Quantity} {lastKnownBalance.UnitPrice.Currency.Symbol}");
 				return new Balance(new Money(lastKnownBalance.UnitPrice.Currency, lastKnownBalance.Quantity));
 			}
 
@@ -66,9 +69,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				var activityAmount = factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
 							activity.UnitPrice.Amount * activity.Quantity;
 				totalAmount += activityAmount;
-				logger.LogDebug($"Activity {activity.ActivityType} {factor} {activityAmount}. Total is now: {totalAmount}");
-				
+				sb.AppendLine($"Activity {activity.ActivityType} {factor} {activityAmount}. Total is now: {totalAmount}");
+
 			}
+
+			logger.LogDebug(sb.ToString());
 
 			return new Balance(new Money(baseCurrency, totalAmount));
 		}
