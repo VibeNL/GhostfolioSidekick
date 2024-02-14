@@ -7,6 +7,7 @@ using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 {
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S6608:Prefer indexing instead of \"Enumerable\" methods on types implementing \"IList\"", Justification = "<Pending>")]
 	public class ApplyDustCorrectionWorkaroundTests
 	{
 		private readonly DateTime now = DateTime.UtcNow;
