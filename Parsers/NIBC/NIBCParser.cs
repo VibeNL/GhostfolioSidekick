@@ -8,13 +8,16 @@ namespace GhostfolioSidekick.Parsers.NIBC
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "Name of bank")]
 	public class NIBCParser : RecordBaseImporter<NIBCRecord>
 	{
-		public NIBCParser()
+		private readonly ICurrencyMapper currencyMapper;
+
+		public NIBCParser(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(NIBCRecord record, int rowNumber)
 		{
-			var currency = new Currency(record.Currency);
+			var currency = currencyMapper.Map(record.Currency);
 			if (record.Description == "Inkomende overboeking")
 			{
 				return [PartialActivity.CreateCashDeposit(currency, record.Date, Math.Abs(record.Amount), record.TransactionID)];

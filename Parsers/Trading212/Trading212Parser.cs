@@ -7,8 +7,11 @@ namespace GhostfolioSidekick.Parsers.Trading212
 {
 	public class Trading212Parser : RecordBaseImporter<Trading212Record>
 	{
-		public Trading212Parser()
+		private readonly ICurrencyMapper currencyMapper;
+
+		public Trading212Parser(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(Trading212Record record, int rowNumber)
@@ -20,7 +23,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 
 			var lst = new List<PartialActivity>();
 			string? currencySymbol = string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency;
-			var currency = new Currency(currencySymbol!);
+			var currency = currencyMapper.Map(currencySymbol!);
 
 			switch (record.Action)
 			{
@@ -72,8 +75,8 @@ namespace GhostfolioSidekick.Parsers.Trading212
 
 			var splitted = note.Split(' ');
 
-			Money source = new(new Currency(splitted[1]), decimal.Parse(splitted[0], CultureInfo.InvariantCulture));
-			Money target = new(new Currency(splitted[4]), decimal.Parse(splitted[3], CultureInfo.InvariantCulture));
+			Money source = new(currencyMapper.Map(splitted[1]), decimal.Parse(splitted[0], CultureInfo.InvariantCulture));
+			Money target = new(currencyMapper.Map(splitted[4]), decimal.Parse(splitted[3], CultureInfo.InvariantCulture));
 
 			return (source, target);
 		}
@@ -92,17 +95,17 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		{
 			if (record.FeeUK != null)
 			{
-				yield return PartialActivity.CreateTax(new Currency(record.FeeUKCurrency!), record.Time, record.FeeUK.Value, record.Id!);
+				yield return PartialActivity.CreateTax(currencyMapper.Map(record.FeeUKCurrency!), record.Time, record.FeeUK.Value, record.Id!);
 			}
 
 			if (record.FeeFrance != null)
 			{
-				yield return PartialActivity.CreateTax(new Currency(record.FeeFranceCurrency!), record.Time, record.FeeFrance.Value, record.Id!);
+				yield return PartialActivity.CreateTax(currencyMapper.Map(record.FeeFranceCurrency!), record.Time, record.FeeFrance.Value, record.Id!);
 			}
 
 			if (record.ConversionFee != null)
 			{
-				yield return PartialActivity.CreateFee(new Currency(record.ConversionFeeCurrency!), record.Time, record.ConversionFee.Value, record.Id!);
+				yield return PartialActivity.CreateFee(currencyMapper.Map(record.ConversionFeeCurrency!), record.Time, record.ConversionFee.Value, record.Id!);
 			}
 		}
 	}

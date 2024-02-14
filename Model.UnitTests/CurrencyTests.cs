@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.UnitTests.Model
 			var currency2 = new Currency("USD");
 
 			// Act & Assert
-			(currency1 == currency2).Should().BeTrue();
+			currency1.Equals(currency2).Should().BeTrue();
 		}
 
 		[Fact]
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.UnitTests.Model
 			var currency2 = new Currency("EUR");
 
 			// Act & Assert
-			(currency1 != currency2).Should().BeTrue();
+			currency1.Equals(currency2).Should().BeFalse();
 		}
 	}
 }

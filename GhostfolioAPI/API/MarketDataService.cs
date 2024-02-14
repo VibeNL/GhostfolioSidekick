@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				try
 				{
-					var r = (await GetAllSymbolProfiles(false));
+					var r = await GetAllSymbolProfiles(false);
 
 					foreach (var identifier in allIdentifiers)
 					{

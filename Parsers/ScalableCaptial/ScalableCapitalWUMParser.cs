@@ -8,14 +8,17 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "<Pending>")]
 	public class ScalableCapitalWUMParser : RecordBaseImporter<BaaderBankWUMRecord>
 	{
-		public ScalableCapitalWUMParser()
+		private readonly ICurrencyMapper currencyMapper;
+
+		public ScalableCapitalWUMParser(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(BaaderBankWUMRecord record, int rowNumber)
 		{
 			var date = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
-			var currency = new Currency(record.Currency);
+			var currency = currencyMapper.Map(record.Currency);
 			switch (record.OrderType)
 			{
 				case "Verkauf":

@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public abstract decimal GetUnitPrice();
 
-		public abstract Currency GetCurrency();
+		public abstract Currency GetCurrency(ICurrencyMapper currencyMapper);
 
 		public abstract void SetGenerateTransactionIdIfEmpty(DateTime recordDate);
 	}

@@ -7,20 +7,23 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 {
 	public abstract class DeGiroParserBase<T> : RecordBaseImporter<T> where T : DeGiroRecordBase
 	{
-		protected DeGiroParserBase()
+		private readonly ICurrencyMapper currencyMapper;
+
+		protected DeGiroParserBase(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(T record, int rowNumber)
 		{
 			var recordDate = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 
-			var knownBalance = PartialActivity.CreateKnownBalance(new Currency(record.BalanceCurrency), recordDate, record.Balance, rowNumber);
+			var knownBalance = PartialActivity.CreateKnownBalance(currencyMapper.Map(record.BalanceCurrency), recordDate, record.Balance, rowNumber);
 			PartialActivity? partialActivity = null;
 
 			var activityType = record.GetActivityType();
 
-			var currencyRecord = new Currency(record.Mutation);
+			var currencyRecord = currencyMapper.Map(record.Mutation);
 			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
 
 			record.SetGenerateTransactionIdIfEmpty(recordDate);
@@ -32,7 +35,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					return [knownBalance];
 				case ActivityType.Buy:
 					partialActivity = PartialActivity.CreateBuy(
-						record.GetCurrency(),
+						record.GetCurrency(currencyMapper),
 						recordDate,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
@@ -60,7 +63,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					break;
 				case ActivityType.Sell:
 					partialActivity = PartialActivity.CreateSell(
-						record.GetCurrency(),
+						record.GetCurrency(currencyMapper),
 						recordDate,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),

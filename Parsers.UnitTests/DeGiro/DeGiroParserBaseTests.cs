@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {
 	public class DeGiroParserBaseTests : DeGiroParserBase<TestDeGiroRecordRecord>
 	{
-		public DeGiroParserBaseTests()
+		public DeGiroParserBaseTests() : base(new DummyCurrencyMapper())
 		{
 		}
 
@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		public void Parse_WhenCalled_ReturnsActivity(ActivityType? activityType)
 		{
 			// Arrange
-			var record = new TestDeGiroRecordRecord(ActivityType.Undefined)
+			var record = new TestDeGiroRecordRecord(activityType)
 			{
 				BalanceCurrency = "EUR",
 				Description = "Comissões de transação DEGIRO e/ou taxas de terceiros",
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			throw new NotImplementedException();
 		}
 
-		public override Currency GetCurrency()
+		public override Currency GetCurrency(ICurrencyMapper currencyMapper)
 		{
 			throw new NotImplementedException();
 		}

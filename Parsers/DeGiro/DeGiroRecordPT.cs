@@ -97,7 +97,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				return ActivityType.Fee;
 			}
 
-			// TODO, implement other options
 			return null;
 		}
 
@@ -115,11 +114,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		public override Currency GetCurrency()
+		public override Currency GetCurrency(ICurrencyMapper currencyMapper)
 		{
 			var currency = Regex.Match(Description!, "[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[4].Value;
 
-			return new Currency(currency);
+			return currencyMapper.Map(currency);
 		}
 
 		public override void SetGenerateTransactionIdIfEmpty(DateTime recordDate)

@@ -2,9 +2,9 @@
 
 namespace GhostfolioSidekick.Model
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S2223:Non-constant static fields should not be visible", Justification = "<Pending>")]
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "<Pending>")]
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
+	[SuppressMessage("Critical Code Smell", "S2223:Non-constant static fields should not be visible", Justification = "<Pending>")]
+	[SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "<Pending>")]
+	[SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
 	public class Currency
 	{
 		public static Currency EUR = new("EUR");
@@ -47,28 +47,5 @@ namespace GhostfolioSidekick.Model
 		{
 			return Symbol;
 		}
-
-		[ExcludeFromCodeCoverage]
-		public static bool operator ==(Currency a, Currency? b)
-		{
-			if (ReferenceEquals(a, b))
-			{
-				return true;
-			}
-
-			if ((a is null) || (b is null))
-			{
-				return false;
-			}
-
-			return a.Symbol == b.Symbol;
-		}
-
-
-		public static bool operator !=(Currency a, Currency? b)
-		{
-			return !(a == b);
-		}
-
 	}
 }
