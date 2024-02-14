@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Deletion failed, no Id");
 			}
 
-			var r = await restCall.DoRestDelete($"api/v1/order/{activity.Id}");
+			await restCall.DoRestDelete($"api/v1/order/{activity.Id}");
 			logger.LogInformation($"Deleted transaction  {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Type}");
 		}
 

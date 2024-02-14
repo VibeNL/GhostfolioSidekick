@@ -3,45 +3,48 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
 {
-	public class TimedHostedService : IHostedService, IDisposable
+	public class TimedHostedService : IHostedService
 	{
-		private readonly ILogger _logger;
-		private readonly IEnumerable<IScheduledWork> _workItems;
-		private Timer? _timer;
+		private readonly ILogger logger;
+		private readonly IEnumerable<IScheduledWork> workItems;
+		private readonly Timer timer;
 		private volatile bool isRunning = false;
 
 		public TimedHostedService(ILogger<TimedHostedService> logger, IEnumerable<IScheduledWork> todo)
 		{
-			_logger = logger;
-			_workItems = todo;
+			this.logger = logger;
+			workItems = todo;
+
+			timer = new Timer(DoWork);
 		}
 
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
-			_logger.LogInformation("Service is starting.");
+			logger.LogInformation("Service is starting.");
 
-			// TODO: Make configurable
-			_timer = new Timer(DoWork, null, TimeSpan.Zero,
-				TimeSpan.FromHours(1));
+			timer.Change(TimeSpan.Zero, TimeSpan.FromHours(1));
 
 			return Task.CompletedTask;
 		}
 
 		private void DoWork(object? state)
 		{
-			if (isRunning)
+			lock (logger)
 			{
-				_logger.LogWarning("Service is still executing, skipping run.");
-				return;
+				if (isRunning)
+				{
+					logger.LogWarning("Service is still executing, skipping run.");
+					return;
+				}
+
+				isRunning = true;
 			}
 
 			try
 			{
-				_logger.LogInformation("Service is executing.");
+				logger.LogInformation("Service is executing.");
 
-				isRunning = true;
-
-				foreach (var workItem in _workItems.OrderBy(x => x.Priority))
+				foreach (var workItem in workItems.OrderBy(x => x.Priority))
 				{
 					try
 					{
@@ -49,11 +52,11 @@ namespace GhostfolioSidekick
 					}
 					catch (Exception ex)
 					{
-						_logger.LogError(ex.Message);
+						logger.LogError(ex.Message);
 					}
 				}
 
-				_logger.LogInformation("Service has executed.");
+				logger.LogInformation("Service has executed.");
 			}
 			finally
 			{
@@ -63,16 +66,11 @@ namespace GhostfolioSidekick
 
 		public Task StopAsync(CancellationToken cancellationToken)
 		{
-			_logger.LogInformation("Service is stopping.");
+			logger.LogInformation("Service is stopping.");
 
-			_timer?.Change(Timeout.Infinite, 0);
+			timer.Change(Timeout.Infinite, 0);
 
 			return Task.CompletedTask;
-		}
-
-		public void Dispose()
-		{
-			_timer?.Dispose();
 		}
 	}
 }
