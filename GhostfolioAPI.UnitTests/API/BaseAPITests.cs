@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains("api/v1/auth/anonymous")), default))
-				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, "{\"authToken\":\"abcd\"}"));
+				.ReturnsAsync(CreateResponse(HttpStatusCode.OK, "{\"authToken\":\"abcd\"}"));
 		}
 		
 		protected RestResponse CreateResponse(HttpStatusCode httpStatusCode, string? response = null)

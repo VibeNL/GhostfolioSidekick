@@ -134,11 +134,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				case Model.Activities.ActivityType.Interest:
 					return Contract.ActivityType.INTEREST;
 				case Model.Activities.ActivityType.Fee:
-					return GhostfolioAPI.Contract.ActivityType.FEE;
+					return Contract.ActivityType.FEE;
 				case Model.Activities.ActivityType.Valuable:
-					return GhostfolioAPI.Contract.ActivityType.ITEM;
+					return Contract.ActivityType.ITEM;
 				case Model.Activities.ActivityType.Liability:
-					return GhostfolioAPI.Contract.ActivityType.LIABILITY;
+					return Contract.ActivityType.LIABILITY;
 				case Model.Activities.ActivityType.Gift:
 					return Contract.ActivityType.BUY;
 				case Model.Activities.ActivityType.LearningReward:

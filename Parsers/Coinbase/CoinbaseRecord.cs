@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 	[Delimiter(",")]
 	public class CoinbaseRecord
 	{
-		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
+		[DateTimeStyles(DateTimeStyles.AssumeUniversal)]
 		[Format("yyyy-MM-ddTHH:mm:ssZ")]
 		public DateTime Timestamp { get; set; }
 
