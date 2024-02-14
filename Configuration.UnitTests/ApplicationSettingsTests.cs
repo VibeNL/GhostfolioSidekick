@@ -104,6 +104,20 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 			Assert.True(result);
 		}
 
+		[Fact]
+		public void ConfigurationInstance_NoEnvironmentSettings_ReturnsNonNullInstance()
+		{
+			// Arrange
+			Dispose();
+			var settings = new ApplicationSettings();
+
+			// Act
+			var result = settings.ConfigurationInstance;
+
+			// Assert
+			Assert.NotNull(result);
+		}
+
 		protected virtual void Dispose(bool disposing)
 		{
 			// Clean up

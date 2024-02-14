@@ -6,20 +6,21 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	public class SetBenchmarksTask : IScheduledWork
 	{
-		private readonly ILogger<SetTrackingInsightOnSymbolsTask> logger;
+		private readonly ILogger<SetBenchmarksTask> logger;
 		private readonly IMarketDataService marketDataService;
 		private readonly IApplicationSettings applicationSettings;
 
 		public TaskPriority Priority => TaskPriority.SetBenchmarks;
 
 		public SetBenchmarksTask(
-			ILogger<SetTrackingInsightOnSymbolsTask> logger,
+			ILogger<SetBenchmarksTask> logger,
 			IMarketDataService marketDataManager,
 			IApplicationSettings applicationSettings)
 		{
+			ArgumentNullException.ThrowIfNull(logger);
 			ArgumentNullException.ThrowIfNull(applicationSettings);
 
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.logger = logger;
 			this.marketDataService = marketDataManager;
 			this.applicationSettings = applicationSettings;
 		}
@@ -30,10 +31,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			try
 			{
-				if (applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols)
-				{
-					await SetBenchmarks();
-				}
+				await SetBenchmarks();
 			}
 			catch (NotAuthorizedException)
 			{
@@ -52,7 +50,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				var symbol = await marketDataService.FindSymbolByIdentifier([symbolConfiguration.Symbol], null, null, null, true, true);
 				if (symbol != null)
 				{
-					await marketDataService.SetSymbolAsBenchmark(symbol, symbol.DataSource);
+					await marketDataService.SetSymbolAsBenchmark(symbol);
 				}
 			}
 		}
