@@ -4,13 +4,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	internal class CacheKey : IEquatable<CacheKey>
 	{
-		public string[] Identifiers { get; }
-		private AssetClass[] expectedAssetClass;
-		private AssetSubClass[] expectedAssetSubClass;
+		private readonly string[] identifiers;
+		private readonly AssetClass[] expectedAssetClass;
+		private readonly AssetSubClass[] expectedAssetSubClass;
 
 		public CacheKey(string[] identifiers, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass)
 		{
-			Identifiers = identifiers;
+			this.identifiers = identifiers;
 			this.expectedAssetClass = expectedAssetClass ?? [];
 			this.expectedAssetSubClass = expectedAssetSubClass ?? [];
 		}
@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			get
 			{
-				var a = string.Join(",", Identifiers);
+				var a = string.Join(",", identifiers);
 				var b = expectedAssetClass != null ? string.Join(",", expectedAssetClass.Select(x => x.ToString())) : string.Empty;
 				var c = expectedAssetSubClass != null ? string.Join(",", expectedAssetSubClass.Select(x => x.ToString())) : string.Empty;
 				var r = string.Join("|", a, b, c);
