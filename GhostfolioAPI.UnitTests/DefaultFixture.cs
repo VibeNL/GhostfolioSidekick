@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 {
 	public class DefaultFixture
 	{
-		public static Fixture Create()
+		public static Fixture Create(ActivityType type = ActivityType.Buy)
 		{
 			var fixture = new Fixture();
 			fixture.Customize<Contract.Activity>(composer =>
@@ -17,16 +17,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			composer
 				.With(p => p.AssetClass, AssetClass.Equity.ToString().ToUpperInvariant())
 				.With(p => p.AssetSubClass, AssetSubClass.Etf.ToString().ToUpperInvariant()));
-			fixture.Customizations.Add(new ActivityBuilder());
+			fixture.Customizations.Add(new ActivityBuilder(type));
 			return fixture;
 		}
 	}
 
 	public class ActivityBuilder : ISpecimenBuilder
 	{
-		public ActivityBuilder()
+		public ActivityBuilder(ActivityType type)
 		{
+			Type = type;
 		}
+
+		public ActivityType Type { get; }
 
 		public object Create(object request, ISpecimenContext context)
 		{
@@ -39,7 +42,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			if (pi.Member.DeclaringType == typeof(Activity) &&
 				pi.ParameterType == typeof(ActivityType))
 			{
-				return ActivityType.Buy;
+				return Type;
 			}
 
 			return new NoSpecimen();

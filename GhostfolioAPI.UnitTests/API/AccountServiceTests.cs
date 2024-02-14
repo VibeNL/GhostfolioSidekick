@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(platformUrl)), default))
-				.ReturnsAsync(CreateResponse(true));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK));
 
 			var platform = new Fixture().Create<Platform>();
 
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(platformUrl)), default))
-				.ReturnsAsync(CreateResponse(false));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.BadRequest));
 
 			var platform = new Fixture().Create<Platform>();
 
@@ -80,10 +80,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(accountUrl)), default))
-				.ReturnsAsync(CreateResponse(true));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK));
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(platformUrl)), default))
-				.ReturnsAsync(CreateResponse(true, "[{\"id\":\"11d9f728-12ee-4868-b7cc-0ec06ef9a1c4\",\"name\":\"Platform1\",\"url\":\"https://www.google.nl\",\"accountCount\":1}]"));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, "[{\"id\":\"11d9f728-12ee-4868-b7cc-0ec06ef9a1c4\",\"name\":\"Platform1\",\"url\":\"https://www.google.nl\",\"accountCount\":1}]"));
 
 			// Act
 			await accountService.CreateAccount(account);
@@ -106,10 +106,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(accountUrl)), default))
-				.ReturnsAsync(CreateResponse(false));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.BadRequest));
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(platformUrl)), default))
-				.ReturnsAsync(CreateResponse(true, "[{\"id\":\"11d9f728-12ee-4868-b7cc-0ec06ef9a1c4\",\"name\":\"Platform1\",\"url\":\"https://www.google.nl\",\"accountCount\":1}]"));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, "[{\"id\":\"11d9f728-12ee-4868-b7cc-0ec06ef9a1c4\",\"name\":\"Platform1\",\"url\":\"https://www.google.nl\",\"accountCount\":1}]"));
 
 			// Act
 			var test = async () => await accountService.CreateAccount(account);

@@ -74,9 +74,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				Comment = assetProfile.Comment,
 				ScraperConfiguration = new ScraperConfiguration
 				{
-					Locale = assetProfile?.ScraperConfiguration?.Locale,
-					Url = assetProfile?.ScraperConfiguration?.Url,
-					Selector = assetProfile?.ScraperConfiguration?.Selector
+					Locale = assetProfile.ScraperConfiguration?.Locale,
+					Url = assetProfile.ScraperConfiguration?.Url,
+					Selector = assetProfile.ScraperConfiguration?.Selector
 				}
 			};
 		}

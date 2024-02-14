@@ -18,13 +18,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 
 		private readonly Fixture fixture = DefaultFixture.Create();
+		private readonly Mock<ILogger<ActivitiesService>> loggerMock;
 		private readonly Mock<IExchangeRateService> exchangeRateService;
 		private readonly Mock<IAccountService> accountService;
 		private readonly ActivitiesService activitiesService;
 
 		public ActivitiesServiceTests()
 		{
-			var loggerMock = new Mock<ILogger<ActivitiesService>>();
+			loggerMock = new Mock<ILogger<ActivitiesService>>();
 			exchangeRateService = new Mock<IExchangeRateService>();
 			accountService = new Mock<IAccountService>();
 
@@ -47,7 +48,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl)), default))
 				.ReturnsAsync(CreateResponse(
-					true,
+					System.Net.HttpStatusCode.OK,
 					JsonConvert.SerializeObject(new Contract.ActivityList()
 					{
 						Activities = activitiesFromService
@@ -73,7 +74,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Post), default))
-				.ReturnsAsync(CreateResponse(true, string.Empty));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, string.Empty));
 
 			// Act
 			await activitiesService.InsertActivity(symbolProfile, newActivity);
@@ -82,6 +83,57 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			restClient.Verify(
 				x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Post), default),
 				Times.Once);
+		}
+
+		[Fact]
+		public async Task InsertActivity_IgnoreType_Ignored()
+		{
+			// Arrange
+			var symbolProfile = fixture.Create<Model.Symbols.SymbolProfile>();
+			var newActivity = DefaultFixture.Create(ActivityType.CashConvert).Create<Activity>();
+
+			restClient
+				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Post), default))
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, string.Empty));
+
+			// Act
+			await activitiesService.InsertActivity(symbolProfile, newActivity);
+
+			// Assert
+			restClient.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Never);
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Trace,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.StartsWith("Skipping ignore transaction")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+		}
+
+		[Fact]
+		public async Task InsertActivity_NullQuantity_Ignored()
+		{
+			// Arrange
+			var symbolProfile = fixture.Create<Model.Symbols.SymbolProfile>();
+			var newActivity = DefaultFixture.Create().Create<Activity>();
+			newActivity.Quantity = 0;
+
+			restClient
+				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Post), default))
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, string.Empty));
+
+			// Act
+			await activitiesService.InsertActivity(symbolProfile, newActivity);
+
+			// Assert
+			restClient.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Never);
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Debug,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.StartsWith("Skipping empty transaction")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
 		}
 
 		[Fact]
@@ -94,11 +146,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Delete), default))
-				.ReturnsAsync(CreateResponse(true, string.Empty));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, string.Empty));
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Post), default))
-				.ReturnsAsync(CreateResponse(true, string.Empty));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, string.Empty));
 
 			// Act
 			await activitiesService.UpdateActivity(symbolProfile, oldActivity, newActivity);
@@ -122,7 +174,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Delete), default))
-				.ReturnsAsync(CreateResponse(true, string.Empty));
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, string.Empty));
 
 			// Act
 			await activitiesService.DeleteActivity(symbolProfile, oldActivity);
