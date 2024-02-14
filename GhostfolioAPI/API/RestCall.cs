@@ -60,10 +60,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				&& r.StatusCode != System.Net.HttpStatusCode.BadRequest)
 				.CircuitBreaker(2, TimeSpan.FromSeconds(30), (iRestResponse, timeSpan) =>
 				{
-					logger.LogDebug($"Circuit Breaker on a break");
+					logger.LogWarning("Circuit Breaker on a break");
 				}, () =>
 				{
-					logger.LogDebug($"Circuit Breaker active");
+					logger.LogDebug("Circuit Breaker active");
 				});
 		}
 
