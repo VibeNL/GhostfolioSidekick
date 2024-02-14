@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Logging;
@@ -48,31 +49,31 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			if (activity.Type == Contract.ActivityType.IGNORE)
 			{
-				logger.LogTrace($"Skipping ignore transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
+				logger.LogTrace($"Skipping ignore transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 				return;
 			}
 
 			if (activity.UnitPrice == 0 && activity.Quantity == 0)
 			{
-				logger.LogDebug($"Skipping empty transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
+				logger.LogDebug($"Skipping empty transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 				return;
 			}
 			
 			var url = $"api/v1/order";
 			await restCall.DoRestPost(url, await ConvertToBody(activity));
 			
-			logger.LogInformation($"Added transaction {activity.Date} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
+			logger.LogInformation($"Added transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 		}
 
-		private async Task DeleteOrder(Contract.Activity order)
+		private async Task DeleteOrder(Contract.Activity activity)
 		{
-			if (string.IsNullOrWhiteSpace(order.Id))
+			if (string.IsNullOrWhiteSpace(activity.Id))
 			{
 				throw new NotSupportedException($"Deletion failed, no Id");
 			}
 
-			var r = await restCall.DoRestDelete($"api/v1/order/{order.Id}");
-			logger.LogInformation($"Deleted transaction {order.Type} {order.SymbolProfile?.Symbol} {order.Date}");
+			var r = await restCall.DoRestDelete($"api/v1/order/{activity.Id}");
+			logger.LogInformation($"Deleted transaction  {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Type}");
 		}
 
 		private Task<string> ConvertToBody(Contract.Activity activity)
