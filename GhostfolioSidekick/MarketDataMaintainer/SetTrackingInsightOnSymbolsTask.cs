@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			ArgumentNullException.ThrowIfNull(applicationSettings);
 
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.logger = logger;
 			this.marketDataService = marketDataManager;
 			this.applicationSettings = applicationSettings;
 		}
@@ -30,10 +30,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			try
 			{
-				if (applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols)
-				{
-					await SetTrackingInsightOnSymbols();
-				}
+				await SetTrackingInsightOnSymbols();
 			}
 			catch (NotAuthorizedException)
 			{
