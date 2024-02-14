@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 			var lastKnownPrice = lastActivity.UnitPrice.Amount;
 
 			decimal dustValue = amount * lastKnownPrice;
-			if (Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold && dustValue != 0)
+			if (dustValue != 0 && Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold)
 			{
 				lastActivity.UnitPrice = new Money(
 					lastActivity.UnitPrice.Currency,
