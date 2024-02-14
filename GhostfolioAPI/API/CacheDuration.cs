@@ -13,10 +13,5 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			return new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(10));
 		}
-
-		public static MemoryCacheEntryOptions? None()
-		{
-			return null;
-		}
 	}
 }
