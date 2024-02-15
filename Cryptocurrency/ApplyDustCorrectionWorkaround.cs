@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 		public Task Execute(Holding holding)
 		{
-			if (!settings.CryptoWorkaroundDust || !(holding.SymbolProfile?.AssetSubClass == AssetSubClass.CryptoCurrency))
+			if (!settings.CryptoWorkaroundDust || holding.SymbolProfile?.AssetSubClass != AssetSubClass.CryptoCurrency)
 			{
 				return Task.CompletedTask;
 			}
@@ -21,8 +21,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 			// Should always be a sell or send as we have dust!
 			var lastActivity = activities
-				.Where(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send)
-				.LastOrDefault();
+				.LastOrDefault(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send);
 			if (lastActivity == null || lastActivity.UnitPrice == null)
 			{
 				return Task.CompletedTask;
@@ -31,7 +30,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 			var lastKnownPrice = lastActivity.UnitPrice.Amount;
 
 			decimal dustValue = amount * lastKnownPrice;
-			if (Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold && dustValue != 0)
+			if (dustValue != 0 && Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold)
 			{
 				lastActivity.UnitPrice = new Money(
 					lastActivity.UnitPrice.Currency,

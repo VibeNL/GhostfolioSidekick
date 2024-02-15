@@ -7,6 +7,7 @@ using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 {
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S6608:Prefer indexing instead of \"Enumerable\" methods on types implementing \"IList\"", Justification = "<Pending>")]
 	public class ApplyDustCorrectionWorkaroundTests
 	{
 		private readonly DateTime now = DateTime.UtcNow;
@@ -45,6 +46,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 				Activities = [
 					CreateDummyActivity(ActivityType.Buy, 100),
 					CreateDummyActivity(ActivityType.Buy, 0.0001M),
+					CreateDummyActivity(ActivityType.Dividend, 0.0001M),
 					CreateDummyActivity(ActivityType.Sell, 100),
 				]
 			};
@@ -53,7 +55,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			await dust.Execute(holding);
 
 			// Assert
-			holding.Activities.Should().HaveCount(3);
+			holding.Activities.Should().HaveCount(4);
 			var last = holding.Activities.Last();
 			last.UnitPrice.Amount.Should().Be(0.999999000000999999000001M);
 			last.Quantity.Should().Be(100.0001M);
@@ -89,6 +91,35 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			var last = holding.Activities.Last();
 			last.UnitPrice.Amount.Should().Be(0.9999970000089999730000809998M);
 			last.Quantity.Should().Be(100.0003M);
+		}
+
+		[Fact]
+		public async Task Execute_NoDust_DustCorrected()
+		{
+			// Arrange
+			var sg = new Settings()
+			{
+				CryptoWorkaroundDust = true,
+				CryptoWorkaroundDustThreshold = 1,
+			};
+			var dust = new ApplyDustCorrectionWorkaround(sg);
+
+			var holding = new Holding(symbolProfileCrypto)
+			{
+				Activities = [
+					CreateDummyActivity(ActivityType.Buy, 100),
+					CreateDummyActivity(ActivityType.Sell, 100),
+				]
+			};
+
+			// Act
+			await dust.Execute(holding);
+
+			// Assert
+			holding.Activities.Should().HaveCount(2);
+			var last = holding.Activities.Last();
+			last.UnitPrice.Amount.Should().Be(1M);
+			last.Quantity.Should().Be(100M);
 		}
 
 		[Fact]
@@ -175,6 +206,31 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 
 			// Assert
 			holding.Activities.Should().HaveCount(5);
+		}
+
+		[Fact]
+		public async Task Execute_InvalidActivity_ThrowsNotSupported()
+		{
+			// Arrange
+			var sg = new Settings()
+			{
+				CryptoWorkaroundDust = true,
+				CryptoWorkaroundDustThreshold = 1,
+			};
+			var dust = new ApplyDustCorrectionWorkaround(sg);
+
+			var holding = new Holding(symbolProfileCrypto)
+			{
+				Activities = [
+					CreateDummyActivity(ActivityType.CashConvert, 100)
+				]
+			};
+
+			// Act
+			var a = () => dust.Execute(holding);
+
+			// Assert
+			await this.Invoking(_ => a()).Should().ThrowAsync<NotSupportedException>();
 		}
 
 		private Activity CreateDummyActivity(ActivityType type, decimal amount)

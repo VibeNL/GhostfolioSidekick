@@ -8,8 +8,11 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 {
 	public class CoinbaseParser : RecordBaseImporter<CoinbaseRecord>
 	{
-		public CoinbaseParser()
+		private readonly ICurrencyMapper currencyMapper;
+
+		public CoinbaseParser(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(CoinbaseRecord record, int rowNumber)
@@ -18,7 +21,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 
 			var id = $"{record.Type}_{record.Asset}_{date.ToInvariantString()}";
 
-			var currency = new Currency(record.Currency);
+			var currency = currencyMapper.Map(record.Currency);
 			if (record.Fee != null && record.Fee != 0)
 			{
 				yield return PartialActivity.CreateFee(currency, date, record.Fee ?? 0, id);

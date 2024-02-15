@@ -89,10 +89,9 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			if (Description.Equals("DEGIRO Verrekening Promotie"))
 			{
-				return ActivityType.CashDeposit; // TODO: Gift?
+				return ActivityType.CashDeposit;
 			}
 
-			// TODO, implement other options
 			return null;
 		}
 
@@ -114,11 +113,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		public override Currency GetCurrency()
+		public override Currency GetCurrency(ICurrencyMapper currencyMapper)
 		{
 			var currency = Regex.Match(Description!, "oop (?<amount>\\d+) @ (?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)").Groups[3].Value;
 
-			return new Currency(currency);
+			return currencyMapper.Map(currency);
 		}
 
 		public override void SetGenerateTransactionIdIfEmpty(DateTime recordDate)

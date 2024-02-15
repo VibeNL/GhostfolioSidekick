@@ -1,8 +1,10 @@
-﻿namespace GhostfolioSidekick.Parsers.DeGiro
+﻿using GhostfolioSidekick.Model;
+
+namespace GhostfolioSidekick.Parsers.DeGiro
 {
 	public class DeGiroParserPT : DeGiroParserBase<DeGiroRecordPT>
 	{
-		public DeGiroParserPT()
+		public DeGiroParserPT(ICurrencyMapper currencyMapper) : base(currencyMapper)
 		{
 		}
 	}

@@ -1,20 +1,35 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace GhostfolioSidekick.Model.Activities
+﻿namespace GhostfolioSidekick.Model.Activities
 {
-	[method: SetsRequiredMembers]
-	public class PartialActivity(ActivityType activityType, Currency currency, string? transactionId)
+	public class PartialActivity
 	{
 		private DateTime date;
 
-		public ActivityType ActivityType { get; } = activityType;
-		public Currency Currency { get; } = currency;
+		public PartialActivity(
+			ActivityType activityType, 
+			Currency currency, 
+			string? transactionId)
+		{
+			ActivityType = activityType;
+			Currency = currency;
+			TransactionId = transactionId;
+		}
+
+		public ActivityType ActivityType { get; }
+
+		public Currency Currency { get; }
+
 		public DateTime Date { get => date; private set => date = value.ToUniversalTime(); }
+
 		public decimal Amount { get; private set; }
-		public string? TransactionId { get; } = transactionId;
+
+		public string? TransactionId { get; }
+		
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
+		
 		public decimal? UnitPrice { get; private set; } = 1;
+		
 		public int? SortingPriority { get; private set; }
+		
 		public string? Description { get; private set; }
 
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string transactionId)

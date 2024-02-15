@@ -9,7 +9,15 @@
 
 		public ApplicationSettings()
 		{
-			configuration = ConfigurationInstance.Parse(File.ReadAllText(Environment.GetEnvironmentVariable(CONFIGURATIONFILE)!));
+			try
+			{
+				configuration = ConfigurationInstance.Parse(File.ReadAllText(Environment.GetEnvironmentVariable(CONFIGURATIONFILE)!))!;
+				ArgumentNullException.ThrowIfNull(configuration);
+			}
+			catch
+			{
+				configuration = new ConfigurationInstance();
+			}
 		}
 
 		public string FileImporterPath => Environment.GetEnvironmentVariable(PATHFILES)!;
@@ -34,13 +42,13 @@
 		{
 			get
 			{
-				return configuration ?? new ConfigurationInstance();
+				return configuration;
 			}
 		}
 
 		public bool AllowAdminCalls { get; set; } = true;
 
 		private readonly string ghostfolioUrl = Environment.GetEnvironmentVariable(URL)!;
-		private readonly ConfigurationInstance? configuration;
+		private readonly ConfigurationInstance configuration;
 	}
 }

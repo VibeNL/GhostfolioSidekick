@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Parsers
 {
 	public abstract class RecordBaseImporter<T> : IFileImporter
 	{
-		private Dictionary<string, bool> KnownHeaderCache = new Dictionary<string, bool>();
+		private readonly Dictionary<string, bool> KnownHeaderCache = new Dictionary<string, bool>();
 
 		protected RecordBaseImporter()
 		{
@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.Parsers
 			{
 				var partialActivity = ParseRow(records[i], i + 1);
 				holdingsAndAccountsCollection.AddPartialActivity(accountName, partialActivity);
-			};
+			}
 
 			return Task.CompletedTask;
 		}

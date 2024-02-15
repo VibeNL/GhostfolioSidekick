@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 
 		public Trading212Tests()
 		{
-			parser = new Trading212Parser();
+			parser = new Trading212Parser(DummyCurrencyMapper.Instance);
 
 			var fixture = new Fixture();
 			account = fixture

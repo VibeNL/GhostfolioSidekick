@@ -1,3 +1,4 @@
+using FluentAssertions;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
@@ -60,6 +61,30 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			Assert.Equal(expectedResult, result);
+		}
+
+		[Theory]
+		[InlineData("CASH", AssetClass.Cash)]
+		[InlineData("COMMODITY", AssetClass.Commodity)]
+		[InlineData("EQUITY", AssetClass.Equity)]
+		[InlineData("FIXEDINCOME", AssetClass.FixedIncome)]
+		[InlineData("REALESTATE", AssetClass.RealEstate)]
+		[InlineData(null, null)]
+		[InlineData("", null)]
+		public void ParseOptionalEnum_ValidInput_AssetClass_ReturnsExpectedResult(string? input, AssetClass? expectedResult)
+		{
+			// Act
+			var result = Utilities.ParseOptionalEnum<AssetClass>(input);
+
+			// Assert
+			Assert.Equal(expectedResult, result);
+		}
+
+		[Fact]
+		public void ParseOptionalEnum_InvalidInput_ReturnsExpectedResult()
+		{
+			// Arrange & Act & Assert
+			this.Invoking(x => Utilities.ParseOptionalEnum<AssetSubClass>("NothingThere")).Should().Throw<NotSupportedException>();
 		}
 	}
 }

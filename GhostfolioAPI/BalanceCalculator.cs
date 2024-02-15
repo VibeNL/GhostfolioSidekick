@@ -16,8 +16,8 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			IExchangeRateService exchangeRateService,
 			ILogger logger)
 		{
-			this.exchangeRateService = exchangeRateService ?? throw new ArgumentNullException(nameof(exchangeRateService));
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.exchangeRateService = exchangeRateService;
+			this.logger = logger;
 		}
 
 		public async Task<Balance> Calculate(
@@ -49,7 +49,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					case ActivityType.CashWithdrawal:
 					case ActivityType.Buy:
 					case ActivityType.Fee:
-
 						factor = -1;
 						break;
 					case ActivityType.Gift:
@@ -61,7 +60,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					case ActivityType.Liability:
 						break;
 					case ActivityType.Convert:
-						throw new NotSupportedException();
 					default:
 						throw new NotSupportedException();
 				}

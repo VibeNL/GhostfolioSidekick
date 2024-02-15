@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 
 		public ScalableCapitalWUMParserTests()
 		{
-			parser = new ScalableCapitalWUMParser();
+			parser = new ScalableCapitalWUMParser(DummyCurrencyMapper.Instance);
 
 			var fixture = new Fixture();
 			account = fixture

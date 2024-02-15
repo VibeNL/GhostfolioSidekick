@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 
 		public RecordBaseImporterTests()
 		{
-			importer = new GenericParser();
+			importer = new GenericParser(DummyCurrencyMapper.Instance);
 		}
 
 		[Fact]
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			// Arrange
 
 			// Act
-			var result = await new ScalableCapitalWUMParser().CanParseActivities(Filename);
+			var result = await new ScalableCapitalWUMParser(DummyCurrencyMapper.Instance).CanParseActivities(Filename);
 
 			// Assert
 			result.Should().BeFalse();

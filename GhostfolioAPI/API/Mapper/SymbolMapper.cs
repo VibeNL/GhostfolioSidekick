@@ -1,8 +1,9 @@
 ﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
-	internal class SymbolMapper
+	public class SymbolMapper : ICurrencyMapper
 	{
 		private readonly List<Mapping> mappings;
 
@@ -11,9 +12,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			this.mappings = mappings.ToList();
 		}
 
-		internal string MapCurrency(string sourceCurrency)
+		public Currency Map(string currency)
 		{
-			return Map(MappingType.Currency, sourceCurrency);
+			return new Currency(Map(MappingType.Currency, currency));
 		}
 
 		internal string MapSymbol(string identifier)

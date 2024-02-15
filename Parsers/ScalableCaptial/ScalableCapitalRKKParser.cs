@@ -8,8 +8,11 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "<Pending>")]
 	public class ScalableCapitalRKKParser : RecordBaseImporter<BaaderBankRKKRecord>
 	{
-		public ScalableCapitalRKKParser()
+		private readonly ICurrencyMapper currencyMapper;
+
+		public ScalableCapitalRKKParser(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(BaaderBankRKKRecord record, int rowNumber)
@@ -19,12 +22,12 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 				return [];
 			}
 
-			var date = DateTime.ParseExact(record.ExecutionDate, "yyyyMMdd", null, DateTimeStyles.AssumeUniversal);
+			var date = DateTime.ParseExact(record.ExecutionDate, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 
-			var currency = new Currency(record.Currency);
+			var currency = currencyMapper.Map(record.Currency);
 			if (record.OrderType == "Saldo")
 			{
-				return [PartialActivity.CreateKnownBalance(new Currency(record.Currency), date, record.UnitPrice.GetValueOrDefault(0))];
+				return [PartialActivity.CreateKnownBalance(currencyMapper.Map(record.Currency), date, record.UnitPrice.GetValueOrDefault(0))];
 			}
 
 			if (record.OrderType == "Coupons/Dividende")
@@ -43,7 +46,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 
 			if (record.Symbol == "ORDERGEBUEHR")
 			{
-				return [PartialActivity.CreateFee(new Currency(record.Currency), date, Math.Abs(record.UnitPrice.GetValueOrDefault(0)), record.Reference)];
+				return [PartialActivity.CreateFee(currencyMapper.Map(record.Currency), date, Math.Abs(record.UnitPrice.GetValueOrDefault(0)), record.Reference)];
 			}
 
 			return [];

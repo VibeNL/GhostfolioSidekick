@@ -28,6 +28,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		Task DeleteSymbol(SymbolProfile symbolProfile);
 
-		Task SetSymbolAsBenchmark(SymbolProfile symbolProfile, string dataSource);
+		Task SetSymbolAsBenchmark(SymbolProfile symbolProfile);
 	}
 }

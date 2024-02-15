@@ -7,8 +7,11 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 {
 	public class BitvavoParser : RecordBaseImporter<BitvavoRecord>
 	{
-		public BitvavoParser()
+		private readonly ICurrencyMapper currencyMapper;
+
+		public BitvavoParser(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(BitvavoRecord record, int rowNumber)
@@ -21,11 +24,11 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 			DateTime dateTime = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 
 			var currency = Currency.EUR;
-			var isFiat = new Currency(record.Currency).IsFiat();
+			var isFiat = currencyMapper.Map(record.Currency).IsFiat();
 
-			if (record.Fee != null && new Currency(record.FeeCurrency).IsFiat() && record.Fee != 0)
+			if (record.Fee != null && currencyMapper.Map(record.FeeCurrency).IsFiat() && record.Fee != 0)
 			{
-				yield return PartialActivity.CreateFee(new Currency(record.FeeCurrency), dateTime, record.Fee.GetValueOrDefault(0), record.Transaction);
+				yield return PartialActivity.CreateFee(currencyMapper.Map(record.FeeCurrency), dateTime, record.Fee.GetValueOrDefault(0), record.Transaction);
 			}
 
 			yield return GetMainRecord(record, dateTime, currency, isFiat);

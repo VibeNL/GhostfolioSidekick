@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using RestSharp;
+using System.Net;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 {
@@ -18,14 +19,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains("api/v1/auth/anonymous")), default))
-				.ReturnsAsync(CreateResponse(true, "{\"authToken\":\"abcd\"}"));
+				.ReturnsAsync(CreateResponse(HttpStatusCode.OK, "{\"authToken\":\"abcd\"}"));
 		}
-		protected RestResponse CreateResponse(bool succesfull, string? response = null)
+		
+		protected RestResponse CreateResponse(HttpStatusCode httpStatusCode, string? response = null)
 		{
 			return new RestResponse
 			{
-				IsSuccessStatusCode = succesfull,
-				StatusCode = succesfull ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.BadRequest,
+				IsSuccessStatusCode = httpStatusCode == HttpStatusCode.OK,
+				StatusCode = httpStatusCode,
 				ResponseStatus = ResponseStatus.Completed,
 				Content = response
 			};

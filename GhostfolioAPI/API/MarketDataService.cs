@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				try
 				{
-					var r = (await GetAllSymbolProfiles(false));
+					var r = await GetAllSymbolProfiles(false);
 
 					foreach (var identifier in allIdentifiers)
 					{
@@ -469,7 +469,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation($"Deleted symbol {symbolProfile.Symbol}");
 		}
 
-		public async Task SetSymbolAsBenchmark(SymbolProfile symbolProfile, string dataSource)
+		public async Task SetSymbolAsBenchmark(SymbolProfile symbolProfile)
 		{
 			var currentBanchmarks = (await GetInfo()).BenchMarks!;
 			if (Array.Exists(currentBanchmarks, x => x.Symbol == symbolProfile.Symbol))
@@ -479,7 +479,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			var o = new JObject
 			{
-				["datasource"] = dataSource,
+				["datasource"] = symbolProfile.DataSource,
 				["symbol"] = symbolProfile.Symbol
 
 			};

@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 
 		public NIBCParserTests()
 		{
-			parser = new NIBCParser();
+			parser = new NIBCParser(DummyCurrencyMapper.Instance);
 
 			var fixture = new Fixture();
 			account = fixture

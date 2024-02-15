@@ -7,8 +7,11 @@ namespace GhostfolioSidekick.Parsers.Generic
 {
 	public class GenericParser : RecordBaseImporter<GenericRecord>
 	{
-		public GenericParser()
+		private readonly ICurrencyMapper currencyMapper;
+
+		public GenericParser(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(GenericRecord record, int rowNumber)
@@ -19,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 			}
 
 			var lst = new List<PartialActivity>();
-			var currency = new Currency(record.Currency);
+			var currency = currencyMapper.Map(record.Currency);
 			var unitPrice = record.UnitPrice;
 
 			if (record.Tax != null && record.Tax != 0)

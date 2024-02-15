@@ -4,6 +4,7 @@ using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
@@ -86,6 +87,7 @@ namespace GhostfolioSidekick
 								return settings!.ConfigurationInstance.Settings;
 							});
 
+							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
 							services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 							services.AddSingleton<IActivitiesService, ActivitiesService>();
 							services.AddSingleton<IAccountService, AccountService>();

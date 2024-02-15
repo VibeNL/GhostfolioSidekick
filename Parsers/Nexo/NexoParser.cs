@@ -11,9 +11,11 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			{ "EURX", "EUR" },
 			{ "USDX", "USD" }
 		};
+		private readonly ICurrencyMapper currencyMapper;
 
-		public NexoParser()
+		public NexoParser(ICurrencyMapper currencyMapper)
 		{
+			this.currencyMapper = currencyMapper;
 		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(NexoRecord record, int rowNumber)
@@ -135,10 +137,10 @@ namespace GhostfolioSidekick.Parsers.Nexo
 		{
 			if (Translation.TryGetValue(currency, out var translated))
 			{
-				return new Currency(translated);
+				return currencyMapper.Map(translated);
 			}
 
-			return new Currency(currency);
+			return currencyMapper.Map(currency);
 		}
 
 		protected override CsvConfiguration GetConfig()

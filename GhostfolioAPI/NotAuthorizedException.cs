@@ -1,5 +1,8 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GhostfolioSidekick.GhostfolioAPI
 {
+	[ExcludeFromCodeCoverage]
 	[Serializable]
 	public class NotAuthorizedException : Exception
 	{

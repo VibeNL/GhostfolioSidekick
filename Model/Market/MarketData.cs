@@ -1,13 +1,21 @@
 ﻿namespace GhostfolioSidekick.Model.Market
 {
-	public class MarketData(string symbol, string dataSource, decimal marketPrice, DateTime date)
+	public class MarketData
 	{
-		public string Symbol { get; set; } = symbol;
+		public MarketData(string symbol, string dataSource, decimal marketPrice, DateTime date)
+		{
+			Symbol = symbol;
+			DataSource = dataSource;
+			MarketPrice = marketPrice;
+			Date = date;
+		}
 
-		public string DataSource { get; set; } = dataSource;
+		public string Symbol { get; }
 
-		public decimal MarketPrice { get; } = marketPrice;
+		public string DataSource { get; }
 
-		public DateTime Date { get; } = date;
+		public decimal MarketPrice { get; }
+
+		public DateTime Date { get; }
 	}
 }
