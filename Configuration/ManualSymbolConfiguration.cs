@@ -7,7 +7,6 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("currency")]
 		public required string Currency { get; set; }
 
-
 		[JsonPropertyName("isin")]
 		public string? ISIN { get; set; }
 
@@ -24,5 +23,11 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("scraperConfiguration")]
 		public ScraperConfiguration? ScraperConfiguration { get; set; }
+
+		[JsonPropertyName("countries")]
+		public string[] Countries { get; set; } = [];
+
+		[JsonPropertyName("sectors")]
+		public string[] Sectors { get; set; } = [];
 	}
 }
