@@ -11,7 +11,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 	public class CreateManualSymbolTask : IScheduledWork
 	{
 		private readonly ILogger<FileImporterTask> logger;
-		private readonly IAccountService accountService;
 		private readonly IMarketDataService marketDataService;
 		private readonly IActivitiesService activitiesService;
 		private readonly IApplicationSettings applicationSettings;
@@ -20,7 +19,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public CreateManualSymbolTask(
 			ILogger<FileImporterTask> logger,
-			IAccountService accountManager,
 			IMarketDataService marketDataManager,
 			IActivitiesService activitiesManager,
 			IApplicationSettings applicationSettings)
@@ -28,7 +26,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			ArgumentNullException.ThrowIfNull(applicationSettings);
 
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.accountService = accountManager;
 			this.marketDataService = marketDataManager;
 			this.activitiesService = activitiesManager;
 			this.applicationSettings = applicationSettings;
@@ -52,7 +49,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						continue;
 					}
 
-					await AddOrUpdateSymbol(symbolConfiguration, manualSymbolConfiguration);
+					await AddAndUpdateSymbol(symbolConfiguration, manualSymbolConfiguration);
 					await SetKnownPrices(symbolConfiguration, profiles, holdings);
 				}
 			}
@@ -145,7 +142,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 		}
 
-		private async Task AddOrUpdateSymbol(SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)
+		private async Task AddAndUpdateSymbol(SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)
 		{
 			var subClass = Utilities.ParseOptionalEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass);
 			AssetSubClass[]? expectedAssetSubClass = subClass != null ? [subClass.Value] : null;
@@ -183,17 +180,31 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				throw new NotSupportedException($"Symbol creation failed for symbol {symbolConfiguration.Symbol}");
 			}
 
-			// TODO: update symbol on difference???
-
 			// Set scraper
-			if (symbol.ScraperConfiguration.Url != manualSymbolConfiguration?.ScraperConfiguration?.Url ||
-				symbol.ScraperConfiguration.Selector != manualSymbolConfiguration?.ScraperConfiguration?.Selector ||
-				symbol.ScraperConfiguration.Locale != manualSymbolConfiguration?.ScraperConfiguration?.Locale
+			if (symbol.ScraperConfiguration.Url != manualSymbolConfiguration.ScraperConfiguration?.Url ||
+				symbol.ScraperConfiguration.Selector != manualSymbolConfiguration.ScraperConfiguration?.Selector ||
+				symbol.ScraperConfiguration.Locale != manualSymbolConfiguration.ScraperConfiguration?.Locale
 				)
 			{
-				symbol.ScraperConfiguration.Url = manualSymbolConfiguration?.ScraperConfiguration?.Url;
-				symbol.ScraperConfiguration.Selector = manualSymbolConfiguration?.ScraperConfiguration?.Selector;
-				symbol.ScraperConfiguration.Locale = manualSymbolConfiguration?.ScraperConfiguration?.Locale;
+				symbol.ScraperConfiguration.Url = manualSymbolConfiguration.ScraperConfiguration?.Url;
+				symbol.ScraperConfiguration.Selector = manualSymbolConfiguration.ScraperConfiguration?.Selector;
+				symbol.ScraperConfiguration.Locale = manualSymbolConfiguration.ScraperConfiguration?.Locale;
+				await marketDataService.UpdateSymbol(symbol);
+			}
+
+			// Set countries
+			var countries = manualSymbolConfiguration.Countries;
+			if (countries != null && !countries.SequenceEqual(symbol.Countries))
+			{
+				symbol.Countries = countries;
+				await marketDataService.UpdateSymbol(symbol);
+			}
+
+			// Set sectors
+			var sectors = manualSymbolConfiguration.Sectors;
+			if (sectors != null && !sectors.SequenceEqual(symbol.Sectors))
+			{
+				symbol.Sectors = sectors;
 				await marketDataService.UpdateSymbol(symbol);
 			}
 		}

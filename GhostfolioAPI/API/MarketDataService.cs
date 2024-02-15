@@ -410,7 +410,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
 				["comment"] = symbolProfile.Comment,
 				["scraperConfiguration"] = scraperConfiguration,
-				["symbolMapping"] = mappingObject
+				["symbolMapping"] = mappingObject,
+				["countries"] = "[" + string.Join(",", symbolProfile.Countries) + "]",
+				["sectors"] = "[" + string.Join(",", symbolProfile.Sectors) + "]"
 			};
 			var res = o.ToString();
 
