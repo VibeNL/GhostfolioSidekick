@@ -37,11 +37,23 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				new Currency(symbolProfile.Currency!),
 				symbolProfile.DataSource,
 				Utilities.ParseEnum<AssetClass>(symbolProfile.AssetClass),
-				Utilities.ParseOptionalEnum<AssetSubClass>(symbolProfile.AssetSubClass))
+				Utilities.ParseOptionalEnum<AssetSubClass>(symbolProfile.AssetSubClass),
+				ParseCountries(symbolProfile.Countries),
+				ParseSectors(symbolProfile.Sectors))
 			{
 				Comment = symbolProfile.Comment,
 				ISIN = symbolProfile.ISIN,
 			};
+		}
+
+		private static Sector[] ParseSectors(Contract.Sector[] sectors)
+		{
+			return sectors.Select(x => new Sector(x.Name, x.Weight)).ToArray();
+		}
+
+		private static Country[] ParseCountries(Contract.Country[] countries)
+		{
+			return countries.Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
 
 		public static MarketDataProfile MapMarketDataList(Contract.MarketDataList market)

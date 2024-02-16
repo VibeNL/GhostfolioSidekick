@@ -1,5 +1,4 @@
-﻿
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Contract
@@ -27,6 +26,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.Contract
 		public ScraperConfiguration? ScraperConfiguration { get; set; }
 
 		public string? Comment { get; set; }
+
+		public required Country[] Countries { get; set; }
+
+		public required Sector[] Sectors { get; set; }
 
 		internal static SymbolProfile Empty(Currency currency, string? name)
 		{
