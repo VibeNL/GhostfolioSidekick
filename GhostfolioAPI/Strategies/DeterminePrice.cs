@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
