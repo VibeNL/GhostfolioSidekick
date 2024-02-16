@@ -16,8 +16,8 @@ namespace GhostfolioSidekick.Model.Symbols
 			string dataSource,
 			AssetClass assetClass,
 			AssetSubClass? assetSubClass,
-			string[] countries,
-			string[] sectors)
+			Country[] countries,
+			Sector[] sectors)
 		{
 			Symbol = symbol;
 			Name = name;
@@ -60,10 +60,10 @@ namespace GhostfolioSidekick.Model.Symbols
 		}
 
 		public int ActivitiesCount { get; set; }
-		
-		public IEnumerable<string> Countries { get; set; }
 
-		public IEnumerable<string> Sectors { get; set; }
+		public IEnumerable<Country> Countries { get; set; }
+
+		public IEnumerable<Sector> Sectors { get; set; }
 
 		private void ParseIdentifiers()
 		{
@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.Model.Symbols
 			Identifiers.Clear();
 			Identifiers.AddRange(ids.Split(','));
 		}
-		
+
 		[ExcludeFromCodeCoverage]
 		public bool Equals(SymbolProfile? other)
 		{

@@ -403,6 +403,28 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				}
 			}
 
+			JArray countries = new();
+			foreach (var country in symbolProfile.Countries)
+			{
+				countries.Add(new JObject
+				{
+					["code"] = country.Code,
+					["weight"] = country.Weight.ToString(),
+					["continent"] = country.Continent,
+					["name"] = country.Name,
+				});
+			}
+
+			JArray sectors = new();
+			foreach (var sector in symbolProfile.Sectors)
+			{
+				countries.Add(new JObject
+				{
+					["weight"] = sector.Weight.ToString(),
+					["name"] = sector.Name,
+				});
+			}
+
 			var o = new JObject
 			{
 				["name"] = symbolProfile.Name,
@@ -411,8 +433,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				["comment"] = symbolProfile.Comment,
 				["scraperConfiguration"] = scraperConfiguration,
 				["symbolMapping"] = mappingObject,
-				["countries"] = "[" + string.Join(",", symbolProfile.Countries) + "]",
-				["sectors"] = "[" + string.Join(",", symbolProfile.Sectors) + "]"
+				["countries"] = countries,
+				["sectors"] = sectors
 			};
 			var res = o.ToString();
 
