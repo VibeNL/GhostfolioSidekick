@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 											outputCurrency,
 											record.DateTime,
 											[PartialSymbolIdentifier.CreateCrypto(record.InputCurrency)],
-											Math.Abs(record.InputAmount),
+											Math.Abs(record.OutputAmount),
 											Math.Abs(record.InputAmount) / Math.Abs(record.OutputAmount),
 											record.Transaction);
 					}
@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 											inputCurrency,
 											record.DateTime,
 											[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
-											Math.Abs(record.InputAmount),
+											Math.Abs(record.OutputAmount),
 											Math.Abs(record.InputAmount) / Math.Abs(record.OutputAmount),
 											record.Transaction);
 					}

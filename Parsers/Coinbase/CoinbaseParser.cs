@@ -72,14 +72,15 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 
 		private (decimal, string) ParseNote(string note)
 		{
-			// Converted 0.00087766 ETH to 1.629352 USDC
+			// Converted 0.00087766 ETH to 1.629352 USDC or  Converted 0,00087766 ETH to 1,629352 USDC
 			var match = Regex.Match(note, "Converted ([0-9.,]+) ([A-Za-z0-9]+) to ([0-9.,]+) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
 			var quantity = match.Groups[3].Value;
 			var asset = match.Groups[4].Value;
 
-			var amount = decimal.Parse(quantity, GetCultureForParsingNumbers());
+			var amountEn = decimal.Parse(quantity, GetCultureForParsingNumbersEn());
+			var amountNl = decimal.Parse(quantity, GetCultureForParsingNumbersNl());
 
-			return (amount, asset);
+			return (Math.Min(amountEn, amountNl), asset);
 		}
 
 		protected override CsvConfiguration GetConfig()
@@ -96,9 +97,14 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			};
 		}
 
-		private static CultureInfo GetCultureForParsingNumbers()
+		private static CultureInfo GetCultureForParsingNumbersEn()
 		{
 			return new CultureInfo("en");
+		}
+
+		private static CultureInfo GetCultureForParsingNumbersNl()
+		{
+			return new CultureInfo("nl");
 		}
 	}
 }
