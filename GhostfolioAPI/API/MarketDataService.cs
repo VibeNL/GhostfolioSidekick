@@ -495,6 +495,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task SetSymbolAsBenchmark(SymbolProfile symbolProfile)
 		{
+			if (!settings.AllowAdminCalls)
+			{
+				return;
+			}
+
 			var currentBanchmarks = (await GetInfo()).BenchMarks!;
 			if (Array.Exists(currentBanchmarks, x => x.Symbol == symbolProfile.Symbol))
 			{
@@ -516,6 +521,27 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			logger.LogInformation($"Updated symbol to be a benchmark {symbolProfile.Symbol}");
+		}
+
+		public async Task GatherAllMarktData()
+		{
+			if (!settings.AllowAdminCalls)
+			{
+				return;
+			}
+
+			var o = new JObject
+			{
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/admin/gather/max/", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Gathering failed");
+			}
+
+			logger.LogInformation($"Gathering requested");
 		}
 
 		private void ClearCache()
