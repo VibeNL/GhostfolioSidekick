@@ -15,5 +15,7 @@
 		SetTrackingInsightOnSymbols = 4,
 
 		SetBenchmarks = 5,
+
+		GatherAllData = 6,
 	}
 }
