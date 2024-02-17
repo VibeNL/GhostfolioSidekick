@@ -48,7 +48,14 @@ namespace GhostfolioSidekick.FileImporter
 				var account = accounts.Single(x => string.Equals(x.Name, partialActivityPerAccount.Key, StringComparison.InvariantCultureIgnoreCase));
 				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
-					await DetermineActivity(account, [.. transaction]);
+					try
+					{
+						await DetermineActivity(account, [.. transaction]);
+					}
+					catch (SymbolNotFoundException symbol)
+					{
+						logger.LogError($"Symbol [{string.Join(",", symbol.SymbolIdentifiers.Select(x => x.Identifier))}] not found for transaction {transaction.Key}. Skipping transaction");
+					}
 				}
 			}
 
@@ -137,7 +144,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			if (symbol == null)
 			{
-				throw new NotSupportedException();
+				throw new SymbolNotFoundException(activity.SymbolIdentifiers);
 			}
 
 			var holding = holdings.SingleOrDefault(x => x.SymbolProfile?.Equals(symbol) ?? false);
