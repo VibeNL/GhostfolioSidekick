@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			if (accounts == null)
 			{
-				return new Model.Accounts.Account[0];
+				return [];
 			}
 
 			var platforms = await GetPlatforms();

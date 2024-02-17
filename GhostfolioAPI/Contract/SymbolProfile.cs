@@ -1,5 +1,4 @@
-﻿
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Contract
@@ -28,6 +27,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.Contract
 
 		public string? Comment { get; set; }
 
+		public required Country[] Countries { get; set; }
+
+		public required Sector[] Sectors { get; set; }
+
 		internal static SymbolProfile Empty(Currency currency, string? name)
 		{
 			return new SymbolProfile()
@@ -37,6 +40,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.Contract
 				Currency = currency.Symbol,
 				AssetClass = string.Empty,
 				DataSource = Datasource.MANUAL.ToString(),
+				Countries = [],
+				Sectors = []
 			};
 		}
 

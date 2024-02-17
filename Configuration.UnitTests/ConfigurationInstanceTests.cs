@@ -40,7 +40,9 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 					 Currency = "EUR",
 					 ISIN = "QWERTY",
 					 Name = "TESTSymbol",
-					} },
+					 Countries = [new Country{ Code = "NL", Continent = "Europe", Name = "Netherlands", Weight = 1 }],
+					 Sectors = [new Sector { Name = "Technology", Weight = 1 }]
+					} }
 			});
 		}
 
@@ -126,7 +128,9 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 						""isin"":""QWERTY"",
 						""name"":""TESTSymbol"",
 						""assetSubClass"":""Stock"",
-						""assetClass"":""Equity""
+						""assetClass"":""Equity"",
+						""countries"":[{ ""name"":""Netherlands"", ""code"":""NL"", ""continent"":""Europe"", ""weight"":1 }],
+						""sectors"":[{ ""name"":""Technology"", ""weight"":1 }]
 					} 
 				}
 			]

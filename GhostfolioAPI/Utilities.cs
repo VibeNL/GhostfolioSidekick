@@ -50,5 +50,28 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					throw new NotSupportedException();
 			}
 		}
+
+		public static string ConvertAssetSubClassToString(AssetSubClass? assetSubClass)
+		{
+			if (assetSubClass == null)
+			{
+				return string.Empty;
+			}
+
+			switch (assetSubClass)
+			{
+				case AssetSubClass.CryptoCurrency: return "CRYPTOCURRENCY";
+				case AssetSubClass.Etf: return "ETF";
+				case AssetSubClass.Stock: return "STOCK";
+				case AssetSubClass.MutualFund: return "MUTUALFUND";
+				case AssetSubClass.Bond: return "BOND";
+				case AssetSubClass.Commodity: return "COMMODITY";
+				case AssetSubClass.PreciousMetal: return "PRECIOUS_METAL";
+				case AssetSubClass.PrivateEquity: return "PRIVATE_EQUITY";
+				default:
+					throw new NotSupportedException();
+			}
+		}
+
 	}
 }

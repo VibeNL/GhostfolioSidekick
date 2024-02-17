@@ -17,7 +17,9 @@ namespace GhostfolioSidekick.Model.Symbols
 			Currency currency,
 			string dataSource,
 			AssetClass assetClass,
-			AssetSubClass? assetSubClass)
+			AssetSubClass? assetSubClass,
+			Country[] countries,
+			Sector[] sectors)
 		{
 			Symbol = symbol;
 			Name = name;
@@ -25,6 +27,8 @@ namespace GhostfolioSidekick.Model.Symbols
 			DataSource = dataSource;
 			AssetClass = assetClass;
 			AssetSubClass = assetSubClass;
+			Countries = countries;
+			Sectors = sectors;
 		}
 
 		public Currency Currency { get; set; }
@@ -58,6 +62,10 @@ namespace GhostfolioSidekick.Model.Symbols
 		}
 
 		public int ActivitiesCount { get; set; }
+
+		public IEnumerable<Country> Countries { get; set; }
+
+		public IEnumerable<Sector> Sectors { get; set; }
 
 		public void AddIdentifier(string id)
 		{

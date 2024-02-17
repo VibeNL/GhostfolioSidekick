@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		{
 			// Arrange
 			var account = new Fixture().Create<Account>();
-			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency);
+			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency, [], []);
 			var holding = new Holding(symbolProfile)
 			{
 				Activities =
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		public async Task Execute_ShouldNotSetUnitPrice_WhenUnitPriceIsNotZero()
 		{
 			var account = new Fixture().Create<Account>();
-			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency);
+			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency, [], []);
 			var holding = new Holding(symbolProfile)
 			{
 				Activities =

@@ -360,7 +360,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				["assetClass"] = symbolProfile.AssetClass.ToString(),
 				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
 				["currency"] = symbolProfile.Currency.Symbol,
-				["datasource"] = symbolProfile.DataSource.ToString()
+				["datasource"] = symbolProfile.DataSource.ToString(),
 			};
 			var res = o.ToString();
 
@@ -403,14 +403,38 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				}
 			}
 
+			JArray countries = new();
+			foreach (var country in symbolProfile.Countries)
+			{
+				countries.Add(new JObject
+				{
+					["code"] = country.Code,
+					["weight"] = country.Weight.ToString(),
+					["continent"] = country.Continent,
+					["name"] = country.Name,
+				});
+			}
+
+			JArray sectors = new();
+			foreach (var sector in symbolProfile.Sectors)
+			{
+				countries.Add(new JObject
+				{
+					["weight"] = sector.Weight.ToString(),
+					["name"] = sector.Name,
+				});
+			}
+
 			var o = new JObject
 			{
 				["name"] = symbolProfile.Name,
-				["assetClass"] = symbolProfile.AssetClass.ToString(),
-				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
-				["comment"] = symbolProfile.Comment,
+				["assetClass"] = symbolProfile.AssetClass.ToString().ToUpperInvariant(),
+				["assetSubClass"] = Utilities.ConvertAssetSubClassToString(symbolProfile.AssetSubClass),
+				["comment"] = symbolProfile.Comment ?? string.Empty,
 				["scraperConfiguration"] = scraperConfiguration,
-				["symbolMapping"] = mappingObject
+				["symbolMapping"] = mappingObject,
+				["countries"] = countries,
+				["sectors"] = sectors
 			};
 			var res = o.ToString();
 

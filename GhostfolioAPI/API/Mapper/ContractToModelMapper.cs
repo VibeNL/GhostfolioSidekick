@@ -37,11 +37,23 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				new Currency(symbolProfile.Currency!),
 				symbolProfile.DataSource,
 				Utilities.ParseEnum<AssetClass>(symbolProfile.AssetClass),
-				Utilities.ParseOptionalEnum<AssetSubClass>(symbolProfile.AssetSubClass))
+				Utilities.ParseOptionalEnum<AssetSubClass>(symbolProfile.AssetSubClass),
+				ParseCountries(symbolProfile.Countries),
+				ParseSectors(symbolProfile.Sectors))
 			{
 				Comment = symbolProfile.Comment,
 				ISIN = symbolProfile.ISIN,
 			};
+		}
+
+		private static Sector[] ParseSectors(Contract.Sector[] sectors)
+		{
+			return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
+		}
+
+		private static Country[] ParseCountries(Contract.Country[] countries)
+		{
+			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
 
 		public static MarketDataProfile MapMarketDataList(Contract.MarketDataList market)
@@ -67,7 +79,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 								new Currency(assetProfile.Currency),
 								assetProfile.DataSource,
 								Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
-								Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass))
+								Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass),
+								MapCountries(assetProfile.Countries),
+								MapSectors(assetProfile.Sectors))
 			{
 				ActivitiesCount = assetProfile.ActivitiesCount,
 				ISIN = assetProfile.ISIN,
@@ -79,6 +93,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					Selector = assetProfile.ScraperConfiguration?.Selector
 				}
 			};
+		}
+
+		private static Sector[] MapSectors(Contract.Sector[] sectors)
+		{
+			return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
+		}
+
+		private static Country[] MapCountries(Contract.Country[] countries)
+		{
+			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
 
 		private static MarketData MapMarketData(Currency currency, Contract.MarketData marketData)
