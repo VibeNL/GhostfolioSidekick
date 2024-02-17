@@ -18,7 +18,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 
 			var activities = holding.Activities.OrderBy(x => x.Date).ToList();
 
-			foreach (var activity in activities.Where(x => x.UnitPrice.Amount == 0))
+			foreach (var activity in activities.Where(x =>
+					(x.ActivityType == ActivityType.Receive ||
+						x.ActivityType == ActivityType.Send ||
+						x.ActivityType == ActivityType.Convert
+					) &&
+					x.UnitPrice.Amount == 0))
 			{
 				activity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 			}

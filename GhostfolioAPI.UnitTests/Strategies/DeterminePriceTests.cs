@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities =
 				[
-					new Activity(account, ActivityType.Buy, DateTime.Now, 1, new Money(Currency.USD, 0), null),
+					new Activity(account, ActivityType.Receive, DateTime.Now, 1, new Money(Currency.USD, 0), null),
 
 				]
 			};
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities =
 				[
-					new Activity(account, ActivityType.Buy, DateTime.Now, 1, new Money(Currency.USD, 1000), null),
+					new Activity(account, ActivityType.Receive, DateTime.Now, 1, new Money(Currency.USD, 1000), null),
 
 				]
 			};
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities =
 				[
-					new Activity(account, ActivityType.Buy, DateTime.Now, 1, new Money(Currency.USD, 0), null),
+					new Activity(account, ActivityType.Receive, DateTime.Now, 1, new Money(Currency.USD, 0), null),
 
 				]
 			};
