@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			if (string.IsNullOrWhiteSpace(activity.TransactionId))
 			{
-				throw new NotSupportedException();
+				return string.Empty;
 			}
 
 			return $"Transaction Reference: [{activity.TransactionId}] (Details: asset {symbolProfile?.Symbol ?? "<EMPTY>"})";
@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			if (string.IsNullOrWhiteSpace(activity.TransactionId))
 			{
-				throw new NotSupportedException();
+				return string.Empty;
 			}
 
 			return $"Transaction Reference: [{activity.TransactionId}]";
