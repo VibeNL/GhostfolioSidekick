@@ -106,7 +106,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 							.SingleOrDefault(x =>
 								x.Symbol == identifier ||
 								x.ISIN == identifier ||
-								x.Identifiers.Exists(x => x.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)));
+								x.Identifiers.Any(x => x.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)));
 						if (foundSymbol != null)
 						{
 							return foundSymbol;
@@ -291,7 +291,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				if (!foundAsset.Identifiers.Contains(identifier))
 				{
-					foundAsset.Identifiers.Add(identifier);
+					foundAsset.AddIdentifier(identifier);
 					change = true;
 				}
 			}
