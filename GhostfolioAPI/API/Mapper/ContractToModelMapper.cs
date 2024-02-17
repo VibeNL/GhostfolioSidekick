@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			var mdl = new MarketDataProfile()
 			{
 				AssetProfile = MapSymbolProfile(assetProfile),
-				MarketData = market.MarketData.Select(MapMarketData).ToList(),
+				MarketData = market.MarketData.Select(x => MapMarketData(new Currency(assetProfile.Currency), x)).ToList(),
 			};
 
 			mdl.AssetProfile.Mappings.TrackInsight = trackinsight;
@@ -105,9 +105,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
 
-		public static MarketData MapMarketData(Contract.MarketData marketData)
+		private static MarketData MapMarketData(Currency currency, Contract.MarketData marketData)
 		{
-			return new MarketData(marketData.Symbol, marketData.DataSource, marketData.MarketPrice, marketData.Date);
+			return new MarketData(new Money(currency, marketData.MarketPrice), marketData.Date);
 		}
 
 		internal static IEnumerable<Holding> MapToHoldings(Account[] accounts, Contract.Activity[] existingActivities)

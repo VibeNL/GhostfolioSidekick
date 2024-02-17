@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
@@ -8,6 +9,7 @@ namespace GhostfolioSidekick.Model.Symbols
 	public sealed class SymbolProfile : IEquatable<SymbolProfile>
 	{
 		private string? comment;
+		private List<string> identifiers = [];
 
 		public SymbolProfile(
 			string symbol,
@@ -47,7 +49,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public ScraperConfiguration ScraperConfiguration { get; set; } = new ScraperConfiguration();
 
-		public List<string> Identifiers { get; } = [];
+		public ReadOnlyCollection<string> Identifiers { get => new(identifiers); }
 
 		public string? Comment
 		{
@@ -65,6 +67,12 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public IEnumerable<Sector> Sectors { get; set; }
 
+		public void AddIdentifier(string id)
+		{
+			identifiers.Add(id);
+			comment = $"Known Identifiers: [{string.Join(',', identifiers)}]";
+		}
+
 		private void ParseIdentifiers()
 		{
 			if (comment == null)
@@ -81,8 +89,8 @@ namespace GhostfolioSidekick.Model.Symbols
 				return;
 			}
 
-			Identifiers.Clear();
-			Identifiers.AddRange(ids.Split(','));
+			identifiers.Clear();
+			identifiers.AddRange(ids.Split(','));
 		}
 
 		[ExcludeFromCodeCoverage]

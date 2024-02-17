@@ -123,11 +123,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 					var price = md.SingleOrDefault(x => x.Date.Date == date.Date);
 
-					var diff = (price?.MarketPrice ?? 0) - expectedPrice;
+					var diff = (price?.MarketPrice.Amount ?? 0) - expectedPrice;
 					if (Math.Abs(diff) >= Constants.Epsilon)
 					{
 						var scraperDefined = symbolConfiguration?.ManualSymbolConfiguration?.ScraperConfiguration != null;
-						var priceIsAvailable = price?.MarketPrice != null;
+						var priceIsAvailable = price?.MarketPrice.Amount != 0;
 						var isToday = date >= DateTime.Today;
 						var shouldSkip = scraperDefined && (priceIsAvailable || isToday);
 
