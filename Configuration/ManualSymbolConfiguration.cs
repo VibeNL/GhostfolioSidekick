@@ -25,9 +25,9 @@ namespace GhostfolioSidekick.Configuration
 		public ScraperConfiguration? ScraperConfiguration { get; set; }
 
 		[JsonPropertyName("countries")]
-		public string[] Countries { get; set; } = [];
+		public Country[] Countries { get; set; } = [];
 
 		[JsonPropertyName("sectors")]
-		public string[] Sectors { get; set; } = [];
+		public Sector[] Sectors { get; set; } = [];
 	}
 }

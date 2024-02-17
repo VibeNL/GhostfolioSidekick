@@ -360,7 +360,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				["assetClass"] = symbolProfile.AssetClass.ToString(),
 				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
 				["currency"] = symbolProfile.Currency.Symbol,
-				["datasource"] = symbolProfile.DataSource.ToString()
+				["datasource"] = symbolProfile.DataSource.ToString(),
 			};
 			var res = o.ToString();
 
@@ -428,9 +428,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var o = new JObject
 			{
 				["name"] = symbolProfile.Name,
-				["assetClass"] = symbolProfile.AssetClass.ToString(),
-				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
-				["comment"] = symbolProfile.Comment,
+				["assetClass"] = symbolProfile.AssetClass.ToString().ToUpperInvariant(),
+				["assetSubClass"] = Utilities.ConvertAssetSubClassToString(symbolProfile.AssetSubClass),
+				["comment"] = symbolProfile.Comment ?? string.Empty,
 				["scraperConfiguration"] = scraperConfiguration,
 				["symbolMapping"] = mappingObject,
 				["countries"] = countries,

@@ -48,12 +48,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		private static Sector[] ParseSectors(Contract.Sector[] sectors)
 		{
-			return sectors.Select(x => new Sector(x.Name, x.Weight)).ToArray();
+			return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
 		}
 
 		private static Country[] ParseCountries(Contract.Country[] countries)
 		{
-			return countries.Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
+			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
 
 		public static MarketDataProfile MapMarketDataList(Contract.MarketDataList market)
@@ -79,7 +79,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 								new Currency(assetProfile.Currency),
 								assetProfile.DataSource,
 								Utilities.ParseEnum<AssetClass>(assetProfile.AssetClass),
-								Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass))
+								Utilities.ParseOptionalEnum<AssetSubClass>(assetProfile.AssetSubClass),
+								MapCountries(assetProfile.Countries),
+								MapSectors(assetProfile.Sectors))
 			{
 				ActivitiesCount = assetProfile.ActivitiesCount,
 				ISIN = assetProfile.ISIN,
@@ -91,6 +93,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					Selector = assetProfile.ScraperConfiguration?.Selector
 				}
 			};
+		}
+
+		private static Sector[] MapSectors(Contract.Sector[] sectors)
+		{
+			return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
+		}
+
+		private static Country[] MapCountries(Contract.Country[] countries)
+		{
+			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
 
 		public static MarketData MapMarketData(Contract.MarketData marketData)

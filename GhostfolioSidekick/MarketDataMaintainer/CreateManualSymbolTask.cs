@@ -161,7 +161,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					new Currency(manualSymbolConfiguration.Currency),
 					Datasource.MANUAL,
 					Utilities.ParseEnum<AssetClass>(manualSymbolConfiguration.AssetClass),
-					Utilities.ParseOptionalEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass))
+					Utilities.ParseOptionalEnum<AssetSubClass>(manualSymbolConfiguration.AssetSubClass),
+					manualSymbolConfiguration.Countries.Select(x => new Model.Symbols.Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray(),
+					manualSymbolConfiguration.Sectors.Select(x => new Model.Symbols.Sector(x.Name, x.Weight)).ToArray())
 				{
 					ISIN = manualSymbolConfiguration.ISIN
 				}
@@ -192,19 +194,19 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				await marketDataService.UpdateSymbol(symbol);
 			}
 
-			// Set countries
+			// Set countries, TODO: check all properties
 			var countries = manualSymbolConfiguration.Countries;
-			if (countries != null && !countries.SequenceEqual(symbol.Countries))
+			if (countries != null && !countries.Select(x => x.Code).SequenceEqual(symbol.Countries.Select(x => x.Code)))
 			{
-				symbol.Countries = countries;
+				symbol.Countries = countries.Select(x => new Model.Symbols.Country(x.Name, x.Code, x.Continent, x.Weight));
 				await marketDataService.UpdateSymbol(symbol);
 			}
 
-			// Set sectors
+			// Set sectors, TODO: check all properties
 			var sectors = manualSymbolConfiguration.Sectors;
-			if (sectors != null && !sectors.SequenceEqual(symbol.Sectors))
+			if (sectors != null && !sectors.Select(x => x.Name).SequenceEqual(symbol.Sectors.Select(x => x.Name)))
 			{
-				symbol.Sectors = sectors;
+				symbol.Sectors = sectors.Select(x => new Model.Symbols.Sector(x.Name, x.Weight));
 				await marketDataService.UpdateSymbol(symbol);
 			}
 		}

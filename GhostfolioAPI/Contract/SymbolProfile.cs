@@ -40,6 +40,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.Contract
 				Currency = currency.Symbol,
 				AssetClass = string.Empty,
 				DataSource = Datasource.MANUAL.ToString(),
+				Countries = [],
+				Sectors = []
 			};
 		}
 

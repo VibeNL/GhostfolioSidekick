@@ -70,7 +70,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
 						Currency = symbolProfile.Currency!.Symbol,
 						DataSource = symbolProfile.DataSource.ToString(),
-						Name = symbolProfile.Name
+						Name = symbolProfile.Name,
+						Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
+						Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
 					},
 					Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
 					Date = activity.Date,
@@ -94,7 +96,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
 					Currency = symbolProfile.Currency!.Symbol,
 					DataSource = symbolProfile.DataSource.ToString(),
-					Name = symbolProfile.Name
+					Name = symbolProfile.Name,
+					Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
+					Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
 				},
 				Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
 				Date = activity.Date,
