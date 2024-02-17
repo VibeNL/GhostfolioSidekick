@@ -4,51 +4,43 @@ namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public class Utilities
 	{
-		public static T ParseEnum<T>(string value) where T : struct
+		public static AssetSubClass? ParseAssetSubClass(string? value)
 		{
 			if (string.IsNullOrEmpty(value))
 			{
 				return default;
 			}
 
-			if (new T() is AssetSubClass)
+			return (value switch
 			{
-				return (T)Convert.ChangeType(ParseOptionalEnumAssetSubClass(value)!.Value, typeof(T));
-			}
-
-			return Enum.Parse<T>(value, true);
+				"CRYPTOCURRENCY" => (AssetSubClass?)AssetSubClass.CryptoCurrency,
+				"ETF" => (AssetSubClass?)AssetSubClass.Etf,
+				"STOCK" => (AssetSubClass?)AssetSubClass.Stock,
+				"MUTUALFUND" => (AssetSubClass?)AssetSubClass.MutualFund,
+				"BOND" => (AssetSubClass?)AssetSubClass.Bond,
+				"COMMODITY" => (AssetSubClass?)AssetSubClass.Commodity,
+				"PRECIOUS_METAL" => (AssetSubClass?)AssetSubClass.PreciousMetal,
+				"PRIVATE_EQUITY" => (AssetSubClass?)AssetSubClass.PrivateEquity,
+				_ => throw new NotSupportedException(),
+			})!.Value;
 		}
 
-		public static T? ParseOptionalEnum<T>(string? value) where T : struct
+		public static AssetClass ParseAssetClass(string value)
 		{
 			if (string.IsNullOrEmpty(value))
 			{
-				return default;
+				return AssetClass.Undefined;
 			}
 
-			if (new T() is AssetSubClass)
+			return (value switch
 			{
-				return (T?)Convert.ChangeType(ParseOptionalEnumAssetSubClass(value), typeof(T));
-			}
-
-			return Enum.Parse<T>(value, true);
-		}
-
-		private static AssetSubClass? ParseOptionalEnumAssetSubClass(string assetSubClass)
-		{
-			switch (assetSubClass)
-			{
-				case "CRYPTOCURRENCY": return AssetSubClass.CryptoCurrency;
-				case "ETF": return AssetSubClass.Etf;
-				case "STOCK": return AssetSubClass.Stock;
-				case "MUTUALFUND": return AssetSubClass.MutualFund;
-				case "BOND": return AssetSubClass.Bond;
-				case "COMMODITY": return AssetSubClass.Commodity;
-				case "PRECIOUS_METAL": return AssetSubClass.PreciousMetal;
-				case "PRIVATE_EQUITY": return AssetSubClass.PrivateEquity;
-				default:
-					throw new NotSupportedException();
-			}
+				"CASH" => (AssetClass?)AssetClass.Cash,
+				"EQUITY" => (AssetClass?)AssetClass.Equity,
+				"FIXED_INCOME" => (AssetClass?)AssetClass.FixedIncome,
+				"REAL_ESTATE" => (AssetClass?)AssetClass.RealEstate,
+				"COMMODITY" => (AssetClass?)AssetClass.Commodity,
+				_ => throw new NotSupportedException(),
+			})!.Value;
 		}
 
 		public static string ConvertAssetSubClassToString(AssetSubClass? assetSubClass)
@@ -58,19 +50,36 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				return string.Empty;
 			}
 
-			switch (assetSubClass)
+			return assetSubClass switch
 			{
-				case AssetSubClass.CryptoCurrency: return "CRYPTOCURRENCY";
-				case AssetSubClass.Etf: return "ETF";
-				case AssetSubClass.Stock: return "STOCK";
-				case AssetSubClass.MutualFund: return "MUTUALFUND";
-				case AssetSubClass.Bond: return "BOND";
-				case AssetSubClass.Commodity: return "COMMODITY";
-				case AssetSubClass.PreciousMetal: return "PRECIOUS_METAL";
-				case AssetSubClass.PrivateEquity: return "PRIVATE_EQUITY";
-				default:
-					throw new NotSupportedException();
+				AssetSubClass.CryptoCurrency => "CRYPTOCURRENCY",
+				AssetSubClass.Etf => "ETF",
+				AssetSubClass.Stock => "STOCK",
+				AssetSubClass.MutualFund => "MUTUALFUND",
+				AssetSubClass.Bond => "BOND",
+				AssetSubClass.Commodity => "COMMODITY",
+				AssetSubClass.PreciousMetal => "PRECIOUS_METAL",
+				AssetSubClass.PrivateEquity => "PRIVATE_EQUITY",
+				_ => throw new NotSupportedException(),
+			};
+		}
+
+		public static string ConvertAssetClassToString(AssetClass? assetClass)
+		{
+			if (assetClass == null)
+			{
+				return string.Empty;
 			}
+
+			return assetClass switch
+			{
+				AssetClass.Cash => "CASH",
+				AssetClass.Equity => "EQUITY",
+				AssetClass.FixedIncome => "FIXED_INCOME",
+				AssetClass.RealEstate => "REAL_ESTATE",
+				AssetClass.Commodity => "COMMODITY",
+				_ => throw new NotSupportedException(),
+			};
 		}
 
 	}

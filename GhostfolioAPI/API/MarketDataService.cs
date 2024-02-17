@@ -428,7 +428,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var o = new JObject
 			{
 				["name"] = symbolProfile.Name,
-				["assetClass"] = symbolProfile.AssetClass.ToString().ToUpperInvariant(),
+				["assetClass"] = Utilities.ConvertAssetClassToString(symbolProfile.AssetClass),
 				["assetSubClass"] = Utilities.ConvertAssetSubClassToString(symbolProfile.AssetSubClass),
 				["comment"] = symbolProfile.Comment ?? string.Empty,
 				["scraperConfiguration"] = scraperConfiguration,
