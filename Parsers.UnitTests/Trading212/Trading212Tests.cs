@@ -262,6 +262,22 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleLimitSellEuro_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/SellOrders/single_limitsell_euro.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US7561091049")], 0.2534760000M, 50.38M, "EOF4500546889"),
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), 0.02M, "EOF4500546889"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_InvalidAction_ThrowNotSupported()
 		{
 			// Arrange
