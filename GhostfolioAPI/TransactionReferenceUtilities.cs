@@ -25,8 +25,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			return $"Transaction Reference: [{activity.TransactionId}]";
 		}
 
-
-
 		internal static string? ParseComment(Contract.Activity activity)
 		{
 			var comment = activity.Comment;

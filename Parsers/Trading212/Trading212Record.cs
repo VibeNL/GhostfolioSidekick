@@ -74,8 +74,6 @@ namespace GhostfolioSidekick.Parsers.Trading212
 
 		[Name("Currency (Total)")]
 		public string? CurrencyTotal { get; set; }
-
-
 	}
 
 	internal class ExchangeRateConverter : DefaultTypeConverter
