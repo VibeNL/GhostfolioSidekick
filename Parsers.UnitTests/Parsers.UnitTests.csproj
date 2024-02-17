@@ -305,6 +305,9 @@
 		<None Update="TestFiles\ScalableCapital\SellOrders\SingleSell\wum.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Trading212\BuyOrders\single_buy_euro_finra_fee.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Trading212\BuyOrders\single_buy_euro_french_taxes.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

@@ -230,6 +230,22 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyEuroFinraFee_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/BuyOrders/single_buy_euro_finra_fee.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("FR0010828137")], 14.7252730000M, 13.88M, "EOF4500547227"),
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), 0.61M, "EOF4500547227")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleSellEuro_Converted()
 		{
 			// Arrange
