@@ -48,15 +48,7 @@ namespace GhostfolioSidekick.FileImporter
 				var account = accounts.Single(x => string.Equals(x.Name, partialActivityPerAccount.Key, StringComparison.InvariantCultureIgnoreCase));
 				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
-					var sourceTransaction = transaction.FirstOrDefault(x => x.SymbolIdentifiers.Length != 0);
-
-					var holding = holdings.Single(x => x.SymbolProfile == null);
-					if (sourceTransaction != null)
-					{
-						holding = await GetorAddHolding(sourceTransaction);
-					}
-
-					DetermineActivity(account, holding, [.. transaction]);
+					await DetermineActivity(account, [.. transaction]);
 				}
 			}
 
@@ -83,7 +75,7 @@ namespace GhostfolioSidekick.FileImporter
 			return list;
 		}
 
-		private void DetermineActivity(Account account, Holding holding, List<PartialActivity> transactions)
+		private async Task DetermineActivity(Account account, List<PartialActivity> transactions)
 		{
 			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Length != 0) ?? transactions[0];
 
@@ -105,7 +97,7 @@ namespace GhostfolioSidekick.FileImporter
 				SortingPriority = sourceTransaction.SortingPriority,
 				Description = sourceTransaction.Description,
 			};
-			holding.Activities.Add(activity);
+			(await GetorAddHolding(sourceTransaction)).Activities.Add(activity);
 
 			int counter = 2;
 			foreach (var transaction in otherTransactions)
@@ -122,12 +114,17 @@ namespace GhostfolioSidekick.FileImporter
 					Description = sourceTransaction.Description,
 				};
 
-				holding.Activities.Add(activity);
+				(await GetorAddHolding(transaction)).Activities.Add(activity);
 			}
 		}
 
 		private async Task<Holding> GetorAddHolding(PartialActivity activity)
 		{
+			if (activity.SymbolIdentifiers.Length == 0)
+			{
+				return holdings.Single(x => x.SymbolProfile == null);
+			}
+
 			var allowedAssetClass = EmptyToNull(activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetClasses ?? []));
 			var allowedAssetSubClass = EmptyToNull(activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetSubClasses ?? []));
 			var symbol = await MarketDataService.FindSymbolByIdentifier(
