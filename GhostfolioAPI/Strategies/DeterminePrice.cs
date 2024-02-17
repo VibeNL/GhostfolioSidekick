@@ -9,25 +9,26 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 	{
 		public int Priority => (int)CryptoStrategiesPriority.DeterminePrice;
 
-		public Task Execute(Holding holding)
+		public async Task Execute(Holding holding)
 		{
-			//// TODO
+			if (holding.SymbolProfile == null)
+			{
+				return;
+			}
+
 			var activities = holding.Activities.OrderBy(x => x.Date).ToList();
 
 			foreach (var activity in activities.Where(x => x.UnitPrice.Amount == 0))
 			{
 				activity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 			}
-
-			return Task.CompletedTask;
 		}
-		
-		private async Task<Money> GetUnitPrice(SymbolProfile? symbolProfile, DateTime date)
+
+		private async Task<Money> GetUnitPrice(SymbolProfile symbolProfile, DateTime date)
 		{
-			var md = (await marketDataService.GetAllSymbolProfiles()).ToList();
-			var profile = md.Single(x => x.Equals(symbolProfile));
-			var marketDate = profile.MarketData.Single(x => x.Date == date);
-			return new Money(symbolProfile!.Currency, marketDate.MarketPrice);
+			var marketDataProfile = await marketDataService.GetMarketData(symbolProfile.Symbol, symbolProfile.DataSource);
+			var marketDate = marketDataProfile.MarketData.SingleOrDefault(x => x.Date.Date == date.Date);
+			return new Money(symbolProfile!.Currency, marketDate?.MarketPrice.Amount ?? 0);
 		}
 	}
 }
