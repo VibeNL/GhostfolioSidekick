@@ -29,5 +29,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		Task DeleteSymbol(SymbolProfile symbolProfile);
 
 		Task SetSymbolAsBenchmark(SymbolProfile symbolProfile);
+
+		Task GatherAllMarktData();
 	}
 }
