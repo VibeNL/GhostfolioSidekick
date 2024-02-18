@@ -43,19 +43,27 @@ namespace GhostfolioSidekick.Parsers.Trading212
 
 		[Optional]
 		[Name("Stamp duty reserve tax")]
-		public decimal? FeeUK { get; set; }
+		public decimal? TaxUK { get; set; }
 
 		[Optional]
 		[Name("Currency (Stamp duty reserve tax)")]
-		public string? FeeUKCurrency { get; set; }
+		public string? TaxUKCurrency { get; set; }
 
 		[Optional]
 		[Name("French transaction tax")]
-		public decimal? FeeFrance { get; set; }
+		public decimal? TaxFrance { get; set; }
 
 		[Optional]
 		[Name("Currency (French transaction tax)")]
-		public string? FeeFranceCurrency { get; set; }
+		public string? TaxFranceCurrency { get; set; }
+
+		[Optional]
+		[Name("Finra fee")]
+		public decimal? FeeFinra { get; set; }
+
+		[Optional]
+		[Name("Currency (Finra fee)")]
+		public string? FeeFinraCurrency { get; set; }
 
 		public string? Notes { get; set; }
 

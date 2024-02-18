@@ -46,6 +46,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateBuy(currency, record.Time,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
 					break;
+				case "Limit sell":
 				case "Market sell":
 					lst.Add(PartialActivity.CreateSell(currency, record.Time,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
@@ -93,14 +94,19 @@ namespace GhostfolioSidekick.Parsers.Trading212
 
 		private IEnumerable<PartialActivity> GetFees(Trading212Record record)
 		{
-			if (record.FeeUK != null)
+			if (record.TaxUK != null)
 			{
-				yield return PartialActivity.CreateTax(currencyMapper.Map(record.FeeUKCurrency!), record.Time, record.FeeUK.Value, record.Id!);
+				yield return PartialActivity.CreateTax(currencyMapper.Map(record.TaxUKCurrency!), record.Time, record.TaxUK.Value, record.Id!);
 			}
 
-			if (record.FeeFrance != null)
+			if (record.TaxFrance != null)
 			{
-				yield return PartialActivity.CreateTax(currencyMapper.Map(record.FeeFranceCurrency!), record.Time, record.FeeFrance.Value, record.Id!);
+				yield return PartialActivity.CreateTax(currencyMapper.Map(record.TaxFranceCurrency!), record.Time, record.TaxFrance.Value, record.Id!);
+			}
+
+			if (record.FeeFinra != null)
+			{
+				yield return PartialActivity.CreateFee(currencyMapper.Map(record.FeeFinraCurrency!), record.Time, record.FeeFinra.Value, record.Id!);
 			}
 
 			if (record.ConversionFee != null)

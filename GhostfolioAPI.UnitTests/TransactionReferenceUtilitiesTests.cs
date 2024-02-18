@@ -1,10 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
-using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using System;
-using Xunit;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 {
@@ -52,17 +49,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 
 		[Fact]
-		public void GetComment_SymbolProfile_WithEmptyTransactionId_ShouldThrowNotSupportedException()
+		public void GetComment_SymbolProfile_WithEmptyTransactionId_ShouldReturnEmpty()
 		{
 			// Arrange
 			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, string.Empty).Create();
 			var symbolProfile = new Fixture().Build<SymbolProfile>().With(x => x.Symbol, "ABC").Create();
 
 			// Act
-			Action act = () => TransactionReferenceUtilities.GetComment(activity, symbolProfile);
+			var result = TransactionReferenceUtilities.GetComment(activity, null);
 
 			// Assert
-			act.Should().Throw<NotSupportedException>();
+			result.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -85,10 +82,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, string.Empty).Create();
 
 			// Act
-			Action act = () => TransactionReferenceUtilities.GetComment(activity);
+			var result = TransactionReferenceUtilities.GetComment(activity, null);
 
 			// Assert
-			act.Should().Throw<NotSupportedException>();
+			result.Should().BeEmpty();
 		}
 
 		[Fact]

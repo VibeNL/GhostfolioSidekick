@@ -92,11 +92,19 @@ namespace GhostfolioSidekick.FileImporter
 
 			ApplyHoldingActions(holdingsCollection, strategies);
 
+			// Only update accounts when we have at least one transaction
+			var managedAccount = holdingsCollection
+				.Holdings
+				.SelectMany(x => x.Activities).Select(x => x.Account.Id)
+				.Distinct()
+				.ToList();
+
 			var existingHoldings = await activitiesManager.GetAllActivities();
 			var mergeOrders = (await new MergeActivities(exchangeRateService)
 				.Merge(existingHoldings, holdingsCollection.Holdings))
 				.Where(x => x.Order1.ActivityType != Model.Activities.ActivityType.KnownBalance)
 				.Where(x => x.Operation != Operation.Duplicate)
+				.Where(x => managedAccount.Contains(x.Order1.Account.Id))
 				.OrderBy(x => x.Order1.Date);
 
 			foreach (var item in mergeOrders)

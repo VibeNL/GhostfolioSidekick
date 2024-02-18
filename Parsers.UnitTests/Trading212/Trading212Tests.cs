@@ -230,12 +230,44 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyEuroFinraFee_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/BuyOrders/single_buy_euro_finra_fee.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("FR0010828137")], 14.7252730000M, 13.88M, "EOF4500547227"),
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), 0.61M, "EOF4500547227")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleSellEuro_Converted()
 		{
 			// Arrange
 
 			// Act
 			await parser.ParseActivities("./TestFiles/Trading212/SellOrders/single_sell_euro.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US7561091049")], 0.2534760000M, 50.38M, "EOF4500546889"),
+					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), 0.02M, "EOF4500546889"),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleLimitSellEuro_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/SellOrders/single_limitsell_euro.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
