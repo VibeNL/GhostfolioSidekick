@@ -92,6 +92,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			ApplyHoldingActions(holdingsCollection, strategies);
 
+			// Only update accounts when we have at least one transaction
 			var managedAccount = holdingsCollection
 				.Holdings
 				.SelectMany(x => x.Activities).Select(x => x.Account.Id)
