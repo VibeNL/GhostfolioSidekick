@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.FileImporter
 			this.marketDataManager = marketDataManager ?? throw new ArgumentNullException(nameof(marketDataManager));
 			this.exchangeRateService = exchangeRateService ?? throw new ArgumentNullException(nameof(exchangeRateService));
 			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
-			this.strategies = strategies.OrderBy(x => x.Priority);
+			this.strategies = strategies;
 		}
 
 		public async Task DoWork()
