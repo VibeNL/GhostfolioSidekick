@@ -114,8 +114,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						200M,
+						null,
 						[PartialSymbolIdentifier.CreateCrypto("BTC")],
 						0.00716057M,
+						null,
 						"NXTVDI4DJFWqB63pTcCuTpgc")
 				);
 		}

@@ -227,8 +227,10 @@
 			DateTime date,
 			PartialSymbolIdentifier[] source,
 			decimal sourceAmount,
+			decimal? sourceUnitprice,
 			PartialSymbolIdentifier[] target,
 			decimal targetAmount,
+			decimal? targetUnitprice,
 			string transactionId)
 
 		{
@@ -237,12 +239,14 @@
 				SymbolIdentifiers = source,
 				Date = date,
 				Amount = sourceAmount,
+				UnitPrice = sourceUnitprice
 			};
 			yield return new PartialActivity(ActivityType.Receive, Currency.EUR, transactionId)
 			{
 				SymbolIdentifiers = target,
 				Date = date,
 				Amount = targetAmount,
+				UnitPrice = targetUnitprice
 			};
 		}
 

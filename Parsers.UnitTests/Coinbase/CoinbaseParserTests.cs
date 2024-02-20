@@ -78,8 +78,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
 						0.00087766M,
+						1709.09M,
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						1.629352M,
+						null,
 						"Convert_ETH_2023-04-20 04:05:40:+00:00").ToArray();
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[

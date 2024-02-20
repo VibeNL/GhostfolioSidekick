@@ -16,7 +16,6 @@ namespace IntegrationTests
 
 		}
 
-		[Fact(Skip="Offline")]
 		public async Task TestSimpleImport()
 		{
 			// Arrange
