@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					Date = activity.Date,
 					Fee = await CalculateFeeAndTaxes(activity.Fees, activity.Taxes, symbolProfile.Currency, activity.Date),
 					FeeCurrency = symbolProfile.Currency.Symbol,
-					Quantity = activity.Quantity * await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, symbolProfile.Currency, activity.Date),
+					Quantity = activity.Quantity * await exchangeRateService.GetConversionRate(activity.UnitPrice?.Currency, symbolProfile.Currency, activity.Date),
 					Type = ParseType(activity.ActivityType),
 					UnitPrice = 1,
 					ReferenceCode = activity.TransactionId
@@ -111,8 +111,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			};
 		}
 
-		private static async Task<decimal> ConvertPrice(IExchangeRateService exchangeRateService, Money money, Currency targetCurrency, DateTime dateTime)
+		private static async Task<decimal> ConvertPrice(IExchangeRateService exchangeRateService, Money? money, Currency targetCurrency, DateTime dateTime)
 		{
+			if (money == null)
+			{
+				return 0;
+			}
+
 			var rate = await exchangeRateService.GetConversionRate(money.Currency, targetCurrency, dateTime);
 			return money.Amount * rate;
 		}

@@ -19,14 +19,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			this.logger = logger;
 		}
 
-		public async Task<decimal> GetConversionRate(Currency sourceCurrency, Currency targetCurrency, DateTime dateTime)
+		public async Task<decimal> GetConversionRate(Currency? sourceCurrency, Currency? targetCurrency, DateTime dateTime)
 		{
-			if (sourceCurrency == null || sourceCurrency.Symbol == targetCurrency.Symbol)
+			if (sourceCurrency == null || sourceCurrency.Symbol == targetCurrency?.Symbol)
 			{
 				return 1;
 			}
 
-			var key = $"{nameof(ExchangeRateService)}{sourceCurrency.Symbol}{targetCurrency.Symbol}{dateTime.ToInvariantString()}";
+			var key = $"{nameof(ExchangeRateService)}{sourceCurrency.Symbol}{targetCurrency!.Symbol}{dateTime.ToInvariantString()}";
 			if (memoryCache.TryGetValue(key, out decimal cacheValue))
 			{
 				return cacheValue;

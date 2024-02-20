@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Assert
 			holding.Activities.Should().HaveCount(4);
 			var last = holding.Activities.Last();
-			last.UnitPrice.Amount.Should().Be(0.999999000000999999000001M);
+			last.UnitPrice!.Amount.Should().Be(0.999999000000999999000001M);
 			last.Quantity.Should().Be(100.0001M);
 		}
 
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Assert
 			holding.Activities.Should().HaveCount(2);
 			var last = holding.Activities.Last();
-			last.UnitPrice.Amount.Should().Be(0.9999970000089999730000809998M);
+			last.UnitPrice!.Amount.Should().Be(0.9999970000089999730000809998M);
 			last.Quantity.Should().Be(100.0003M);
 		}
 
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Assert
 			holding.Activities.Should().HaveCount(2);
 			var last = holding.Activities.Last();
-			last.UnitPrice.Amount.Should().Be(1M);
+			last.UnitPrice!.Amount.Should().Be(1M);
 			last.Quantity.Should().Be(100M);
 		}
 

@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			var lastKnownBalance = descendingSortedActivities.FirstOrDefault(x => x.ActivityType == ActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
-				sb.AppendLine($"Known balance {lastKnownBalance.Quantity} {lastKnownBalance.UnitPrice.Currency.Symbol}");
+				sb.AppendLine($"Known balance {lastKnownBalance.Quantity} {lastKnownBalance.UnitPrice!.Currency.Symbol}");
 				return new Balance(new Money(lastKnownBalance.UnitPrice.Currency, lastKnownBalance.Quantity));
 			}
 
@@ -64,11 +64,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						throw new NotSupportedException();
 				}
 
-				var activityAmount = factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice.Currency, baseCurrency, activity.Date)) *
-							activity.UnitPrice.Amount * activity.Quantity;
+				var activityAmount = factor * (await exchangeRateService.GetConversionRate(activity.UnitPrice?.Currency, baseCurrency, activity.Date)) *
+							(activity.UnitPrice?.Amount ?? 0) * activity.Quantity;
 				totalAmount += activityAmount;
 				sb.AppendLine($"Activity {activity.ActivityType} {factor} {activityAmount}. Total is now: {totalAmount}");
-
 			}
 
 			logger.LogDebug(sb.ToString());
