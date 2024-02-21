@@ -25,6 +25,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			Assert.Equal(expectedResult, result);
 		}
 
+		[Fact]
+		public void ParseAssetSubClass_InvalidInput_ThrowsNotSupportedException()
+		{
+			Assert.Throws<NotSupportedException>(() => Utilities.ParseAssetSubClass("INVALID"));
+		}
+
 		[Theory]
 		[InlineData("CASH", AssetClass.Cash)]
 		[InlineData("COMMODITY", AssetClass.Commodity)]
@@ -40,6 +46,67 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			Assert.Equal(expectedResult, result);
+		}
+
+		[Fact]
+		public void ParseAssetClass_InvalidInput_ThrowsNotSupportedException()
+		{
+			Assert.Throws<NotSupportedException>(() => Utilities.ParseAssetClass("INVALID"));
+		}
+
+		[Theory]
+		[InlineData(AssetSubClass.CryptoCurrency, "CRYPTOCURRENCY")]
+		[InlineData(AssetSubClass.Etf, "ETF")]
+		[InlineData(AssetSubClass.Stock, "STOCK")]
+		[InlineData(AssetSubClass.MutualFund, "MUTUALFUND")]
+		[InlineData(AssetSubClass.Bond, "BOND")]
+		[InlineData(AssetSubClass.Commodity, "COMMODITY")]
+		[InlineData(AssetSubClass.PreciousMetal, "PRECIOUS_METAL")]
+		[InlineData(AssetSubClass.PrivateEquity, "PRIVATE_EQUITY")]
+		[InlineData(null, "")]
+		public void ConvertAssetSubClassToString_ValidInput_ReturnsExpectedResult(AssetSubClass? input, string expectedResult)
+		{
+			// Act
+			var result = Utilities.ConvertAssetSubClassToString(input);
+
+			// Assert
+			Assert.Equal(expectedResult, result);
+		}
+
+		[Fact]
+		public void ConvertAssetSubClassToString_InvalidInput_ThrowsNotSupportedException()
+		{
+			// Arrange
+			var invalidInput = (AssetSubClass)999;
+
+			// Act & Assert
+			Assert.Throws<NotSupportedException>(() => Utilities.ConvertAssetSubClassToString(invalidInput));
+		}
+
+		[Theory]
+		[InlineData(AssetClass.Cash, "CASH")]
+		[InlineData(AssetClass.Equity, "EQUITY")]
+		[InlineData(AssetClass.FixedIncome, "FIXED_INCOME")]
+		[InlineData(AssetClass.RealEstate, "REAL_ESTATE")]
+		[InlineData(AssetClass.Commodity, "COMMODITY")]
+		[InlineData(null, "")]
+		public void ConvertAssetClassToString_ValidInput_ReturnsExpectedResult(AssetClass? input, string expectedResult)
+		{
+			// Act
+			var result = Utilities.ConvertAssetClassToString(input);
+
+			// Assert
+			Assert.Equal(expectedResult, result);
+		}
+
+		[Fact]
+		public void ConvertAssetClassToString_InvalidInput_ThrowsNotSupportedException()
+		{
+			// Arrange
+			var invalidInput = (AssetClass)999;
+
+			// Act & Assert
+			Assert.Throws<NotSupportedException>(() => Utilities.ConvertAssetClassToString(invalidInput));
 		}
 	}
 }

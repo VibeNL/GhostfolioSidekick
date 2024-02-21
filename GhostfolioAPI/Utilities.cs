@@ -81,6 +81,5 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				_ => throw new NotSupportedException(),
 			};
 		}
-
 	}
 }
