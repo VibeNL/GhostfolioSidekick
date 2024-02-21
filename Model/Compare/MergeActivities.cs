@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.Model.Compare
 		{
 			if (newActivity.UnitPrice == null || existingActivity.UnitPrice == null)
 			{
-				return newActivity.UnitPrice == existingActivity.UnitPrice;
+				return newActivity.UnitPrice == null && existingActivity.UnitPrice == null;
 			}
 
 			var existingUnitPrice = await RoundAndConvert(existingActivity.UnitPrice!, newActivity.UnitPrice!.Currency, newActivity.Date);
@@ -127,11 +127,6 @@ namespace GhostfolioSidekick.Model.Compare
 
 		private async Task<Money?> RoundAndConvert(Money value, Currency target, DateTime dateTime)
 		{
-			if (value == null || target == null)
-			{
-				return null;
-			}
-
 			static decimal Round(decimal? value)
 			{
 				var r = Math.Round(value ?? 0, 10);
