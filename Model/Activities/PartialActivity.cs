@@ -37,7 +37,8 @@
 			return new PartialActivity(ActivityType.CashDeposit, currency, transactionId)
 			{
 				Date = date,
-				Amount = amount
+				Amount = amount,
+				UnitPrice = 1,
 			};
 		}
 
@@ -46,7 +47,8 @@
 			return new PartialActivity(ActivityType.CashWithdrawal, currency, transactionId)
 			{
 				Date = date,
-				Amount = amount
+				Amount = amount,
+				UnitPrice = 1,
 			};
 		}
 
@@ -57,6 +59,7 @@
 				Date = date,
 				Amount = amount,
 				Description = "Gift",
+				UnitPrice = 1,
 			};
 		}
 
@@ -66,7 +69,8 @@
 			{
 				Date = date,
 				Amount = amount,
-				SymbolIdentifiers = symbolIdentifiers
+				SymbolIdentifiers = symbolIdentifiers,
+				UnitPrice = 1,
 			};
 		}
 
@@ -82,6 +86,7 @@
 				Date = date,
 				Amount = amount,
 				Description = description,
+				UnitPrice = 1,
 			};
 		}
 
@@ -91,7 +96,8 @@
 			{
 				Date = date,
 				Amount = amount,
-				SortingPriority = rownumber
+				SortingPriority = rownumber,
+				UnitPrice = 1,
 			};
 		}
 
@@ -102,6 +108,7 @@
 				Date = date,
 				Amount = amount,
 				Description = "Tax",
+				UnitPrice = 1,
 			};
 		}
 
@@ -112,6 +119,7 @@
 				Date = date,
 				Amount = amount,
 				Description = "Fee",
+				UnitPrice = 1,
 			};
 		}
 
@@ -174,12 +182,14 @@
 			yield return new PartialActivity(ActivityType.CashWithdrawal, source.Currency, transactionId)
 			{
 				Date = date,
-				Amount = source.Amount
+				Amount = source.Amount,
+				UnitPrice = 1,
 			};
 			yield return new PartialActivity(ActivityType.CashDeposit, target.Currency, transactionId)
 			{
 				Date = date,
-				Amount = target.Amount
+				Amount = target.Amount,
+				UnitPrice = 1,
 			};
 		}
 

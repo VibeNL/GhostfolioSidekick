@@ -53,15 +53,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return;
 			}
 
-			if (activity.UnitPrice == 0 && activity.Quantity == 0)
+			// Ghostfolio bug: Bug with very small numbers
+			if ((Math.Abs(activity.UnitPrice) < Constants.Epsilon) || Math.Abs(activity.Quantity) < Constants.Epsilon)
 			{
 				logger.LogDebug($"Skipping empty transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 				return;
 			}
-			
+
 			var url = $"api/v1/order";
 			await restCall.DoRestPost(url, await ConvertToBody(activity));
-			
+
 			logger.LogInformation($"Added transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 		}
 
