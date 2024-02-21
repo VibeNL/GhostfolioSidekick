@@ -76,6 +76,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 
 		[Fact]
+		public void GetComment_EmptyTransactionWithoutSymbolProfile_ShouldReturnExpectedString()
+		{
+			// Arrange
+			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, string.Empty).Create();
+
+			// Act
+			var result = TransactionReferenceUtilities.GetComment(activity);
+
+			// Assert
+			result.Should().BeEmpty();
+		}
+
+		[Fact]
 		public void GetComment_WithEmptyTransactionId_ShouldThrowNotSupportedException()
 		{
 			// Arrange
