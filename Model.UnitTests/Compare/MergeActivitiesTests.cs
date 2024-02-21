@@ -166,6 +166,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 
 			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.UnitPrice).Create();
 			var activity2 = activity1 with { UnitPrice = new Money(Currency.EUR, 42) };
+			activity1 = activity2 with { UnitPrice = null };
 
 			existingHolding.Activities.Add(activity1);
 			newHolding.Activities.Add(activity2);
@@ -187,6 +188,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 
 			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.UnitPrice).Create();
 			var activity2 = activity1 with { Quantity = 2 };
+			activity1 = activity2 with { UnitPrice = null };
 
 			existingHolding.Activities.Add(activity1);
 			newHolding.Activities.Add(activity2);
