@@ -75,8 +75,10 @@ namespace GhostfolioSidekick.Parsers.Nexo
 											record.DateTime,
 											[PartialSymbolIdentifier.CreateCrypto(record.InputCurrency)],
 											Math.Abs(record.InputAmount),
+											null,
 											[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
 											Math.Abs(record.OutputAmount),
+											null,
 											record.Transaction);
 						foreach (var item in lst)
 						{

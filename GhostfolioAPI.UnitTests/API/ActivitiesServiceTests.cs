@@ -1,7 +1,7 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Compare;
@@ -19,19 +19,23 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 		private readonly Fixture fixture = DefaultFixture.Create();
 		private readonly Mock<ILogger<ActivitiesService>> loggerMock;
-		private readonly Mock<IExchangeRateService> exchangeRateService;
-		private readonly Mock<IAccountService> accountService;
+		private readonly Mock<IExchangeRateService> exchangeRateServiceMock;
+		private readonly Mock<IAccountService> accountServiceMock;
 		private readonly ActivitiesService activitiesService;
 
 		public ActivitiesServiceTests()
 		{
 			loggerMock = new Mock<ILogger<ActivitiesService>>();
-			exchangeRateService = new Mock<IExchangeRateService>();
-			accountService = new Mock<IAccountService>();
+			exchangeRateServiceMock = new Mock<IExchangeRateService>();
+			accountServiceMock = new Mock<IAccountService>();
+
+			exchangeRateServiceMock
+				.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
+				.ReturnsAsync(1);
 
 			activitiesService = new ActivitiesService(
-				exchangeRateService.Object,
-				accountService.Object,
+				exchangeRateServiceMock.Object,
+				accountServiceMock.Object,
 				restCall: restCall,
 				logger: loggerMock.Object);
 		}
@@ -53,7 +57,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 					{
 						Activities = activitiesFromService
 					})));
-			accountService.Setup(x => x.GetAllAccounts()).ReturnsAsync([account]);
+			accountServiceMock.Setup(x => x.GetAllAccounts()).ReturnsAsync([account]);
 
 			// Act
 			var activities = await activitiesService.GetAllActivities();

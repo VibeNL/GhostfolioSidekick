@@ -134,5 +134,10 @@ namespace GhostfolioSidekick.Model.Symbols
 			hash = hash * 23 + (AssetSubClass?.GetHashCode() ?? 0);
 			return hash;
 		}
+
+		public override string ToString()
+		{
+			return Symbol;
+		}
 	}
 }

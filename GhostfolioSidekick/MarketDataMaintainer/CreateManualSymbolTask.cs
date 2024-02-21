@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.GroupBy(x => x.Date.Date)
 				.Select(x => x
 					.OrderBy(x => x.TransactionId)
-					.ThenByDescending(x => x.UnitPrice.Amount)
+					.ThenByDescending(x => x.UnitPrice?.Amount ?? 0)
 					.ThenByDescending(x => x.Quantity)
 					.ThenByDescending(x => x.ActivityType).First())
 				.OrderBy(x => x.Date)
@@ -103,6 +103,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			for (var i = 0; i < sortedActivities.Count; i++)
 			{
 				var fromActivity = sortedActivities[i];
+				if (fromActivity?.UnitPrice == null)
+				{
+					continue;
+				}
+
 				Activity? toActivity = null;
 
 				if (i + 1 < sortedActivities.Count)
@@ -117,8 +122,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					var b = (decimal)(toDate - date).TotalDays;
 
 					var percentage = a / (a + b);
-					decimal amountFrom = fromActivity.UnitPrice.Amount;
-					decimal amountTo = toActivity?.UnitPrice.Amount ?? fromActivity.UnitPrice.Amount;
+					decimal amountFrom = fromActivity.UnitPrice!.Amount;
+					decimal amountTo = toActivity?.UnitPrice?.Amount ?? fromActivity.UnitPrice?.Amount ?? 0;
 					var expectedPrice = amountFrom + (percentage * (amountTo - amountFrom));
 
 					var price = md.SingleOrDefault(x => x.Date.Date == date.Date);
@@ -127,7 +132,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					if (Math.Abs(diff) >= Constants.Epsilon)
 					{
 						var scraperDefined = symbolConfiguration?.ManualSymbolConfiguration?.ScraperConfiguration != null;
-						var priceIsAvailable = (price?.MarketPrice.Amount ?? 0 ) != 0;
+						var priceIsAvailable = (price?.MarketPrice.Amount ?? 0) != 0;
 						var isToday = date >= DateTime.Today;
 						var shouldSkip = scraperDefined && (priceIsAvailable || isToday);
 
@@ -136,7 +141,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							continue;
 						}
 
-						await marketDataService.SetMarketPrice(mdi, new Money(fromActivity.UnitPrice.Currency, expectedPrice), date);
+						await marketDataService.SetMarketPrice(mdi, new Money(fromActivity.UnitPrice!.Currency, expectedPrice), date);
 					}
 				}
 			}
