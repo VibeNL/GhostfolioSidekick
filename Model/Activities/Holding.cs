@@ -12,5 +12,10 @@ namespace GhostfolioSidekick.Model.Activities
 		public SymbolProfile? SymbolProfile { get; }
 
 		public List<Activity> Activities { get; set; } = new List<Activity>();
+
+		override public string ToString()
+		{
+			return $"{SymbolProfile?.Symbol} - {Activities.Count} activities";
+		}
 	}
 }

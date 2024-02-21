@@ -5,8 +5,8 @@
 		private DateTime date;
 
 		public PartialActivity(
-			ActivityType activityType, 
-			Currency currency, 
+			ActivityType activityType,
+			Currency currency,
 			string? transactionId)
 		{
 			ActivityType = activityType;
@@ -23,13 +23,13 @@
 		public decimal Amount { get; private set; }
 
 		public string? TransactionId { get; }
-		
+
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
-		
-		public decimal? UnitPrice { get; private set; } = 1;
-		
+
+		public decimal? UnitPrice { get; private set; }
+
 		public int? SortingPriority { get; private set; }
-		
+
 		public string? Description { get; private set; }
 
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string transactionId)

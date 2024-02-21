@@ -59,7 +59,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					case ActivityType.Valuable:
 					case ActivityType.Liability:
 						break;
-					case ActivityType.Convert:
 					default:
 						throw new NotSupportedException();
 				}

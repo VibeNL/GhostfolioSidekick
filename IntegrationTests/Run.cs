@@ -16,6 +16,7 @@ namespace IntegrationTests
 
 		}
 
+		[Fact]
 		public async Task TestSimpleImport()
 		{
 			// Arrange

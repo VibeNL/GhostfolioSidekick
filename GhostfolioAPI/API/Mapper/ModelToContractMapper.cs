@@ -138,8 +138,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					return Contract.ActivityType.SELL;
 				case Model.Activities.ActivityType.Receive:
 					return Contract.ActivityType.BUY;
-				case Model.Activities.ActivityType.Convert:
-					return Contract.ActivityType.IGNORE;
 				case Model.Activities.ActivityType.Interest:
 					return Contract.ActivityType.INTEREST;
 				case Model.Activities.ActivityType.Fee:
