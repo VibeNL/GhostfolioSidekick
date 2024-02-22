@@ -196,5 +196,36 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Assert
 			// Implicit assertion that no exception is thrown
 		}
+
+		[Fact]
+		public async Task Execute_ShouldSetUnitPrice_NoPriceKnown_WhenUnitPriceIsZero()
+		{
+			// Arrange
+			var account = new Fixture().Create<Account>();
+			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency, [], []);
+			var holding = new Holding(symbolProfile)
+			{
+				Activities =
+				[
+					new Activity(account, ActivityType.Receive, DateTime.Now, 1, new Money(Currency.USD, 0), null),
+				]
+			};
+
+			var marketDataProfile = new MarketDataProfile
+			{
+				AssetProfile = symbolProfile,
+				MarketData = []
+			};
+
+			marketDataServiceMock
+				.Setup(x => x.GetMarketData(It.IsAny<string>(), It.IsAny<string>()))
+				.ReturnsAsync(marketDataProfile);
+
+			// Act
+			await determinePrice.Execute(holding);
+
+			// Assert
+			holding.Activities[0]!.UnitPrice!.Amount.Should().Be(0);
+		}
 	}
 }
