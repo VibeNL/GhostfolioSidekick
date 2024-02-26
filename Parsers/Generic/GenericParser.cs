@@ -36,48 +36,48 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 			switch (record.ActivityType)
 			{
-				case ActivityType.Receive:
+				case PartialActivityType.Receive:
 					lst.Add(PartialActivity.CreateReceive(record.Date,
 						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity, record.Id));
 					break;
-				case ActivityType.Buy:
+				case PartialActivityType.Buy:
 					lst.Add(PartialActivity.CreateBuy(currency, record.Date,
 						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity, unitPrice, record.Id));
 					break;
-				case ActivityType.Send:
+				case PartialActivityType.Send:
 					lst.Add(PartialActivity.CreateSend(record.Date, [PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity, record.Id));
 					break;
-				case ActivityType.Sell:
+				case PartialActivityType.Sell:
 					lst.Add(PartialActivity.CreateSell(currency, record.Date, [PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity, unitPrice, record.Id));
 					break;
-				case ActivityType.Dividend:
+				case PartialActivityType.Dividend:
 					lst.Add(PartialActivity.CreateDividend(currency, record.Date, [PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], record.Quantity * record.UnitPrice, record.Id));
 					break;
-				case ActivityType.Interest:
+				case PartialActivityType.Interest:
 					lst.Add(PartialActivity.CreateInterest(currency, record.Date, record.UnitPrice, "Interest", record.Id));
 					break;
-				case ActivityType.Fee:
+				case PartialActivityType.Fee:
 					if (record.UnitPrice != 0)
 					{
 						lst.Add(PartialActivity.CreateFee(currency, record.Date, record.UnitPrice, record.Id));
 					}
 					break;
-				case ActivityType.Valuable:
+				case PartialActivityType.Valuable:
 					lst.Add(PartialActivity.CreateValuable(currency, record.Date, record.Symbol!, record.Quantity * record.UnitPrice, record.Id));
 					break;
-				case ActivityType.Liability:
+				case PartialActivityType.Liability:
 					lst.Add(PartialActivity.CreateLiability(currency, record.Date, record.Symbol!, record.Quantity * record.UnitPrice, record.Id));
 					break;
-				case ActivityType.Gift:
+				case PartialActivityType.Gift:
 					lst.Add(PartialActivity.CreateGift(currency, record.Date, record.UnitPrice, record.Id));
 					break;
-				case ActivityType.CashDeposit:
+				case PartialActivityType.CashDeposit:
 					lst.Add(PartialActivity.CreateCashDeposit(currency, record.Date, record.UnitPrice, record.Id));
 					break;
-				case ActivityType.CashWithdrawal:
+				case PartialActivityType.CashWithdrawal:
 					lst.Add(PartialActivity.CreateCashWithdrawal(currency, record.Date, record.UnitPrice, record.Id));
 					break;
-				case ActivityType.Tax:
+				case PartialActivityType.Tax:
 					if (record.UnitPrice != 0)
 					{
 						lst.Add(PartialActivity.CreateTax(currency, record.Date, record.UnitPrice, record.Id));
