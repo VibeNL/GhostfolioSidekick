@@ -34,7 +34,7 @@
 
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.CashDeposit, currency, transactionId)
+			return new PartialActivity(PartialActivityType.CashDeposit, currency, transactionId)
 			{
 				Date = date,
 				Amount = amount
@@ -43,7 +43,7 @@
 
 		public static PartialActivity CreateCashWithdrawal(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.CashWithdrawal, currency, transactionId)
+			return new PartialActivity(PartialActivityType.CashWithdrawal, currency, transactionId)
 			{
 				Date = date,
 				Amount = amount
@@ -52,7 +52,7 @@
 
 		public static PartialActivity CreateGift(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Gift, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Gift, currency, transactionId)
 			{
 				Date = date,
 				Amount = amount,
@@ -62,7 +62,7 @@
 
 		public static PartialActivity CreateGift(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Gift, Currency.EUR, transactionId)
+			return new PartialActivity(PartialActivityType.Gift, Currency.EUR, transactionId)
 			{
 				Date = date,
 				Amount = amount,
@@ -77,7 +77,7 @@
 			string description,
 			string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Interest, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Interest, currency, transactionId)
 			{
 				Date = date,
 				Amount = amount,
@@ -87,7 +87,7 @@
 
 		public static PartialActivity CreateKnownBalance(Currency currency, DateTime date, decimal amount, int? rownumber = 0)
 		{
-			return new PartialActivity(this.ActivityType.KnownBalance, currency, null)
+			return new PartialActivity(PartialActivityType.KnownBalance, currency, null)
 			{
 				Date = date,
 				Amount = amount,
@@ -97,7 +97,7 @@
 
 		public static PartialActivity CreateTax(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Tax, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Tax, currency, transactionId)
 			{
 				Date = date,
 				Amount = amount,
@@ -107,7 +107,7 @@
 
 		public static PartialActivity CreateFee(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Fee, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Fee, currency, transactionId)
 			{
 				Date = date,
 				Amount = amount,
@@ -123,7 +123,7 @@
 			decimal unitPrice,
 			string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Buy, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Buy, currency, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -140,7 +140,7 @@
 			decimal unitPrice,
 			string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Sell, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Sell, currency, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -156,7 +156,7 @@
 		decimal amount,
 		string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Dividend, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Dividend, currency, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -171,12 +171,12 @@
 			Money target,
 			string transactionId)
 		{
-			yield return new PartialActivity(this.ActivityType.CashWithdrawal, source.Currency, transactionId)
+			yield return new PartialActivity(PartialActivityType.CashWithdrawal, source.Currency, transactionId)
 			{
 				Date = date,
 				Amount = source.Amount
 			};
-			yield return new PartialActivity(this.ActivityType.CashDeposit, target.Currency, transactionId)
+			yield return new PartialActivity(PartialActivityType.CashDeposit, target.Currency, transactionId)
 			{
 				Date = date,
 				Amount = target.Amount
@@ -185,7 +185,7 @@
 
 		public static PartialActivity CreateStakingReward(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.StakingReward, Currency.EUR, transactionId)
+			return new PartialActivity(PartialActivityType.StakingReward, Currency.EUR, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -195,7 +195,7 @@
 
 		public static PartialActivity CreateSend(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Send, Currency.EUR, transactionId)
+			return new PartialActivity(PartialActivityType.Send, Currency.EUR, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -205,7 +205,7 @@
 
 		public static PartialActivity CreateReceive(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Receive, Currency.EUR, transactionId)
+			return new PartialActivity(PartialActivityType.Receive, Currency.EUR, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -215,7 +215,7 @@
 
 		public static PartialActivity CreateLearningReward(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.LearningReward, Currency.EUR, transactionId)
+			return new PartialActivity(PartialActivityType.LearningReward, Currency.EUR, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -232,13 +232,13 @@
 			string transactionId)
 
 		{
-			yield return new PartialActivity(this.ActivityType.Send, Currency.EUR, transactionId)
+			yield return new PartialActivity(PartialActivityType.Send, Currency.EUR, transactionId)
 			{
 				SymbolIdentifiers = source,
 				Date = date,
 				Amount = sourceAmount,
 			};
-			yield return new PartialActivity(this.ActivityType.Receive, Currency.EUR, transactionId)
+			yield return new PartialActivity(PartialActivityType.Receive, Currency.EUR, transactionId)
 			{
 				SymbolIdentifiers = target,
 				Date = date,
@@ -248,7 +248,7 @@
 
 		public static PartialActivity CreateValuable(Currency currency, DateTime date, string description, decimal value, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Valuable, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Valuable, currency, transactionId)
 			{
 				Date = date,
 				Amount = 1,
@@ -259,7 +259,7 @@
 
 		public static PartialActivity CreateLiability(Currency currency, DateTime date, string description, decimal value, string transactionId)
 		{
-			return new PartialActivity(this.ActivityType.Liability, currency, transactionId)
+			return new PartialActivity(PartialActivityType.Liability, currency, transactionId)
 			{
 				Date = date,
 				Amount = 1,

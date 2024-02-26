@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 
@@ -150,42 +151,76 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				Guid.TryParse(profile.Symbol, out _);
 		}
 
-		private static Activity MapActivity(Account[] accounts, Contract.Activity activity)
+		private static IActivity MapActivity(Account[] accounts, Contract.Activity activity)
 		{
-			return new Activity(accounts.Single(x => x.Id == activity.AccountId),
-								ParseType(activity.Type),
+			switch (activity.Type)
+			{
+				case Contract.ActivityType.BUY:
+				case Contract.ActivityType.SELL:
+					return new BuySellActivity(accounts.Single(x => x.Id == activity.AccountId),
 								activity.Date,
-								activity.Quantity,
+								(activity.Type == Contract.ActivityType.BUY ? 1 : -1) * activity.Quantity,
 								new Money(new Currency(activity.SymbolProfile!.Currency), activity.UnitPrice),
 								TransactionReferenceUtilities.ParseComment(activity)
 								)
-			{
-				Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
-				Description = activity.SymbolProfile.Name,
-				Id = activity.Id,
-			};
-		}
-
-		private static ActivityType ParseType(Contract.ActivityType type)
-		{
-			switch (type)
-			{
-				case Contract.ActivityType.BUY:
-					return ActivityType.Buy;
-				case Contract.ActivityType.SELL:
-					return ActivityType.Sell;
+					{
+						Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.DIVIDEND:
-					return ActivityType.Dividend;
+					return new DividendActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.INTEREST:
-					return ActivityType.Interest;
+					return new InterestActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.FEE:
-					return ActivityType.Fee;
+					return new FeeActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.ITEM:
-					return ActivityType.Valuable;
+					return new ItemActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.LIABILITY:
-					return ActivityType.Liability;
+					return new LiabilityActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				default:
-					throw new NotSupportedException($"ActivityType {type} not supported");
+					throw new NotSupportedException($"ActivityType {activity.Type} not supported");
 			}
 		}
 	}

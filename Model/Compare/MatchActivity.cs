@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.SpecificActivity;
 
 namespace GhostfolioSidekick.Model.Compare
 {

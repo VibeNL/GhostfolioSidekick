@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Compare;
 
-namespace GhostfolioSidekick.Model.Activities.SpecificActivity
+namespace GhostfolioSidekick.Model.Activities
 {
 	public interface IActivity
 	{
@@ -13,5 +14,7 @@ namespace GhostfolioSidekick.Model.Activities.SpecificActivity
 		public int? SortingPriority { get; }
 
 		public string? Id { get; }
+
+		public Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other);
 	}
 }
