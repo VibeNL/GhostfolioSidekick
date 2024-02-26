@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Symbols;
 using Moq;
@@ -26,7 +27,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			var profile = fixture.Create<SymbolProfile>();
 			var existingHolding = new Holding(null);
 			var newHolding = new Holding(null);
-			newHolding.Activities.Add(fixture.Create<Activity>());
+			newHolding.Activities.Add(fixture.Create<BuySellActivity>());
 
 			// Act
 			var mergeOrders = await new MergeActivities(exchangeRateService).Merge([existingHolding], [newHolding]);
@@ -42,7 +43,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			var profile = fixture.Create<SymbolProfile>();
 			var existingHolding = new Holding(profile);
 			var newHolding = new Holding(profile);
-			newHolding.Activities.Add(fixture.Create<Activity>());
+			newHolding.Activities.Add(fixture.Create<BuySellActivity>());
 
 			// Act
 			var mergeOrders = await new MergeActivities(exchangeRateService).Merge([existingHolding], [newHolding]);
@@ -57,7 +58,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			// Arrange
 			var profile = fixture.Create<SymbolProfile>();
 			var existingHolding = new Holding(profile);
-			existingHolding.Activities.Add(fixture.Create<Activity>());
+			existingHolding.Activities.Add(fixture.Create<BuySellActivity>());
 			var newHolding = new Holding(profile);
 
 			// Act
@@ -75,7 +76,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			var existingHolding = new Holding(profile);
 			var newHolding = new Holding(profile);
 
-			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.Description).Create();
+			var activity1 = fixture.Build<BuySellActivity>().With(x => x.Quantity, 1).Without(x => x.Description).Create();
 			var activity2 = activity1 with { Quantity = 2 };
 
 			existingHolding.Activities.Add(activity1);
@@ -96,7 +97,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			var existingHolding = new Holding(profile);
 			var newHolding = new Holding(profile);
 
-			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Create();
+			var activity1 = fixture.Build<BuySellActivity>().With(x => x.Quantity, 1).Create();
 			var activity2 = activity1 with { };
 
 			existingHolding.Activities.Add(activity1);
@@ -118,8 +119,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			var existingHolding = new Holding(profile1);
 			var newHolding = new Holding(profile2);
 
-			var activity1 = fixture.Create<Activity>();
-			var activity2 = fixture.Create<Activity>();
+			var activity1 = fixture.Create<BuySellActivity>();
+			var activity2 = fixture.Create<BuySellActivity>();
 
 			existingHolding.Activities.Add(activity1);
 			newHolding.Activities.Add(activity2);
@@ -143,7 +144,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			var existingHolding = new Holding(profile);
 			var newHolding = new Holding(profile);
 
-			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.Description).Create();
+			var activity1 = fixture.Build<BuySellActivity>().With(x => x.Quantity, 1).Without(x => x.Description).Create();
 			var activity2 = activity1 with { UnitPrice = null };
 
 			existingHolding.Activities.Add(activity1);
@@ -164,7 +165,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			var existingHolding = new Holding(profile);
 			var newHolding = new Holding(profile);
 
-			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.UnitPrice).Create();
+			var activity1 = fixture.Build<BuySellActivity>().With(x => x.Quantity, 1).Without(x => x.UnitPrice).Create();
 			var activity2 = activity1 with { UnitPrice = new Money(Currency.EUR, 42) };
 			activity1 = activity2 with { UnitPrice = null };
 
@@ -186,7 +187,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			var existingHolding = new Holding(profile);
 			var newHolding = new Holding(profile);
 
-			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.UnitPrice).Create();
+			var activity1 = fixture.Build<BuySellActivity>().With(x => x.Quantity, 1).Without(x => x.UnitPrice).Create();
 			var activity2 = activity1 with { Quantity = 2 };
 			activity1 = activity2 with { UnitPrice = null };
 

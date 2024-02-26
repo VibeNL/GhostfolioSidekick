@@ -10,15 +10,15 @@ namespace GhostfolioSidekick.UnitTests.Parsers.DeGiro
 	public class DeGiroRecordPTTests
 	{
 		[Theory]
-		[InlineData("Comissões de transação DEGIRO e/ou taxas de terceiros", ActivityType.Fee)]
-		[InlineData("Venda", ActivityType.Sell)]
-		[InlineData("Compra", ActivityType.Buy)]
-		[InlineData("Dividendo", ActivityType.Dividend)]
-		[InlineData("Processed Flatex Withdrawal", ActivityType.CashWithdrawal)]
-		[InlineData("Depósitos", ActivityType.CashDeposit)]
-		[InlineData("Flatex Interest Income", ActivityType.Interest)]
-		[InlineData("Custo de Conectividade DEGIRO", ActivityType.Fee)]
-		public void GetActivityType_WhenDescriptionIsNotNull_ShouldReturnExpectedActivityType(string description, ActivityType expectedActivityType)
+		[InlineData("Comissões de transação DEGIRO e/ou taxas de terceiros", PartialActivityType.Fee)]
+		[InlineData("Venda", PartialActivityType.Sell)]
+		[InlineData("Compra", PartialActivityType.Buy)]
+		[InlineData("Dividendo", PartialActivityType.Dividend)]
+		[InlineData("Processed Flatex Withdrawal", PartialActivityType.CashWithdrawal)]
+		[InlineData("Depósitos", PartialActivityType.CashDeposit)]
+		[InlineData("Flatex Interest Income", PartialActivityType.Interest)]
+		[InlineData("Custo de Conectividade DEGIRO", PartialActivityType.Fee)]
+		public void GetActivityType_WhenDescriptionIsNotNull_ShouldReturnExpectedActivityType(string description, PartialActivityType expectedActivityType)
 		{
 			// Arrange
 			var record = DefaultFixture.Create().Build<DeGiroRecordPT>().With(x => x.Description, description).Create();

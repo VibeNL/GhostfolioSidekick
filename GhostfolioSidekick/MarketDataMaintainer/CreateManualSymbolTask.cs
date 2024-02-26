@@ -3,6 +3,7 @@ using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 
@@ -81,7 +82,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					x.SymbolProfile.AssetClass == Utilities.ParseAssetClass(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
 					x.SymbolProfile.AssetSubClass == Utilities.ParseAssetSubClass(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass))
 				.SelectMany(x => x.Activities)
-				.Where(x => IsBuyOrSell(x.ActivityType)).ToList();
+				.Where(x => x is BuySellActivity)
+				.Select(x => (BuySellActivity)x)
+				.ToList();
 
 			if (!activitiesForSymbol.Any())
 			{
@@ -96,7 +99,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.OrderBy(x => x.TransactionId)
 					.ThenByDescending(x => x.UnitPrice?.Amount ?? 0)
 					.ThenByDescending(x => x.Quantity)
-					.ThenByDescending(x => x.ActivityType).First())
+					.First())
 				.OrderBy(x => x.Date)
 				.ToList();
 
@@ -108,7 +111,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 				}
 
-				Activity? toActivity = null;
+				BuySellActivity? toActivity = null;
 
 				if (i + 1 < sortedActivities.Count)
 				{
@@ -214,11 +217,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				symbol.Sectors = sectors.Select(x => new Model.Symbols.Sector(x.Name, x.Weight));
 				await marketDataService.UpdateSymbol(symbol);
 			}
-		}
-
-		private static bool IsBuyOrSell(ActivityType activityType)
-		{
-			return activityType == ActivityType.Buy || activityType == ActivityType.Sell;
 		}
 	}
 }
