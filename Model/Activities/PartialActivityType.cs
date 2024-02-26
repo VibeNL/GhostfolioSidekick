@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Model.Activities
 {
-	public enum ActivityType
+	public enum PartialActivityType
 	{
 		Undefined = 0,
 

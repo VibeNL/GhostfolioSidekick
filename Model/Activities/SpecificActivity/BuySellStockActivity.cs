@@ -1,20 +1,18 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
 using System.Diagnostics.CodeAnalysis;
 
-namespace GhostfolioSidekick.Model.Activities
+namespace GhostfolioSidekick.Model.Activities.SpecificActivity
 {
-	public record class Activity
+	public record class BuySellActivity : IActivity
 	{
-		public Activity(
+		public BuySellActivity(
 		Account account,
-		ActivityType activityType,
 		DateTime dateTime,
 		decimal quantity,
 		Money? unitPrice,
 		string? transactionId)
 		{
 			Account = account;
-			ActivityType = activityType;
 			Date = dateTime;
 			Quantity = quantity;
 			UnitPrice = unitPrice;
@@ -22,8 +20,6 @@ namespace GhostfolioSidekick.Model.Activities
 		}
 
 		public Account Account { get; }
-
-		public ActivityType ActivityType { get; }
 		
 		public DateTime Date { get; }
 
@@ -46,7 +42,7 @@ namespace GhostfolioSidekick.Model.Activities
 		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
-			return $"{Account}_{ActivityType}_{Date}";
+			return $"{Account}_{Date}";
 		}
 	}
 }
