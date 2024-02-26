@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Model.Activities.SpecificActivity
 {
-	internal interface IActivity
+	public interface IActivity
 	{
 		public Account Account { get; }
 

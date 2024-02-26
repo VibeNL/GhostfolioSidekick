@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.SpecificActivity;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Compare
@@ -50,7 +51,7 @@ namespace GhostfolioSidekick.Model.Compare
 			return false;
 		}
 
-		private Task<List<MergeOrder>> Merge(SymbolProfile symbolProfile, IEnumerable<Activity> existingActivities, IEnumerable<Activity> newActivities)
+		private Task<List<MergeOrder>> Merge(SymbolProfile symbolProfile, IEnumerable<IActivity> existingActivities, IEnumerable<IActivity> newActivities)
 		{
 			var existingOrdersWithMatchFlag = existingActivities.Select(x => new MatchActivity { Activity = x, IsMatched = false }).ToList();
 			var r = newActivities.GroupJoin(existingOrdersWithMatchFlag,

@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+﻿using GhostfolioSidekick.Model.Activities.SpecificActivity;
+using GhostfolioSidekick.Model.Symbols;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities
@@ -12,7 +13,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public SymbolProfile? SymbolProfile { get; }
 
-		public List<Activity> Activities { get; set; } = new List<Activity>();
+		public List<IActivity> Activities { get; set; } = [];
 
 		[ExcludeFromCodeCoverage]
 		override public string ToString()
