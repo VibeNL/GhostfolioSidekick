@@ -4,6 +4,7 @@ using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -74,7 +75,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var symbolProfile = fixture.Create<Model.Symbols.SymbolProfile>();
-			var newActivity = DefaultFixture.Create().Create<Activity>();
+			var newActivity = DefaultFixture.Create().Create<BuySellActivity>();
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Post), default))
@@ -94,7 +95,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var symbolProfile = fixture.Create<Model.Symbols.SymbolProfile>();
-			var newActivity = DefaultFixture.Create(ActivityType.CashConvert).Create<Activity>();
+			var newActivity = DefaultFixture.Create().Create<CashDepositWithdrawalActivity>();
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Post), default))
@@ -119,7 +120,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var symbolProfile = fixture.Create<Model.Symbols.SymbolProfile>();
-			var newActivity = DefaultFixture.Create().Create<Activity>();
+			var newActivity = DefaultFixture.Create().Create<BuySellActivity>();
 			newActivity.Quantity = 0;
 
 			restClient
@@ -145,8 +146,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var symbolProfile = fixture.Create<Model.Symbols.SymbolProfile>();
-			var oldActivity = DefaultFixture.Create().Create<Activity>();
-			var newActivity = DefaultFixture.Create().Create<Activity>();
+			var oldActivity = DefaultFixture.Create().Create<BuySellActivity>();
+			var newActivity = DefaultFixture.Create().Create<BuySellActivity>();
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Delete), default))
@@ -174,7 +175,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var symbolProfile = fixture.Create<Model.Symbols.SymbolProfile>();
-			var oldActivity = DefaultFixture.Create().Create<Activity>();
+			var oldActivity = DefaultFixture.Create().Create<BuySellActivity>();
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(orderUrl) && x.Method == Method.Delete), default))

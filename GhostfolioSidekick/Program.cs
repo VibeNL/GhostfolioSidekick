@@ -5,7 +5,6 @@ using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
-using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Compare;
@@ -116,9 +115,9 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, Trading212Parser>();
 
 
-							services.AddScoped<IHoldingStrategy, DeterminePrice>();
-							services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
-							services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
+							//services.AddScoped<IHoldingStrategy, DeterminePrice>();
+							//services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
+							//services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
 						});
 		}
 	}
