@@ -4,9 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class ItemActivity : BaseActivity
+	public record class ValuableActivity : BaseActivity
 	{
-		public ItemActivity(
+		public ValuableActivity(
 		Account account,
 		DateTime dateTime,
 		Money? amount,
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public override async Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other)
 		{
-			if (other is not ItemActivity otherActivity)
+			if (other is not ValuableActivity otherActivity)
 			{
 				return false;
 			}

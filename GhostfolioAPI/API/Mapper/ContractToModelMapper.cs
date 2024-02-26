@@ -200,7 +200,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Id = activity.Id,
 					};
 				case Contract.ActivityType.ITEM:
-					return new ItemActivity(accounts.Single(x => x.Id == activity.AccountId),
+					return new ValuableActivity(accounts.Single(x => x.Id == activity.AccountId),
 								activity.Date,
 								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
 								TransactionReferenceUtilities.ParseComment(activity)

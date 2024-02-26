@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 {
 	internal static class TransactionReferenceUtilities
 	{
-		internal static string GetComment(Model.Activities.Activity activity, SymbolProfile? symbolProfile)
+		internal static string GetComment(Model.Activities.IActivity activity, SymbolProfile? symbolProfile)
 		{
 			if (string.IsNullOrWhiteSpace(activity.TransactionId))
 			{
@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			return $"Transaction Reference: [{activity.TransactionId}] (Details: asset {symbolProfile?.Symbol ?? "<EMPTY>"})";
 		}
 
-		internal static string GetComment(Model.Activities.Activity activity)
+		internal static string GetComment(Model.Activities.IActivity activity)
 		{
 			if (string.IsNullOrWhiteSpace(activity.TransactionId))
 			{

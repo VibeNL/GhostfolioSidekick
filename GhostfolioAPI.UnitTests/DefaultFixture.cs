@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 {
 	public class DefaultFixture
 	{
-		public static Fixture Create(ActivityType type = ActivityType.Buy)
+		public static Fixture Create(PartialActivityType type = PartialActivityType.Buy)
 		{
 			var fixture = new Fixture();
 			fixture.Customize<Contract.Activity>(composer =>
@@ -24,12 +24,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 	public class ActivityBuilder : ISpecimenBuilder
 	{
-		public ActivityBuilder(ActivityType type)
+		public ActivityBuilder(PartialActivityType type)
 		{
 			Type = type;
 		}
 
-		public ActivityType Type { get; }
+		public PartialActivityType Type { get; }
 
 		public object Create(object request, ISpecimenContext context)
 		{
@@ -39,8 +39,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				return new NoSpecimen();
 			}
 
-			if (pi.Member.DeclaringType == typeof(Activity) &&
-				pi.ParameterType == typeof(ActivityType))
+			if (pi.Member.DeclaringType == typeof(PartialActivity) &&
+				pi.ParameterType == typeof(PartialActivityType))
 			{
 				return Type;
 			}
