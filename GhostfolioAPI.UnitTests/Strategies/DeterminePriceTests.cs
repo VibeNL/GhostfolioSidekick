@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		}
 
 		[Fact]
-		public async Task Execute_ShouldSetUnitPrice_WhenUnitPriceIsZero()
+		public async Task Execute_ShouldSetUnitPrice_Receive_WhenUnitPriceIsZero()
 		{
 			// Arrange
 			var account = new Fixture().Create<Account>();
@@ -32,6 +32,68 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 				Activities =
 				[
 					new Activity(account, ActivityType.Receive, DateTime.Now, 1, new Money(Currency.USD, 0), null),
+				]
+			};
+
+			var marketDataProfile = new MarketDataProfile
+			{
+				AssetProfile = symbolProfile,
+				MarketData = [new MarketData(new Money(Currency.USD, 5000), DateTime.Now)]
+			};
+
+			marketDataServiceMock
+				.Setup(x => x.GetMarketData(It.IsAny<string>(), It.IsAny<string>()))
+				.ReturnsAsync(marketDataProfile);
+
+			// Act
+			await determinePrice.Execute(holding);
+
+			// Assert
+			holding.Activities[0]!.UnitPrice!.Amount.Should().Be(5000);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldSetUnitPrice_Send_WhenUnitPriceIsZero()
+		{
+			// Arrange
+			var account = new Fixture().Create<Account>();
+			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency, [], []);
+			var holding = new Holding(symbolProfile)
+			{
+				Activities =
+				[
+					new Activity(account, ActivityType.Send, DateTime.Now, 1, new Money(Currency.USD, 0), null),
+				]
+			};
+
+			var marketDataProfile = new MarketDataProfile
+			{
+				AssetProfile = symbolProfile,
+				MarketData = [new MarketData(new Money(Currency.USD, 5000), DateTime.Now)]
+			};
+
+			marketDataServiceMock
+				.Setup(x => x.GetMarketData(It.IsAny<string>(), It.IsAny<string>()))
+				.ReturnsAsync(marketDataProfile);
+
+			// Act
+			await determinePrice.Execute(holding);
+
+			// Assert
+			holding.Activities[0]!.UnitPrice!.Amount.Should().Be(5000);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldSetUnitPrice_WhenUnitPriceIsNull()
+		{
+			// Arrange
+			var account = new Fixture().Create<Account>();
+			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency, [], []);
+			var holding = new Holding(symbolProfile)
+			{
+				Activities =
+				[
+					new Activity(account, ActivityType.Receive, DateTime.Now, 1, null, null),
 
 				]
 			};
@@ -50,7 +112,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			await determinePrice.Execute(holding);
 
 			// Assert
-			holding.Activities.First().UnitPrice.Amount.Should().Be(5000);
+			holding.Activities[0]!.UnitPrice!.Amount.Should().Be(5000);
 		}
 
 		[Fact]
@@ -81,7 +143,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			await determinePrice.Execute(holding);
 
 			// Assert
-			holding.Activities.First().UnitPrice.Amount.Should().Be(1000);
+			holding.Activities[0].UnitPrice!.Amount.Should().Be(1000);
 		}
 
 		[Fact]
@@ -102,7 +164,68 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			await determinePrice.Execute(holding);
 
 			// Assert
-			holding.Activities.First().UnitPrice.Amount.Should().Be(0);
+			holding.Activities[0].UnitPrice!.Amount.Should().Be(0);
+		}
+
+		[Fact]
+		public async Task Execute_NoActivities_WhenUnitPriceIsZero()
+		{
+			// Arrange
+			var account = new Fixture().Create<Account>();
+			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency, [], []);
+			var holding = new Holding(symbolProfile)
+			{
+				Activities =
+				[
+				]
+			};
+
+			var marketDataProfile = new MarketDataProfile
+			{
+				AssetProfile = symbolProfile,
+				MarketData = [new MarketData(new Money(Currency.USD, 5000), DateTime.Now)]
+			};
+
+			marketDataServiceMock
+				.Setup(x => x.GetMarketData(It.IsAny<string>(), It.IsAny<string>()))
+				.ReturnsAsync(marketDataProfile);
+
+			// Act
+			await determinePrice.Execute(holding);
+
+			// Assert
+			// Implicit assertion that no exception is thrown
+		}
+
+		[Fact]
+		public async Task Execute_ShouldSetUnitPrice_NoPriceKnown_WhenUnitPriceIsZero()
+		{
+			// Arrange
+			var account = new Fixture().Create<Account>();
+			var symbolProfile = new SymbolProfile("BTC", "bitcoin", Currency.USD, "DataSource", AssetClass.Cash, AssetSubClass.CryptoCurrency, [], []);
+			var holding = new Holding(symbolProfile)
+			{
+				Activities =
+				[
+					new Activity(account, ActivityType.Receive, DateTime.Now, 1, new Money(Currency.USD, 0), null),
+				]
+			};
+
+			var marketDataProfile = new MarketDataProfile
+			{
+				AssetProfile = symbolProfile,
+				MarketData = []
+			};
+
+			marketDataServiceMock
+				.Setup(x => x.GetMarketData(It.IsAny<string>(), It.IsAny<string>()))
+				.ReturnsAsync(marketDataProfile);
+
+			// Act
+			await determinePrice.Execute(holding);
+
+			// Assert
+			holding.Activities[0]!.UnitPrice!.Amount.Should().Be(0);
 		}
 	}
 }

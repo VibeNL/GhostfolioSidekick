@@ -134,5 +134,70 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 					new GhostfolioAPI.API.MergeOrder(Operation.New, profile2, activity2)]
 				);
 		}
+
+		[Fact]
+		public async Task UnitPriceOfNull_NewActivity()
+		{
+			// Arrange
+			var profile = new Fixture().Create<SymbolProfile>();
+			var existingHolding = new Holding(profile);
+			var newHolding = new Holding(profile);
+
+			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.Description).Create();
+			var activity2 = activity1 with { UnitPrice = null };
+
+			existingHolding.Activities.Add(activity1);
+			newHolding.Activities.Add(activity2);
+
+			// Act
+			var mergeOrders = await new MergeActivities(exchangeRateService).Merge([existingHolding], [newHolding]);
+
+			// Assert
+			Assert.Contains(mergeOrders, mo => mo.Operation == Operation.Updated);
+		}
+
+		[Fact]
+		public async Task UnitPriceOfNull_OldActivity()
+		{
+			// Arrange
+			var profile = new Fixture().Create<SymbolProfile>();
+			var existingHolding = new Holding(profile);
+			var newHolding = new Holding(profile);
+
+			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.UnitPrice).Create();
+			var activity2 = activity1 with { UnitPrice = new Money(Currency.EUR, 42) };
+			activity1 = activity2 with { UnitPrice = null };
+
+			existingHolding.Activities.Add(activity1);
+			newHolding.Activities.Add(activity2);
+
+			// Act
+			var mergeOrders = await new MergeActivities(exchangeRateService).Merge([existingHolding], [newHolding]);
+
+			// Assert
+			Assert.Contains(mergeOrders, mo => mo.Operation == Operation.Updated);
+		}
+
+		[Fact]
+		public async Task UnitPriceOfNull_Both()
+		{
+			// Arrange
+			var profile = new Fixture().Create<SymbolProfile>();
+			var existingHolding = new Holding(profile);
+			var newHolding = new Holding(profile);
+
+			var activity1 = fixture.Build<Activity>().With(x => x.Quantity, 1).Without(x => x.UnitPrice).Create();
+			var activity2 = activity1 with { Quantity = 2 };
+			activity1 = activity2 with { UnitPrice = null };
+
+			existingHolding.Activities.Add(activity1);
+			newHolding.Activities.Add(activity2);
+
+			// Act
+			var mergeOrders = await new MergeActivities(exchangeRateService).Merge([existingHolding], [newHolding]);
+
+			// Assert
+			Assert.Contains(mergeOrders, mo => mo.Operation == Operation.Updated);
+		}
 	}
 }

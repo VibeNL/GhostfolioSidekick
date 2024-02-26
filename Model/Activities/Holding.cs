@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Symbols;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities
 {
@@ -13,6 +14,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public List<Activity> Activities { get; set; } = new List<Activity>();
 
+		[ExcludeFromCodeCoverage]
 		override public string ToString()
 		{
 			return $"{SymbolProfile?.Symbol} - {Activities.Count} activities";

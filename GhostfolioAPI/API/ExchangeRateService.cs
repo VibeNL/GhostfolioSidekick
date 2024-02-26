@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -44,7 +45,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				dynamic stuff = JsonConvert.DeserializeObject(content)!;
 				var token = stuff!.marketPrice.ToString();
 
-				var rate = (decimal)decimal.Parse(token);
+				var rate = (decimal)decimal.Parse(token, CultureInfo.InvariantCulture);
 				memoryCache.Set(key, rate, CacheDuration.Short());
 
 				return rate;
