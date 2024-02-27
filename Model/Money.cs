@@ -20,6 +20,11 @@ namespace GhostfolioSidekick.Model
 			return HashCode.Combine(Currency, Amount);
 		}
 
+		public Money? Times(int amount)
+		{
+			return new Money(Currency, Amount * amount);
+		}
+
 		public override string ToString()
 		{
 			return $"{Amount} {Currency}";

@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public override string? TransactionId { get; set; }
 
-		public override int? SortingPriority { get; }
+		public override int? SortingPriority { get; set; }
 
 		public string? Description { get; set; }
 

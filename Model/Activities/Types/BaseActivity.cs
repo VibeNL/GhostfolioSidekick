@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public abstract Account Account { get; }
 		public abstract DateTime Date { get; }
 		public abstract string? TransactionId { get; set; }
-		public abstract int? SortingPriority { get; }
+		public abstract int? SortingPriority { get; set; }
 		public abstract string? Id { get; set; }
 
 		public abstract Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other);

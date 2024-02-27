@@ -116,65 +116,95 @@ namespace GhostfolioSidekick.FileImporter
 					transaction.Amount,
 					new Money(transaction.Currency, transaction.UnitPrice ?? 0),
 					sourceTransaction.TransactionId + $"_{counter++}",
-					null,
-					null,
+					[],
+					[],
 					transaction.SortingPriority,
 					sourceTransaction.Description);
-				
+
 				(await GetorAddHolding(transaction)).Activities.Add(activity);
 			}
 		}
 
 		private IActivity GenerateActivity(
-			Account account, 
-			PartialActivityType activityType, 
-			DateTime date, 
+			Account account,
+			PartialActivityType activityType,
+			DateTime date,
 			decimal amount,
-			Money money, 
-			string transactionId, 
+			Money money,
+			string? transactionId,
 			IEnumerable<Money> fees,
-			IEnumerable<Money> taxes, 
-			int? sortingPriority, 
+			IEnumerable<Money> taxes,
+			int? sortingPriority,
 			string? description)
 		{
 			switch (activityType)
 			{
 				case PartialActivityType.Buy:
-					return new BuySellActivity(account, date, amount, money)
+					return new BuySellActivity(account, date, amount, money, transactionId)
 					{
+						Taxes = taxes,
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
 					};
 				case PartialActivityType.Sell:
-					break;
+					return new BuySellActivity(account, date, -amount, money, transactionId)
+					{
+						Taxes = taxes,
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.Dividend:
-					break;
-				case PartialActivityType.Send:
-					break;
-				case PartialActivityType.Receive:
-					break;
+					return new DividendActivity(account, date, money, transactionId)
+					{
+						Taxes = taxes,
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.Interest:
-					break;
+					return new InterestActivity(account, date, money, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.Fee:
-					break;
-				case PartialActivityType.Gift:
-					break;
-				case PartialActivityType.LearningReward:
-					break;
-				case PartialActivityType.StakingReward:
-					break;
+					return new FeeActivity(account, date, money, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.CashDeposit:
-					break;
+					return new CashDepositWithdrawalActivity(account, date, money, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.CashWithdrawal:
-					break;
-				case PartialActivityType.CashConvert:
-					break;
-				case PartialActivityType.Tax:
-					break;
+					return new CashDepositWithdrawalActivity(account, date, money.Times(-1), transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.KnownBalance:
-					break;
+					return new KnownBalanceActivity(account, date, money, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.Valuable:
-					break;
+					return new ValuableActivity(account, date, money, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.Liability:
-					break;
+					return new LiabilityActivity(account, date, money, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				default:
 					throw new NotSupportedException();
 			}

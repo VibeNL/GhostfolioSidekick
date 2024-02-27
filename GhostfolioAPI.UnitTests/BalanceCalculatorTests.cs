@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -25,30 +26,30 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Calculate_WithKnownBalanceActivity_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var knownBalanceActivity = new Activity(null, ActivityType.KnownBalance, DateTime.Now, 100, new Money(baseCurrency, 1), null);
+			var knownBalanceActivity = new KnownBalanceActivity(null!, DateTime.Now, new Money(baseCurrency, 100), null);
 
-			var activities = new List<Activity>
+			var activities = new List<IActivity>
 			{
 				knownBalanceActivity,
-				new Activity(null, ActivityType.Buy, DateTime.Now.AddDays(-1), 1, new Money(baseCurrency, 50), null),
-				new Activity(null, ActivityType.Sell, DateTime.Now.AddDays(-2), 1, new Money(baseCurrency, 25), null)
+				new BuySellActivity(null, DateTime.Now.AddDays(-1), 1, new Money(baseCurrency, 50), null),
+				new BuySellActivity(null, DateTime.Now.AddDays(-2), -1, new Money(baseCurrency, 25), null)
 			};
 
 			// Act
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(knownBalanceActivity.Quantity);
+			result.Money.Amount.Should().Be(knownBalanceActivity.Amount.Amount);
 		}
 
 		[Fact]
 		public async Task Calculate_WithoutKnownBalanceActivity_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var activities = new List<Activity>
+			var activities = new List<IActivity>
 			{
-				new Activity(null, ActivityType.Buy, DateTime.Now.AddDays(-1), 1, new Money(baseCurrency, 50), null),
-				new Activity(null, ActivityType.Sell, DateTime.Now.AddDays(-2), 1, new Money(baseCurrency, 75), null)
+				new BuySellActivity(null, DateTime.Now.AddDays(-1), 1, new Money(baseCurrency, 50), null),
+				new BuySellActivity(null, DateTime.Now.AddDays(-2), -1, new Money(baseCurrency, 25), null)
 			};
 
 			// Act
@@ -63,9 +64,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Calculate_WithUnsupportedActivityType_ThrowsNotSupportedException()
 		{
 			// Arrange
-			var activities = new List<Activity>
+			var activities = new List<IActivity>
 			{
-				new Activity(null, (ActivityType)99, DateTime.Now, 1, new Money(baseCurrency, 100), null)
+				new Mock<BaseActivity>().Object
 			};
 
 			// Act & Assert
@@ -77,7 +78,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Calculate_WithNoActivities_ReturnsZeroBalance()
 		{
 			// Arrange
-			var activities = new List<Activity>();
+			var activities = new List<IActivity>();
 
 			// Act
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
