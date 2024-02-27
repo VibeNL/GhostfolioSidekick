@@ -190,7 +190,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			await parser.ParseActivities("./TestFiles/DeGiro/NL//CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
-			var transactionId = holdingsAndAccountsCollection.PartialActivities.Single(x => x.ActivityType == ActivityType.Dividend).TransactionId;
+			var transactionId = holdingsAndAccountsCollection.PartialActivities.Single(x => x.ActivityType == PartialActivityType.Dividend).TransactionId;
 			transactionId.Should().NotBeNullOrWhiteSpace();
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[

@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
@@ -86,42 +87,96 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Length != 0) ?? transactions[0];
 
-			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == ActivityType.Fee).ToList();
-			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == ActivityType.Tax).ToList();
+			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Fee).ToList();
+			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Tax).ToList();
 
 			var otherTransactions = transactions.Except([sourceTransaction]).Except(fees).Except(taxes);
 
-			var activity = new Activity(
+			var activity = GenerateActivity(
 				account,
 				sourceTransaction.ActivityType,
 				sourceTransaction.Date,
 				sourceTransaction.Amount,
 				new Money(sourceTransaction.Currency, sourceTransaction.UnitPrice ?? 0),
-				sourceTransaction.TransactionId)
-			{
-				Fees = fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
-				Taxes = taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
-				SortingPriority = sourceTransaction.SortingPriority,
-				Description = sourceTransaction.Description,
-			};
+				sourceTransaction.TransactionId,
+				fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
+				taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
+				sourceTransaction.SortingPriority,
+				sourceTransaction.Description);
+
 			(await GetorAddHolding(sourceTransaction)).Activities.Add(activity);
 
 			int counter = 2;
 			foreach (var transaction in otherTransactions)
 			{
-				activity = new Activity(
+				activity = GenerateActivity(
 					account,
 					transaction.ActivityType,
 					transaction.Date,
 					transaction.Amount,
 					new Money(transaction.Currency, transaction.UnitPrice ?? 0),
-					sourceTransaction.TransactionId + $"_{counter++}")
-				{
-					SortingPriority = transaction.SortingPriority,
-					Description = sourceTransaction.Description,
-				};
-
+					sourceTransaction.TransactionId + $"_{counter++}",
+					null,
+					null,
+					transaction.SortingPriority,
+					sourceTransaction.Description);
+				
 				(await GetorAddHolding(transaction)).Activities.Add(activity);
+			}
+		}
+
+		private IActivity GenerateActivity(
+			Account account, 
+			PartialActivityType activityType, 
+			DateTime date, 
+			decimal amount,
+			Money money, 
+			string transactionId, 
+			IEnumerable<Money> fees,
+			IEnumerable<Money> taxes, 
+			int? sortingPriority, 
+			string? description)
+		{
+			switch (activityType)
+			{
+				case PartialActivityType.Buy:
+					return new BuySellActivity(account, date, amount, money)
+					{
+					};
+				case PartialActivityType.Sell:
+					break;
+				case PartialActivityType.Dividend:
+					break;
+				case PartialActivityType.Send:
+					break;
+				case PartialActivityType.Receive:
+					break;
+				case PartialActivityType.Interest:
+					break;
+				case PartialActivityType.Fee:
+					break;
+				case PartialActivityType.Gift:
+					break;
+				case PartialActivityType.LearningReward:
+					break;
+				case PartialActivityType.StakingReward:
+					break;
+				case PartialActivityType.CashDeposit:
+					break;
+				case PartialActivityType.CashWithdrawal:
+					break;
+				case PartialActivityType.CashConvert:
+					break;
+				case PartialActivityType.Tax:
+					break;
+				case PartialActivityType.KnownBalance:
+					break;
+				case PartialActivityType.Valuable:
+					break;
+				case PartialActivityType.Liability:
+					break;
+				default:
+					throw new NotSupportedException();
 			}
 		}
 
