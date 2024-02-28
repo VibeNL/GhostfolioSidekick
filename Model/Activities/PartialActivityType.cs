@@ -20,8 +20,6 @@
 
 		Gift,
 
-		LearningReward,
-
 		StakingReward,
 
 		CashDeposit,
@@ -36,6 +34,8 @@
 
 		Valuable,
 
-		Liability
+		Liability,
+
+		StockSplit
 	}
 }

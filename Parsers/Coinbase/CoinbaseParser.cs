@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
 				case "Learning Reward":
-					yield return PartialActivity.CreateLearningReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
+					yield return PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
 				default:
 					throw new NotSupportedException();

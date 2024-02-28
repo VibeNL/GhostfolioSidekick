@@ -213,16 +213,6 @@
 			};
 		}
 
-		public static PartialActivity CreateLearningReward(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, decimal amount, string transactionId)
-		{
-			return new PartialActivity(PartialActivityType.LearningReward, Currency.EUR, transactionId)
-			{
-				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
-				Amount = amount
-			};
-		}
-
 		public static IEnumerable<PartialActivity> CreateAssetConvert(
 			DateTime date,
 			PartialSymbolIdentifier[] source,
