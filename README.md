@@ -146,11 +146,13 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | NIBC (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
-| Nexo (Experimental) | Export of transaction history | X | - | - | X |
-| Bitvavo (Experimental) | Export of transaction history | X | X | - | X |
+| Nexo (Broken) | Export of transaction history | X | - | - | X |
+| Bitvavo (Broken) | Export of transaction history | X | X | - | X |
+| Coinbase (Broken) | Export of transaction history | X | X | - | X |
 
 #### Generic import format
-Beside the supported exchanges and brokers there is also a generic format. This format is only usefull for stocks at the moment, not for cryptocurrency:
+Beside the supported exchanges and brokers there is also a generic format. 
+This format is only usefull for stocks at the moment, not for cryptocurrency:
 
 | Field | Value(s) | 
 | ----- | ----- |
@@ -165,10 +167,23 @@ Beside the supported exchanges and brokers there is also a generic format. This 
 | Description | A description, not used in ghostfolio itself. Is optional |
 | Id | The transaction id. Is optional |
 
+For stock splits there is a seperate format
+| Field | Value(s) | 
+| ----- | ----- |
+| Symbol | The symbol to search
+| Date | The date, yyyy-MM-dd |
+| StockSplitFrom | The number of stock in the old situation |
+| StockSplitTo | The number of stock in the new situation |
+
 ##### Example
 
+File1:
 OrderType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
 BUY,US67066G1040,2023-08-07,USD,0.0267001000,453.33,0.02
+
+File2:
+Symbol,Date,StockSplitFrom,StockSplitTo
+US67066G1040,2023-08-07,1,3
 
 ## Run in Docker
 The docker image is named: vibenl/ghostfoliosidekick
