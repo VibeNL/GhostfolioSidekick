@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				switch (activity)
 				{
 					case BuySellActivity buySellActivity:
-						moneyTrail.Add(Tuple.Create(activity.Date, new Money(buySellActivity.UnitPrice!.Currency, buySellActivity.UnitPrice.Amount * buySellActivity.Quantity)));
+						moneyTrail.Add(Tuple.Create(activity.Date, new Money(buySellActivity.UnitPrice!.Currency, -1 * buySellActivity.UnitPrice.Amount * buySellActivity.Quantity)));
 						break;
 					case DividendActivity dividendActivity:
 						moneyTrail.Add(Tuple.Create(activity.Date, new Money(dividendActivity.Amount!.Currency, dividendActivity.Amount.Amount)));
@@ -55,8 +55,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						moneyTrail.Add(Tuple.Create(activity.Date, new Money(cashDepositWithdrawalActivity.Amount!.Currency, cashDepositWithdrawalActivity.Amount.Amount)));
 						break;
 					case KnownBalanceActivity knownBalanceActivity:
-						moneyTrail.Add(Tuple.Create(activity.Date, new Money(knownBalanceActivity.Amount.Currency, knownBalanceActivity.Amount.Amount)));
-						break;
 					case StockSplitActivity stockSplitActivity:
 					case GiftActivity giftActivity:
 						// Nothing to track
