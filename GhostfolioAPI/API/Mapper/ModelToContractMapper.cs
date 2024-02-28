@@ -127,6 +127,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						UnitPrice = await ConvertPrice(exchangeRateService, liabilityActivity.Amount, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};
+				case KnownBalanceActivity:
+				case CashDepositWithdrawalActivity:
+				case StockSplitActivity:
+					return new Contract.Activity
+					{
+						Type = Contract.ActivityType.IGNORE
+					};
 			}
 
 			throw new NotImplementedException();
