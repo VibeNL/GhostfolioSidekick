@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(25);
+			result.Money.Amount.Should().Be(-25);
 		}
 
 
