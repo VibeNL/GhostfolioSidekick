@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class DividendActivity : BaseActivity
+	public record class DividendActivity : BaseActivity<DividendActivity>
 	{
 		public DividendActivity(
 		Account account,
@@ -32,8 +32,6 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public override int? SortingPriority { get; set; }
 
-		public string? Description { get; set; }
-
 		public override string? Id { get; set; }
 
 		[ExcludeFromCodeCoverage]
@@ -42,35 +40,20 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			return $"{Account}_{Date}";
 		}
 
-		public override async Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other)
+		override protected async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, DividendActivity otherActivity)
 		{
-			if (other is not DividendActivity otherActivity)
-			{
-				return false;
-			}
-
-			if (Amount == null || otherActivity.Amount == null)
-			{
-				return Amount == null && otherActivity.Amount == null;
-			}
-
-			var existingUnitPrice = await RoundAndConvert(exchangeRateService, otherActivity.Amount!, Amount!.Currency, Date);
-			var quantityTimesUnitPriceEquals = AreEquals(
-				Amount!.Amount,
-				existingUnitPrice!.Amount);
-			var feesAndTaxesEquals = AreEquals(
+			var existingAmount = await CompareUtilities.RoundAndConvert(exchangeRateService, otherActivity.Amount, Amount?.Currency, Date);
+			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
+				Amount?.Amount,
+				existingAmount?.Amount);
+			var feesAndTaxesEquals = CompareUtilities.AreMoneyEquals(
 				exchangeRateService,
-				otherActivity.Amount.Currency,
+				otherActivity.Amount?.Currency,
 				otherActivity.Date,
 				Fees.Union(Taxes).ToList(),
 				otherActivity.Fees.Union(otherActivity.Taxes).ToList());
-			var dateEquals = Date == otherActivity.Date;
-			var descriptionEquals = Description == null || Description == otherActivity.Description; // We do not create descrptions when Ghostfolio will ignore them
-			var equals = quantityTimesUnitPriceEquals &&
-				feesAndTaxesEquals &&
-				dateEquals &&
-				descriptionEquals;
-			return equals;
+			return quantityTimesUnitPriceEquals &&
+				feesAndTaxesEquals;
 		}
 	}
 }

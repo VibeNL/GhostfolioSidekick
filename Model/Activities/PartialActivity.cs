@@ -5,8 +5,8 @@
 		private DateTime date;
 
 		public PartialActivity(
-			PartialActivityType activityType, 
-			Currency currency, 
+			PartialActivityType activityType,
+			Currency currency,
 			string? transactionId)
 		{
 			ActivityType = activityType;
@@ -23,13 +23,13 @@
 		public decimal Amount { get; private set; }
 
 		public string? TransactionId { get; }
-		
+
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
-		
+
 		public decimal? UnitPrice { get; private set; } = 1;
-		
+
 		public int? SortingPriority { get; private set; }
-		
+
 		public string? Description { get; private set; }
 
 		public int SplitFrom { get; private set; }
@@ -269,6 +269,7 @@
 		{
 			return new PartialActivity(PartialActivityType.StockSplit, null!, transactionId)
 			{
+				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
 				Amount = 1,
 				SplitFrom = from,

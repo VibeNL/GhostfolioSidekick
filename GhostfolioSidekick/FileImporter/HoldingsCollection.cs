@@ -212,7 +212,7 @@ namespace GhostfolioSidekick.FileImporter
 						Description = description,
 					};
 				case PartialActivityType.Gift:
-					return new GiftActivity(account, date, money, transactionId)
+					return new GiftActivity(account, date, amount, transactionId)
 					{
 						SortingPriority = sortingPriority,
 						Description = description,

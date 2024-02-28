@@ -33,22 +33,23 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public string? Id { get; set; }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-		public async Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+		public string Description => "Stock split";
+
+		public Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other)
+#pragma warning restore CS1998 // Async metho
 		{
 			if (other is StockSplitActivity otherActivity)
 			{
 				// Compare properties of this activity with the other activity
 				// This is just a basic comparison, you may need to add more properties to compare based on your requirements
-				return Account == otherActivity.Account &&
+				Task.FromResult(Account == otherActivity.Account &&
 					   Date == otherActivity.Date &&
 					   FromAmount == otherActivity.FromAmount &&
 					   ToAmount == otherActivity.ToAmount &&
-					   TransactionId == otherActivity.TransactionId;
+					   TransactionId == otherActivity.TransactionId);
 			}
 
-			return false;
+			return Task.FromResult(false);
 		}
 
 	}

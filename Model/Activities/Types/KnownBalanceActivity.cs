@@ -1,16 +1,10 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Compare;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record KnownBalanceActivity : BaseActivity
+	public record KnownBalanceActivity : BaseActivity<KnownBalanceActivity>
 	{
 		public KnownBalanceActivity(
 			Account account,
@@ -34,8 +28,6 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public override int? SortingPriority { get; set; }
 
-		public string? Description { get; set; }
-
 		public override string? Id { get; set; }
 
 		[ExcludeFromCodeCoverage]
@@ -44,33 +36,19 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			return $"{Account}_{Date}";
 		}
 
-		public override async Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other)
+		protected override async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, KnownBalanceActivity otherActivity)
 		{
-			if (other is not KnownBalanceActivity otherActivity)
-			{
-				return false;
-			}
-
-			if (Amount == null || otherActivity.Amount == null)
-			{
-				return Amount == null && otherActivity.Amount == null;
-			}
-
-			var existingUnitPrice = await RoundAndConvert(exchangeRateService, otherActivity.Amount!, Amount!.Currency, Date);
-			var quantityTimesUnitPriceEquals = AreEquals(
-				Amount!.Amount,
-				existingUnitPrice!.Amount);
-			var feesAndTaxesEquals = AreEquals(
+			var existingAmount = await CompareUtilities.RoundAndConvert(exchangeRateService, otherActivity.Amount, Amount?.Currency, Date);
+			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
+				Amount?.Amount,
+				existingAmount?.Amount);
+			var feesAndTaxesEquals = CompareUtilities.AreMoneyEquals(
 				exchangeRateService,
-				otherActivity.Amount.Currency,
-				otherActivity.Date, [], []);
-			var dateEquals = Date == otherActivity.Date;
-			var descriptionEquals = Description == null || Description == otherActivity.Description; // We do not create descrptions when Ghostfolio will ignore them
-			var equals = quantityTimesUnitPriceEquals &&
-				feesAndTaxesEquals &&
-				dateEquals &&
-				descriptionEquals;
-			return equals;
+				otherActivity.Amount?.Currency,
+				otherActivity.Date,
+				[], []);
+			return quantityTimesUnitPriceEquals &&
+				feesAndTaxesEquals;
 		}
 	}
 }

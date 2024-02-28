@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Date = activity.Date,
 						Fee = await CalculateFeeAndTaxes(buyActivity.Fees, buyActivity.Taxes, symbolProfile.Currency, activity.Date),
 						FeeCurrency = symbolProfile.Currency.Symbol,
-						Quantity = buyActivity.Quantity,
+						Quantity = Math.Abs(buyActivity.Quantity),
 						Type = buyActivity.Quantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
 						UnitPrice = await ConvertPrice(exchangeRateService, buyActivity.UnitPrice, symbolProfile.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId
@@ -125,6 +125,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Quantity = 1,
 						Type = Contract.ActivityType.LIABILITY,
 						UnitPrice = await ConvertPrice(exchangeRateService, liabilityActivity.Amount, activity.Account.Balance.Money.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+					};
+				case GiftActivity giftActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, giftActivity.Description),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = giftActivity.Amount,
+						Type = Contract.ActivityType.BUY,
+						UnitPrice = 0,
 						ReferenceCode = activity.TransactionId,
 					};
 				case KnownBalanceActivity:

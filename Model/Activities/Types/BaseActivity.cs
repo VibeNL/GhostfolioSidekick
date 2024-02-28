@@ -3,44 +3,40 @@ using GhostfolioSidekick.Model.Compare;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public abstract record BaseActivity : IActivity
+	public abstract record BaseActivity<T> : IActivity
 	{
 		public abstract Account Account { get; }
+
 		public abstract DateTime Date { get; }
+
 		public abstract string? TransactionId { get; set; }
+
 		public abstract int? SortingPriority { get; set; }
+
 		public abstract string? Id { get; set; }
 
-		public abstract Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other);
+		public string? Description { get; set; }
 
-		protected static bool AreEquals(decimal a, decimal b)
+		public async Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity otherActivity)
 		{
-			return Math.Abs(a - b) < Constants.Epsilon;
-		}
-
-		protected static bool AreEquals(IExchangeRateService exchangeRateService, Currency target, DateTime dateTime, List<Money> money1, List<Money> money2)
-		{
-			return AreEquals(money1.Sum(x =>
+			if (otherActivity.GetType() != otherActivity.GetType())
 			{
-				var rate = exchangeRateService.GetConversionRate(x.Currency, target, dateTime).Result;
-				return rate * x.Amount;
-			}), money2.Sum(x =>
-			{
-				var rate = exchangeRateService.GetConversionRate(x.Currency, target, dateTime).Result;
-				return rate * x.Amount;
-			}));
-		}
-
-		protected static async Task<Money?> RoundAndConvert(IExchangeRateService exchangeRateService, Money value, Currency target, DateTime dateTime)
-		{
-			static decimal Round(decimal? value)
-			{
-				var r = Math.Round(value ?? 0, 10);
-				return r;
+				return false;
 			}
 
-			var rate = await exchangeRateService.GetConversionRate(value.Currency, target, dateTime);
-			return new Money(target, Round(value.Amount * rate));
+			var baseEquals =
+				Account?.Id == otherActivity.Account?.Id &&
+				Date == otherActivity.Date &&
+				(Description == null || Description == otherActivity.Description); // We do not create descriptions when Ghostfolio will ignore them
+
+			if (!baseEquals)
+			{
+				return false;
+			}
+
+			return await AreEqualInternal(exchangeRateService, (T)otherActivity);
 		}
+
+		protected abstract Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, T otherActivity);
 	}
 }

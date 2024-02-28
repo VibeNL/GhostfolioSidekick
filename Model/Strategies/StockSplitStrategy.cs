@@ -9,6 +9,11 @@ namespace GhostfolioSidekick.Model.Strategies
 
 		public Task Execute(Holding holding)
 		{
+			if (holding.SymbolProfile == null)
+			{
+				return Task.CompletedTask;
+			}
+
 			var splits = holding.Activities.Where(x => x is StockSplitActivity).ToList();
 			if (splits.Count == 0)
 			{
@@ -21,7 +26,7 @@ namespace GhostfolioSidekick.Model.Strategies
 				var splitFactor = splitActivity.FromAmount / (decimal)splitActivity.ToAmount;
 				var inverseSplitFactor = splitActivity.ToAmount / (decimal)splitActivity.FromAmount;
 
-				foreach (var activity in holding.Activities.Where(x => x.Date > splitActivity.Date).Select(x => x as BuySellActivity).Where(x => x != null))
+				foreach (var activity in holding.Activities.Where(x => x.Date < splitActivity.Date).Select(x => x as BuySellActivity).Where(x => x != null))
 				{
 					activity!.UnitPrice = activity!.UnitPrice?.Times(splitFactor);
 					activity!.Quantity = activity!.Quantity * inverseSplitFactor;

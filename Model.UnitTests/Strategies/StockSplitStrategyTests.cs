@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Strategies;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.UnitTests.Model.Strategies
 {
@@ -20,7 +21,7 @@ namespace GhostfolioSidekick.UnitTests.Model.Strategies
 		public async Task Execute_NoStockSplitActivity_ReturnsCompletedTask()
 		{
 			// Arrange
-			var holding = new Holding(null)
+			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
 				Activities = [new Fixture().Create<BuySellActivity>()]
 			};
@@ -35,11 +36,11 @@ namespace GhostfolioSidekick.UnitTests.Model.Strategies
 		public async Task Execute_WithStockSplitActivity_UpdatesUnitPrice()
 		{
 			// Arrange
-			var holding = new Holding(null)
+			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
 				Activities =
 				[
-					new StockSplitActivity(null, DateTime.Now.AddDays(-1), 1, 2, string.Empty),
+					new StockSplitActivity(null, DateTime.Now.AddDays(1), 1, 2, string.Empty),
 					new BuySellActivity(null, DateTime.Now, 100, new Money(Currency.EUR, 50), string.Empty)
 				]
 			};
@@ -57,11 +58,11 @@ namespace GhostfolioSidekick.UnitTests.Model.Strategies
 		public async Task Execute_WithStockAfterSplitActivity_UpdatesUnitPrice()
 		{
 			// Arrange
-			var holding = new Holding(null)
+			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
 				Activities =
 				[
-					new StockSplitActivity(null, DateTime.Now.AddDays(1), 1, 2, string.Empty),
+					new StockSplitActivity(null, DateTime.Now.AddDays(-1), 1, 2, string.Empty),
 					new BuySellActivity(null, DateTime.Now, 100, new Money(Currency.EUR, 50), string.Empty)
 				]
 			};

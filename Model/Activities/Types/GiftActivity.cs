@@ -4,12 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class GiftActivity : BaseActivity
+	public record class GiftActivity : BaseActivity<GiftActivity>
 	{
 		public GiftActivity(
 		Account account,
 		DateTime dateTime,
-		Money? amount,
+		decimal amount,
 		string? transactionId)
 		{
 			Account = account;
@@ -22,13 +22,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public override DateTime Date { get; }
 
-		public Money? Amount { get; set; }
+		public decimal Amount { get; set; }
 
 		public override string? TransactionId { get; set; }
 
 		public override int? SortingPriority { get; set; }
-
-		public string? Description { get; set; }
 
 		public override string? Id { get; set; }
 
@@ -38,33 +36,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			return $"{Account}_{Date}";
 		}
 
-		public override async Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other)
+		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, GiftActivity otherActivity)
 		{
-			if (other is not LiabilityActivity otherActivity)
-			{
-				return false;
-			}
-
-			if (Amount == null || otherActivity.Amount == null)
-			{
-				return Amount == null && otherActivity.Amount == null;
-			}
-
-			var existingUnitPrice = await RoundAndConvert(exchangeRateService, otherActivity.Amount!, Amount!.Currency, Date);
-			var quantityTimesUnitPriceEquals = AreEquals(
-				Amount!.Amount,
-				existingUnitPrice!.Amount);
-			var feesAndTaxesEquals = AreEquals(
-				exchangeRateService,
-				otherActivity.Amount.Currency,
-				otherActivity.Date, [], []);
-			var dateEquals = Date == otherActivity.Date;
-			var descriptionEquals = Description == null || Description == otherActivity.Description; // We do not create descrptions when Ghostfolio will ignore them
-			var equals = quantityTimesUnitPriceEquals &&
-				feesAndTaxesEquals &&
-				dateEquals &&
-				descriptionEquals;
-			return equals;
+			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
+				Amount,
+				otherActivity.Amount);
+			return Task.FromResult(quantityTimesUnitPriceEquals);
 		}
 	}
 }

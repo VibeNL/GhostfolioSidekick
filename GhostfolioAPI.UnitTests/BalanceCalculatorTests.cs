@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var activities = new List<IActivity>
 			{
-				new Mock<BaseActivity>().Object
+				new Mock<BaseActivity<IActivity>>().Object
 			};
 
 			// Act & Assert
