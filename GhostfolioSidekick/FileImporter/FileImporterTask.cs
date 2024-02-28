@@ -3,6 +3,7 @@ using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
+using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
 using System.Text;

@@ -102,7 +102,9 @@ namespace GhostfolioSidekick.FileImporter
 				fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 				taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 				sourceTransaction.SortingPriority,
-				sourceTransaction.Description);
+				sourceTransaction.Description,
+				sourceTransaction.SplitFrom,
+				sourceTransaction.SplitTo);
 
 			(await GetorAddHolding(sourceTransaction)).Activities.Add(activity);
 
@@ -119,7 +121,9 @@ namespace GhostfolioSidekick.FileImporter
 					[],
 					[],
 					transaction.SortingPriority,
-					sourceTransaction.Description);
+					sourceTransaction.Description,
+					sourceTransaction.SplitFrom,
+					sourceTransaction.SplitTo);
 
 				(await GetorAddHolding(transaction)).Activities.Add(activity);
 			}
@@ -135,7 +139,9 @@ namespace GhostfolioSidekick.FileImporter
 			IEnumerable<Money> fees,
 			IEnumerable<Money> taxes,
 			int? sortingPriority,
-			string? description)
+			string? description,
+			int stockSplitFrom,
+			int stockSplitTo)
 		{
 			switch (activityType)
 			{
@@ -204,6 +210,17 @@ namespace GhostfolioSidekick.FileImporter
 					{
 						SortingPriority = sortingPriority,
 						Description = description,
+					};
+				case PartialActivityType.Gift:
+					return new GiftActivity(account, date, money, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.StockSplit:
+					return new StockSplitActivity(account, date, stockSplitFrom, stockSplitTo, transactionId)
+					{
+						SortingPriority = sortingPriority,
 					};
 				default:
 					throw new NotSupportedException();
