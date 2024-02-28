@@ -49,7 +49,17 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						moneyTrail.Add(Tuple.Create(activity.Date, new Money(interestActivity.Amount!.Currency, interestActivity.Amount.Amount)));
 						break;
 					case FeeActivity feeActivity:
-						moneyTrail.Add(Tuple.Create(activity.Date, new Money(feeActivity.Amount!.Currency, - feeActivity.Amount.Amount)));
+						moneyTrail.Add(Tuple.Create(activity.Date, new Money(feeActivity.Amount!.Currency, -feeActivity.Amount.Amount)));
+						break;
+					case CashDepositWithdrawalActivity cashDepositWithdrawalActivity:
+						moneyTrail.Add(Tuple.Create(activity.Date, new Money(cashDepositWithdrawalActivity.Amount!.Currency, cashDepositWithdrawalActivity.Amount.Amount)));
+						break;
+					case KnownBalanceActivity knownBalanceActivity:
+						moneyTrail.Add(Tuple.Create(activity.Date, new Money(knownBalanceActivity.Amount.Currency, knownBalanceActivity.Amount.Amount)));
+						break;
+					case StockSplitActivity stockSplitActivity:
+					case GiftActivity giftActivity:
+						// Nothing to track
 						break;
 					default:
 						throw new NotSupportedException();

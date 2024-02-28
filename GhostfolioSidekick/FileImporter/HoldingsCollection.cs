@@ -162,7 +162,7 @@ namespace GhostfolioSidekick.FileImporter
 						Description = description,
 					};
 				case PartialActivityType.Dividend:
-					return new DividendActivity(account, date, money, transactionId)
+					return new DividendActivity(account, date, money.Times(amount), transactionId)
 					{
 						Taxes = taxes,
 						Fees = fees,
@@ -170,25 +170,25 @@ namespace GhostfolioSidekick.FileImporter
 						Description = description,
 					};
 				case PartialActivityType.Interest:
-					return new InterestActivity(account, date, money, transactionId)
+					return new InterestActivity(account, date, money.Times(amount), transactionId)
 					{
 						SortingPriority = sortingPriority,
 						Description = description,
 					};
 				case PartialActivityType.Fee:
-					return new FeeActivity(account, date, money, transactionId)
+					return new FeeActivity(account, date, money.Times(amount), transactionId)
 					{
 						SortingPriority = sortingPriority,
 						Description = description,
 					};
 				case PartialActivityType.CashDeposit:
-					return new CashDepositWithdrawalActivity(account, date, money, transactionId)
+					return new CashDepositWithdrawalActivity(account, date, money.Times(amount), transactionId)
 					{
 						SortingPriority = sortingPriority,
 						Description = description,
 					};
 				case PartialActivityType.CashWithdrawal:
-					return new CashDepositWithdrawalActivity(account, date, money.Times(-1), transactionId)
+					return new CashDepositWithdrawalActivity(account, date, money.Times(-amount), transactionId)
 					{
 						SortingPriority = sortingPriority,
 						Description = description,
@@ -200,13 +200,13 @@ namespace GhostfolioSidekick.FileImporter
 						Description = description,
 					};
 				case PartialActivityType.Valuable:
-					return new ValuableActivity(account, date, money, transactionId)
+					return new ValuableActivity(account, date, money.Times(amount), transactionId)
 					{
 						SortingPriority = sortingPriority,
 						Description = description,
 					};
 				case PartialActivityType.Liability:
-					return new LiabilityActivity(account, date, money, transactionId)
+					return new LiabilityActivity(account, date, money.Times(amount), transactionId)
 					{
 						SortingPriority = sortingPriority,
 						Description = description,

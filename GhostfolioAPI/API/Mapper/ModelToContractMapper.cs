@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Date = activity.Date,
 						Fee = await CalculateFeeAndTaxes(dividendActivity.Fees, dividendActivity.Taxes, symbolProfile.Currency, activity.Date),
 						FeeCurrency = symbolProfile.Currency.Symbol,
-						Quantity = await exchangeRateService.GetConversionRate(dividendActivity.Amount?.Currency, symbolProfile.Currency, activity.Date),
+						Quantity = (await exchangeRateService.GetConversionRate(dividendActivity.Amount?.Currency, symbolProfile.Currency, activity.Date)) * dividendActivity.Amount?.Amount ?? 0,
 						Type = Contract.ActivityType.DIVIDEND,
 						UnitPrice = 1,
 						ReferenceCode = activity.TransactionId
