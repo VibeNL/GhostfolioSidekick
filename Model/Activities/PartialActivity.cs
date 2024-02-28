@@ -32,6 +32,10 @@
 		
 		public string? Description { get; private set; }
 
+		public int SplitFrom { get; private set; }
+
+		public int SplitTo { get; private set; }
+
 		public static PartialActivity CreateCashDeposit(Currency currency, DateTime date, decimal amount, string transactionId)
 		{
 			return new PartialActivity(PartialActivityType.CashDeposit, currency, transactionId)
@@ -258,6 +262,17 @@
 				Amount = 1,
 				UnitPrice = value,
 				Description = description
+			};
+		}
+
+		public static PartialActivity CreateStockSplit(DateTime date, PartialSymbolIdentifier[] symbolIdentifiers, int from, int to, string transactionId)
+		{
+			return new PartialActivity(PartialActivityType.StockSplit, null!, transactionId)
+			{
+				Date = date,
+				Amount = 1,
+				SplitFrom = from,
+				SplitTo = to
 			};
 		}
 	}
