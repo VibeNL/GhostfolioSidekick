@@ -137,7 +137,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Date = activity.Date,
 						Quantity = giftActivity.Amount,
 						Type = Contract.ActivityType.BUY,
-						UnitPrice = 0,
+						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};
 				case KnownBalanceActivity:

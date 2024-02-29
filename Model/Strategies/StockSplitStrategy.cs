@@ -1,11 +1,12 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Cryptocurrency;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 
 namespace GhostfolioSidekick.Model.Strategies
 {
 	public class StockSplitStrategy : IHoldingStrategy
 	{
-		public int Priority => int.MinValue;
+		public int Priority => (int)StrategiesPriority.StockSplit;
 
 		public Task Execute(Holding holding)
 		{

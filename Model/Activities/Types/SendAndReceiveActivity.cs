@@ -4,9 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class GiftActivity : BaseActivity<GiftActivity>
+	public record SendAndReceiveActivity : BaseActivity<SendAndReceiveActivity>
 	{
-		public GiftActivity(
+		public SendAndReceiveActivity(
 		Account account,
 		DateTime dateTime,
 		decimal amount,
@@ -24,13 +24,13 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public decimal Amount { get; set; }
 
+		public Money? CalculatedUnitPrice { get; set; }
+
 		public override string? TransactionId { get; set; }
 
 		public override int? SortingPriority { get; set; }
 
 		public override string? Id { get; set; }
-		
-		public Money? CalculatedUnitPrice { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		public override string ToString()
@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			return $"{Account}_{Date}";
 		}
 
-		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, GiftActivity otherActivity)
+		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, SendAndReceiveActivity otherActivity)
 		{
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
 				Amount,

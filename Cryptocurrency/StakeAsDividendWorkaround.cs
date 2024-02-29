@@ -6,7 +6,7 @@
 //{
 //	public class StakeAsDividendWorkaround(Settings settings) : IHoldingStrategy
 //	{
-//		public int Priority => (int)CryptoStrategiesPriority.StakeRewardWorkaround;
+//		public int Priority => (int)StrategiesPriority.StakeRewardWorkaround;
 
 //		public Task Execute(Holding holding)
 //		{
@@ -21,7 +21,7 @@
 //			return Task.CompletedTask;
 //		}
 
-//		private IEnumerable<IActivity> ConvertActivities(List<IActivity> activities)
+//		private IEnumerable<Activity> ConvertActivities(List<Activity> activities)
 //		{
 //			foreach (var activity in activities)
 //			{

@@ -6,7 +6,7 @@
 //{
 //	public class ApplyDustCorrectionWorkaround(Settings settings) : IHoldingStrategy
 //	{
-//		public int Priority => (int)CryptoStrategiesPriority.ApplyDustCorrection;
+//		public int Priority => (int)StrategiesPriority.ApplyDustCorrection;
 
 //		public Task Execute(Holding holding)
 //		{
@@ -45,13 +45,13 @@
 //			return Task.CompletedTask;
 //		}
 
-//		private static void RemoveActivitiesAfter(List<IActivity> activities, IActivity lastActivity)
+//		private static void RemoveActivitiesAfter(List<Activity> activities, Activity lastActivity)
 //		{
 //			int index = activities.IndexOf(lastActivity) + 1;
 //			activities.RemoveRange(index, activities.Count - index);
 //		}
 
-//		private static decimal GetAmount(List<IActivity> activities)
+//		private static decimal GetAmount(List<Activity> activities)
 //		{
 //			return activities.Sum(x => GetFactor(x) * x.Quantity);
 //		}
