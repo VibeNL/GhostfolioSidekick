@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class BuySellActivity : BaseActivity<BuySellActivity>
+	public record class BuySellActivity : BaseActivity<BuySellActivity>, IActivityWithQuantityAndUnitPrice
 	{
 		public BuySellActivity(
 		Account account,

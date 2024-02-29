@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 				switch (activity)
 				{
 					case SendAndReceiveActivity sendAndReceiveActivity:
-						sendAndReceiveActivity.CalculatedUnitPrice!.Amount.Should().Be(100);
+						sendAndReceiveActivity.UnitPrice!.Amount.Should().Be(100);
 						break;
 					case GiftActivity giftActivity:
 						giftActivity.CalculatedUnitPrice!.Amount.Should().Be(100);

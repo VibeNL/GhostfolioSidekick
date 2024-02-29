@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 				switch (activity)
 				{
 					case SendAndReceiveActivity sendAndReceiveActivity:
-						sendAndReceiveActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
+						sendAndReceiveActivity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
 					case GiftActivity giftActivity:
 						giftActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);

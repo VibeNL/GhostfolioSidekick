@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record SendAndReceiveActivity : BaseActivity<SendAndReceiveActivity>
+	public record SendAndReceiveActivity : BaseActivity<SendAndReceiveActivity>, IActivityWithQuantityAndUnitPrice
 	{
 		public SendAndReceiveActivity(
 		Account account,
@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		{
 			Account = account;
 			Date = dateTime;
-			Amount = amount;
+			Quantity = amount;
 			TransactionId = transactionId;
 		}
 
@@ -22,9 +22,9 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public override DateTime Date { get; }
 
-		public decimal Amount { get; set; }
+		public decimal Quantity { get; set; }
 
-		public Money? CalculatedUnitPrice { get; set; }
+		public Money? UnitPrice { get; set; }
 
 		public override string? TransactionId { get; set; }
 
@@ -41,8 +41,8 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, SendAndReceiveActivity otherActivity)
 		{
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
-				Amount,
-				otherActivity.Amount);
+				Quantity,
+				otherActivity.Quantity);
 			return Task.FromResult(quantityTimesUnitPriceEquals);
 		}
 	}
