@@ -56,6 +56,13 @@ namespace GhostfolioSidekick.Parsers.Nexo
 
 					}
 					break;
+				case "Withdraw Exchanged":
+					yield return PartialActivity.CreateCashWithdrawal(
+										outputCurrency,
+										record.DateTime,
+										Math.Abs(record.OutputAmount),
+										record.Transaction);
+					break;
 				case "Deposit":
 				case "Exchange Deposited On":
 					yield return PartialActivity.CreateCashDeposit(
@@ -127,6 +134,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 					}
 
 					break;
+				case "Exchange To Withdraw":
 				case "Deposit To Exchange":
 				case "Locking Term Deposit":
 				case "Unlocking Term Deposit":

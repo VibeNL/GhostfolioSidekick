@@ -59,6 +59,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashWithdrawal(
+						Currency.EUR,
+						new DateTime(2024, 02, 28, 18, 34, 17, DateTimeKind.Utc),
+						149.41000000M,
+						"NXT6UT3C1DP9h94hIqVrV3Wp9")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleBuy_Converted()
 		{
 			// Arrange
