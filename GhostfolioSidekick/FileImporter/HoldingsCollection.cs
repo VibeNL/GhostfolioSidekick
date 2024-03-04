@@ -161,6 +161,20 @@ namespace GhostfolioSidekick.FileImporter
 						SortingPriority = sortingPriority,
 						Description = description,
 					};
+				case PartialActivityType.Receive:
+					return new SendAndReceiveActivity(account, date, amount, transactionId)
+					{
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Send:
+					return new SendAndReceiveActivity(account, date, -amount, transactionId)
+					{
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				case PartialActivityType.Dividend:
 					return new DividendActivity(account, date, money.Times(amount), transactionId)
 					{

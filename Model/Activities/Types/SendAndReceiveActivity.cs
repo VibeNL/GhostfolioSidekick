@@ -26,6 +26,8 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public Money? UnitPrice { get; set; }
 
+		public IEnumerable<Money> Fees { get; set; } = [];
+
 		public override string? TransactionId { get; set; }
 
 		public override int? SortingPriority { get; set; }
@@ -43,7 +45,13 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
 				Quantity,
 				otherActivity.Quantity);
-			return Task.FromResult(quantityTimesUnitPriceEquals);
+			var feesEquals = CompareUtilities.AreMoneyEquals(
+				exchangeRateService,
+				otherActivity.UnitPrice?.Currency,
+				otherActivity.Date,
+				Fees.ToList(),
+				otherActivity.Fees.ToList());
+			return Task.FromResult(quantityTimesUnitPriceEquals && feesEquals);
 		}
 	}
 }

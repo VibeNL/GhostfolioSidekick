@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						FeeCurrency = symbolProfile.Currency.Symbol,
 						Quantity = 1,
 						Type = Contract.ActivityType.DIVIDEND,
-						UnitPrice = (await exchangeRateService.GetConversionRate(dividendActivity.Amount?.Currency, symbolProfile.Currency, activity.Date)) * dividendActivity.Amount?.Amount ?? 0 ,
+						UnitPrice = (await exchangeRateService.GetConversionRate(dividendActivity.Amount?.Currency, symbolProfile.Currency, activity.Date)) * dividendActivity.Amount?.Amount ?? 0,
 						ReferenceCode = activity.TransactionId
 					};
 				case InterestActivity interestActivity:
@@ -139,6 +139,31 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Type = Contract.ActivityType.BUY,
 						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
+					};
+				case SendAndReceiveActivity sendAndReceiveActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = new Contract.SymbolProfile
+						{
+							Symbol = symbolProfile!.Symbol,
+							AssetClass = symbolProfile.AssetClass.ToString(),
+							AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
+							Currency = symbolProfile.Currency!.Symbol,
+							DataSource = symbolProfile.DataSource.ToString(),
+							Name = symbolProfile.Name,
+							Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
+							Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
+						},
+						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
+						Date = activity.Date,
+						Fee = await CalculateFeeAndTaxes(sendAndReceiveActivity.Fees, [], symbolProfile.Currency, activity.Date),
+						FeeCurrency = symbolProfile.Currency.Symbol,
+						Quantity = Math.Abs(sendAndReceiveActivity.Quantity),
+						Type = sendAndReceiveActivity.Quantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
+						UnitPrice = await ConvertPrice(exchangeRateService, sendAndReceiveActivity.UnitPrice, symbolProfile.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId
 					};
 				case KnownBalanceActivity:
 				case CashDepositWithdrawalActivity:
