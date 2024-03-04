@@ -98,8 +98,8 @@ namespace GhostfolioSidekick.Parsers.Nexo
 											outputCurrency,
 											record.DateTime,
 											[PartialSymbolIdentifier.CreateCrypto(record.InputCurrency)],
-											Math.Abs(record.OutputAmount),
-											Math.Abs(record.InputAmount) / Math.Abs(record.OutputAmount),
+											Math.Abs(record.InputAmount),
+											Math.Abs(record.OutputAmount) / Math.Abs(record.InputAmount),
 											record.Transaction);
 					}
 					else if (inputCurrency.IsFiat())
