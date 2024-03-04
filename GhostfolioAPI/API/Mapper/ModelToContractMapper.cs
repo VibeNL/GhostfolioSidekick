@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					};
 			}
 
-			throw new NotImplementedException();
+			throw new NotSupportedException($"{activity.GetType().Name} not supported in ModelToContractMapper");
 		}
 
 		private static async Task<decimal> ConvertPrice(IExchangeRateService exchangeRateService, Money? money, Currency targetCurrency, DateTime dateTime)

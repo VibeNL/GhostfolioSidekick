@@ -54,13 +54,14 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					case CashDepositWithdrawalActivity cashDepositWithdrawalActivity:
 						moneyTrail.Add(Tuple.Create(activity.Date, new Money(cashDepositWithdrawalActivity.Amount!.Currency, cashDepositWithdrawalActivity.Amount.Amount)));
 						break;
-					case KnownBalanceActivity knownBalanceActivity:
-					case StockSplitActivity stockSplitActivity:
-					case GiftActivity giftActivity:
+					case KnownBalanceActivity:
+					case StockSplitActivity:
+					case GiftActivity:
+					case SendAndReceiveActivity:
 						// Nothing to track
 						break;
 					default:
-						throw new NotSupportedException();
+						throw new NotSupportedException($"Balance failed to generate, {activity.GetType().Name} not supported");
 				}
 			}
 
