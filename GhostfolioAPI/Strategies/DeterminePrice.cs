@@ -37,6 +37,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 					case GiftActivity giftActivity:
 						giftActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
+					case StakingRewardActivity stakingRewardActivity:
+						stakingRewardActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
+						break;
 					default:
 						throw new NotSupportedException($"Activity type {activity.GetType()} is not supported.");
 				}

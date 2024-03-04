@@ -56,6 +56,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						break;
 					case KnownBalanceActivity:
 					case StockSplitActivity:
+					case StakingRewardActivity:
 					case GiftActivity:
 					case SendAndReceiveActivity:
 						// Nothing to track

@@ -236,6 +236,12 @@ namespace GhostfolioSidekick.FileImporter
 					{
 						SortingPriority = sortingPriority,
 					};
+				case PartialActivityType.StakingReward:
+					return new StakingRewardActivity(account, date, amount, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				default:
 					throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented");
 			}

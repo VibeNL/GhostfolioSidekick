@@ -168,6 +168,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				case KnownBalanceActivity:
 				case CashDepositWithdrawalActivity:
 				case StockSplitActivity:
+				case StakingRewardActivity:
 					return new Contract.Activity
 					{
 						Type = Contract.ActivityType.IGNORE
