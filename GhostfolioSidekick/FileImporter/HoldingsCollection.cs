@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.FileImporter
 				fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 				taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
 				sourceTransaction.SortingPriority,
-				sourceTransaction.Description,
+				sourceTransaction.Description ?? "<EMPTY>",
 				sourceTransaction.SplitFrom,
 				sourceTransaction.SplitTo);
 
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.FileImporter
 					[],
 					[],
 					transaction.SortingPriority,
-					sourceTransaction.Description,
+					sourceTransaction.Description ?? "<EMPTY>",
 					sourceTransaction.SplitFrom,
 					sourceTransaction.SplitTo);
 

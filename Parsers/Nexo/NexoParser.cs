@@ -132,7 +132,6 @@ namespace GhostfolioSidekick.Parsers.Nexo
 												Math.Abs(record.OutputAmount),
 												record.Transaction);
 					}
-
 					break;
 				case "Exchange To Withdraw":
 				case "Deposit To Exchange":

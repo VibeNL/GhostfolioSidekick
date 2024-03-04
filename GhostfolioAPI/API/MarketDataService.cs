@@ -252,7 +252,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var filtered = filterBenchmarks ? market?.MarketData.Where(x => !benchmarks.Exists(y => y.Symbol == x.Symbol)) : market?.MarketData;
 
 			var profiles = new List<SymbolProfile>();
-			foreach (var f in filtered?.ToList() ?? [])
+			foreach (var f in filtered?
+				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
+				.ToList() ?? [])
 			{
 				content = await restCall.DoRestGet($"api/v1/admin/market-data/{f.DataSource}/{f.Symbol}");
 				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
