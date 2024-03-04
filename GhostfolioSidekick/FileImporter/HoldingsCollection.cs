@@ -237,7 +237,7 @@ namespace GhostfolioSidekick.FileImporter
 						SortingPriority = sortingPriority,
 					};
 				default:
-					throw new NotSupportedException();
+					throw new NotSupportedException($"GenerateActivity {activityType.GetType().Name} not yet implemented");
 			}
 		}
 
