@@ -30,20 +30,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					{
 						Id = activity.Id,
 						AccountId = activity.Account.Id,
-						SymbolProfile = new Contract.SymbolProfile
-						{
-							Symbol = symbolProfile!.Symbol,
-							AssetClass = symbolProfile.AssetClass.ToString(),
-							AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
-							Currency = symbolProfile.Currency!.Symbol,
-							DataSource = symbolProfile.DataSource.ToString(),
-							Name = symbolProfile.Name,
-							Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
-							Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
-						},
+						SymbolProfile = CreateSymbolProfile(symbolProfile!),
 						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
 						Date = activity.Date,
-						Fee = await CalculateFeeAndTaxes(buyActivity.Fees, buyActivity.Taxes, symbolProfile.Currency, activity.Date),
+						Fee = await CalculateFeeAndTaxes(buyActivity.Fees, buyActivity.Taxes, symbolProfile!.Currency, activity.Date),
 						FeeCurrency = symbolProfile.Currency.Symbol,
 						Quantity = Math.Abs(buyActivity.Quantity),
 						Type = buyActivity.Quantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
@@ -55,20 +45,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					{
 						Id = activity.Id,
 						AccountId = activity.Account.Id,
-						SymbolProfile = new Contract.SymbolProfile
-						{
-							Symbol = symbolProfile!.Symbol,
-							AssetClass = symbolProfile.AssetClass.ToString(),
-							AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
-							Currency = symbolProfile.Currency!.Symbol,
-							DataSource = symbolProfile.DataSource.ToString(),
-							Name = symbolProfile.Name,
-							Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
-							Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
-						},
+						SymbolProfile = CreateSymbolProfile(symbolProfile!),
 						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
 						Date = activity.Date,
-						Fee = await CalculateFeeAndTaxes(dividendActivity.Fees, dividendActivity.Taxes, symbolProfile.Currency, activity.Date),
+						Fee = await CalculateFeeAndTaxes(dividendActivity.Fees, dividendActivity.Taxes, symbolProfile!.Currency, activity.Date),
 						FeeCurrency = symbolProfile.Currency.Symbol,
 						Quantity = 1,
 						Type = Contract.ActivityType.DIVIDEND,
@@ -127,19 +107,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						UnitPrice = await ConvertPrice(exchangeRateService, liabilityActivity.Amount, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};
-				//case GiftActivity giftActivity:
-				//	return new Contract.Activity
-				//	{
-				//		Id = activity.Id,
-				//		AccountId = activity.Account.Id,
-				//		SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, giftActivity.Description),
-				//		Comment = TransactionReferenceUtilities.GetComment(activity),
-				//		Date = activity.Date,
-				//		Quantity = giftActivity.Amount,
-				//		Type = Contract.ActivityType.BUY,
-				//		UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
-				//		ReferenceCode = activity.TransactionId,
-				//	};
+				case GiftActivity giftActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = symbolProfile == null ? Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, giftActivity.Description) : CreateSymbolProfile(symbolProfile!),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = giftActivity.Amount,
+						Type = Contract.ActivityType.BUY,
+						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+					};
 				case SendAndReceiveActivity sendAndReceiveActivity:
 					return new Contract.Activity
 					{
@@ -169,7 +149,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				case CashDepositWithdrawalActivity:
 				case StockSplitActivity:
 				case StakingRewardActivity:
-				case GiftActivity:
 					return new Contract.Activity
 					{
 						Type = Contract.ActivityType.IGNORE
@@ -177,6 +156,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			}
 
 			throw new NotSupportedException($"{activity.GetType().Name} not supported in ModelToContractMapper");
+
+			static Contract.SymbolProfile CreateSymbolProfile(Model.Symbols.SymbolProfile symbolProfile)
+			{
+				return new Contract.SymbolProfile
+				{
+					Symbol = symbolProfile!.Symbol,
+					AssetClass = symbolProfile.AssetClass.ToString(),
+					AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
+					Currency = symbolProfile.Currency!.Symbol,
+					DataSource = symbolProfile.DataSource.ToString(),
+					Name = symbolProfile.Name,
+					Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
+					Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
+				};
+			}
 		}
 
 		private static async Task<decimal> ConvertPrice(IExchangeRateService exchangeRateService, Money? money, Currency targetCurrency, DateTime dateTime)
