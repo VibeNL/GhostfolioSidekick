@@ -127,19 +127,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						UnitPrice = await ConvertPrice(exchangeRateService, liabilityActivity.Amount, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};
-				case GiftActivity giftActivity:
-					return new Contract.Activity
-					{
-						Id = activity.Id,
-						AccountId = activity.Account.Id,
-						SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, giftActivity.Description),
-						Comment = TransactionReferenceUtilities.GetComment(activity),
-						Date = activity.Date,
-						Quantity = giftActivity.Amount,
-						Type = Contract.ActivityType.BUY,
-						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
-						ReferenceCode = activity.TransactionId,
-					};
+				//case GiftActivity giftActivity:
+				//	return new Contract.Activity
+				//	{
+				//		Id = activity.Id,
+				//		AccountId = activity.Account.Id,
+				//		SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, giftActivity.Description),
+				//		Comment = TransactionReferenceUtilities.GetComment(activity),
+				//		Date = activity.Date,
+				//		Quantity = giftActivity.Amount,
+				//		Type = Contract.ActivityType.BUY,
+				//		UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
+				//		ReferenceCode = activity.TransactionId,
+				//	};
 				case SendAndReceiveActivity sendAndReceiveActivity:
 					return new Contract.Activity
 					{
@@ -169,6 +169,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				case CashDepositWithdrawalActivity:
 				case StockSplitActivity:
 				case StakingRewardActivity:
+				case GiftActivity:
 					return new Contract.Activity
 					{
 						Type = Contract.ActivityType.IGNORE
