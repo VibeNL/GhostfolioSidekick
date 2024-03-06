@@ -63,6 +63,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 					case StakingRewardActivity stakingRewardActivity:
 						stakingRewardActivity.CalculatedUnitPrice!.Amount.Should().Be(100);
 						break;
+					default:
+						throw new Exception("Unexpected activity type");
 				}
 			}
 		}
@@ -102,6 +104,46 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			// Assert
 			marketDataServiceMock.Verify(x => x.GetMarketData(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldCalculateUnitPrice_WhenNoMarketData()
+		{
+			// Arrange
+			var symbolProfile = DefaultFixture.Create().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create();
+			var holding = new Holding(symbolProfile)
+			{
+				Activities = new List<IActivity>
+				{
+					new SendAndReceiveActivity(null, DateTime.Now, 1, string.Empty)
+				}
+			};
+
+			var marketDataProfile = new MarketDataProfile
+			{
+				AssetProfile = symbolProfile,
+				MarketData = []
+			};
+
+			marketDataServiceMock
+				.Setup(x => x.GetMarketData(It.IsAny<string>(), It.IsAny<string>()))
+				.ReturnsAsync(marketDataProfile);
+
+			// Act
+			await determinePrice.Execute(holding);
+
+			// Assert
+			foreach (var activity in holding.Activities)
+			{
+				switch (activity)
+				{
+					case SendAndReceiveActivity sendAndReceiveActivity:
+						sendAndReceiveActivity.UnitPrice!.Amount.Should().Be(0);
+						break;
+					default:
+						throw new Exception("Unexpected activity type");
+				}
+			}
 		}
 	}
 }

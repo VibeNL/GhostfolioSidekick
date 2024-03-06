@@ -25,11 +25,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick
 {
 	internal static class Program
 	{
+		[ExcludeFromCodeCoverage]
 		static async Task Main(string[] args)
 		{
 			IHostBuilder hostBuilder = CreateHostBuilder();
