@@ -45,9 +45,10 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
 				Quantity,
 				otherActivity.Quantity);
+
 			var feesEquals = CompareUtilities.AreMoneyEquals(
 				exchangeRateService,
-				otherActivity.UnitPrice?.Currency,
+				otherActivity.UnitPrice?.Currency ?? Currency.USD,
 				otherActivity.Date,
 				Fees.ToList(),
 				otherActivity.Fees.ToList());

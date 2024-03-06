@@ -91,7 +91,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Date = activity.Date,
 						Quantity = 1,
 						Type = Contract.ActivityType.ITEM,
-						UnitPrice = await ConvertPrice(exchangeRateService, valuableActivity.Amount, activity.Account.Balance.Money.Currency, activity.Date),
+						UnitPrice = await ConvertPrice(exchangeRateService, valuableActivity.Price, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};
 				case LiabilityActivity liabilityActivity:
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Date = activity.Date,
 						Quantity = 1,
 						Type = Contract.ActivityType.LIABILITY,
-						UnitPrice = await ConvertPrice(exchangeRateService, liabilityActivity.Amount, activity.Account.Balance.Money.Currency, activity.Date),
+						UnitPrice = await ConvertPrice(exchangeRateService, liabilityActivity.Price, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};
 				case GiftActivity giftActivity:

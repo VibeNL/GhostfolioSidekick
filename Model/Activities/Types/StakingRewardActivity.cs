@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class StakingRewardActivity : BaseActivity<GiftActivity>
+	public record class StakingRewardActivity : BaseActivity<StakingRewardActivity>
 	{
 		public StakingRewardActivity(
 		Account account,
@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			return $"{Account}_{Date}";
 		}
 
-		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, GiftActivity otherActivity)
+		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, StakingRewardActivity otherActivity)
 		{
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
 				Amount,

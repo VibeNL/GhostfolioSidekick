@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Compare;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -35,21 +36,27 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public string Description => "Stock split";
 
+		[ExcludeFromCodeCoverage]
+		public override string ToString()
+		{
+			return $"Stock split on {Date.ToInvariantDateOnlyString()} [{FromAmount}] -> [{ToAmount}]";
+		}
+
 		public Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other)
 #pragma warning restore CS1998 // Async metho
 		{
-			if (other is StockSplitActivity otherActivity)
+			if (other is not StockSplitActivity otherActivity)
 			{
-				// Compare properties of this activity with the other activity
-				// This is just a basic comparison, you may need to add more properties to compare based on your requirements
-				Task.FromResult(Account == otherActivity.Account &&
-					   Date == otherActivity.Date &&
-					   FromAmount == otherActivity.FromAmount &&
-					   ToAmount == otherActivity.ToAmount &&
-					   TransactionId == otherActivity.TransactionId);
+				return Task.FromResult(false);
 			}
 
-			return Task.FromResult(false);
+			// Compare properties of this activity with the other activity
+			// This is just a basic comparison, you may need to add more properties to compare based on your requirements
+			return Task.FromResult(Account == otherActivity.Account &&
+				   Date == otherActivity.Date &&
+				   FromAmount == otherActivity.FromAmount &&
+				   ToAmount == otherActivity.ToAmount &&
+				   TransactionId == otherActivity.TransactionId);
 		}
 
 	}
