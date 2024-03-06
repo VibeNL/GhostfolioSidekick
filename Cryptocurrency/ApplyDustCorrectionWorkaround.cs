@@ -1,13 +1,14 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Strategies;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Cryptocurrency
 {
 	public class ApplyDustCorrectionWorkaround(Settings settings) : IHoldingStrategy
 	{
+		[ExcludeFromCodeCoverage]
 		public int Priority => (int)StrategiesPriority.ApplyDustCorrection;
 
 		public Task Execute(Holding holding)
@@ -29,7 +30,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 				.Select(x => x as IActivityWithQuantityAndUnitPrice)
 				.Where(x => x != null)
 				.LastOrDefault(x =>
-					x is IActivityWithQuantityAndUnitPrice activity && activity.Quantity < 0);
+					x!.Quantity < 0);
 			if (lastActivity == null || lastActivity.UnitPrice == null)
 			{
 				return Task.CompletedTask;

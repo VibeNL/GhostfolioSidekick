@@ -42,6 +42,66 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 		}
 
 		[Fact]
+		public void Execute_ShouldNotApplyDustCorrection_WhenNoProfile()
+		{
+			// Arrange
+			var settings = new Settings { CryptoWorkaroundDust = true };
+			var holding = new Holding(null!);
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+
+			// Act
+			var result = strategy.Execute(holding);
+
+			// Assert
+			Assert.Equal(Task.CompletedTask, result);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldNotApplyDustCorrection_WhenOnlyBuy()
+		{
+			// Arrange
+			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+			var activity = new BuySellActivity(null!, DateTime.Now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
+			{
+				Activities = [
+					activity
+				]
+			};
+
+			// Act
+			await strategy.Execute(holding);
+
+			// Assert
+			activity.Quantity.Should().Be(0.002m);
+			activity.UnitPrice!.Amount.Should().Be(0.01M);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldNotApplyDustCorrection_WhenNoDust()
+		{
+			// Arrange
+			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+			var activity = new BuySellActivity(null!, DateTime.Now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
+			{
+				Activities = [
+					new BuySellActivity(null!, DateTime.Now, -0.002m, new Money(Currency.USD, 0.01m), string.Empty),
+					activity
+				]
+			};
+
+			// Act
+			await strategy.Execute(holding);
+
+			// Assert
+			activity.Quantity.Should().Be(0.002m);
+			activity.UnitPrice!.Amount.Should().Be(0.01M);
+		}
+
+		[Fact]
 		public async Task Execute_ShouldApplyDustCorrection_WhenDustValueIsLessThanThreshold()
 		{
 			// Arrange
