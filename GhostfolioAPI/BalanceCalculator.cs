@@ -52,7 +52,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					case CashDepositWithdrawalActivity cashDepositWithdrawalActivity:
 						moneyTrail.Add(Tuple.Create(activity.Date, new Money(cashDepositWithdrawalActivity.Amount!.Currency, cashDepositWithdrawalActivity.Amount.Amount)));
 						break;
-					case KnownBalanceActivity:
 					case StockSplitActivity:
 					case StakingRewardActivity:
 					case GiftActivity:
