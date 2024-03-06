@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			result.ScraperConfiguration.Should().BeEquivalentTo(rawSymbolProfile.ScraperConfiguration, options => options.ExcludingMissingMembers());
 		}
 
-		[Fact(Skip = "TODO: Fix this test")]
+		[Fact]
 		public void MapMarketDataList_ShouldReturnCorrectMarketDataProfile()
 		{
 			// Arrange
@@ -74,9 +74,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Assert
 			result.Should().BeEquivalentTo(rawMarketDataList, options => options
 				.ExcludingMissingMembers()
-				.Excluding(x => x.AssetProfile.Currency) // TODO
-				.Excluding(x => x.AssetProfile.AssetClass) // TODO
-				.Excluding(x => x.AssetProfile.AssetSubClass)); // TODO
+				.Excluding(x => x.AssetProfile.Currency)
+				.Excluding(x => x.AssetProfile.AssetClass)
+				.Excluding(x => x.AssetProfile.AssetSubClass)
+				.Excluding(x => x.MarketData));
+
+			result.AssetProfile.Currency.Symbol.Should().Be(rawMarketDataList.AssetProfile.Currency);
+			result.AssetProfile.AssetClass.Should().Be(Utilities.ParseAssetClass(rawMarketDataList.AssetProfile.AssetClass));
+			result.AssetProfile.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(rawMarketDataList.AssetProfile.AssetSubClass));
+
+			for (int i = 0; i < result.MarketData.Count; i++)
+			{
+				result.MarketData[i].Date.Should().Be(rawMarketDataList.MarketData[i].Date);
+				result.MarketData[i].MarketPrice.Amount.Should().Be(rawMarketDataList.MarketData[i].MarketPrice);
+			}
 		}
 
 		[Fact]
@@ -91,9 +102,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Assert
 			result.Should().BeEquivalentTo(rawSymbolProfile, options => options
 				.ExcludingMissingMembers()
-				.Excluding(x => x.Currency) // TODO
-				.Excluding(x => x.AssetClass) // TODO
-				.Excluding(x => x.AssetSubClass)); // TODO
+				.Excluding(x => x.Currency)
+				.Excluding(x => x.AssetClass)
+				.Excluding(x => x.AssetSubClass));
+			result.Currency.Symbol.Should().Be(rawSymbolProfile.Currency);
+			result.AssetClass.Should().Be(Utilities.ParseAssetClass(rawSymbolProfile.AssetClass));
+			result.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(rawSymbolProfile.AssetSubClass));
 		}
 
 		[Fact]
@@ -108,14 +122,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				.ToArray();
 
 			// Act
-			var result = ContractToModelMapper.MapToHoldings(accounts, activities);
+			var result = ContractToModelMapper.MapToHoldings(accounts, activities).ToList();
 
 			// Assert
 			result.Should().BeEquivalentTo(activities, options => options
 				.ExcludingMissingMembers()
-				.Excluding(x => x.SymbolProfile.Currency) // TODO
-				.Excluding(x => x.SymbolProfile.AssetClass) // TODO
-				.Excluding(x => x.SymbolProfile.AssetSubClass)); // TODO
+				.Excluding(x => x.SymbolProfile.Currency)
+				.Excluding(x => x.SymbolProfile.AssetClass)
+				.Excluding(x => x.SymbolProfile.AssetSubClass));
+			result[0].SymbolProfile.Currency.Symbol.Should().Be(activities[0].SymbolProfile.Currency);
+			result[0].SymbolProfile.AssetClass.Should().Be(Utilities.ParseAssetClass(activities[0].SymbolProfile.AssetClass));
+			result[0].SymbolProfile.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(activities[0].SymbolProfile.AssetSubClass));
 		}
 	}
 
