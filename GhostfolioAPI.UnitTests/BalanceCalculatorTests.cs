@@ -14,7 +14,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 	{
 		Currency baseCurrency = Currency.USD;
 		Mock<IExchangeRateService> exchangeRateServiceMock;
-		ILogger logger = new Mock<ILogger>().Object;
 
 		public BalanceCalculatorTests()
 		{
@@ -38,7 +37,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(knownBalanceActivity.Amount.Amount);
@@ -55,7 +54,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(-25);
@@ -73,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Act & Assert
 			await Assert.ThrowsAsync<NotSupportedException>(() =>
-				new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities));
+				new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities));
 		}
 
 		[Fact]
@@ -83,7 +82,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var activities = new List<IActivity>();
 
 			// Act
-			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(0);
@@ -100,7 +99,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(75);
@@ -117,7 +116,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(75);
@@ -134,7 +133,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(-75);
@@ -151,7 +150,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(75);
@@ -170,7 +169,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = await new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			result.Money.Amount.Should().Be(0);
@@ -186,7 +185,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			// Act
-			var result = () => new BalanceCalculator(exchangeRateServiceMock.Object, logger).Calculate(baseCurrency, activities);
+			var result = () => new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
 			await result.Should().ThrowAsync<NotSupportedException>();

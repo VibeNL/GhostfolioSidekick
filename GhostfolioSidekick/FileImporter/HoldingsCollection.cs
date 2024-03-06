@@ -294,7 +294,7 @@ namespace GhostfolioSidekick.FileImporter
 			using (logger.BeginScope($"Balance for account {account.Name}"))
 			{
 				var allActivities = holdings.SelectMany(x => x.Activities).Where(x => x.Account == account).ToList();
-				return new BalanceCalculator(exchangeRateService, logger).Calculate(account.Balance.Money.Currency, allActivities);
+				return new BalanceCalculator(exchangeRateService).Calculate(account.Balance.Money.Currency, allActivities);
 			}
 		}
 	}

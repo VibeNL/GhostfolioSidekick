@@ -43,6 +43,28 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		}
 
 		[Fact]
+		public async Task ConvertToGhostfolioActivity_BuySellActivityWithoutUnitPrice_Success()
+		{
+			// Arrange
+			var symbolProfile = DefaultFixture.Create().Create<Model.Symbols.SymbolProfile>();
+			var activity = DefaultFixture.Create().Create<BuySellActivity>();
+			activity.UnitPrice = null;
+
+			// Act
+			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, symbolProfile, activity);
+
+			// Assert
+			result.Should().NotBeNull();
+			result.Type.Should().Be(Contract.ActivityType.BUY);
+			result.SymbolProfile!.Symbol.Should().Be(symbolProfile.Symbol);
+			result.SymbolProfile.DataSource.Should().Be(symbolProfile.DataSource);
+			result.Date.Should().Be(activity.Date);
+			result.Quantity.Should().Be(activity.Quantity);
+			result.UnitPrice.Should().Be(0);
+			// TODO check more
+		}
+
+		[Fact]
 		public async Task ConvertToGhostfolioActivity_DividendActivity_Success()
 		{
 			// Arrange

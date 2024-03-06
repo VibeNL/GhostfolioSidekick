@@ -11,14 +11,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	public class BalanceCalculator
 	{
 		private readonly IExchangeRateService exchangeRateService;
-		private readonly ILogger logger;
 
-		public BalanceCalculator(
-			IExchangeRateService exchangeRateService,
-			ILogger logger)
+		public BalanceCalculator(IExchangeRateService exchangeRateService)
 		{
 			this.exchangeRateService = exchangeRateService;
-			this.logger = logger;
 		}
 
 		public async Task<Balance> Calculate(
