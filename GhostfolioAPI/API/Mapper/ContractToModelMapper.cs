@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			};
 		}
 
-		public static SymbolProfile ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
+		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
 			return new SymbolProfile(
 				symbolProfile.Symbol,
@@ -39,20 +39,27 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				symbolProfile.DataSource,
 				Utilities.ParseAssetClass(symbolProfile.AssetClass),
 				Utilities.ParseAssetSubClass(symbolProfile.AssetSubClass),
-				ParseCountries(symbolProfile.Countries),
-				ParseSectors(symbolProfile.Sectors))
+				MapCountries(symbolProfile.Countries),
+				MapSectors(symbolProfile.Sectors))
 			{
 				Comment = symbolProfile.Comment,
 				ISIN = symbolProfile.ISIN,
+				ActivitiesCount = symbolProfile.ActivitiesCount,
+				ScraperConfiguration = new ScraperConfiguration
+				{
+					Locale = symbolProfile.ScraperConfiguration?.Locale,
+					Url = symbolProfile.ScraperConfiguration?.Url,
+					Selector = symbolProfile.ScraperConfiguration?.Selector
+				}
 			};
 		}
 
-		private static Sector[] ParseSectors(Contract.Sector[] sectors)
+		private static Sector[] MapSectors(Contract.Sector[] sectors)
 		{
 			return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
 		}
 
-		private static Country[] ParseCountries(Contract.Country[] countries)
+		private static Country[] MapCountries(Contract.Country[] countries)
 		{
 			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
@@ -70,40 +77,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 			mdl.AssetProfile.Mappings.TrackInsight = trackinsight;
 			return mdl;
-		}
-
-		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile assetProfile)
-		{
-			return new SymbolProfile(
-								assetProfile.Symbol,
-								assetProfile.Name,
-								new Currency(assetProfile.Currency),
-								assetProfile.DataSource,
-								Utilities.ParseAssetClass(assetProfile.AssetClass),
-								Utilities.ParseAssetSubClass(assetProfile.AssetSubClass),
-								MapCountries(assetProfile.Countries),
-								MapSectors(assetProfile.Sectors))
-			{
-				ActivitiesCount = assetProfile.ActivitiesCount,
-				ISIN = assetProfile.ISIN,
-				Comment = assetProfile.Comment,
-				ScraperConfiguration = new ScraperConfiguration
-				{
-					Locale = assetProfile.ScraperConfiguration?.Locale,
-					Url = assetProfile.ScraperConfiguration?.Url,
-					Selector = assetProfile.ScraperConfiguration?.Selector
-				}
-			};
-		}
-
-		private static Sector[] MapSectors(Contract.Sector[] sectors)
-		{
-			return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
-		}
-
-		private static Country[] MapCountries(Contract.Country[] countries)
-		{
-			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
 
 		private static MarketData MapMarketData(Currency currency, Contract.MarketData marketData)

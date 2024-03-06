@@ -33,7 +33,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Assert
 			result.Should().BeEquivalentTo(rawAccount, options => options
 				.ExcludingMissingMembers()
-				.Excluding(x => x.Balance)); // TODO
+				.Excluding(x => x.Balance));
+			result.Balance.Money.Amount.Should().Be(rawAccount.Balance);
 		}
 
 		[Fact]
@@ -43,17 +44,22 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var rawSymbolProfile = new Fixture().Customize(new AssetCustomization()).Create<Contract.SymbolProfile>();
 
 			// Act
-			var result = ContractToModelMapper.ParseSymbolProfile(rawSymbolProfile);
+			var result = ContractToModelMapper.MapSymbolProfile(rawSymbolProfile);
 
 			// Assert
 			result.Should().BeEquivalentTo(rawSymbolProfile, options => options
 				.ExcludingMissingMembers()
-				.Excluding(x => x.Currency) // TODO
-				.Excluding(x => x.AssetClass) // TODO
-				.Excluding(x => x.AssetSubClass) // TODO
-				.Excluding(x => x.ActivitiesCount) // TODO
-				.Excluding(x => x.ScraperConfiguration) // TODO
+				.Excluding(x => x.Currency)
+				.Excluding(x => x.AssetClass)
+				.Excluding(x => x.AssetSubClass)
+				.Excluding(x => x.ActivitiesCount)
+				.Excluding(x => x.ScraperConfiguration)
 			);
+			result.Currency.Symbol.Should().Be(rawSymbolProfile.Currency);
+			result.AssetClass.Should().Be(Utilities.ParseAssetClass(rawSymbolProfile.AssetClass));
+			result.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(rawSymbolProfile.AssetSubClass));
+			result.ActivitiesCount.Should().Be(rawSymbolProfile.ActivitiesCount);
+			result.ScraperConfiguration.Should().BeEquivalentTo(rawSymbolProfile.ScraperConfiguration, options => options.ExcludingMissingMembers());
 		}
 
 		[Fact(Skip = "TODO: Fix this test")]

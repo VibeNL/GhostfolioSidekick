@@ -143,7 +143,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						}
 
 						var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
-						var assets = symbolProfileList?.Items.Select(ContractToModelMapper.ParseSymbolProfile);
+						var assets = symbolProfileList?.Items.Select(ContractToModelMapper.MapSymbolProfile);
 
 						if (assets?.Any() ?? false)
 						{
