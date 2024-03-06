@@ -25,8 +25,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			Currency baseCurrency,
 			IEnumerable<IActivity> activities)
 		{
-			var sb = new StringBuilder();
-
 			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
 			var lastKnownBalance = descendingSortedActivities.Select(x => x as KnownBalanceActivity).FirstOrDefault(x => x is not null);
 			if (lastKnownBalance != null)
