@@ -12,10 +12,8 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public abstract string? TransactionId { get; set; }
 
-		[ExcludeFromCodeCoverage]
 		public abstract int? SortingPriority { get; set; }
 
-		[ExcludeFromCodeCoverage]
 		public abstract string? Id { get; set; }
 
 		public string? Description { get; set; }

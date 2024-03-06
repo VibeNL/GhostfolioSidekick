@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Activities;
+using AutoFixture.Kernel;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {
@@ -56,6 +57,30 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 
 			// Assert
 			result.Should().BeFalse();
+		}
+
+		[Fact]
+		public async Task AllProperties_ShouldBeReadable()
+		{
+			// Arrang
+			var type = typeof(IActivity);
+			var types = AppDomain.CurrentDomain.GetAssemblies()
+							.SelectMany(s => s.GetTypes())
+							.Where(p => type.IsAssignableFrom(p) && !p.IsAbstract);
+
+			Fixture fixture = new Fixture();
+			foreach (var myType in types)
+			{
+				IActivity activity = (IActivity)fixture.Create(myType, new SpecimenContext(fixture));
+
+				// Act & Assert
+				activity.Account.Should().NotBeNull();
+				activity.Date.Should().NotBe(DateTime.MinValue);
+				activity.TransactionId.Should().NotBeNull();
+				activity.SortingPriority.Should().NotBeNull();
+				activity.Id.Should().NotBeNull();
+				activity.Description.Should().NotBeNull();
+			}
 		}
 
 		private record DummyActivity : BaseActivity<DummyActivity>
