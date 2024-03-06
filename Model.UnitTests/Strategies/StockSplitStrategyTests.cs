@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.UnitTests.Model.Strategies
 		}
 
 		[Fact]
-		public async Task Execute_WithStockAfterSplitActivity_UpdatesUnitPrice()
+		public async Task Execute_WithStockAfterSplitActivity_NoUpdatesUnitPrice()
 		{
 			// Arrange
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
@@ -74,6 +74,28 @@ namespace GhostfolioSidekick.UnitTests.Model.Strategies
 			var buySellActivity = holding.Activities.OfType<BuySellActivity>().First();
 			buySellActivity.UnitPrice?.Amount.Should().Be(50);
 			buySellActivity.Quantity.Should().Be(100);
+		}
+
+		[Fact]
+		public async Task Execute_WithoutPrice_NoUpdatesUnitPrice()
+		{
+			// Arrange
+			var holding = new Holding(new Fixture().Create<SymbolProfile>())
+			{
+				Activities =
+				[
+					new StockSplitActivity(null, DateTime.Now.AddDays(1), 1, 2, string.Empty),
+					new BuySellActivity(null, DateTime.Now, 100, null, string.Empty)
+				]
+			};
+
+			// Act
+			await _stockSplitStrategy.Execute(holding);
+
+			// Assert
+			var buySellActivity = holding.Activities.OfType<BuySellActivity>().First();
+			buySellActivity.UnitPrice.Should().BeNull();
+			buySellActivity.Quantity.Should().Be(200);
 		}
 	}
 }
