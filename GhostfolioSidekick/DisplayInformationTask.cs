@@ -40,6 +40,11 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"DataProviderPreference : {applicationSettings.ConfigurationInstance.Settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols}");
 
+			if (applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward)
+			{
+				logger.LogWarning("Setting 'CryptoWorkaroundStakeReward' no longer supported");
+			}
+
 			logger.LogInformation(sb.ToString());
 		}
 	}

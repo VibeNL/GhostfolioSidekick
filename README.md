@@ -46,7 +46,6 @@ Also allows the following sybol settings
 {
     "settings" : {
 	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
-		"use.crypto.workaround.stakereward.as.dividends" : true, // default is false
 		"use.crypto.workaround.dust" : true // default is false,
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0,
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
@@ -77,14 +76,6 @@ Also allows the following sybol settings
 ```
 
 #### Settings
-
-##### use.crypto.workaround.stakereward.as.dividends (Experimental)
-This settings does control if a workaround is used for stakerewards.
-
-| Value           | Action |
-| -----           | ------ |
-| false (default) | Ignore stake activities |
-| true            | Convert the Stake reward activity to a Buy & Dividend activity | 
 
 ##### use.crypto.workaround.dust (Experimental)
 This settings does control if a workaround is used for dust (very small amount of cryptocurrency that cannot be sold).
