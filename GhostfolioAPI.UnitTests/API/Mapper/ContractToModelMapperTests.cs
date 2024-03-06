@@ -91,6 +91,35 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
+		public void MapMarketDataList_NoTrackingInsight_ShouldReturnCorrectMarketDataProfile()
+		{
+			// Arrange
+			var rawMarketDataList = new Fixture().Customize(new AssetCustomization()).Create<Contract.MarketDataList>();
+			rawMarketDataList.AssetProfile.SymbolMapping = null;
+
+			// Act
+			var result = ContractToModelMapper.MapMarketDataList(rawMarketDataList);
+
+			// Assert
+			result.Should().BeEquivalentTo(rawMarketDataList, options => options
+				.ExcludingMissingMembers()
+				.Excluding(x => x.AssetProfile.Currency)
+				.Excluding(x => x.AssetProfile.AssetClass)
+				.Excluding(x => x.AssetProfile.AssetSubClass)
+				.Excluding(x => x.MarketData));
+
+			result.AssetProfile.Currency.Symbol.Should().Be(rawMarketDataList.AssetProfile.Currency);
+			result.AssetProfile.AssetClass.Should().Be(Utilities.ParseAssetClass(rawMarketDataList.AssetProfile.AssetClass));
+			result.AssetProfile.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(rawMarketDataList.AssetProfile.AssetSubClass));
+
+			for (int i = 0; i < result.MarketData.Count; i++)
+			{
+				result.MarketData[i].Date.Should().Be(rawMarketDataList.MarketData[i].Date);
+				result.MarketData[i].MarketPrice.Amount.Should().Be(rawMarketDataList.MarketData[i].MarketPrice);
+			}
+		}
+
+		[Fact]
 		public void MapSymbolProfile_ShouldReturnCorrectSymbolProfile()
 		{
 			// Arrange

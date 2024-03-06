@@ -1,5 +1,8 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI.Contract
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace GhostfolioSidekick.GhostfolioAPI.Contract
 {
+	[ExcludeFromCodeCoverage]
 	public class MarketData
 	{
 		public DateTime Date { get; set; }
