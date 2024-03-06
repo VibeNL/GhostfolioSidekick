@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public async Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity otherActivity)
 		{
-			if (this.GetType() != otherActivity.GetType())
+			if (GetType() != otherActivity.GetType())
 			{
 				return false;
 			}
