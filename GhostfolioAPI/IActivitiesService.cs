@@ -8,11 +8,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	{
 		Task<IEnumerable<Holding>> GetAllActivities();
 
-		Task InsertActivity(SymbolProfile symbolProfile, Activity activity);
+		Task InsertActivity(SymbolProfile symbolProfile, IActivity activity);
 
-		Task UpdateActivity(SymbolProfile symbolProfile, Activity oldActivity, Activity newActivity);
+		Task UpdateActivity(SymbolProfile symbolProfile, IActivity oldActivity, IActivity newActivity);
 
-		Task DeleteActivity(SymbolProfile symbolProfile, Activity activity);
+		Task DeleteActivity(SymbolProfile symbolProfile, IActivity activity);
 
 		Task DeleteAll();
 	}

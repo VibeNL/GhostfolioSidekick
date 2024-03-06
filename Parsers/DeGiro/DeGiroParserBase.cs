@@ -31,9 +31,9 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			switch (activityType)
 			{
 				case null:
-				case ActivityType.Undefined:
+				case PartialActivityType.Undefined:
 					return [knownBalance];
-				case ActivityType.Buy:
+				case PartialActivityType.Buy:
 					partialActivity = PartialActivity.CreateBuy(
 						record.GetCurrency(currencyMapper),
 						recordDate,
@@ -42,26 +42,26 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						record.GetUnitPrice(),
 						record.TransactionId!);
 					break;
-				case ActivityType.CashDeposit:
+				case PartialActivityType.CashDeposit:
 					partialActivity = PartialActivity.CreateCashDeposit(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
-				case ActivityType.CashWithdrawal:
+				case PartialActivityType.CashWithdrawal:
 					partialActivity = PartialActivity.CreateCashWithdrawal(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
-				case ActivityType.Dividend:
+				case PartialActivityType.Dividend:
 					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], recordTotal, record.TransactionId!);
 					break;
-				case ActivityType.Fee:
+				case PartialActivityType.Fee:
 					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
-				case ActivityType.Tax:
+				case PartialActivityType.Tax:
 					partialActivity = PartialActivity.CreateTax(currencyRecord, recordDate, recordTotal, record.TransactionId!);
 					break;
-				case ActivityType.Interest:
+				case PartialActivityType.Interest:
 					partialActivity = PartialActivity.CreateInterest(currencyRecord, recordDate, recordTotal, record.Description, record.TransactionId!);
 					break;
-				case ActivityType.Sell:
+				case PartialActivityType.Sell:
 					partialActivity = PartialActivity.CreateSell(
 						record.GetCurrency(currencyMapper),
 						recordDate,

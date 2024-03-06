@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public class Utilities
+	public static class Utilities
 	{
 		public static AssetSubClass? ParseAssetSubClass(string? value)
 		{

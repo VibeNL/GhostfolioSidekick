@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
@@ -9,6 +8,7 @@ using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Compare;
+using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -25,11 +25,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick
 {
 	internal static class Program
 	{
+		[ExcludeFromCodeCoverage]
 		static async Task Main(string[] args)
 		{
 			IHostBuilder hostBuilder = CreateHostBuilder();
@@ -113,12 +115,13 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, NIBCParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
+							services.AddScoped<IFileImporter, StockSplitParser>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
 
-
+							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 							services.AddScoped<IHoldingStrategy, DeterminePrice>();
-							services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
-							services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
+							//// services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
+							//// services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
 						});
 		}
 	}

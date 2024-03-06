@@ -46,7 +46,6 @@ Also allows the following sybol settings
 {
     "settings" : {
 	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
-		"use.crypto.workaround.stakereward.as.dividends" : true, // default is false
 		"use.crypto.workaround.dust" : true // default is false,
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0,
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
@@ -77,14 +76,6 @@ Also allows the following sybol settings
 ```
 
 #### Settings
-
-##### use.crypto.workaround.stakereward.as.dividends (Experimental)
-This settings does control if a workaround is used for stakerewards.
-
-| Value           | Action |
-| -----           | ------ |
-| false (default) | Ignore stake activities |
-| true            | Convert the Stake reward activity to a Buy & Dividend activity | 
 
 ##### use.crypto.workaround.dust (Experimental)
 This settings does control if a workaround is used for dust (very small amount of cryptocurrency that cannot be sold).
@@ -146,11 +137,13 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
 | Bunq (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | NIBC (bank) | Export CSV (Semicolom delimited) | - | - | - | X |
-| Nexo (Experimental) | Export of transaction history | X | - | - | X |
-| Bitvavo (Experimental) | Export of transaction history | X | X | - | X |
+| Nexo (Broken) | Export of transaction history | X | - | - | X |
+| Bitvavo (Broken) | Export of transaction history | X | X | - | X |
+| Coinbase (Broken) | Export of transaction history | X | X | - | X |
 
 #### Generic import format
-Beside the supported exchanges and brokers there is also a generic format. This format is only usefull for stocks at the moment, not for cryptocurrency:
+Beside the supported exchanges and brokers there is also a generic format. 
+This format is only usefull for stocks at the moment, not for cryptocurrency:
 
 | Field | Value(s) | 
 | ----- | ----- |
@@ -165,10 +158,23 @@ Beside the supported exchanges and brokers there is also a generic format. This 
 | Description | A description, not used in ghostfolio itself. Is optional |
 | Id | The transaction id. Is optional |
 
+For stock splits there is a seperate format
+| Field | Value(s) | 
+| ----- | ----- |
+| Symbol | The symbol to search
+| Date | The date, yyyy-MM-dd |
+| StockSplitFrom | The number of stock in the old situation |
+| StockSplitTo | The number of stock in the new situation |
+
 ##### Example
 
+File1:
 OrderType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
 BUY,US67066G1040,2023-08-07,USD,0.0267001000,453.33,0.02
+
+File2:
+Symbol,Date,StockSplitFrom,StockSplitTo
+US67066G1040,2023-08-07,1,3
 
 ## Run in Docker
 The docker image is named: vibenl/ghostfoliosidekick

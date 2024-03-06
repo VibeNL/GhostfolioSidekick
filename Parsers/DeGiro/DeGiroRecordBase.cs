@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public virtual string? TransactionId { get; set; }
 
-		public abstract ActivityType? GetActivityType();
+		public abstract PartialActivityType? GetActivityType();
 
 		public abstract decimal GetQuantity();
 

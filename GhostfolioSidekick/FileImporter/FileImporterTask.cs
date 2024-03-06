@@ -1,7 +1,9 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
+using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -102,7 +104,7 @@ namespace GhostfolioSidekick.FileImporter
 			var existingHoldings = await activitiesManager.GetAllActivities();
 			var mergeOrders = (await new MergeActivities(exchangeRateService)
 				.Merge(existingHoldings, holdingsCollection.Holdings))
-				.Where(x => x.Order1.ActivityType != Model.Activities.ActivityType.KnownBalance)
+				.Where(x => x.Order1 is not KnownBalanceActivity)
 				.Where(x => x.Operation != Operation.Duplicate)
 				.Where(x => managedAccount.Contains(x.Order1.Account.Id))
 				.OrderBy(x => x.Order1.Date);

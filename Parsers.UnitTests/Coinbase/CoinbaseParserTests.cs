@@ -184,7 +184,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateLearningReward(
+					PartialActivity.CreateGift(
 						new DateTime(2023, 04, 20, 06, 02, 33, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("GRT")],
 						6.40204865M,

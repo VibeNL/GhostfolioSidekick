@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public SymbolProfile? SymbolProfile { get; }
 
-		public List<Activity> Activities { get; set; } = new List<Activity>();
+		public List<IActivity> Activities { get; set; } = [];
 
 		[ExcludeFromCodeCoverage]
 		override public string ToString()

@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 
@@ -29,7 +30,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			};
 		}
 
-		public static SymbolProfile ParseSymbolProfile(Contract.SymbolProfile symbolProfile)
+		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
 			return new SymbolProfile(
 				symbolProfile.Symbol,
@@ -38,20 +39,27 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				symbolProfile.DataSource,
 				Utilities.ParseAssetClass(symbolProfile.AssetClass),
 				Utilities.ParseAssetSubClass(symbolProfile.AssetSubClass),
-				ParseCountries(symbolProfile.Countries),
-				ParseSectors(symbolProfile.Sectors))
+				MapCountries(symbolProfile.Countries),
+				MapSectors(symbolProfile.Sectors))
 			{
 				Comment = symbolProfile.Comment,
 				ISIN = symbolProfile.ISIN,
+				ActivitiesCount = symbolProfile.ActivitiesCount,
+				ScraperConfiguration = new ScraperConfiguration
+				{
+					Locale = symbolProfile.ScraperConfiguration?.Locale,
+					Url = symbolProfile.ScraperConfiguration?.Url,
+					Selector = symbolProfile.ScraperConfiguration?.Selector
+				}
 			};
 		}
 
-		private static Sector[] ParseSectors(Contract.Sector[] sectors)
+		private static Sector[] MapSectors(Contract.Sector[] sectors)
 		{
 			return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
 		}
 
-		private static Country[] ParseCountries(Contract.Country[] countries)
+		private static Country[] MapCountries(Contract.Country[] countries)
 		{
 			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
@@ -69,40 +77,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 			mdl.AssetProfile.Mappings.TrackInsight = trackinsight;
 			return mdl;
-		}
-
-		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile assetProfile)
-		{
-			return new SymbolProfile(
-								assetProfile.Symbol,
-								assetProfile.Name,
-								new Currency(assetProfile.Currency),
-								assetProfile.DataSource,
-								Utilities.ParseAssetClass(assetProfile.AssetClass),
-								Utilities.ParseAssetSubClass(assetProfile.AssetSubClass),
-								MapCountries(assetProfile.Countries),
-								MapSectors(assetProfile.Sectors))
-			{
-				ActivitiesCount = assetProfile.ActivitiesCount,
-				ISIN = assetProfile.ISIN,
-				Comment = assetProfile.Comment,
-				ScraperConfiguration = new ScraperConfiguration
-				{
-					Locale = assetProfile.ScraperConfiguration?.Locale,
-					Url = assetProfile.ScraperConfiguration?.Url,
-					Selector = assetProfile.ScraperConfiguration?.Selector
-				}
-			};
-		}
-
-		private static Sector[] MapSectors(Contract.Sector[] sectors)
-		{
-			return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
-		}
-
-		private static Country[] MapCountries(Contract.Country[] countries)
-		{
-			return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
 		}
 
 		private static MarketData MapMarketData(Currency currency, Contract.MarketData marketData)
@@ -150,42 +124,76 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				Guid.TryParse(profile.Symbol, out _);
 		}
 
-		private static Activity MapActivity(Account[] accounts, Contract.Activity activity)
+		private static IActivity MapActivity(Account[] accounts, Contract.Activity activity)
 		{
-			return new Activity(accounts.Single(x => x.Id == activity.AccountId),
-								ParseType(activity.Type),
+			switch (activity.Type)
+			{
+				case Contract.ActivityType.BUY:
+				case Contract.ActivityType.SELL:
+					return new BuySellActivity(accounts.Single(x => x.Id == activity.AccountId),
 								activity.Date,
-								activity.Quantity,
+								(activity.Type == Contract.ActivityType.BUY ? 1 : -1) * activity.Quantity,
 								new Money(new Currency(activity.SymbolProfile!.Currency), activity.UnitPrice),
 								TransactionReferenceUtilities.ParseComment(activity)
 								)
-			{
-				Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
-				Description = activity.SymbolProfile.Name,
-				Id = activity.Id,
-			};
-		}
-
-		private static ActivityType ParseType(Contract.ActivityType type)
-		{
-			switch (type)
-			{
-				case Contract.ActivityType.BUY:
-					return ActivityType.Buy;
-				case Contract.ActivityType.SELL:
-					return ActivityType.Sell;
+					{
+						Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.DIVIDEND:
-					return ActivityType.Dividend;
+					return new DividendActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.INTEREST:
-					return ActivityType.Interest;
+					return new InterestActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.FEE:
-					return ActivityType.Fee;
+					return new FeeActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.ITEM:
-					return ActivityType.Valuable;
+					return new ValuableActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				case Contract.ActivityType.LIABILITY:
-					return ActivityType.Liability;
+					return new LiabilityActivity(accounts.Single(x => x.Id == activity.AccountId),
+								activity.Date,
+								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+								TransactionReferenceUtilities.ParseComment(activity)
+								)
+					{
+						Description = activity.SymbolProfile.Name,
+						Id = activity.Id,
+					};
 				default:
-					throw new NotSupportedException($"ActivityType {type} not supported");
+					throw new NotSupportedException($"ActivityType {activity.Type} not supported");
 			}
 		}
 	}

@@ -33,19 +33,6 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 			result.Should().BeFalse();
 		}
 
-		[Fact]
-		public void NullProfile_ShouldReturnFalse()
-		{
-			// Arrange
-			var symbolProfile2 = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], []);
-
-			// Act
-			var result = ((SymbolProfile)null) == ((object)symbolProfile2);
-
-			// Assert
-			result.Should().BeFalse();
-		}
-
 		[Theory]
 		[InlineData(null)]
 		[InlineData(AssetSubClass.Stock)]
@@ -83,7 +70,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 		[InlineData("")]
 		[InlineData("Known Identifiers:")]
 		[InlineData("[a,b,c]")]
-		public void ParseIdentifiers_EmptyComment_ShouldParseIdentifiersFromComment(string comment)
+		public void ParseIdentifiers_EmptyComment_ShouldParseIdentifiersFromComment(string? comment)
 		{
 			// Arrange
 			var symbolProfile = new SymbolProfile("symbol", "name", new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], [])

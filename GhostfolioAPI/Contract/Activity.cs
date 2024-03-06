@@ -10,8 +10,6 @@
 
 		public string? Comment { get; set; }
 
-		//public string? Currency { get; set; }
-
 		public DateTime Date { get; set; }
 
 		public decimal Fee { get; set; }

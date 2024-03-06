@@ -66,6 +66,41 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
+		public async Task FindSymbolByIdentifier_Cached_Success()
+		{
+			// Arrange
+			var content = DefaultFixture.Create().Create<SymbolProfileList>();
+			var serialized = JsonConvert.SerializeObject(content);
+			var asymbol = content.Items[0];
+
+			restClient
+				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(marketDataAdminUrl)), default))
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK));
+			restClient
+				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(findSymbolUrl)), default))
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, serialized));
+
+			// Act
+			var resultA = await marketDataService.FindSymbolByIdentifier(
+								[asymbol.ISIN],
+								new Currency(asymbol.Currency),
+								[AssetClass.Equity],
+								[AssetSubClass.Etf],
+								true,
+								false);
+			var resultB = await marketDataService.FindSymbolByIdentifier(
+								[asymbol.ISIN],
+								new Currency(asymbol.Currency),
+								[AssetClass.Equity],
+								[AssetSubClass.Etf],
+								true,
+								false);
+
+			// Assert
+			resultA.Should().Be(resultB);
+		}
+
+		[Fact]
 		public async Task FindSymbolByIdentifier_DoesNotExists_NothingFound()
 		{
 			// Arrange

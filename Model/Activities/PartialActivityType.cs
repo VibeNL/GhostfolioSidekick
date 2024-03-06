@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Model.Activities
 {
-	public enum ActivityType
+	public enum PartialActivityType
 	{
 		Undefined = 0,
 
@@ -20,8 +20,6 @@
 
 		Gift,
 
-		LearningReward,
-
 		StakingReward,
 
 		CashDeposit,
@@ -36,6 +34,8 @@
 
 		Valuable,
 
-		Liability
+		Liability,
+
+		StockSplit
 	}
 }

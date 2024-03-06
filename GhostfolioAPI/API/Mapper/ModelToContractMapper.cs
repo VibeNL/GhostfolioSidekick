@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
@@ -8,7 +9,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		public static async Task<Contract.Activity> ConvertToGhostfolioActivity(
 			IExchangeRateService exchangeRateService,
 			Model.Symbols.SymbolProfile? symbolProfile,
-			Model.Activities.Activity activity)
+			Model.Activities.IActivity activity)
 		{
 			async Task<decimal> CalculateFeeAndTaxes(IEnumerable<Money> fees, IEnumerable<Money> taxes, Currency targetCurrency, DateTime dateTime)
 			{
@@ -22,76 +23,145 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				return amount;
 			}
 
-			if (activity.ActivityType == Model.Activities.ActivityType.CashConvert ||
-				activity.ActivityType == Model.Activities.ActivityType.CashDeposit ||
-				activity.ActivityType == Model.Activities.ActivityType.CashWithdrawal ||
-				activity.ActivityType == Model.Activities.ActivityType.KnownBalance ||
-				activity.ActivityType == Model.Activities.ActivityType.Gift)
+			switch (activity)
 			{
-				return new Contract.Activity { Type = Contract.ActivityType.IGNORE };
-			}
-
-			if (activity.ActivityType == Model.Activities.ActivityType.Interest ||
-			activity.ActivityType == Model.Activities.ActivityType.Fee ||
-			activity.ActivityType == Model.Activities.ActivityType.Valuable ||
-			activity.ActivityType == Model.Activities.ActivityType.Liability)
-			{
-				return new Contract.Activity
-				{
-					Id = activity.Id,
-					AccountId = activity.Account.Id,
-					SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, activity.Description),
-					Comment = TransactionReferenceUtilities.GetComment(activity),
-					Date = activity.Date,
-					Fee = await CalculateFeeAndTaxes(activity.Fees, activity.Taxes, activity.Account.Balance.Money.Currency, activity.Date),
-					FeeCurrency = activity.Account.Balance.Money.Currency.Symbol,
-					Quantity = activity.Quantity,
-					Type = ParseType(activity.ActivityType),
-					UnitPrice = await ConvertPrice(exchangeRateService, activity.UnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
-					ReferenceCode = activity.TransactionId,
-				};
-			}
-
-			if (symbolProfile == null)
-			{
-				throw new NotSupportedException("Activity unable to convert");
-			}
-
-			if (activity.ActivityType == Model.Activities.ActivityType.Dividend)
-			{
-				return new Contract.Activity
-				{
-					Id = activity.Id,
-					AccountId = activity.Account.Id,
-					SymbolProfile = new Contract.SymbolProfile
+				case BuySellActivity buyActivity:
+					return new Contract.Activity
 					{
-						Symbol = symbolProfile.Symbol,
-						AssetClass = symbolProfile.AssetClass.ToString(),
-						AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
-						Currency = symbolProfile.Currency!.Symbol,
-						DataSource = symbolProfile.DataSource.ToString(),
-						Name = symbolProfile.Name,
-						Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
-						Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
-					},
-					Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
-					Date = activity.Date,
-					Fee = await CalculateFeeAndTaxes(activity.Fees, activity.Taxes, symbolProfile.Currency, activity.Date),
-					FeeCurrency = symbolProfile.Currency.Symbol,
-					Quantity = activity.Quantity * await exchangeRateService.GetConversionRate(activity.UnitPrice?.Currency, symbolProfile.Currency, activity.Date),
-					Type = ParseType(activity.ActivityType),
-					UnitPrice = 1,
-					ReferenceCode = activity.TransactionId
-				};
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = CreateSymbolProfile(symbolProfile!),
+						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
+						Date = activity.Date,
+						Fee = await CalculateFeeAndTaxes(buyActivity.Fees, buyActivity.Taxes, symbolProfile!.Currency, activity.Date),
+						FeeCurrency = symbolProfile.Currency.Symbol,
+						Quantity = Math.Abs(buyActivity.Quantity),
+						Type = buyActivity.Quantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
+						UnitPrice = await ConvertPrice(exchangeRateService, buyActivity.UnitPrice, symbolProfile.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId
+					};
+				case DividendActivity dividendActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = CreateSymbolProfile(symbolProfile!),
+						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
+						Date = activity.Date,
+						Fee = await CalculateFeeAndTaxes(dividendActivity.Fees, dividendActivity.Taxes, symbolProfile!.Currency, activity.Date),
+						FeeCurrency = symbolProfile.Currency.Symbol,
+						Quantity = 1,
+						Type = Contract.ActivityType.DIVIDEND,
+						UnitPrice = (await exchangeRateService.GetConversionRate(dividendActivity.Amount?.Currency, symbolProfile.Currency, activity.Date)) * dividendActivity.Amount?.Amount ?? 0,
+						ReferenceCode = activity.TransactionId
+					};
+				case InterestActivity interestActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, interestActivity.Description),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = 1,
+						Type = Contract.ActivityType.INTEREST,
+						UnitPrice = await ConvertPrice(exchangeRateService, interestActivity.Amount, activity.Account.Balance.Money.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+					};
+				case FeeActivity feeActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, feeActivity.Description),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = 1,
+						Type = Contract.ActivityType.FEE,
+						UnitPrice = await ConvertPrice(exchangeRateService, feeActivity.Amount, activity.Account.Balance.Money.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+					};
+				case ValuableActivity valuableActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, valuableActivity.Description),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = 1,
+						Type = Contract.ActivityType.ITEM,
+						UnitPrice = await ConvertPrice(exchangeRateService, valuableActivity.Price, activity.Account.Balance.Money.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+					};
+				case LiabilityActivity liabilityActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, liabilityActivity.Description),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = 1,
+						Type = Contract.ActivityType.LIABILITY,
+						UnitPrice = await ConvertPrice(exchangeRateService, liabilityActivity.Price, activity.Account.Balance.Money.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+					};
+				case GiftActivity giftActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = symbolProfile == null ? Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, giftActivity.Description) : CreateSymbolProfile(symbolProfile!),
+						Comment = TransactionReferenceUtilities.GetComment(activity),
+						Date = activity.Date,
+						Quantity = giftActivity.Amount,
+						Type = Contract.ActivityType.BUY,
+						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+					};
+				case SendAndReceiveActivity sendAndReceiveActivity:
+					return new Contract.Activity
+					{
+						Id = activity.Id,
+						AccountId = activity.Account.Id,
+						SymbolProfile = new Contract.SymbolProfile
+						{
+							Symbol = symbolProfile!.Symbol,
+							AssetClass = symbolProfile.AssetClass.ToString(),
+							AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
+							Currency = symbolProfile.Currency!.Symbol,
+							DataSource = symbolProfile.DataSource.ToString(),
+							Name = symbolProfile.Name,
+							Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
+							Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
+						},
+						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
+						Date = activity.Date,
+						Fee = await CalculateFeeAndTaxes(sendAndReceiveActivity.Fees, [], symbolProfile.Currency, activity.Date),
+						FeeCurrency = symbolProfile.Currency.Symbol,
+						Quantity = Math.Abs(sendAndReceiveActivity.Quantity),
+						Type = sendAndReceiveActivity.Quantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
+						UnitPrice = await ConvertPrice(exchangeRateService, sendAndReceiveActivity.UnitPrice, symbolProfile.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId
+					};
+				case KnownBalanceActivity:
+				case CashDepositWithdrawalActivity:
+				case StockSplitActivity:
+				case StakingRewardActivity:
+					return new Contract.Activity
+					{
+						Type = Contract.ActivityType.IGNORE
+					};
 			}
 
-			return new Contract.Activity
+			throw new NotSupportedException($"{activity.GetType().Name} not supported in ModelToContractMapper");
+
+			static Contract.SymbolProfile CreateSymbolProfile(Model.Symbols.SymbolProfile symbolProfile)
 			{
-				Id = activity.Id,
-				AccountId = activity.Account.Id,
-				SymbolProfile = new Contract.SymbolProfile
+				return new Contract.SymbolProfile
 				{
-					Symbol = symbolProfile.Symbol,
+					Symbol = symbolProfile!.Symbol,
 					AssetClass = symbolProfile.AssetClass.ToString(),
 					AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
 					Currency = symbolProfile.Currency!.Symbol,
@@ -99,16 +169,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					Name = symbolProfile.Name,
 					Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
 					Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
-				},
-				Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
-				Date = activity.Date,
-				Fee = await CalculateFeeAndTaxes(activity.Fees, activity.Taxes, symbolProfile.Currency, activity.Date),
-				FeeCurrency = symbolProfile.Currency.Symbol,
-				Quantity = activity.Quantity,
-				Type = ParseType(activity.ActivityType),
-				UnitPrice = await ConvertPrice(exchangeRateService, activity.UnitPrice, symbolProfile.Currency, activity.Date),
-				ReferenceCode = activity.TransactionId
-			};
+				};
+			}
 		}
 
 		private static async Task<decimal> ConvertPrice(IExchangeRateService exchangeRateService, Money? money, Currency targetCurrency, DateTime dateTime)
@@ -120,41 +182,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 			var rate = await exchangeRateService.GetConversionRate(money.Currency, targetCurrency, dateTime);
 			return money.Amount * rate;
-		}
-
-		private static Contract.ActivityType ParseType(Model.Activities.ActivityType? type)
-		{
-			switch (type)
-			{
-				case null:
-					return Contract.ActivityType.IGNORE;
-				case Model.Activities.ActivityType.Buy:
-					return Contract.ActivityType.BUY;
-				case Model.Activities.ActivityType.Sell:
-					return Contract.ActivityType.SELL;
-				case Model.Activities.ActivityType.Dividend:
-					return Contract.ActivityType.DIVIDEND;
-				case Model.Activities.ActivityType.Send:
-					return Contract.ActivityType.SELL;
-				case Model.Activities.ActivityType.Receive:
-					return Contract.ActivityType.BUY;
-				case Model.Activities.ActivityType.Interest:
-					return Contract.ActivityType.INTEREST;
-				case Model.Activities.ActivityType.Fee:
-					return Contract.ActivityType.FEE;
-				case Model.Activities.ActivityType.Valuable:
-					return Contract.ActivityType.ITEM;
-				case Model.Activities.ActivityType.Liability:
-					return Contract.ActivityType.LIABILITY;
-				case Model.Activities.ActivityType.Gift:
-					return Contract.ActivityType.BUY;
-				case Model.Activities.ActivityType.LearningReward:
-					return Contract.ActivityType.IGNORE;
-				case Model.Activities.ActivityType.StakingReward:
-					return Contract.ActivityType.IGNORE;
-				default:
-					throw new NotSupportedException($"ActivityType {type} not supported");
-			}
 		}
 	}
 }

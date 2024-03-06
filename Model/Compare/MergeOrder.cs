@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public sealed class MergeOrder
 	{
-		public MergeOrder(Operation operation, SymbolProfile symbolProfile, Activity order1)
+		public MergeOrder(Operation operation, SymbolProfile symbolProfile, IActivity order1)
 		{
 			Operation = operation;
 			SymbolProfile = symbolProfile;
@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			Order2 = null;
 		}
 
-		public MergeOrder(Operation operation, SymbolProfile symbolProfile, Activity order1, Activity order2) : this(operation, symbolProfile, order1)
+		public MergeOrder(Operation operation, SymbolProfile symbolProfile, IActivity order1, IActivity order2) : this(operation, symbolProfile, order1)
 		{
 			Order2 = order2;
 		}
@@ -23,8 +23,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		
 		public SymbolProfile SymbolProfile { get; }
 		
-		public Activity Order1 { get; }
+		public IActivity Order1 { get; }
 
-		public Activity? Order2 { get; }
+		public IActivity? Order2 { get; }
 	}
 }

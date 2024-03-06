@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 {
 	public class GenericRecord
 	{
-		public ActivityType ActivityType { get; set; }
+		public PartialActivityType ActivityType { get; set; }
 
 		public string? Symbol { get; set; }
 

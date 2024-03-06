@@ -1,241 +1,145 @@
 using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S6608:Prefer indexing instead of \"Enumerable\" methods on types implementing \"IList\"", Justification = "<Pending>")]
 	public class ApplyDustCorrectionWorkaroundTests
 	{
-		private readonly DateTime now = DateTime.UtcNow;
-		private int c = 0;
-		private readonly Fixture fixture = new();
-		private readonly SymbolProfile symbolProfileCrypto;
-		private readonly SymbolProfile symbolProfileStock;
-
-		public ApplyDustCorrectionWorkaroundTests()
+		[Fact]
+		public void Execute_ShouldNotApplyDustCorrection_WhenCryptoWorkaroundDustIsFalse()
 		{
-			symbolProfileStock = fixture
-				.Build<SymbolProfile>()
-				.With(x => x.AssetClass, AssetClass.Equity)
-				.With(x => x.AssetSubClass, AssetSubClass.Etf)
-				.Create();
-			symbolProfileCrypto = fixture
-				.Build<SymbolProfile>()
-				.With(x => x.AssetClass, AssetClass.Cash)
-				.With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency)
-				.Create();
+			// Arrange
+			var settings = new Settings { CryptoWorkaroundDust = false };
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create());
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+
+			// Act
+			var result = strategy.Execute(holding);
+
+			// Assert
+			Assert.Equal(Task.CompletedTask, result);
 		}
 
 		[Fact]
-		public async Task Execute_SoldNotEverything_DustCorrected()
+		public void Execute_ShouldNotApplyDustCorrection_WhenAssetSubClassIsNotCryptoCurrency()
 		{
 			// Arrange
-			var sg = new Settings()
-			{
-				CryptoWorkaroundDust = true,
-				CryptoWorkaroundDustThreshold = 1,
-			};
-			var dust = new ApplyDustCorrectionWorkaround(sg);
+			var settings = new Settings { CryptoWorkaroundDust = true };
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.PrivateEquity).Create());
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
 
-			var holding = new Holding(symbolProfileCrypto)
+			// Act
+			var result = strategy.Execute(holding);
+
+			// Assert
+			Assert.Equal(Task.CompletedTask, result);
+		}
+
+		[Fact]
+		public void Execute_ShouldNotApplyDustCorrection_WhenNoProfile()
+		{
+			// Arrange
+			var settings = new Settings { CryptoWorkaroundDust = true };
+			var holding = new Holding(null!);
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+
+			// Act
+			var result = strategy.Execute(holding);
+
+			// Assert
+			Assert.Equal(Task.CompletedTask, result);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldNotApplyDustCorrection_WhenOnlyBuy()
+		{
+			// Arrange
+			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+			var activity = new BuySellActivity(null!, DateTime.Now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					CreateDummyActivity(ActivityType.Buy, 100),
-					CreateDummyActivity(ActivityType.Buy, 0.0001M),
-					CreateDummyActivity(ActivityType.Dividend, 0.0001M),
-					CreateDummyActivity(ActivityType.Sell, 100),
+					activity
 				]
 			};
 
 			// Act
-			await dust.Execute(holding);
+			await strategy.Execute(holding);
 
 			// Assert
-			holding.Activities.Should().HaveCount(4);
-			var last = holding.Activities.Last();
-			last.UnitPrice!.Amount.Should().Be(0.999999000000999999000001M);
-			last.Quantity.Should().Be(100.0001M);
+			activity.Quantity.Should().Be(0.002m);
+			activity.UnitPrice!.Amount.Should().Be(0.01M);
 		}
 
 		[Fact]
-		public async Task Execute_StakingReward_DustCorrected()
+		public async Task Execute_ShouldNotApplyDustCorrection_WhenNoDust()
 		{
 			// Arrange
-			var sg = new Settings()
-			{
-				CryptoWorkaroundDust = true,
-				CryptoWorkaroundDustThreshold = 1,
-			};
-			var dust = new ApplyDustCorrectionWorkaround(sg);
-
-			var holding = new Holding(symbolProfileCrypto)
+			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+			var activity = new BuySellActivity(null!, DateTime.Now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					CreateDummyActivity(ActivityType.Buy, 100),
-					CreateDummyActivity(ActivityType.Sell, 100),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
+					new BuySellActivity(null!, DateTime.Now, -0.002m, new Money(Currency.USD, 0.01m), string.Empty),
+					activity
 				]
 			};
 
 			// Act
-			await dust.Execute(holding);
+			await strategy.Execute(holding);
 
 			// Assert
-			holding.Activities.Should().HaveCount(2);
-			var last = holding.Activities.Last();
-			last.UnitPrice!.Amount.Should().Be(0.9999970000089999730000809998M);
-			last.Quantity.Should().Be(100.0003M);
+			activity.Quantity.Should().Be(0.002m);
+			activity.UnitPrice!.Amount.Should().Be(0.01M);
 		}
 
 		[Fact]
-		public async Task Execute_NoDust_DustCorrected()
+		public async Task Execute_ShouldApplyDustCorrection_WhenDustValueIsLessThanThreshold()
 		{
 			// Arrange
-			var sg = new Settings()
-			{
-				CryptoWorkaroundDust = true,
-				CryptoWorkaroundDustThreshold = 1,
-			};
-			var dust = new ApplyDustCorrectionWorkaround(sg);
-
-			var holding = new Holding(symbolProfileCrypto)
+			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+			var activity = new BuySellActivity(null!, DateTime.Now, -0.001m, new Money(Currency.USD, 0.01m), string.Empty);
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					CreateDummyActivity(ActivityType.Buy, 100),
-					CreateDummyActivity(ActivityType.Sell, 100),
-				]
+					new BuySellActivity(null!, DateTime.Now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty),
+					activity]
 			};
 
 			// Act
-			await dust.Execute(holding);
+			await strategy.Execute(holding);
 
 			// Assert
-			holding.Activities.Should().HaveCount(2);
-			var last = holding.Activities.Last();
-			last.UnitPrice!.Amount.Should().Be(1M);
-			last.Quantity.Should().Be(100M);
+			activity.Quantity.Should().Be(0);
+			activity.UnitPrice!.Amount.Should().Be(0.02M);
 		}
 
 		[Fact]
-		public async Task Execute_StakingRewardButNoSell_NotCorrected()
+		public async Task Execute_ShouldNotApplyDustCorrection_WhenDustValueIsEqualToThreshold()
 		{
 			// Arrange
-			var sg = new Settings()
+			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+			var activity = new BuySellActivity(null!, DateTime.Now, -0.1m, new Money(Currency.USD, 1m), string.Empty);
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
-				CryptoWorkaroundDust = true,
-				CryptoWorkaroundDustThreshold = 1,
-			};
-			var dust = new ApplyDustCorrectionWorkaround(sg);
-
-			var holding = new Holding(symbolProfileCrypto)
-			{
-				Activities = [
-					CreateDummyActivity(ActivityType.Buy, 100),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-				]
+				Activities = [activity]
 			};
 
 			// Act
-			await dust.Execute(holding);
+			await strategy.Execute(holding);
 
 			// Assert
-			holding.Activities.Should().HaveCount(4);
-		}
-
-		[Fact]
-		public async Task Execute_Disabled_DustNotCorrected()
-		{
-			// Arrange
-			var sg = new Settings()
-			{
-				CryptoWorkaroundDust = false,
-				CryptoWorkaroundDustThreshold = 1,
-			};
-			var dust = new ApplyDustCorrectionWorkaround(sg);
-
-			var holding = new Holding(symbolProfileCrypto)
-			{
-				Activities = [
-					CreateDummyActivity(ActivityType.Buy, 100),
-					CreateDummyActivity(ActivityType.Sell, 100),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-				]
-			};
-
-			// Act
-			await dust.Execute(holding);
-
-			// Assert
-			holding.Activities.Should().HaveCount(5);
-		}
-
-		[Fact]
-		public async Task Execute_NoCryptoProfile_DustNotCorrected()
-		{
-			// Arrange
-			var sg = new Settings()
-			{
-				CryptoWorkaroundDust = true,
-				CryptoWorkaroundDustThreshold = 1,
-			};
-			var dust = new ApplyDustCorrectionWorkaround(sg);
-
-			var holding = new Holding(symbolProfileStock)
-			{
-				Activities = [
-					CreateDummyActivity(ActivityType.Buy, 100),
-					CreateDummyActivity(ActivityType.Sell, 100),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-					CreateDummyActivity(ActivityType.StakingReward, 0.0001M),
-				]
-			};
-
-			// Act
-			await dust.Execute(holding);
-
-			// Assert
-			holding.Activities.Should().HaveCount(5);
-		}
-
-		[Fact]
-		public async Task Execute_InvalidActivity_ThrowsNotSupported()
-		{
-			// Arrange
-			var sg = new Settings()
-			{
-				CryptoWorkaroundDust = true,
-				CryptoWorkaroundDustThreshold = 1,
-			};
-			var dust = new ApplyDustCorrectionWorkaround(sg);
-
-			var holding = new Holding(symbolProfileCrypto)
-			{
-				Activities = [
-					CreateDummyActivity(ActivityType.CashConvert, 100)
-				]
-			};
-
-			// Act
-			var a = () => dust.Execute(holding);
-
-			// Assert
-			await this.Invoking(_ => a()).Should().ThrowAsync<NotSupportedException>();
-		}
-
-		private Activity CreateDummyActivity(ActivityType type, decimal amount)
-		{
-			return new Activity(null!, type, now.AddMinutes(c++), amount, new Money(Currency.EUR, 1), "A");
+			activity.Quantity.Should().Be(-0.1M);
 		}
 	}
 }

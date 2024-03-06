@@ -12,9 +12,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		}
 
 		[Theory]
-		[InlineData(ActivityType.Undefined)]
+		[InlineData(PartialActivityType.Undefined)]
 		[InlineData(null)]
-		public void Parse_WhenCalled_ReturnsActivity(ActivityType? activityType)
+		public void Parse_WhenCalled_ReturnsActivity(PartialActivityType? activityType)
 		{
 			// Arrange
 			var record = new TestDeGiroRecordRecord(activityType)
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		public void Parse_WhenCalledUndefined_ThrowsException()
 		{
 			// Arrange
-			var record = new TestDeGiroRecordRecord(ActivityType.StakingReward)
+			var record = new TestDeGiroRecordRecord(PartialActivityType.StakingReward)
 			{
 				BalanceCurrency = "EUR",
 				Description = "Comissões de transação DEGIRO e/ou taxas de terceiros",
@@ -52,14 +52,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 
 	public class TestDeGiroRecordRecord : DeGiroRecordBase
 	{
-		private ActivityType? activityType;
+		private PartialActivityType? activityType;
 
-		public TestDeGiroRecordRecord(ActivityType? activityType)
+		public TestDeGiroRecordRecord(PartialActivityType? activityType)
 		{
 			this.activityType = activityType;
 		}
 
-		public override ActivityType? GetActivityType()
+		public override PartialActivityType? GetActivityType()
 		{
 			return activityType;
 		}

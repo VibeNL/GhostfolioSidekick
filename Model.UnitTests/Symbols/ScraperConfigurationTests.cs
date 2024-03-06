@@ -1,7 +1,7 @@
 using FluentAssertions;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.UnitTests.Model.Symbols
+namespace GhostfolioSidekick.Model.UnitTests.Symbols
 {
 	public class ScraperConfigurationTests
 	{

@@ -1,6 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
@@ -11,7 +12,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void GetComment_WithSymbolProfile_ShouldReturnExpectedString()
 		{
 			// Arrange
-			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, "123").Create();
+			var activity = new Fixture().Build<BuySellActivity>().With(x => x.TransactionId, "123").Create();
 			var symbolProfile = new Fixture().Build<SymbolProfile>().With(x => x.Symbol, "ABC").Create();
 
 			// Act
@@ -25,7 +26,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void GetComment_WithEmptySymbolProfile_ShouldReturnExpectedString()
 		{
 			// Arrange
-			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, "123").Create();
+			var activity = new Fixture().Build<BuySellActivity>().With(x => x.TransactionId, "123").Create();
 			var symbolProfile = new Fixture().Build<SymbolProfile>().With(x => x.Symbol, (string)null!).Create();
 
 			// Act
@@ -39,7 +40,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void GetComment_WithNullSymbolProfile_ShouldReturnExpectedString()
 		{
 			// Arrange
-			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, "123").Create();
+			var activity = new Fixture().Build<BuySellActivity>().With(x => x.TransactionId, "123").Create();
 
 			// Act
 			var result = TransactionReferenceUtilities.GetComment(activity, null);
@@ -52,7 +53,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void GetComment_SymbolProfile_WithEmptyTransactionId_ShouldReturnEmpty()
 		{
 			// Arrange
-			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, string.Empty).Create();
+			var activity = new Fixture().Build<BuySellActivity>().With(x => x.TransactionId, string.Empty).Create();
 			var symbolProfile = new Fixture().Build<SymbolProfile>().With(x => x.Symbol, "ABC").Create();
 
 			// Act
@@ -66,7 +67,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void GetComment_WithoutSymbolProfile_ShouldReturnExpectedString()
 		{
 			// Arrange
-			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, "123").Create();
+			var activity = new Fixture().Build<BuySellActivity>().With(x => x.TransactionId, "123").Create();
 
 			// Act
 			var result = TransactionReferenceUtilities.GetComment(activity);
@@ -79,7 +80,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void GetComment_EmptyTransactionWithoutSymbolProfile_ShouldReturnExpectedString()
 		{
 			// Arrange
-			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, string.Empty).Create();
+			var activity = new Fixture().Build<BuySellActivity>().With(x => x.TransactionId, string.Empty).Create();
 
 			// Act
 			var result = TransactionReferenceUtilities.GetComment(activity);
@@ -92,7 +93,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void GetComment_WithEmptyTransactionId_ShouldThrowNotSupportedException()
 		{
 			// Arrange
-			var activity = new Fixture().Build<Activity>().With(x => x.TransactionId, string.Empty).Create();
+			var activity = new Fixture().Build<BuySellActivity>().With(x => x.TransactionId, string.Empty).Create();
 
 			// Act
 			var result = TransactionReferenceUtilities.GetComment(activity, null);

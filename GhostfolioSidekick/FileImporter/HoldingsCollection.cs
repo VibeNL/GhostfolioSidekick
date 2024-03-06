@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
@@ -86,42 +87,163 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Length != 0) ?? transactions[0];
 
-			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == ActivityType.Fee).ToList();
-			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == ActivityType.Tax).ToList();
+			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Fee).ToList();
+			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Tax).ToList();
 
 			var otherTransactions = transactions.Except([sourceTransaction]).Except(fees).Except(taxes);
 
-			var activity = new Activity(
+			var activity = GenerateActivity(
 				account,
 				sourceTransaction.ActivityType,
 				sourceTransaction.Date,
 				sourceTransaction.Amount,
 				new Money(sourceTransaction.Currency, sourceTransaction.UnitPrice ?? 0),
-				sourceTransaction.TransactionId)
-			{
-				Fees = fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
-				Taxes = taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
-				SortingPriority = sourceTransaction.SortingPriority,
-				Description = sourceTransaction.Description,
-			};
+				sourceTransaction.TransactionId,
+				fees.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
+				taxes.Select(x => new Money(x.Currency, x.Amount * x.UnitPrice ?? 0)),
+				sourceTransaction.SortingPriority,
+				sourceTransaction.Description ?? "<EMPTY>",
+				sourceTransaction.SplitFrom,
+				sourceTransaction.SplitTo);
+
 			(await GetorAddHolding(sourceTransaction)).Activities.Add(activity);
 
 			int counter = 2;
 			foreach (var transaction in otherTransactions)
 			{
-				activity = new Activity(
+				activity = GenerateActivity(
 					account,
 					transaction.ActivityType,
 					transaction.Date,
 					transaction.Amount,
 					new Money(transaction.Currency, transaction.UnitPrice ?? 0),
-					sourceTransaction.TransactionId + $"_{counter++}")
-				{
-					SortingPriority = transaction.SortingPriority,
-					Description = sourceTransaction.Description,
-				};
+					sourceTransaction.TransactionId + $"_{counter++}",
+					[],
+					[],
+					transaction.SortingPriority,
+					sourceTransaction.Description ?? "<EMPTY>",
+					sourceTransaction.SplitFrom,
+					sourceTransaction.SplitTo);
 
 				(await GetorAddHolding(transaction)).Activities.Add(activity);
+			}
+		}
+
+		private IActivity GenerateActivity(
+			Account account,
+			PartialActivityType activityType,
+			DateTime date,
+			decimal amount,
+			Money money,
+			string? transactionId,
+			IEnumerable<Money> fees,
+			IEnumerable<Money> taxes,
+			int? sortingPriority,
+			string? description,
+			int stockSplitFrom,
+			int stockSplitTo)
+		{
+			switch (activityType)
+			{
+				case PartialActivityType.Buy:
+					return new BuySellActivity(account, date, amount, money, transactionId)
+					{
+						Taxes = taxes,
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Sell:
+					return new BuySellActivity(account, date, -amount, money, transactionId)
+					{
+						Taxes = taxes,
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Receive:
+					return new SendAndReceiveActivity(account, date, amount, transactionId)
+					{
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Send:
+					return new SendAndReceiveActivity(account, date, -amount, transactionId)
+					{
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Dividend:
+					return new DividendActivity(account, date, money.Times(amount), transactionId)
+					{
+						Taxes = taxes,
+						Fees = fees,
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Interest:
+					return new InterestActivity(account, date, money.Times(amount), transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Fee:
+					return new FeeActivity(account, date, money.Times(amount), transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.CashDeposit:
+					return new CashDepositWithdrawalActivity(account, date, money.Times(amount), transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.CashWithdrawal:
+					return new CashDepositWithdrawalActivity(account, date, money.Times(-amount), transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.KnownBalance:
+					return new KnownBalanceActivity(account, date, money, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Valuable:
+					return new ValuableActivity(account, date, money.Times(amount), transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Liability:
+					return new LiabilityActivity(account, date, money.Times(amount), transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.Gift:
+					return new GiftActivity(account, date, amount, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				case PartialActivityType.StockSplit:
+					return new StockSplitActivity(account, date, stockSplitFrom, stockSplitTo, transactionId)
+					{
+						SortingPriority = sortingPriority,
+					};
+				case PartialActivityType.StakingReward:
+					return new StakingRewardActivity(account, date, amount, transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
+				default:
+					throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented");
 			}
 		}
 
@@ -172,7 +294,7 @@ namespace GhostfolioSidekick.FileImporter
 			using (logger.BeginScope($"Balance for account {account.Name}"))
 			{
 				var allActivities = holdings.SelectMany(x => x.Activities).Where(x => x.Account == account).ToList();
-				return new BalanceCalculator(exchangeRateService, logger).Calculate(account.Balance.Money.Currency, allActivities);
+				return new BalanceCalculator(exchangeRateService).Calculate(account.Balance.Money.Currency, allActivities);
 			}
 		}
 	}

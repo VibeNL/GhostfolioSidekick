@@ -1,12 +1,15 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Strategies;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Cryptocurrency
 {
 	public class ApplyDustCorrectionWorkaround(Settings settings) : IHoldingStrategy
 	{
-		public int Priority => (int)CryptoStrategiesPriority.ApplyDustCorrection;
+		[ExcludeFromCodeCoverage]
+		public int Priority => (int)StrategiesPriority.ApplyDustCorrection;
 
 		public Task Execute(Holding holding)
 		{
@@ -17,11 +20,17 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 			var activities = holding.Activities.OrderBy(x => x.Date).ToList();
 
-			var amount = GetAmount(activities);
+			var amount = activities
+				.Select(x => x as IActivityWithQuantityAndUnitPrice)
+				.Where(x => x != null)
+				.Sum(x => x!.Quantity);
 
 			// Should always be a sell or send as we have dust!
 			var lastActivity = activities
-				.LastOrDefault(x => x.ActivityType == ActivityType.Sell || x.ActivityType == ActivityType.Send);
+				.Select(x => x as IActivityWithQuantityAndUnitPrice)
+				.Where(x => x != null)
+				.LastOrDefault(x =>
+					x!.Quantity < 0);
 			if (lastActivity == null || lastActivity.UnitPrice == null)
 			{
 				return Task.CompletedTask;
@@ -34,7 +43,8 @@ namespace GhostfolioSidekick.Cryptocurrency
 			{
 				lastActivity.UnitPrice = new Money(
 					lastActivity.UnitPrice.Currency,
-					lastActivity.UnitPrice.Amount * (lastActivity.Quantity / (lastActivity.Quantity + amount)));
+					lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));
+
 				lastActivity.Quantity += amount;
 
 				RemoveActivitiesAfter(activities, lastActivity);
@@ -45,35 +55,10 @@ namespace GhostfolioSidekick.Cryptocurrency
 			return Task.CompletedTask;
 		}
 
-		private static void RemoveActivitiesAfter(List<Activity> activities, Activity lastActivity)
+		private static void RemoveActivitiesAfter(List<IActivity> activities, IActivity lastActivity)
 		{
 			int index = activities.IndexOf(lastActivity) + 1;
 			activities.RemoveRange(index, activities.Count - index);
-		}
-
-		private static decimal GetAmount(List<Activity> activities)
-		{
-			return activities.Sum(x => GetFactor(x) * x.Quantity);
-		}
-
-		private static decimal GetFactor(Activity x)
-		{
-			switch (x.ActivityType)
-			{
-				case ActivityType.Dividend:
-					return 0;
-				case ActivityType.Gift:
-				case ActivityType.LearningReward:
-				case ActivityType.Buy:
-				case ActivityType.Receive:
-				case ActivityType.StakingReward:
-					return 1;
-				case ActivityType.Sell:
-				case ActivityType.Send:
-					return -1;
-				default:
-					throw new NotSupportedException();
-			}
 		}
 	}
 }

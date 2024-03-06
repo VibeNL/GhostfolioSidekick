@@ -1,0 +1,3 @@
+Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Details,Date / Time (UTC)
+NXT6UT3C1DP9h94hIqVrV3Wp9,Withdraw Exchanged,EUR,-149.41000000,EUR,149.41000000,$161.95,"approved / EUR withdrawal",2024-02-28 18:34:17
+NXT2EXG6iolUYTmHwQjPXcCnL,Exchange To Withdraw,EURX,149.41000000,EUR,149.41000000,$161.96,"approved / EURX to EUR",2024-02-28 18:29:07

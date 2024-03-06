@@ -39,6 +39,7 @@
 
 	<ItemGroup>
 	  <Folder Include="API\Mapper\" />
+	  <Folder Include="Strategies\" />
 	</ItemGroup>
 
 </Project>

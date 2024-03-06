@@ -164,6 +164,9 @@
 		<None Update="TestFiles\DeGiro\PT\SellOrders\single_sell_euro.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\GenericStockSplit\single_split.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Generic\BuyOrders\single_liability.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -210,6 +213,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Generic\Specials\single_gift.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Nexo\CashTransactions\single_withdrawal.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Nexo\CashTransactions\single_interest_fixed_term.csv">

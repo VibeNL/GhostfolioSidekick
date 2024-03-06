@@ -50,46 +50,46 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		[Name("Order Id")]
 		public override string? TransactionId { get; set; }
 
-		public override ActivityType? GetActivityType()
+		public override PartialActivityType? GetActivityType()
 		{
 			if (Description.Equals("DEGIRO Transactiekosten en/of kosten van derden"))
 			{
-				return ActivityType.Fee;
+				return PartialActivityType.Fee;
 			}
 
 			if (Description.Equals("Dividendbelasting"))
 			{
-				return ActivityType.Tax;
+				return PartialActivityType.Tax;
 			}
 
 			if (Description.Contains("Verkoop")) // check Verkoop first because otherwise koop get's triggered
 			{
-				return ActivityType.Sell;
+				return PartialActivityType.Sell;
 			}
 
 			if (Description.Contains("Koop"))
 			{
-				return ActivityType.Buy;
+				return PartialActivityType.Buy;
 			}
 
 			if (Description.Equals("Dividend"))
 			{
-				return ActivityType.Dividend;
+				return PartialActivityType.Dividend;
 			}
 
 			if (Description.Equals("flatex terugstorting"))
 			{
-				return ActivityType.CashWithdrawal;
+				return PartialActivityType.CashWithdrawal;
 			}
 
 			if (Description.Contains("Deposit") && !Description.Contains("Reservation"))
 			{
-				return ActivityType.CashDeposit;
+				return PartialActivityType.CashDeposit;
 			}
 
 			if (Description.Equals("DEGIRO Verrekening Promotie"))
 			{
-				return ActivityType.CashDeposit;
+				return PartialActivityType.CashDeposit;
 			}
 
 			return null;
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			if (Description.StartsWith(dividendText))
 			{
 				mutation = dividendText;
-				activity = ActivityType.Dividend;
+				activity = PartialActivityType.Dividend;
 			}
 
 			TransactionId = $"{activity}_{recordDate.ToInvariantString()}_{Product}_{ISIN}_{mutation}";

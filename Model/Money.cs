@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace GhostfolioSidekick.Model
+﻿namespace GhostfolioSidekick.Model
 {
 	public class Money(Currency currency, decimal amount)
 	{
@@ -18,6 +16,11 @@ namespace GhostfolioSidekick.Model
 		override public int GetHashCode()
 		{
 			return HashCode.Combine(Currency, Amount);
+		}
+
+		public Money Times(decimal amount)
+		{
+			return new Money(Currency, Amount * amount);
 		}
 
 		public override string ToString()

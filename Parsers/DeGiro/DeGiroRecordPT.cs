@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		[Name("ID da Ordem")]
 		public override string? TransactionId { get; set; }
 
-		public override ActivityType? GetActivityType()
+		public override PartialActivityType? GetActivityType()
 		{
 			if (string.IsNullOrWhiteSpace(Description))
 			{
@@ -59,42 +59,42 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			if (Description == "Comissões de transação DEGIRO e/ou taxas de terceiros")
 			{
-				return ActivityType.Fee;
+				return PartialActivityType.Fee;
 			}
 
 			if (Description.Contains("Venda"))
 			{
-				return ActivityType.Sell;
+				return PartialActivityType.Sell;
 			}
 
 			if (Description.Contains("Compra"))
 			{
-				return ActivityType.Buy;
+				return PartialActivityType.Buy;
 			}
 
 			if (Description.Equals("Dividendo"))
 			{
-				return ActivityType.Dividend;
+				return PartialActivityType.Dividend;
 			}
 
 			if (Description.Equals("Processed Flatex Withdrawal"))
 			{
-				return ActivityType.CashWithdrawal;
+				return PartialActivityType.CashWithdrawal;
 			}
 
 			if (Description.Contains("Depósitos"))
 			{
-				return ActivityType.CashDeposit;
+				return PartialActivityType.CashDeposit;
 			}
 
 			if (Description.Contains("Flatex Interest Income"))
 			{
-				return ActivityType.Interest;
+				return PartialActivityType.Interest;
 			}
 
 			if (Description.Contains("Custo de Conectividade DEGIRO"))
 			{
-				return ActivityType.Fee;
+				return PartialActivityType.Fee;
 			}
 
 			return null;

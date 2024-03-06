@@ -6,7 +6,6 @@ using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Activity = GhostfolioSidekick.Model.Activities.Activity;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -94,14 +93,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return Task.FromResult(res);
 		}
 
-		public async Task InsertActivity(Model.Symbols.SymbolProfile symbolProfile, Activity activity)
+		public async Task InsertActivity(Model.Symbols.SymbolProfile symbolProfile, IActivity activity)
 		{
 			var converted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, activity);
 
 			await WriteOrder(converted);
 		}
 
-		public async Task UpdateActivity(Model.Symbols.SymbolProfile symbolProfile, Activity oldActivity, Activity newActivity)
+		public async Task UpdateActivity(Model.Symbols.SymbolProfile symbolProfile, IActivity oldActivity, IActivity newActivity)
 		{
 			var oldActivityConverted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, oldActivity);
 			var newActivityConverted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, newActivity);
@@ -110,7 +109,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			await WriteOrder(newActivityConverted);
 		}
 
-		public async Task DeleteActivity(Model.Symbols.SymbolProfile symbolProfile, Activity activity)
+		public async Task DeleteActivity(Model.Symbols.SymbolProfile symbolProfile, IActivity activity)
 		{
 			var converted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, activity);
 
