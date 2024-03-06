@@ -60,7 +60,47 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		}
 
 		[Fact]
-		public async Task AllProperties_ShouldBeReadable()
+		public async Task AreEqual_DifferentPropertiesTargetNull_ReturnsFalse()
+		{
+			// Arrange
+			var otherActivity = new DummyActivity(null!, baseActivity.Date.AddDays(1));
+
+			// Act
+			var result = await baseActivity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
+
+			// Assert
+			result.Should().BeFalse();
+		}
+
+		[Fact]
+		public async Task AreEqual_DifferentPropertiesSourceNull_ReturnsFalse()
+		{
+			// Arrange
+			var otherActivity = new DummyActivity(null!, baseActivity.Date.AddDays(1));
+
+			// Act
+			var result = await otherActivity.AreEqual(exchangeRateServiceMock.Object, baseActivity);
+
+			// Assert
+			result.Should().BeFalse();
+		}
+
+		[Fact]
+		public async Task AreEqual_DifferentDescription_ReturnsFalse()
+		{
+			// Arrange
+			var otherActivity = new DummyActivity(baseActivity.Account, baseActivity.Date);
+			baseActivity.Description = "Test";
+
+			// Act
+			var result = await baseActivity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
+
+			// Assert
+			result.Should().BeFalse();
+		}
+
+		[Fact]
+		public void AllProperties_ShouldBeReadable()
 		{
 			// Arrang
 			var type = typeof(IActivity);

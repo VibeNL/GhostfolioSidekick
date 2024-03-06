@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public override int? SortingPriority { get; set; }
 
 		public override string? Id { get; set; }
-		
+
 		public Money? CalculatedUnitPrice { get; set; }
 
 		[ExcludeFromCodeCoverage]

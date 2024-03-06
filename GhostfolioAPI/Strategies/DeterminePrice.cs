@@ -19,7 +19,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 			}
 
 			var activities = holding.Activities
-				.Where(x => x is SendAndReceiveActivity || x is GiftActivity)
 				.OrderBy(x => x.Date).ToList();
 
 			if (activities.Count == 0)
@@ -41,7 +40,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 						stakingRewardActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
 					default:
-						throw new NotSupportedException($"Activity type {activity.GetType()} is not supported.");
+						break;
 				}
 			}
 		}

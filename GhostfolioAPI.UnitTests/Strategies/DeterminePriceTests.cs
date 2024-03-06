@@ -32,6 +32,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 				{
 					new SendAndReceiveActivity(null, DateTime.Now, 1, string.Empty),
 					new GiftActivity(null, DateTime.Now, 1, string.Empty),
+					new StakingRewardActivity(null, DateTime.Now, 1, string.Empty),
 				}
 			};
 
@@ -58,6 +59,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 						break;
 					case GiftActivity giftActivity:
 						giftActivity.CalculatedUnitPrice!.Amount.Should().Be(100);
+						break;
+					case StakingRewardActivity stakingRewardActivity:
+						stakingRewardActivity.CalculatedUnitPrice!.Amount.Should().Be(100);
 						break;
 				}
 			}

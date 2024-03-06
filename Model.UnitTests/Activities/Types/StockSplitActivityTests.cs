@@ -39,6 +39,22 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		}
 
 		[Fact]
+		public async Task AreEqual_ShouldReturnFalse_WhenOtherType()
+		{
+			// Arrange
+			var otherActivity = new DividendActivity(activity.Account, activity.Date, new Money(Currency.USD, 1), activity.TransactionId);
+
+			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
+				.ReturnsAsync(1);
+
+			// Act
+			var result = await activity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
+
+			// Assert
+			result.Should().BeFalse();
+		}
+
+		[Fact]
 		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
 		{
 			// Arrange

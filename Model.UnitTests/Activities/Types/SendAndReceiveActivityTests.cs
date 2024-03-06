@@ -68,5 +68,24 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			// Assert
 			result.Should().BeFalse();
 		}
+
+		[Fact]
+		public async Task AreEqual_ShouldReturnFalseWithUnitPrice_WhenQuantityIsNotEqual()
+		{
+			// Arrange
+			var otherActivity = new SendAndReceiveActivity(activity.Account, activity.Date, 9M, activity.TransactionId)
+			{
+				UnitPrice = new Money(Currency.USD, 10M)
+			};
+
+			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
+				.ReturnsAsync(1);
+
+			// Act
+			var result = await activity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
+
+			// Assert
+			result.Should().BeFalse();
+		}
 	}
 }
