@@ -18,7 +18,7 @@
 			return HashCode.Combine(Currency, Amount);
 		}
 
-		public Money? Times(decimal amount)
+		public Money Times(decimal amount)
 		{
 			return new Money(Currency, Amount * amount);
 		}

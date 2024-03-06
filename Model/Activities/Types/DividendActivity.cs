@@ -7,10 +7,10 @@ namespace GhostfolioSidekick.Model.Activities.Types
 	public record class DividendActivity : BaseActivity<DividendActivity>
 	{
 		public DividendActivity(
-		Account account,
-		DateTime dateTime,
-		Money? amount,
-		string? transactionId)
+			Account account,
+			DateTime dateTime,
+			Money amount,
+			string? transactionId)
 		{
 			Account = account;
 			Date = dateTime;
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public IEnumerable<Money> Fees { get; set; } = [];
 
-		public Money? Amount { get; set; }
+		public Money Amount { get; set; }
 
 		public IEnumerable<Money> Taxes { get; set; } = [];
 
@@ -42,13 +42,13 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		override protected async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, DividendActivity otherActivity)
 		{
-			var existingAmount = await CompareUtilities.RoundAndConvert(exchangeRateService, otherActivity.Amount, Amount?.Currency, Date);
+			var existingAmount = await CompareUtilities.RoundAndConvert(exchangeRateService, otherActivity.Amount, Amount.Currency, Date);
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
-				Amount?.Amount,
-				existingAmount?.Amount);
+				Amount,
+				existingAmount);
 			var feesAndTaxesEquals = CompareUtilities.AreMoneyEquals(
 				exchangeRateService,
-				otherActivity.Amount?.Currency,
+				otherActivity.Amount.Currency,
 				otherActivity.Date,
 				Fees.Union(Taxes).ToList(),
 				otherActivity.Fees.Union(otherActivity.Taxes).ToList());

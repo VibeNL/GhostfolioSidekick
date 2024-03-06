@@ -7,10 +7,10 @@ namespace GhostfolioSidekick.Model.Activities.Types
 	public record class ValuableActivity : BaseActivity<ValuableActivity>
 	{
 		public ValuableActivity(
-		Account account,
-		DateTime dateTime,
-		Money? amount,
-		string? transactionId)
+			Account account,
+			DateTime dateTime,
+			Money amount,
+			string? transactionId)
 		{
 			Account = account;
 			Date = dateTime;
@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public override DateTime Date { get; }
 
-		public Money? Price { get; set; }
+		public Money Price { get; set; }
 
 		public override string? TransactionId { get; set; }
 
@@ -38,13 +38,13 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		protected override async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, ValuableActivity otherActivity)
 		{
-			var existingAmount = await CompareUtilities.RoundAndConvert(exchangeRateService, otherActivity.Price, Price?.Currency, Date);
+			var existingAmount = await CompareUtilities.RoundAndConvert(exchangeRateService, otherActivity.Price, Price.Currency, Date);
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
-				Price?.Amount,
-				existingAmount?.Amount);
+				Price,
+				existingAmount);
 			var feesAndTaxesEquals = CompareUtilities.AreMoneyEquals(
 				exchangeRateService,
-				otherActivity.Price?.Currency,
+				otherActivity.Price.Currency,
 				otherActivity.Date,
 				[], []);
 			return quantityTimesUnitPriceEquals &&

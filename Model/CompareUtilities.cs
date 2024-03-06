@@ -9,6 +9,11 @@ namespace GhostfolioSidekick.Model
 			return Math.Abs((a ?? 0) - (b ?? 0)) < Constants.Epsilon;
 		}
 
+		public static bool AreNumbersEquals(Money? a, Money? b)
+		{
+			return Math.Abs((a?.Amount ?? 0) - (b?.Amount ?? 0)) < Constants.Epsilon;
+		}
+
 		public static bool AreMoneyEquals(IExchangeRateService exchangeRateService, Currency? target, DateTime dateTime, List<Money> money1, List<Money> money2)
 		{
 			if (target == null)
