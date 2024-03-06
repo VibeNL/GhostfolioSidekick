@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Compare;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -11,15 +12,17 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public abstract string? TransactionId { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		public abstract int? SortingPriority { get; set; }
 
+		[ExcludeFromCodeCoverage]
 		public abstract string? Id { get; set; }
 
 		public string? Description { get; set; }
 
 		public async Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity otherActivity)
 		{
-			if (otherActivity.GetType() != otherActivity.GetType())
+			if (this.GetType() != otherActivity.GetType())
 			{
 				return false;
 			}

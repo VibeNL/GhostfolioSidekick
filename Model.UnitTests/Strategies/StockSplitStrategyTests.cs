@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.UnitTests.Model.Strategies
+namespace GhostfolioSidekick.Model.UnitTests.Strategies
 {
 	public class StockSplitStrategyTests
 	{

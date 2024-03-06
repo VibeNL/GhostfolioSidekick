@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Compare;
 using AutoFixture;
 using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.UnitTests.Model.Activities.Types
+namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {
 	public class GiftActivityTests
 	{

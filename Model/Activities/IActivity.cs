@@ -17,6 +17,6 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public string? Description { get; }
 
-		public Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity other);
+		public Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity otherActivity);
 	}
 }

@@ -1,7 +1,7 @@
 using FluentAssertions;
 using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.UnitTests.Model
+namespace GhostfolioSidekick.Model.UnitTests
 {
 	public class CurrencyTests
 	{
