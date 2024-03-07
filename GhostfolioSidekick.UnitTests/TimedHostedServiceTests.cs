@@ -81,12 +81,34 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100);
+			await Task.Delay(1000);
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(), Times.AtLeast(50));
 			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
 		}
+
+		[Fact]
+		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork()
+		{
+			// Arrange
+			var loggerMock = new Mock<ILogger<TimedHostedService>>();
+			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromHours(1));
+			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(5));
+			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
+
+			// Act
+			await service.StartAsync(CancellationToken.None);
+			await Task.Delay(100);
+			await service.StopAsync(CancellationToken.None);
+
+			// Assert
+			scheduledWorkMock1.Verify(x => x.DoWork(), Times.Once());
+			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
+		}
+
 
 		[Fact]
 		public async Task DoWork_Exception_ShouldContinueToWork()
