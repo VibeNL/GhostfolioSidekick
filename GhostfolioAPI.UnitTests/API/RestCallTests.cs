@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				"testToken",
 				new RestCallOptions
 				{
-					CircuitBreakerDuration = TimeSpan.FromMilliseconds(5),
+					CircuitBreakerDuration = TimeSpan.FromMilliseconds(50),
 					MaxRetryAttempts = 1,
 					PauseBetweenFailures = TimeSpan.Zero
 				});
