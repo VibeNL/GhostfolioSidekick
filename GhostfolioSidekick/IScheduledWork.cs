@@ -4,6 +4,8 @@
 	{
 		TaskPriority Priority { get; }
 
+		TimeSpan ExecutionFrequency { get; }
+
 		Task DoWork();
 	}
 }

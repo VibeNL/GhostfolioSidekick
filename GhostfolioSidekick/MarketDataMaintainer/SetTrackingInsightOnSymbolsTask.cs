@@ -12,6 +12,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TaskPriority Priority => TaskPriority.SetTrackingInsightOnSymbols;
 
+		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
+
 		public SetTrackingInsightOnSymbolsTask(
 			ILogger<SetTrackingInsightOnSymbolsTask> logger,
 			IMarketDataService marketDataManager,

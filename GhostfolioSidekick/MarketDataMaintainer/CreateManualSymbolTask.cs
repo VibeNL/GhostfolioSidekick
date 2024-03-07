@@ -18,6 +18,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TaskPriority Priority => TaskPriority.CreateManualSymbols;
 
+		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+
 		public CreateManualSymbolTask(
 			ILogger<FileImporterTask> logger,
 			IMarketDataService marketDataManager,
@@ -82,8 +84,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					x.SymbolProfile.AssetClass == Utilities.ParseAssetClass(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
 					x.SymbolProfile.AssetSubClass == Utilities.ParseAssetSubClass(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass))
 				.SelectMany(x => x.Activities)
-				.Where(x => x is BuySellActivity)
-				.Select(x => (BuySellActivity)x)
+				.OfType<BuySellActivity>()
 				.ToList();
 
 			if (!activitiesForSymbol.Any())

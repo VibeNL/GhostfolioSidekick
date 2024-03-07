@@ -13,6 +13,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TaskPriority Priority => TaskPriority.GatherAllData;
 
+		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
+
 		public GatherAllDataTask(
 			ILogger<SetBenchmarksTask> logger,
 			IMarketDataService marketDataManager,

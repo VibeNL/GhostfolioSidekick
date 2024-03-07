@@ -23,6 +23,8 @@ namespace GhostfolioSidekick.FileImporter
 
 		public TaskPriority Priority => TaskPriority.FileImporter;
 
+		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
 			IApplicationSettings settings,
