@@ -136,5 +136,68 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
+
+		[Fact]
+		public async Task DoWork_NoImporterAvailableException_ShouldLogError()
+		{
+			// Arrange
+			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath");
+			importersMock[0].Setup(x => x.CanParseActivities(It.IsAny<string>())).ReturnsAsync(false);
+
+			var fileImporterTask = new FileImporterTask(
+				loggerMock.Object,
+				settingsMock.Object,
+				activitiesManagerMock.Object,
+				accountManagerMock.Object,
+				marketDataManagerMock.Object,
+				exchangeRateServiceMock.Object,
+				importersMock.Select(x => x.Object),
+				strategiesMock.Select(x => x.Object),
+				memoryCache);
+
+			// Act
+			await fileImporterTask.DoWork();
+
+			// Assert
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Error,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("No importer available for")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ExceptionThrown_ShouldLogError()
+		{
+			// Arrange
+			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath");
+			importersMock[0].Setup(x => x.CanParseActivities(It.IsAny<string>())).Throws(new Exception("Test Exception"));
+
+			var fileImporterTask = new FileImporterTask(
+				loggerMock.Object,
+				settingsMock.Object,
+				activitiesManagerMock.Object,
+				accountManagerMock.Object,
+				marketDataManagerMock.Object,
+				exchangeRateServiceMock.Object,
+				importersMock.Select(x => x.Object),
+				strategiesMock.Select(x => x.Object),
+				memoryCache);
+
+			// Act
+			await fileImporterTask.DoWork();
+
+			// Assert
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Error,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Test Exception")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+		}
+
 	}
 }

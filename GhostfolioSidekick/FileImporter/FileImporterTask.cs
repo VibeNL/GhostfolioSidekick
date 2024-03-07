@@ -87,6 +87,8 @@ namespace GhostfolioSidekick.FileImporter
 				catch (NoImporterAvailableException)
 				{
 					var sb = new StringBuilder();
+					sb.AppendLine($"No importer available for {accountName}");
+
 					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName);
 
 					foreach (var file in files)

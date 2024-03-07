@@ -37,13 +37,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="FileImporter\testPath\acc1\Bitmap1.bmp">
+		<None Update="FileImporter\testPath\acc1\Bitmap1.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="FileImporter\testPath\acc1\Bitmap2.bmp">
+		<None Update="FileImporter\testPath\acc1\Bitmap2.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
