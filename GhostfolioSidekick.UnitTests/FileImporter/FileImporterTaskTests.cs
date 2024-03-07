@@ -7,7 +7,6 @@ using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.FileImporter;
-using CsvHelper.Configuration;
 
 namespace GhostfolioSidekick.UnitTests.FileImporter
 {
