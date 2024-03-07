@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public StockSplitActivityTests()
 		{
 			var account = new Fixture().Create<Account>();
-			var dateTime = DateTime.Now;
+			var dateTime = new DateTime(2024, 03, 06);
 			var from = 1m;
 			var to = 3m;
 			var transactionId = "transactionId";
