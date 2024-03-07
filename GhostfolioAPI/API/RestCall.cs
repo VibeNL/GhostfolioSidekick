@@ -15,8 +15,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 	{
 		private readonly Mutex mutex = new();
 
-		private static int _maxRetryAttempts = 5;
-		private static TimeSpan _pauseBetweenFailures = TimeSpan.FromSeconds(1);
+		
 		private readonly IMemoryCache memoryCache;
 		private readonly IRestClient restClient;
 		private readonly ILogger<RestCall> logger;
@@ -30,7 +29,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			IMemoryCache memoryCache,
 			ILogger<RestCall> logger,
 			string url,
-			string accessToken)
+			string accessToken,
+			RestCallOptions options)
 		{
 			if (string.IsNullOrEmpty(url))
 			{
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				!x.IsSuccessful
 				&& x.StatusCode != System.Net.HttpStatusCode.Forbidden
 				&& x.StatusCode != System.Net.HttpStatusCode.BadRequest)
-				.WaitAndRetry(_maxRetryAttempts, x => _pauseBetweenFailures, (iRestResponse, timeSpan, retryCount, context) =>
+				.WaitAndRetry(options.MaxRetryAttempts, x => x * options.PauseBetweenFailures, (iRestResponse, timeSpan, retryCount, context) =>
 				{
 					logger.LogWarning($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
 				});
@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				!r.IsSuccessStatusCode
 				&& r.StatusCode != System.Net.HttpStatusCode.Forbidden
 				&& r.StatusCode != System.Net.HttpStatusCode.BadRequest)
-				.CircuitBreaker(2, TimeSpan.FromSeconds(30), (iRestResponse, timeSpan) =>
+				.CircuitBreaker(2, options.CircuitBreakerDuration, (iRestResponse, timeSpan) =>
 				{
 					logger.LogWarning("Circuit Breaker on a break");
 				}, () =>
@@ -300,10 +300,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"No token found [{r.StatusCode}]: {url}/{suffixUrl}");
 			}
 
-			var token = JsonConvert.DeserializeObject<Token>(content)?.AuthToken ?? throw new NotSupportedException($"No token found [{r.StatusCode}]: {url}/{suffixUrl}");
-
-			memoryCache.Set(suffixUrl, token, CacheDuration.Short());
-			return Task.FromResult(token);
+			try
+			{
+				var token = JsonConvert.DeserializeObject<Token>(content)!.AuthToken;
+				memoryCache.Set(suffixUrl, token, CacheDuration.Short());
+				return Task.FromResult(token);
+			}
+			catch(Exception e)
+			{
+				throw new NotSupportedException($"No token could be found [{r.StatusCode}]: {url}/{suffixUrl}. Exception {e.Message}");
+			}
 		}
 	}
 }

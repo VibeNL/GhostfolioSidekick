@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		private readonly Mock<IRestClient> restClientMock;
 		private readonly IMemoryCache memoryCache;
 		private readonly Mock<ILogger<RestCall>> loggerMock;
-		private readonly RestCall restCall;
+		private RestCall restCall;
 
 		public RestCallTests()
 		{
@@ -31,7 +31,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				memoryCache,
 				loggerMock.Object,
 				"http://testurl.com",
-				"testToken");
+				"testToken",
+				new RestCallOptions { CircuitBreakerDuration = TimeSpan.Zero, MaxRetryAttempts = 1, PauseBetweenFailures = TimeSpan.Zero });
 		}
 
 		[Fact]
@@ -45,7 +46,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				memoryCache,
 				loggerMock.Object,
 				string.Empty,
-				"testToken");
+				"testToken",
+				new RestCallOptions { CircuitBreakerDuration = TimeSpan.Zero, MaxRetryAttempts = 5, PauseBetweenFailures = TimeSpan.Zero });
 
 			// Assert
 			a.Should().Throw<ArgumentException>();
@@ -71,7 +73,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
-		public async Task DoRestGet_InvalidAuthToken_ThrowsException()
+		public async Task DoRestGet_NullAuthToken_ThrowsException()
 		{
 			// Arrange
 			RestResponse authResponse = CreateSuccessResponse(null!);
@@ -85,9 +87,36 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
+		public async Task DoRestGet_InvalidAuthToken_ThrowsException()
+		{
+			// Arrange
+			RestResponse authResponse = CreateSuccessResponse("Hello World");
+			restClientMock.Setup(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default)).ReturnsAsync(authResponse);
+
+			// Act
+			var a = () => restCall.DoRestGet("testSuffixUrl");
+
+			// Assert
+			await this.Invoking(_ => a()).Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
 		public async Task DoRestGet_CircuitBreaker_Triggered()
 		{
 			// Arrange
+			restCall = new RestCall(
+				restClientMock.Object,
+				memoryCache,
+				loggerMock.Object,
+				"http://testurl.com",
+				"testToken",
+				new RestCallOptions
+				{
+					CircuitBreakerDuration = TimeSpan.FromMilliseconds(5),
+					MaxRetryAttempts = 1,
+					PauseBetweenFailures = TimeSpan.Zero
+				});
+
 			var restResponse = CreateTimeoutResponse("test content");
 			SetupClient(true, [restResponse]);
 
@@ -121,7 +150,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 								It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Never);
 
 			// Arrange
-			await Task.Delay(31000);
+			await Task.Delay(TimeSpan.FromMilliseconds(100));
 
 			restResponse = CreateSuccessResponse("test content");
 			SetupClient(true, [restResponse]);

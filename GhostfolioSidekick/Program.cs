@@ -81,7 +81,8 @@ namespace GhostfolioSidekick
 													x.GetService<MemoryCache>()!,
 													x.GetService<ILogger<RestCall>>()!,
 													settings!.GhostfolioUrl,
-													settings!.GhostfolioAccessToken);
+													settings!.GhostfolioAccessToken,
+													new RestCallOptions());
 							});
 							services.AddSingleton(x =>
 							{
