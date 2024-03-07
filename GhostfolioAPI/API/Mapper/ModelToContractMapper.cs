@@ -161,10 +161,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			{
 				return new Contract.SymbolProfile
 				{
-					Symbol = symbolProfile!.Symbol,
+					Symbol = symbolProfile.Symbol,
 					AssetClass = symbolProfile.AssetClass.ToString(),
 					AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
-					Currency = symbolProfile.Currency!.Symbol,
+					Currency = symbolProfile.Currency.Symbol,
 					DataSource = symbolProfile.DataSource.ToString(),
 					Name = symbolProfile.Name,
 					Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
