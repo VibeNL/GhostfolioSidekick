@@ -38,8 +38,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			this.memoryCache = memoryCache;
-			this.restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.restClient = restClient;
+			this.logger = logger;
 			this.url = url;
 			this.accessToken = accessToken;
 
@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					logger.LogWarning("Circuit Breaker on a break");
 				}, () =>
 				{
-					logger.LogDebug("Circuit Breaker active");
+					logger.LogDebug("Circuit Breaker reset");
 				});
 		}
 
@@ -249,6 +249,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				if (!r.IsSuccessStatusCode)
 				{
+					if (r.StatusCode == System.Net.HttpStatusCode.Forbidden)
+					{
+						throw new NotAuthorizedException($"Not authorized executing url [{r.StatusCode}]: {url}/{suffixUrl}");
+					}
+
 					throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 				}
 

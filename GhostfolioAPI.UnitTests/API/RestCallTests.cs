@@ -35,7 +35,24 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
-		public async Task DoRestGet_NoAuthToken_Success()
+		public async Task InvalidUrl_ThrowException()
+		{
+			// Arrange
+			// Act
+			var a = () =>
+			new RestCall(
+				restClientMock.Object,
+				memoryCache,
+				loggerMock.Object,
+				string.Empty,
+				"testToken");
+
+			// Assert
+			a.Should().Throw<ArgumentException>();
+		}
+
+		[Fact]
+		public async Task DoRestGet_NoAuthToken_ThrowsException()
 		{
 			// Arrange
 			var restResponse = new RestResponse
@@ -45,6 +62,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				Content = "test content"
 			};
 			SetupClient(false, [restResponse]);
+
+			// Act
+			var a = () => restCall.DoRestGet("testSuffixUrl");
+
+			// Assert
+			await this.Invoking(_ => a()).Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
+		public async Task DoRestGet_InvalidAuthToken_ThrowsException()
+		{
+			// Arrange
+			RestResponse authResponse = CreateSuccessResponse(null!);
+			restClientMock.Setup(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default)).ReturnsAsync(authResponse);
 
 			// Act
 			var a = () => restCall.DoRestGet("testSuffixUrl");
@@ -81,6 +112,31 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 					It.Is<It.IsAnyType>((v, t) => v.ToString() == "Circuit Breaker on a break"),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+			loggerMock.Verify(
+							x => x.Log(
+								LogLevel.Warning,
+								It.IsAny<EventId>(),
+								It.Is<It.IsAnyType>((v, t) => v.ToString() == "Circuit Breaker reset"),
+								It.IsAny<Exception>(),
+								It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Never);
+
+			// Arrange
+			await Task.Delay(31000);
+
+			restResponse = CreateSuccessResponse("test content");
+			SetupClient(true, [restResponse]);
+
+			// Act
+			await restCall.DoRestGet("testSuffixUrl", true);
+
+			// Assert
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Debug,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString() == "Circuit Breaker reset"),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
 		}
 
 		[Fact]
@@ -112,6 +168,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
+		public async Task DoRestGet_Unauthorized()
+		{
+			// Arrange
+			var restResponse = CreateUnauthorizedResponse("test content");
+			SetupClient(true, [restResponse]);
+
+			// Act
+			Func<Task> act = async () => { await restCall.DoRestGet("testSuffixUrl"); };
+
+			// Assert
+			await act.Should().ThrowAsync<NotAuthorizedException>();
+		}
+
+		[Fact]
 		public async Task DoRestPost_Success()
 		{
 			// Arrange
@@ -137,6 +207,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Assert
 			await act.Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
+		public async Task DoRestPost_Unauthorized()
+		{
+			// Arrange
+			var restResponse = CreateUnauthorizedResponse("test content");
+			SetupClient(true, [restResponse]);
+
+			// Act
+			Func<Task> act = async () => { await restCall.DoRestPost("testSuffixUrl", string.Empty); };
+
+			// Assert
+			await act.Should().ThrowAsync<NotAuthorizedException>();
 		}
 
 		[Fact]
@@ -168,6 +252,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
+		public async Task DoRestPut_Unauthorized()
+		{
+			// Arrange
+			var restResponse = CreateUnauthorizedResponse("test content");
+			SetupClient(true, [restResponse]);
+
+			// Act
+			Func<Task> act = async () => { await restCall.DoRestPut("testSuffixUrl", string.Empty); };
+
+			// Assert
+			await act.Should().ThrowAsync<NotAuthorizedException>();
+		}
+
+		[Fact]
 		public async Task DoRestDelete_Success()
 		{
 			// Arrange
@@ -196,6 +294,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
+		public async Task DoRestDelete_Unauthorized()
+		{
+			// Arrange
+			var restResponse = CreateUnauthorizedResponse("test content");
+			SetupClient(true, [restResponse]);
+
+			// Act
+			Func<Task> act = async () => { await restCall.DoRestDelete("testSuffixUrl"); };
+
+			// Assert
+			await act.Should().ThrowAsync<NotAuthorizedException>();
+		}
+
+		[Fact]
 		public async Task DoRestPatch_Success()
 		{
 			// Arrange
@@ -221,6 +333,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Assert
 			await act.Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
+		public async Task DoRestPatch_Unauthorized()
+		{
+			// Arrange
+			var restResponse = CreateUnauthorizedResponse("test content");
+			SetupClient(true, [restResponse]);
+
+			// Act
+			Func<Task> act = async () => { await restCall.DoRestPatch("testSuffixUrl", string.Empty); };
+
+			// Assert
+			await act.Should().ThrowAsync<NotAuthorizedException>();
 		}
 
 		private void SetupClient(bool withAuth, RestResponse[] responses)
@@ -263,6 +389,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				IsSuccessStatusCode = false,
 				ResponseStatus = ResponseStatus.Completed,
 				StatusCode = HttpStatusCode.BadRequest,
+				Content = serialized
+			};
+		}
+
+		private static RestResponse CreateUnauthorizedResponse(string serialized)
+		{
+			return new RestResponse
+			{
+				IsSuccessStatusCode = false,
+				ResponseStatus = ResponseStatus.Completed,
+				StatusCode = HttpStatusCode.Forbidden,
 				Content = serialized
 			};
 		}
