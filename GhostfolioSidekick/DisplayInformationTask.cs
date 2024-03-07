@@ -45,7 +45,19 @@ namespace GhostfolioSidekick
 				logger.LogWarning("Setting 'CryptoWorkaroundStakeReward' no longer supported");
 			}
 
+			PrintUsedMappings(sb);
+
 			logger.LogInformation(sb.ToString());
+		}
+
+		private void PrintUsedMappings(StringBuilder sb)
+		{
+			var mappings = applicationSettings.ConfigurationInstance.Mappings ?? [];
+			sb.AppendLine($"Defined mappings: #{mappings.Length}");
+			foreach (var mapping in mappings)
+			{
+				sb.AppendLine($"Mapping {mapping.MappingType}: {mapping.Source} -> {mapping.Target}");
+			}
 		}
 	}
 }
