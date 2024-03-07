@@ -16,7 +16,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 {
 	public class MarketDataServiceTests : BaseAPITests
 	{
-		private const string marketDataUrl = "api/v1/market-data";
 		private const string marketDataAdminUrl = $"api/v1/admin/market-data/";
 		private const string findSymbolUrl = "api/v1/symbol/lookup";
 
@@ -63,6 +62,40 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Assert
 			result.Should().NotBeNull();
 			result.ISIN.Should().Be(asymbol.ISIN);
+		}
+
+		[Fact]
+		public async Task FindSymbolByIdentifier_Null_Success()
+		{
+			// Arrange
+			// Act
+			var result = await marketDataService.FindSymbolByIdentifier(
+								null,
+								Currency.USD,
+								[AssetClass.Equity],
+								[AssetSubClass.Etf],
+								true,
+								false);
+
+			// Assert
+			result.Should().BeNull();
+		}
+
+		[Fact]
+		public async Task FindSymbolByIdentifier_EmptyList_Success()
+		{
+			// Arrange
+			// Act
+			var result = await marketDataService.FindSymbolByIdentifier(
+								[],
+								Currency.USD,
+								[AssetClass.Equity],
+								[AssetSubClass.Etf],
+								true,
+								false);
+
+			// Assert
+			result.Should().BeNull();
 		}
 
 		[Fact]

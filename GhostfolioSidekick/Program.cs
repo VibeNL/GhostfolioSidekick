@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
@@ -81,7 +82,8 @@ namespace GhostfolioSidekick
 													x.GetService<MemoryCache>()!,
 													x.GetService<ILogger<RestCall>>()!,
 													settings!.GhostfolioUrl,
-													settings!.GhostfolioAccessToken);
+													settings!.GhostfolioAccessToken,
+													new RestCallOptions());
 							});
 							services.AddSingleton(x =>
 							{
@@ -120,8 +122,7 @@ namespace GhostfolioSidekick
 
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 							services.AddScoped<IHoldingStrategy, DeterminePrice>();
-							//// services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
-							//// services.AddScoped<IHoldingStrategy, StakeAsDividendWorkaround>();
+							services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
 						});
 		}
 	}

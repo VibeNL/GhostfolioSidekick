@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			ILogger<AccountService> logger)
 		{
 			this.applicationSettings = applicationSettings;
-			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
+			this.restCall = restCall;
 			this.logger = logger;
 		}
 

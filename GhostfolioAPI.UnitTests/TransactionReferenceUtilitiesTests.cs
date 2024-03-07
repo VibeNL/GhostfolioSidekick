@@ -106,7 +106,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void ParseComment_WithValidComment_ShouldReturnTransactionId()
 		{
 			// Arrange
-			var activity = new Contract.Activity { Comment = "Transaction Reference: [123]" };
+			var activity = new Contract.Activity
+			{
+				Comment = "Transaction Reference: [123]",
+				SymbolProfile = Contract.SymbolProfile.Empty(Model.Currency.EUR, string.Empty)
+			};
 
 			// Act
 			var result = TransactionReferenceUtilities.ParseComment(activity);
@@ -119,7 +123,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void ParseComment_WithInvalidComment_ShouldReturnEmptyString()
 		{
 			// Arrange
-			var activity = new Contract.Activity { Comment = "Invalid Comment" };
+			var activity = new Contract.Activity
+			{
+				Comment = "Invalid Comment",
+				SymbolProfile = Contract.SymbolProfile.Empty(Model.Currency.EUR, string.Empty)
+			};
 
 			// Act
 			var result = TransactionReferenceUtilities.ParseComment(activity);
@@ -132,7 +140,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void ParseComment_WithEmptyComment_ShouldReturnNull()
 		{
 			// Arrange
-			var activity = new Contract.Activity { Comment = string.Empty };
+			var activity = new Contract.Activity
+			{
+				Comment = string.Empty,
+				SymbolProfile = Contract.SymbolProfile.Empty(Model.Currency.EUR, string.Empty)
+			};
 
 			// Act
 			var result = TransactionReferenceUtilities.ParseComment(activity);

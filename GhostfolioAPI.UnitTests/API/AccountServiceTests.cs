@@ -29,6 +29,27 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
+		public async Task CreatePlatform_NoAdmin_Success()
+		{
+			// Arrange
+			applicationSettingsMock.Setup(x => x.AllowAdminCalls).Returns(false);
+
+			restClient
+				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(platformUrl)), default))
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK));
+
+			var platform = new Fixture().Create<Platform>();
+
+			// Act
+			await accountService.CreatePlatform(platform);
+
+			// Assert
+			restClient.Verify(
+				x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(platformUrl)), default),
+				Times.Never);
+		}
+
+		[Fact]
 		public async Task CreatePlatform_Success()
 		{
 			// Arrange

@@ -15,7 +15,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public BaseAPITests()
 		{
 			restClient = new Mock<IRestClient>();
-			restCall = new RestCall(restClient.Object, new MemoryCache(new MemoryCacheOptions()), new Mock<ILogger<RestCall>>().Object, "https://www.google.com", "wow");
+			restCall = new RestCall(
+				restClient.Object, 
+				new MemoryCache(new MemoryCacheOptions()),
+				new Mock<ILogger<RestCall>>().Object,
+				"https://www.google.com",
+				"wow", 
+				new RestCallOptions { CircuitBreakerDuration = TimeSpan.Zero, MaxRetryAttempts = 1, PauseBetweenFailures = TimeSpan.Zero });
 
 			restClient
 				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains("api/v1/auth/anonymous")), default))

@@ -33,11 +33,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			ArgumentNullException.ThrowIfNull(memoryCache);
 			this.settings = settings;
 			this.memoryCache = memoryCache;
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			this.logger = logger;
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 
 			symbolMapper = new SymbolMapper(settings.ConfigurationInstance.Mappings ?? []);
-			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
+			this.restCall = restCall;
 		}
 
 		public async Task<SymbolProfile?> FindSymbolByIdentifier(

@@ -125,20 +125,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					{
 						Id = activity.Id,
 						AccountId = activity.Account.Id,
-						SymbolProfile = new Contract.SymbolProfile
-						{
-							Symbol = symbolProfile!.Symbol,
-							AssetClass = symbolProfile.AssetClass.ToString(),
-							AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
-							Currency = symbolProfile.Currency!.Symbol,
-							DataSource = symbolProfile.DataSource.ToString(),
-							Name = symbolProfile.Name,
-							Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),
-							Sectors = symbolProfile.Sectors.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray()
-						},
+						SymbolProfile = CreateSymbolProfile(symbolProfile!),
 						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
 						Date = activity.Date,
-						Fee = await CalculateFeeAndTaxes(sendAndReceiveActivity.Fees, [], symbolProfile.Currency, activity.Date),
+						Fee = await CalculateFeeAndTaxes(sendAndReceiveActivity.Fees, [], symbolProfile!.Currency, activity.Date),
 						FeeCurrency = symbolProfile.Currency.Symbol,
 						Quantity = Math.Abs(sendAndReceiveActivity.Quantity),
 						Type = sendAndReceiveActivity.Quantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
@@ -151,7 +141,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				case StakingRewardActivity:
 					return new Contract.Activity
 					{
-						Type = Contract.ActivityType.IGNORE
+						Type = Contract.ActivityType.IGNORE,
+						SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, activity.Description),
 					};
 			}
 
@@ -161,10 +152,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			{
 				return new Contract.SymbolProfile
 				{
-					Symbol = symbolProfile!.Symbol,
+					Symbol = symbolProfile.Symbol,
 					AssetClass = symbolProfile.AssetClass.ToString(),
 					AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
-					Currency = symbolProfile.Currency!.Symbol,
+					Currency = symbolProfile.Currency.Symbol,
 					DataSource = symbolProfile.DataSource.ToString(),
 					Name = symbolProfile.Name,
 					Countries = symbolProfile.Countries.Select(x => new Contract.Country { Code = x.Code, Continent = x.Continent, Name = x.Name, Weight = x.Weight }).ToArray(),

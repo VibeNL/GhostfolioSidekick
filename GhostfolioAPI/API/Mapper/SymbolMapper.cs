@@ -27,11 +27,4 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			return mappings.SingleOrDefault(x => x.MappingType == type && x.Source == sourceCurrency)?.Target ?? sourceCurrency;
 		}
 	}
-
-	internal enum TypeOfMapping
-	{
-		CURRENCY,
-
-		IDENTIFIER
-	}
 }
