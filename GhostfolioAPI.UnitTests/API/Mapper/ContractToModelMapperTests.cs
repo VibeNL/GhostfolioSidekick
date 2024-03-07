@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public void MapPlatform_ShouldReturnCorrectPlatform()
 		{
 			// Arrange
-			var rawPlatform = new Fixture().Create<Contract.Platform>();
+			var rawPlatform = new Fixture().Create<Platform>();
 
 			// Act
 			var result = ContractToModelMapper.MapPlatform(rawPlatform);
@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public void MapAccount_ShouldReturnCorrectAccount()
 		{
 			// Arrange
-			var rawAccount = new Fixture().Create<Contract.Account>();
+			var rawAccount = new Fixture().Create<Account>();
 			var platform = new Fixture().Create<Model.Accounts.Platform>();
 
 			// Act
@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public void ParseSymbolProfile_ShouldReturnCorrectSymbolProfile()
 		{
 			// Arrange
-			var rawSymbolProfile = new Fixture().Customize(new AssetCustomization()).Create<Contract.SymbolProfile>();
+			var rawSymbolProfile = new Fixture().Customize(new AssetCustomization()).Create<SymbolProfile>();
 
 			// Act
 			var result = ContractToModelMapper.MapSymbolProfile(rawSymbolProfile);
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public void MapMarketDataList_ShouldReturnCorrectMarketDataProfile()
 		{
 			// Arrange
-			var rawMarketDataList = new Fixture().Customize(new AssetCustomization()).Create<Contract.MarketDataList>();
+			var rawMarketDataList = new Fixture().Customize(new AssetCustomization()).Create<MarketDataList>();
 
 			// Act
 			var result = ContractToModelMapper.MapMarketDataList(rawMarketDataList);
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public void MapMarketDataList_NoTrackingInsight_ShouldReturnCorrectMarketDataProfile()
 		{
 			// Arrange
-			var rawMarketDataList = new Fixture().Customize(new AssetCustomization()).Create<Contract.MarketDataList>();
+			var rawMarketDataList = new Fixture().Customize(new AssetCustomization()).Create<MarketDataList>();
 			rawMarketDataList.AssetProfile.SymbolMapping = null;
 
 			// Act
@@ -125,7 +125,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public void MapSymbolProfile_ShouldReturnCorrectSymbolProfile()
 		{
 			// Arrange
-			var rawSymbolProfile = new Fixture().Customize(new AssetCustomization()).Create<Contract.SymbolProfile>();
+			var rawSymbolProfile = new Fixture().Customize(new AssetCustomization()).Create<SymbolProfile>();
 
 			// Act
 			var result = ContractToModelMapper.MapSymbolProfile(rawSymbolProfile);
@@ -213,14 +213,59 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 					Countries = [],
 					Sectors = []
 				})
-				.CreateMany(1)
+				.CreateMany(4)
 				.ToArray();
 
 			// Act
 			var result = ContractToModelMapper.MapToHoldings(accounts, activities).ToList();
 
 			// Assert
+			result.Should().HaveCount(4);
 			result[0].SymbolProfile.Should().BeNull();
+		}
+
+		[Fact]
+		public void MapToHoldings_AllSameSymbol_ShouldReturnCorrectHolding()
+		{
+			// Arrange
+			var accounts = new Fixture().CreateMany<Model.Accounts.Account>(1).ToArray();
+			var activities = new Fixture().Customize(new AssetCustomization())
+				.Build<Activity>()
+				.With(x => x.AccountId, accounts[0].Id)
+				.With(x => x.Type, ActivityType.BUY)
+				.With(x => x.SymbolProfile, new SymbolProfile
+				{
+					AssetClass = null,
+					AssetSubClass = null,
+					DataSource = "YAHOO",
+					Symbol = "GOOGL",
+					Currency = "USD",
+					Name = "Dummy",
+					Countries = [],
+					Sectors = []
+				})
+				.CreateMany(4)
+				.ToArray();
+
+			// Act
+			var result = ContractToModelMapper.MapToHoldings(accounts, activities).ToList();
+
+			// Assert
+			result.Should().HaveCount(1);
+			result[0].SymbolProfile!.Symbol.Should().Be("GOOGL");
+		}
+
+		[Fact]
+		public void MapToHoldings_NoActivities_ShouldReturnCorrectHoldings()
+		{
+			// Arrange
+			var accounts = new Fixture().CreateMany<Model.Accounts.Account>(1).ToArray();
+			
+			// Act
+			var result = ContractToModelMapper.MapToHoldings(accounts, []).ToList();
+
+			// Assert
+			result.Should().BeEmpty();
 		}
 	}
 
@@ -228,7 +273,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 	{
 		public void Customize(IFixture fixture)
 		{
-			fixture.Customize<Contract.SymbolProfile>(composer =>
+			fixture.Customize<SymbolProfile>(composer =>
 			composer
 				.With(p => p.AssetClass, AssetClass.Equity.ToString().ToUpperInvariant())
 				.With(p => p.AssetSubClass, AssetSubClass.Etf.ToString().ToUpperInvariant()));

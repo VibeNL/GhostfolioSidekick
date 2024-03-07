@@ -141,7 +141,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				case StakingRewardActivity:
 					return new Contract.Activity
 					{
-						Type = Contract.ActivityType.IGNORE
+						Type = Contract.ActivityType.IGNORE,
+						SymbolProfile = Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, activity.Description),
 					};
 			}
 

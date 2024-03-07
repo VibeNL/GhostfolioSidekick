@@ -6,7 +6,7 @@
 
 		public string? AccountId { get; set; }
 
-		public SymbolProfile? SymbolProfile { get; set; }
+		public required SymbolProfile SymbolProfile { get; set; }
 
 		public string? Comment { get; set; }
 
