@@ -5,7 +5,9 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace GhostfolioSidekick.FileImporter
@@ -20,10 +22,11 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly IExchangeRateService exchangeRateService;
 		private readonly IEnumerable<IFileImporter> importers;
 		private readonly IEnumerable<IHoldingStrategy> strategies;
+		private readonly IMemoryCache memoryCache;
 
 		public TaskPriority Priority => TaskPriority.FileImporter;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+		public TimeSpan ExecutionFrequency => TimeSpan.FromMinutes(5);
 
 		public FileImporterTask(
 			ILogger<FileImporterTask> logger,
@@ -33,25 +36,33 @@ namespace GhostfolioSidekick.FileImporter
 			IMarketDataService marketDataManager,
 			IExchangeRateService exchangeRateService,
 			IEnumerable<IFileImporter> importers,
-			IEnumerable<IHoldingStrategy> strategies)
+			IEnumerable<IHoldingStrategy> strategies,
+			IMemoryCache memoryCache)
 		{
-			ArgumentNullException.ThrowIfNull(settings);
-
 			fileLocation = settings.FileImporterPath;
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.activitiesManager = activitiesManager ?? throw new ArgumentNullException(nameof(activitiesManager));
-			this.accountManager = accountManager ?? throw new ArgumentNullException(nameof(accountManager));
-			this.marketDataManager = marketDataManager ?? throw new ArgumentNullException(nameof(marketDataManager));
-			this.exchangeRateService = exchangeRateService ?? throw new ArgumentNullException(nameof(exchangeRateService));
-			this.importers = importers ?? throw new ArgumentNullException(nameof(importers));
+			this.logger = logger;
+			this.activitiesManager = activitiesManager;
+			this.accountManager = accountManager;
+			this.marketDataManager = marketDataManager;
+			this.exchangeRateService = exchangeRateService;
+			this.importers = importers;
 			this.strategies = strategies;
+			this.memoryCache = memoryCache;
 		}
 
 		public async Task DoWork()
 		{
-			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
-
 			var directories = Directory.GetDirectories(fileLocation);
+
+			string fileHashes = CalculateHash(directories);
+			var knownHash = memoryCache.TryGetValue(nameof(FileImporterTask), out string? hash) ? hash : string.Empty;
+			if (fileHashes == knownHash)
+			{
+				logger.LogDebug($"{nameof(FileImporterTask)} Skip to do work, no file changes detected");
+				return;
+			}
+
+			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
 
 			var holdingsCollection = new HoldingsCollection(logger, accountManager, marketDataManager);
 			var accountNames = new List<string>();
@@ -156,7 +167,30 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
+			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromDays(1));
+
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
+		}
+
+		private string CalculateHash(string[] directories)
+		{
+			var sb = new StringBuilder();
+
+			foreach (var directory in directories.OrderBy(x => x))
+			{
+				var files = Directory
+					.GetFiles(directory, "*.*", SearchOption.AllDirectories)
+					.OrderBy(x => x.ToLowerInvariant());
+
+				foreach (var file in files)
+				{
+					var fileBytes = File.ReadAllBytes(file);
+					var hashBytes = SHA256.HashData(fileBytes);
+					sb.Append(BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant());
+				}
+			}
+
+			return sb.ToString();
 		}
 
 		private void ApplyHoldingActions(HoldingsCollection holdingsCollection, IEnumerable<IHoldingStrategy> strategies)

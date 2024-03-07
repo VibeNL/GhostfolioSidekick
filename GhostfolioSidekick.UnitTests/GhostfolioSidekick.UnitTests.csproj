@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -15,15 +15,6 @@
 	<PropertyGroup>
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<Compile Remove="FileImporter\**" />
-		<Compile Remove="Ghostfolio\**" />
-		<EmbeddedResource Remove="FileImporter\**" />
-		<EmbeddedResource Remove="Ghostfolio\**" />
-		<None Remove="FileImporter\**" />
-		<None Remove="Ghostfolio\**" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.1" />
@@ -43,6 +34,18 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="FileImporter\testPath\acc1\Bitmap1.bmp">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="FileImporter\testPath\acc1\Bitmap2.bmp">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>
