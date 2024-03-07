@@ -25,7 +25,7 @@ namespace IntegrationTests
 			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
 			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
 
-			var testLogger = new TestLogger("Service has executed.");
+			var testLogger = new TestLogger("Service FileImporterTask has executed.");
 			var testHost = Program
 			.CreateHostBuilder()
 			.ConfigureServices((hostContext, services) =>
