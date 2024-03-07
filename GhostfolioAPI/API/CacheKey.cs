@@ -20,8 +20,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			get
 			{
 				var a = string.Join(",", identifiers);
-				var b = expectedAssetClass != null ? string.Join(",", expectedAssetClass.Select(x => x.ToString())) : string.Empty;
-				var c = expectedAssetSubClass != null ? string.Join(",", expectedAssetSubClass.Select(x => x.ToString())) : string.Empty;
+				var b = string.Join(",", expectedAssetClass.Select(x => x.ToString()));
+				var c = string.Join(",", expectedAssetSubClass.Select(x => x.ToString()));
 				var r = string.Join("|", a, b, c);
 				return r;
 			}

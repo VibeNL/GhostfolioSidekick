@@ -41,6 +41,31 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Assert
 			result.Should().Be(0.85m);
+			restClient.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Exactly(2));
+		}
+
+		[Fact]
+		public async Task GetConversionRate_Cache_Success()
+		{
+			// Arrange
+			var sourceCurrency = Currency.USD;
+			var targetCurrency = Currency.EUR;
+			var dateTime = DateTime.Now;
+
+			restClient
+				.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(x => x.Resource.Contains(exchangeUrl)), default))
+				.ReturnsAsync(CreateResponse(System.Net.HttpStatusCode.OK, "{\"marketPrice\": \"0.85\"}"));
+
+			// Act
+			var result = await exchangeRateService.GetConversionRate(sourceCurrency, targetCurrency, dateTime);
+			var result2 = await exchangeRateService.GetConversionRate(sourceCurrency, targetCurrency, dateTime);
+			var result3 = await exchangeRateService.GetConversionRate(sourceCurrency, targetCurrency, dateTime);
+
+			// Assert
+			result.Should().Be(0.85m);
+			result2.Should().Be(0.85m);
+			result3.Should().Be(0.85m);
+			restClient.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Exactly(2));
 		}
 
 		[Fact]
@@ -73,6 +98,34 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Act
 			var result = await exchangeRateService.GetConversionRate(sourceCurrency, targetCurrency, dateTime);
+
+			// Assert
+			result.Should().Be(1);
+		}
+
+		[Fact]
+		public async Task GetConversionRate_NullInputCurrency()
+		{
+			// Arrange
+			var targetCurrency = Currency.USD;
+			var dateTime = DateTime.Now;
+
+			// Act
+			var result = await exchangeRateService.GetConversionRate(null, targetCurrency, dateTime);
+
+			// Assert
+			result.Should().Be(1);
+		}
+
+		[Fact]
+		public async Task GetConversionRate_NullTargetCurrency()
+		{
+			// Arrange
+			var sourceCurrency = Currency.USD;
+			var dateTime = DateTime.Now;
+
+			// Act
+			var result = await exchangeRateService.GetConversionRate(sourceCurrency, null, dateTime);
 
 			// Assert
 			result.Should().Be(1);

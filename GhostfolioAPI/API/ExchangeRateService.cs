@@ -14,14 +14,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public ExchangeRateService(RestCall restCall, IMemoryCache memoryCache, ILogger<ExchangeRateService> logger)
 		{
-			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
+			this.restCall = restCall;
 			this.memoryCache = memoryCache;
 			this.logger = logger;
 		}
 
 		public async Task<decimal> GetConversionRate(Currency? sourceCurrency, Currency? targetCurrency, DateTime dateTime)
 		{
-			if (sourceCurrency == null || sourceCurrency.Symbol == targetCurrency?.Symbol)
+			if (sourceCurrency == null || targetCurrency == null || sourceCurrency.Symbol == targetCurrency.Symbol)
 			{
 				return 1;
 			}
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				}
 
 				dynamic stuff = JsonConvert.DeserializeObject(content)!;
-				var rate = (decimal)stuff!.marketPrice;
+				var rate = (decimal)stuff.marketPrice;
 				memoryCache.Set(key, rate, CacheDuration.Short());
 
 				return rate;
