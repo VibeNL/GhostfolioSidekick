@@ -16,9 +16,9 @@ namespace GhostfolioSidekick.Configuration
 				configuration = ConfigurationInstance.Parse(File.ReadAllText(Environment.GetEnvironmentVariable(CONFIGURATIONFILE)!))!;
 				ArgumentNullException.ThrowIfNull(configuration);
 			}
-			catch
+			catch (Exception ex)
 			{
-				logger.LogWarning($"No configuration file found at {Environment.GetEnvironmentVariable(CONFIGURATIONFILE)}. Using default configuration.");
+				logger.LogWarning($"No (valid) configuration file found at {Environment.GetEnvironmentVariable(CONFIGURATIONFILE)}. Using default configuration.. Error was {ex.Message}");
 				configuration = new ConfigurationInstance();
 			}
 		}
