@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick.Configuration
+﻿using Microsoft.Extensions.Logging;
+
+namespace GhostfolioSidekick.Configuration
 {
 	public class ApplicationSettings : IApplicationSettings
 	{
@@ -7,7 +9,7 @@
 		private const string PATHFILES = "FILEIMPORTER_PATH";
 		private const string CONFIGURATIONFILE = "CONFIGURATIONFILE_PATH";
 
-		public ApplicationSettings()
+		public ApplicationSettings(ILogger<ApplicationSettings> logger)
 		{
 			try
 			{
@@ -16,6 +18,7 @@
 			}
 			catch
 			{
+				logger.LogWarning($"No configuration file found at {Environment.GetEnvironmentVariable(CONFIGURATIONFILE)}. Using default configuration.");
 				configuration = new ConfigurationInstance();
 			}
 		}
