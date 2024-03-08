@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
-using System.Reflection;
 
 namespace GhostfolioSidekick.UnitTests
 {
@@ -81,7 +80,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100);
+			await Task.Delay(1000);
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(), Times.AtLeast(5));
