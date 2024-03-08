@@ -5,7 +5,6 @@ using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -29,7 +28,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			loggerMock = new Mock<ILogger<MarketDataService>>();
 
 			marketDataService = new MarketDataService(
-				new ApplicationSettings(),
+				new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object),
 				memoryCache,
 				restCall,
 				loggerMock.Object);
@@ -52,11 +51,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Act
 			var result = await marketDataService.FindSymbolByIdentifier(
-								[asymbol.ISIN], 
+								[asymbol.ISIN],
 								new Currency(asymbol.Currency),
 								[AssetClass.Equity],
 								[AssetSubClass.Etf],
-								true, 
+								true,
 								false);
 
 			// Assert

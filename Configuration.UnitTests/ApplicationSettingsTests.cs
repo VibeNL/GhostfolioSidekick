@@ -1,5 +1,7 @@
 ﻿using FluentAssertions;
 using GhostfolioSidekick.Configuration;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace GhostfolioSidekick.UnitTests.Configuration
 {
@@ -20,7 +22,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 		{
 			// Arrange
 			// Act
-			var settings = new ApplicationSettings();
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
 
 			// Assert
 			settings.ConfigurationInstance.Should().NotBeNull();
@@ -32,7 +34,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 		{
 			// Arrange
 			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "some_path");
-			var settings = new ApplicationSettings();
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
 
 			// Act
 			var result = settings.FileImporterPath;
@@ -49,7 +51,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 		{
 			// Arrange
 			Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", "some_token");
-			var settings = new ApplicationSettings();
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
 
 			// Act
 			var result = settings.GhostfolioAccessToken;
@@ -66,7 +68,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 		{
 			// Arrange
 			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", "http://example.com/");
-			var settings = new ApplicationSettings();
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
 
 			// Act
 			var result = settings.GhostfolioUrl;
@@ -82,7 +84,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 		public void ConfigurationInstance_ReturnsNonNullInstance()
 		{
 			// Arrange
-			var settings = new ApplicationSettings();
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
 
 			// Act
 			var result = settings.ConfigurationInstance;
@@ -95,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 		public void AllowAdminCalls_DefaultValueIsTrue()
 		{
 			// Arrange
-			var settings = new ApplicationSettings();
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
 
 			// Act
 			var result = settings.AllowAdminCalls;
@@ -109,7 +111,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 		{
 			// Arrange
 			Dispose();
-			var settings = new ApplicationSettings();
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
 
 			// Act
 			var result = settings.ConfigurationInstance;
