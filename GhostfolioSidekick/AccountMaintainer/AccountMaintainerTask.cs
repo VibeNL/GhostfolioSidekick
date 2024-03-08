@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public TaskPriority Priority => TaskPriority.AccountCreation;
 
+		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+
 		public AccountMaintainerTask(
 			ILogger<AccountMaintainerTask> logger,
 			IAccountService api,

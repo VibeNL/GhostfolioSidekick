@@ -5,72 +5,97 @@ namespace GhostfolioSidekick
 {
 	public class TimedHostedService : IHostedService
 	{
-		private readonly ILogger logger;
-		private readonly IEnumerable<IScheduledWork> workItems;
-		private readonly Timer timer;
-		private volatile bool isRunning = false;
+		private CancellationTokenSource? cancellationTokenSource;
 
-		public TimedHostedService(ILogger<TimedHostedService> logger, IEnumerable<IScheduledWork> todo)
+		private readonly ILogger logger;
+		private readonly PriorityQueue<Scheduled, DateTime> workQueue = new PriorityQueue<Scheduled, DateTime>();
+
+		public TimedHostedService(ILogger<TimedHostedService> logger, IEnumerable<IScheduledWork> workItems)
 		{
 			this.logger = logger;
-			workItems = todo;
 
-			timer = new Timer(DoWork);
+			foreach (var todo in workItems.OrderBy(x => x.Priority))
+			{
+				workQueue.Enqueue(new Scheduled(todo, DateTime.MinValue), DateTime.MinValue.AddMinutes((int)todo.Priority));
+			}
 		}
 
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
+			cancellationTokenSource = new CancellationTokenSource();
+
 			logger.LogInformation("Service is starting.");
 
-			timer.Change(TimeSpan.Zero, TimeSpan.FromHours(1));
+			// create a task that runs continuously
+			Task.Run(async () =>
+						{
+							while (!cancellationToken.IsCancellationRequested)
+							{
+								var workItem = workQueue.Peek();
+
+								if (DateTime.Now < workItem.NextSchedule)
+								{
+									await Task.Delay(workItem.NextSchedule - DateTime.Now);
+									continue;
+								}
+
+								logger.LogInformation($"Service {workItem.Work.GetType().Name} is executing.");
+
+								workItem = workQueue.Dequeue();
+
+								try
+								{
+									await workItem.Work.DoWork();
+								}
+								catch (Exception ex)
+								{
+									logger.LogError(ex.Message);
+								}
+
+								if (workItem.DetermineNextSchedule())
+								{
+									workQueue.Enqueue(workItem, workItem.NextSchedule);
+								}
+
+								logger.LogInformation($"Service {workItem.Work.GetType().Name} has executed.");
+							}
+						}, cancellationTokenSource.Token);
 
 			return Task.CompletedTask;
-		}
-
-		private void DoWork(object? state)
-		{
-			lock (logger)
-			{
-				if (isRunning)
-				{
-					logger.LogWarning("Service is still executing, skipping run.");
-					return;
-				}
-
-				isRunning = true;
-			}
-
-			try
-			{
-				logger.LogInformation("Service is executing.");
-
-				foreach (var workItem in workItems.OrderBy(x => x.Priority))
-				{
-					try
-					{
-						workItem.DoWork().Wait();
-					}
-					catch (Exception ex)
-					{
-						logger.LogError(ex.Message);
-					}
-				}
-
-				logger.LogInformation("Service has executed.");
-			}
-			finally
-			{
-				isRunning = false;
-			}
 		}
 
 		public Task StopAsync(CancellationToken cancellationToken)
 		{
 			logger.LogInformation("Service is stopping.");
 
-			timer.Change(Timeout.Infinite, 0);
+			cancellationTokenSource!.Cancel();
+			cancellationTokenSource.Dispose();
 
 			return Task.CompletedTask;
+		}
+
+		private sealed class Scheduled
+		{
+			public Scheduled(IScheduledWork item, DateTime nextSchedule)
+			{
+				Work = item;
+				NextSchedule = nextSchedule;
+			}
+
+			public IScheduledWork Work { get; }
+
+			public DateTime NextSchedule { get; set; }
+
+			internal bool DetermineNextSchedule()
+			{
+				if (Work.ExecutionFrequency == TimeSpan.MaxValue)
+				{
+					return false;
+				}
+
+				NextSchedule = DateTime.Now.Add(Work.ExecutionFrequency);
+				return true;
+			}
 		}
 	}
 }

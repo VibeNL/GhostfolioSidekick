@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
-using System.Reflection;
 
 namespace GhostfolioSidekick.UnitTests
 {
@@ -54,7 +53,9 @@ namespace GhostfolioSidekick.UnitTests
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
 
 			// Act
@@ -67,13 +68,58 @@ namespace GhostfolioSidekick.UnitTests
 		}
 
 		[Fact]
+		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule()
+		{
+			// Arrange
+			var loggerMock = new Mock<ILogger<TimedHostedService>>();
+			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMilliseconds(1));
+			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(5));
+			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
+
+			// Act
+			await service.StartAsync(CancellationToken.None);
+			await Task.Delay(1000);
+
+			// Assert
+			scheduledWorkMock1.Verify(x => x.DoWork(), Times.AtLeast(5));
+			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork()
+		{
+			// Arrange
+			var loggerMock = new Mock<ILogger<TimedHostedService>>();
+			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromHours(1));
+			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(5));
+			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
+
+			// Act
+			await service.StartAsync(CancellationToken.None);
+			await Task.Delay(100);
+			await service.StopAsync(CancellationToken.None);
+
+			// Assert
+			scheduledWorkMock1.Verify(x => x.DoWork(), Times.Once());
+			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
+		}
+
+
+		[Fact]
 		public async Task DoWork_Exception_ShouldContinueToWork()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock1.Setup(Task => Task.DoWork()).Throws(new Exception("Test exception"));
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
+
 			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
 
 			// Act
@@ -109,40 +155,6 @@ namespace GhostfolioSidekick.UnitTests
 				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
 				0,
 				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Service is stopping.")),
-				It.IsAny<Exception>(),
-				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-			Times.Once);
-		}
-
-		[Fact]
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2925:\"Thread.Sleep\" should not be used in tests", Justification = "<Pending>")]
-		public async Task DoWork_WhenIsRunning_ShouldSkipExecution()
-		{
-			// Arrange
-			var loggerMock = new Mock<ILogger<TimedHostedService>>();
-			var scheduledWorkMock = new Mock<IScheduledWork>();
-			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
-
-			scheduledWorkMock.Setup(x => x.DoWork()).Callback(() => Thread.Sleep(1000));
-
-			// Act
-			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(100);
-			service.GetType().GetMethod("DoWork", BindingFlags.NonPublic | BindingFlags.Instance)!.Invoke(service, [null]);
-			
-			// Assert
-			scheduledWorkMock.Verify(x => x.DoWork(), Times.Exactly(1));
-			loggerMock.Verify(logger => logger.Log(
-				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
-				0,
-				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Service is executing.")),
-				It.IsAny<Exception>(),
-				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-			Times.Once); 
-			loggerMock.Verify(logger => logger.Log(
-				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Warning),
-				0,
-				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Service is still executing, skipping run.")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);

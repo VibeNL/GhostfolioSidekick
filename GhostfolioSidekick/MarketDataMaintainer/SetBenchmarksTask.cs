@@ -11,6 +11,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private readonly IApplicationSettings applicationSettings;
 
 		public TaskPriority Priority => TaskPriority.SetBenchmarks;
+		
+		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
 
 		public SetBenchmarksTask(
 			ILogger<SetBenchmarksTask> logger,
