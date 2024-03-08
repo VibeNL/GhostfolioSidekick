@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TaskPriority Priority => TaskPriority.DeleteUnusedSymbols;
 
+		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
+
 		public DeleteUnusedSymbolsTask(
 			ILogger<DeleteUnusedSymbolsTask> logger,
 			IMarketDataService marketDataManager,

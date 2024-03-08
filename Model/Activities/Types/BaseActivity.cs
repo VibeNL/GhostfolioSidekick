@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Compare;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -28,7 +27,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			var baseEquals =
 				Account?.Id == otherActivity.Account?.Id &&
 				Date == otherActivity.Date &&
-				(Description == null || Description == otherActivity.Description); // We do not create descriptions when Ghostfolio will ignore them
+				(Description == null || Description == "<EMPTY>" || Description == otherActivity.Description); // We do not create descriptions when Ghostfolio will ignore them
 
 			if (!baseEquals)
 			{

@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					profile = null;
 				}
 
-				var holding = dict.SingleOrDefault(x => profile != null && x.SymbolProfile!.Equals(profile));
+				var holding = dict.SingleOrDefault(x => x.SymbolProfile?.Equals(profile) ?? false);
 				if (holding == null)
 				{
 					holding = new Holding(profile);

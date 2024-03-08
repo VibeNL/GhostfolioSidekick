@@ -12,6 +12,8 @@ namespace GhostfolioSidekick
 
 		public TaskPriority Priority => TaskPriority.DisplayInformation;
 
+		public TimeSpan ExecutionFrequency => TimeSpan.MaxValue;
+
 		public DisplayInformationTask(
 			ILogger<DisplayInformationTask> logger,
 			IApplicationSettings applicationSettings)
