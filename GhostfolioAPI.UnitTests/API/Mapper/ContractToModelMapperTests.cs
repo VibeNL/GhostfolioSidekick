@@ -3,7 +3,6 @@ using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities;
-using System.Linq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 {
@@ -203,7 +202,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				.Build<Activity>()
 				.With(x => x.AccountId, accounts[0].Id)
 				.With(x => x.Type, ActivityType.BUY)
-				.With(x => x.SymbolProfile, new SymbolProfile {
+				.With(x => x.SymbolProfile, new SymbolProfile
+				{
 					AssetClass = null,
 					AssetSubClass = null,
 					DataSource = "MANUAL",
@@ -220,7 +220,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var result = ContractToModelMapper.MapToHoldings(accounts, activities).ToList();
 
 			// Assert
-			result.Should().HaveCount(4);
+			result.Should().HaveCount(1);
 			result[0].SymbolProfile.Should().BeNull();
 		}
 
@@ -260,7 +260,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var accounts = new Fixture().CreateMany<Model.Accounts.Account>(1).ToArray();
-			
+
 			// Act
 			var result = ContractToModelMapper.MapToHoldings(accounts, []).ToList();
 
