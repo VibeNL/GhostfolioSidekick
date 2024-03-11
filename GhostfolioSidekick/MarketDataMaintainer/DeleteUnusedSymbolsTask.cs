@@ -34,10 +34,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			try
 			{
-				if (applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols)
-				{
+			
 					await DeleteUnusedSymbols();
-				}
+				
 			}
 			catch (NotAuthorizedException)
 			{
@@ -53,7 +52,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var profiles = await marketDataManager.GetAllSymbolProfiles();
 			foreach (var profile in from profile in profiles
 									where profile.ActivitiesCount == 0 &&
-										  IsGeneratedSymbol(profile)
+										  (IsGeneratedSymbol(profile) ||applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols )
 									select profile)
 			{
 				await marketDataManager.DeleteSymbol(profile);
