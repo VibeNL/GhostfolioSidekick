@@ -49,7 +49,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				marketDataManagerMock.Object,
 				exchangeRateServiceMock.Object,
 				importersMock.Select(x => x.Object),
-				strategiesMock.Select(x => x.Object));
+				strategiesMock.Select(x => x.Object),
+				memoryCache);
 
 			// Act
 			await fileImporterTask.DoWork();
@@ -78,7 +79,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				marketDataManagerMock.Object,
 				exchangeRateServiceMock.Object,
 				importersMock.Select(x => x.Object),
-				strategiesMock.Select(x => x.Object));
+				strategiesMock.Select(x => x.Object),
+				memoryCache);
 
 			memoryCache.Set(nameof(FileImporterTask), "3289fb407bc0f515a7c489dcda758c46eca6617dd8f7810ef3ac02ac8145b01be0defdcfd8042fa287cbbca983f3edc38ea083c41792ba6d471a2aeca26cf8d3");
 
@@ -109,7 +111,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				marketDataManagerMock.Object,
 				exchangeRateServiceMock.Object,
 				importersMock.Select(x => x.Object),
-				strategiesMock.Select(x => x.Object));
+				strategiesMock.Select(x => x.Object), 
+				memoryCache);
 
 			memoryCache.Set(nameof(FileImporterTask), "12");
 
@@ -148,7 +151,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				marketDataManagerMock.Object,
 				exchangeRateServiceMock.Object,
 				importersMock.Select(x => x.Object),
-				strategiesMock.Select(x => x.Object));
+				strategiesMock.Select(x => x.Object),
+				memoryCache);
 
 			// Act
 			await fileImporterTask.DoWork();
@@ -178,7 +182,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				marketDataManagerMock.Object,
 				exchangeRateServiceMock.Object,
 				importersMock.Select(x => x.Object),
-				strategiesMock.Select(x => x.Object));
+				strategiesMock.Select(x => x.Object),
+				memoryCache);
 
 			// Act
 			await fileImporterTask.DoWork();
