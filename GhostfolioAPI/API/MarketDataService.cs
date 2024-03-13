@@ -416,7 +416,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			JArray sectors = new();
 			foreach (var sector in symbolProfile.Sectors)
 			{
-				countries.Add(new JObject
+				sectors.Add(new JObject
 				{
 					["weight"] = sector.Weight.ToString(),
 					["name"] = sector.Name,
