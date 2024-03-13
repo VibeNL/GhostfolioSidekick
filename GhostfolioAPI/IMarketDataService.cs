@@ -31,5 +31,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		Task SetSymbolAsBenchmark(SymbolProfile symbolProfile);
 
 		Task GatherAllMarktData();
+		Task<Contract.GenericInfo> GetInfo();
 	}
 }
