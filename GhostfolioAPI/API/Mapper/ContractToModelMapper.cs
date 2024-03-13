@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
-			return new SymbolProfile(
+			var symbol = new SymbolProfile(
 				symbolProfile.Symbol,
 				symbolProfile.Name,
 				new Currency(symbolProfile.Currency!),
@@ -52,6 +52,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 					Selector = symbolProfile.ScraperConfiguration?.Selector
 				}
 			};
+			if (symbolProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out string? trackinsight) ?? false)
+			{
+				symbol.Mappings.TrackInsight = trackinsight;
+			}
+
+			return symbol;
 		}
 
 		private static Sector[] MapSectors(Contract.Sector[] sectors)
