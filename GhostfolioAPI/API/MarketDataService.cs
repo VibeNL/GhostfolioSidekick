@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				try
 				{
-					var r = await GetAllSymbolProfiles(false);
+					var r = await GetAllSymbolProfiles();
 
 					foreach (var identifier in allIdentifiers)
 					{
@@ -225,12 +225,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		public async Task<IEnumerable<SymbolProfile>> GetAllSymbolProfiles(bool filterBenchmarks = true)
+		public async Task<IEnumerable<SymbolProfile>> GetAllSymbolProfiles()
 		{
 			if (!settings.AllowAdminCalls)
 			{
 				return Enumerable.Empty<SymbolProfile>();
 			}
+
+			var benchmarks = (await GetInfo()).BenchMarks?.ToList() ?? [];
 
 			var key = $"{nameof(MarketDataService)}{nameof(GetAllSymbolProfiles)}";
 			if (memoryCache.TryGetValue(key, out IEnumerable<SymbolProfile>? cacheValue))
@@ -247,12 +249,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
 
-			var benchmarks = (await GetInfo()).BenchMarks?.ToList() ?? [];
-
-			var filtered = filterBenchmarks ? market?.MarketData.Where(x => !benchmarks.Exists(y => y.Symbol == x.Symbol)) : market?.MarketData;
-
 			var profiles = new List<SymbolProfile>();
-			foreach (var f in filtered?
+			foreach (var f in market?.MarketData
 				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
 				.ToList() ?? [])
 			{

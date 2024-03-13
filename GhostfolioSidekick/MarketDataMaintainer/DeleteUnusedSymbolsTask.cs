@@ -51,12 +51,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private async Task DeleteUnusedSymbols()
 		{
 			var profiles = await marketDataManager.GetAllSymbolProfiles();
-			foreach (var profile in from profile in profiles
-									where profile.ActivitiesCount == 0 &&
-										  IsGeneratedSymbol(profile)
-									select profile)
+			foreach (var profile in profiles.Where(x => x.ActivitiesCount == 0))
 			{
-				await marketDataManager.DeleteSymbol(profile);
+				throw new NotSupportedException("This is a destructive operation and is not supported in this version of the application.");
+				////if (IsGeneratedSymbol(profile))
+				////{
+				////	await marketDataManager.DeleteSymbol(profile);
+				////}
 			}
 
 			static bool IsGeneratedSymbol(SymbolProfile assetProfile)
