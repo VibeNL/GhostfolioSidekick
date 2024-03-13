@@ -34,10 +34,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			try
 			{
-				if (applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols)
-				{
-					await DeleteUnusedSymbols();
-				}
+
+				await DeleteUnusedSymbols();
+
 			}
 			catch (NotAuthorizedException)
 			{
@@ -53,11 +52,10 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var profiles = await marketDataManager.GetAllSymbolProfiles();
 			foreach (var profile in profiles.Where(x => x.ActivitiesCount == 0))
 			{
-				throw new NotSupportedException("This is a destructive operation and is not supported in this version of the application.");
-				////if (IsGeneratedSymbol(profile))
-				////{
-				////	await marketDataManager.DeleteSymbol(profile);
-				////}
+				if (IsGeneratedSymbol(profile) || applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols)
+				{
+					await marketDataManager.DeleteSymbol(profile);
+				}
 			}
 
 			static bool IsGeneratedSymbol(SymbolProfile assetProfile)
