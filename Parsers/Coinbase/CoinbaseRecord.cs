@@ -28,6 +28,9 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		[Name("Fees and/or Spread")]
 		public decimal? Fee { get; set; }
 
+		[Name("Total (inclusive of fees and/or spread)")]
+		public decimal? TotalTransactionAmount { get; set; }
+
 		public required string Notes { get; set; }
 	}
 }

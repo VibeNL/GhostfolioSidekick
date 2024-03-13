@@ -87,10 +87,9 @@
 			DateTime date,
 			PartialSymbolIdentifier[] symbolIdentifiers,
 			decimal amount,
-			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Gift, Currency.EUR, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Gift, Currency.EUR, new Money(Currency.USD, 0), transactionId)
 			{
 				Date = date,
 				Amount = amount,
@@ -250,10 +249,9 @@
 			DateTime date,
 			PartialSymbolIdentifier[] symbolIdentifiers,
 			decimal amount,
-			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Send, Currency.USD, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Send, Currency.USD, new Money(Currency.USD, 0), transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,
@@ -265,10 +263,9 @@
 			DateTime date,
 			PartialSymbolIdentifier[] symbolIdentifiers,
 			decimal amount,
-			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Receive, Currency.USD, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Receive, Currency.USD, new Money(Currency.USD, 0), transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Date = date,

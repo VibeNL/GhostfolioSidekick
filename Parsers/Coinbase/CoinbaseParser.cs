@@ -24,16 +24,30 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			var currency = currencyMapper.Map(record.Currency);
 			if (record.Fee != null && record.Fee != 0)
 			{
-				yield return PartialActivity.CreateFee(currency, date, record.Fee ?? 0, id);
+				yield return PartialActivity.CreateFee(currency, date, record.Fee ?? 0, new Money(currency, 0), id);
 			}
 
 			switch (record.Type)
 			{
 				case "Buy":
-					yield return PartialActivity.CreateBuy(currency, date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, record.Price ?? 0, id);
+					yield return PartialActivity.CreateBuy(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+						record.Quantity,
+						record.Price!.Value,
+						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
 					break;
 				case "Sell":
-					yield return PartialActivity.CreateSell(currency, date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, record.Price ?? 0, id);
+					yield return PartialActivity.CreateSell(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+						record.Quantity,
+						record.Price!.Value,
+						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
 					break;
 				case "Receive":
 					yield return PartialActivity.CreateReceive(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);

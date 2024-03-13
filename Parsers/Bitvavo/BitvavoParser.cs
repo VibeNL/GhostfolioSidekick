@@ -83,7 +83,6 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						dateTime,
 						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
 						Math.Abs(record.Amount),
-						new Money(Currency.EUR, 0),
 						record.Transaction);
 					}
 				case "deposit":
@@ -102,7 +101,6 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						dateTime,
 						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
 						Math.Abs(record.Amount),
-						new Money(Currency.EUR, Math.Abs(0)),
 						record.Transaction);
 					}
 				case "rebate":
