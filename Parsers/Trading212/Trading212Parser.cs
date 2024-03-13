@@ -43,17 +43,30 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					break;
 				case "Limit buy":
 				case "Market buy":
-					lst.Add(PartialActivity.CreateBuy(currency, record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
+					lst.Add(PartialActivity.CreateBuy(
+						currency,
+						record.Time,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.NumberOfShares!.Value,
+						record.Price!.Value,
+						record.Id));
 					break;
 				case "Limit sell":
 				case "Market sell":
-					lst.Add(PartialActivity.CreateSell(currency, record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
+					lst.Add(PartialActivity.CreateSell(
+						currency,
+						record.Time, [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.NumberOfShares!.Value,
+						record.Price!.Value,
+						record.Id));
 					break;
 				case string d when d.Contains("Dividend"):
-					lst.Add(PartialActivity.CreateDividend(currency, record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.Price!.Value * record.NumberOfShares!.Value, record.Id));
+					lst.Add(PartialActivity.CreateDividend(
+						currency,
+						record.Time,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.Price!.Value * record.NumberOfShares!.Value,
+						record.Id));
 					break;
 				default:
 					throw new NotSupportedException();

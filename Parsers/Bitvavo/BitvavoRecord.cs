@@ -23,6 +23,9 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 		[Name("Price (EUR)")]
 		public decimal? Price { get; set; }
 
+		[Name("EUR received / paid")]
+		public decimal? TotalTransactionAmount { get; set; }
+
 		[Name("Fee currency")]
 		public required string FeeCurrency { get; set; }
 
