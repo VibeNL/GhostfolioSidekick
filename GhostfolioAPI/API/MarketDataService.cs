@@ -232,8 +232,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return Enumerable.Empty<SymbolProfile>();
 			}
 
-			var benchmarks = (await GetInfo()).BenchMarks?.ToList() ?? [];
-
 			var key = $"{nameof(MarketDataService)}{nameof(GetAllSymbolProfiles)}";
 			if (memoryCache.TryGetValue(key, out IEnumerable<SymbolProfile>? cacheValue))
 			{
