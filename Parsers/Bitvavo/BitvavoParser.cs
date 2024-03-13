@@ -28,7 +28,12 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 
 			if (record.Fee != null && currencyMapper.Map(record.FeeCurrency).IsFiat() && record.Fee != 0)
 			{
-				yield return PartialActivity.CreateFee(currencyMapper.Map(record.FeeCurrency), dateTime, record.Fee.GetValueOrDefault(0), record.Transaction);
+				yield return PartialActivity.CreateFee(
+					currencyMapper.Map(record.FeeCurrency),
+					dateTime,
+					record.Fee.GetValueOrDefault(0),
+					new Money(currency, 0),
+					record.Transaction);
 			}
 
 			yield return GetMainRecord(record, dateTime, currency, isFiat);
