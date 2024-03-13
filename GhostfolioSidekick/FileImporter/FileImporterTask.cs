@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly IExchangeRateService exchangeRateService;
 		private readonly IEnumerable<IFileImporter> importers;
 		private readonly IEnumerable<IHoldingStrategy> strategies;
-		private readonly static IMemoryCache memoryCache = new MemoryCache(new MemoryCacheOptions());
+		private readonly IMemoryCache memoryCache;
 
 		public TaskPriority Priority => TaskPriority.FileImporter;
 
@@ -36,7 +36,8 @@ namespace GhostfolioSidekick.FileImporter
 			IMarketDataService marketDataManager,
 			IExchangeRateService exchangeRateService,
 			IEnumerable<IFileImporter> importers,
-			IEnumerable<IHoldingStrategy> strategies)
+			IEnumerable<IHoldingStrategy> strategies,
+			IMemoryCache memoryCache)
 		{
 			fileLocation = settings.FileImporterPath;
 			this.logger = logger;
@@ -46,6 +47,7 @@ namespace GhostfolioSidekick.FileImporter
 			this.exchangeRateService = exchangeRateService;
 			this.importers = importers;
 			this.strategies = strategies;
+			this.memoryCache = memoryCache;
 		}
 
 		public async Task DoWork()

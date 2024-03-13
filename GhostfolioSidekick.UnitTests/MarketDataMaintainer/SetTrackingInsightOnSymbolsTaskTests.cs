@@ -1,11 +1,11 @@
+using AutoFixture;
 using FluentAssertions;
-using Moq;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
-using Microsoft.Extensions.Logging;
 using GhostfolioSidekick.MarketDataMaintainer;
-using AutoFixture;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 {
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				marketDataServiceMock.Object,
 				applicationSettingsMock.Object);
 
-			marketDataServiceMock.Setup(x => x.GetAllSymbolProfiles(It.IsAny<bool>())).ThrowsAsync(new NotAuthorizedException());
+			marketDataServiceMock.Setup(x => x.GetAllSymbolProfiles()).ThrowsAsync(new NotAuthorizedException());
 
 			// Act
 			await task.DoWork();
@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				marketDataServiceMock.Object,
 				applicationSettingsMock.Object);
 
-			marketDataServiceMock.Setup(x => x.GetAllSymbolProfiles(It.IsAny<bool>())).ReturnsAsync([symbol]);
+			marketDataServiceMock.Setup(x => x.GetAllSymbolProfiles()).ReturnsAsync([symbol]);
 			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance
 			{
 				Symbols = [config]
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				marketDataServiceMock.Object,
 				applicationSettingsMock.Object);
 
-			marketDataServiceMock.Setup(x => x.GetAllSymbolProfiles(It.IsAny<bool>())).ReturnsAsync([symbol]);
+			marketDataServiceMock.Setup(x => x.GetAllSymbolProfiles()).ReturnsAsync([symbol]);
 			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance
 			{
 				Symbols = null
@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				marketDataServiceMock.Object,
 				applicationSettingsMock.Object);
 
-			marketDataServiceMock.Setup(x => x.GetAllSymbolProfiles(It.IsAny<bool>())).ReturnsAsync([symbol]);
+			marketDataServiceMock.Setup(x => x.GetAllSymbolProfiles()).ReturnsAsync([symbol]);
 			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance
 			{
 				Symbols = [config]

@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			{
 				try
 				{
-					var r = await GetAllSymbolProfiles(false);
+					var r = await GetAllSymbolProfiles();
 
 					foreach (var identifier in allIdentifiers)
 					{
@@ -225,7 +225,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		public async Task<IEnumerable<SymbolProfile>> GetAllSymbolProfiles(bool filterBenchmarks = true)
+		public async Task<IEnumerable<SymbolProfile>> GetAllSymbolProfiles()
 		{
 			if (!settings.AllowAdminCalls)
 			{
@@ -247,12 +247,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
 
-			var benchmarks = (await GetInfo()).BenchMarks?.ToList() ?? [];
-
-			var filtered = filterBenchmarks ? market?.MarketData.Where(x => !benchmarks.Exists(y => y.Symbol == x.Symbol)) : market?.MarketData;
-
 			var profiles = new List<SymbolProfile>();
-			foreach (var f in filtered?
+			foreach (var f in market?.MarketData
 				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
 				.ToList() ?? [])
 			{
@@ -340,7 +336,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		private async Task<GenericInfo> GetInfo()
+		public async Task<GenericInfo> GetInfo()
 		{
 			var content = await restCall.DoRestGet($"api/v1/info/");
 			return JsonConvert.DeserializeObject<GenericInfo>(content!)!;
