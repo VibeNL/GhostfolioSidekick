@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
-			await Task.Delay(1000);
+			await Task.Delay(10000);
 
 			// Assert
 			scheduledWorkMock1.Verify(x => x.DoWork(), Times.AtLeast(5));

@@ -16,7 +16,7 @@ namespace IntegrationTests
 
 		}
 
-		[Fact]
+		[Fact(Timeout = 300000)]
 		public async Task TestSimpleImport()
 		{
 			// Arrange
