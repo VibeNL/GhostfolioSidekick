@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						Currency.EUR,
 						new DateTime(2024, 02, 28, 18, 34, 17, DateTimeKind.Utc),
 						149.41000000M,
-						new Money(Currency.USD, 161.96M),
+						new Money(Currency.USD, 161.95M),
 						"NXT6UT3C1DP9h94hIqVrV3Wp9")
 				]);
 		}

@@ -27,11 +27,11 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 			if (record.Tax != null && record.Tax != 0)
 			{
-				lst.Add(PartialActivity.CreateTax(currency, record.Date, record.Tax.Value, new Money(Currency.USD, 0), record.Id));
+				lst.Add(PartialActivity.CreateTax(currency, record.Date, record.Tax.Value, new Money(currency, record.Tax.Value), record.Id));
 			}
 			if (record.Fee != null && record.Fee != 0)
 			{
-				lst.Add(PartialActivity.CreateFee(currency, record.Date, record.Fee.Value, new Money(Currency.USD, 0), record.Id));
+				lst.Add(PartialActivity.CreateFee(currency, record.Date, record.Fee.Value, new Money(currency, record.Fee.Value), record.Id));
 			}
 
 			switch (record.ActivityType)

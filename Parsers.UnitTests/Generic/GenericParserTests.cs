@@ -56,13 +56,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
 						0.0267001000M,
 						453.33M,
-						new Money(Currency.USD, 0),
+						new Money(Currency.USD,  12.103956333M),
 						"Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
 						Currency.USD, 
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
 						0.02M, 
-						new Money(Currency.USD, 0),
+						new Money(Currency.USD, 0.02M),
 						"Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
 				]);
 		}
@@ -84,13 +84,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
 						0.0267001000M,
 						453.33M,
-						new Money(Currency.USD, 0),
+						new Money(Currency.USD, 12.103956333M),
 						"Sell_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
 						Currency.USD, 
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
 						0.02M,
-						new Money(Currency.USD, 0),
+						new Money(Currency.USD, 0.02M),
 						"Sell_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
 				]);
 		}
@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						Currency.USD, 
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
 						0.02M,
-						new Money(Currency.USD, 0),
+						new Money(Currency.USD, 0.02M),
 						"Receive_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
 				]);
 		}
@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						Currency.USD, 
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						0.02M,
-						new Money(Currency.USD, 0),
+						new Money(Currency.USD, 0.02M),
 						"Send_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
 				]);
 		}
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						"Giftcard",
 						250M,
-						new Money(Currency.EUR, 0),
+						new Money(Currency.EUR, 250M),
 						"Valuable_Giftcard_2023-08-07_1_EUR_0"),
 				]);
 		}
@@ -182,7 +182,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
 						"Giftcard",
 						250M,
-						new Money(Currency.EUR, 0),
+						new Money(Currency.EUR, 250M),
 						"Liability_Giftcard_2023-08-07_1_EUR_0"),
 				]);
 		}
@@ -363,7 +363,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						Currency.EUR, 
 						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						0.02M,
-						new Money(Currency.EUR, 0),
+						new Money(Currency.EUR, 0.02M),
 						"Dividend_US2546871060_2023-08-08_0.3247_EUR_0")
 				]);
 		}
