@@ -12,8 +12,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 {
 	public class BalanceCalculatorTests
 	{
-		Currency baseCurrency = Currency.USD;
-		Mock<IExchangeRateService> exchangeRateServiceMock;
+		readonly Currency baseCurrency = Currency.USD;
+		readonly Mock<IExchangeRateService> exchangeRateServiceMock;
 
 		public BalanceCalculatorTests()
 		{

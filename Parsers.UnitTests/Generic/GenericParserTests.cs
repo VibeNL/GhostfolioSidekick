@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 {
 	public class GenericParserTests
 	{
-		private GenericParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly GenericParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public GenericParserTests()
 		{

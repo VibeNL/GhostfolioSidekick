@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {
 	public class DeGiroParserPTTests
 	{
-		private DeGiroParserPT parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly DeGiroParserPT parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public DeGiroParserPTTests()
 		{

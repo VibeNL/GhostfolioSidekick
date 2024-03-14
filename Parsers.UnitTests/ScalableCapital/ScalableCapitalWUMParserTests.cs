@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 {
 	public class ScalableCapitalWUMParserTests
 	{
-		private ScalableCapitalWUMParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly ScalableCapitalWUMParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public ScalableCapitalWUMParserTests()
 		{

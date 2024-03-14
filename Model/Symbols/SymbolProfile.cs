@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Model.Symbols
 	public sealed class SymbolProfile : IEquatable<SymbolProfile>
 	{
 		private string? comment;
-		private List<string> identifiers = [];
+		private readonly List<string> identifiers = [];
 
 		public SymbolProfile(
 			string symbol,

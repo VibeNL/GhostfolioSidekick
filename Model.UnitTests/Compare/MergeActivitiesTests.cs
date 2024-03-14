@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 	public class MergeActivitiesTests
 	{
 		private readonly Fixture fixture = new();
-		private IExchangeRateService exchangeRateService;
+		private readonly IExchangeRateService exchangeRateService;
 
 		public MergeActivitiesTests()
 		{

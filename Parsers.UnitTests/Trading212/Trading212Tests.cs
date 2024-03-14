@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 {
 	public class Trading212Tests
 	{
-		private Trading212Parser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly Trading212Parser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 
 		public Trading212Tests()

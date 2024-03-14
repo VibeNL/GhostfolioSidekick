@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 {
 	public class NIBCParserTests
 	{
-		private NIBCParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly NIBCParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public NIBCParserTests()
 		{

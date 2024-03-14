@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 {
 	public class NexoParserTests
 	{
-		private NexoParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly NexoParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public NexoParserTests()
 		{

@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 {
 	public class BunqParserTests
 	{
-		BunqParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		readonly BunqParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public BunqParserTests()
 		{

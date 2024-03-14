@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 {
 	public class BitvavoParserTests
 	{
-		private BitvavoParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly BitvavoParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public BitvavoParserTests()
 		{

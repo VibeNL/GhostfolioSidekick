@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.UnitTests.Configuration
 {
 	public class ApplicationSettingsTests : IDisposable
 	{
-		private string configFile;
+		private readonly string configFile;
 
 		public ApplicationSettingsTests()
 		{

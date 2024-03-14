@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 {
 	public class CoinbaseParserTests
 	{
-		private CoinbaseParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly CoinbaseParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public CoinbaseParserTests()
 		{
