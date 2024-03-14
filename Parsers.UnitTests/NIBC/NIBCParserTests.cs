@@ -50,7 +50,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2020, 01, 27, 0, 0, 0, 0, DateTimeKind.Utc), 250M, "C0A27XM003000782")
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR, 
+						new DateTime(2020, 01, 27, 0, 0, 0, 0, DateTimeKind.Utc), 
+						250M, 
+						new Money(Currency.EUR, 250M),
+						"C0A27XM003000782")
 				]);
 		}
 
@@ -65,7 +70,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateCashWithdrawal(Currency.EUR, new DateTime(2022, 01, 06, 0, 0, 0, 0, DateTimeKind.Utc), 10000M, "C2A06CW1G00A044D")
+					PartialActivity.CreateCashWithdrawal(
+						Currency.EUR, 
+						new DateTime(2022, 01, 06, 0, 0, 0, 0, DateTimeKind.Utc),
+						10000M,
+						new Money(Currency.EUR, 10000),
+						"C2A06CW1G00A044D")
 				]);
 		}
 
@@ -80,7 +90,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 09, 30, 0, 0, 0, 0, DateTimeKind.Utc), 0.51M, "Renteuitkering", "C1I30IN0000A000Q")
+					PartialActivity.CreateInterest(
+						Currency.EUR,
+						new DateTime(2021, 09, 30, 0, 0, 0, 0, DateTimeKind.Utc), 
+						0.51M,
+						"Renteuitkering",
+						new Money(Currency.EUR, 0.51M),
+						"C1I30IN0000A000Q")
 				]);
 		}
 
@@ -95,7 +111,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc), 1.1M, "Bonusrente", "C1F30IN0000A000Q")
+					PartialActivity.CreateInterest(
+						Currency.EUR,
+						new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc),
+						1.1M,
+						"Bonusrente", 
+						new Money(Currency.EUR, 1.1M),
+						"C1F30IN0000A000Q")
 				]);
 		}
 
