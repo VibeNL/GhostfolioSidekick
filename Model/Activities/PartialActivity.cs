@@ -64,7 +64,6 @@
 			{
 				Date = date,
 				Amount = amount,
-				TotalTransactionAmount = new Money(currency, amount)
 			};
 		}
 

@@ -277,7 +277,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 						Currency.GBP,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
 						0.05M,
-						new Money(Currency.EUR, 0),
+						new Money(Currency.GBP, 0),
 						"EOF3224031549"),
 				]);
 		}
@@ -297,13 +297,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 						Currency.EUR, 
 						new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc),
 						0.01M,
-						new Money(Currency.EUR, 0.01M),
+						new Money(Currency.GBP, 0),
 						"RBLF1WQUEL4OG5D3"),
 					PartialActivity.CreateCashWithdrawal(
 						Currency.GBP,
 						new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc),
 						0.01M, 
-						new Money(Currency.GBP, 0.01M),
+						new Money(Currency.GBP, 0),
 						"RBLF1WQUEL4OG5D3")
 				]);
 		}

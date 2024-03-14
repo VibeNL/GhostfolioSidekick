@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			{
 				return [PartialActivity.CreateKnownBalance(
 					currencyMapper.Map(record.Currency),
-					date, 
+					date,
 					record.UnitPrice.GetValueOrDefault(0))];
 			}
 
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					date,
 					[PartialSymbolIdentifier.CreateStockAndETF(record.Isin.Replace("ISIN ", string.Empty))],
 					quantity * unitPrice,
-					new Money(currency, record.UnitPrice.GetValueOrDefault(0)),
+					new Money(currency, Math.Abs(record.UnitPrice.GetValueOrDefault(0))),
 					record.Reference
 					)];
 			}
@@ -50,10 +50,10 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			if (record.Symbol == "ORDERGEBUEHR")
 			{
 				return [PartialActivity.CreateFee(
-					currencyMapper.Map(record.Currency), 
+					currencyMapper.Map(record.Currency),
 					date,
 					Math.Abs(record.UnitPrice.GetValueOrDefault(0)),
-					new Money(currency, record.UnitPrice.GetValueOrDefault(0)),
+					new Money(currency, Math.Abs(record.UnitPrice.GetValueOrDefault(0))),
 					record.Reference)];
 			}
 

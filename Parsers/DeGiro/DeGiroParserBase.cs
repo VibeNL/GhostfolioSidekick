@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					return [knownBalance];
 				case PartialActivityType.Buy:
 					partialActivity = PartialActivity.CreateBuy(
-						currencyRecord,
+						record.GetCurrency(currencyMapper),
 						recordDate,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),

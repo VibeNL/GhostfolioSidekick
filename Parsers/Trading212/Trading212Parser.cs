@@ -24,6 +24,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			var lst = new List<PartialActivity>();
 			string? currencySymbol = string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency;
 			var currency = currencyMapper.Map(currencySymbol!);
+			var currencyTotal = currencyMapper.Map(record.CurrencyTotal!);
 
 			switch (record.Action)
 			{
@@ -32,7 +33,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						currency, 
 						record.Time, 
 						Math.Abs(record.Total.GetValueOrDefault()),
-						new Money(currency, Math.Abs(record.Total.GetValueOrDefault())),
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
 				case "Withdrawal":
@@ -40,7 +41,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						currency,
 						record.Time,
 						Math.Abs(record.Total.GetValueOrDefault()),
-						new Money(currency, Math.Abs(record.Total.GetValueOrDefault())),
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
 				case "Interest on cash":
@@ -50,7 +51,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time, 
 						record.Total.GetValueOrDefault(), 
 						record.Action,
-						new Money(currency, Math.Abs(record.Total.GetValueOrDefault())), 
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())), 
 						record.Id));
 					break;
 				case "Currency conversion":
@@ -59,7 +60,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time,
 						parsed.Source,
 						parsed.Target,
-						new Money(currency, Math.Abs(record.Total.GetValueOrDefault())),
+						new Money(parsed.Source.Currency, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
 				case "Limit buy":
@@ -70,7 +71,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.NumberOfShares!.Value,
 						record.Price!.Value,
-						new Money(currency, Math.Abs(record.Total.GetValueOrDefault())),
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
 				case "Limit sell":
@@ -80,7 +81,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time, [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.NumberOfShares!.Value,
 						record.Price!.Value,
-						new Money(currency, Math.Abs(record.Total.GetValueOrDefault())),
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
 				case string d when d.Contains("Dividend"):
@@ -89,7 +90,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.Price!.Value * record.NumberOfShares!.Value,
-						new Money(currency, Math.Abs(record.Total.GetValueOrDefault())),
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
 				default:

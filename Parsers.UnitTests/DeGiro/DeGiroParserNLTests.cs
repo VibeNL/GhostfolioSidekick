@@ -154,14 +154,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						[PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")],
 						1,
 						77M,
-						new Money(Currency.EUR, 77M),
+						new Money(Currency.EUR, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						1M,
-						new Money(Currency.EUR, 1
-						),
+						new Money(Currency.EUR, 1),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
@@ -297,30 +296,30 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						9.77M,
 						1),
 					PartialActivity.CreateKnownBalance(
-						Currency.EUR, 
-						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc), 
+						Currency.EUR,
+						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
 						12.77M,
 						2),
 					PartialActivity.CreateKnownBalance(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-						926.69M, 
+						926.69M,
 						3),
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("NL0011794037")], 
-						34, 
+						[PartialSymbolIdentifier.CreateStockAndETF("NL0011794037")],
+						34,
 						26.88M,
-						new Money(Currency.EUR, 26.88M),
+						new Money(Currency.EUR, 913.92M),
 						"35d4345a-467c-42bd-848c-f6087737dd36"),
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("NL0011794037")],
-						4, 
+						4,
 						26.88M,
-						new Money(Currency.EUR, 26.88M),
+						new Money(Currency.EUR, 107.52M),
 						"35d4345a-467c-42bd-848c-f6087737dd36"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -345,12 +344,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
-						Currency.EUR, 
-						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 
+						Currency.EUR,
+						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
 						33.96M,
 						1),
 					PartialActivity.CreateKnownBalance(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
 						24.39M,
 						2),
@@ -362,8 +361,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new Money(Currency.EUR, 9.57M),
 						transactionId!),
 					PartialActivity.CreateTax(
-						Currency.EUR, 
-						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 
+						Currency.EUR,
+						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
 						1.44M,
 						new Money(Currency.EUR, 1.44M),
 						transactionId!)
@@ -382,14 +381,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
 						33.96M,
 						1),
 					PartialActivity.CreateDividend(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("NL0009690239")], 
+						[PartialSymbolIdentifier.CreateStockAndETF("NL0009690239")],
 						9.57M,
 						new Money(Currency.EUR, 9.57M),
 						"Dividend_2023-09-14 06:32:00:+00:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),

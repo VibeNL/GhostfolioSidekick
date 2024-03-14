@@ -94,12 +94,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						-49.35M, 
 						1),
 					PartialActivity.CreateBuy(
-						new Currency("GBX"), 
+						Currency.GBp, 
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("AU000000GBP6")], 
 						1, 
 						235M,
-						new Money(Currency.EUR, 235),
+						new Money(Currency.GBP, 49.35M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 				]);
 		}

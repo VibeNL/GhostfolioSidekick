@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						currency,
 						dateTime,
 						Math.Abs(record.Amount),
-						new Money(Currency.EUR, Math.Abs(record.TotalTransactionAmount!.Value)),
+						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 					}
 					else
