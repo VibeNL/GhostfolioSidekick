@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
 			var lastKnownBalance = descendingSortedActivities
-				.FirstOrDefault(x => x.ActivityType != PartialActivityType.KnownBalance);
+				.FirstOrDefault(x => x.ActivityType == PartialActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
 				return new Balance(new Money(lastKnownBalance.Currency, lastKnownBalance.Amount));
@@ -30,29 +30,48 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			List<Tuple<DateTime, Money>> moneyTrail = [];
 			foreach (var activity in activities.OrderBy(x => x.Date).ThenBy(x => x.SortingPriority))
 			{
-				switch (activity)
+				switch (activity.ActivityType)
 				{
-					case BuySellActivity buySellActivity:
-						moneyTrail.Add(Tuple.Create(activity.Date, new Money(buySellActivity.UnitPrice!.Currency, -1 * buySellActivity.UnitPrice.Amount * buySellActivity.Quantity)));
+					case PartialActivityType.Buy:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
 						break;
-					case DividendActivity dividendActivity:
-						moneyTrail.Add(Tuple.Create(activity.Date, new Money(dividendActivity.Amount!.Currency, dividendActivity.Amount.Amount)));
+					case PartialActivityType.Sell:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
 						break;
-					case InterestActivity interestActivity:
-						moneyTrail.Add(Tuple.Create(activity.Date, new Money(interestActivity.Amount!.Currency, interestActivity.Amount.Amount)));
+					case PartialActivityType.Dividend:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
 						break;
-					case FeeActivity feeActivity:
-						moneyTrail.Add(Tuple.Create(activity.Date, new Money(feeActivity.Amount!.Currency, -feeActivity.Amount.Amount)));
+					case PartialActivityType.Interest:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
 						break;
-					case CashDepositWithdrawalActivity cashDepositWithdrawalActivity:
-						moneyTrail.Add(Tuple.Create(activity.Date, new Money(cashDepositWithdrawalActivity.Amount!.Currency, cashDepositWithdrawalActivity.Amount.Amount)));
+					case PartialActivityType.Fee:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
 						break;
-					case StockSplitActivity:
-					case StakingRewardActivity:
-					case GiftActivity:
-					case SendAndReceiveActivity:
-						// Nothing to track
+					case PartialActivityType.CashDeposit:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
 						break;
+					case PartialActivityType.CashWithdrawal:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
+						break;
+					case PartialActivityType.Tax:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
+						break;
+					case PartialActivityType.Valuable:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
+						break;
+					case PartialActivityType.Liability:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
+						break;
+					case PartialActivityType.Send:
+					case PartialActivityType.Receive:
+					case PartialActivityType.Gift:
+					case PartialActivityType.StakingReward:
+					case PartialActivityType.CashConvert:
+					case PartialActivityType.KnownBalance:
+					case PartialActivityType.StockSplit:
+						// ignore for now
+						break;
+					case PartialActivityType.Undefined:
 					default:
 						throw new NotSupportedException($"Balance failed to generate, {activity.GetType().Name} not supported");
 				}

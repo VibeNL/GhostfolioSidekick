@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				.ReturnsAsync(CreateResponse(HttpStatusCode.OK, "{\"authToken\":\"abcd\"}"));
 		}
 		
-		protected RestResponse CreateResponse(HttpStatusCode httpStatusCode, string? response = null)
+		protected static RestResponse CreateResponse(HttpStatusCode httpStatusCode, string? response = null)
 		{
 			return new RestResponse
 			{

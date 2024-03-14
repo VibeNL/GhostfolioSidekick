@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.FileImporter
 			logger.LogInformation($"{nameof(FileImporterTask)} Done");
 		}
 
-		private string CalculateHash(string[] directories)
+		private static string CalculateHash(string[] directories)
 		{
 			var sb = new StringBuilder();
 
@@ -197,7 +197,7 @@ namespace GhostfolioSidekick.FileImporter
 			return sb.ToString();
 		}
 
-		private void ApplyHoldingActions(HoldingsCollection holdingsCollection, IEnumerable<IHoldingStrategy> strategies)
+		private static void ApplyHoldingActions(HoldingsCollection holdingsCollection, IEnumerable<IHoldingStrategy> strategies)
 		{
 			foreach (var strategy in strategies.OrderBy(x => x.Priority))
 			{

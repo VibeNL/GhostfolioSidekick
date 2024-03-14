@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.FileImporter
 				var account = accounts.Single(x => string.Equals(x.Name, accountName, StringComparison.InvariantCultureIgnoreCase));
 				using (logger.BeginScope($"Balance for account {account}"))
 				{
-					balance.Add(account, new BalanceCalculator(exchangeRateService).Calculate(account.Balance.Money.Currency, transactions));
+					balance.Add(account.Name, await new BalanceCalculator(exchangeRateService).Calculate(account.Balance.Money.Currency, transactions));
 				}
 			}
 
@@ -123,7 +123,7 @@ namespace GhostfolioSidekick.FileImporter
 			}
 		}
 
-		private IActivity GenerateActivity(
+		private static IActivity GenerateActivity(
 			Account account,
 			PartialActivityType activityType,
 			DateTime date,

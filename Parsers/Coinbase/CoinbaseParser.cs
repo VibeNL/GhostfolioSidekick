@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			}
 		}
 
-		private (decimal, string) ParseNote(string note)
+		private static (decimal, string) ParseNote(string note)
 		{
 			// Converted 0.00087766 ETH to 1.629352 USDC or  Converted 0,00087766 ETH to 1,629352 USDC
 			var match = Regex.Match(note, "Converted ([0-9.,]+) ([A-Za-z0-9]+) to ([0-9.,]+) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase);

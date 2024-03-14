@@ -37,7 +37,7 @@
 
 		public int SplitTo { get; private set; }
 
-		public Money? TotalTransactionAmount { get; private set; }
+		public Money TotalTransactionAmount { get; private set; }
 
 		public static PartialActivity CreateCashDeposit(
 			Currency currency,
