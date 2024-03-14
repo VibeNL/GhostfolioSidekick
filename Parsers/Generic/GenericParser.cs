@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)],
 						record.Quantity,
 						unitPrice,
-						new Money(currency, Math.Abs(record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice)),
+						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
 						record.Id));
 					break;
 				case PartialActivityType.Send:
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)],
 						record.Quantity,
 						unitPrice,
-						new Money(currency, Math.Abs(record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice)),
+						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
 						record.Id));
 					break;
 				case PartialActivityType.Dividend:
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Date,
 						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)],
 						record.Quantity * record.UnitPrice,
-						new Money(currency, record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice),
+						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
 				case PartialActivityType.Interest:
@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Date,
 						record.UnitPrice,
 						"Interest",
-						new Money(currency, record.TotalTransactionAmount ?? record.UnitPrice),
+						new Money(currency, record.UnitPrice),
 						record.Id));
 					break;
 				case PartialActivityType.Fee:
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 							currency,
 							record.Date,
 							record.UnitPrice,
-							new Money(currency, record.TotalTransactionAmount ?? record.UnitPrice),
+							new Money(currency, record.UnitPrice),
 							record.Id));
 					}
 					break;
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Date,
 						record.Symbol!,
 						record.Quantity * record.UnitPrice,
-						new Money(currency, record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice),
+						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
 				case PartialActivityType.Liability:
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Date,
 						record.Symbol!,
 						record.Quantity * record.UnitPrice,
-						new Money(currency, record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice),
+						new Money(currency,record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
 				case PartialActivityType.Gift:
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						currency,
 						record.Date,
 						record.UnitPrice,
-						new Money(currency, record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice),
+						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
 				case PartialActivityType.CashDeposit:
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						currency,
 						record.Date,
 						record.UnitPrice,
-						new Money(currency, record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice),
+						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
 				case PartialActivityType.CashWithdrawal:
@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						currency,
 						record.Date,
 						record.UnitPrice,
-						new Money(currency, record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice),
+						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
 				case PartialActivityType.Tax:
@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 							currency,
 							record.Date,
 							record.UnitPrice,
-							new Money(currency, record.TotalTransactionAmount ?? record.Quantity * record.UnitPrice),
+							new Money(currency, record.Quantity * record.UnitPrice),
 							record.Id));
 					}
 					break;

@@ -26,8 +26,5 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		[Optional]
 		public string? Id { get; set; }
-
-		[Optional]
-		public decimal? TotalTransactionAmount { get; set; }
 	}
 }

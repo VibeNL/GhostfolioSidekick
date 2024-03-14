@@ -2,6 +2,7 @@
 using CsvHelper.TypeConversion;
 using CsvHelper;
 using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers
 {
@@ -19,6 +20,7 @@ namespace GhostfolioSidekick.Parsers
 			return decimal.Parse(text, NumberStyles.Currency, cultureInfo);
 		}
 
+		[ExcludeFromCodeCoverage]
 		public override string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
 		{
 			return string.Empty;
