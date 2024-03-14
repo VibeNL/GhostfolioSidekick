@@ -1,4 +1,6 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.TypeConversion;
+using GhostfolioSidekick.Model;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
@@ -24,6 +26,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 		public decimal OutputAmount { get; set; }
 
 		[Name("USD Equivalent")]
+		[TypeConverter(typeof(CurrencyConverter), "en-US")]
 		public decimal USDEquivalent { get; set; }
 
 		[Name("Details")]
