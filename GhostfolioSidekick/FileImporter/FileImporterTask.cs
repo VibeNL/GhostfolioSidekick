@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			await holdingsCollection.GenerateActivities();
+			await holdingsCollection.GenerateActivities(exchangeRateService);
 
 			ApplyHoldingActions(holdingsCollection, strategies);
 
@@ -150,22 +150,24 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			var accounts = await holdingsCollection.GetAccountBalances(exchangeRateService);
-			foreach (var account in accounts)
+			foreach (var balance in holdingsCollection.Balances)
 			{
-				if (Math.Abs(account.Key.Balance.Money.Amount - account.Value.Money.Amount) < Constants.Epsilon)
+				var existingAccount = (await accountManager.GetAccountByName(balance.Key))!;
+
+				if (Math.Abs(existingAccount.Balance.Money.Amount - balance.Value.Money.Amount) < Constants.Epsilon)
 				{
-					logger.LogDebug($"Account {account.Key.Name} balance unchanged on: {account.Value}");
+					logger.LogDebug($"Account {balance.Key} balance unchanged on: {balance.Value.Money.Amount}");
 					continue;
 				}
+
 				try
 				{
-					await accountManager.UpdateBalance(account.Key, account.Value);
-					logger.LogInformation($"Set account {account.Key.Name} balance to: {account.Value}");
+					await accountManager.UpdateBalance(existingAccount, balance.Value);
+					logger.LogInformation($"Set account {balance.Key} balance to: {balance.Value}");
 				}
 				catch (Exception ex)
 				{
-					logger.LogError($"Account balance for account {account.Key.Name} failed to update {ex}, skipping");
+					logger.LogError($"Account balance for account {balance.Key} failed to update {ex}, skipping");
 				}
 			}
 
