@@ -156,11 +156,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 
 		[Fact]
-		public async Task Calculate_NoneSupported_ReturnsExpectedBalance()
+		public async Task Calculate_AllSupported_ReturnsExpectedBalance()
 		{
 			// Arrange
 			var activities = new List<PartialActivity>
 			{
+				new PartialActivity(PartialActivityType.Buy, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Sell, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Dividend, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Interest, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Fee, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.CashDeposit, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.CashWithdrawal, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Tax, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Valuable, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Liability, baseCurrency, new Money(baseCurrency, 0), string.Empty),
 				new PartialActivity(PartialActivityType.StockSplit, baseCurrency, new Money(baseCurrency, 0), string.Empty),
 				new PartialActivity(PartialActivityType.StakingReward, baseCurrency, new Money(baseCurrency, 0), string.Empty),
 				new PartialActivity(PartialActivityType.Gift, baseCurrency, new Money(baseCurrency, 0), string.Empty),
