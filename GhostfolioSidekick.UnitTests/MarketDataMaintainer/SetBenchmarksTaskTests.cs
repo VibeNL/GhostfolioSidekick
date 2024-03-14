@@ -1,5 +1,4 @@
 using AutoFixture;
-using FluentAssertions;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.MarketDataMaintainer;

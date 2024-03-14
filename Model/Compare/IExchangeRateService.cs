@@ -1,6 +1,4 @@
-﻿using GhostfolioSidekick.Model;
-
-namespace GhostfolioSidekick.Model.Compare
+﻿namespace GhostfolioSidekick.Model.Compare
 {
 	public interface IExchangeRateService
 	{

@@ -1,7 +1,4 @@
 ﻿using CsvHelper.Configuration.Attributes;
-using CsvHelper.TypeConversion;
-using GhostfolioSidekick.Model;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Nexo

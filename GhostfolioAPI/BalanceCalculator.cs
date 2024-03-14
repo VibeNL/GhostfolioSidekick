@@ -3,8 +3,6 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
-using Microsoft.Extensions.Logging;
-using System.Text;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
@@ -19,13 +17,14 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		public async Task<Balance> Calculate(
 			Currency baseCurrency,
-			IEnumerable<IActivity> activities)
+			IEnumerable<PartialActivity> activities)
 		{
 			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
-			var lastKnownBalance = descendingSortedActivities.Select(x => x as KnownBalanceActivity).FirstOrDefault(x => x is not null);
+			var lastKnownBalance = descendingSortedActivities
+				.FirstOrDefault(x => x.ActivityType != PartialActivityType.KnownBalance);
 			if (lastKnownBalance != null)
 			{
-				return new Balance(new Money(lastKnownBalance.Amount.Currency, lastKnownBalance.Amount.Amount));
+				return new Balance(new Money(lastKnownBalance.Currency, lastKnownBalance.Amount));
 			}
 
 			List<Tuple<DateTime, Money>> moneyTrail = [];
