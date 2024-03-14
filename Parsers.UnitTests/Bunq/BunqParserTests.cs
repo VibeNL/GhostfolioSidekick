@@ -49,7 +49,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
-				[PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 1000, "2023-07-20 00:00:00:+00:00_1")]
+				[PartialActivity.CreateCashDeposit(
+					Currency.EUR,
+					new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc),
+					1000,
+					new Money(Currency.EUR, 1000),
+					"2023-07-20 00:00:00:+00:00_1")]
 				);
 		}
 
@@ -63,7 +68,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
-				[PartialActivity.CreateCashWithdrawal(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 100, "2023-07-20 00:00:00:+00:00_1")]
+				[PartialActivity.CreateCashWithdrawal(
+					Currency.EUR,
+					new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc),
+					100,
+					new Money(Currency.EUR, 100),
+					"2023-07-20 00:00:00:+00:00_1")]
 				);
 		}
 
@@ -77,7 +87,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
-				[PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc), 3.5M, "bunq Payday 2023-07-27 EUR", "2023-07-27 00:00:00:+00:00_1")]
+				[PartialActivity.CreateInterest(
+					Currency.EUR,
+					new DateTime(2023, 07, 27, 0, 0, 0, DateTimeKind.Utc),
+					3.5M,
+					"bunq Payday 2023-07-27 EUR",
+					new Money(Currency.EUR, 3.5M),
+					"2023-07-27 00:00:00:+00:00_1")]
 				);
 		}
 
@@ -91,9 +107,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
-				[PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 1000, "2023-07-20 00:00:00:+00:00_1"),
-					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 1000, "2023-07-20 00:00:00:+00:00_2"),
-					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 1000, "2023-07-20 00:00:00:+00:00_3")]
+				[
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc),
+						1000,
+						new Money(Currency.EUR, 1000),
+						"2023-07-20 00:00:00:+00:00_1"),
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR, 
+						new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 
+						1000,
+						new Money(Currency.EUR, 1000),
+						"2023-07-20 00:00:00:+00:00_2"),
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 
+						1000,
+						new Money(Currency.EUR, 1000),
+						"2023-07-20 00:00:00:+00:00_3")]
 				);
 		}
 	}

@@ -56,11 +56,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						[PartialSymbolIdentifier.CreateCrypto("STORJ")],
 						34.75825253M,
 						0.71746M,
+						new Money(Currency.EUR, 25),
 						"16eed6ae-65f9-4a9d-8f19-bd66a75fc745"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2023, 12, 13, 14, 39, 02, 473, DateTimeKind.Utc),
 						0.0623441398262M,
+						new Money(Currency.EUR, 0),
 						"16eed6ae-65f9-4a9d-8f19-bd66a75fc745"),
 				]);
 		}
@@ -118,6 +120,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						Currency.EUR,
 						new DateTime(2023, 04, 21, 08, 48, 55, DateTimeKind.Utc),
 						1M,
+						new Money(Currency.EUR, 1),
 						"796a11aa-998f-4425-a503-07543300cda1"),
 				]);
 		}
@@ -137,6 +140,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						Currency.EUR,
 						new DateTime(2023, 10, 24, 21, 23, 37, DateTimeKind.Utc),
 						101.88M,
+						new Money(Currency.EUR, 101.88M),
 						"1e651f3e-e5be-4a87-a8fa-00e6832bdbc7"),
 				]);
 		}
@@ -158,11 +162,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						[PartialSymbolIdentifier.CreateCrypto("ADA")],
 						45.802549M,
 						0.56714M,
+						new Money(Currency.EUR, 25.93M),
 						"14ae873a-4fce-4a12-ba0f-387522c67d46"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2023, 12, 13, 14, 45, 51, 803, DateTimeKind.Utc),
 						0.04645763986M,
+						new Money(Currency.EUR, 0),
 						"14ae873a-4fce-4a12-ba0f-387522c67d46"),
 				]);
 		}
@@ -201,6 +207,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						Currency.EUR,
 						new DateTime(2023, 05, 15, 04, 00, 43, DateTimeKind.Utc),
 						0.03M,
+						new Money(Currency.EUR, 0.03M),
 						"2f963a7d-891a-481d-84df-90ac7aea2f8d")
 				]);
 		}
@@ -220,6 +227,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						Currency.EUR,
 						new DateTime(2023, 04, 25, 21, 54, 06, DateTimeKind.Utc),
 						0.06M,
+						new Money(Currency.EUR, 0.06M),
 						"d9c2f368-ee69-4fe6-a448-dd363953bb2b")
 				]);
 		}

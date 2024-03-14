@@ -56,11 +56,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
 						0.00213232M,
 						1810.23M,
+						new Money(Currency.EUR, 4.85M),
 						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						0.99M,
+						new Money(Currency.EUR, 0),
 						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
 				]);
 		}
@@ -91,6 +93,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						Currency.EUR,
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						0.040000M,
+						new Money(Currency.EUR, 0),
 						"Convert_ETH_2023-04-20 04:05:40:+00:00"),
 				]);
 		}
@@ -112,6 +115,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						11.275271M,
 						0.886900M,
+						new Money(Currency.EUR, 10),
 						"Sell_USDC_2023-07-14 10:40:14:+00:00")
 				]);
 		}

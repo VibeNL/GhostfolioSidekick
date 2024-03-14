@@ -51,7 +51,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 08, 07, 19, 56, 01, DateTimeKind.Utc), 100, "6b706aa8-780c-4acf-85a0-b329506931dc")
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR, 
+						new DateTime(2023, 08, 07, 19, 56, 01, DateTimeKind.Utc),
+						100,
+						new Money(Currency.EUR, 100),
+						"6b706aa8-780c-4acf-85a0-b329506931dc")
 				]);
 		}
 
@@ -66,7 +71,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateCashWithdrawal(Currency.EUR, new DateTime(2023, 11, 17, 05, 49, 12, 337, DateTimeKind.Utc), 1000, "5d72520a-388c-428a-90bf-6d9fcff55534")
+					PartialActivity.CreateCashWithdrawal(
+						Currency.EUR,
+						new DateTime(2023, 11, 17, 05, 49, 12, 337, DateTimeKind.Utc), 
+						1000,
+						new Money(Currency.EUR, 1000),
+						"5d72520a-388c-428a-90bf-6d9fcff55534")
 				]);
 		}
 
@@ -81,7 +91,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 08, 11, 21, 08, 18, DateTimeKind.Utc), 0.01M, "Interest on cash", "82f82014-23a3-4ddf-bc09-658419823f4c")
+					PartialActivity.CreateInterest(
+						Currency.EUR,
+						new DateTime(2023, 08, 11, 21, 08, 18, DateTimeKind.Utc),
+						0.01M,
+						"Interest on cash",
+						new Money(Currency.EUR, 0.01M),
+						"82f82014-23a3-4ddf-bc09-658419823f4c")
 				]);
 		}
 
@@ -96,7 +112,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateInterest(Currency.EUR, new DateTime(2023, 08, 11, 21, 08, 18, DateTimeKind.Utc), 0.01M, "Lending interest", "82f82014-23a3-4ddf-bc09-658419823f4c")
+					PartialActivity.CreateInterest(
+						Currency.EUR, 
+						new DateTime(2023, 08, 11, 21, 08, 18, DateTimeKind.Utc), 
+						0.01M, 
+						"Lending interest",
+						new Money(Currency.EUR, 0.01M),
+						"82f82014-23a3-4ddf-bc09-658419823f4c")
 				]);
 		}
 
@@ -111,8 +133,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US67066G1040")], 0.0267001M, 453.33M, "EOF3219953148"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc), 0.02M, "EOF3219953148"),
+					PartialActivity.CreateBuy(
+						Currency.USD, 
+						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US67066G1040")],
+						0.0267001M,
+						453.33M,
+						new Money(Currency.EUR, 11.02M),
+						"EOF3219953148"),
+					PartialActivity.CreateFee(
+						Currency.EUR, 
+						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
+						0.02M,
+						new Money(Currency.EUR, 0),
+						"EOF3219953148"),
 				]);
 		}
 
@@ -127,8 +161,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.USD, new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US67066G1040")], 0.0267001M, 453.33M, "EOF3219953148"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc), 0.02M, "EOF3219953148"),
+					PartialActivity.CreateBuy(
+						Currency.USD,
+						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US67066G1040")],
+						0.0267001M,
+						453.33M, 
+						new Money(Currency.EUR, 11.02M),
+						"EOF3219953148"),
+					PartialActivity.CreateFee
+						(Currency.EUR, 
+						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc), 
+						0.02M,
+						new Money(Currency.EUR, 0),
+						"EOF3219953148"),
 				]);
 		}
 
@@ -143,9 +189,26 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.GBp, new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("GB0007188757")], 0.18625698M, 4947.00M, "EOF3224031549"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), 0.02M, "EOF3224031549"),
-					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), 0.05M, "EOF3224031549"),
+					PartialActivity.CreateBuy(
+						Currency.GBp,
+						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("GB0007188757")],
+						0.18625698M,
+						4947.00M,
+						new Money(Currency.EUR, 10.75M),
+						"EOF3224031549"),
+					PartialActivity.CreateFee(
+						Currency.EUR, 
+						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
+						0.02M,
+						new Money(Currency.EUR, 0),
+						"EOF3224031549"),
+					PartialActivity.CreateTax(
+						Currency.EUR,
+						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
+						0.05M,
+						new Money(Currency.EUR, 0),
+						"EOF3224031549"),
 				]);
 		}
 
@@ -160,7 +223,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.USD, new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US0378331005")], 0.025583540000M, "Dividend (Dividends paid by us corporations)_US0378331005_2023-08-17_0.02_USD")
+					PartialActivity.CreateDividend(
+						Currency.USD, 
+						new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US0378331005")],
+						0.025583540000M,
+						new Money(Currency.EUR, 0.02M),
+						"Dividend (Dividends paid by us corporations)_US0378331005_2023-08-17_0.02_USD")
 				]);
 		}
 
@@ -175,7 +244,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateDividend(Currency.GBp, new DateTime(2024, 01, 12, 13, 25, 07, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("GG00BYZSSY63")], 478.496796400000M, "Dividend (Dividend)_GG00BYZSSY63_2024-01-12_5.57_GBX")
+					PartialActivity.CreateDividend(
+						Currency.GBp, 
+						new DateTime(2024, 01, 12, 13, 25, 07, DateTimeKind.Utc), 
+						[PartialSymbolIdentifier.CreateStockAndETF("GG00BYZSSY63")],
+						478.496796400000M, 
+						new Money(Currency.EUR, 5.57M),
+						"Dividend (Dividend)_GG00BYZSSY63_2024-01-12_5.57_GBX")
 				]);
 		}
 
@@ -190,8 +265,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.GBp, new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("GB0007188757")], 0.18625698M, 4947.00M, "EOF3224031549"),
-					PartialActivity.CreateTax(Currency.GBP, new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), 0.05M, "EOF3224031549"),
+					PartialActivity.CreateBuy(
+						Currency.GBp, 
+						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc), 
+						[PartialSymbolIdentifier.CreateStockAndETF("GB0007188757")],
+						0.18625698M,
+						4947.00M,
+						new Money(Currency.EUR, 10.75M),
+						"EOF3224031549"),
+					PartialActivity.CreateTax(
+						Currency.GBP,
+						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
+						0.05M,
+						new Money(Currency.EUR, 0),
+						"EOF3224031549"),
 				]);
 		}
 
@@ -206,11 +293,19 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateCashDeposit(Currency.EUR, new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc), 0.01M, "RBLF1WQUEL4OG5D3"),
-					PartialActivity.CreateCashWithdrawal(Currency.GBP, new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc), 0.01M, "RBLF1WQUEL4OG5D3")
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR, 
+						new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc),
+						0.01M,
+						new Money(Currency.EUR, 0.01M),
+						"RBLF1WQUEL4OG5D3"),
+					PartialActivity.CreateCashWithdrawal(
+						Currency.GBP,
+						new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc),
+						0.01M, 
+						new Money(Currency.GBP, 0.01M),
+						"RBLF1WQUEL4OG5D3")
 				]);
-			/*account.Balance.Current(DummyPriceConverter.Instance).Should().BeEquivalentTo(new Money(DefaultCurrency.EUR, 0.00M, new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc)));
-			account.Activities.Should().BeEmpty();*/
 		}
 
 		[Fact]
@@ -224,8 +319,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("FR0010828137")], 14.7252730000M, 13.88M, "EOF4500547227"),
-					PartialActivity.CreateTax(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), 0.61M, "EOF4500547227")
+					PartialActivity.CreateBuy(
+						Currency.EUR, 
+						new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), 
+						[PartialSymbolIdentifier.CreateStockAndETF("FR0010828137")], 
+						14.7252730000M, 
+						13.88M,
+						new Money(Currency.EUR, 205),
+						"EOF4500547227"),
+					PartialActivity.CreateTax(
+						Currency.EUR,
+						new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc),
+						0.61M,
+						new Money(Currency.EUR, 0),
+						"EOF4500547227")
 				]);
 		}
 
@@ -240,8 +347,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("FR0010828137")], 14.7252730000M, 13.88M, "EOF4500547227"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), 0.61M, "EOF4500547227")
+					PartialActivity.CreateBuy(
+						Currency.EUR, 
+						new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc), 
+						[PartialSymbolIdentifier.CreateStockAndETF("FR0010828137")], 
+						14.7252730000M, 
+						13.88M, 
+						new Money(Currency.EUR, 205),
+						"EOF4500547227"),
+					PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc),
+						0.61M,
+						new Money(Currency.EUR, 0),
+						"EOF4500547227")
 				]);
 		}
 
@@ -256,8 +375,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US7561091049")], 0.2534760000M, 50.38M, "EOF4500546889"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), 0.02M, "EOF4500546889"),
+					PartialActivity.CreateSell(
+						Currency.USD, 
+						new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), 
+						[PartialSymbolIdentifier.CreateStockAndETF("US7561091049")],
+						0.2534760000M,
+						50.38M, 
+						new Money(Currency.EUR, 12.08M),
+						"EOF4500546889"),
+					PartialActivity.CreateFee(
+						Currency.EUR, 
+						new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc),
+						0.02M,
+						new Money(Currency.EUR, 0),
+						"EOF4500546889"),
 				]);
 		}
 
@@ -272,8 +403,20 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateSell(Currency.USD, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("US7561091049")], 0.2534760000M, 50.38M, "EOF4500546889"),
-					PartialActivity.CreateFee(Currency.EUR, new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), 0.02M, "EOF4500546889"),
+					PartialActivity.CreateSell(
+						Currency.USD, 
+						new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US7561091049")],
+						0.2534760000M,
+						50.38M,
+						new Money(Currency.EUR, 12.08M),
+						"EOF4500546889"),
+					PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc), 
+						0.02M, 
+						new Money(Currency.EUR, 0),
+						"EOF4500546889"),
 				]);
 		}
 
