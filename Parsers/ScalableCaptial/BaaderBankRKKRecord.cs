@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 		public required string Isin { get; set; }
 
 		[Name("XXX-SALDO")]
-		[CultureInfo("nl-NL")]
+		[CultureInfo("de-DE")]
 		public decimal? UnitPrice { get; set; }
 
 		[Name("XXX-WHG")]

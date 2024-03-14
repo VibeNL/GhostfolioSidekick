@@ -22,7 +22,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				currencyMapper.Map(record.BalanceCurrency),
 				recordDate,
 				record.Balance,
-				new Money(new Currency(record.BalanceCurrency), 0),
 				rowNumber);
 			PartialActivity? partialActivity;
 

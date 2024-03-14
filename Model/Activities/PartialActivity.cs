@@ -117,10 +117,9 @@
 			Currency currency,
 			DateTime date,
 			decimal amount,
-			Money totalTransactionAmount,
 			int? rownumber = 0)
 		{
-			return new PartialActivity(PartialActivityType.KnownBalance, currency, totalTransactionAmount, null)
+			return new PartialActivity(PartialActivityType.KnownBalance, currency, new Money(Currency.USD, 0), null)
 			{
 				Date = date,
 				Amount = amount,
