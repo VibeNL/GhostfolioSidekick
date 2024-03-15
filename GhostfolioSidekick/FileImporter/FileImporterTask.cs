@@ -74,7 +74,9 @@ namespace GhostfolioSidekick.FileImporter
 
 				try
 				{
-					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName).Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
+					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName)
+						.Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase) ||
+									x.EndsWith("pdf", StringComparison.InvariantCultureIgnoreCase));
 
 					foreach (var file in files)
 					{
