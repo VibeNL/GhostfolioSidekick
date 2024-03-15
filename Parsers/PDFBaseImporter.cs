@@ -1,38 +1,42 @@
-﻿using System.Text;
+﻿using GhostfolioSidekick.Parsers.PDFParser;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
 namespace GhostfolioSidekick.Parsers
 {
-	public class PDFBaseImporter : IFileImporter
+	public abstract class PDFBaseImporter<T> : IFileImporter
 	{
 		public Task<bool> CanParseActivities(string filename)
 		{
 			try
 			{
 				using PdfDocument document = PdfDocument.Open(filename);
-				var text = new StringBuilder();
+				var tokens = new List<Token>();
 
 				for (var i = 0; i < document.NumberOfPages; i++)
 				{
 					Page page = document.GetPage(i + 1);
 					foreach (var word in page.GetWords())
 					{
-						text.AppendLine(word.Text);
+						tokens.Add(new Token(word.Text));
 					}
 				}
+
+				var records = ParseTokens(tokens);
+				return Task.FromResult(records.Any());
 			}
 			catch
 			{
 				return Task.FromResult(false);
 			}
-
-			return Task.FromResult(true);
 		}
+
+		protected abstract IEnumerable<T> ParseTokens(List<Token> tokens);
 
 		public Task ParseActivities(string filename, IHoldingsCollection holdingsAndAccountsCollection, string accountName)
 		{
 			throw new NotImplementedException();
 		}
+
 	}
 }

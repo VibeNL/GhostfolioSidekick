@@ -11,6 +11,7 @@ using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
+using GhostfolioSidekick.Parsers.CentraalBeheer;
 using GhostfolioSidekick.Parsers.Coinbase;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
