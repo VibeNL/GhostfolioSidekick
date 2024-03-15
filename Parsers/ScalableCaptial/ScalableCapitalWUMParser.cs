@@ -5,7 +5,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
-	public class ScalableCapitalWUMParser : RecordBaseImporter<BaaderBankWUMRecord>
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "<Pending>")]
+	public class ScalableCapitalWUMParser : CSVBaseImporter<BaaderBankWUMRecord>
 	{
 		private readonly ICurrencyMapper currencyMapper;
 
@@ -21,23 +22,11 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			switch (record.OrderType)
 			{
 				case "Verkauf":
-					return [PartialActivity.CreateSell(
-						currency,
-						date,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
-						Math.Abs(record.Quantity.GetValueOrDefault()),
-						record.UnitPrice.GetValueOrDefault(), 
-						new Money(currency, record.TotalPrice.GetValueOrDefault()),
-						record.Reference)];
+					return [PartialActivity.CreateSell(currency, date,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)], Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
 				case "Kauf":
-					return [PartialActivity.CreateBuy(
-						currency, 
-						date,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
-						Math.Abs(record.Quantity.GetValueOrDefault()), 
-						record.UnitPrice.GetValueOrDefault(),
-						new Money(currency, record.TotalPrice.GetValueOrDefault()),
-						record.Reference)];
+					return [PartialActivity.CreateBuy(currency, date,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)], Math.Abs(record.Quantity.GetValueOrDefault()), record.UnitPrice.GetValueOrDefault(), record.Reference)];
 				default:
 					throw new NotSupportedException();
 			}

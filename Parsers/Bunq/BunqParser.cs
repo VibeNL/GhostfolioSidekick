@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Bunq
 {
-	public class BunqParser : RecordBaseImporter<BunqRecord>
+	public class BunqParser : CSVBaseImporter<BunqRecord>
 	{
 		public BunqParser()
 		{
@@ -17,12 +17,12 @@ namespace GhostfolioSidekick.Parsers.Bunq
 			var currency = Currency.EUR;
 			if (record.Name == "bunq" && record.Description.Contains("bunq Payday"))
 			{
-				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), record.Description, new Money(currency, Math.Abs(record.Amount)), transactionId)];
+				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), record.Description, transactionId)];
 			}
 
 			return record.Amount >= 0 ?
-				[PartialActivity.CreateCashDeposit(currency, record.Date, Math.Abs(record.Amount), new Money(currency, Math.Abs(record.Amount)), transactionId)] :
-				[PartialActivity.CreateCashWithdrawal(currency, record.Date, Math.Abs(record.Amount), new Money(currency, Math.Abs(record.Amount)), transactionId)];
+				[PartialActivity.CreateCashDeposit(currency, record.Date, Math.Abs(record.Amount), transactionId)] :
+				[PartialActivity.CreateCashWithdrawal(currency, record.Date, Math.Abs(record.Amount), transactionId)];
 		}
 
 		protected override CsvConfiguration GetConfig()

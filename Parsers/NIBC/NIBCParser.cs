@@ -6,7 +6,7 @@ using System.Globalization;
 namespace GhostfolioSidekick.Parsers.NIBC
 {
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "Name of bank")]
-	public class NIBCParser : RecordBaseImporter<NIBCRecord>
+	public class NIBCParser : CSVBaseImporter<NIBCRecord>
 	{
 		private readonly ICurrencyMapper currencyMapper;
 
@@ -20,33 +20,17 @@ namespace GhostfolioSidekick.Parsers.NIBC
 			var currency = currencyMapper.Map(record.Currency);
 			if (record.Description == "Inkomende overboeking")
 			{
-				return [PartialActivity.CreateCashDeposit(
-					currency, 
-					record.Date, 
-					Math.Abs(record.Amount),
-					new Money(currency, Math.Abs(record.Amount)),
-					record.TransactionID)];
+				return [PartialActivity.CreateCashDeposit(currency, record.Date, Math.Abs(record.Amount), record.TransactionID)];
 			}
 
 			if (record.Description == "Uitgaande overboeking")
 			{
-				return [PartialActivity.CreateCashWithdrawal(
-					currency, 
-					record.Date,
-					Math.Abs(record.Amount),
-					new Money(currency, Math.Abs(record.Amount)),
-					record.TransactionID)];
+				return [PartialActivity.CreateCashWithdrawal(currency, record.Date, Math.Abs(record.Amount), record.TransactionID)];
 			}
 
 			if (record.Description == "Renteuitkering" || record.Description == "Bonusrente")
 			{
-				return [PartialActivity.CreateInterest(
-					currency, 
-					record.Date, 
-					Math.Abs(record.Amount),
-					record.Description,
-					new Money(currency, Math.Abs(record.Amount)),
-					record.TransactionID)];
+				return [PartialActivity.CreateInterest(currency, record.Date, Math.Abs(record.Amount), record.Description, record.TransactionID)];
 			}
 
 			return [];
