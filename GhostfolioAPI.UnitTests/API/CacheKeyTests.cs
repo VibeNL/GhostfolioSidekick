@@ -1,7 +1,6 @@
 using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model.Activities;
-using Xunit;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 {

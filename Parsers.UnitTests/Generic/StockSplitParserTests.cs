@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 {
 	public class StockSplitParserTests
 	{
-		private StockSplitParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly StockSplitParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public StockSplitParserTests()
 		{

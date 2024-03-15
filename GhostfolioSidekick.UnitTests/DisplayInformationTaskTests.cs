@@ -1,9 +1,6 @@
-using FluentAssertions;
 using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Text;
-using Xunit;
 
 namespace GhostfolioSidekick.UnitTests
 {

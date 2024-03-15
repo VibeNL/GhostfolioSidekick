@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 
 	public class TestDeGiroRecordRecord : DeGiroRecordBase
 	{
-		private PartialActivityType? activityType;
+		private readonly PartialActivityType? activityType;
 
 		public TestDeGiroRecordRecord(PartialActivityType? activityType)
 		{

@@ -1,11 +1,9 @@
-using Xunit;
 using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using RestSharp;
-using System;
 using System.Net;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using Newtonsoft.Json;

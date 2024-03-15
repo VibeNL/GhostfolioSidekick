@@ -44,6 +44,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 										outputCurrency,
 										record.DateTime,
 										Math.Abs(record.OutputAmount),
+										new Money(Currency.USD, record.USDEquivalent),
 										record.Transaction);
 					}
 					else
@@ -61,6 +62,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 										outputCurrency,
 										record.DateTime,
 										Math.Abs(record.OutputAmount),
+										new Money(Currency.USD, record.USDEquivalent),
 										record.Transaction);
 					break;
 				case "Deposit":
@@ -69,6 +71,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 										outputCurrency,
 										record.DateTime,
 										Math.Abs(record.OutputAmount),
+										new Money(Currency.USD, record.USDEquivalent),
 										record.Transaction);
 					break;
 				case "Exchange":
@@ -100,6 +103,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 											[PartialSymbolIdentifier.CreateCrypto(record.InputCurrency)],
 											Math.Abs(record.InputAmount),
 											Math.Abs(record.OutputAmount) / Math.Abs(record.InputAmount),
+											new Money(Currency.USD, record.USDEquivalent),
 											record.Transaction);
 					}
 					else if (inputCurrency.IsFiat())
@@ -110,6 +114,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 											[PartialSymbolIdentifier.CreateCrypto(record.OutputCurrency)],
 											Math.Abs(record.OutputAmount),
 											Math.Abs(record.InputAmount) / Math.Abs(record.OutputAmount),
+											new Money(Currency.USD, record.USDEquivalent),
 											record.Transaction);
 					}
 					break;
@@ -122,6 +127,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 												record.DateTime,
 												Math.Abs(record.OutputAmount),
 												record.Type,
+												new Money(Currency.USD, record.USDEquivalent),
 												record.Transaction);
 					}
 					else

@@ -13,14 +13,18 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 		public TimeOnly Time { get; set; }
 
 		[Name("XXX-WPKURS")]
-		[CultureInfo("nl-NL")]
+		[CultureInfo("de-DE")]
 		public decimal? UnitPrice { get; set; }
+
+		[Name("XXX-KWWW")]
+		[CultureInfo("de-DE")]
+		public decimal? TotalPrice { get; set; }
 
 		[Name("XXX-WHGAB")]
 		public required string Currency { get; set; }
 
 		[Name("XXX-NW")]
-		[CultureInfo("nl-NL")]
+		[CultureInfo("de-DE")]
 		public decimal? Quantity { get; set; }
 
 		[Name("XXX-WPNR")]

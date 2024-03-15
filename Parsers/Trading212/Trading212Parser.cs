@@ -24,36 +24,74 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			var lst = new List<PartialActivity>();
 			string? currencySymbol = string.IsNullOrWhiteSpace(record.Currency) ? record.CurrencyTotal : record.Currency;
 			var currency = currencyMapper.Map(currencySymbol!);
+			var currencyTotal = currencyMapper.Map(record.CurrencyTotal!);
 
 			switch (record.Action)
 			{
 				case "Deposit":
-					lst.Add(PartialActivity.CreateCashDeposit(currency, record.Time, Math.Abs(record.Total.GetValueOrDefault()), record.Id));
+					lst.Add(PartialActivity.CreateCashDeposit(
+						currency, 
+						record.Time, 
+						Math.Abs(record.Total.GetValueOrDefault()),
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
 					break;
 				case "Withdrawal":
-					lst.Add(PartialActivity.CreateCashWithdrawal(currency, record.Time, Math.Abs(record.Total.GetValueOrDefault()), record.Id));
+					lst.Add(PartialActivity.CreateCashWithdrawal(
+						currency,
+						record.Time,
+						Math.Abs(record.Total.GetValueOrDefault()),
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
 					break;
 				case "Interest on cash":
 				case "Lending interest":
-					lst.Add(PartialActivity.CreateInterest(currency, record.Time, record.Total.GetValueOrDefault(), record.Action, record.Id));
+					lst.Add(PartialActivity.CreateInterest(
+						currency, 
+						record.Time, 
+						record.Total.GetValueOrDefault(), 
+						record.Action,
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())), 
+						record.Id));
 					break;
 				case "Currency conversion":
 					var parsed = ParserConvertion(record);
-					lst.AddRange(PartialActivity.CreateCurrencyConvert(record.Time, parsed.Source, parsed.Target, record.Id));
+					lst.AddRange(PartialActivity.CreateCurrencyConvert(
+						record.Time,
+						parsed.Source,
+						parsed.Target,
+						new Money(parsed.Source.Currency, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
 					break;
 				case "Limit buy":
 				case "Market buy":
-					lst.Add(PartialActivity.CreateBuy(currency, record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
+					lst.Add(PartialActivity.CreateBuy(
+						currency,
+						record.Time,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.NumberOfShares!.Value,
+						record.Price!.Value,
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
 					break;
 				case "Limit sell":
 				case "Market sell":
-					lst.Add(PartialActivity.CreateSell(currency, record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.NumberOfShares!.Value, record.Price!.Value, record.Id));
+					lst.Add(PartialActivity.CreateSell(
+						currency,
+						record.Time, [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.NumberOfShares!.Value,
+						record.Price!.Value,
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
 					break;
 				case string d when d.Contains("Dividend"):
-					lst.Add(PartialActivity.CreateDividend(currency, record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], record.Price!.Value * record.NumberOfShares!.Value, record.Id));
+					lst.Add(PartialActivity.CreateDividend(
+						currency,
+						record.Time,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.Price!.Value * record.NumberOfShares!.Value,
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
 					break;
 				default:
 					throw new NotSupportedException();
@@ -96,22 +134,42 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		{
 			if (record.TaxUK != null)
 			{
-				yield return PartialActivity.CreateTax(currencyMapper.Map(record.TaxUKCurrency!), record.Time, record.TaxUK.Value, record.Id!);
+				yield return PartialActivity.CreateTax(
+					currencyMapper.Map(record.TaxUKCurrency!),
+					record.Time,
+					record.TaxUK.Value,
+					new Money(currencyMapper.Map(record.TaxUKCurrency!), 0),
+					record.Id!);
 			}
 
 			if (record.TaxFrance != null)
 			{
-				yield return PartialActivity.CreateTax(currencyMapper.Map(record.TaxFranceCurrency!), record.Time, record.TaxFrance.Value, record.Id!);
+				yield return PartialActivity.CreateTax(
+					currencyMapper.Map(record.TaxFranceCurrency!),
+					record.Time,
+					record.TaxFrance.Value,
+					new Money(currencyMapper.Map(record.TaxFranceCurrency!), 0),
+					record.Id!);
 			}
 
 			if (record.FeeFinra != null)
 			{
-				yield return PartialActivity.CreateFee(currencyMapper.Map(record.FeeFinraCurrency!), record.Time, record.FeeFinra.Value, record.Id!);
+				yield return PartialActivity.CreateFee(
+					currencyMapper.Map(record.FeeFinraCurrency!), 
+					record.Time,
+					record.FeeFinra.Value,
+					new Money(currencyMapper.Map(record.FeeFinraCurrency!), 0),
+					record.Id!);
 			}
 
 			if (record.ConversionFee != null)
 			{
-				yield return PartialActivity.CreateFee(currencyMapper.Map(record.ConversionFeeCurrency!), record.Time, record.ConversionFee.Value, record.Id!);
+				yield return PartialActivity.CreateFee(
+					currencyMapper.Map(record.ConversionFeeCurrency!), 
+					record.Time,
+					record.ConversionFee.Value,
+					new Money(currencyMapper.Map(record.ConversionFeeCurrency!), 0),
+					record.Id!);
 			}
 		}
 	}

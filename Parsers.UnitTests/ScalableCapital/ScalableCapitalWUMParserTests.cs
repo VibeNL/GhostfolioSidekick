@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 {
 	public class ScalableCapitalWUMParserTests
 	{
-		private ScalableCapitalWUMParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly ScalableCapitalWUMParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public ScalableCapitalWUMParserTests()
 		{
@@ -50,7 +50,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateBuy(Currency.EUR, new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")], 5, 8.685M, "SCALQbWiZnN9DtQ")
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), 
+						[PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")],
+						5, 
+						8.685M,
+						new Money(Currency.EUR, 43.43M),
+						"SCALQbWiZnN9DtQ")
 				]);
 		}
 
@@ -65,7 +72,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateSell(Currency.EUR, new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), [PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")], 5, 8.685M, "SCALQbWiZnN9DtQ")
+					PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")],
+						5,
+						8.685M,
+						new Money(Currency.EUR, 43.43M),
+						"SCALQbWiZnN9DtQ")
 				]);
 		}
 

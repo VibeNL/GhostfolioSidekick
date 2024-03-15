@@ -3,7 +3,6 @@ using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using Microsoft.Extensions.Logging;

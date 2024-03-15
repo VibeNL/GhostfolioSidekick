@@ -12,6 +12,8 @@ namespace GhostfolioSidekick.FileImporter
 	internal class HoldingsCollection : IHoldingsCollection
 	{
 		private readonly List<Holding> holdings = [new Holding(null)];
+		private readonly Dictionary<string, Balance> balance = [];
+
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
 		private readonly ILogger logger;
 
@@ -27,6 +29,8 @@ namespace GhostfolioSidekick.FileImporter
 
 		public IReadOnlyList<Holding> Holdings { get { return holdings; } }
 
+		public IReadOnlyDictionary<string, Balance> Balances { get { return balance; } }
+
 		public IAccountService AccountService { get; }
 		public IMarketDataService MarketDataService { get; }
 
@@ -41,7 +45,7 @@ namespace GhostfolioSidekick.FileImporter
 			return Task.CompletedTask;
 		}
 
-		public async Task GenerateActivities()
+		public async Task GenerateActivities(IExchangeRateService exchangeRateService)
 		{
 			var accounts = await AccountService.GetAllAccounts();
 			foreach (var partialActivityPerAccount in unusedPartialActivities)
@@ -60,27 +64,17 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
+			foreach (var accountName in unusedPartialActivities.Keys)
+			{
+				var transactions = unusedPartialActivities[accountName];
+				var account = accounts.Single(x => string.Equals(x.Name, accountName, StringComparison.InvariantCultureIgnoreCase));
+				using (logger.BeginScope($"Balance for account {account}"))
+				{
+					balance.Add(account.Name, await new BalanceCalculator(exchangeRateService).Calculate(account.Balance.Money.Currency, transactions));
+				}
+			}
+
 			unusedPartialActivities.Clear();
-		}
-
-		public async Task<Dictionary<Account, Balance>> GetAccountBalances(IExchangeRateService exchangeRateService)
-		{
-			if (unusedPartialActivities.Count != 0)
-			{
-				throw new NotSupportedException();
-			}
-
-			var list = new Dictionary<Account, Balance>();
-			foreach (var account in holdings
-									.SelectMany(x => x.Activities)
-									.Select(x => x.Account)
-									.Distinct())
-			{
-				var balance = await GetBalance(exchangeRateService, account);
-				list.Add(account, balance);
-			}
-
-			return list;
 		}
 
 		private async Task DetermineActivity(Account account, List<PartialActivity> transactions)
@@ -129,7 +123,7 @@ namespace GhostfolioSidekick.FileImporter
 			}
 		}
 
-		private IActivity GenerateActivity(
+		private static IActivity GenerateActivity(
 			Account account,
 			PartialActivityType activityType,
 			DateTime date,
@@ -287,15 +281,6 @@ namespace GhostfolioSidekick.FileImporter
 			}
 
 			return array.Where(x => x != null).ToList();
-		}
-
-		private Task<Balance> GetBalance(IExchangeRateService exchangeRateService, Account account)
-		{
-			using (logger.BeginScope($"Balance for account {account.Name}"))
-			{
-				var allActivities = holdings.SelectMany(x => x.Activities).Where(x => x.Account == account).ToList();
-				return new BalanceCalculator(exchangeRateService).Calculate(account.Balance.Money.Currency, allActivities);
-			}
 		}
 	}
 }

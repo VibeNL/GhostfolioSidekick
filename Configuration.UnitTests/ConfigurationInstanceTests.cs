@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			});
 		}
 
-		private string MappingsAndSymbols =
+		private readonly string MappingsAndSymbols =
 		@"
 			{
 			""mappings"":[
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 				}
 			";
 
-		private string ManualSymbol =
+		private readonly string ManualSymbol =
 		@"
 			{
 			""symbols"":[
@@ -137,7 +137,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 				}
 			";
 
-		private string ManualSymbolWithScraperConfiguration =
+		private readonly string ManualSymbolWithScraperConfiguration =
 		@"
 			{
 			""symbols"":[
@@ -155,7 +155,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 				}
 			";
 
-		private string AccountsAndPlatforms =
+		private readonly string AccountsAndPlatforms =
 		@"
 			{
 			""platforms"":[

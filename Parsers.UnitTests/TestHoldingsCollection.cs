@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Parsers;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {

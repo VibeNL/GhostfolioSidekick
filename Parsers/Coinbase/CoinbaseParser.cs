@@ -24,16 +24,30 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			var currency = currencyMapper.Map(record.Currency);
 			if (record.Fee != null && record.Fee != 0)
 			{
-				yield return PartialActivity.CreateFee(currency, date, record.Fee ?? 0, id);
+				yield return PartialActivity.CreateFee(currency, date, record.Fee ?? 0, new Money(currency, 0), id);
 			}
 
 			switch (record.Type)
 			{
 				case "Buy":
-					yield return PartialActivity.CreateBuy(currency, date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, record.Price ?? 0, id);
+					yield return PartialActivity.CreateBuy(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+						record.Quantity,
+						record.Price!.Value,
+						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
 					break;
 				case "Sell":
-					yield return PartialActivity.CreateSell(currency, date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, record.Price ?? 0, id);
+					yield return PartialActivity.CreateSell(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+						record.Quantity,
+						record.Price!.Value,
+						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
 					break;
 				case "Receive":
 					yield return PartialActivity.CreateReceive(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
@@ -72,7 +86,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			}
 		}
 
-		private (decimal, string) ParseNote(string note)
+		private static (decimal, string) ParseNote(string note)
 		{
 			// Converted 0.00087766 ETH to 1.629352 USDC or  Converted 0,00087766 ETH to 1,629352 USDC
 			var match = Regex.Match(note, "Converted ([0-9.,]+) ([A-Za-z0-9]+) to ([0-9.,]+) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase);

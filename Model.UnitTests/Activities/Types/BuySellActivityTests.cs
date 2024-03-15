@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using AutoFixture;
-using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {

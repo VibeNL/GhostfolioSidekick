@@ -1,9 +1,6 @@
-using Xunit;
-using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model;
-using System.Collections.Generic;
 using GhostfolioSidekick.Configuration;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper

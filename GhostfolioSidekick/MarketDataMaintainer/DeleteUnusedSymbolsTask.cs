@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 		}
 
-		private bool IsBenchmark(GhostfolioAPI.Contract.GenericInfo benchmarks, SymbolProfile profile)
+		private static bool IsBenchmark(GhostfolioAPI.Contract.GenericInfo benchmarks, SymbolProfile profile)
 		{
 			return benchmarks.BenchMarks?.Any(y => y.Symbol == profile.Symbol) ?? false;
 		}

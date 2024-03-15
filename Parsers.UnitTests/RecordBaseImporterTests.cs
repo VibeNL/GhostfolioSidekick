@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 	public class RecordBaseImporterTests
 	{
 		private const string Filename = "./TestFiles/Generic/BuyOrders/single_buy.csv";
-		private GenericParser importer;
+		private readonly GenericParser importer;
 
 		public RecordBaseImporterTests()
 		{

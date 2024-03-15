@@ -28,7 +28,12 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 
 			if (record.Fee != null && currencyMapper.Map(record.FeeCurrency).IsFiat() && record.Fee != 0)
 			{
-				yield return PartialActivity.CreateFee(currencyMapper.Map(record.FeeCurrency), dateTime, record.Fee.GetValueOrDefault(0), record.Transaction);
+				yield return PartialActivity.CreateFee(
+					currencyMapper.Map(record.FeeCurrency),
+					dateTime,
+					record.Fee.GetValueOrDefault(0),
+					new Money(currency, 0),
+					record.Transaction);
 			}
 
 			yield return GetMainRecord(record, dateTime, currency, isFiat);
@@ -44,7 +49,8 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						dateTime,
 						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
 						Math.Abs(record.Amount),
-						record.Price ?? 0,
+						record.Price!.Value,
+						new Money(Currency.EUR, Math.Abs(record.TotalTransactionAmount!.Value)),
 						record.Transaction);
 				case "sell":
 					return PartialActivity.CreateSell(
@@ -52,7 +58,8 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						dateTime,
 						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
 						Math.Abs(record.Amount),
-						record.Price ?? 0,
+						record.Price!.Value,
+						new Money(Currency.EUR, Math.Abs(record.TotalTransactionAmount!.Value)),
 						record.Transaction);
 				case "staking":
 					return PartialActivity.CreateStakingReward(
@@ -67,6 +74,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						currency,
 						dateTime,
 						Math.Abs(record.Amount),
+						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 					}
 					else
@@ -84,6 +92,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						currency,
 						dateTime,
 						Math.Abs(record.Amount),
+						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 					}
 					else
@@ -99,12 +108,14 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						currency,
 						dateTime,
 						Math.Abs(record.Amount),
+						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 				case "affiliate":
 					return PartialActivity.CreateGift(
 						currency,
 						dateTime,
 						Math.Abs(record.Amount),
+						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 				default:
 					throw new NotSupportedException();

@@ -139,7 +139,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			TransactionId = $"{activity}_{recordDate.ToInvariantString()}_{Product}_{ISIN}_{mutation}";
 		}
 
-		private CultureInfo GetCultureForParsingNumbers()
+		private static CultureInfo GetCultureForParsingNumbers()
 		{
 			return new CultureInfo("en")
 			{

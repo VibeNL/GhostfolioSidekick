@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation($"Deleted transaction  {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Type}");
 		}
 
-		private Task<string> ConvertToBody(Contract.Activity activity)
+		private static Task<string> ConvertToBody(Contract.Activity activity)
 		{
 			var o = new JObject();
 			o["accountId"] = activity.AccountId;

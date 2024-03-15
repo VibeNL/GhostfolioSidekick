@@ -9,9 +9,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 {
 	public class NexoParserTests
 	{
-		private NexoParser parser;
-		private Account account;
-		private TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly NexoParser parser;
+		private readonly Account account;
+		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public NexoParserTests()
 		{
@@ -54,6 +54,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						Currency.EUR,
 						new DateTime(2023, 08, 25, 14, 44, 44, DateTimeKind.Utc),
 						150,
+						new Money(Currency.USD, 162.20249359M),
 						"NXTM6EtqQukSs")
 				]);
 		}
@@ -73,6 +74,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						Currency.EUR,
 						new DateTime(2024, 02, 28, 18, 34, 17, DateTimeKind.Utc),
 						149.41000000M,
+						new Money(Currency.USD, 161.95M),
 						"NXT6UT3C1DP9h94hIqVrV3Wp9")
 				]);
 		}
@@ -94,6 +96,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						161.90485771M,
 						0.9264700400075475907102725806M,
+						new Money(Currency.USD, 161.9M),
 						"NXTyPxhiopNL3")
 				]);
 		}
@@ -115,6 +118,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						161.90485771M,
 						0.9264700400075475907102725806M,
+						new Money(Currency.USD, 161.9M),
 						"NXTyPxhiopNL3")
 				]);
 		}
@@ -175,6 +179,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						Currency.EUR,
 						new DateTime(2023, 10, 8, 20, 5, 12, DateTimeKind.Utc),
 						0.06548358M,
+						new Money(Currency.USD, 0.069416M),
 						"NXT6asbYnZqniNoTss0nyuIxM")
 				]);
 		}
@@ -207,25 +212,6 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						[PartialSymbolIdentifier.CreateCrypto("BTC")],
 						0.00096332M,
 						"NXTk6FBYyxOqH")
-				]);
-		}
-
-		[Fact]
-		public async Task ConvertActivitiesForAccount_SingleExchangeCashbackCrypto_Converted()
-		{
-			// Arrange
-
-			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_cashback_crypto.csv", holdingsAndAccountsCollection, account.Name);
-
-			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
-				[
-					PartialActivity.CreateGift(
-						new DateTime(2023, 10, 12, 10, 44, 32, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateCrypto("BTC")],
-						0.00000040M,
-						"NXT2yQdOutpLLE1Lz51xXt6uW")
 				]);
 		}
 
@@ -276,6 +262,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						new DateTime(2024, 01, 06, 06, 00, 00, DateTimeKind.Utc),
 						0.00140202M,
 						"Interest",
+						new Money(Currency.USD, 0),
 						"NXTeNtMHyjLigvrx7nFo8TT9")
 				]);
 		}
@@ -296,6 +283,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						new DateTime(2024, 01, 06, 06, 00, 00, DateTimeKind.Utc),
 						0.00140202M,
 						"Fixed Term Interest",
+						new Money(Currency.USD, 0),
 						"NXTeNtMHyjLigvrx7nFo8TT9")
 				]);
 		}

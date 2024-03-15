@@ -1,5 +1,4 @@
 using FluentAssertions;
-using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Model.UnitTests
 {

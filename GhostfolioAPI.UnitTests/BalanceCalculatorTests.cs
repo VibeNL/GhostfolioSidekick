@@ -5,15 +5,14 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
-using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 {
 	public class BalanceCalculatorTests
 	{
-		Currency baseCurrency = Currency.USD;
-		Mock<IExchangeRateService> exchangeRateServiceMock;
+		readonly Currency baseCurrency = Currency.USD;
+		readonly Mock<IExchangeRateService> exchangeRateServiceMock;
 
 		public BalanceCalculatorTests()
 		{
@@ -27,30 +26,30 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Calculate_WithKnownBalanceActivity_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var knownBalanceActivity = new KnownBalanceActivity(null!, DateTime.Now, new Money(baseCurrency, 100), null);
+			var knownBalanceActivity = PartialActivity.CreateKnownBalance(baseCurrency, DateTime.Now, 100);
 
-			var activities = new List<IActivity>
+			var activities = new List<PartialActivity>
 			{
 				knownBalanceActivity,
-				new BuySellActivity(null, DateTime.Now.AddDays(-1), 1, new Money(baseCurrency, 50), null),
-				new BuySellActivity(null, DateTime.Now.AddDays(-2), -1, new Money(baseCurrency, 25), null)
+				PartialActivity.CreateBuy(baseCurrency, DateTime.Now.AddDays(-1), [], 1, 50, new Money(baseCurrency, 50), string.Empty),
+				PartialActivity.CreateBuy(baseCurrency, DateTime.Now.AddDays(-2), [], -1, 25, new Money(baseCurrency, 25), string.Empty)
 			};
 
 			// Act
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(knownBalanceActivity.Amount.Amount);
+			result.Money.Amount.Should().Be(knownBalanceActivity.Amount);
 		}
 
 		[Fact]
 		public async Task Calculate_WithoutKnownBalanceActivity_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var activities = new List<IActivity>
+			var activities = new List<PartialActivity>
 			{
-				new BuySellActivity(null, DateTime.Now.AddDays(-1), 1, new Money(baseCurrency, 50), null),
-				new BuySellActivity(null, DateTime.Now.AddDays(-2), -1, new Money(baseCurrency, 25), null)
+				PartialActivity.CreateBuy(baseCurrency, DateTime.Now.AddDays(-1), [], 1, 50, new Money(baseCurrency, 50), string.Empty),
+				PartialActivity.CreateSell(baseCurrency, DateTime.Now.AddDays(-2), [], 1, 25, new Money(baseCurrency, 25), string.Empty)
 			};
 
 			// Act
@@ -65,9 +64,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Calculate_WithUnsupportedActivityType_ThrowsNotSupportedException()
 		{
 			// Arrange
-			var activities = new List<IActivity>
+			var activities = new List<PartialActivity>
 			{
-				new Mock<BaseActivity<IActivity>>().Object
+				new PartialActivity(PartialActivityType.Undefined, baseCurrency, new Money(baseCurrency, 0), string.Empty)
 			};
 
 			// Act & Assert
@@ -79,7 +78,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Calculate_WithNoActivities_ReturnsZeroBalance()
 		{
 			// Arrange
-			var activities = new List<IActivity>();
+			var activities = new List<PartialActivity>();
 
 			// Act
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
@@ -92,44 +91,44 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Calculate_WithDividendActivity_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var activities = new List<IActivity>
+			var activities = new List<PartialActivity>
 			{
-				new DividendActivity(null, DateTime.Now.AddDays(-1), new Money(baseCurrency, 50), null),
-				new BuySellActivity(null, DateTime.Now.AddDays(-2), -1, new Money(baseCurrency, 25), null)
+				PartialActivity.CreateDividend(baseCurrency, DateTime.Now.AddDays(-1), [], 50, new Money(baseCurrency, 50), string.Empty),
+				PartialActivity.CreateBuy(baseCurrency, DateTime.Now.AddDays(-2), [], -1, 25, new Money(baseCurrency, 25), string.Empty)
 			};
 
 			// Act
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(75);
+			result.Money.Amount.Should().Be(25);
 		}
 
 		[Fact]
 		public async Task Calculate_WithInterestActivity_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var activities = new List<IActivity>
+			var activities = new List<PartialActivity>
 			{
-				new InterestActivity(null, DateTime.Now.AddDays(-1), new Money(baseCurrency, 50), null),
-				new BuySellActivity(null, DateTime.Now.AddDays(-2), -1, new Money(baseCurrency, 25), null)
+				PartialActivity.CreateInterest(baseCurrency, DateTime.Now.AddDays(-1), 50, string.Empty, new Money(baseCurrency, 50), string.Empty),
+				PartialActivity.CreateBuy(baseCurrency, DateTime.Now.AddDays(-2), [], -1, 25, new Money(baseCurrency, 25), string.Empty)
 			};
 
 			// Act
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(75);
+			result.Money.Amount.Should().Be(25);
 		}
 
 		[Fact]
 		public async Task Calculate_WithFeeActivity_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var activities = new List<IActivity>
+			var activities = new List<PartialActivity>
 			{
-				new FeeActivity(null, DateTime.Now.AddDays(-1), new Money(baseCurrency, 50), null),
-				new BuySellActivity(null, DateTime.Now.AddDays(-2), 1, new Money(baseCurrency, 25), null)
+				PartialActivity.CreateFee(baseCurrency, DateTime.Now.AddDays(-1), 50, new Money(baseCurrency, 50), string.Empty),
+				PartialActivity.CreateBuy(baseCurrency, DateTime.Now.AddDays(-2), [], 1, 25, new Money(baseCurrency, 25), string.Empty)
 			};
 
 			// Act
@@ -143,29 +142,40 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task Calculate_WithCashDepositWithdrawalActivity_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var activities = new List<IActivity>
+			var activities = new List<PartialActivity>
 			{
-				new CashDepositWithdrawalActivity(null, DateTime.Now.AddDays(-1), new Money(baseCurrency, 50), null),
-				new BuySellActivity(null, DateTime.Now.AddDays(-2), -1, new Money(baseCurrency, 25), null)
+				PartialActivity.CreateCashWithdrawal(baseCurrency, DateTime.Now.AddDays(-1), 50, new Money(baseCurrency, 50), string.Empty),
+				PartialActivity.CreateBuy(baseCurrency, DateTime.Now.AddDays(-2), [], -1, 25, new Money(baseCurrency, 25), string.Empty)
 			};
 
 			// Act
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(75);
+			result.Money.Amount.Should().Be(-75);
 		}
 
 		[Fact]
-		public async Task Calculate_NoneSupported_ReturnsExpectedBalance()
+		public async Task Calculate_AllSupported_ReturnsExpectedBalance()
 		{
 			// Arrange
-			var activities = new List<IActivity>
+			var activities = new List<PartialActivity>
 			{
-				DefaultFixture.Create().Create<StockSplitActivity>(),
-				DefaultFixture.Create().Create<StakingRewardActivity>(),
-				DefaultFixture.Create().Create<GiftActivity>(),
-				DefaultFixture.Create().Create<SendAndReceiveActivity>()
+				new PartialActivity(PartialActivityType.Buy, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Sell, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Dividend, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Interest, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Fee, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.CashDeposit, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.CashWithdrawal, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Tax, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Valuable, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Liability, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.StockSplit, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.StakingReward, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Gift, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Send, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.Receive, baseCurrency, new Money(baseCurrency, 0), string.Empty)
 			};
 
 			// Act
@@ -173,42 +183,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			result.Money.Amount.Should().Be(0);
-		}
-
-		[Fact]
-		public async Task Calculate_UnknownType_ThrowsException()
-		{
-			// Arrange
-			var activities = new List<IActivity>
-			{
-				DefaultFixture.Create().Create<DummyActivity>()
-			};
-
-			// Act
-			var result = () => new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
-
-			// Assert
-			await result.Should().ThrowAsync<NotSupportedException>();
-		}
-
-		private class DummyActivity : IActivity
-		{
-			public Account Account => throw new NotImplementedException();
-
-			public DateTime Date { get; set; }
-
-			public string? TransactionId => throw new NotImplementedException();
-
-			public int? SortingPriority => 1;
-
-			public string? Id => throw new NotImplementedException();
-
-			public string? Description => throw new NotImplementedException();
-
-			public Task<bool> AreEqual(IExchangeRateService exchangeRateService, IActivity otherActivity)
-			{
-				throw new NotImplementedException();
-			}
 		}
 	}
 }
