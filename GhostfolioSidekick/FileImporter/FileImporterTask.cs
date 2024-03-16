@@ -201,8 +201,10 @@ namespace GhostfolioSidekick.FileImporter
 		{
 			foreach (var strategy in strategies.OrderBy(x => x.Priority))
 			{
+logger.LogDebug($"Executing strategy {strategy.GetType().Name}");
 				foreach (var holding in holdingsCollection.Holdings)
 				{
+
 					strategy.Execute(holding);
 				}
 			}
