@@ -197,7 +197,7 @@ namespace GhostfolioSidekick.FileImporter
 			return sb.ToString();
 		}
 
-		private static void ApplyHoldingActions(HoldingsCollection holdingsCollection, IEnumerable<IHoldingStrategy> strategies)
+		private void ApplyHoldingActions(HoldingsCollection holdingsCollection, IEnumerable<IHoldingStrategy> strategies)
 		{
 			foreach (var strategy in strategies.OrderBy(x => x.Priority))
 			{
