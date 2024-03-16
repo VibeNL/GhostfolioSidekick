@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 		public Task Execute(Holding holding)
 		{
-			if (!settings.CryptoWorkaroundDust || holding.SymbolProfile?.AssetSubClass != AssetSubClass.CryptoCurrency)
+			if (!settings.CryptoWorkaroundDust)
 			{
 				return Task.CompletedTask;
 			}
