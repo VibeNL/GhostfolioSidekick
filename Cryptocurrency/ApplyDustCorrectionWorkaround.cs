@@ -13,10 +13,6 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 		public Task Execute(Holding holding)
 		{
-			if (!settings.CryptoWorkaroundDust)
-			{
-				return Task.CompletedTask;
-			}
 
 			var activities = holding.Activities.OrderBy(x => x.Date).ToList();
 
