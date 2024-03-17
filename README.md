@@ -48,6 +48,7 @@ Also allows the following sybol settings
 	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
 		"use.crypto.workaround.dust" : true // default is false,
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0,
+		"use.crypto.workaround.stakereward.add.to.last.buy" : true // default is false,
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
 	},
 	"platforms":[
@@ -88,6 +89,10 @@ This settings does control if a workaround is used for dust (very small amount o
 ##### use.crypto.workaround.threshold (Experimental)
 This settings is the threshold of local currency of the asset if a value is considered dust.
 Any holding less than this value is considered dust and will be added to the last sell/send activity.
+
+##### use.crypto.workaround.stakereward.add.to.last.buy (Experimental)
+This settings does control if a workaround is used for staking rewards. 
+If set to true, the staking reward is added to the last buy activity.
 
 #### Platform and Account
 Creates platforms and accounts if not yet created

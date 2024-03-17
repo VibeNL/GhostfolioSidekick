@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("dataprovider.preference.order")]
 		public required string DataProviderPreference { get; set; } = "YAHOO;COINGECKO";
 
-		[JsonPropertyName("use.crypto.workaround.stakereward.as.dividends")]
+		[JsonPropertyName("use.crypto.workaround.stakereward.add.to.last.buy")]
 		public bool CryptoWorkaroundStakeReward { get; set; }
 
 		[JsonPropertyName("use.crypto.workaround.dust")]

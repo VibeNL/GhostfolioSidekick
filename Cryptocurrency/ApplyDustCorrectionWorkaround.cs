@@ -2,13 +2,11 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Strategies;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Cryptocurrency
 {
 	public class ApplyDustCorrectionWorkaround(Settings settings) : IHoldingStrategy
 	{
-		[ExcludeFromCodeCoverage]
 		public int Priority => (int)StrategiesPriority.ApplyDustCorrection;
 
 		public Task Execute(Holding holding)
@@ -45,7 +43,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 					lastActivity.UnitPrice.Currency,
 					lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));
 
-				lastActivity.Quantity += amount;
+				lastActivity.Quantity -= amount;
 
 				RemoveActivitiesAfter(activities, lastActivity);
 				holding.Activities.Clear();
