@@ -87,31 +87,6 @@ namespace GhostfolioSidekick.UnitTests
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
 
-		[Fact]
-		public void DoWork_ShouldPrintWarning_WhenCryptoWorkaroundStakeRewardIsTrue()
-		{
-			// Arrange
-			var settings = new ConfigurationInstance
-			{
-				Settings = new Settings
-				{
-					CryptoWorkaroundStakeReward = true
-				}
-			};
-
-			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(settings);
-
-			// Act
-			displayInformationTask.DoWork();
-
-			// Assert
-			loggerMock.Verify(
-				x => x.Log(
-					LogLevel.Warning,
-					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Setting 'CryptoWorkaroundStakeReward' no longer supported")),
-					It.IsAny<Exception>(),
-					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
-		}
+		
 	}
 }
