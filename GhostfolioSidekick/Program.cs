@@ -1,10 +1,12 @@
-﻿using GhostfolioSidekick.Configuration;
+﻿using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Strategies;
+using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Strategies;
@@ -99,12 +101,12 @@ namespace GhostfolioSidekick
 							services.AddScoped<IHostedService, TimedHostedService>();
 							services.AddScoped<IScheduledWork, FileImporterTask>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
-							//services.AddScoped<IScheduledWork, AccountMaintainerTask>();
-							//services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
-							//services.AddScoped<IScheduledWork, SetBenchmarksTask>();
-							//services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
-							//services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
-							//services.AddScoped<IScheduledWork, GatherAllDataTask>();
+							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+							services.AddScoped<IScheduledWork, SetBenchmarksTask>();
+							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
+							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
+							services.AddScoped<IScheduledWork, GatherAllDataTask>();
 
 							services.AddScoped<IFileImporter, BitvavoParser>();
 							services.AddScoped<IFileImporter, BunqParser>();

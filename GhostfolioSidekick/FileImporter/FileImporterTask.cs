@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				var accountName = directory.Name;
 
-				logger.LogInformation($"AccountName: {accountName}");
+				logger.LogInformation($"Parsing files for account: {accountName}");
 
 				try
 				{
@@ -107,8 +107,10 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
+			logger.LogInformation($"Generating activities");
 			await holdingsCollection.GenerateActivities(exchangeRateService);
 
+			logger.LogInformation($"Applying strategies");
 			ApplyHoldingActions(holdingsCollection, strategies);
 
 			// Only update accounts when we have at least one transaction
@@ -118,6 +120,7 @@ namespace GhostfolioSidekick.FileImporter
 				.Distinct()
 				.ToList();
 
+			logger.LogInformation($"Detecting changes");
 			var existingHoldings = await activitiesManager.GetAllActivities();
 			var mergeOrders = (await new MergeActivities(exchangeRateService)
 				.Merge(existingHoldings, holdingsCollection.Holdings))
@@ -126,6 +129,7 @@ namespace GhostfolioSidekick.FileImporter
 				.Where(x => managedAccount.Contains(x.Order1.Account.Id))
 				.OrderBy(x => x.Order1.Date);
 
+			logger.LogInformation($"Applying changes");
 			foreach (var item in mergeOrders)
 			{
 				try
@@ -152,6 +156,7 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
+			logger.LogInformation($"Setting balances");
 			foreach (var balance in holdingsCollection.Balances)
 			{
 				var existingAccount = (await accountManager.GetAccountByName(balance.Key))!;
