@@ -1,15 +1,21 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Strategies;
 
 namespace GhostfolioSidekick.Cryptocurrency
 {
-	public class AddStakeRewardsToPreviousBuyActivity : IHoldingStrategy
+	public class AddStakeRewardsToPreviousBuyActivity(Settings settings) : IHoldingStrategy
 	{
 		public int Priority => (int)StrategiesPriority.StakeRewardWorkaround;
 
 		public Task Execute(Holding holding)
 		{
+			if (!settings.CryptoWorkaroundStakeReward || holding.SymbolProfile?.AssetSubClass != AssetSubClass.CryptoCurrency)
+			{
+				return Task.CompletedTask;
+			}
+
 			var activities = holding.Activities.OrderBy(x => x.Date).ToList();
 
 			var stakeRewards = activities

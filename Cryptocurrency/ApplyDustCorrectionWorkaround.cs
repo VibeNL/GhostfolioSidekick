@@ -2,13 +2,11 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Strategies;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Cryptocurrency
 {
 	public class ApplyDustCorrectionWorkaround(Settings settings) : IHoldingStrategy
 	{
-		[ExcludeFromCodeCoverage]
 		public int Priority => (int)StrategiesPriority.ApplyDustCorrection;
 
 		public Task Execute(Holding holding)

@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.UnitTests
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMilliseconds(1));
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
-			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(5));
+			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(100));
 			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
 
 			// Act
