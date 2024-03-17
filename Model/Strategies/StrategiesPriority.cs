@@ -6,8 +6,8 @@
 
 		StockSplit = 1,
 
-		ApplyDustCorrection = 2,
+		StakeRewardWorkaround = 2,
 
-		StakeRewardWorkaround = 3,
+		ApplyDustCorrection = 99,
 	}
 }
