@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 					lastActivity.UnitPrice.Currency,
 					lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));
 
-				lastActivity.Quantity += Math.Abs(amount);
+				lastActivity.Quantity -= amount;
 
 				RemoveActivitiesAfter(activities, lastActivity);
 				holding.Activities.Clear();
