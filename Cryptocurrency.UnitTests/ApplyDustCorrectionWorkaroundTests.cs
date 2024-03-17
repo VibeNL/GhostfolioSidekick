@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			await strategy.Execute(holding);
 
 			// Assert
-			activity.Quantity.Should().Be(0);
+			activity.Quantity.Should().Be(-0.001M);
 			activity.UnitPrice!.Amount.Should().Be(0.005M);
 		}
 
