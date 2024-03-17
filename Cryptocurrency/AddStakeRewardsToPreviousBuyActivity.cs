@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 			foreach (var stakeReward in stakeRewards)
 			{
 				var buyActivity = activities
-					.Select(x => x as BuySellActivity)
+					.Select(x => x as IActivityWithQuantityAndUnitPrice)
 					.Where(x => x != null)
 					.LastOrDefault(x => x!.Quantity > 0 &&
 										x!.Date < stakeReward!.Date);
