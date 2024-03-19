@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 
 			switch (record.Type)
 			{
-				case "Buy":
+				case string when record.Type.Contains("Buy", StringComparison.InvariantCultureIgnoreCase):
 					yield return PartialActivity.CreateBuy(
 						currency,
 						date,
@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
 					break;
-				case "Sell":
+				case string when record.Type.Contains("Sell", StringComparison.InvariantCultureIgnoreCase):
 					yield return PartialActivity.CreateSell(
 						currency,
 						date,

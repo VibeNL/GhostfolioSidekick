@@ -80,18 +80,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
+						new DateTime(2024, 03, 18, 11, 49, 37, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("BTC")],
 						0.564634M,
 						100000.58M,
 						new Money(Currency.EUR, 54321231.60M),
-						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
+						"Advance Trade Buy_BTC_2024-03-18 11:49:37:+00:00"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
-						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
+						new DateTime(2024, 03, 18, 11, 49, 37, DateTimeKind.Utc),
 						0.99M,
 						new Money(Currency.EUR, 0),
-						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
+						"Advance Trade Buy_BTC_2024-03-18 11:49:37:+00:00"),
 				]);
 		}
 
