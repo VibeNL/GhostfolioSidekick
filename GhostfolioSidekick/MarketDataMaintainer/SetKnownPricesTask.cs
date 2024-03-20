@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork()
 		{
-			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Starting to do work");
+			logger.LogInformation($"{nameof(SetKnownPricesTask)} Starting to do work");
 
 			try
 			{
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				applicationSettings.AllowAdminCalls = false;
 			}
 
-			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Done");
+			logger.LogInformation($"{nameof(SetKnownPricesTask)} Done");
 		}
 
 		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<SymbolProfile> profiles, List<Holding> holdings)
@@ -172,8 +172,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 				}
 
-				var results = await importer.ParseHistoricData(file);
-				foreach (var dataPoint in results.ToList())
+				var historicData = await importer.ParseHistoricData(file);
+				foreach (var dataPoint in historicData.OrderBy(x => x.Symbol).ToList())
 				{
 					var symbol = usedSymbols.SingleOrDefault(x => x.Symbol == dataPoint.Symbol);
 					if (symbol == null)
@@ -182,7 +182,15 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						usedSymbols.Add(symbol);
 					}
 
-					await marketDataService.SetMarketPrice(symbol, new Money(symbol.Currency, dataPoint.Close), dataPoint.Date);
+					var existingData = 
+						(await marketDataService.GetMarketData(symbol.Symbol, symbol.DataSource.ToString()))
+						.MarketData
+						.SingleOrDefault(x => x.Date == dataPoint.Date);
+
+					if (existingData != null && existingData.MarketPrice.Amount != dataPoint.Close)
+					{
+						await marketDataService.SetMarketPrice(symbol, new Money(symbol.Currency, dataPoint.Close), dataPoint.Date);
+					}
 				}
 			}
 
