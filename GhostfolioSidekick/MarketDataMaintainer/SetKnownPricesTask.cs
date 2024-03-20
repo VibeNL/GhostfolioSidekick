@@ -4,7 +4,10 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Security.Cryptography;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
@@ -14,6 +17,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private readonly IMarketDataService marketDataService;
 		private readonly IActivitiesService activitiesService;
 		private readonly IApplicationSettings applicationSettings;
+		private readonly IEnumerable<IHistoryDataFileImporter> historyDataFileImporters;
 
 		public TaskPriority Priority => TaskPriority.SetKnownPrices;
 
@@ -23,12 +27,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			ILogger<SetKnownPricesTask> logger,
 			IMarketDataService marketDataManager,
 			IActivitiesService activitiesManager,
-			IApplicationSettings applicationSettings)
+			IApplicationSettings applicationSettings,
+			IEnumerable<IHistoryDataFileImporter> historyDataFileImporters)
 		{
 			this.logger = logger;
 			marketDataService = marketDataManager;
 			activitiesService = activitiesManager;
 			this.applicationSettings = applicationSettings;
+			this.historyDataFileImporters = historyDataFileImporters;
 		}
 
 		public async Task DoWork()
@@ -41,10 +47,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				var holdings = (await activitiesService.GetAllActivities()).ToList();
 
 				var symbolConfigurations = applicationSettings.ConfigurationInstance.Symbols;
+
+				List<SymbolProfile> symbolsAlreadyImported = [];
+				if (!string.IsNullOrWhiteSpace(applicationSettings.ConfigurationInstance.Settings.HistoricDataFilePath))
+				{
+					symbolsAlreadyImported = await ImportFiles(profiles);
+				}
+
 				foreach (var symbolConfiguration in symbolConfigurations ?? [])
 				{
 					var manualSymbolConfiguration = symbolConfiguration.ManualSymbolConfiguration;
-					if (manualSymbolConfiguration == null)
+					if (manualSymbolConfiguration == null || symbolsAlreadyImported.Select(x => x.Symbol).Contains(symbolConfiguration.Symbol))
 					{
 						continue;
 					}
@@ -145,6 +158,35 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					}
 				}
 			}
+		}
+
+		private async Task<List<SymbolProfile>> ImportFiles(List<SymbolProfile> profiles)
+		{
+			var usedSymbols = new List<SymbolProfile>();
+			var filePath = applicationSettings.ConfigurationInstance.Settings.HistoricDataFilePath!;
+			foreach (var file in Directory.GetFiles(filePath))
+			{
+				var importer = historyDataFileImporters.SingleOrDefault(x => x.CanParseHistoricData(file).Result);
+				if (importer == null)
+				{
+					continue;
+				}
+
+				var results = await importer.ParseHistoricData(file);
+				foreach (var dataPoint in results.ToList())
+				{
+					var symbol = usedSymbols.SingleOrDefault(x => x.Symbol == dataPoint.Symbol);
+					if (symbol == null)
+					{
+						symbol = profiles.Single(x => x.Symbol == dataPoint.Symbol);
+						usedSymbols.Add(symbol);
+					}
+
+					await marketDataService.SetMarketPrice(symbol, new Money(symbol.Currency, dataPoint.Close), dataPoint.Date);
+				}
+			}
+
+			return usedSymbols;
 		}
 	}
 }
