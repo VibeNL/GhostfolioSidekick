@@ -2,7 +2,6 @@
 using CsvHelper;
 using System.Globalization;
 using GhostfolioSidekick.Parsers.Coinbase;
-using System.Linq.Expressions;
 
 namespace GhostfolioSidekick.Parsers.MacroTrends
 {

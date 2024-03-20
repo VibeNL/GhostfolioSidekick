@@ -17,6 +17,7 @@ using GhostfolioSidekick.Parsers.CentraalBeheer;
 using GhostfolioSidekick.Parsers.Coinbase;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.MacroTrends;
 using GhostfolioSidekick.Parsers.Nexo;
 using GhostfolioSidekick.Parsers.NIBC;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
@@ -126,6 +127,8 @@ namespace GhostfolioSidekick
 							services.AddScoped<IHoldingStrategy, DeterminePrice>();
 							services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
 							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
+
+							services.AddScoped<IHistoryDataFileImporter, MacroTrendsParser>();
 						});
 		}
 	}
