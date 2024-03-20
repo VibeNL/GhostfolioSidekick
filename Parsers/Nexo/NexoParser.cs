@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Nexo
 {
-	public class NexoParser : RecordBaseImporter<NexoRecord>
+	public class NexoParser : TransactionRecordBaseImporter<NexoRecord>
 	{
 		readonly Dictionary<string, string> Translation = new Dictionary<string, string>{
 			{ "EURX", "EUR" },

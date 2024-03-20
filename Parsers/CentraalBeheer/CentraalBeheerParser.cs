@@ -7,7 +7,7 @@ using UglyToad.PdfPig.Content;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
-	public class CentraalBeheerParser : IFileImporter
+	public class CentraalBeheerParser : ITransactionFileImporter
 	{
 		private const string Keyword_Aankoop = "Aankoop";
 		private const string Keyword_Verkoop = "Verkoop";

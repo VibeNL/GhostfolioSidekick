@@ -4,11 +4,11 @@ using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers
 {
-	public abstract class RecordBaseImporter<T> : IFileImporter
+	public abstract class TransactionRecordBaseImporter<T> : ITransactionFileImporter
 	{
 		private readonly Dictionary<string, bool> KnownHeaderCache = new Dictionary<string, bool>();
 
-		protected RecordBaseImporter()
+		protected TransactionRecordBaseImporter()
 		{
 		}
 

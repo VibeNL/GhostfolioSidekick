@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Generic
 {
-	public class StockSplitParser : RecordBaseImporter<StockSplitRecord>
+	public class StockSplitParser : TransactionRecordBaseImporter<StockSplitRecord>
 	{
 		public StockSplitParser()
 		{

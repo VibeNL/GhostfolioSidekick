@@ -17,6 +17,7 @@ using GhostfolioSidekick.Parsers.CentraalBeheer;
 using GhostfolioSidekick.Parsers.Coinbase;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.MacroTrends;
 using GhostfolioSidekick.Parsers.Nexo;
 using GhostfolioSidekick.Parsers.NIBC;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
@@ -99,7 +100,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<IMarketDataService, MarketDataService>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
-							services.AddScoped<IScheduledWork, FileImporterTask>();
+							services.AddScoped<IScheduledWork, TransactionFileImporterTask>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
 							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
 							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
@@ -108,24 +109,26 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							services.AddScoped<IScheduledWork, GatherAllDataTask>();
 
-							services.AddScoped<IFileImporter, BitvavoParser>();
-							services.AddScoped<IFileImporter, BunqParser>();
-							services.AddScoped<IFileImporter, CentraalBeheerParser>();
-							services.AddScoped<IFileImporter, CoinbaseParser>();
-							services.AddScoped<IFileImporter, DeGiroParserNL>();
-							services.AddScoped<IFileImporter, DeGiroParserPT>();
-							services.AddScoped<IFileImporter, GenericParser>();
-							services.AddScoped<IFileImporter, NexoParser>();
-							services.AddScoped<IFileImporter, NIBCParser>();
-							services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
-							services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
-							services.AddScoped<IFileImporter, StockSplitParser>();
-							services.AddScoped<IFileImporter, Trading212Parser>();
+							services.AddScoped<ITransactionFileImporter, BitvavoParser>();
+							services.AddScoped<ITransactionFileImporter, BunqParser>();
+							services.AddScoped<ITransactionFileImporter, CentraalBeheerParser>();
+							services.AddScoped<ITransactionFileImporter, CoinbaseParser>();
+							services.AddScoped<ITransactionFileImporter, DeGiroParserNL>();
+							services.AddScoped<ITransactionFileImporter, DeGiroParserPT>();
+							services.AddScoped<ITransactionFileImporter, GenericParser>();
+							services.AddScoped<ITransactionFileImporter, NexoParser>();
+							services.AddScoped<ITransactionFileImporter, NIBCParser>();
+							services.AddScoped<ITransactionFileImporter, ScalableCapitalRKKParser>();
+							services.AddScoped<ITransactionFileImporter, ScalableCapitalWUMParser>();
+							services.AddScoped<ITransactionFileImporter, StockSplitParser>();
+							services.AddScoped<ITransactionFileImporter, Trading212Parser>();
 
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 							services.AddScoped<IHoldingStrategy, DeterminePrice>();
 							services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
 							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
+
+							services.AddScoped<IHistoryDataFileImporter, MacroTrendsParser>();
 						});
 		}
 	}

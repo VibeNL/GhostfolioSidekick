@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Parsers
 
 		public CurrencyConverter(string culture)
 		{
-			this.cultureInfo = new CultureInfo(culture);
+			cultureInfo = new CultureInfo(culture);
 		}
 
 		public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)

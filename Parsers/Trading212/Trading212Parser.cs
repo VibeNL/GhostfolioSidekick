@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trading212
 {
-	public class Trading212Parser : RecordBaseImporter<Trading212Record>
+	public class Trading212Parser : TransactionRecordBaseImporter<Trading212Record>
 	{
 		private readonly ICurrencyMapper currencyMapper;
 

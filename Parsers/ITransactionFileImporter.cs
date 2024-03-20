@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Parsers
 {
-	public interface IFileImporter
+	public interface ITransactionFileImporter
 	{
 		Task<bool> CanParseActivities(string filename);
 

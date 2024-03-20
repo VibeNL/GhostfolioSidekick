@@ -24,5 +24,8 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("use.crypto.workaround.dust.threshold")]
 		public decimal CryptoWorkaroundDustThreshold { get; set; } = 0;
+
+		[JsonPropertyName("historic.data.filepath")]
+		public string? HistoricDataFilePath { get; set; }
 	}
 }

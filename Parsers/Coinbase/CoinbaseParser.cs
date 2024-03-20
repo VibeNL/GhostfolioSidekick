@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	public class CoinbaseParser : RecordBaseImporter<CoinbaseRecord>
+	public class CoinbaseParser : TransactionRecordBaseImporter<CoinbaseRecord>
 	{
 		private readonly ICurrencyMapper currencyMapper;
 
