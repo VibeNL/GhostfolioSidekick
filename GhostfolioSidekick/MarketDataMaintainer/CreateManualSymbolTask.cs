@@ -29,8 +29,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			ArgumentNullException.ThrowIfNull(applicationSettings);
 
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.marketDataService = marketDataManager;
-			this.activitiesService = activitiesManager;
+			marketDataService = marketDataManager;
+			activitiesService = activitiesManager;
 			this.applicationSettings = applicationSettings;
 		}
 
