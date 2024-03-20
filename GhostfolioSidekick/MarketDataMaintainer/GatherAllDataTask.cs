@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	public class GatherAllDataTask : IScheduledWork
 	{
-		private readonly ILogger<SetBenchmarksTask> logger;
+		private readonly ILogger<GatherAllDataTask> logger;
 		private readonly IMarketDataService marketDataService;
 		private readonly IApplicationSettings applicationSettings;
 		private int counter = -1;
@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
 
 		public GatherAllDataTask(
-			ILogger<SetBenchmarksTask> logger,
+			ILogger<GatherAllDataTask> logger,
 			IMarketDataService marketDataManager,
 			IApplicationSettings applicationSettings)
 		{
