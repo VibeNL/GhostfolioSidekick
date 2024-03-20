@@ -4,6 +4,6 @@
 	{
 		Task<bool> CanParseHistoricData(string filename);
 
-		Task<HistoricData> ParseHistoricData(string filename);
+		Task<IEnumerable<HistoricData>> ParseHistoricData(string filename);
 	}
 }
