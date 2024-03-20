@@ -1,6 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Parsers.MacroTrends;
+using System.Linq.Expressions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 {
@@ -37,7 +38,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 
 			// Assert
 			result.Should().HaveCount(7546);
-			result.Should().ContainSingle(x => x.Date == new DateTime(1993, 10, 25, 0, 0, 0, 0, DateTimeKind.Utc) && x.Close == 0.8224M);
+			result.Should().ContainSingle(x => x.Date == new DateTime(1993, 10, 25, 0, 0, 0, 0, DateTimeKind.Utc) && x.Close == 0.8224M && x.Symbol == "ATVI");
 		}
 	}
 }

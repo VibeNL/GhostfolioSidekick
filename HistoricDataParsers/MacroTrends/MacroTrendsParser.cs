@@ -2,6 +2,7 @@
 using CsvHelper;
 using System.Globalization;
 using GhostfolioSidekick.Parsers.Coinbase;
+using System.Linq.Expressions;
 
 namespace GhostfolioSidekick.Parsers.MacroTrends
 {
@@ -37,16 +38,24 @@ namespace GhostfolioSidekick.Parsers.MacroTrends
 			csvReader.ReadHeader();
 			var records = csvReader.GetRecords<MacroTrendsRecord>().ToList();
 
+			var symbol = GetSymbol(filename);
+
 			var lst = new List<HistoricData>();
 			for (int i = 0; i < records.Count; i++)
 			{
-				lst.Add(ParseRow(records[i]));
+				lst.Add(ParseRow(symbol, records[i]));
 			}
 
 			return Task.FromResult<IEnumerable<HistoricData>>(lst);
 		}
 
-		private HistoricData ParseRow(MacroTrendsRecord macroTrendsRecord)
+		private static string GetSymbol(string filename)
+		{
+			var line = File.ReadAllLines(filename).Skip(1).First();
+			return line.Substring(1, line.IndexOf(" ") - 1).Trim();
+		}
+
+		private static HistoricData ParseRow(string symbol, MacroTrendsRecord macroTrendsRecord)
 		{
 			return new HistoricData
 			{
@@ -56,6 +65,7 @@ namespace GhostfolioSidekick.Parsers.MacroTrends
 				Low = macroTrendsRecord.Low,
 				Close = macroTrendsRecord.Close,
 				Volume = macroTrendsRecord.Volume,
+				Symbol = symbol,
 			};
 		}
 
