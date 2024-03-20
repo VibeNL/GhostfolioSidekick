@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly IAccountService accountManager;
 		private readonly IMarketDataService marketDataManager;
 		private readonly IExchangeRateService exchangeRateService;
-		private readonly IEnumerable<IFileImporter> importers;
+		private readonly IEnumerable<ITransactionFileImporter> importers;
 		private readonly IEnumerable<IHoldingStrategy> strategies;
 		private readonly IMemoryCache memoryCache;
 
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.FileImporter
 			IAccountService accountManager,
 			IMarketDataService marketDataManager,
 			IExchangeRateService exchangeRateService,
-			IEnumerable<IFileImporter> importers,
+			IEnumerable<ITransactionFileImporter> importers,
 			IEnumerable<IHoldingStrategy> strategies,
 			IMemoryCache memoryCache)
 		{

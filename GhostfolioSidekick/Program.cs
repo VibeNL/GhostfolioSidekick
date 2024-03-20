@@ -108,19 +108,19 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							services.AddScoped<IScheduledWork, GatherAllDataTask>();
 
-							services.AddScoped<IFileImporter, BitvavoParser>();
-							services.AddScoped<IFileImporter, BunqParser>();
-							services.AddScoped<IFileImporter, CentraalBeheerParser>();
-							services.AddScoped<IFileImporter, CoinbaseParser>();
-							services.AddScoped<IFileImporter, DeGiroParserNL>();
-							services.AddScoped<IFileImporter, DeGiroParserPT>();
-							services.AddScoped<IFileImporter, GenericParser>();
-							services.AddScoped<IFileImporter, NexoParser>();
-							services.AddScoped<IFileImporter, NIBCParser>();
-							services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
-							services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
-							services.AddScoped<IFileImporter, StockSplitParser>();
-							services.AddScoped<IFileImporter, Trading212Parser>();
+							services.AddScoped<ITransactionFileImporter, BitvavoParser>();
+							services.AddScoped<ITransactionFileImporter, BunqParser>();
+							services.AddScoped<ITransactionFileImporter, CentraalBeheerParser>();
+							services.AddScoped<ITransactionFileImporter, CoinbaseParser>();
+							services.AddScoped<ITransactionFileImporter, DeGiroParserNL>();
+							services.AddScoped<ITransactionFileImporter, DeGiroParserPT>();
+							services.AddScoped<ITransactionFileImporter, GenericParser>();
+							services.AddScoped<ITransactionFileImporter, NexoParser>();
+							services.AddScoped<ITransactionFileImporter, NIBCParser>();
+							services.AddScoped<ITransactionFileImporter, ScalableCapitalRKKParser>();
+							services.AddScoped<ITransactionFileImporter, ScalableCapitalWUMParser>();
+							services.AddScoped<ITransactionFileImporter, StockSplitParser>();
+							services.AddScoped<ITransactionFileImporter, Trading212Parser>();
 
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 							services.AddScoped<IHoldingStrategy, DeterminePrice>();

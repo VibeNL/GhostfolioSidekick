@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
-	public class ScalableCapitalRKKParser : RecordBaseImporter<BaaderBankRKKRecord>
+	public class ScalableCapitalRKKParser : TransactionRecordBaseImporter<BaaderBankRKKRecord>
 	{
 		private readonly ICurrencyMapper currencyMapper;
 

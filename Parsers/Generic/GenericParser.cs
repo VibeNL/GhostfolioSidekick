@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Generic
 {
-	public class GenericParser : RecordBaseImporter<GenericRecord>
+	public class GenericParser : TransactionRecordBaseImporter<GenericRecord>
 	{
 		private readonly ICurrencyMapper currencyMapper;
 

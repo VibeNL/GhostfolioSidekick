@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Bitvavo
 {
-	public class BitvavoParser : RecordBaseImporter<BitvavoRecord>
+	public class BitvavoParser : TransactionRecordBaseImporter<BitvavoRecord>
 	{
 		private readonly ICurrencyMapper currencyMapper;
 

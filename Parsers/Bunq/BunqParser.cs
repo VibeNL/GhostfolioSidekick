@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Bunq
 {
-	public class BunqParser : RecordBaseImporter<BunqRecord>
+	public class BunqParser : TransactionRecordBaseImporter<BunqRecord>
 	{
 		public BunqParser()
 		{

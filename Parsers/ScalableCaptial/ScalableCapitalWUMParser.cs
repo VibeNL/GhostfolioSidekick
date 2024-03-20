@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
-	public class ScalableCapitalWUMParser : RecordBaseImporter<BaaderBankWUMRecord>
+	public class ScalableCapitalWUMParser : TransactionRecordBaseImporter<BaaderBankWUMRecord>
 	{
 		private readonly ICurrencyMapper currencyMapper;
 

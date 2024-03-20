@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		private readonly Mock<IAccountService> accountManagerMock;
 		private readonly Mock<IMarketDataService> marketDataManagerMock;
 		private readonly Mock<IExchangeRateService> exchangeRateServiceMock;
-		private readonly List<Mock<IFileImporter>> importersMock;
+		private readonly List<Mock<ITransactionFileImporter>> importersMock;
 		private readonly List<Mock<IHoldingStrategy>> strategiesMock;
 		private readonly IMemoryCache memoryCache;
 
@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			accountManagerMock = new Mock<IAccountService>();
 			marketDataManagerMock = new Mock<IMarketDataService>();
 			exchangeRateServiceMock = new Mock<IExchangeRateService>();
-			importersMock = new List<Mock<IFileImporter>>() { new Mock<IFileImporter>() };
+			importersMock = new List<Mock<ITransactionFileImporter>>() { new Mock<ITransactionFileImporter>() };
 			strategiesMock = new List<Mock<IHoldingStrategy>>() { new Mock<IHoldingStrategy>() };
 			memoryCache = new MemoryCache(new MemoryCacheOptions());
 		}

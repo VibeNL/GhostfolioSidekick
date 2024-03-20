@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
-	public abstract class DeGiroParserBase<T> : RecordBaseImporter<T> where T : DeGiroRecordBase
+	public abstract class DeGiroParserBase<T> : TransactionRecordBaseImporter<T> where T : DeGiroRecordBase
 	{
 		private readonly ICurrencyMapper currencyMapper;
 
