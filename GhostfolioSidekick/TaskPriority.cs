@@ -8,14 +8,16 @@
 
 		CreateManualSymbols = 2,
 
-		FileImporter = 3,
+		SetKnownPrices = 3,
 
-		DeleteUnusedSymbols = 4,
+		FileImporter = 4,
 
-		SetTrackingInsightOnSymbols = 5,
+		DeleteUnusedSymbols = 5,
 
-		SetBenchmarks = 6,
+		SetTrackingInsightOnSymbols = 6,
 
-		GatherAllData = 7,
+		SetBenchmarks = 7,
+
+		GatherAllData = 8,
 	}
 }
