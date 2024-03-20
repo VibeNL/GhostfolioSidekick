@@ -37,6 +37,7 @@
 	<ItemGroup>
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
+		<Folder Include="TestFiles\CentraalBeheer\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -88,6 +89,15 @@
 		</None>
 		<None Update="TestFiles\Bunq\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\CentraalBeheer\buy_order.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\CentraalBeheer\deposit.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\CentraalBeheer\sell_order.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Coinbase\BuyOrders\single_buy.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>

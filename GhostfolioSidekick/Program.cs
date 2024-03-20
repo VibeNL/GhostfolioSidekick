@@ -13,6 +13,7 @@ using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
+using GhostfolioSidekick.Parsers.CentraalBeheer;
 using GhostfolioSidekick.Parsers.Coinbase;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
@@ -109,6 +110,7 @@ namespace GhostfolioSidekick
 
 							services.AddScoped<IFileImporter, BitvavoParser>();
 							services.AddScoped<IFileImporter, BunqParser>();
+							services.AddScoped<IFileImporter, CentraalBeheerParser>();
 							services.AddScoped<IFileImporter, CoinbaseParser>();
 							services.AddScoped<IFileImporter, DeGiroParserNL>();
 							services.AddScoped<IFileImporter, DeGiroParserPT>();
