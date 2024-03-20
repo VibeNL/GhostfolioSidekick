@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 {
 	public class FileImporterTaskTests
 	{
-		private readonly Mock<ILogger<FileImporterTask>> loggerMock;
+		private readonly Mock<ILogger<TransactionFileImporterTask>> loggerMock;
 		private readonly Mock<IApplicationSettings> settingsMock;
 		private readonly Mock<IActivitiesService> activitiesManagerMock;
 		private readonly Mock<IAccountService> accountManagerMock;
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 
 		public FileImporterTaskTests()
 		{
-			loggerMock = new Mock<ILogger<FileImporterTask>>();
+			loggerMock = new Mock<ILogger<TransactionFileImporterTask>>();
 			settingsMock = new Mock<IApplicationSettings>();
 			activitiesManagerMock = new Mock<IActivitiesService>();
 			accountManagerMock = new Mock<IAccountService>();
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			// Arrange
 			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath/acc1"); // Too deep :)
 
-			var fileImporterTask = new FileImporterTask(
+			var fileImporterTask = new TransactionFileImporterTask(
 				loggerMock.Object,
 				settingsMock.Object,
 				activitiesManagerMock.Object,
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(FileImporterTask)} Skip to do work, no file changes detected")),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(TransactionFileImporterTask)} Skip to do work, no file changes detected")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			// Arrange
 			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath");
 
-			var fileImporterTask = new FileImporterTask(
+			var fileImporterTask = new TransactionFileImporterTask(
 				loggerMock.Object,
 				settingsMock.Object,
 				activitiesManagerMock.Object,
@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				strategiesMock.Select(x => x.Object),
 				memoryCache);
 
-			memoryCache.Set(nameof(FileImporterTask), "3289fb407bc0f515a7c489dcda758c46eca6617dd8f7810ef3ac02ac8145b01be0defdcfd8042fa287cbbca983f3edc38ea083c41792ba6d471a2aeca26cf8d3");
+			memoryCache.Set(nameof(TransactionFileImporterTask), "3289fb407bc0f515a7c489dcda758c46eca6617dd8f7810ef3ac02ac8145b01be0defdcfd8042fa287cbbca983f3edc38ea083c41792ba6d471a2aeca26cf8d3");
 
 			// Act
 			await fileImporterTask.DoWork();
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(FileImporterTask)} Skip to do work, no file changes detected")),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(TransactionFileImporterTask)} Skip to do work, no file changes detected")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
@@ -103,7 +103,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			// Arrange
 			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath");
 
-			var fileImporterTask = new FileImporterTask(
+			var fileImporterTask = new TransactionFileImporterTask(
 				loggerMock.Object,
 				settingsMock.Object,
 				activitiesManagerMock.Object,
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				strategiesMock.Select(x => x.Object), 
 				memoryCache);
 
-			memoryCache.Set(nameof(FileImporterTask), "12");
+			memoryCache.Set(nameof(TransactionFileImporterTask), "12");
 
 			// Act
 			await fileImporterTask.DoWork();
@@ -124,14 +124,14 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(FileImporterTask)} Skip to do work, no file changes detected")),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(TransactionFileImporterTask)} Skip to do work, no file changes detected")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
 			loggerMock.Verify(
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(FileImporterTask)} Done")),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(TransactionFileImporterTask)} Done")),
 					It.IsAny<Exception>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
@@ -143,7 +143,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath");
 			importersMock[0].Setup(x => x.CanParseActivities(It.IsAny<string>())).ReturnsAsync(false);
 
-			var fileImporterTask = new FileImporterTask(
+			var fileImporterTask = new TransactionFileImporterTask(
 				loggerMock.Object,
 				settingsMock.Object,
 				activitiesManagerMock.Object,
@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath");
 			importersMock[0].Setup(x => x.CanParseActivities(It.IsAny<string>())).Throws(new Exception("Test Exception"));
 
-			var fileImporterTask = new FileImporterTask(
+			var fileImporterTask = new TransactionFileImporterTask(
 				loggerMock.Object,
 				settingsMock.Object,
 				activitiesManagerMock.Object,

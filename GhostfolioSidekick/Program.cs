@@ -99,7 +99,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<IMarketDataService, MarketDataService>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
-							services.AddScoped<IScheduledWork, FileImporterTask>();
+							services.AddScoped<IScheduledWork, TransactionFileImporterTask>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
 							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
 							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();

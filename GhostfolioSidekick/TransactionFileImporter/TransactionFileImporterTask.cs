@@ -12,10 +12,10 @@ using System.Text;
 
 namespace GhostfolioSidekick.FileImporter
 {
-	public class FileImporterTask : IScheduledWork
+	public class TransactionFileImporterTask : IScheduledWork
 	{
 		private readonly string fileLocation;
-		private readonly ILogger<FileImporterTask> logger;
+		private readonly ILogger<TransactionFileImporterTask> logger;
 		private readonly IActivitiesService activitiesManager;
 		private readonly IAccountService accountManager;
 		private readonly IMarketDataService marketDataManager;
@@ -28,8 +28,8 @@ namespace GhostfolioSidekick.FileImporter
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromMinutes(5);
 
-		public FileImporterTask(
-			ILogger<FileImporterTask> logger,
+		public TransactionFileImporterTask(
+			ILogger<TransactionFileImporterTask> logger,
 			IApplicationSettings settings,
 			IActivitiesService activitiesManager,
 			IAccountService accountManager,
@@ -55,14 +55,14 @@ namespace GhostfolioSidekick.FileImporter
 			var directories = Directory.GetDirectories(fileLocation);
 
 			string fileHashes = CalculateHash(directories);
-			var knownHash = memoryCache.TryGetValue(nameof(FileImporterTask), out string? hash) ? hash : string.Empty;
+			var knownHash = memoryCache.TryGetValue(nameof(TransactionFileImporterTask), out string? hash) ? hash : string.Empty;
 			if (fileHashes == knownHash)
 			{
-				logger.LogDebug($"{nameof(FileImporterTask)} Skip to do work, no file changes detected");
+				logger.LogDebug($"{nameof(TransactionFileImporterTask)} Skip to do work, no file changes detected");
 				return;
 			}
 
-			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
+			logger.LogInformation($"{nameof(TransactionFileImporterTask)} Starting to do work");
 
 			var holdingsCollection = new HoldingsCollection(logger, accountManager, marketDataManager);
 			var accountNames = new List<string>();
@@ -178,9 +178,9 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
+			memoryCache.Set(nameof(TransactionFileImporterTask), fileHashes, TimeSpan.FromHours(1));
 
-			logger.LogInformation($"{nameof(FileImporterTask)} Done");
+			logger.LogInformation($"{nameof(TransactionFileImporterTask)} Done");
 		}
 
 		private static string CalculateHash(string[] directories)

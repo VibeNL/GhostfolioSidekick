@@ -1,5 +1,6 @@
 using FluentAssertions;
 using GhostfolioSidekick;
+using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,7 +26,7 @@ namespace IntegrationTests
 			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "./Files/");
 			Environment.SetEnvironmentVariable("CONFIGURATIONFILE_PATH", "./Files/config.json");
 
-			var testLogger = new TestLogger("Service FileImporterTask has executed.");
+			var testLogger = new TestLogger($"Service {nameof(TransactionFileImporterTask)} has executed.");
 			var testHost = Program
 			.CreateHostBuilder()
 			.ConfigureServices((hostContext, services) =>
