@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			var id = $"{record.Type}_{record.Asset}_{date.ToInvariantString()}";
 
 			var currency = currencyMapper.Map(record.Currency);
-			if (record.Fee != null && record.Fee != 0)
+			if (record.Fee != null && record.Fee > 0) // Negative fees are not supported
 			{
 				yield return PartialActivity.CreateFee(currency, date, record.Fee ?? 0, new Money(currency, 0), id);
 			}

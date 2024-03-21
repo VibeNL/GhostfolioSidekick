@@ -326,7 +326,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						}
 					}
 
-					await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+					try
+					{
+						await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+					}
+					catch
+					{
+						// For some reason, the '-' is sometimes lost in translation
+						await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol.Replace("-", "")}", res);
+					}
+
 					logger.LogInformation($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifiers)}");
 				}
 				catch
