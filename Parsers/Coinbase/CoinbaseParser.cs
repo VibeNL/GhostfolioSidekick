@@ -110,7 +110,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
 				default:
-					throw new NotSupportedException();
+					throw new NotSupportedException($"{record.Type}");
 			}
 		}
 
