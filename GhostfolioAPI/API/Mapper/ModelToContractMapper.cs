@@ -120,21 +120,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};
-				case SendAndReceiveActivity sendAndReceiveActivity:
-					return new Contract.Activity
-					{
-						Id = activity.Id,
-						AccountId = activity.Account.Id,
-						SymbolProfile = CreateSymbolProfile(symbolProfile!),
-						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
-						Date = activity.Date,
-						Fee = await CalculateFeeAndTaxes(sendAndReceiveActivity.Fees, [], symbolProfile!.Currency, activity.Date),
-						FeeCurrency = symbolProfile.Currency.Symbol,
-						Quantity = Math.Abs(sendAndReceiveActivity.Quantity),
-						Type = sendAndReceiveActivity.Quantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
-						UnitPrice = await ConvertPrice(exchangeRateService, sendAndReceiveActivity.UnitPrice, symbolProfile.Currency, activity.Date),
-						ReferenceCode = activity.TransactionId
-					};
 				case KnownBalanceActivity:
 				case CashDepositWithdrawalActivity:
 				case StockSplitActivity:

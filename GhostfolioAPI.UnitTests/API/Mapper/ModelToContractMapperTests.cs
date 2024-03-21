@@ -1,12 +1,12 @@
-using Moq;
 using AutoFixture;
-using FluentAssertions;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
-using GhostfolioSidekick.Model.Compare;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model;
 using AutoFixture.Kernel;
+using FluentAssertions;
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Compare;
+using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 {
@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			// Arrange
 			var symbolProfile = DefaultFixture.Create().Create<Model.Symbols.SymbolProfile>();
 			var activity = DefaultFixture.Create().Create<BuySellActivity>();
-			
+
 			// Act
 			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, symbolProfile, activity);
 
@@ -230,47 +230,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			// TODO check more
 		}
 
-		[Fact]
-		public async Task ConvertToGhostfolioActivity_SendAndReceiveActivity_Success()
+		[Theory]
+		[InlineData(typeof(SendAndReceiveActivity))]
+		public async Task ConvertToGhostfolioActivity_Unsupported_ThrowsException(Type type)
 		{
 			// Arrange
 			var symbolProfile = DefaultFixture.Create().Create<Model.Symbols.SymbolProfile>();
-			var activity = DefaultFixture.Create().Create<SendAndReceiveActivity>();
+			var activity = (IActivity)DefaultFixture.Create().Create(type, new SpecimenContext(DefaultFixture.Create()));
 
 			// Act
-			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, symbolProfile, activity);
+			var result = async () => await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, symbolProfile, activity);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Type.Should().Be(Contract.ActivityType.BUY);
-			result.SymbolProfile!.Symbol.Should().Be(symbolProfile.Symbol);
-			result.SymbolProfile.DataSource.Should().Be(symbolProfile.DataSource);
-			result.Date.Should().Be(activity.Date);
-			result.Quantity.Should().Be(activity.Quantity);
-			result.UnitPrice.Should().Be(activity.UnitPrice!.Amount);
-			// TODO check more
-		}
-
-		[Fact]
-		public async Task ConvertToGhostfolioActivity_SendAndReceiveActivity_Send_Success()
-		{
-			// Arrange
-			var symbolProfile = DefaultFixture.Create().Create<Model.Symbols.SymbolProfile>();
-			var activity = DefaultFixture.Create().Create<SendAndReceiveActivity>();
-			activity.Quantity = -activity.Quantity;
-
-			// Act
-			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, symbolProfile, activity);
-
-			// Assert
-			result.Should().NotBeNull();
-			result.Type.Should().Be(Contract.ActivityType.SELL);
-			result.SymbolProfile!.Symbol.Should().Be(symbolProfile.Symbol);
-			result.SymbolProfile.DataSource.Should().Be(symbolProfile.DataSource);
-			result.Date.Should().Be(activity.Date);
-			result.Quantity.Should().Be(-activity.Quantity);
-			result.UnitPrice.Should().Be(activity.UnitPrice!.Amount);
-			// TODO check more
+			await result.Should().ThrowAsync<NotSupportedException>();
 		}
 
 		[Theory]

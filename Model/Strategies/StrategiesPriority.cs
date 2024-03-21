@@ -8,6 +8,8 @@
 
 		StakeRewardWorkaround = 2,
 
+		SendAndReceiveToBuyAndSell = 3,
+
 		ApplyDustCorrection = 99,
 	}
 }
