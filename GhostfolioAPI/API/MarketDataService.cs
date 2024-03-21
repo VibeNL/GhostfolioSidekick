@@ -263,6 +263,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<MarketDataProfile> GetMarketData(string symbol, string dataSource)
 		{
+			if (!settings.AllowAdminCalls)
+			{
+				return new MarketDataProfile()
+				{
+					AssetProfile = new SymbolProfile(symbol, symbol, Currency.USD, dataSource, AssetClass.Undefined, null, [], []),
+					MarketData = []
+				};
+			}
+
 			var key = $"{nameof(MarketDataService)}{nameof(GetMarketData)}{symbol}{dataSource}";
 			if (memoryCache.TryGetValue(key, out MarketDataProfile? cacheValue))
 			{

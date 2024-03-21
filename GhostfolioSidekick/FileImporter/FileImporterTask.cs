@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.FileImporter
 			await holdingsCollection.GenerateActivities(exchangeRateService);
 
 			logger.LogInformation($"Applying strategies");
-			ApplyHoldingActions(holdingsCollection, strategies);
+			await ApplyHoldingActions(holdingsCollection, strategies);
 
 			// Only update accounts when we have at least one transaction
 			var managedAccount = holdingsCollection
@@ -204,13 +204,13 @@ namespace GhostfolioSidekick.FileImporter
 			return sb.ToString();
 		}
 
-		private static void ApplyHoldingActions(HoldingsCollection holdingsCollection, IEnumerable<IHoldingStrategy> strategies)
+		private static async Task ApplyHoldingActions(HoldingsCollection holdingsCollection, IEnumerable<IHoldingStrategy> strategies)
 		{
 			foreach (var strategy in strategies.OrderBy(x => x.Priority))
 			{
 				foreach (var holding in holdingsCollection.Holdings)
 				{
-					strategy.Execute(holding);
+					await strategy.Execute(holding);
 				}
 			}
 		}

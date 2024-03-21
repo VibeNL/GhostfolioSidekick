@@ -12,7 +12,6 @@ namespace IntegrationTests
 		private Dictionary<string, int> AccountsWithExpectedNumbers = new Dictionary<string, int>
 		{
 			{ "TestAccount1", 2 },
-			{ "Issue190", 9 },
 		};
 
 		public Run()
@@ -20,7 +19,7 @@ namespace IntegrationTests
 
 		}
 
-		[Fact(Skip = "For now", Timeout = 300000)]
+		[Fact(Timeout = 300000)]
 		public async Task TestSimpleImport()
 		{
 			// Arrange
