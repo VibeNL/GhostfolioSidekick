@@ -30,6 +30,12 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			switch (record.Type)
 			{
 				case string when record.Type.Contains("Buy", StringComparison.InvariantCultureIgnoreCase):
+
+					if (new Currency(record.Asset).IsFiat())
+					{
+						yield break;
+					}
+
 					yield return PartialActivity.CreateBuy(
 						currency,
 						date,
@@ -40,12 +46,33 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						id);
 					break;
 				case string when record.Type.Contains("Sell", StringComparison.InvariantCultureIgnoreCase):
+					if (new Currency(record.Asset).IsFiat())
+					{
+						yield break;
+					}
+
 					yield return PartialActivity.CreateSell(
 						currency,
 						date,
 						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
 						record.Quantity,
 						record.Price!.Value,
+						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
+					break;
+				case "Deposit":
+					yield return PartialActivity.CreateCashDeposit(
+						currency,
+						date,
+						record.Quantity,
+						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
+					break;
+				case "Withdrawal":
+					yield return PartialActivity.CreateCashWithdrawal(
+						currency,
+						date,
+						record.Quantity,
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
 					break;
@@ -75,6 +102,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						yield return item;
 					}
 					break;
+				case "Staking Income":
 				case "Rewards Income":
 					yield return PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;

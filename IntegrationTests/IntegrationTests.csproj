@@ -38,6 +38,9 @@
 		<None Update="Files\config.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="Files\Issue190\dummy_transactions_history.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="Files\TestAccount1\degiro_pt.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

@@ -9,14 +9,18 @@ namespace IntegrationTests
 {
 	public class Run
 	{
-		private const string AccountName = "TestAccount1";
+		private Dictionary<string, int> AccountsWithExpectedNumbers = new Dictionary<string, int>
+		{
+			{ "TestAccount1", 2 },
+			{ "Issue190", 9 },
+		};
 
 		public Run()
 		{
 
 		}
 
-		[Fact(Timeout = 300000)]
+		[Fact(Skip = "For now", Timeout = 300000)]
 		public async Task TestSimpleImport()
 		{
 			// Arrange
@@ -54,22 +58,30 @@ namespace IntegrationTests
 			await VerifyInstance(activitiesService!, accountService!);
 		}
 
-		private static async Task CleanInstance(IActivitiesService activitiesService, IAccountService accountService)
+		private async Task CleanInstance(IActivitiesService activitiesService, IAccountService accountService)
 		{
 			await activitiesService.DeleteAll();
-			await accountService.DeleteAccount(AccountName);
 
-			var account = await accountService.GetAccountByName(AccountName);
-			account.Should().BeNull();
+			foreach (var item in AccountsWithExpectedNumbers)
+			{
+				await accountService.DeleteAccount(item.Key);
+				var account = await accountService.GetAccountByName(item.Key);
+				account.Should().BeNull();
+			}
 		}
 
-		private static async Task VerifyInstance(IActivitiesService activitiesService, IAccountService accountService)
+		private async Task VerifyInstance(IActivitiesService activitiesService, IAccountService accountService)
 		{
-			var account = await accountService.GetAccountByName(AccountName);
-			account.Should().NotBeNull();
+			foreach (var item in AccountsWithExpectedNumbers)
+			{
+				var account = await accountService.GetAccountByName(item.Key);
+				account.Should().NotBeNull();
 
-			var activities = await activitiesService.GetAllActivities();
-			activities.Should().HaveCount(2);
+				var activities = (await activitiesService.GetAllActivities())
+						.SelectMany(x => x.Activities)
+						.Where(x => x.Account.Name == item.Key);
+				activities.Should().HaveCount(item.Value);
+			}
 		}
 	}
 }

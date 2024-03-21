@@ -36,7 +36,6 @@
 
 	<ItemGroup>
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
-		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -92,11 +91,20 @@
 		<None Update="TestFiles\Coinbase\BuyOrders\single_advance_trade_buy.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Coinbase\Specials\single_buyfiatfromfiat_bugCoinbase.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Coinbase\BuyOrders\single_buy.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Coinbase\BuyOrders\single_convert.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Coinbase\CashTransactions\single_withdrawal.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Coinbase\CashTransactions\single_deposit.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Coinbase\Invalid\invalid_type.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -114,6 +122,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Coinbase\Specials\single_stakereward.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Coinbase\Specials\single_stakereward_alt.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_euro.csv">
