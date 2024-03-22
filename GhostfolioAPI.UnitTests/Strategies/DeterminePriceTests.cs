@@ -59,10 +59,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 						sendAndReceiveActivity.UnitPrice!.Amount.Should().Be(100);
 						break;
 					case GiftActivity giftActivity:
-						giftActivity.CalculatedUnitPrice!.Amount.Should().Be(100);
+						giftActivity.UnitPrice!.Amount.Should().Be(100);
 						break;
 					case StakingRewardActivity stakingRewardActivity:
-						stakingRewardActivity.CalculatedUnitPrice!.Amount.Should().Be(100);
+						stakingRewardActivity.UnitPrice!.Amount.Should().Be(100);
 						break;
 					default:
 						throw new Exception("Unexpected activity type");

@@ -35,10 +35,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 						sendAndReceiveActivity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
 					case GiftActivity giftActivity:
-						giftActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
+						giftActivity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
 					case StakingRewardActivity stakingRewardActivity:
-						stakingRewardActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
+						stakingRewardActivity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
 					default:
 						break;

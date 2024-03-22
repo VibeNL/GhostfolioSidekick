@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
 		{
 			// Arrange
-			var otherActivity = new StakingRewardActivity(activity.Account, activity.Date, activity.Amount, activity.TransactionId);
+			var otherActivity = new StakingRewardActivity(activity.Account, activity.Date, activity.Quantity, activity.TransactionId);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);

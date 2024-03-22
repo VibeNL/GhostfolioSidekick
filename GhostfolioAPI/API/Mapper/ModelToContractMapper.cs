@@ -115,9 +115,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						SymbolProfile = symbolProfile == null ? Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, giftActivity.Description) : CreateSymbolProfile(symbolProfile!),
 						Comment = TransactionReferenceUtilities.GetComment(activity),
 						Date = activity.Date,
-						Quantity = giftActivity.Amount,
+						Quantity = giftActivity.Quantity,
 						Type = Contract.ActivityType.BUY,
-						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
+						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.UnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};
 				case KnownBalanceActivity:

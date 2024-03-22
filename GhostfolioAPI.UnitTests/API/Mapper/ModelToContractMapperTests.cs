@@ -207,7 +207,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			result.SymbolProfile!.Symbol.Should().Be(symbolProfile.Symbol);
 			result.SymbolProfile.DataSource.Should().Be(symbolProfile.DataSource);
 			result.Date.Should().Be(activity.Date);
-			result.Quantity.Should().Be(activity.Amount);
+			result.Quantity.Should().Be(activity.Quantity);
 			// TODO check more
 		}
 
@@ -226,7 +226,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			result.SymbolProfile!.Symbol.Should().Be(activity.Description);
 			result.SymbolProfile.DataSource.Should().Be(ManualDataSource);
 			result.Date.Should().Be(activity.Date);
-			result.Quantity.Should().Be(activity.Amount);
+			result.Quantity.Should().Be(activity.Quantity);
 			// TODO check more
 		}
 

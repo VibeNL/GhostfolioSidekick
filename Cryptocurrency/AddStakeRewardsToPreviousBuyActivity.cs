@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 				if (buyActivity != null)
 				{
-					buyActivity.Quantity += stakeReward!.Amount;
+					buyActivity.Quantity += stakeReward!.Quantity;
 					holding.Activities.Remove(stakeReward!);
 				}
 			}
