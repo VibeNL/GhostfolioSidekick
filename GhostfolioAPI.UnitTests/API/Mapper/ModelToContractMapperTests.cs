@@ -222,7 +222,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result.Type.Should().Be(Contract.ActivityType.BUY);
+			result.Type.Should().Be(Contract.ActivityType.INTEREST);
 			result.SymbolProfile!.Symbol.Should().Be(activity.Description);
 			result.SymbolProfile.DataSource.Should().Be(ManualDataSource);
 			result.Date.Should().Be(activity.Date);

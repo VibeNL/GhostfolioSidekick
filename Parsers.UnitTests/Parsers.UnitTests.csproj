@@ -237,7 +237,10 @@
 		<None Update="TestFiles\Generic\Send\single_send.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\Generic\Specials\single_gift.csv">
+		<None Update="TestFiles\Generic\Specials\single_gift_stock.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Generic\Specials\single_gift_fiat.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Nexo\CashTransactions\single_withdrawal.csv">

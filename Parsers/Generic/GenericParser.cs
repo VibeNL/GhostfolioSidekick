@@ -114,16 +114,27 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Date,
 						record.Symbol!,
 						record.Quantity * record.UnitPrice,
-						new Money(currency,record.Quantity * record.UnitPrice),
+						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
 				case PartialActivityType.Gift:
-					lst.Add(PartialActivity.CreateGift(
-						currency,
-						record.Date,
-						record.UnitPrice,
-						new Money(currency, record.Quantity * record.UnitPrice),
-						record.Id));
+					if (record.Symbol == null || new Currency(record.Symbol!).IsFiat())
+					{
+						lst.Add(PartialActivity.CreateGift(
+							currency,
+							record.Date,
+							record.UnitPrice,
+							new Money(currency, record.Quantity * record.UnitPrice),
+							record.Id));
+					}
+					else
+					{
+						lst.Add(PartialActivity.CreateGift(
+							record.Date,
+							[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)],
+							record.Quantity,
+							record.Id));
+					}
 					break;
 				case PartialActivityType.CashDeposit:
 					lst.Add(PartialActivity.CreateCashDeposit(
