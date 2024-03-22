@@ -139,7 +139,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 				switch (activity)
 				{
 					case SendAndReceiveActivity sendAndReceiveActivity:
-						sendAndReceiveActivity.UnitPrice!.Amount.Should().Be(1);
+						sendAndReceiveActivity.UnitPrice!.Amount.Should().Be(0);
 						break;
 					default:
 						throw new Exception("Unexpected activity type");
