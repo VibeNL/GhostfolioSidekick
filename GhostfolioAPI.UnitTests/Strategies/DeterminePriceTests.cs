@@ -1,12 +1,13 @@
-using Moq;
+using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model.Activities.Types;
-using AutoFixture;
 using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 {
@@ -18,7 +19,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		public DeterminePriceTests()
 		{
 			marketDataServiceMock = new Mock<IMarketDataService>();
-			determinePrice = new DeterminePrice(marketDataServiceMock.Object);
+			determinePrice = new DeterminePrice(marketDataServiceMock.Object, new Mock<ILogger<DeterminePrice>>().Object);
 		}
 
 		[Fact]
@@ -138,7 +139,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 				switch (activity)
 				{
 					case SendAndReceiveActivity sendAndReceiveActivity:
-						sendAndReceiveActivity.UnitPrice!.Amount.Should().Be(0);
+						sendAndReceiveActivity.UnitPrice!.Amount.Should().Be(1);
 						break;
 					default:
 						throw new Exception("Unexpected activity type");

@@ -4,10 +4,11 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
-	public class DeterminePrice(IMarketDataService marketDataService) : IHoldingStrategy
+	public class DeterminePrice(IMarketDataService marketDataService, ILogger<DeterminePrice> logger) : IHoldingStrategy
 	{
 		public int Priority => (int)StrategiesPriority.DeterminePrice;
 
@@ -49,7 +50,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 		{
 			var marketDataProfile = await marketDataService.GetMarketData(symbolProfile.Symbol, symbolProfile.DataSource);
 			var marketDate = marketDataProfile.MarketData.SingleOrDefault(x => x.Date.Date == date.Date);
-			return new Money(symbolProfile!.Currency, marketDate?.MarketPrice.Amount ?? 0);
+
+			if (marketDate == null)
+			{
+				logger.LogWarning($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of 1 until Ghostfolio has determined the price");
+			}
+
+			return new Money(symbolProfile!.Currency, marketDate?.MarketPrice.Amount ?? 1);
 		}
 	}
 }
