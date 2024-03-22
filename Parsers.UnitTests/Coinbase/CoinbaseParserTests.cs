@@ -40,6 +40,46 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2023, 12, 29, 20, 30, 38, DateTimeKind.Utc),
+						10,
+						new Money(Currency.EUR, 10),
+						"Deposit_EUR_2023-12-29 20:30:38:+00:00")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleWithdrawal_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashWithdrawal(
+						Currency.EUR,
+						new DateTime(2023,11, 02, 09, 11, 11, DateTimeKind.Utc),
+						10,
+						new Money(Currency.EUR, 10),
+						"Withdrawal_EUR_2023-11-02 09:11:11:+00:00")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleBuy_Converted()
 		{
 			// Arrange
@@ -64,6 +104,34 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						0.99M,
 						new Money(Currency.EUR, 0),
 						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleAdvanceTradeBuy_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_advance_trade_buy.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2024, 03, 18, 11, 49, 37, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						0.564634M,
+						100000.58M,
+						new Money(Currency.EUR, 54321231.60M),
+						"Advance Trade Buy_BTC_2024-03-18 11:49:37:+00:00"),
+					PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2024, 03, 18, 11, 49, 37, DateTimeKind.Utc),
+						0.99M,
+						new Money(Currency.EUR, 0),
+						"Advance Trade Buy_BTC_2024-03-18 11:49:37:+00:00"),
 				]);
 		}
 
@@ -178,6 +246,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStakeReward_Alternative_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward_alt.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2023, 5, 19, 18, 14, 56, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						0.00002103M,
+						"Staking Income_ETH2_2023-05-19 18:14:56:+00:00")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleGift_Converted()
 		{
 			// Arrange
@@ -206,6 +293,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_BugCoinbase_BuyEurForEur_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_buyfiatfromfiat_bugCoinbase.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
 		}
 	}
 }

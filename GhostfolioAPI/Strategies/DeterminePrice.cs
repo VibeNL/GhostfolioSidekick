@@ -4,10 +4,11 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
-	public class DeterminePrice(IMarketDataService marketDataService) : IHoldingStrategy
+	public class DeterminePrice(IMarketDataService marketDataService, ILogger<DeterminePrice> logger) : IHoldingStrategy
 	{
 		public int Priority => (int)StrategiesPriority.DeterminePrice;
 
@@ -34,10 +35,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 						sendAndReceiveActivity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
 					case GiftActivity giftActivity:
-						giftActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
+						giftActivity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
 					case StakingRewardActivity stakingRewardActivity:
-						stakingRewardActivity.CalculatedUnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
+						stakingRewardActivity.UnitPrice = await GetUnitPrice(holding.SymbolProfile, activity.Date);
 						break;
 					default:
 						break;
@@ -49,6 +50,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 		{
 			var marketDataProfile = await marketDataService.GetMarketData(symbolProfile.Symbol, symbolProfile.DataSource);
 			var marketDate = marketDataProfile.MarketData.SingleOrDefault(x => x.Date.Date == date.Date);
+
+			if (marketDate == null)
+			{
+				logger.LogWarning($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of 0 until Ghostfolio has determined the price");
+			}
+
 			return new Money(symbolProfile!.Currency, marketDate?.MarketPrice.Amount ?? 0);
 		}
 	}

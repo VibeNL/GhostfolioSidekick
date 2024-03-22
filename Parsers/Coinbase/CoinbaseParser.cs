@@ -22,14 +22,20 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			var id = $"{record.Type}_{record.Asset}_{date.ToInvariantString()}";
 
 			var currency = currencyMapper.Map(record.Currency);
-			if (record.Fee != null && record.Fee != 0)
+			if (record.Fee != null && record.Fee > 0) // Negative fees are not supported
 			{
 				yield return PartialActivity.CreateFee(currency, date, record.Fee ?? 0, new Money(currency, 0), id);
 			}
 
 			switch (record.Type)
 			{
-				case "Buy":
+				case string when record.Type.Contains("Buy", StringComparison.InvariantCultureIgnoreCase):
+
+					if (new Currency(record.Asset).IsFiat())
+					{
+						yield break;
+					}
+
 					yield return PartialActivity.CreateBuy(
 						currency,
 						date,
@@ -39,13 +45,34 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
 					break;
-				case "Sell":
+				case string when record.Type.Contains("Sell", StringComparison.InvariantCultureIgnoreCase):
+					if (new Currency(record.Asset).IsFiat())
+					{
+						yield break;
+					}
+
 					yield return PartialActivity.CreateSell(
 						currency,
 						date,
 						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
 						record.Quantity,
 						record.Price!.Value,
+						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
+					break;
+				case "Deposit":
+					yield return PartialActivity.CreateCashDeposit(
+						currency,
+						date,
+						record.Quantity,
+						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
+					break;
+				case "Withdrawal":
+					yield return PartialActivity.CreateCashWithdrawal(
+						currency,
+						date,
+						record.Quantity,
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
 					break;
@@ -75,6 +102,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						yield return item;
 					}
 					break;
+				case "Staking Income":
 				case "Rewards Income":
 					yield return PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
@@ -82,7 +110,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
 				default:
-					throw new NotSupportedException();
+					throw new NotSupportedException($"{record.Type}");
 			}
 		}
 

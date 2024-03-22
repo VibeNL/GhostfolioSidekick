@@ -11,6 +11,11 @@
       "name": "TestAccount1",
       "currency": "EUR",
       "platform": ""
+    },
+    {
+      "name": "Issue190",
+      "currency": "EUR",
+      "platform": ""
     }
   ],
   "mappings": [

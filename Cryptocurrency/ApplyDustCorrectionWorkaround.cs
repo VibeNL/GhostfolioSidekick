@@ -25,8 +25,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 			// Should always be a sell or send as we have dust!
 			var lastActivity = activities
-				.Select(x => x as IActivityWithQuantityAndUnitPrice)
-				.Where(x => x != null)
+				.OfType<IActivityWithQuantityAndUnitPrice>()
 				.LastOrDefault(x =>
 					x!.Quantity < 0);
 			if (lastActivity == null || lastActivity.UnitPrice == null)

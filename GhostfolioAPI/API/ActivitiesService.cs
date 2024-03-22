@@ -44,16 +44,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1121:Assignments should not be made from within sub-expressions", Justification = "Cleaner")]
-		private async Task WriteOrder(Contract.Activity activity)
+		private async Task WriteOrder(Activity activity)
 		{
-			if (activity.Type == Contract.ActivityType.IGNORE)
+			if (activity.Type == ActivityType.IGNORE)
 			{
 				logger.LogTrace($"Skipping ignore transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 				return;
 			}
 
 			// Ghostfolio bug: Bug with very small numbers
-			if ((Math.Abs(activity.UnitPrice) < Constants.Epsilon) || Math.Abs(activity.Quantity) < Constants.Epsilon)
+			bool smallAmount = Math.Abs(activity.Quantity) < Constants.Epsilon;
+			bool smallPriceButNoZero = Math.Abs(activity.UnitPrice) < Constants.Epsilon && activity.UnitPrice != 0;
+			if (smallPriceButNoZero || smallAmount)
 			{
 				logger.LogDebug($"Skipping empty transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 				return;

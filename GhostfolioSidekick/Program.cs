@@ -122,6 +122,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, StockSplitParser>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
 
+							services.AddScoped<IHoldingStrategy, SendAndReceiveToBuyAndSellWorkaround>();
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 							services.AddScoped<IHoldingStrategy, DeterminePrice>();
 							services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();

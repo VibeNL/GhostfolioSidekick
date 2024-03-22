@@ -1,0 +1,5 @@
+
+Transactions
+User,John Smith,XXXX-YYYY-ZZZZ
+Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+2024-03-18 11:49:37 UTC,Advance Trade Buy,BTC,0.564634,EUR,100000.58,21321321.42,54321231.60,0.99,Bought 0.25453454 BTC for 34234.6 EUR on BTC-EUR

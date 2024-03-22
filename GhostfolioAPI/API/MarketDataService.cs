@@ -263,6 +263,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task<MarketDataProfile> GetMarketData(string symbol, string dataSource)
 		{
+			if (!settings.AllowAdminCalls)
+			{
+				return new MarketDataProfile()
+				{
+					AssetProfile = new SymbolProfile(symbol, symbol, Currency.USD, dataSource, AssetClass.Undefined, null, [], []),
+					MarketData = []
+				};
+			}
+
 			var key = $"{nameof(MarketDataService)}{nameof(GetMarketData)}{symbol}{dataSource}";
 			if (memoryCache.TryGetValue(key, out MarketDataProfile? cacheValue))
 			{
@@ -326,7 +335,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						}
 					}
 
-					await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+					try
+					{
+						await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", res);
+					}
+					catch
+					{
+						// For some reason, the '-' is sometimes lost in translation
+						await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol.Replace("-", "")}", res);
+					}
+
 					logger.LogInformation($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifiers)}");
 				}
 				catch

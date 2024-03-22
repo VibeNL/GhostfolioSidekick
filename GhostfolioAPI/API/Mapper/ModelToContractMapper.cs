@@ -115,25 +115,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						SymbolProfile = symbolProfile == null ? Contract.SymbolProfile.Empty(activity.Account.Balance.Money.Currency, giftActivity.Description) : CreateSymbolProfile(symbolProfile!),
 						Comment = TransactionReferenceUtilities.GetComment(activity),
 						Date = activity.Date,
-						Quantity = giftActivity.Amount,
+						Quantity = giftActivity.Quantity,
 						Type = Contract.ActivityType.BUY,
-						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.CalculatedUnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
+						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.UnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
-					};
-				case SendAndReceiveActivity sendAndReceiveActivity:
-					return new Contract.Activity
-					{
-						Id = activity.Id,
-						AccountId = activity.Account.Id,
-						SymbolProfile = CreateSymbolProfile(symbolProfile!),
-						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
-						Date = activity.Date,
-						Fee = await CalculateFeeAndTaxes(sendAndReceiveActivity.Fees, [], symbolProfile!.Currency, activity.Date),
-						FeeCurrency = symbolProfile.Currency.Symbol,
-						Quantity = Math.Abs(sendAndReceiveActivity.Quantity),
-						Type = sendAndReceiveActivity.Quantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
-						UnitPrice = await ConvertPrice(exchangeRateService, sendAndReceiveActivity.UnitPrice, symbolProfile.Currency, activity.Date),
-						ReferenceCode = activity.TransactionId
 					};
 				case KnownBalanceActivity:
 				case CashDepositWithdrawalActivity:
