@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Comment = TransactionReferenceUtilities.GetComment(activity),
 						Date = activity.Date,
 						Quantity = giftActivity.Quantity,
-						Type = Contract.ActivityType.BUY,
+						Type = symbolProfile == null ? Contract.ActivityType.INTEREST : Contract.ActivityType.BUY,
 						UnitPrice = await ConvertPrice(exchangeRateService, giftActivity.UnitPrice, activity.Account.Balance.Money.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 					};

@@ -51,17 +51,17 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
-						Currency.USD, 
-						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
 						0.0267001000M,
 						453.33M,
 						new Money(Currency.USD,  12.103956333M),
 						"Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
-						Currency.USD, 
-						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
-						0.02M, 
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
+						0.02M,
 						new Money(Currency.USD, 0.02M),
 						"Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
 				]);
@@ -79,16 +79,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSell(
-						Currency.USD, 
-						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
 						0.0267001000M,
 						453.33M,
 						new Money(Currency.USD, 12.103956333M),
 						"Sell_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
-						Currency.USD, 
-						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						0.02M,
 						new Money(Currency.USD, 0.02M),
 						"Sell_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
@@ -107,13 +107,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateReceive(
-						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
 						0.0267001000M,
 						"Receive_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
-						Currency.USD, 
-						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.USD,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						0.02M,
 						new Money(Currency.USD, 0.02M),
 						"Receive_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
@@ -134,10 +134,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 					PartialActivity.CreateSend(
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
-						0.0267001000M, 
+						0.0267001000M,
 						"Send_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
-						Currency.USD, 
+						Currency.USD,
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						0.02M,
 						new Money(Currency.USD, 0.02M),
@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateValuable(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						"Giftcard",
 						250M,
@@ -178,8 +178,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateLiability(
-						Currency.EUR, 
-						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.EUR,
+						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						"Giftcard",
 						250M,
 						new Money(Currency.EUR, 250M),
@@ -199,8 +199,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
-						Currency.USD, 
-						new DateTime(2023, 08, 6, 0, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.USD,
+						new DateTime(2023, 08, 6, 0, 0, 0, 0, DateTimeKind.Utc),
 						1000,
 						new Money(Currency.USD, 1000),
 						"CashDeposit_EUR_2023-08-06_1_USD_0")
@@ -219,7 +219,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
-						Currency.USD, 
+						Currency.USD,
 						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						10,
 						new Money(Currency.USD, 10),
@@ -239,9 +239,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateInterest(
-						Currency.USD, 
+						Currency.USD,
 						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
-						3.3M, 
+						3.3M,
 						"Interest",
 						new Money(Currency.USD, 3.3M),
 						"Interest_USD_2023-08-08_1_USD_0"),
@@ -260,8 +260,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
-						Currency.USD, 
-						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.USD,
+						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						0.25M,
 						new Money(Currency.USD, 0.25M),
 						"Fee_USD_2023-08-08_1_USD_0.25"),
@@ -280,13 +280,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
-						Currency.USD, 
-						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 
-						3M, 
+						Currency.USD,
+						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
+						3M,
 						new Money(Currency.USD, 3M),
 						"Fee_USD_2023-08-08_1_USD_0.25"),
 					PartialActivity.CreateFee(
-						Currency.USD, 
+						Currency.USD,
 						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						0.25M,
 						new Money(Currency.USD, 0.25M),
@@ -306,8 +306,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateTax(
-						Currency.USD, 
-						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.USD,
+						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						0.25M,
 						new Money(Currency.USD, 0.25M),
 						"Tax_USD_2023-08-08_1_USD_"),
@@ -326,14 +326,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateTax(
-						Currency.USD, 
+						Currency.USD,
 						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
-						3M, 
+						3M,
 						new Money(Currency.USD, 3M),
 						"Tax_USD_2023-08-08_1_USD_"),
 					PartialActivity.CreateTax(
-						Currency.USD, 
-						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.USD,
+						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						0.25M,
 						new Money(Currency.USD, 0.25M),
 						"Tax_USD_2023-08-08_1_USD_"),
@@ -353,14 +353,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo<PartialActivity>(
 				[
 					PartialActivity.CreateDividend(
-						Currency.EUR, 
-						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.EUR,
+						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("US2546871060")],
 						Amount,
 						new Money(Currency.EUR, Amount),
 						"Dividend_US2546871060_2023-08-08_0.3247_EUR_0"),
 					PartialActivity.CreateTax(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
 						0.02M,
 						new Money(Currency.EUR, 0.02M),
@@ -369,12 +369,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 		}
 
 		[Fact]
-		public async Task ConvertActivitiesForAccount_TestFileSingleGift_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileSingleGiftFiat_Converted()
 		{
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/Specials/single_gift.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/Specials/single_gift_fiat.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
@@ -385,6 +385,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						25M,
 						new Money(Currency.USD, 25M),
 						"Gift_EUR_2023-08-07_1_USD_"),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleGiftStock_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/Specials/single_gift_stock.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						new DateTime(2023, 10, 6, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateGeneric("US2546871060")],
+						0.3247M,
+						"Gift_US2546871060_2023-10-06_0.3247_EUR_"),
 				]);
 		}
 
