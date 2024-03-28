@@ -34,8 +34,8 @@ namespace GhostfolioSidekick.UnitTests.Model.Strategies
 			await _roundStrategy.Execute(holding);
 
 			// Assert
-			mockActivity.Object.Quantity.Should().Be(1.1234567890m);
-			mockActivity.Object.UnitPrice!.Amount.Should().Be(1.1234567890m);
+			mockActivity.Object.Quantity.Should().Be(1.123457m);
+			mockActivity.Object.UnitPrice!.Amount.Should().Be(1.123457m);
 		}
 
 		[Fact]
