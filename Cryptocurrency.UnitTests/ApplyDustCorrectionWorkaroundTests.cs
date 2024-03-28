@@ -162,5 +162,28 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Assert
 			activity.Quantity.Should().Be(-0.1M);
 		}
+
+		[Fact]
+		public async Task Execute_ShouldApplyDustCorrection_Bug196()
+		{
+			// Arrange
+			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
+			{
+				Activities = [
+					new BuySellActivity(null!, DateTime.Now, 3.83656244005371m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, DateTime.Now, 3.83729854182655m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, DateTime.Now, 3.83729854182655m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, DateTime.Now, -11.51115952000000m, new Money(Currency.USD, 0.01m), string.Empty)
+				]
+			};
+
+			// Act
+			await strategy.Execute(holding);
+
+			// Assert
+			holding.Activities.OfType<BuySellActivity>().Sum(x => x.Quantity).Should().Be(0);
+		}
 	}
 }
