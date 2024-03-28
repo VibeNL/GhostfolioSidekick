@@ -16,7 +16,8 @@ namespace GhostfolioSidekick.Model.Strategies
 				.ToList()
 				.ForEach(x =>
 				{
-					x.Quantity = Math.Round(x.Quantity, 10); // 10 is the maximum precision of the API
+					// Database uses double precision, 8 bytes, variable-precision, inexact, 15 decimal digits precision
+					x.Quantity = Math.Round(x.Quantity, 6); // to avoid rounding errors, we round to 6 decimal places
 
 					if (x.UnitPrice != null)
 					{
