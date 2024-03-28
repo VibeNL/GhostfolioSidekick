@@ -39,14 +39,8 @@ namespace GhostfolioSidekick.Model
 				return value;
 			}
 
-			static decimal Round(decimal? value)
-			{
-				var r = Math.Round(value ?? 0, 10);
-				return r;
-			}
-
 			var rate = await exchangeRateService.GetConversionRate(value!.Currency, target, dateTime);
-			return new Money(target, Round(value.Amount * rate));
+			return new Money(target, value.Amount * rate);
 		}
 	}
 }

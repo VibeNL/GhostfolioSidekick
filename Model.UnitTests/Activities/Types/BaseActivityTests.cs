@@ -1,11 +1,11 @@
-using Moq;
 using AutoFixture;
-using FluentAssertions;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Compare;
-using GhostfolioSidekick.Model.Activities;
 using AutoFixture.Kernel;
+using FluentAssertions;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Compare;
+using Moq;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {
@@ -104,8 +104,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		{
 			// Arrang
 			var type = typeof(IActivity);
-			var types = AppDomain.CurrentDomain.GetAssemblies()
-							.SelectMany(s => s.GetTypes())
+			var types = type.Assembly.GetTypes()
 							.Where(p => type.IsAssignableFrom(p) && !p.IsAbstract);
 
 			Fixture fixture = new Fixture();
