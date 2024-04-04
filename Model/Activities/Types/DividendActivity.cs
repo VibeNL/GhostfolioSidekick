@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		override protected async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, DividendActivity otherActivity)
 		{
-			var existingAmount = await CompareUtilities.RoundAndConvert(exchangeRateService, otherActivity.Amount, Amount.Currency, Date);
+			var existingAmount = await CompareUtilities.Convert(exchangeRateService, otherActivity.Amount, Amount.Currency, Date);
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
 				Amount,
 				existingAmount);

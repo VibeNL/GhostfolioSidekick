@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.UnitTests.Model
 				.ReturnsAsync(0.85m);
 
 			// Act
-			var result = await CompareUtilities.RoundAndConvert(exchangeRateServiceMock.Object, value, target, dateTime);
+			var result = await CompareUtilities.Convert(exchangeRateServiceMock.Object, value, target, dateTime);
 
 			// Assert
 			result.Should().NotBeNull();

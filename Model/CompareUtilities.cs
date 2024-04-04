@@ -6,12 +6,12 @@ namespace GhostfolioSidekick.Model
 	{
 		public static bool AreNumbersEquals(decimal? a, decimal? b)
 		{
-			return Math.Abs((a ?? 0) - (b ?? 0)) < Constants.Epsilon;
+			return Math.Abs((a ?? 0) - (b ?? 0)) == Constants.Epsilon;
 		}
 
 		public static bool AreNumbersEquals(Money? a, Money? b)
 		{
-			return Math.Abs((a?.Amount ?? 0) - (b?.Amount ?? 0)) < Constants.Epsilon;
+			return Math.Abs((a?.Amount ?? 0) - (b?.Amount ?? 0)) == Constants.Epsilon;
 		}
 
 		public static bool AreMoneyEquals(IExchangeRateService exchangeRateService, Currency? target, DateTime dateTime, List<Money> money1, List<Money> money2)
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Model
 			}));
 		}
 
-		public static async Task<Money?> RoundAndConvert(IExchangeRateService exchangeRateService, Money? value, Currency? target, DateTime dateTime)
+		public static async Task<Money?> Convert(IExchangeRateService exchangeRateService, Money? value, Currency? target, DateTime dateTime)
 		{
 			if (target == null || value == null)
 			{
