@@ -16,37 +16,44 @@ namespace GhostfolioSidekick.Cryptocurrency
 				return Task.CompletedTask;
 			}
 
-			var activities = holding.Activities.OrderBy(x => x.Date).ToList();
+			var allActivities = holding.Activities.OrderBy(x => x.Date).ToList();
 
-			var amount = activities
-				.Select(x => x as IActivityWithQuantityAndUnitPrice)
-				.Where(x => x != null)
-				.Sum(x => x!.Quantity);
-
-			// Should always be a sell or send as we have dust!
-			var lastActivity = activities
-				.OfType<IActivityWithQuantityAndUnitPrice>()
-				.LastOrDefault(x =>
-					x!.Quantity < 0);
-			if (lastActivity == null || lastActivity.UnitPrice == null)
+			var accounts = allActivities.Select(x => x.Account).Distinct();
+			foreach (var account in accounts)
 			{
-				return Task.CompletedTask;
-			}
+				var activities = allActivities
+					.Where(x => x.Account == account)
+					.ToList();
 
-			var lastKnownPrice = lastActivity.UnitPrice.Amount;
+				var amount = activities
+					.Select(x => x as IActivityWithQuantityAndUnitPrice)
+					.Where(x => x != null)
+					.Sum(x => x!.Quantity);
 
-			decimal dustValue = amount * lastKnownPrice;
-			if (dustValue != 0 && Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold)
-			{
-				lastActivity.UnitPrice = new Money(
-					lastActivity.UnitPrice.Currency,
-					lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));
+				// Should always be a sell or send as we have dust!
+				var lastActivity = activities
+					.OfType<IActivityWithQuantityAndUnitPrice>()
+					.LastOrDefault(x =>
+						x!.Quantity < 0);
+				if (lastActivity == null || lastActivity.UnitPrice == null)
+				{
+					return Task.CompletedTask;
+				}
 
-				lastActivity.Quantity -= amount;
+				decimal dustValue = amount;
+				if (dustValue != 0 && Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold)
+				{
+					lastActivity.UnitPrice = new Money(
+						lastActivity.UnitPrice.Currency,
+						lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));
 
-				RemoveActivitiesAfter(activities, lastActivity);
-				holding.Activities.Clear();
-				holding.Activities.AddRange(activities);
+					lastActivity.Quantity -= amount;
+
+					RemoveActivitiesAfter(activities, lastActivity);
+					holding.Activities.RemoveAll(x => x.Account == account && !activities.Contains(x));
+					//holding.Activities.Clear();
+					//holding.Activities.AddRange(activities);
+				}
 			}
 
 			return Task.CompletedTask;
