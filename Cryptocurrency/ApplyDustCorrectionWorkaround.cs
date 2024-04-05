@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 					.OfType<IActivityWithQuantityAndUnitPrice>()
 					.LastOrDefault(x =>
 						x!.Quantity < 0);
-				if (lastActivity == null || lastActivity.UnitPrice == null)
+				if (lastActivity == null)
 				{
 					return Task.CompletedTask;
 				}
@@ -43,9 +43,10 @@ namespace GhostfolioSidekick.Cryptocurrency
 				decimal dustValue = amount;
 				if (dustValue != 0 && Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold)
 				{
-					lastActivity.UnitPrice = new Money(
+
+if(lastActivity.UnitPrice != null){					lastActivity.UnitPrice = new Money(
 						lastActivity.UnitPrice.Currency,
-						lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));
+						lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));}
 
 					lastActivity.Quantity -= amount;
 
