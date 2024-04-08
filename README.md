@@ -140,6 +140,7 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Trading 212 | Export of transaction history | X | X | X | X |
 | De Giro | Export of account history (Language dependend, NL and PT supported currently) | X | X | X | X |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
+| Scalable Capital (Prime only) | The CSV files export via the transaction view | X | X | X | X |
 | Bunq (Bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | NIBC (Bank) | Export CSV (Semicolom delimited) | - | - | - | X |
 | Nexo (Broken) | Export of transaction history | X | - | - | X |
