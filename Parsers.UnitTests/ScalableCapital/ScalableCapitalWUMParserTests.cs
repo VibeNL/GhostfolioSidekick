@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange
-			foreach (var file in Directory.GetFiles("./TestFiles/ScalableCapital/", "wum.csv", SearchOption.AllDirectories))
+			foreach (var file in Directory.GetFiles("./TestFiles/ScalableCapital/BaaderBank/", "wum.csv", SearchOption.AllDirectories))
 			{
 				// Act
 				var canParse = await parser.CanParseActivities(file);
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BuyOrders/SingleBuy/wum.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/BuyOrders/SingleBuy/wum.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/SellOrders/SingleSell/wum.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/SellOrders/SingleSell/wum.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			Func<Task> a = () => parser.ParseActivities("./TestFiles/ScalableCapital/Invalid/invalid_action.csv", holdingsAndAccountsCollection, account.Name);
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/invalid_action.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();
