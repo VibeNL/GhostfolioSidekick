@@ -8,7 +8,7 @@
 
 		StakeRewardWorkaround = 2,
 
-		SendAndReceiveToBuyAndSell = 3,
+		NotNativeSupportedTransactionsInGhostfolio = 3,
 
 		Rounding = 4,
 
