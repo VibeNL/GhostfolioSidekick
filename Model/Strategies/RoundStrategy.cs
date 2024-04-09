@@ -4,8 +4,8 @@ namespace GhostfolioSidekick.Model.Strategies
 {
 	public class RoundStrategy : IHoldingStrategy
 	{
-		// to avoid rounding errors, we round to 6 decimal places
-		private int numberOfDecimals = 6;
+		// to avoid rounding errors, we round to 5 decimal places
+		private int numberOfDecimals = 5;
 
 		public int Priority => (int)StrategiesPriority.Rounding;
 
