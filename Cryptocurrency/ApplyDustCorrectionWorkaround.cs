@@ -43,10 +43,12 @@ namespace GhostfolioSidekick.Cryptocurrency
 				decimal dustValue = amount;
 				if (dustValue != 0 && Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold)
 				{
-
-if(lastActivity.UnitPrice != null){					lastActivity.UnitPrice = new Money(
-						lastActivity.UnitPrice.Currency,
-						lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));}
+					if (lastActivity.UnitPrice != null)
+					{
+						lastActivity.UnitPrice = new Money(
+											lastActivity.UnitPrice.Currency,
+											lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));
+					}
 
 					lastActivity.Quantity -= amount;
 

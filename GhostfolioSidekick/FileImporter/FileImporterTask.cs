@@ -127,7 +127,8 @@ namespace GhostfolioSidekick.FileImporter
 				.Where(x => x.Order1 is not KnownBalanceActivity)
 				.Where(x => x.Operation != Operation.Duplicate)
 				.Where(x => managedAccount.Contains(x.Order1.Account.Id))
-				.OrderBy(x => x.Order1.Date);
+				.OrderBy(x => x.Order1.Date)
+				.ToList();
 
 			logger.LogInformation($"Applying changes");
 			foreach (var item in mergeOrders)

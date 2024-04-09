@@ -10,8 +10,8 @@
 
 		SendAndReceiveToBuyAndSell = 3,
 
-		ApplyDustCorrection = 4,
+		Rounding = 4,
 
-		Rounding = 5,
+		ApplyDustCorrection = 5,
 	}
 }
