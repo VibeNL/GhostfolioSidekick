@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Strategies;
 
@@ -49,7 +50,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 					holding.Activities.Add(new InterestActivity(
 						activity.Account,
 						activity.Date,
-						activity.UnitPrice!.Times(activity.Quantity),
+						new Money(activity.Account.Balance.Money.Currency, activity.Quantity),
 						activity.TransactionId)
 					{
 						Description = activity.Description,
