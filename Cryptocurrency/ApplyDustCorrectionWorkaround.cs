@@ -47,15 +47,13 @@ namespace GhostfolioSidekick.Cryptocurrency
 					{
 						lastActivity.UnitPrice = new Money(
 											lastActivity.UnitPrice.Currency,
-											lastActivity.UnitPrice.Amount * ((lastActivity.Quantity - amount) / lastActivity.Quantity));
+											lastActivity.UnitPrice.Amount * ((lastActivity.Quantity) / (lastActivity.Quantity - amount)));
 					}
 
 					lastActivity.Quantity -= amount;
 
 					RemoveActivitiesAfter(activities, lastActivity);
 					holding.Activities.RemoveAll(x => x.Account == account && !activities.Contains(x));
-					//holding.Activities.Clear();
-					//holding.Activities.AddRange(activities);
 				}
 			}
 

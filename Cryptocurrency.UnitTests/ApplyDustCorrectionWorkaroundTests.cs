@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 
 			// Assert
 			activity.Quantity.Should().Be(-0.002M);
-			activity.UnitPrice!.Amount.Should().Be(0.02M);
+			activity.UnitPrice!.Amount.Should().Be(0.005M);
 		}
 
 		[Fact]
@@ -141,7 +141,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 
 			// Assert
 			activity.Quantity.Should().Be(-0.001M);
-			activity.UnitPrice!.Amount.Should().Be(0.005M);
+			activity.UnitPrice!.Amount.Should().Be(0.02M);
 		}
 
 		[Fact]
