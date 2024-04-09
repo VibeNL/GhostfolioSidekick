@@ -10,6 +10,14 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 {
 	public class ApplyDustCorrectionWorkaroundTests
 	{
+		private DateTime now = DateTime.Now;
+		private DateTime next;
+
+		public ApplyDustCorrectionWorkaroundTests()
+		{
+			next = now.AddMinutes(1);
+		}
+
 		[Fact]
 		public void Execute_ShouldNotApplyDustCorrection_WhenCryptoWorkaroundDustIsFalse()
 		{
@@ -61,7 +69,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
 			var strategy = new ApplyDustCorrectionWorkaround(settings);
-			var activity = new BuySellActivity(null!, DateTime.Now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
+			var activity = new BuySellActivity(null!, now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
@@ -83,12 +91,12 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
 			var strategy = new ApplyDustCorrectionWorkaround(settings);
-			var activity = new BuySellActivity(null!, DateTime.Now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
+			var sellActivity = new BuySellActivity(null!, next, -0.002m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					new BuySellActivity(null!, DateTime.Now, -0.002m, new Money(Currency.USD, 0.01m), string.Empty),
-					activity
+					new BuySellActivity(null!, now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty),
+					sellActivity
 				]
 			};
 
@@ -96,8 +104,8 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			await strategy.Execute(holding);
 
 			// Assert
-			activity.Quantity.Should().Be(0.002m);
-			activity.UnitPrice!.Amount.Should().Be(0.01M);
+			sellActivity.Quantity.Should().Be(-0.002m);
+			sellActivity.UnitPrice!.Amount.Should().Be(0.01M);
 		}
 
 		[Fact]
@@ -106,20 +114,21 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
 			var strategy = new ApplyDustCorrectionWorkaround(settings);
-			var activity = new BuySellActivity(null!, DateTime.Now, -0.001m, new Money(Currency.USD, 0.01m), string.Empty);
+			var sellActivity = new BuySellActivity(null!, next, -0.001m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					new BuySellActivity(null!, DateTime.Now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty),
-					activity]
+					new BuySellActivity(null!, now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty),
+					sellActivity
+				]
 			};
 
 			// Act
 			await strategy.Execute(holding);
 
 			// Assert
-			activity.Quantity.Should().Be(-0.002M);
-			activity.UnitPrice!.Amount.Should().Be(0.005M);
+			sellActivity.Quantity.Should().Be(-0.002M);
+			sellActivity.UnitPrice!.Amount.Should().Be(0.005M);
 		}
 
 		[Fact]
@@ -128,20 +137,21 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
 			var strategy = new ApplyDustCorrectionWorkaround(settings);
-			var activity = new BuySellActivity(null!, DateTime.Now, -0.002m, new Money(Currency.USD, 0.01m), string.Empty);
+			var sellActivity = new BuySellActivity(null!, next, -0.002m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					new BuySellActivity(null!, DateTime.Now, 0.001m, new Money(Currency.USD, 0.01m), string.Empty),
-					activity]
+					new BuySellActivity(null!, now, 0.001m, new Money(Currency.USD, 0.01m), string.Empty),
+					sellActivity
+				]
 			};
 
 			// Act
 			await strategy.Execute(holding);
 
 			// Assert
-			activity.Quantity.Should().Be(-0.001M);
-			activity.UnitPrice!.Amount.Should().Be(0.02M);
+			sellActivity.Quantity.Should().Be(-0.001M);
+			sellActivity.UnitPrice!.Amount.Should().Be(0.02M);
 		}
 
 		[Fact]
@@ -150,10 +160,13 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
 			var strategy = new ApplyDustCorrectionWorkaround(settings);
-			var activity = new BuySellActivity(null!, DateTime.Now, -0.1m, new Money(Currency.USD, 1m), string.Empty);
+			var activity = new BuySellActivity(null!, next, -0.1m, new Money(Currency.USD, 1m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
-				Activities = [activity]
+				Activities = [
+					new BuySellActivity(null!, now, 0.2M, new Money(Currency.USD, 0.01m), string.Empty),
+					activity
+				]
 			};
 
 			// Act
@@ -172,10 +185,10 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					new BuySellActivity(null!, DateTime.Now, 3.83656244005371m, new Money(Currency.USD, 0.01m), string.Empty),
-					new BuySellActivity(null!, DateTime.Now, 3.83729854182655m, new Money(Currency.USD, 0.01m), string.Empty),
-					new BuySellActivity(null!, DateTime.Now, 3.83729854182655m, new Money(Currency.USD, 0.01m), string.Empty),
-					new BuySellActivity(null!, DateTime.Now, -11.51115952000000m, new Money(Currency.USD, 0.01m), string.Empty)
+					new BuySellActivity(null!, now, 3.83656244005371m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, now.AddMinutes(1), 3.83729854182655m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, now.AddMinutes(2), 3.83729854182655m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, now.AddMinutes(3), -11.51115952000000m, new Money(Currency.USD, 0.01m), string.Empty)
 				]
 			};
 
@@ -183,6 +196,31 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			await strategy.Execute(holding);
 
 			// Assert
+			holding.Activities.OfType<BuySellActivity>().Sum(x => x.Quantity).Should().Be(0);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldApplyDustCorrection_StakeRewardsAfterSell_ShouldApply()
+		{
+			// Arrange
+			var settings = new Settings { CryptoWorkaroundDust = true, CryptoWorkaroundDustThreshold = 0.01m };
+			var strategy = new ApplyDustCorrectionWorkaround(settings);
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
+			{
+				Activities = [
+					new BuySellActivity(null!, now, 1, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, now.AddMinutes(1), -1, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, now.AddMinutes(2), 0.001m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, now.AddMinutes(3), 0.001m, new Money(Currency.USD, 0.01m), string.Empty)
+				]
+			};
+
+			// Act
+			await strategy.Execute(holding);
+
+			// Assert
+			holding.Activities.Count.Should().Be(2);
+			((BuySellActivity)holding.Activities[1]).Quantity.Should().Be(-1);
 			holding.Activities.OfType<BuySellActivity>().Sum(x => x.Quantity).Should().Be(0);
 		}
 	}
