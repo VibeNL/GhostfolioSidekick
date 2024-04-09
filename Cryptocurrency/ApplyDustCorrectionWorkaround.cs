@@ -23,18 +23,15 @@ namespace GhostfolioSidekick.Cryptocurrency
 			{
 				var activities = allActivities
 					.Where(x => x.Account == account)
+					.OfType<IActivityWithQuantityAndUnitPrice>()
 					.ToList();
 
 				var amount = activities
-					.Select(x => x as IActivityWithQuantityAndUnitPrice)
-					.Where(x => x != null)
 					.Sum(x => x!.Quantity);
 
 				// Should always be a sell or send as we have dust!
 				var lastActivity = activities
-					.OfType<IActivityWithQuantityAndUnitPrice>()
-					.LastOrDefault(x =>
-						x!.Quantity < 0);
+					.LastOrDefault(x => x!.Quantity < 0);
 				if (lastActivity == null)
 				{
 					return Task.CompletedTask;
@@ -43,6 +40,13 @@ namespace GhostfolioSidekick.Cryptocurrency
 				decimal dustValue = amount;
 				if (dustValue != 0 && Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold)
 				{
+					// Remove activities after the last sell activity
+					RemoveActivitiesAfter(holding, activities, lastActivity);
+
+					// Get the new amount	
+					amount = activities.Sum(x => x!.Quantity);
+
+					// Update unit price of the last activity if possible
 					if (lastActivity.UnitPrice != null)
 					{
 						lastActivity.UnitPrice = new Money(
@@ -50,20 +54,19 @@ namespace GhostfolioSidekick.Cryptocurrency
 											lastActivity.UnitPrice.Amount * ((lastActivity.Quantity) / (lastActivity.Quantity - amount)));
 					}
 
+					// Update the quantity of the last activity
 					lastActivity.Quantity -= amount;
-
-					RemoveActivitiesAfter(activities, lastActivity);
-					holding.Activities.RemoveAll(x => x.Account == account && !activities.Contains(x));
 				}
 			}
 
 			return Task.CompletedTask;
 		}
 
-		private static void RemoveActivitiesAfter(List<IActivity> activities, IActivity lastActivity)
+		private static void RemoveActivitiesAfter(Holding holding, List<IActivityWithQuantityAndUnitPrice> activities, IActivityWithQuantityAndUnitPrice lastActivity)
 		{
 			int index = activities.IndexOf(lastActivity) + 1;
 			activities.RemoveRange(index, activities.Count - index);
+			holding.Activities.RemoveAll(x => x.Account == lastActivity.Account && !activities.Contains(x));
 		}
 	}
 }

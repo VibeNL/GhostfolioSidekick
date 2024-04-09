@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			var interestActivity = holdingWithoutSymbolProfile.Activities.OfType<InterestActivity>().First();
 			Assert.Equal(giftActivity.Account, interestActivity.Account);
 			Assert.Equal(giftActivity.Date, interestActivity.Date);
-			Assert.Equal(giftActivity.UnitPrice!.Times(giftActivity.Quantity), interestActivity.Amount);
+			Assert.Equal(giftActivity.Quantity, interestActivity.Amount.Amount);
 			Assert.Equal(giftActivity.TransactionId, interestActivity.TransactionId);
 			Assert.Equal(giftActivity.Description, interestActivity.Description);
 			Assert.Equal(giftActivity.Id, interestActivity.Id);
