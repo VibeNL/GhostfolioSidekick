@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
 using System.Text;
 
 namespace GhostfolioSidekick
@@ -36,15 +35,30 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"GhostfolioUrl : {applicationSettings.GhostfolioUrl}");
 			sb.AppendLine($"FileImporterPath : {applicationSettings.FileImporterPath}");
 
-			sb.AppendLine($"CryptoWorkaroundDust : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundDust}");
-			sb.AppendLine($"CryptoWorkaroundDustThreshold : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundDustThreshold.ToString(CultureInfo.InvariantCulture)}");
-			sb.AppendLine($"CryptoWorkaroundStakeReward : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward}");
-			sb.AppendLine($"DataProviderPreference : {applicationSettings.ConfigurationInstance.Settings.DataProviderPreference}");
-			sb.AppendLine($"DeleteUnusedSymbols : {applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols}");
+			Settings settings = applicationSettings.ConfigurationInstance.Settings;
+			sb.AppendLine($"DustThreshold : {settings.DustThreshold}");
+			sb.AppendLine($"CryptoWorkaroundStakeReward : {settings.CryptoWorkaroundStakeReward}");
+			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
+			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
 
 			PrintUsedMappings(sb);
 
 			logger.LogInformation(sb.ToString());
+
+			if (settings.CryptoWorkaroundStakeRewardObsolete)
+			{
+				logger.LogWarning("Setting 'use.crypto.workaround.stakereward.as.dividends' is obsolete and is no longer in use");
+			}
+
+			if (settings.CryptoWorkaroundDustObsolete)
+			{
+				logger.LogWarning("Setting 'use.crypto.workaround.dust' is obsolete and is no longer in use");
+			}
+
+			if (settings.CryptoWorkaroundDustThresholdObsolete != 0)
+			{
+				logger.LogWarning("Setting 'use.crypto.workaround.dust.threshold' is obsolete and is no longer in use");
+			}
 		}
 
 		private void PrintUsedMappings(StringBuilder sb)

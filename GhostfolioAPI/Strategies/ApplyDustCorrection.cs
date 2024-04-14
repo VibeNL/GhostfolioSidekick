@@ -3,19 +3,14 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Strategies;
 
-namespace GhostfolioSidekick.Cryptocurrency
+namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
-	public class ApplyDustCorrectionWorkaround(Settings settings) : IHoldingStrategy
+	public class ApplyDustCorrection(Settings settings) : IHoldingStrategy
 	{
 		public int Priority => (int)StrategiesPriority.ApplyDustCorrection;
 
 		public Task Execute(Holding holding)
 		{
-			if (!settings.CryptoWorkaroundDust || holding.SymbolProfile?.AssetSubClass != AssetSubClass.CryptoCurrency)
-			{
-				return Task.CompletedTask;
-			}
-
 			var allActivities = holding.Activities.OrderBy(x => x.Date).ToList();
 
 			var accounts = allActivities.Select(x => x.Account).Distinct();
@@ -38,7 +33,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 				}
 
 				decimal dustValue = amount;
-				if (dustValue != 0 && Math.Abs(dustValue) < settings.CryptoWorkaroundDustThreshold)
+				if (dustValue != 0 && Math.Abs(dustValue) < settings.DustThreshold)
 				{
 					// Remove activities after the last sell activity
 					RemoveActivitiesAfter(holding, activities, lastActivity);
@@ -51,7 +46,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 					{
 						lastActivity.UnitPrice = new Money(
 											lastActivity.UnitPrice.Currency,
-											lastActivity.UnitPrice.Amount * ((lastActivity.Quantity) / (lastActivity.Quantity - amount)));
+											lastActivity.UnitPrice.Amount * (lastActivity.Quantity / (lastActivity.Quantity - amount)));
 					}
 
 					// Update the quantity of the last activity

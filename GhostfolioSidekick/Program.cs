@@ -126,7 +126,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 							services.AddScoped<IHoldingStrategy, DeterminePrice>();
 							services.AddScoped<IHoldingStrategy, RoundStrategy>();
-							services.AddScoped<IHoldingStrategy, ApplyDustCorrectionWorkaround>();
+							services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
 							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
 						});
 		}
