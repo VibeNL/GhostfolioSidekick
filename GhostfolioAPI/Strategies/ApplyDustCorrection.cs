@@ -33,7 +33,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 				}
 
 				decimal dustValue = amount;
-				if (dustValue != 0 && Math.Abs(dustValue) < settings.DustThreshold)
+				var threshold = settings.DustThreshold;
+
+				if (holding.SymbolProfile?.AssetSubClass == AssetSubClass.CryptoCurrency)
+				{
+					threshold = settings.CryptoWorkaroundDustThreshold;
+				}
+
+				if (dustValue != 0 && Math.Abs(dustValue) < threshold)
 				{
 					// Remove activities after the last sell activity
 					RemoveActivitiesAfter(holding, activities, lastActivity);

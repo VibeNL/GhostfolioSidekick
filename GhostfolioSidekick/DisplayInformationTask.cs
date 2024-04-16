@@ -37,6 +37,7 @@ namespace GhostfolioSidekick
 
 			Settings settings = applicationSettings.ConfigurationInstance.Settings;
 			sb.AppendLine($"DustThreshold : {settings.DustThreshold}");
+			sb.AppendLine($"CryptoWorkaroundDustThreshold : {settings.CryptoWorkaroundDustThreshold}");
 			sb.AppendLine($"CryptoWorkaroundStakeReward : {settings.CryptoWorkaroundStakeReward}");
 			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
@@ -53,11 +54,6 @@ namespace GhostfolioSidekick
 			if (settings.CryptoWorkaroundDustObsolete)
 			{
 				logger.LogWarning("Setting 'use.crypto.workaround.dust' is obsolete and is no longer in use");
-			}
-
-			if (settings.CryptoWorkaroundDustThresholdObsolete != 0)
-			{
-				logger.LogWarning("Setting 'use.crypto.workaround.dust.threshold' is obsolete and is no longer in use");
 			}
 		}
 

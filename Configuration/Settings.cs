@@ -19,9 +19,13 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("dust.threshold")]
 		public decimal DustThreshold { get; set; } = 0.0001m;
 
+		[JsonPropertyName("use.crypto.workaround.dust.threshold")]
+		public decimal CryptoWorkaroundDustThreshold { get; set; } = 0.0001m;
+
 		[JsonPropertyName("use.crypto.workaround.stakereward.add.to.last.buy")]
 		public bool CryptoWorkaroundStakeReward { get; set; }
 
+		#region Obsolete
 
 		[JsonPropertyName("use.crypto.workaround.stakereward.as.dividends")]
 		public bool CryptoWorkaroundStakeRewardObsolete { get; set; }
@@ -29,7 +33,6 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("use.crypto.workaround.dust")]
 		public bool CryptoWorkaroundDustObsolete { get; set; }
 
-		[JsonPropertyName("use.crypto.workaround.dust.threshold")]
-		public decimal CryptoWorkaroundDustThresholdObsolete { get; set; } = 0;
+		#endregion
 	}
 }
