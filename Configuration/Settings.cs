@@ -16,11 +16,11 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("dataprovider.preference.order")]
 		public required string DataProviderPreference { get; set; } = "YAHOO;COINGECKO";
 
-		[JsonPropertyName("dust.threshold")]
+		[JsonPropertyName("use.dust.threshold")]
 		public decimal DustThreshold { get; set; } = 0.0001m;
 
 		[JsonPropertyName("use.crypto.workaround.dust.threshold")]
-		public decimal CryptoWorkaroundDustThreshold { get; set; } = 0.0001m;
+		public decimal CryptoWorkaroundDustThreshold { get; set; } = 0.001m;
 
 		[JsonPropertyName("use.crypto.workaround.stakereward.add.to.last.buy")]
 		public bool CryptoWorkaroundStakeReward { get; set; }
