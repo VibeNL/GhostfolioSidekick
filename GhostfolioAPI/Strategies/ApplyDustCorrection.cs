@@ -13,6 +13,22 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 		{
 			var allActivities = holding.Activities.OrderBy(x => x.Date).ToList();
 
+			var totalDustValue = allActivities
+					.OfType<IActivityWithQuantityAndUnitPrice>()
+					.Sum(x => x!.Quantity);
+
+			var threshold = settings.DustThreshold;
+			if (holding.SymbolProfile?.AssetSubClass == AssetSubClass.CryptoCurrency)
+			{
+				threshold = settings.CryptoWorkaroundDustThreshold;
+			}
+
+			if (totalDustValue == 0 || Math.Abs(totalDustValue) >= threshold)
+			{
+				// No dust to correct
+				return Task.CompletedTask;
+			}
+
 			var accounts = allActivities.Select(x => x.Account).Distinct();
 			foreach (var account in accounts)
 			{
@@ -33,32 +49,28 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 				}
 
 				decimal dustValue = amount;
-				var threshold = settings.DustThreshold;
 
-				if (holding.SymbolProfile?.AssetSubClass == AssetSubClass.CryptoCurrency)
+				if (dustValue == 0)
 				{
-					threshold = settings.CryptoWorkaroundDustThreshold;
+					continue;
 				}
 
-				if (dustValue != 0 && Math.Abs(dustValue) < threshold)
+				// Remove activities after the last sell activity
+				RemoveActivitiesAfter(holding, activities, lastActivity);
+
+				// Get the new amount	
+				amount = activities.Sum(x => x!.Quantity);
+
+				// Update unit price of the last activity if possible
+				if (lastActivity.UnitPrice != null)
 				{
-					// Remove activities after the last sell activity
-					RemoveActivitiesAfter(holding, activities, lastActivity);
-
-					// Get the new amount	
-					amount = activities.Sum(x => x!.Quantity);
-
-					// Update unit price of the last activity if possible
-					if (lastActivity.UnitPrice != null)
-					{
-						lastActivity.UnitPrice = new Money(
-											lastActivity.UnitPrice.Currency,
-											lastActivity.UnitPrice.Amount * (lastActivity.Quantity / (lastActivity.Quantity - amount)));
-					}
-
-					// Update the quantity of the last activity
-					lastActivity.Quantity -= amount;
+					lastActivity.UnitPrice = new Money(
+										lastActivity.UnitPrice.Currency,
+										lastActivity.UnitPrice.Amount * (lastActivity.Quantity / (lastActivity.Quantity - amount)));
 				}
+
+				// Update the quantity of the last activity
+				lastActivity.Quantity -= amount;
 			}
 
 			return Task.CompletedTask;
