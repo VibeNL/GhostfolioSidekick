@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		public async Task Execute_ShouldNotApplyDustCorrection_WhenDustValueIsEqualToThreshold()
 		{
 			// Arrange
-			var settings = new Settings { CryptoWorkaroundDustThreshold = 0.01m, DustThreshold = 0 };
+			var settings = new Settings { CryptoWorkaroundDustThreshold = 0.1m, DustThreshold = 0 };
 			var strategy = new ApplyDustCorrection(settings);
 			var activity = new BuySellActivity(null!, next, -0.1m, new Money(Currency.USD, 1m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
