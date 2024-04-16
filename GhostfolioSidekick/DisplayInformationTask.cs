@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using System.Text;
 
 namespace GhostfolioSidekick
@@ -36,8 +37,8 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"FileImporterPath : {applicationSettings.FileImporterPath}");
 
 			Settings settings = applicationSettings.ConfigurationInstance.Settings;
-			sb.AppendLine($"DustThreshold : {settings.DustThreshold}");
-			sb.AppendLine($"CryptoWorkaroundDustThreshold : {settings.CryptoWorkaroundDustThreshold}");
+			sb.AppendLine($"DustThreshold : {settings.DustThreshold.ToString(CultureInfo.InvariantCulture)}");
+			sb.AppendLine($"CryptoWorkaroundDustThreshold : {settings.CryptoWorkaroundDustThreshold.ToString(CultureInfo.InvariantCulture)}");
 			sb.AppendLine($"CryptoWorkaroundStakeReward : {settings.CryptoWorkaroundStakeReward}");
 			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
