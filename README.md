@@ -47,6 +47,7 @@ Also allows the following sybol settings
     "settings" : {
 	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
 		"dust.threshold" : 0.0001 // default is 0.0001,
+		"use.crypto.workaround.dust.threshold": 0.01 // default is 0.0001,
 		"use.crypto.workaround.stakereward.add.to.last.buy" : true // default is false,
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
 	},
