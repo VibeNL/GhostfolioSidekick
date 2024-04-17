@@ -357,7 +357,7 @@
 		<None Update="TestFiles\ScalableCapital\Prime\SellOrders\single_sell_euro.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\multi-month-statement.pdf">
+		<None Update="TestFiles\TradeRepublic\multi-month-statement-nl.pdf">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trading212\BuyOrders\single_buy_euro_finra_fee.csv">

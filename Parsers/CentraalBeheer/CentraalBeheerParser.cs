@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 		private const string Prefix = "Centraal Beheer ";
 
-		protected List<string> MainKeyWords
+		private List<string> MainKeyWords
 		{
 			get
 			{
@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		protected List<string> SubKeyWords
+		private List<string> SubKeyWords
 		{
 			get
 			{

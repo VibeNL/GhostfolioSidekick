@@ -8,15 +8,15 @@ using GhostfolioSidekick.Parsers.TradeRepublic;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
-	public class TradeRepublicParserTests
+	public class TradeRepublicParserNLTests
 	{
-		readonly TradeRepublicParser parser;
+		readonly TradeRepublicParserNL parser;
 		private readonly Account account;
 		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
-		public TradeRepublicParserTests()
+		public TradeRepublicParserNLTests()
 		{
-			parser = new TradeRepublicParser();
+			parser = new TradeRepublicParserNL();
 
 			var fixture = new Fixture();
 			account = fixture
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/multi-month-statement.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/multi-month-statement-nl.pdf", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().NotBeEmpty();
