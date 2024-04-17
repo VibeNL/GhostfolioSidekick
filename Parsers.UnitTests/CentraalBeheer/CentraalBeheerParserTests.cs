@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 
 		public CentraalBeheerParserTests()
 		{
-			parser = new CentraalBeheerParser(DummyCurrencyMapper.Instance);
+			parser = new CentraalBeheerParser();
 
 			var fixture = new Fixture();
 			account = fixture
