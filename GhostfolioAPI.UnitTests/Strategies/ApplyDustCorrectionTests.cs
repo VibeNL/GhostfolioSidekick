@@ -5,7 +5,10 @@ using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 {
@@ -13,10 +16,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 	{
 		private DateTime now = DateTime.Now;
 		private DateTime next;
+		private Mock<IMarketDataService> marketDataServiceMock;
+		private Mock<IExchangeRateService> exchangeRateServiceMock;
+		private Mock<ILogger<ApplyDustCorrection>> loggerMock;
 
 		public ApplyDustCorrectionTests()
 		{
 			next = now.AddMinutes(1);
+
+			marketDataServiceMock = new Mock<IMarketDataService>();
+			exchangeRateServiceMock = new Mock<IExchangeRateService>();
+			loggerMock = new Mock<ILogger<ApplyDustCorrection>>();
+
+			exchangeRateServiceMock
+				.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
+				.ReturnsAsync(1);
 		}
 
 		[Fact]
@@ -25,7 +39,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Arrange
 			var settings = new Settings { DustThreshold = 1 };
 			var holding = new Holding(null!);
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 
 			// Act
 			var result = strategy.Execute(holding);
@@ -39,7 +53,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		{
 			// Arrange
 			var settings = new Settings { DustThreshold = 1m };
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 			var activity = new BuySellActivity(null!, now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
@@ -61,7 +75,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		{
 			// Arrange
 			var settings = new Settings { DustThreshold = 0.01m };
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 			var sellActivity = new BuySellActivity(null!, next, -0.002m, new Money(Currency.USD, 1m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
@@ -84,7 +98,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		{
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDustThreshold = 0.01m, DustThreshold = 0 };
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 			var sellActivity = new BuySellActivity(null!, next, -0.001m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
@@ -107,7 +121,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		{
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDustThreshold = 0, DustThreshold = 0.01m };
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 			var sellActivity = new BuySellActivity(null!, next, -0.001m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.Stock).Create())
 			{
@@ -130,12 +144,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		{
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDustThreshold = 0.01m, DustThreshold = 0 };
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 			var sellActivity = new BuySellActivity(null!, next, -0.002m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					new BuySellActivity(null!, now, 0.001m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, now, 0.001m, new Money(Currency.USD,  0.01m), string.Empty),
 					sellActivity
 				]
 			};
@@ -153,7 +167,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		{
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDustThreshold = 0.1m, DustThreshold = 0 };
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 			var activity = new BuySellActivity(null!, next, -0.1m, new Money(Currency.USD, 1m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
@@ -171,11 +185,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		}
 
 		[Fact]
-		public async Task Execute_ShouldApplyDustCorrection_Bug196()
+		public async Task Execute_ShouldApplyDustCorrection_MultipleActivities()
 		{
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDustThreshold = 0.01m, DustThreshold = 0 };
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
@@ -198,7 +212,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		{
 			// Arrange
 			var settings = new Settings { CryptoWorkaroundDustThreshold = 0.01m, DustThreshold = 0 };
-			var strategy = new ApplyDustCorrection(settings);
+			var strategy = new ApplyDustCorrection(settings, marketDataServiceMock.Object, exchangeRateServiceMock.Object, loggerMock.Object);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [

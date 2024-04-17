@@ -4,12 +4,21 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
-	public class ApiStrategyBase(IMarketDataService marketDataService, ILogger logger)
+	public class ApiStrategyBase
 	{
+		private readonly IMarketDataService marketDataService;
+		private readonly ILogger logger;
+
+		public ApiStrategyBase(IMarketDataService marketDataService, ILogger logger)
+		{
+			this.marketDataService = marketDataService;
+			this.logger = logger;
+		}
+
 		protected async Task<Money> GetUnitPrice(SymbolProfile symbolProfile, DateTime date)
 		{
 			var marketDataProfile = await marketDataService.GetMarketData(symbolProfile.Symbol, symbolProfile.DataSource);
-			var marketDate = marketDataProfile.MarketData.SingleOrDefault(x => x.Date.Date == date.Date);
+			var marketDate = marketDataProfile?.MarketData?.SingleOrDefault(x => x.Date.Date == date.Date);
 
 			if (marketDate == null)
 			{

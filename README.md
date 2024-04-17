@@ -81,15 +81,13 @@ Also allows the following sybol settings
 
 ##### use.dust.threshold (Experimental)
 This settings does control if a workaround is used for dust (very small amount that cannot be sold or due to rounding errors).
-The amount is the total value of the assets (thus quantity times unitprice). 
+The amount is the total value of the assets (thus quantity times unitprice). Unitprice is converted to the currency defined by *use.dust.currency*.
 
 For crypto specifically, another setting will take presidence. See ***use.crypto.workaround.dust.threshold***. This due to the likelyness of higher values for the dust of cryptocurrencies.
 
-***Note***: The value of the asset is ignored thus small amounts of high value assets are also considered dust.
-
 ##### use.crypto.workaround.dust.threshold (Experimental)
 This settings does control if a workaround is used for dust (very small amount that cannot be sold or due to rounding errors).
-The amount is the total value of the assets (thus quantity times unitprice). 
+The amount is the total value of the assets (thus quantity times unitprice). Unitprice is converted to the currency defined by *use.dust.currency*.
 
 ##### use.crypto.workaround.stakereward.add.to.last.buy (Experimental)
 This settings does control if a workaround is used for staking rewards. 
