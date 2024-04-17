@@ -16,6 +16,9 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("dataprovider.preference.order")]
 		public required string DataProviderPreference { get; set; } = "YAHOO;COINGECKO";
 
+		[JsonPropertyName("use.dust.currency")]
+		public string DustCurrency { get; set; } = "USD";
+
 		[JsonPropertyName("use.dust.threshold")]
 		public decimal DustThreshold { get; set; } = 0.0001m;
 

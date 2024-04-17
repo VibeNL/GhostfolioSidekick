@@ -1,0 +1,22 @@
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
+
+namespace GhostfolioSidekick.GhostfolioAPI.Strategies
+{
+	public class ApiStrategyBase(IMarketDataService marketDataService, ILogger logger)
+	{
+		protected async Task<Money> GetUnitPrice(SymbolProfile symbolProfile, DateTime date)
+		{
+			var marketDataProfile = await marketDataService.GetMarketData(symbolProfile.Symbol, symbolProfile.DataSource);
+			var marketDate = marketDataProfile.MarketData.SingleOrDefault(x => x.Date.Date == date.Date);
+
+			if (marketDate == null)
+			{
+				logger.LogWarning($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of 0 until Ghostfolio has determined the price");
+			}
+
+			return new Money(symbolProfile!.Currency, marketDate?.MarketPrice.Amount ?? 0);
+		}
+	}
+}

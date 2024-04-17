@@ -2,18 +2,29 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Strategies;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
-	public class ApplyDustCorrection(Settings settings) : IHoldingStrategy
+	public class ApplyDustCorrection(Settings settings, IMarketDataService marketDataService, ILogger<DeterminePrice> logger) : ApiStrategyBase, IHoldingStrategy
 	{
+		public ApplyDustCorrection() : base(marketDataService, logger)
+		{
+
+		}
+
 		public int Priority => (int)StrategiesPriority.ApplyDustCorrection;
 
-		public Task Execute(Holding holding)
+		public async Task Execute(Holding holding)
 		{
+			if (holding.SymbolProfile == null)
+			{
+				return;
+			}
+
 			var allActivities = holding.Activities.OrderBy(x => x.Date).ToList();
 
-			var totalDustValue = allActivities
+			var totalDustValueQuantity = allActivities
 					.OfType<IActivityWithQuantityAndUnitPrice>()
 					.Sum(x => x!.Quantity);
 
@@ -23,7 +34,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 				threshold = settings.CryptoWorkaroundDustThreshold;
 			}
 
-			if (totalDustValue == 0 || Math.Abs(totalDustValue) >= threshold)
+			var unitPrice = await GetUnitPrice(holding.SymbolProfile!, DateTime.Today);
+
+			var totalDustValue = unitPrice.Times(totalDustValueQuantity);
+
+			if (totalDustValue.Amount == 0 || Math.Abs(totalDustValue.Amount) >= threshold)
 			{
 				// No dust to correct
 				return Task.CompletedTask;

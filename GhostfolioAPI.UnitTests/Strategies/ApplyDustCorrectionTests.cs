@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		public async Task Execute_ShouldNotApplyDustCorrection_WhenOnlyBuy()
 		{
 			// Arrange
-			var settings = new Settings { DustThreshold = 0.01m };
+			var settings = new Settings { DustThreshold = 1m };
 			var strategy = new ApplyDustCorrection(settings);
 			var activity = new BuySellActivity(null!, now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
@@ -62,11 +62,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Arrange
 			var settings = new Settings { DustThreshold = 0.01m };
 			var strategy = new ApplyDustCorrection(settings);
-			var sellActivity = new BuySellActivity(null!, next, -0.002m, new Money(Currency.USD, 0.01m), string.Empty);
+			var sellActivity = new BuySellActivity(null!, next, -0.002m, new Money(Currency.USD, 1m), string.Empty);
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = [
-					new BuySellActivity(null!, now, 0.002m, new Money(Currency.USD, 0.01m), string.Empty),
+					new BuySellActivity(null!, now, 0.002m, new Money(Currency.USD, 1m), string.Empty),
 					sellActivity
 				]
 			};
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			// Assert
 			sellActivity.Quantity.Should().Be(-0.002m);
-			sellActivity.UnitPrice!.Amount.Should().Be(0.01M);
+			sellActivity.UnitPrice!.Amount.Should().Be(1m);
 		}
 
 		[Fact]

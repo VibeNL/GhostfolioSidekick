@@ -46,6 +46,7 @@ Also allows the following sybol settings
 {
     "settings" : {
 	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
+		"use.dust.currency" : "EUR", // default is "USD",
 		"use.dust.threshold" : 0.0001 // default is 0.0001,
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0.001,
 		"use.crypto.workaround.stakereward.add.to.last.buy" : true // default is false,
@@ -80,7 +81,7 @@ Also allows the following sybol settings
 
 ##### use.dust.threshold (Experimental)
 This settings does control if a workaround is used for dust (very small amount that cannot be sold or due to rounding errors).
-The amount is the quantity of assets that is considered dust. 
+The amount is the total value of the assets (thus quantity times unitprice). 
 
 For crypto specifically, another setting will take presidence. See ***use.crypto.workaround.dust.threshold***. This due to the likelyness of higher values for the dust of cryptocurrencies.
 
@@ -88,7 +89,7 @@ For crypto specifically, another setting will take presidence. See ***use.crypto
 
 ##### use.crypto.workaround.dust.threshold (Experimental)
 This settings does control if a workaround is used for dust (very small amount that cannot be sold or due to rounding errors).
-The amount is the quantity of the crypto that is considered dust.
+The amount is the total value of the assets (thus quantity times unitprice). 
 
 ##### use.crypto.workaround.stakereward.add.to.last.buy (Experimental)
 This settings does control if a workaround is used for staking rewards. 
