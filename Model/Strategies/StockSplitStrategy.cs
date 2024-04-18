@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Cryptocurrency;
-using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 
 namespace GhostfolioSidekick.Model.Strategies

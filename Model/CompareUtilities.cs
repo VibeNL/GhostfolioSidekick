@@ -32,21 +32,15 @@ namespace GhostfolioSidekick.Model
 			}));
 		}
 
-		public static async Task<Money?> RoundAndConvert(IExchangeRateService exchangeRateService, Money? value, Currency? target, DateTime dateTime)
+		public static async Task<Money?> Convert(IExchangeRateService exchangeRateService, Money? value, Currency? target, DateTime dateTime)
 		{
 			if (target == null || value == null)
 			{
 				return value;
 			}
 
-			static decimal Round(decimal? value)
-			{
-				var r = Math.Round(value ?? 0, 10);
-				return r;
-			}
-
 			var rate = await exchangeRateService.GetConversionRate(value!.Currency, target, dateTime);
-			return new Money(target, Round(value.Amount * rate));
+			return new Money(target, value.Amount * rate);
 		}
 	}
 }

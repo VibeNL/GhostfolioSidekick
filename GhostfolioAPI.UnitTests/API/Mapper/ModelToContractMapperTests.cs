@@ -191,44 +191,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			// TODO check more
 		}
 
-		[Fact]
-		public async Task ConvertToGhostfolioActivity_GiftActivity_Success()
-		{
-			// Arrange
-			var symbolProfile = DefaultFixture.Create().Create<Model.Symbols.SymbolProfile>();
-			var activity = DefaultFixture.Create().Create<GiftActivity>();
 
-			// Act
-			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, symbolProfile, activity);
-
-			// Assert
-			result.Should().NotBeNull();
-			result.Type.Should().Be(Contract.ActivityType.BUY);
-			result.SymbolProfile!.Symbol.Should().Be(symbolProfile.Symbol);
-			result.SymbolProfile.DataSource.Should().Be(symbolProfile.DataSource);
-			result.Date.Should().Be(activity.Date);
-			result.Quantity.Should().Be(activity.Quantity);
-			// TODO check more
-		}
-
-		[Fact]
-		public async Task ConvertToGhostfolioActivity_GiftActivityWithoutSymbol_Success()
-		{
-			// Arrange
-			var activity = DefaultFixture.Create().Create<GiftActivity>();
-
-			// Act
-			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, null, activity);
-
-			// Assert
-			result.Should().NotBeNull();
-			result.Type.Should().Be(Contract.ActivityType.INTEREST);
-			result.SymbolProfile!.Symbol.Should().Be(activity.Description);
-			result.SymbolProfile.DataSource.Should().Be(ManualDataSource);
-			result.Date.Should().Be(activity.Date);
-			result.Quantity.Should().Be(activity.Quantity);
-			// TODO check more
-		}
 
 		[Theory]
 		[InlineData(typeof(SendAndReceiveActivity))]
@@ -273,6 +236,20 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Act
 			Func<Task> act = async () => await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, symbolProfile, unknownActivity);
+
+			// Assert
+			await act.Should().ThrowAsync<NotSupportedException>();
+		}
+
+		[Fact]
+		public async Task ConvertToGhostfolioActivity_GiftActivity_ThrowsException()
+		{
+			// Arrange
+			var symbolProfile = DefaultFixture.Create().Create<Model.Symbols.SymbolProfile>();
+			var activity = DefaultFixture.Create().Create<GiftActivity>();
+
+			// Act
+			Func<Task> act = async () => await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateServiceMock.Object, symbolProfile, activity);
 
 			// Assert
 			await act.Should().ThrowAsync<NotSupportedException>();

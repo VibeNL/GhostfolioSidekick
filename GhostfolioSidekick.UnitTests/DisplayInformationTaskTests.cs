@@ -25,8 +25,7 @@ namespace GhostfolioSidekick.UnitTests
 			{
 				Settings = new Settings
 				{
-					CryptoWorkaroundDust = true,
-					CryptoWorkaroundDustThreshold = 0.01m,
+					DustThreshold = 0.01m,
 					CryptoWorkaroundStakeReward = false,
 					DataProviderPreference = "provider1",
 					DeleteUnusedSymbols = true
@@ -64,8 +63,7 @@ namespace GhostfolioSidekick.UnitTests
 			{
 				Settings = new Settings
 				{
-					CryptoWorkaroundDust = true,
-					CryptoWorkaroundDustThreshold = 0.01m,
+					DustThreshold = 0.01m,
 					CryptoWorkaroundStakeReward = false,
 					DataProviderPreference = "provider1",
 					DeleteUnusedSymbols = true
@@ -87,6 +85,6 @@ namespace GhostfolioSidekick.UnitTests
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
 
-		
+
 	}
 }

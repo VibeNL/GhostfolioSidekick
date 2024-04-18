@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
-		public async Task InsertActivity_NullQuantity_Ignored()
+		public async Task InsertActivity_NullQuantity_Written()
 		{
 			// Arrange
 			var symbolProfile = fixture.Create<Model.Symbols.SymbolProfile>();
@@ -130,14 +130,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			await activitiesService.InsertActivity(symbolProfile, newActivity);
 
 			// Assert
-			restClient.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Never);
-			loggerMock.Verify(
-				x => x.Log(
-					LogLevel.Debug,
-					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.StartsWith("Skipping empty transaction")),
-					It.IsAny<Exception>(),
-					It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+			restClient.Verify(x => x.ExecuteAsync(It.IsAny<RestRequest>(), default), Times.Exactly(2));
 		}
 
 		[Fact]

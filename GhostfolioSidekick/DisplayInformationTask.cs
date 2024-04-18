@@ -36,15 +36,26 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"GhostfolioUrl : {applicationSettings.GhostfolioUrl}");
 			sb.AppendLine($"FileImporterPath : {applicationSettings.FileImporterPath}");
 
-			sb.AppendLine($"CryptoWorkaroundDust : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundDust}");
-			sb.AppendLine($"CryptoWorkaroundDustThreshold : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundDustThreshold.ToString(CultureInfo.InvariantCulture)}");
-			sb.AppendLine($"CryptoWorkaroundStakeReward : {applicationSettings.ConfigurationInstance.Settings.CryptoWorkaroundStakeReward}");
-			sb.AppendLine($"DataProviderPreference : {applicationSettings.ConfigurationInstance.Settings.DataProviderPreference}");
-			sb.AppendLine($"DeleteUnusedSymbols : {applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols}");
+			Settings settings = applicationSettings.ConfigurationInstance.Settings;
+			sb.AppendLine($"DustThreshold : {settings.DustThreshold.ToString(CultureInfo.InvariantCulture)}");
+			sb.AppendLine($"CryptoWorkaroundDustThreshold : {settings.CryptoWorkaroundDustThreshold.ToString(CultureInfo.InvariantCulture)}");
+			sb.AppendLine($"CryptoWorkaroundStakeReward : {settings.CryptoWorkaroundStakeReward}");
+			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
+			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
 
 			PrintUsedMappings(sb);
 
 			logger.LogInformation(sb.ToString());
+
+			if (settings.CryptoWorkaroundStakeRewardObsolete)
+			{
+				logger.LogWarning("Setting 'use.crypto.workaround.stakereward.as.dividends' is obsolete and is no longer in use");
+			}
+
+			if (settings.CryptoWorkaroundDustObsolete)
+			{
+				logger.LogWarning("Setting 'use.crypto.workaround.dust' is obsolete and is no longer in use");
+			}
 		}
 
 		private void PrintUsedMappings(StringBuilder sb)

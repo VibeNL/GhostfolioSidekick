@@ -2,8 +2,7 @@
   "settings": {
     "dataprovider.preference.order": "COINGECKO,YAHOO",
     "use.crypto.workaround.stakereward.as.dividends": false,
-    "use.crypto.workaround.dust": true,
-    "use.crypto.workaround.dust.threshold": 0.01,
+    "dust.threshold": 0.05,
     "delete.unused.symbols": false
   },
   "accounts": [

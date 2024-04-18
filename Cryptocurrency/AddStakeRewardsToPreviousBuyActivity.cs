@@ -18,22 +18,25 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 			var activities = holding.Activities.OrderBy(x => x.Date).ToList();
 
-			var stakeRewards = activities
-				.Select(x => x as StakingRewardActivity)
-				.Where(x => x != null)
-				.ToList();
+			var stakeRewards = activities.OfType<StakingRewardActivity>().ToList();
 
 			foreach (var stakeReward in stakeRewards)
 			{
 				var buyActivity = activities
-					.Select(x => x as IActivityWithQuantityAndUnitPrice)
-					.Where(x => x != null)
-					.LastOrDefault(x => x!.Quantity > 0 &&
-										x!.Date < stakeReward!.Date);
+					.OfType<BuySellActivity>()
+					.LastOrDefault(x => x.Quantity > 0 &&
+										x.Date < stakeReward!.Date);
 
 				if (buyActivity != null)
 				{
 					buyActivity.Quantity += stakeReward!.Quantity;
+
+					if (buyActivity.UnitPrice != null)
+					{
+						buyActivity.UnitPrice.Amount = buyActivity.UnitPrice.Amount * (buyActivity.Quantity / (buyActivity.Quantity + stakeReward.Quantity));
+					}
+
+
 					holding.Activities.Remove(stakeReward!);
 				}
 			}

@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Cryptocurrency;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Strategies;
@@ -8,9 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
-	public class DeterminePrice(IMarketDataService marketDataService, ILogger<DeterminePrice> logger) : IHoldingStrategy
+	public class DeterminePrice : ApiStrategyBase, IHoldingStrategy
 	{
 		public int Priority => (int)StrategiesPriority.DeterminePrice;
+
+		public DeterminePrice(IMarketDataService marketDataService, ILogger<DeterminePrice> logger) : base(marketDataService, logger)
+		{
+		}
 
 		public async Task Execute(Holding holding)
 		{
@@ -44,19 +47,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 						break;
 				}
 			}
-		}
-
-		private async Task<Money> GetUnitPrice(SymbolProfile symbolProfile, DateTime date)
-		{
-			var marketDataProfile = await marketDataService.GetMarketData(symbolProfile.Symbol, symbolProfile.DataSource);
-			var marketDate = marketDataProfile.MarketData.SingleOrDefault(x => x.Date.Date == date.Date);
-
-			if (marketDate == null)
-			{
-				logger.LogWarning($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of 0 until Ghostfolio has determined the price");
-			}
-
-			return new Money(symbolProfile!.Currency, marketDate?.MarketPrice.Amount ?? 0);
 		}
 	}
 }
