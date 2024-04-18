@@ -30,8 +30,8 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			{
 				case "Deposit":
 					lst.Add(PartialActivity.CreateCashDeposit(
-						currency, 
-						record.Time, 
+						currency,
+						record.Time,
 						Math.Abs(record.Total.GetValueOrDefault()),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
@@ -47,11 +47,11 @@ namespace GhostfolioSidekick.Parsers.Trading212
 				case "Interest on cash":
 				case "Lending interest":
 					lst.Add(PartialActivity.CreateInterest(
-						currency, 
-						record.Time, 
-						record.Total.GetValueOrDefault(), 
+						currency,
+						record.Time,
+						record.Total.GetValueOrDefault(),
 						record.Action,
-						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())), 
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
 				case "Currency conversion":
@@ -75,6 +75,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Id));
 					break;
 				case "Limit sell":
+				case "Stop sell":
 				case "Market sell":
 					lst.Add(PartialActivity.CreateSell(
 						currency,
@@ -155,7 +156,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			if (record.FeeFinra != null)
 			{
 				yield return PartialActivity.CreateFee(
-					currencyMapper.Map(record.FeeFinraCurrency!), 
+					currencyMapper.Map(record.FeeFinraCurrency!),
 					record.Time,
 					record.FeeFinra.Value,
 					new Money(currencyMapper.Map(record.FeeFinraCurrency!), 0),
@@ -165,7 +166,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			if (record.ConversionFee != null)
 			{
 				yield return PartialActivity.CreateFee(
-					currencyMapper.Map(record.ConversionFeeCurrency!), 
+					currencyMapper.Map(record.ConversionFeeCurrency!),
 					record.Time,
 					record.ConversionFee.Value,
 					new Money(currencyMapper.Map(record.ConversionFeeCurrency!), 0),

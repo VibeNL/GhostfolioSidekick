@@ -402,6 +402,9 @@
 		<None Update="TestFiles\Trading212\Invalid\invalid_note.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Trading212\SellOrders\single_stopsell_euro.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Trading212\SellOrders\single_limitsell_euro.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
