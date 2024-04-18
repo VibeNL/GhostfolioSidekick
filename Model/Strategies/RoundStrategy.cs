@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Model.Strategies
 
 					if (x.UnitPrice != null)
 					{
-						x.UnitPrice = new Money(x.UnitPrice!.Currency, Math.Round(x.UnitPrice!.Amount, numberOfDecimals));
+						x.UnitPrice = new Money(x.UnitPrice!.Currency, Math.Round(x.UnitPrice!.Amount, numberOfDecimals, MidpointRounding.ToNegativeInfinity /* Always round down*/));
 					}
 				});
 
