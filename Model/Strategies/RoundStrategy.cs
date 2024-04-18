@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Model.Strategies
 				.ToList()
 				.ForEach(x =>
 				{
-					x.Quantity = Math.Round(x.Quantity, numberOfDecimals);
+					x.Quantity = Math.Round(x.Quantity, numberOfDecimals, MidpointRounding.ToZero /* Round buy's down and sell's up */);
 
 					if (x.UnitPrice != null)
 					{
