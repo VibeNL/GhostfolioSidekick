@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -11,7 +10,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	public class CreateManualSymbolTask : IScheduledWork
 	{
-		private readonly ILogger<FileImporterTask> logger;
+		private readonly ILogger<CreateManualSymbolTask> logger;
 		private readonly IMarketDataService marketDataService;
 		private readonly IActivitiesService activitiesService;
 		private readonly IApplicationSettings applicationSettings;
@@ -21,7 +20,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
 		public CreateManualSymbolTask(
-			ILogger<FileImporterTask> logger,
+			ILogger<CreateManualSymbolTask> logger,
 			IMarketDataService marketDataManager,
 			IActivitiesService activitiesManager,
 			IApplicationSettings applicationSettings)
