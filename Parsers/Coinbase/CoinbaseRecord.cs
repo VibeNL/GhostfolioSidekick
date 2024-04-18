@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 	public class CoinbaseRecord
 	{
 		[DateTimeStyles(DateTimeStyles.AssumeUniversal)]
-		[Format("yyyy-MM-ddTHH:mm:ssZ", "yyyy-MM-dd HH:mm:ss UTC")]
+		[Format("yyyy-MM-ddTHH:mm:ssZ", "yyyy-MM-dd HH:mm:ss UTC", "yyyy-MM-dd HH:mm UTC")]
 		public DateTime Timestamp { get; set; }
 
 		[Name("Transaction Type")]
@@ -19,17 +19,17 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		[NumberStyles(NumberStyles.Number | NumberStyles.AllowExponent)]
 		public decimal Quantity { get; set; }
 
-		[Name("Spot Price Currency")]
+		[Name("Spot Price Currency", "Price Currency")]
 		public required string Currency { get; set; }
 
-		[Name("Spot Price at Transaction")]
+		[Name("Spot Price at Transaction", "Price at Transaction")]
 		public decimal? Price { get; set; }
-
-		[Name("Fees and/or Spread")]
-		public decimal? Fee { get; set; }
 
 		[Name("Total (inclusive of fees and/or spread)")]
 		public decimal? TotalTransactionAmount { get; set; }
+
+		[Name("Fees and/or Spread")]
+		public decimal? Fee { get; set; }
 
 		public required string Notes { get; set; }
 	}
