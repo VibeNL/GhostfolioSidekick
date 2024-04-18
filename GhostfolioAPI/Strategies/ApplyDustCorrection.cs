@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 			}
 
 			unitPrice = new Money(
-				new Currency(settings.DustCurrency), 
+				new Currency(settings.DustCurrency),
 				unitPrice.Amount * await exchangeRateService.GetConversionRate(unitPrice.Currency, targetCurrency, DateTime.Today));
 
 			var totalDustValue = unitPrice.Times(totalDustValueQuantity);
@@ -106,6 +106,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 					lastActivity.UnitPrice = new Money(
 										lastActivity.UnitPrice.Currency,
 										lastActivity.UnitPrice.Amount * (lastActivity.Quantity / (lastActivity.Quantity - amount)));
+					if (lastActivity.UnitPrice.Amount < 0)
+					{
+						lastActivity.UnitPrice.Amount = 0;
+					}
 				}
 
 				// Update the quantity of the last activity
@@ -113,8 +117,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 
 				logger.LogDebug(
 					"Dust corrected for symbol {Symbol}, account {Account}. Dust amount was {Dustvalue}{Currency}. Quantity {Quantity}",
-					holding.SymbolProfile, 
-					account, 
+					holding.SymbolProfile,
+					account,
 					dustValue,
 					unitPrice.Currency,
 					amount);
