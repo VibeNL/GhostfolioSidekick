@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange
-			foreach (var file in Directory.GetFiles("./TestFiles/ScalableCapital/", "rkk.csv", SearchOption.AllDirectories))
+			foreach (var file in Directory.GetFiles("./TestFiles/ScalableCapital/BaaderBank/", "rkk.csv", SearchOption.AllDirectories))
 			{
 				// Act
 				var canParse = await parser.CanParseActivities(file);
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/CashTransactions/single_known_saldo.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/CashTransactions/single_known_saldo.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BuyOrders/SingleBuy/rkk.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/BuyOrders/SingleBuy/rkk.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
@@ -101,7 +101,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/SellOrders/SingleSell/rkk.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/SellOrders/SingleSell/rkk.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Invalid/empty_rkk.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/empty_rkk.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Invalid/no_executiondate_rkk.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/no_executiondate_rkk.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();

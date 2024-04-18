@@ -23,8 +23,8 @@
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
 
 		<PackageReference Include="Moq" Version="4.20.70" />
-		<PackageReference Include="xunit" Version="2.7.0" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
+		<PackageReference Include="xunit" Version="2.7.1" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.8">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
@@ -312,32 +312,50 @@
 		<None Update="TestFiles\NIBC\Invalid\invalid_description.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\BuyOrders\SingleBuy\rkk.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\BuyOrders\SingleBuy\rkk.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\BuyOrders\SingleBuy\wum.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\BuyOrders\SingleBuy\wum.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\CashTransactions\single_dividend.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\CashTransactions\single_dividend.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\CashTransactions\single_known_saldo.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\CashTransactions\single_known_saldo.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\Invalid\empty_rkk.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\Invalid\empty_rkk.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\Invalid\invalid_action.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\Invalid\invalid_action.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\Invalid\no_executiondate_rkk.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\Invalid\no_executiondate_rkk.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\SellOrders\SingleSell\rkk.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\SellOrders\SingleSell\rkk.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\ScalableCapital\SellOrders\SingleSell\wum.csv">
+		<None Update="TestFiles\ScalableCapital\BaaderBank\SellOrders\SingleSell\wum.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\BuyOrders\single_savingsplan.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\BuyOrders\single_buy_euro.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\CashTransactions\single_deposit.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\CashTransactions\single_dividend.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\CashTransactions\single_withdrawal.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\SellOrders\single_sell_euro.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trading212\BuyOrders\single_buy_euro_finra_fee.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -382,6 +400,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trading212\Invalid\invalid_note.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Trading212\SellOrders\single_stopsell_euro.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Trading212\SellOrders\single_limitsell_euro.csv">
