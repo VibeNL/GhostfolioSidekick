@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				if (headers.Count == TableKeyWords.Count) // parsing rows
 				{
-					
+					throw new NotSupportedException();
 				}
 
 				if (Keyword_Datum == word.Text) // start of header
