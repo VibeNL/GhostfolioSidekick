@@ -1,13 +1,8 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Spire.Pdf.Texts;
+using Spire.Pdf;
 using System.Text;
-using System.Threading.Tasks;
-using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Core;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -38,34 +33,40 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override List<PartialActivity> ParseRecords(string filename)
 		{
 			var activities = new List<PartialActivity>();
-			using (PdfDocument document = PdfDocument.Open(filename))
+			using (PdfDocument document = new PdfDocument())
 			{
-				for (var i = 0; i < document.NumberOfPages; i++)
+				// Load a PDF file
+				document.LoadFromFile(filename);
+
+				foreach (PdfPageBase page in document.Pages)
 				{
-					var page = document.GetPage(i + 1);
-					activities.AddRange(ParseWords(page));
+					PdfTextExtractor textExtractor = new PdfTextExtractor(page);
+					var text = textExtractor.ExtractText(new PdfTextExtractOptions());
+					activities.AddRange(ParseWords(text));
 				}
 			}
 
 			return activities;
 		}
 
-		private List<PartialActivity> ParseWords(Page page)
+		private List<PartialActivity> ParseWords(string text)
 		{
 			var activities = new List<PartialActivity>();
 
+			List<SingleWordToken> words = SplitText(text);
+
 			// detect headers
-			var headersAndTopLeft = new Dictionary<string, Point>();
+			var headers = new List<MultiWordToken>();
 
 			bool inHeader = false;
-			List<Word> words = page.GetWords().ToList();
+
 			for (int i = 0; i < words.Count; i++)
 			{
 				var word = words[i];
 
-				if (headersAndTopLeft.Count == TableKeyWords.Count) // parsing rows
+				if (headers.Count == TableKeyWords.Count) // parsing rows
 				{
-					throw new NotSupportedException();
+					
 				}
 
 				if (Keyword_Datum == word.Text) // start of header
@@ -83,7 +84,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						for (int j = 0; j < keywordSplitted.Length; j++)
 						{
 							string? keyword = keywordSplitted[j];
-							if (words[i+j].Text != keyword)
+							if (words[i + j].Text != keyword)
 							{
 								keywordMatch = false;
 								break;
@@ -92,7 +93,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 						if (keywordMatch)
 						{
-							headersAndTopLeft.Add(kw, ToPoint(word.BoundingBox.BottomLeft));
+							headers.Add(new MultiWordToken(kw, word.BoundingBox));
 							matched = true;
 #pragma warning disable S127 // "for" loop stop conditions should be invariant
 							i += keywordSplitted.Length - 1;
@@ -104,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					if (!matched)
 					{
 						inHeader = false;
-						headersAndTopLeft.Clear();
+						headers.Clear();
 					}
 				}
 
@@ -117,9 +118,41 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return activities;
 		}
 
-		private static Point ToPoint(PdfPoint p)
+		private static List<SingleWordToken> SplitText(string text)
 		{
-			return new Point(p.X, p.Y);
+			// for each line
+			var lines = text.Split(Environment.NewLine);
+			var words = new List<SingleWordToken>();
+
+			for (int i = 0; i < lines.Length; i++)
+			{
+				var line = lines[i].ToCharArray();
+				var word = new StringBuilder();
+				for (int j = 0; j < line.Length; j++)
+				{
+					switch (line[j])
+					{
+						case ' ':
+							if (word.Length > 0)
+							{
+								words.Add(new SingleWordToken(word.ToString(), new BoundingBox()));
+							}
+
+							word.Clear();
+							break;
+						default:
+							word.Append(line[j]);
+							break;
+					}
+				}
+
+				if (word.Length > 0)
+				{
+					words.Add(new SingleWordToken(word.ToString(), new BoundingBox()));
+				}
+			}
+
+			return words;
 		}
 	}
 }

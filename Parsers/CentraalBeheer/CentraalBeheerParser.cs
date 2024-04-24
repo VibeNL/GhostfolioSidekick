@@ -2,8 +2,8 @@
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using System.Globalization;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
+using Spire.Pdf.Texts;
+using Spire.Pdf;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
@@ -50,16 +50,22 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		protected override List<PartialActivity> ParseRecords(string filename)
 		{
 			List<PartialActivity> records;
-			using (PdfDocument document = PdfDocument.Open(filename))
+
+			using (PdfDocument document = new PdfDocument())
 			{
+				// Load a PDF file
+				document.LoadFromFile(filename);
+
 				var singleWords = new List<SingleWordToken>();
 
-				for (var i = 0; i < document.NumberOfPages; i++)
+				foreach (PdfPageBase page in document.Pages)
 				{
-					Page page = document.GetPage(i + 1);
-					foreach (var word in page.GetWords())
+					PdfTextExtractor textExtractor = new PdfTextExtractor(page);
+					var text = textExtractor.ExtractText(new PdfTextExtractOptions());
+
+					foreach (var word in text.Split(" ").Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)))
 					{
-						singleWords.Add(new SingleWordToken(word.Text));
+						singleWords.Add(new SingleWordToken(word));
 					}
 				}
 

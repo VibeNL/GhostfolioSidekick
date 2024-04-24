@@ -9,6 +9,11 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 			KeyWord = keyWord;
 		}
 
+		public MultiWordToken(string keyWord, BoundingBox? box) : base(box)
+		{
+			KeyWord = keyWord;
+		}
+
 		public string KeyWord { get; }
 
 		public bool IsMainLevel { get; }

@@ -7,17 +7,12 @@
 			Text = text;
 		}
 
-		public SingleWordToken(string text, Point topLeft, Point bottomRight)
+		public SingleWordToken(string text, BoundingBox boundingBox) : base( boundingBox)
 		{
 			Text = text;
-			TopLeft = topLeft;
-			BottomRight = bottomRight;
 		}
 
 		public string Text { get; }
 
-		public Point? TopLeft { get; }
-
-		public Point? BottomRight { get; }
 	}
 }

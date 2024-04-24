@@ -1,6 +1,4 @@
 ﻿using GhostfolioSidekick.Model.Activities;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
 
 namespace GhostfolioSidekick.Parsers.PDFParser
 {
