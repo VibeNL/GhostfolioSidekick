@@ -57,8 +57,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				.Excluding(x => x.ScraperConfiguration)
 			);
 			result.Currency.Symbol.Should().Be(rawSymbolProfile.Currency);
-			result.AssetClass.Should().Be(Utilities.ParseAssetClass(rawSymbolProfile.AssetClass));
-			result.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(rawSymbolProfile.AssetSubClass));
+			result.AssetClass.Should().Be(EnumMapper.ParseAssetClass(rawSymbolProfile.AssetClass));
+			result.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(rawSymbolProfile.AssetSubClass));
 			result.ActivitiesCount.Should().Be(rawSymbolProfile.ActivitiesCount);
 			result.ScraperConfiguration.Should().BeEquivalentTo(rawSymbolProfile.ScraperConfiguration, options => options.ExcludingMissingMembers());
 		}
@@ -81,8 +81,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				.Excluding(x => x.MarketData));
 
 			result.AssetProfile.Currency.Symbol.Should().Be(rawMarketDataList.AssetProfile.Currency);
-			result.AssetProfile.AssetClass.Should().Be(Utilities.ParseAssetClass(rawMarketDataList.AssetProfile.AssetClass));
-			result.AssetProfile.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(rawMarketDataList.AssetProfile.AssetSubClass));
+			result.AssetProfile.AssetClass.Should().Be(EnumMapper.ParseAssetClass(rawMarketDataList.AssetProfile.AssetClass));
+			result.AssetProfile.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(rawMarketDataList.AssetProfile.AssetSubClass));
 
 			for (int i = 0; i < result.MarketData.Count; i++)
 			{
@@ -110,8 +110,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				.Excluding(x => x.MarketData));
 
 			result.AssetProfile.Currency.Symbol.Should().Be(rawMarketDataList.AssetProfile.Currency);
-			result.AssetProfile.AssetClass.Should().Be(Utilities.ParseAssetClass(rawMarketDataList.AssetProfile.AssetClass));
-			result.AssetProfile.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(rawMarketDataList.AssetProfile.AssetSubClass));
+			result.AssetProfile.AssetClass.Should().Be(EnumMapper.ParseAssetClass(rawMarketDataList.AssetProfile.AssetClass));
+			result.AssetProfile.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(rawMarketDataList.AssetProfile.AssetSubClass));
 
 			for (int i = 0; i < result.MarketData.Count; i++)
 			{
@@ -136,8 +136,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				.Excluding(x => x.AssetClass)
 				.Excluding(x => x.AssetSubClass));
 			result.Currency.Symbol.Should().Be(rawSymbolProfile.Currency);
-			result.AssetClass.Should().Be(Utilities.ParseAssetClass(rawSymbolProfile.AssetClass));
-			result.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(rawSymbolProfile.AssetSubClass));
+			result.AssetClass.Should().Be(EnumMapper.ParseAssetClass(rawSymbolProfile.AssetClass));
+			result.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(rawSymbolProfile.AssetSubClass));
 		}
 
 		[Fact]
@@ -170,8 +170,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 				.Excluding(x => x.SymbolProfile.AssetClass)
 				.Excluding(x => x.SymbolProfile.AssetSubClass));
 			result[0].SymbolProfile.Currency.Symbol.Should().Be(activities[0].SymbolProfile.Currency);
-			result[0].SymbolProfile.AssetClass.Should().Be(Utilities.ParseAssetClass(activities[0].SymbolProfile.AssetClass));
-			result[0].SymbolProfile.AssetSubClass.Should().Be(Utilities.ParseAssetSubClass(activities[0].SymbolProfile.AssetSubClass));
+			result[0].SymbolProfile.AssetClass.Should().Be(EnumMapper.ParseAssetClass(activities[0].SymbolProfile.AssetClass));
+			result[0].SymbolProfile.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(activities[0].SymbolProfile.AssetSubClass));
 		}
 
 		[Fact]

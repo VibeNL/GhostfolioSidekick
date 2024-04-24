@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var result = await marketDataService.FindSymbolByIdentifier(
 								[asymbol.ISIN],
 								new Currency(asymbol.Currency),
-								[AssetClass.Cash],
+								[AssetClass.Liquidity],
 								[AssetSubClass.CryptoCurrency],
 								true,
 								false);

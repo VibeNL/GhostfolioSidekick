@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Cryptocurrency
+﻿namespace GhostfolioSidekick.Model.Strategies
 {
 	public enum StrategiesPriority
 	{
@@ -8,8 +8,10 @@
 
 		StakeRewardWorkaround = 2,
 
-		SendAndReceiveToBuyAndSell = 3,
+		NotNativeSupportedTransactionsInGhostfolio = 3,
 
-		ApplyDustCorrection = 99,
+		Rounding = 4,
+
+		ApplyDustCorrection = 5,
 	}
 }

@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	public class CreateManualSymbolTask : IScheduledWork
 	{
-		private readonly ILogger<FileImporterTask> logger;
+		private readonly ILogger<CreateManualSymbolTask> logger;
 		private readonly IMarketDataService marketDataService;
 		private readonly IActivitiesService activitiesService;
 		private readonly IApplicationSettings applicationSettings;
@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
 		public CreateManualSymbolTask(
-			ILogger<FileImporterTask> logger,
+			ILogger<CreateManualSymbolTask> logger,
 			IMarketDataService marketDataManager,
 			IActivitiesService activitiesManager,
 			IApplicationSettings applicationSettings)
@@ -70,8 +70,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var mdi = profiles.SingleOrDefault(x =>
 				x.Symbol == symbolConfiguration.Symbol &&
 				x.DataSource == Datasource.MANUAL &&
-				x.AssetClass == Utilities.ParseAssetClass(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
-				x.AssetSubClass == Utilities.ParseAssetSubClass(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass));
+				x.AssetClass == EnumMapper.ParseAssetClass(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
+				x.AssetSubClass == EnumMapper.ParseAssetSubClass(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass));
 			if (mdi == null || mdi.ActivitiesCount <= 0)
 			{
 				return;
@@ -81,8 +81,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.Where(x =>
 					x.SymbolProfile?.Symbol == mdi.Symbol &&
 					x.SymbolProfile.DataSource == Datasource.MANUAL &&
-					x.SymbolProfile.AssetClass == Utilities.ParseAssetClass(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
-					x.SymbolProfile.AssetSubClass == Utilities.ParseAssetSubClass(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass))
+					x.SymbolProfile.AssetClass == EnumMapper.ParseAssetClass(symbolConfiguration.ManualSymbolConfiguration!.AssetClass) &&
+					x.SymbolProfile.AssetSubClass == EnumMapper.ParseAssetSubClass(symbolConfiguration.ManualSymbolConfiguration.AssetSubClass))
 				.SelectMany(x => x.Activities)
 				.OfType<BuySellActivity>()
 				.ToList();
@@ -153,12 +153,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		private async Task AddAndUpdateSymbol(SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)
 		{
-			var subClass = Utilities.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass);
+			var subClass = EnumMapper.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass);
 			AssetSubClass[]? expectedAssetSubClass = subClass != null ? [subClass.Value] : null;
 			var symbol = await marketDataService.FindSymbolByIdentifier(
 				[symbolConfiguration.Symbol],
 				null,
-				[Utilities.ParseAssetClass(manualSymbolConfiguration.AssetClass)],
+				[EnumMapper.ParseAssetClass(manualSymbolConfiguration.AssetClass)],
 				expectedAssetSubClass,
 				false,
 				false);
@@ -169,8 +169,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					manualSymbolConfiguration.Name,
 					new Currency(manualSymbolConfiguration.Currency),
 					Datasource.MANUAL,
-					Utilities.ParseAssetClass(manualSymbolConfiguration.AssetClass),
-					Utilities.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass),
+					EnumMapper.ParseAssetClass(manualSymbolConfiguration.AssetClass),
+					EnumMapper.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass),
 					manualSymbolConfiguration.Countries.Select(x => new Model.Symbols.Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray(),
 					manualSymbolConfiguration.Sectors.Select(x => new Model.Symbols.Sector(x.Name, x.Weight)).ToArray())
 				{
@@ -182,7 +182,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			symbol = await marketDataService.FindSymbolByIdentifier(
 				[symbolConfiguration.Symbol],
 				null,
-				[Utilities.ParseAssetClass(manualSymbolConfiguration.AssetClass)],
+				[EnumMapper.ParseAssetClass(manualSymbolConfiguration.AssetClass)],
 				expectedAssetSubClass,
 				false,
 				false);

@@ -37,9 +37,4 @@
 		<ProjectReference Include="..\Model\Model.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="API\Mapper\" />
-	  <Folder Include="Strategies\" />
-	</ItemGroup>
-
 </Project>

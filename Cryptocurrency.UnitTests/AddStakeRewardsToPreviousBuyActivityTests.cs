@@ -117,7 +117,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 		}
 
 		[Fact]
-		public async Task Execute_ShouldNotChangeActivitiesIfCryptoWorkaroundDustIsFalse()
+		public async Task Execute_ShouldNotChangeActivitiesIfCryptoWorkaroundStakeRewardIsFalse()
 		{
 			// Arrange
 			var buyActivity = new BuySellActivity(null!, DateTime.Now.AddDays(-1), 10, null, null);
@@ -128,7 +128,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 				Activities = new List<IActivity> { buyActivity, stakeReward },
 			};
 
-			_strategy = new AddStakeRewardsToPreviousBuyActivity(new Settings { CryptoWorkaroundDust = false });
+			_strategy = new AddStakeRewardsToPreviousBuyActivity(new Settings { CryptoWorkaroundStakeReward = false });
 
 			// Act
 			await _strategy.Execute(holding);

@@ -1,8 +1,8 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioSidekick.GhostfolioAPI
+namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
-	public static class Utilities
+	public static class EnumMapper
 	{
 		public static AssetSubClass? ParseAssetSubClass(string? value)
 		{
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			return (value switch
 			{
-				"CASH" => (AssetClass?)AssetClass.Cash,
+				"LIQUIDITY" => (AssetClass?)AssetClass.Liquidity,
 				"EQUITY" => (AssetClass?)AssetClass.Equity,
 				"FIXED_INCOME" => (AssetClass?)AssetClass.FixedIncome,
 				"REAL_ESTATE" => (AssetClass?)AssetClass.RealEstate,
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			return assetClass switch
 			{
-				AssetClass.Cash => "CASH",
+				AssetClass.Liquidity => "LIQUIDITY",
 				AssetClass.Equity => "EQUITY",
 				AssetClass.FixedIncome => "FIXED_INCOME",
 				AssetClass.RealEstate => "REAL_ESTATE",

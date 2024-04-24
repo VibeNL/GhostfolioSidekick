@@ -1,0 +1,14 @@
+SELECT id, name, "updatedAt", symbol, sectors, currency, "assetClass", "assetSubClass", "symbolMapping", "scraperConfiguration", url, comment, isin, figi, "figiComposite", "figiShareClass"
+	FROM public."SymbolProfile"
+	where symbol like '%the-graph%';
+
+SELECT sum(quantity)
+	FROM public."Order"
+	where "symbolProfileId" = 'f4a61b7a-14da-4876-8124-21ea0a7ffa86'
+	and type = 'BUY'
+UNION
+SELECT sum(quantity)
+	FROM public."Order"
+	where "symbolProfileId" = 'f4a61b7a-14da-4876-8124-21ea0a7ffa86'
+	and type = 'SELL'
+	
