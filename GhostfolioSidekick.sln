@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptocurrency.UnitTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{19A57680-4CFD-44B5-8D7D-7E0FC1B3163D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model.UnitTests", "Model.UnitTests\Model.UnitTests.csproj", "{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model.UnitTests", "Model.UnitTests\Model.UnitTests.csproj", "{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
