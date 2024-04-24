@@ -4,6 +4,7 @@ using GhostfolioSidekick.Parsers.PDFParser;
 using System.Globalization;
 using Spire.Pdf.Texts;
 using Spire.Pdf;
+using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
@@ -20,6 +21,10 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		private readonly CultureInfo cultureInfo = new("nl-NL");
 
 		private const string Prefix = "Centraal Beheer ";
+
+		public CentraalBeheerParser(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
+		{
+		}
 
 		private List<string> MainKeyWords
 		{
@@ -47,79 +52,57 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		protected override List<PartialActivity> ParseRecords(string filename)
+		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
-			List<PartialActivity> records;
-
-			using (PdfDocument document = new PdfDocument())
+			var multiWords = new List<MultiWordToken>();
+			MultiWordToken? currentMainMultiWord = null;
+			MultiWordToken? currentMultiWord = null;
+			for (int i = 0; i < words.Count; i++)
 			{
-				// Load a PDF file
-				document.LoadFromFile(filename);
+				var token = words[i];
 
-				var singleWords = new List<SingleWordToken>();
-
-				foreach (PdfPageBase page in document.Pages)
+				var wasKeyword = false;
+				foreach (var keyWord in MainKeyWords.Union(SubKeyWords))
 				{
-					PdfTextExtractor textExtractor = new PdfTextExtractor(page);
-					var text = textExtractor.ExtractText(new PdfTextExtractOptions());
+					var spaces = keyWord.Count(c => c == ' ');
 
-					foreach (var word in text.Split(" ").Select(x => x.Trim()).Where(x => !string.IsNullOrWhiteSpace(x)))
+					if (i + spaces + 1 > words.Count)
 					{
-						singleWords.Add(new SingleWordToken(word));
+						continue;
+					}
+
+					var tokenOfCorrectSize = string.Join(' ', words.GetRange(i, spaces + 1).Select(x => x.Text));
+					var isMatch = tokenOfCorrectSize.Equals(keyWord);
+
+					bool isMainLevel = MainKeyWords.Contains(keyWord);
+					if (isMatch && isMainLevel)
+					{
+						currentMultiWord = currentMainMultiWord = new MultiWordToken(keyWord);
+						multiWords.Add(currentMultiWord);
+#pragma warning disable S127 // "for" loop stop conditions should be invariant
+						i += spaces;
+#pragma warning restore S127 // "for" loop stop conditions should be invariant
+						wasKeyword = true;
+					}
+					else if (isMatch)
+					{
+						var subWord = new MultiWordToken(keyWord);
+						currentMainMultiWord!.AddMultiWord(subWord);
+						currentMultiWord = subWord;
+#pragma warning disable S127 // "for" loop stop conditions should be invariant
+						i += spaces;
+#pragma warning restore S127 // "for" loop stop conditions should be invariant
+						wasKeyword = true;
 					}
 				}
 
-				var multiWords = new List<MultiWordToken>();
-				MultiWordToken? currentMainMultiWord = null;
-				MultiWordToken? currentMultiWord = null;
-				for (int i = 0; i < singleWords.Count; i++)
+				if (currentMultiWord != null && !wasKeyword)
 				{
-					var token = singleWords[i];
-
-					var wasKeyword = false;
-					foreach (var keyWord in MainKeyWords.Union(SubKeyWords))
-					{
-						var spaces = keyWord.Count(c => c == ' ');
-
-						if (i + spaces + 1 > singleWords.Count)
-						{
-							continue;
-						}
-
-						var tokenOfCorrectSize = string.Join(' ', singleWords.GetRange(i, spaces + 1).Select(x => x.Text));
-						var isMatch = tokenOfCorrectSize.Equals(keyWord);
-
-						bool isMainLevel = MainKeyWords.Contains(keyWord);
-						if (isMatch && isMainLevel)
-						{
-							currentMultiWord = currentMainMultiWord = new MultiWordToken(keyWord);
-							multiWords.Add(currentMultiWord);
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-							i += spaces;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
-							wasKeyword = true;
-						}
-						else if (isMatch)
-						{
-							var subWord = new MultiWordToken(keyWord);
-							currentMainMultiWord!.AddMultiWord(subWord);
-							currentMultiWord = subWord;
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-							i += spaces;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
-							wasKeyword = true;
-						}
-					}
-
-					if (currentMultiWord != null && !wasKeyword)
-					{
-						currentMultiWord.AddSingleWordToken(token);
-					}
+					currentMultiWord.AddSingleWordToken(token);
 				}
-
-				records = ParseTokens(multiWords);
 			}
 
+			var records = ParseTokens(multiWords);
 			return records;
 		}
 
@@ -241,5 +224,6 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 			return new Money(new Currency(CurrencyTools.GetCurrencyFromSymbol(tokens[0])), parsedAmount);
 		}
+
 	}
 }

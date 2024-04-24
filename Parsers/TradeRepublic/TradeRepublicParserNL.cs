@@ -3,6 +3,7 @@ using GhostfolioSidekick.Parsers.PDFParser;
 using Spire.Pdf.Texts;
 using Spire.Pdf;
 using System.Text;
+using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -30,30 +31,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 		}
 
-		protected override List<PartialActivity> ParseRecords(string filename)
+		public TradeRepublicParserNL(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
-			var activities = new List<PartialActivity>();
-			using (PdfDocument document = new PdfDocument())
-			{
-				// Load a PDF file
-				document.LoadFromFile(filename);
-
-				foreach (PdfPageBase page in document.Pages)
-				{
-					PdfTextExtractor textExtractor = new PdfTextExtractor(page);
-					var text = textExtractor.ExtractText(new PdfTextExtractOptions());
-					activities.AddRange(ParseWords(text));
-				}
-			}
-
-			return activities;
 		}
 
-		private List<PartialActivity> ParseWords(string text)
+		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
-
-			List<SingleWordToken> words = SplitText(text);
 
 			// detect headers
 			var headers = new List<MultiWordToken>();
@@ -118,41 +102,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return activities;
 		}
 
-		private static List<SingleWordToken> SplitText(string text)
-		{
-			// for each line
-			var lines = text.Split(Environment.NewLine);
-			var words = new List<SingleWordToken>();
 
-			for (int i = 0; i < lines.Length; i++)
-			{
-				var line = lines[i].ToCharArray();
-				var word = new StringBuilder();
-				for (int j = 0; j < line.Length; j++)
-				{
-					switch (line[j])
-					{
-						case ' ':
-							if (word.Length > 0)
-							{
-								words.Add(new SingleWordToken(word.ToString(), new BoundingBox()));
-							}
-
-							word.Clear();
-							break;
-						default:
-							word.Append(line[j]);
-							break;
-					}
-				}
-
-				if (word.Length > 0)
-				{
-					words.Add(new SingleWordToken(word.ToString(), new BoundingBox()));
-				}
-			}
-
-			return words;
-		}
 	}
 }

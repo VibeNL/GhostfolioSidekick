@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Parsers.PDFParser
+﻿namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
 	public record SingleWordToken : WordToken
 	{
@@ -7,7 +7,7 @@
 			Text = text;
 		}
 
-		public SingleWordToken(string text, BoundingBox boundingBox) : base( boundingBox)
+		public SingleWordToken(string text, Position boundingBox) : base(boundingBox)
 		{
 			Text = text;
 		}
