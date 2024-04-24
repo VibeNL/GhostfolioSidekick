@@ -39,7 +39,7 @@ namespace GhostfolioSidekick
 									continue;
 								}
 
-								logger.LogInformation($"Service {workItem.Work.GetType().Name} is executing.");
+								logger.LogInformation("Service {Name} is executing.", workItem.Work.GetType().Name);
 
 								workItem = workQueue.Dequeue();
 
@@ -49,15 +49,19 @@ namespace GhostfolioSidekick
 								}
 								catch (Exception ex)
 								{
-									logger.LogError(ex.Message);
+									logger.LogError(ex, "An error occurred executing {Name}.", workItem.Work.GetType().Name);
 								}
 
 								if (workItem.DetermineNextSchedule())
 								{
 									workQueue.Enqueue(workItem, workItem.NextSchedule);
 								}
+								else
+								{
+									logger.LogDebug("Service {Name} is no longer scheduled.", workItem.Work.GetType().Name);
+								}
 
-								logger.LogInformation($"Service {workItem.Work.GetType().Name} has executed.");
+								logger.LogInformation("Service {Name} has executed.", workItem.Work.GetType().Name);
 							}
 						}, cancellationTokenSource.Token);
 
