@@ -1,13 +1,10 @@
-﻿namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
+﻿
+
+namespace GhostfolioSidekick.Parsers.PDFParser
 {
 	public record MultiWordToken : WordToken
 	{
 		public MultiWordToken(string keyWord)
-		{
-			KeyWord = keyWord;
-		}
-
-		public MultiWordToken(string keyWord, Position? box) : base(box)
 		{
 			KeyWord = keyWord;
 		}
@@ -21,13 +18,13 @@
 		internal void AddMultiWord(MultiWordToken subWord)
 		{
 			// Add token to the list
-			Words.Add(subWord);
+			this.Words.Add(subWord);
 		}
 
 		internal void AddSingleWordToken(SingleWordToken token)
 		{
 			// Add token to the list
-			Words.Add(token);
+			this.Words.Add(token);
 		}
 	}
 }

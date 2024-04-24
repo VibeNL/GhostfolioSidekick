@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.CentraalBeheer;
-using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 {
@@ -16,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 
 		public CentraalBeheerParserTests()
 		{
-			parser = new CentraalBeheerParser(new PdfToWordsParser());
+			parser = new CentraalBeheerParser(DummyCurrencyMapper.Instance);
 
 			var fixture = new Fixture();
 			account = fixture
