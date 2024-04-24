@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Model.Activities
 		{
 			return new PartialSymbolIdentifier(id)
 			{
-				AllowedAssetClasses = [AssetClass.Cash],
+				AllowedAssetClasses = [AssetClass.Liquidity],
 				AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
 			};
 		}

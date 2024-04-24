@@ -37,8 +37,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				symbolProfile.Name,
 				new Currency(symbolProfile.Currency!),
 				symbolProfile.DataSource,
-				Utilities.ParseAssetClass(symbolProfile.AssetClass),
-				Utilities.ParseAssetSubClass(symbolProfile.AssetSubClass),
+				EnumMapper.ParseAssetClass(symbolProfile.AssetClass),
+				EnumMapper.ParseAssetSubClass(symbolProfile.AssetSubClass),
 				MapCountries(symbolProfile.Countries),
 				MapSectors(symbolProfile.Sectors))
 			{
