@@ -4,7 +4,7 @@
 	{
 		Undefined = 0,
 
-		Cash,
+		Liquidity,
 
 		Commodity,
 

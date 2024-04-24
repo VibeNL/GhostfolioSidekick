@@ -1,9 +1,10 @@
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
+namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 {
 
-	public class UtilitiesTests
+	public class EnumMapperTests
 	{
 		[Theory]
 		[InlineData("CRYPTOCURRENCY", AssetSubClass.CryptoCurrency)]
@@ -19,7 +20,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void ParseEnum_AssetSubClass_ValidInput_ReturnsExpectedResult(string input, AssetSubClass? expectedResult)
 		{
 			// Act
-			var result = Utilities.ParseAssetSubClass(input);
+			var result = EnumMapper.ParseAssetSubClass(input);
 
 			// Assert
 			Assert.Equal(expectedResult, result);
@@ -28,11 +29,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		[Fact]
 		public void ParseAssetSubClass_InvalidInput_ThrowsNotSupportedException()
 		{
-			Assert.Throws<NotSupportedException>(() => Utilities.ParseAssetSubClass("INVALID"));
+			Assert.Throws<NotSupportedException>(() => EnumMapper.ParseAssetSubClass("INVALID"));
 		}
 
 		[Theory]
-		[InlineData("CASH", AssetClass.Cash)]
+		[InlineData("LIQUIDITY", AssetClass.Liquidity)]
 		[InlineData("COMMODITY", AssetClass.Commodity)]
 		[InlineData("EQUITY", AssetClass.Equity)]
 		[InlineData("FIXED_INCOME", AssetClass.FixedIncome)]
@@ -42,7 +43,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void ParseOptionalEnumAsset_AssetClass_ValidInput_ReturnsExpectedResult(string input, AssetClass expectedResult)
 		{
 			// Act
-			var result = Utilities.ParseAssetClass(input);
+			var result = EnumMapper.ParseAssetClass(input);
 
 			// Assert
 			Assert.Equal(expectedResult, result);
@@ -51,7 +52,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		[Fact]
 		public void ParseAssetClass_InvalidInput_ThrowsNotSupportedException()
 		{
-			Assert.Throws<NotSupportedException>(() => Utilities.ParseAssetClass("INVALID"));
+			Assert.Throws<NotSupportedException>(() => EnumMapper.ParseAssetClass("INVALID"));
 		}
 
 		[Theory]
@@ -67,7 +68,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void ConvertAssetSubClassToString_ValidInput_ReturnsExpectedResult(AssetSubClass? input, string expectedResult)
 		{
 			// Act
-			var result = Utilities.ConvertAssetSubClassToString(input);
+			var result = EnumMapper.ConvertAssetSubClassToString(input);
 
 			// Assert
 			Assert.Equal(expectedResult, result);
@@ -80,11 +81,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var invalidInput = (AssetSubClass)999;
 
 			// Act & Assert
-			Assert.Throws<NotSupportedException>(() => Utilities.ConvertAssetSubClassToString(invalidInput));
+			Assert.Throws<NotSupportedException>(() => EnumMapper.ConvertAssetSubClassToString(invalidInput));
 		}
 
 		[Theory]
-		[InlineData(AssetClass.Cash, "CASH")]
+		[InlineData(AssetClass.Liquidity, "LIQUIDITY")]
 		[InlineData(AssetClass.Equity, "EQUITY")]
 		[InlineData(AssetClass.FixedIncome, "FIXED_INCOME")]
 		[InlineData(AssetClass.RealEstate, "REAL_ESTATE")]
@@ -93,7 +94,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public void ConvertAssetClassToString_ValidInput_ReturnsExpectedResult(AssetClass? input, string expectedResult)
 		{
 			// Act
-			var result = Utilities.ConvertAssetClassToString(input);
+			var result = EnumMapper.ConvertAssetClassToString(input);
 
 			// Assert
 			Assert.Equal(expectedResult, result);
@@ -106,7 +107,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var invalidInput = (AssetClass)999;
 
 			// Act & Assert
-			Assert.Throws<NotSupportedException>(() => Utilities.ConvertAssetClassToString(invalidInput));
+			Assert.Throws<NotSupportedException>(() => EnumMapper.ConvertAssetClassToString(invalidInput));
 		}
 	}
 }
