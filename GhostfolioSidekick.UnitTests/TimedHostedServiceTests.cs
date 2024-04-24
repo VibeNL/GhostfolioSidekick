@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.UnitTests
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
-			scheduledWorkMock1.Setup(Task => Task.DoWork()).Throws(new Exception("Test exception"));
+			scheduledWorkMock1.Setup(Task => Task.DoWork()).Throws(new Exception("Test exception 42"));
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 
@@ -132,7 +132,7 @@ namespace GhostfolioSidekick.UnitTests
 			loggerMock.Verify(logger => logger.Log(
 				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Error),
 				0,
-				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Test exception")),
+				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.Contains("Test exception 42")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);

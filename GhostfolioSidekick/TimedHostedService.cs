@@ -49,7 +49,7 @@ namespace GhostfolioSidekick
 								}
 								catch (Exception ex)
 								{
-									logger.LogError(ex, "An error occurred executing {Name}.", workItem.Work.GetType().Name);
+									logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
 								}
 
 								if (workItem.DetermineNextSchedule())
