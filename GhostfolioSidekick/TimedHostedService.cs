@@ -7,6 +7,7 @@ namespace GhostfolioSidekick
 	{
 		private CancellationTokenSource? cancellationTokenSource;
 
+		private Task? task;
 		private readonly ILogger logger;
 		private readonly PriorityQueue<Scheduled, DateTime> workQueue = new PriorityQueue<Scheduled, DateTime>();
 
@@ -27,41 +28,48 @@ namespace GhostfolioSidekick
 			logger.LogInformation("Service is starting.");
 
 			// create a task that runs continuously
-			Task.Run(async () =>
+			task = Task.Run(async () =>
 						{
-							while (!cancellationToken.IsCancellationRequested)
+							try
 							{
-								var workItem = workQueue.Peek();
-
-								if (DateTime.Now < workItem.NextSchedule)
+								while (!cancellationToken.IsCancellationRequested)
 								{
-									await Task.Delay(workItem.NextSchedule - DateTime.Now);
-									continue;
-								}
+									var workItem = workQueue.Peek();
 
-								logger.LogInformation("Service {Name} is executing.", workItem.Work.GetType().Name);
+									if (DateTime.Now < workItem.NextSchedule)
+									{
+										await Task.Delay(workItem.NextSchedule - DateTime.Now);
+										continue;
+									}
 
-								workItem = workQueue.Dequeue();
+									logger.LogInformation("Service {Name} is executing.", workItem.Work.GetType().Name);
 
-								try
-								{
-									await workItem.Work.DoWork();
-								}
-								catch (Exception ex)
-								{
-									logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
-								}
+									workItem = workQueue.Dequeue();
 
-								if (workItem.DetermineNextSchedule())
-								{
-									workQueue.Enqueue(workItem, workItem.NextSchedule);
-								}
-								else
-								{
-									logger.LogDebug("Service {Name} is no longer scheduled.", workItem.Work.GetType().Name);
-								}
+									try
+									{
+										await workItem.Work.DoWork();
+									}
+									catch (Exception ex)
+									{
+										logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
+									}
 
-								logger.LogInformation("Service {Name} has executed.", workItem.Work.GetType().Name);
+									if (workItem.DetermineNextSchedule())
+									{
+										workQueue.Enqueue(workItem, workItem.NextSchedule);
+									}
+									else
+									{
+										logger.LogDebug("Service {Name} is no longer scheduled.", workItem.Work.GetType().Name);
+									}
+
+									logger.LogInformation("Service {Name} has executed.", workItem.Work.GetType().Name);
+								}
+							}
+							catch (Exception ex)
+							{
+								logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", nameof(TimedHostedService), ex.Message);
 							}
 						}, cancellationTokenSource.Token);
 
@@ -72,8 +80,15 @@ namespace GhostfolioSidekick
 		{
 			logger.LogInformation("Service is stopping.");
 
+			if (task == null)
+			{
+				return Task.CompletedTask;
+			}
+
 			cancellationTokenSource!.Cancel();
 			cancellationTokenSource.Dispose();
+
+			task = null;
 
 			return Task.CompletedTask;
 		}
