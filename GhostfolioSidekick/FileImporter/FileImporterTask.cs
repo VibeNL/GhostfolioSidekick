@@ -184,7 +184,7 @@ namespace GhostfolioSidekick.FileImporter
 			var r = new Dictionary<DateOnly, Balance>();
 			foreach (var item in value.GroupBy(x => x.DateTime.Date))
 			{
-				r.Add(DateOnly.FromDateTime(item.Key), item.Min()!);
+				r.Add(DateOnly.FromDateTime(item.Key), item.OrderBy(x => x.Money.Amount).First());
 			}
 
 			return r;
