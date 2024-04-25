@@ -46,11 +46,6 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						id);
 					break;
 				case string when record.Type.Contains("Sell", StringComparison.InvariantCultureIgnoreCase):
-					if (new Currency(record.Asset).IsFiat())
-					{
-						yield break;
-					}
-
 					yield return PartialActivity.CreateSell(
 						currency,
 						date,
@@ -110,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					yield return PartialActivity.CreateGift(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
 				default:
-					throw new NotSupportedException($"{record.Type}");
+					throw new NotSupportedException(record.Type);
 			}
 		}
 
