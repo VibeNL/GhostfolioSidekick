@@ -1,6 +1,7 @@
 using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
@@ -138,5 +139,65 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			holding.Activities.Should().Contain(stakeReward);
 		}
 
+		[Fact]
+		public async Task Execute_ShouldUpdateUnitPriceCorrectly_WhenUnitPriceIsNotNull()
+		{
+			// Arrange
+			var buyActivity = new BuySellActivity(null!, DateTime.Now.AddDays(-1), 10, new Money(Currency.USD, 100), null);
+			var stakeReward = new StakingRewardActivity(null!, DateTime.Now, 5, null);
+
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
+			{
+				Activities = new List<IActivity> { buyActivity, stakeReward }
+			};
+
+			// Act
+			await _strategy.Execute(holding);
+
+			// Assert
+			buyActivity.Quantity.Should().Be(15);
+			buyActivity.UnitPrice!.Amount.Should().Be(75);
+			holding.Activities.Should().NotContain(stakeReward);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldNotAddStakeRewardsToNewerBuyActivity()
+		{
+			// Arrange
+			var stakeReward = new StakingRewardActivity(null!, DateTime.Now.AddDays(-1), 5, null);
+			var buyActivity = new BuySellActivity(null!, DateTime.Now, 10, null, null);
+			
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
+			{
+				Activities = new List<IActivity> { buyActivity, stakeReward }
+			};
+
+			// Act
+			await _strategy.Execute(holding);
+
+			// Assert
+			buyActivity.Quantity.Should().Be(10);
+			holding.Activities.Should().Contain(stakeReward);
+		}
+
+		[Fact]
+		public async Task Execute_ShouldNotAddStakeRewardsToSellActivity()
+		{
+			// Arrange
+			var stakeReward = new StakingRewardActivity(null!, DateTime.Now, 5, null);
+			var buyActivity = new BuySellActivity(null!, DateTime.Now.AddDays(-1), -10, null, null);
+
+			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
+			{
+				Activities = new List<IActivity> { buyActivity, stakeReward }
+			};
+
+			// Act
+			await _strategy.Execute(holding);
+
+			// Assert
+			buyActivity.Quantity.Should().Be(-10);
+			holding.Activities.Should().Contain(stakeReward);
+		}
 	}
 }
