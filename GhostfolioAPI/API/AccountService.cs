@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
-using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -44,7 +43,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Creation failed {platform.Name}");
 			}
 
-			logger.LogInformation($"Created platform {platform.Name}");
+			logger.LogInformation("Created platform {Name}", platform.Name);
 		}
 
 		public async Task CreateAccount(Model.Accounts.Account account)
@@ -73,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Creation failed {account.Name}");
 			}
 
-			logger.LogInformation($"Created account {account.Name}");
+			logger.LogInformation("Created account {Name}", account.Name);
 		}
 
 		public async Task<Model.Accounts.Account?> GetAccountByName(string name)
@@ -129,34 +128,49 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return rawPlatforms.Select(ContractToModelMapper.MapPlatform).ToList();
 		}
 
-		public async Task UpdateBalance(Model.Accounts.Account existingAccount, Balance newBalance)
+		public async Task SetBalances(Model.Accounts.Account existingAccount, Dictionary<DateOnly, Model.Accounts.Balance> balances)
 		{
-			var content = await restCall.DoRestGet($"api/v1/account");
+			var content = await restCall.DoRestGet($"api/v1/account/{existingAccount.Id}/balances");
 
-			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content!);
-			var rawAccount = rawAccounts?.Accounts?.SingleOrDefault(x => string.Equals(x.Id, existingAccount.Id, StringComparison.InvariantCultureIgnoreCase));
+			var balanceList = JsonConvert.DeserializeObject<BalanceList>(content!);
 
-			if (rawAccount == null)
+			if (balanceList == null)
 			{
 				throw new NotSupportedException("Account not found");
 			}
 
-			if (Math.Round(rawAccount.Balance, 10) == Math.Round(newBalance.Money.Amount, 10))
+			// Delete all balances that are not in the new list
+			foreach (var item in balanceList.Balances.Where(x => !balances.Any(y => x.Date == y.Key)))
 			{
-				return;
+				await restCall.DoRestDelete($"api/v1/account-balance/{item.Id}");
 			}
+						
+			// Update all balances that are in the new list
+			foreach (var newBalance in balances)
+			{
+				var o = new JObject();
+				o["balance"] = newBalance.Value.Money.Amount;
+				o["date"] = newBalance.Key.ToString("o");
+				o["accountId"] = existingAccount.Id;
+				var res = o.ToString();
 
-			var o = new JObject();
-			o["balance"] = newBalance.Money.Amount;
-			o["comment"] = rawAccount.Comment;
-			o["currency"] = newBalance.Money.Currency.Symbol;
-			o["id"] = rawAccount.Id;
-			o["isExcluded"] = rawAccount.IsExcluded;
-			o["name"] = rawAccount.Name;
-			o["platformId"] = rawAccount.PlatformId;
-			var res = o.ToString();
+				// check if balance already exists
+				var existingBalance = balanceList.Balances.SingleOrDefault(x => x.Date == newBalance.Key);
+				if (existingBalance != null)
+				{
+					if (Math.Round(existingBalance.Value, 10) == Math.Round(newBalance.Value.Money.Amount, 10))
+					{
+						continue;
+					}
 
-			await restCall.DoRestPut($"api/v1/account/{existingAccount.Id}", res);
+					await restCall.DoRestDelete($"api/v1/account-balance/{existingBalance.Id}");
+					await restCall.DoRestPost($"api/v1/account-balance/", res);
+				}
+				else
+				{
+					await restCall.DoRestPost($"api/v1/account-balance/", res);
+				}
+			}
 		}
 
 		public async Task DeleteAccount(string name)

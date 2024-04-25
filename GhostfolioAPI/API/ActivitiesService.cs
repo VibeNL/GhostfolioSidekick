@@ -44,6 +44,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1121:Assignments should not be made from within sub-expressions", Justification = "Cleaner")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
 		private async Task WriteOrder(Activity activity)
 		{
 			if (activity.Type == ActivityType.IGNORE)
@@ -58,6 +59,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation($"Added transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
 		private async Task DeleteOrder(Contract.Activity activity)
 		{
 			if (string.IsNullOrWhiteSpace(activity.Id))
