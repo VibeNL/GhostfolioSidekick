@@ -38,7 +38,7 @@
 		<None Update="Files\config.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="Files\TestAccount1\degiro_pt.csv">
+		<None Update="Files\TestAccount2\degiro_pt.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="Files\TestAccount1\generic.csv">
