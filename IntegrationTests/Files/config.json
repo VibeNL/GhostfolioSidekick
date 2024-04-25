@@ -1,27 +1,28 @@
 ﻿{
-  "settings": {
-    "dataprovider.preference.order": "COINGECKO,YAHOO",
-    "use.crypto.workaround.stakereward.as.dividends": false,
-    "dust.threshold": 0.05,
-    "delete.unused.symbols": false
-  },
-  "accounts": [
-    {
-      "name": "TestAccount1",
-      "currency": "EUR",
-      "platform": ""
-    },
-    {
-      "name": "Issue190",
-      "currency": "EUR",
-      "platform": ""
-    }
-  ],
-  "mappings": [
-    {
-      "type": "currency",
-      "source": "GBX",
-      "target": "GBp"
-    }
-  ]
+	"settings": {
+		"dataprovider.preference.order": "COINGECKO,YAHOO",
+		"use.crypto.workaround.stakereward.as.dividends": false,
+		"use.crypto.workaround.dust": false,
+		"dust.threshold": 0.05,
+		"delete.unused.symbols": false
+	},
+	"accounts": [
+		{
+			"name": "TestAccount1",
+			"currency": "EUR",
+			"platform": ""
+		},
+		{
+			"name": "Issue190",
+			"currency": "EUR",
+			"platform": ""
+		}
+	],
+	"mappings": [
+		{
+			"type": "currency",
+			"source": "GBX",
+			"target": "GBp"
+		}
+	]
 }

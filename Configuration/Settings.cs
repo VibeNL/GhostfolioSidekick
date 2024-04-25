@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace GhostfolioSidekick.Configuration
 {
+	[ExcludeFromCodeCoverage]
 	public class Settings
 	{
 		[SetsRequiredMembers]

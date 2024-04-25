@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			return records;
 		}
 
-		private IEnumerable<PartialActivity> CreateAankoopActivities(List<WordToken> relevantTokens)
+		private IEnumerable<PartialActivity> CreateAankoopActivities(List<IWordToken> relevantTokens)
 		{
 			var price = GetMoney(GetToken(Keyword_Koers, relevantTokens));
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
@@ -187,7 +187,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		private IEnumerable<PartialActivity> CreateVerkoopActivities(List<WordToken> relevantTokens)
+		private IEnumerable<PartialActivity> CreateVerkoopActivities(List<IWordToken> relevantTokens)
 		{
 			var price = GetMoney(GetToken(Keyword_Koers, relevantTokens));
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
@@ -205,7 +205,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				id);
 		}
 
-		private IEnumerable<PartialActivity> CreateOverboekingActivities(List<WordToken> relevantTokens)
+		private IEnumerable<PartialActivity> CreateOverboekingActivities(List<IWordToken> relevantTokens)
 		{
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
 			var amount = GetMoney(GetToken(Keyword_Bruto_Bedrag, relevantTokens));
@@ -218,7 +218,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				$"Centraal_Beheer_{PartialActivityType.CashDeposit}_{date.ToInvariantDateOnlyString()}");
 		}
 
-		private string[] GetToken(string keyword, List<WordToken> relevantTokens)
+		private string[] GetToken(string keyword, List<IWordToken> relevantTokens)
 		{
 			return relevantTokens
 				.OfType<MultiWordToken>()
