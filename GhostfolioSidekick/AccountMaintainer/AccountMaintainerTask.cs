@@ -28,19 +28,19 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public async Task DoWork()
 		{
-			logger.LogInformation($"{nameof(AccountMaintainerTask)} Starting to do work");
+			logger.LogInformation("{Name} Starting to do work", nameof(AccountMaintainerTask));
 
 			try
 			{
 				await AddOrUpdateAccountsAndPlatforms();
 			}
-			catch
+			catch(Exception ex)
 			{
-				logger.LogError($"{nameof(AccountMaintainerTask)} Failed");
+				logger.LogError(ex, "{Name} Failed", nameof(AccountMaintainerTask));
 				return;
 			}
 
-			logger.LogInformation($"{nameof(AccountMaintainerTask)} Done");
+			logger.LogInformation("{Name} Done", nameof(AccountMaintainerTask));
 		}
 
 		private async Task AddOrUpdateAccountsAndPlatforms()
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			await api.CreateAccount(new Account(
 				accountConfig.Name,
-				new Balance(new Money(new Currency(accountConfig.Currency), 0)))
+				new Balance(DateTime.Today, new Money(new Currency(accountConfig.Currency), 0)))
 			{
 				Comment = accountConfig.Comment,
 				Platform = platform,

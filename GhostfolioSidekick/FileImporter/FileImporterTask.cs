@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Strategies;
@@ -162,15 +163,9 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				var existingAccount = (await accountManager.GetAccountByName(balance.Key))!;
 
-				if (Math.Abs(existingAccount.Balance.Money.Amount - balance.Value.Money.Amount) < Constants.Epsilon)
-				{
-					logger.LogDebug("Account {Key} balance unchanged on: {Amount}", balance.Key, balance.Value.Money.Amount);
-					continue;
-				}
-
 				try
 				{
-					await accountManager.UpdateBalance(existingAccount, balance.Value);
+					await accountManager.SetBalances(existingAccount, ConvertToBalanceList(balance.Value));
 					logger.LogInformation("Set account {Key} balances", balance.Key);
 				}
 				catch (Exception ex)
@@ -182,6 +177,17 @@ namespace GhostfolioSidekick.FileImporter
 			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
 
 			logger.LogInformation("{Name} Done", nameof(FileImporterTask));
+		}
+
+		private Dictionary<DateOnly, Balance> ConvertToBalanceList(List<Balance> value)
+		{
+			var r = new Dictionary<DateOnly, Balance>();
+			foreach (var item in value.GroupBy(x => x.DateTime.Date))
+			{
+				r.Add(DateOnly.FromDateTime(item.Key), item.Min()!);
+			}
+
+			return r;
 		}
 
 		private static string CalculateHash(string[] directories)
