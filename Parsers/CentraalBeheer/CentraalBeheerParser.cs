@@ -1,13 +1,14 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
-	public class CentraalBeheerParser : IFileImporter
+	public partial class CentraalBeheerParser : IFileImporter
 	{
 		private const string Keyword_Aankoop = "Aankoop";
 		private const string Keyword_Verkoop = "Verkoop";
@@ -17,18 +18,17 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		private const string Keyword_Koers = "Koers";
 		private const string Keyword_Aankoopkosten = "Aankoopkosten";
 		private const string Keyword_Bruto_Bedrag = "Bruto bedrag";
-		private readonly ICurrencyMapper currencyMapper;
 		private readonly CultureInfo cultureInfo = new("nl-NL");
 
 		private const string Prefix = "Centraal Beheer ";
 
-		private List<string> mainKeyWords =
+		private readonly List<string> mainKeyWords =
 		[
 			Keyword_Aankoop,
 			Keyword_Verkoop,
 			KeyWord_Overboeking
 		];
-		private List<string> subKeyWords =
+		private readonly List<string> subKeyWords =
 		[
 			Keyword_Opdrachtdatum,
 			Keyword_Aantal_Stukken,
@@ -39,7 +39,6 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 		public CentraalBeheerParser(ICurrencyMapper currencyMapper)
 		{
-			this.currencyMapper = currencyMapper;
 		}
 
 		public Task<bool> CanParseActivities(string filename)
@@ -104,7 +103,9 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						{
 							currentMultiWord = currentMainMultiWord = new MultiWordToken(keyWord);
 							multiWords.Add(currentMultiWord);
+#pragma warning disable S127 // "for" loop stop conditions should be invariant
 							i += spaces;
+#pragma warning restore S127 // "for" loop stop conditions should be invariant
 							wasKeyword = true;
 						}
 						else if (isMatch)
@@ -112,7 +113,9 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 							var subWord = new MultiWordToken(keyWord);
 							currentMainMultiWord!.AddMultiWord(subWord);
 							currentMultiWord = subWord;
+#pragma warning disable S127 // "for" loop stop conditions should be invariant
 							i += spaces;
+#pragma warning restore S127 // "for" loop stop conditions should be invariant
 							wasKeyword = true;
 						}
 					}
@@ -148,8 +151,6 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					case var t when t.KeyWord == KeyWord_Overboeking:
 						records.AddRange(CreateOverboekingActivities(t.Words));
 						break;
-					default:
-						break;
 				}
 			}
 
@@ -168,7 +169,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				price.Currency,
 				date,
 				[PartialSymbolIdentifier.CreateStockAndETF(symbol)],
-				decimal.Parse(GetToken(Keyword_Aantal_Stukken, relevantTokens).First(), cultureInfo),
+				decimal.Parse(GetToken(Keyword_Aantal_Stukken, relevantTokens)[0], cultureInfo),
 				price.Amount,
 				GetMoney(GetToken(Keyword_Bruto_Bedrag, relevantTokens)),
 				id);
@@ -198,7 +199,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				price.Currency,
 				date,
 				[PartialSymbolIdentifier.CreateStockAndETF(symbol)],
-				decimal.Parse(GetToken(Keyword_Aantal_Stukken, relevantTokens).First(), cultureInfo),
+				decimal.Parse(GetToken(Keyword_Aantal_Stukken, relevantTokens)[0], cultureInfo),
 				price.Amount,
 				GetMoney(GetToken(Keyword_Bruto_Bedrag, relevantTokens)),
 				id);
@@ -228,6 +229,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				.ToArray();
 		}
 
+		[ExcludeFromCodeCoverage]
 		private DateTime GetDate(params string[] date)
 		{
 			if (!DateTime.TryParse(string.Join(" ", date), cultureInfo, DateTimeStyles.AssumeUniversal, out DateTime parsedDate))
@@ -238,6 +240,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			return parsedDate;
 		}
 
+		[ExcludeFromCodeCoverage]
 		private Money GetMoney(params string[] tokens)
 		{
 			if (!decimal.TryParse(tokens[1], cultureInfo, out decimal parsedAmount))
@@ -246,53 +249,6 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 
 			return new Money(new Currency(CurrencyTools.GetCurrencyFromSymbol(tokens[0])), parsedAmount);
-		}
-
-		public static class CurrencyTools
-		{
-			private static IDictionary<string, string> map;
-			static CurrencyTools()
-			{
-				map = CultureInfo
-					.GetCultures(CultureTypes.AllCultures)
-					.Where(c => !c.IsNeutralCulture)
-					.Select(culture =>
-					{
-						try
-						{
-							return new RegionInfo(culture.Name);
-						}
-						catch
-						{
-							return null;
-						}
-					})
-					.Where(ri => ri != null)
-					.GroupBy(ri => ri!.ISOCurrencySymbol)
-					.ToDictionary(x => x.Key, x => x.First()!.CurrencySymbol);
-			}
-
-			public static bool TryGetCurrencySymbol(
-								  string ISOCurrencySymbol,
-								  out string? symbol)
-			{
-				return map.TryGetValue(ISOCurrencySymbol, out symbol);
-			}
-
-			public static string GetCurrencyFromSymbol(string currencySymbol)
-			{
-				var isoCurrencySymbol = map
-					.Where(kvp => kvp.Value == currencySymbol)
-					.Select(kvp => kvp.Key)
-					.FirstOrDefault();
-
-				if (isoCurrencySymbol == null)
-				{
-					throw new ArgumentException("Currency symbol not found");
-				}
-
-				return isoCurrencySymbol;
-			}
 		}
 	}
 }
