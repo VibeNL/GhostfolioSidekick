@@ -17,8 +17,8 @@ namespace GhostfolioSidekick.UnitTests.Parsers
 		}
 
 		[Theory]
-		[InlineData("USD", "$")]
-		[InlineData("EUR", "€")]
+		[InlineData("USD", "\u0024")]
+		[InlineData("EUR", "\u20AC")]
 		public void TryGetCurrencySymbol_ValidISOCurrencySymbol_ShouldReturnTrueAndSymbol(string isoCurrencySymbol, string expectedSymbol)
 		{
 			// Act
@@ -42,8 +42,8 @@ namespace GhostfolioSidekick.UnitTests.Parsers
 		}
 
 		[Theory]
-		[InlineData("$", "USD")]
-		[InlineData("€", "EUR")]
+		[InlineData("\u0024", "USD")]
+		[InlineData("\u20AC", "EUR")]
 		public void GetCurrencyFromSymbol_ValidCurrencySymbol_ShouldReturnISOCurrencySymbol(string currencySymbol, string expectedISOCurrencySymbol)
 		{
 			// Act
