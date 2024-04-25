@@ -177,5 +177,63 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 						"abcde")
 				]);
 		}
+
+		[Fact]
+		public async Task ParseActivities_SingleBuyPending_CorrectlyParsed()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_buy_euro_pending.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ParseActivities_SingleBuyWithTax_CorrectlyParsed()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_buy_euro_tax.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2021,11,20, 2,0,0, 0, DateTimeKind.Utc),
+						0.99M,
+						new Money(Currency.EUR, 0.99M),
+						"abcde"),
+						PartialActivity.CreateTax(
+						Currency.EUR,
+						new DateTime(2021,11,20, 2,0,0, 0, DateTimeKind.Utc),
+						2,
+						new Money(Currency.EUR, 2),
+						"abcde"),
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2021,11,20, 2,0,0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US5949181045")],
+						2,
+						227.85M,
+						new Money(Currency.EUR, 455.7M),
+						"abcde")
+				]);
+		}
+
+		[Fact]
+		public async Task ParseActivities_Invalid_ThrowsException()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/Invalid/invalid_type.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+		}
 	}
 }

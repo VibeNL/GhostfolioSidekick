@@ -24,17 +24,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 
 			var currency = currencyMapper.Map(record.Currency);
 			var dateTime = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
-
-			if (record.Tax.HasValue && record.Tax != 0)
-			{
-				yield return PartialActivity.CreateTax(currency, dateTime, record.Tax!.Value, new Money(currency, record.Tax!.Value), record.Reference);
-			}
-
-			if (record.Fee.HasValue && record.Fee != 0)
-			{
-				yield return PartialActivity.CreateFee(currency, dateTime, record.Fee!.Value, new Money(currency, record.Fee!.Value), record.Reference);
-			}
-
+			
 			switch (record.Type)
 			{
 				case "Buy":
@@ -54,8 +44,19 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					yield return PartialActivity.CreateCashWithdrawal(currency, dateTime, Math.Abs(record.Amount), new Money(currency, Math.Abs(record.Amount)), record.Reference);
 					break;
 				default:
-					break;
+					yield break;
 			}
+
+			if (record.Tax.GetValueOrDefault() != 0)
+			{
+				yield return PartialActivity.CreateTax(currency, dateTime, record.Tax!.Value, new Money(currency, record.Tax!.Value), record.Reference);
+			}
+
+			if (record.Fee.GetValueOrDefault() != 0)
+			{
+				yield return PartialActivity.CreateFee(currency, dateTime, record.Fee!.Value, new Money(currency, record.Fee!.Value), record.Reference);
+			}
+
 		}
 
 		protected override CsvConfiguration GetConfig()

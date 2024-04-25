@@ -11,8 +11,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 
 		public string KeyWord { get; }
 
-		public bool IsMainLevel { get; }
-
 		public List<WordToken> Words { get; } = new List<WordToken>();
 
 		internal void AddMultiWord(MultiWordToken subWord)

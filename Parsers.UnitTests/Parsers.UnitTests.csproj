@@ -339,6 +339,12 @@
 		<None Update="TestFiles\ScalableCapital\BaaderBank\SellOrders\SingleSell\wum.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\BuyOrders\single_buy_euro_tax.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\BuyOrders\single_buy_euro_pending.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\ScalableCapital\Prime\BuyOrders\single_savingsplan.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -352,6 +358,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\ScalableCapital\Prime\CashTransactions\single_withdrawal.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\ScalableCapital\Prime\Invalid\invalid_type.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\ScalableCapital\Prime\SellOrders\single_sell_euro.csv">
