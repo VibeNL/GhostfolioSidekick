@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Parsers.PDFParser
 {
-	public record MultiWordToken : WordToken
+	public class MultiWordToken : WordToken
 	{
 		public MultiWordToken(string keyWord)
 		{
