@@ -84,7 +84,7 @@ namespace GhostfolioSidekick
 													x.GetService<ILogger<RestCall>>()!,
 													settings!.GhostfolioUrl,
 													settings!.GhostfolioAccessToken,
-													new RestCallOptions());
+													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
 							});
 							services.AddSingleton(x =>
 							{

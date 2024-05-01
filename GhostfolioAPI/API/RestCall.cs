@@ -13,9 +13,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class RestCall
 	{
-		private readonly Mutex mutex = new();
+		private readonly SemaphoreSlim semaphore = new(1);
 
-		
 		private readonly IMemoryCache memoryCache;
 		private readonly IRestClient restClient;
 		private readonly ILogger<RestCall> logger;
@@ -23,6 +22,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		private readonly string accessToken;
 		private readonly RetryPolicy<RestResponse> retryPolicy;
 		private readonly CircuitBreakerPolicy<RestResponse> basicCircuitBreakerPolicy;
+		private readonly RestCallOptions options;
 
 		public RestCall(
 			IRestClient restClient,
@@ -65,6 +65,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				{
 					logger.LogDebug("Circuit Breaker reset");
 				});
+
+			this.options = options;
 		}
 
 		public async Task<string?> DoRestGet(string suffixUrl, bool useCircuitBreaker = false)
@@ -77,7 +79,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			try
 			{
-				mutex.WaitOne();
+				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
@@ -114,9 +116,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				//Call the ReleaseMutex method to unblock so that other threads
-				//that are trying to gain ownership of the mutex can enter  
-				mutex.ReleaseMutex();
+				await ExecuteTrottling();
+				semaphore.Release();
 			}
 		}
 
@@ -124,7 +125,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			try
 			{
-				mutex.WaitOne();
+				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
@@ -151,9 +152,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				//Call the ReleaseMutex method to unblock so that other threads
-				//that are trying to gain ownership of the mutex can enter  
-				mutex.ReleaseMutex();
+				await ExecuteTrottling();
+				semaphore.Release();
 			}
 		}
 
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			try
 			{
-				mutex.WaitOne();
+				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
@@ -188,9 +188,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				//Call the ReleaseMutex method to unblock so that other threads
-				//that are trying to gain ownership of the mutex can enter  
-				mutex.ReleaseMutex();
+				await ExecuteTrottling();
+				semaphore.Release();
 			}
 		}
 
@@ -198,7 +197,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			try
 			{
-				mutex.WaitOne();
+				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
@@ -225,9 +224,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				//Call the ReleaseMutex method to unblock so that other threads
-				//that are trying to gain ownership of the mutex can enter  
-				mutex.ReleaseMutex();
+				await ExecuteTrottling();
+				semaphore.Release();
 			}
 		}
 
@@ -235,7 +233,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		{
 			try
 			{
-				mutex.WaitOne();
+				await semaphore.WaitAsync();
 
 				var request = new RestRequest($"{url}/{suffixUrl}")
 				{
@@ -261,9 +259,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			finally
 			{
-				//Call the ReleaseMutex method to unblock so that other threads
-				//that are trying to gain ownership of the mutex can enter  
-				mutex.ReleaseMutex();
+				await ExecuteTrottling();
+				semaphore.Release();
 			}
 		}
 
@@ -306,10 +303,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				memoryCache.Set(suffixUrl, token, CacheDuration.Short());
 				return Task.FromResult(token);
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				throw new NotSupportedException($"No token could be found [{r.StatusCode}]: {url}/{suffixUrl}. Exception {e.Message}");
 			}
+		}
+
+		private Task ExecuteTrottling()
+		{
+			// Naive implementation of trottling for now
+			return Task.Delay(options.TrottleTimeout);
 		}
 	}
 }
