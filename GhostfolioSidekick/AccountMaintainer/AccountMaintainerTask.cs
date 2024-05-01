@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public async Task DoWork()
 		{
-			logger.LogInformation("{Name} Starting to do work", nameof(AccountMaintainerTask));
+			logger.LogDebug("{Name} Starting to do work", nameof(AccountMaintainerTask));
 
 			try
 			{
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 				return;
 			}
 
-			logger.LogInformation("{Name} Done", nameof(AccountMaintainerTask));
+			logger.LogDebug("{Name} Done", nameof(AccountMaintainerTask));
 		}
 
 		private async Task AddOrUpdateAccountsAndPlatforms()

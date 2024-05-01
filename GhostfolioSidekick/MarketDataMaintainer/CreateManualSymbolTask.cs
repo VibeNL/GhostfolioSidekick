@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork()
 		{
-			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Starting to do work");
+			logger.LogDebug($"{nameof(CreateManualSymbolTask)} Starting to do work");
 
 			try
 			{
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				applicationSettings.AllowAdminCalls = false;
 			}
 
-			logger.LogInformation($"{nameof(CreateManualSymbolTask)} Done");
+			logger.LogDebug($"{nameof(CreateManualSymbolTask)} Done");
 		}
 
 		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<SymbolProfile> profiles, List<Holding> holdings)

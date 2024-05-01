@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.FileImporter
 				return;
 			}
 
-			logger.LogInformation("{Name} Starting to do work", nameof(FileImporterTask));
+			logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask));
 
 			var holdingsCollection = new HoldingsCollection(logger, accountManager, marketDataManager);
 			var accountNames = new List<string>();
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				var accountName = directory.Name;
 
-				logger.LogInformation("Parsing files for account: {Name}", accountName);
+				logger.LogDebug("Parsing files for account: {Name}", accountName);
 
 				try
 				{
@@ -107,10 +107,10 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			logger.LogInformation("Generating activities");
+			logger.LogDebug("Generating activities");
 			await holdingsCollection.GenerateActivities(exchangeRateService);
 
-			logger.LogInformation("Applying strategies");
+			logger.LogDebug("Applying strategies");
 			await ApplyHoldingActions(holdingsCollection, strategies);
 
 			// Only update accounts when we have at least one transaction
@@ -120,7 +120,7 @@ namespace GhostfolioSidekick.FileImporter
 				.Distinct()
 				.ToList();
 
-			logger.LogInformation("Detecting changes");
+			logger.LogDebug("Detecting changes");
 			var existingHoldings = await activitiesManager.GetAllActivities();
 			var mergeOrders = (await new MergeActivities(exchangeRateService)
 				.Merge(existingHoldings, holdingsCollection.Holdings))
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.FileImporter
 				.OrderBy(x => x.Order1.Date)
 				.ToList();
 
-			logger.LogInformation("Applying changes");
+			logger.LogDebug("Applying changes");
 			foreach (var item in mergeOrders)
 			{
 				try
@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.FileImporter
 				}
 			}
 
-			logger.LogInformation("Setting balances");
+			logger.LogDebug("Setting balances");
 			foreach (var balance in holdingsCollection.Balances)
 			{
 				var existingAccount = (await accountManager.GetAccountByName(balance.Key))!;
@@ -165,7 +165,7 @@ namespace GhostfolioSidekick.FileImporter
 				try
 				{
 					await accountManager.SetBalances(existingAccount, ConvertToBalanceList(balance.Value));
-					logger.LogInformation("Set balances for account {Key}", balance.Key);
+					logger.LogDebug("Set balances for account {Key}", balance.Key);
 				}
 				catch (Exception ex)
 				{
@@ -175,7 +175,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
 
-			logger.LogInformation("{Name} Done", nameof(FileImporterTask));
+			logger.LogDebug("{Name} Done", nameof(FileImporterTask));
 		}
 
 		private Dictionary<DateOnly, Balance> ConvertToBalanceList(List<Balance> value)

@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork()
 		{
-			logger.LogInformation($"{nameof(DeleteUnusedSymbolsTask)} Starting to do work");
+			logger.LogDebug($"{nameof(DeleteUnusedSymbolsTask)} Starting to do work");
 
 			try
 			{
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				applicationSettings.AllowAdminCalls = false;
 			}
 
-			logger.LogInformation($"{nameof(DeleteUnusedSymbolsTask)} Done");
+			logger.LogDebug($"{nameof(DeleteUnusedSymbolsTask)} Done");
 		}
 
 		private async Task DeleteUnusedSymbols()

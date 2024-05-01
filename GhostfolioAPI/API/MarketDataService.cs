@@ -327,7 +327,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						try
 						{
 							await restCall.DoRestPost($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", newRes);
-							logger.LogInformation($"Created symbol {foundAsset.Symbol}");
+							logger.LogDebug($"Created symbol {foundAsset.Symbol}");
 						}
 						catch
 						{
@@ -345,7 +345,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol.Replace("-", "")}", res);
 					}
 
-					logger.LogInformation($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifiers)}");
+					logger.LogDebug($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifiers)}");
 				}
 				catch
 				{
@@ -386,7 +386,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Creation failed {symbolProfile.Symbol}");
 			}
 
-			logger.LogInformation($"Created symbol {symbolProfile.Symbol}");
+			logger.LogDebug($"Created symbol {symbolProfile.Symbol}");
 
 			// Set name and assetClass (BUG / Quirk Ghostfolio?)
 			await UpdateSymbol(symbolProfile);
@@ -467,7 +467,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Update failed on symbol {symbolProfile.Symbol}.");
 			}
 
-			logger.LogInformation($"Updated symbol {symbolProfile.Symbol}");
+			logger.LogDebug($"Updated symbol {symbolProfile.Symbol}");
 
 			ClearCache();
 		}
@@ -490,7 +490,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"SetMarketPrice failed {symbolProfile.Symbol} {dateTime}");
 			}
 
-			logger.LogInformation($"SetMarketPrice symbol {symbolProfile.Symbol} {dateTime} @ {money.Amount}");
+			logger.LogDebug($"SetMarketPrice symbol {symbolProfile.Symbol} {dateTime} @ {money.Amount}");
 		}
 
 		public async Task DeleteSymbol(SymbolProfile symbolProfile)
@@ -506,7 +506,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Deletion failed {symbolProfile.Symbol}");
 			}
 
-			logger.LogInformation($"Deleted symbol {symbolProfile.Symbol}");
+			logger.LogDebug($"Deleted symbol {symbolProfile.Symbol}");
 		}
 
 		public async Task SetSymbolAsBenchmark(SymbolProfile symbolProfile)
@@ -536,7 +536,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Updating symbol failed to mark as a benchmark {symbolProfile.Symbol}");
 			}
 
-			logger.LogInformation($"Updated symbol to be a benchmark {symbolProfile.Symbol}");
+			logger.LogDebug($"Updated symbol to be a benchmark {symbolProfile.Symbol}");
 		}
 
 		public async Task GatherAllMarktData()
@@ -557,7 +557,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Gathering failed");
 			}
 
-			logger.LogInformation($"Gathering requested");
+			logger.LogDebug($"Gathering requested");
 		}
 
 		private void ClearCache()

@@ -61,7 +61,7 @@ namespace GhostfolioSidekick
 									}
 									else
 									{
-										logger.LogDebug("Service {Name} is no longer scheduled.", workItem.Work.GetType().Name);
+										logger.LogInformation("Service {Name} is no longer scheduled.", workItem.Work.GetType().Name);
 									}
 
 									logger.LogInformation("Service {Name} has executed.", workItem.Work.GetType().Name);
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick
 
 		public Task StopAsync(CancellationToken cancellationToken)
 		{
-			logger.LogInformation("Service is stopping.");
+			logger.LogDebug("Service is stopping.");
 
 			if (task == null)
 			{

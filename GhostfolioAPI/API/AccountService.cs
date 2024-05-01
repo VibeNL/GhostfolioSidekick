@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Creation failed {platform.Name}");
 			}
 
-			logger.LogInformation("Created platform {Name}", platform.Name);
+			logger.LogDebug("Created platform {Name}", platform.Name);
 		}
 
 		public async Task CreateAccount(Model.Accounts.Account account)
@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Creation failed {account.Name}");
 			}
 
-			logger.LogInformation("Created account {Name}", account.Name);
+			logger.LogDebug("Created account {Name}", account.Name);
 		}
 
 		public async Task<Model.Accounts.Account?> GetAccountByName(string name)

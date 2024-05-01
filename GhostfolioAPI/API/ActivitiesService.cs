@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var url = $"api/v1/order";
 			await restCall.DoRestPost(url, await ConvertToBody(activity));
 
-			logger.LogInformation($"Added transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
+			logger.LogDebug($"Added transaction {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Quantity} {activity.Type}");
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			await restCall.DoRestDelete($"api/v1/order/{activity.Id}");
-			logger.LogInformation($"Deleted transaction  {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Type}");
+			logger.LogDebug($"Deleted transaction  {activity.Date.ToInvariantString()} {activity.SymbolProfile?.Symbol} {activity.Type}");
 		}
 
 		private static Task<string> ConvertToBody(Contract.Activity activity)
