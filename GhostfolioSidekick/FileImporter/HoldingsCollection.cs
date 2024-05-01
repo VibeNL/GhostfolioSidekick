@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.FileImporter
 	internal class HoldingsCollection : IHoldingsCollection
 	{
 		private readonly List<Holding> holdings = [new Holding(null)];
-		private readonly Dictionary<string, Balance> balance = [];
+		private readonly Dictionary<string, List<Balance>> balance = [];
 
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
 		private readonly ILogger logger;
@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.FileImporter
 
 		public IReadOnlyList<Holding> Holdings { get { return holdings; } }
 
-		public IReadOnlyDictionary<string, Balance> Balances { get { return balance; } }
+		public IReadOnlyDictionary<string, List<Balance>> Balances { get { return balance; } }
 
 		public IAccountService AccountService { get; }
 		public IMarketDataService MarketDataService { get; }
@@ -59,7 +59,9 @@ namespace GhostfolioSidekick.FileImporter
 					}
 					catch (SymbolNotFoundException symbol)
 					{
-						logger.LogError($"Symbol [{string.Join(",", symbol.SymbolIdentifiers.Select(x => x.Identifier))}] not found for transaction {transaction.Key}. Skipping transaction");
+						logger.LogError(symbol, "Symbol [{Identifiers}] not found for transaction {Key}. Skipping transaction",
+							string.Join(",", symbol.SymbolIdentifiers.Select(x => x.Identifier)),
+							transaction.Key);
 					}
 				}
 			}
@@ -275,12 +277,12 @@ namespace GhostfolioSidekick.FileImporter
 
 		private static List<T>? EmptyToNull<T>(IEnumerable<T> array)
 		{
-			if (array.All(x => x == null))
+			if (array.All(x => object.Equals(x, default(T))))
 			{
 				return null;
 			}
 
-			return array.Where(x => x != null).ToList();
+			return array.Where(x => !object.Equals(x, default(T))).ToList();
 		}
 	}
 }

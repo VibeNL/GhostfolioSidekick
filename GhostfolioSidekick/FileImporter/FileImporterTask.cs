@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Strategies;
@@ -58,11 +58,11 @@ namespace GhostfolioSidekick.FileImporter
 			var knownHash = memoryCache.TryGetValue(nameof(FileImporterTask), out string? hash) ? hash : string.Empty;
 			if (fileHashes == knownHash)
 			{
-				logger.LogDebug($"{nameof(FileImporterTask)} Skip to do work, no file changes detected");
+				logger.LogDebug("{Name} Skip to do work, no file changes detected", nameof(FileImporterTask));
 				return;
 			}
 
-			logger.LogInformation($"{nameof(FileImporterTask)} Starting to do work");
+			logger.LogInformation("{Name} Starting to do work", nameof(FileImporterTask));
 
 			var holdingsCollection = new HoldingsCollection(logger, accountManager, marketDataManager);
 			var accountNames = new List<string>();
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.FileImporter
 			{
 				var accountName = directory.Name;
 
-				logger.LogInformation($"Parsing files for account: {accountName}");
+				logger.LogInformation("Parsing files for account: {Name}", accountName);
 
 				try
 				{
@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.FileImporter
 
 					accountNames.Add(accountName);
 				}
-				catch (NoImporterAvailableException)
+				catch (NoImporterAvailableException ex)
 				{
 					var sb = new StringBuilder();
 					sb.AppendLine($"No importer available for {accountName}");
@@ -99,18 +99,18 @@ namespace GhostfolioSidekick.FileImporter
 						sb.AppendLine($"{accountName} | {file} can be imported by {importerString}");
 					}
 
-					logger.LogError(sb.ToString());
+					logger.LogError(ex, sb.ToString());
 				}
 				catch (Exception ex)
 				{
-					logger.LogError($"Error {ex.Message}, {ex.StackTrace}");
+					logger.LogError(ex, "Error {Message}", ex.Message);
 				}
 			}
 
-			logger.LogInformation($"Generating activities");
+			logger.LogInformation("Generating activities");
 			await holdingsCollection.GenerateActivities(exchangeRateService);
 
-			logger.LogInformation($"Applying strategies");
+			logger.LogInformation("Applying strategies");
 			await ApplyHoldingActions(holdingsCollection, strategies);
 
 			// Only update accounts when we have at least one transaction
@@ -120,7 +120,7 @@ namespace GhostfolioSidekick.FileImporter
 				.Distinct()
 				.ToList();
 
-			logger.LogInformation($"Detecting changes");
+			logger.LogInformation("Detecting changes");
 			var existingHoldings = await activitiesManager.GetAllActivities();
 			var mergeOrders = (await new MergeActivities(exchangeRateService)
 				.Merge(existingHoldings, holdingsCollection.Holdings))
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.FileImporter
 				.OrderBy(x => x.Order1.Date)
 				.ToList();
 
-			logger.LogInformation($"Applying changes");
+			logger.LogInformation("Applying changes");
 			foreach (var item in mergeOrders)
 			{
 				try
@@ -153,35 +153,40 @@ namespace GhostfolioSidekick.FileImporter
 				}
 				catch (Exception ex)
 				{
-					logger.LogError($"Transaction failed to write {ex}, skipping");
+					logger.LogError(ex, "Transaction failed to write {Exception}, skipping", ex.Message);
 				}
 			}
 
-			logger.LogInformation($"Setting balances");
+			logger.LogInformation("Setting balances");
 			foreach (var balance in holdingsCollection.Balances)
 			{
 				var existingAccount = (await accountManager.GetAccountByName(balance.Key))!;
 
-				if (Math.Abs(existingAccount.Balance.Money.Amount - balance.Value.Money.Amount) < Constants.Epsilon)
-				{
-					logger.LogDebug($"Account {balance.Key} balance unchanged on: {balance.Value.Money.Amount}");
-					continue;
-				}
-
 				try
 				{
-					await accountManager.UpdateBalance(existingAccount, balance.Value);
-					logger.LogInformation($"Set account {balance.Key} balance to: {balance.Value}");
+					await accountManager.SetBalances(existingAccount, ConvertToBalanceList(balance.Value));
+					logger.LogInformation("Set balances for account {Key}", balance.Key);
 				}
 				catch (Exception ex)
 				{
-					logger.LogError($"Account balance for account {balance.Key} failed to update {ex}, skipping");
+					logger.LogError(ex, "Account balance for account {Key} failed to update {Exception}, skipping", balance.Key, ex);
 				}
 			}
 
 			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
 
-			logger.LogInformation($"{nameof(FileImporterTask)} Done");
+			logger.LogInformation("{Name} Done", nameof(FileImporterTask));
+		}
+
+		private Dictionary<DateOnly, Balance> ConvertToBalanceList(List<Balance> value)
+		{
+			var r = new Dictionary<DateOnly, Balance>();
+			foreach (var item in value.GroupBy(x => x.DateTime.Date))
+			{
+				r.Add(DateOnly.FromDateTime(item.Key), item.OrderBy(x => x.Money.Amount).First());
+			}
+
+			return r;
 		}
 
 		private static string CalculateHash(string[] directories)

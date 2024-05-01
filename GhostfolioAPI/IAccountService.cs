@@ -17,6 +17,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		Task<Platform?> GetPlatformByName(string name);
 
-		Task UpdateBalance(Account existingAccount, Balance newBalance);
+		Task SetBalances(Account existingAccount, Dictionary<DateOnly, Balance> balances);
 	}
 }
