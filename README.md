@@ -192,7 +192,7 @@ The docker image is named: vibenl/ghostfoliosidekick
 |**GHOSTFOLIO_ACCESTOKEN**  | The token as used to 'login' in the UI |
 |**FILEIMPORTER_PATH**  | The path to the files (see [Import Path]) |
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
-
+|**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
 
 ## Contributing
 

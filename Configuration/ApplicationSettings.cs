@@ -8,6 +8,7 @@ namespace GhostfolioSidekick.Configuration
 		private const string ACCESSTOKEN = "GHOSTFOLIO_ACCESTOKEN";
 		private const string PATHFILES = "FILEIMPORTER_PATH";
 		private const string CONFIGURATIONFILE = "CONFIGURATIONFILE_PATH";
+		private const string TROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
 
 		public ApplicationSettings(ILogger<ApplicationSettings> logger)
 		{
@@ -39,6 +40,17 @@ namespace GhostfolioSidekick.Configuration
 
 				return url;
 			}
+		}
+		public int TrottleTimeout => GetTimeout();
+
+		private static int GetTimeout()
+		{
+			if (int.TryParse(Environment.GetEnvironmentVariable(TROTTLETIMEOUT), out int timeoutInSeconds))
+			{
+				return timeoutInSeconds;
+			}
+
+			return 0;
 		}
 
 		public ConfigurationInstance ConfigurationInstance
