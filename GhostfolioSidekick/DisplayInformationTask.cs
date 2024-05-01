@@ -35,6 +35,7 @@ namespace GhostfolioSidekick
 			sb.AppendLine("Settings used");
 			sb.AppendLine($"GhostfolioUrl : {applicationSettings.GhostfolioUrl}");
 			sb.AppendLine($"FileImporterPath : {applicationSettings.FileImporterPath}");
+			sb.AppendLine($"TrottleTimeout : {applicationSettings.TrottleTimeout}");
 
 			Settings settings = applicationSettings.ConfigurationInstance.Settings;
 			sb.AppendLine($"DustThreshold : {settings.DustThreshold.ToString(CultureInfo.InvariantCulture)}");
