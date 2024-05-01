@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
@@ -166,7 +165,7 @@ namespace GhostfolioSidekick.FileImporter
 				try
 				{
 					await accountManager.SetBalances(existingAccount, ConvertToBalanceList(balance.Value));
-					logger.LogInformation("Set account {Key} balances", balance.Key);
+					logger.LogInformation("Set balances for account {Key}", balance.Key);
 				}
 				catch (Exception ex)
 				{

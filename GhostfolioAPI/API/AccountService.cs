@@ -140,11 +140,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			// Delete all balances that are not in the new list
-			foreach (var item in balanceList.Balances.Where(x => !balances.Any(y => x.Date == y.Key)))
+			foreach (var item in balanceList.Balances.Where(x => !balances.Any(y => DateOnly.FromDateTime(x.Date) == y.Key)))
 			{
 				await restCall.DoRestDelete($"api/v1/account-balance/{item.Id}");
 			}
-						
+
 			// Update all balances that are in the new list
 			foreach (var newBalance in balances)
 			{
@@ -155,7 +155,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				var res = o.ToString();
 
 				// check if balance already exists
-				var existingBalance = balanceList.Balances.SingleOrDefault(x => x.Date == newBalance.Key);
+				var existingBalance = balanceList.Balances.SingleOrDefault(x => DateOnly.FromDateTime(x.Date) == newBalance.Key);
 				if (existingBalance != null)
 				{
 					if (Math.Round(existingBalance.Value, 10) == Math.Round(newBalance.Value.Money.Amount, 10))
