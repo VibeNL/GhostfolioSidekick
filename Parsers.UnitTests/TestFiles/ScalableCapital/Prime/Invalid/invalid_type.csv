@@ -1,0 +1,2 @@
+date;time;status;reference;description;assetType;type;isin;shares;price;amount;fee;tax;currency
+2021-11-20;02:00:00;Executed;"abcde";"Microsoft Corp";Security;Invalid;US5949181045;2;227,85;-455,7;0,99;0;EUR

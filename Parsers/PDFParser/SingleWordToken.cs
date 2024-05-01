@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Parsers.PDFParser
 {
-	public record SingleWordToken : WordToken
+	public class SingleWordToken : IWordToken
 	{
 		public SingleWordToken(string text)
 		{

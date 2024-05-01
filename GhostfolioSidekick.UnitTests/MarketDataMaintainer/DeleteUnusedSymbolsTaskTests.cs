@@ -1,12 +1,13 @@
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace GhostfolioSidekick.MarketDataMaintainer.UnitTests
+namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 {
 	public class DeleteUnusedSymbolsTaskTests
 	{

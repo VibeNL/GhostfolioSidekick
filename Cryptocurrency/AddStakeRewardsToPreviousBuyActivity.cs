@@ -20,12 +20,12 @@ namespace GhostfolioSidekick.Cryptocurrency
 
 			var stakeRewards = activities.OfType<StakingRewardActivity>().ToList();
 
-			foreach (var stakeReward in stakeRewards)
+			foreach (StakingRewardActivity stakeReward in stakeRewards)
 			{
 				var buyActivity = activities
 					.OfType<BuySellActivity>()
 					.LastOrDefault(x => x.Quantity > 0 &&
-										x.Date < stakeReward!.Date);
+										x.Date < stakeReward.Date);
 
 				if (buyActivity != null)
 				{

@@ -1,7 +1,9 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
+	[ExcludeFromCodeCoverage]
 	public class ScalableCapitalPrimeRecord
 	{
 		[Name("date")]
