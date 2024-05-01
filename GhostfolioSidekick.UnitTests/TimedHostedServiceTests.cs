@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.UnitTests
 
 			// Assert
 			loggerMock.Verify(logger => logger.Log(
-				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
+				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Debug),
 				0,
 				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Service is stopping.")),
 				It.IsAny<Exception>(),

@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork()
 		{
-			logger.LogInformation($"{nameof(SetTrackingInsightOnSymbolsTask)} Starting to do work");
+			logger.LogDebug($"{nameof(SetTrackingInsightOnSymbolsTask)} Starting to do work");
 
 			try
 			{
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				applicationSettings.AllowAdminCalls = false;
 			}
 
-			logger.LogInformation($"{nameof(SetTrackingInsightOnSymbolsTask)} Done");
+			logger.LogDebug($"{nameof(SetTrackingInsightOnSymbolsTask)} Done");
 		}
 
 		private async Task SetTrackingInsightOnSymbols()

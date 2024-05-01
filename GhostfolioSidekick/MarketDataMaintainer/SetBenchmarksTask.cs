@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork()
 		{
-			logger.LogInformation($"{nameof(SetBenchmarksTask)} Starting to do work");
+			logger.LogDebug($"{nameof(SetBenchmarksTask)} Starting to do work");
 
 			try
 			{
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				applicationSettings.AllowAdminCalls = false;
 			}
 
-			logger.LogInformation($"{nameof(SetBenchmarksTask)} Done");
+			logger.LogDebug($"{nameof(SetBenchmarksTask)} Done");
 		}
 
 		private async Task SetBenchmarks()
