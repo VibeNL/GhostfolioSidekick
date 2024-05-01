@@ -260,7 +260,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			finally
 			{
 				await ExecuteTrottling();
-				await semaphore.WaitAsync();
+				semaphore.Release();
 			}
 		}
 
