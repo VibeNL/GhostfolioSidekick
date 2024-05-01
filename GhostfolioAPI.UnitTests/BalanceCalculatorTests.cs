@@ -1,9 +1,6 @@
-﻿using AutoFixture;
-using FluentAssertions;
+﻿using FluentAssertions;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using Moq;
 
@@ -39,7 +36,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(knownBalanceActivity.Amount);
+			result.Count.Should().Be(1);
+			result.Single().Money.Amount.Should().Be(knownBalanceActivity.Amount);
 		}
 
 		[Fact]
@@ -56,9 +54,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(-25);
+			result.Count.Should().Be(2);
+			result[0].Money.Amount.Should().Be(25);
+			result[1].Money.Amount.Should().Be(-25);
 		}
-
 
 		[Fact]
 		public async Task Calculate_WithUnsupportedActivityType_ThrowsNotSupportedException()
@@ -75,7 +74,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 
 		[Fact]
-		public async Task Calculate_WithNoActivities_ReturnsZeroBalance()
+		public async Task Calculate_WithNoActivities_ReturnsNoBalance()
 		{
 			// Arrange
 			var activities = new List<PartialActivity>();
@@ -84,7 +83,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(0);
+			result.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -101,7 +100,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(25);
+			result.Count.Should().Be(2);
+			result[0].Money.Amount.Should().Be(-25);
+			result[1].Money.Amount.Should().Be(25);
 		}
 
 		[Fact]
@@ -118,7 +119,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(25);
+			result.Count.Should().Be(2);
+			result[0].Money.Amount.Should().Be(-25);
+			result[1].Money.Amount.Should().Be(25);
 		}
 
 		[Fact]
@@ -135,7 +138,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(-75);
+			result.Count.Should().Be(2);
+			result[0].Money.Amount.Should().Be(-25);
+			result[1].Money.Amount.Should().Be(-75);
 		}
 
 		[Fact]
@@ -152,7 +157,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(-75);
+			result.Count.Should().Be(2);
+			result[0].Money.Amount.Should().Be(-25);
+			result[1].Money.Amount.Should().Be(-75);
 		}
 
 		[Fact]
@@ -182,7 +189,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Money.Amount.Should().Be(0);
+			result.Count.Should().Be(10);
+			result.TrueForAll(x => x.Money.Amount == 0).Should().BeTrue();
 		}
 	}
 }

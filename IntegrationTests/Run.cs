@@ -12,6 +12,7 @@ namespace IntegrationTests
 		private Dictionary<string, int> AccountsWithExpectedNumbers = new Dictionary<string, int>
 		{
 			{ "TestAccount1", 2 },
+			{ "TestAccount2", 1 },
 		};
 
 		public Run()

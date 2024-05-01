@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		{
 			return new Account(
 				rawAccount.Name,
-				new Balance(new Money(new Currency(rawAccount.Currency), rawAccount.Balance)))
+				new Balance(DateTime.Today, new Money(new Currency(rawAccount.Currency), rawAccount.Balance)))
 			{
 				Id = rawAccount.Id,
 				Comment = rawAccount.Comment,

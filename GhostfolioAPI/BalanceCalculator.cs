@@ -15,16 +15,18 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			this.exchangeRateService = exchangeRateService;
 		}
 
-		public async Task<Balance> Calculate(
+		public async Task<List<Balance>> Calculate(
 			Currency baseCurrency,
 			IEnumerable<PartialActivity> activities)
 		{
 			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
-			var lastKnownBalance = descendingSortedActivities
-				.FirstOrDefault(x => x.ActivityType == PartialActivityType.KnownBalance);
-			if (lastKnownBalance != null)
+			
+			// Check if we have known balances
+			var knownBalances = descendingSortedActivities
+				.Where(x => x.ActivityType == PartialActivityType.KnownBalance);
+			if (knownBalances.Any())
 			{
-				return new Balance(new Money(lastKnownBalance.Currency, lastKnownBalance.Amount));
+				return knownBalances.Select(x => new Balance(x.Date, new Money(x.Currency, x.Amount))).ToList();
 			}
 
 			List<Tuple<DateTime, Money>> moneyTrail = [];
@@ -77,14 +79,16 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				}
 			}
 
+			var balances = new List<Balance>();
 			var totalAmount = 0m;
 			foreach (var money in moneyTrail)
 			{
 				var activityAmount = (await exchangeRateService.GetConversionRate(money.Item2.Currency, baseCurrency, money.Item1)) * money.Item2.Amount;
 				totalAmount += activityAmount;
+				balances.Add(new Balance(money.Item1, new Money(baseCurrency, totalAmount)));
 			}
 
-			return new Balance(new Money(baseCurrency, totalAmount));
+			return balances;
 		}
 	}
 }
