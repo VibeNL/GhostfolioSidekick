@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 				marketDataManagerMock.Object,
 				exchangeRateServiceMock.Object,
 				importersMock.Select(x => x.Object),
-				strategiesMock.Select(x => x.Object), 
+				strategiesMock.Select(x => x.Object),
 				memoryCache);
 
 			memoryCache.Set(nameof(FileImporterTask), "12");
@@ -129,7 +129,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
 			loggerMock.Verify(
 				x => x.Log(
-					LogLevel.Information,
+					LogLevel.Debug,
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Equals($"{nameof(FileImporterTask)} Done")),
 					It.IsAny<Exception>(),
