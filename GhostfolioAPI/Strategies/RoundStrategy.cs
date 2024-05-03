@@ -1,12 +1,20 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
 	public class RoundStrategy : IHoldingStrategy
 	{
+		private readonly ILogger<RoundStrategy> logger;
+
 		// to avoid rounding errors, we round to 5 decimal places
 		private int numberOfDecimals = 5;
+
+		public RoundStrategy(ILogger<RoundStrategy> logger)
+		{
+			this.logger = logger;
+		}
 
 		public int Priority => (int)StrategiesPriority.Rounding;
 
@@ -42,12 +50,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 				.ForEach(x => holding.Activities.Remove(x));
 
 			// Add missing quantity to the last activity
-			if (Math.Round(missingQuantity, numberOfDecimals, MidpointRounding.ToZero /* Round buy's down and sell's up */) != 0)
+			decimal roundedDiff = Math.Round(missingQuantity, numberOfDecimals, MidpointRounding.ToZero /* Round buy's down and sell's up */);
+			if (roundedDiff != 0)
 			{
 				var lastActivity = holding.Activities.OfType<IActivityWithQuantityAndUnitPrice>().LastOrDefault();
 				if (lastActivity is IActivityWithQuantityAndUnitPrice lastActivityWithQuantityAndUnitPrice)
 				{
-					lastActivityWithQuantityAndUnitPrice.Quantity += missingQuantity;
+					lastActivityWithQuantityAndUnitPrice.Quantity += roundedDiff;
+					logger.LogDebug("Added {MissingQuantity} to the last activity of symbol {Symbol}. Rounded is {Rounded}", missingQuantity, holding.SymbolProfile?.Symbol, roundedDiff);
 				}
 			}
 

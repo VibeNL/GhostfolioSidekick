@@ -4,6 +4,7 @@ using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
@@ -14,7 +15,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 		public RoundStrategyTests()
 		{
-			_roundStrategy = new RoundStrategy();
+			_roundStrategy = new RoundStrategy(new Mock<ILogger<RoundStrategy>>().Object);
 		}
 
 		[Fact]
