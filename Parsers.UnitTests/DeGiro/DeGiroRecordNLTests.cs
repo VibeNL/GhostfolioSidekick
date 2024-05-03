@@ -2,9 +2,8 @@ using FluentAssertions;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Model.Activities;
 using AutoFixture;
-using GhostfolioSidekick.Parsers.UnitTests;
 
-namespace GhostfolioSidekick.UnitTests.Parsers.DeGiro
+namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {
 	public class DeGiroRecordNLTests
 	{
@@ -12,7 +11,7 @@ namespace GhostfolioSidekick.UnitTests.Parsers.DeGiro
 		[InlineData("DEGIRO Transactiekosten en/of kosten van derden", PartialActivityType.Fee)]
 		[InlineData("Dividendbelasting", PartialActivityType.Tax)]
 		[InlineData("Verkoop something", PartialActivityType.Sell)]
-		[InlineData("Koop something",	PartialActivityType.Buy)]
+		[InlineData("Koop something", PartialActivityType.Buy)]
 		[InlineData("Dividend", PartialActivityType.Dividend)]
 		[InlineData("flatex terugstorting", PartialActivityType.CashWithdrawal)]
 		[InlineData("Deposit something", PartialActivityType.CashDeposit)]

@@ -1,9 +1,8 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Strategies;
 
-namespace GhostfolioSidekick.Cryptocurrency
+namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
 	public class AddStakeRewardsToPreviousBuyActivity(Settings settings) : IHoldingStrategy
 	{

@@ -1,8 +1,8 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model.Compare;
-using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;

@@ -2,7 +2,6 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Compare;
-using GhostfolioSidekick.Model.Strategies;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies

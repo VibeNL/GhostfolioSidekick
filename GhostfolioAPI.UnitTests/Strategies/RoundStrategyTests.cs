@@ -1,12 +1,12 @@
 using AutoFixture;
 using FluentAssertions;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Model.Symbols;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests.Model.Strategies
+namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 {
 	public class RoundStrategyTests
 	{

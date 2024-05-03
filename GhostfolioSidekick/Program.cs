@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
@@ -9,7 +8,6 @@ using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Compare;
-using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;

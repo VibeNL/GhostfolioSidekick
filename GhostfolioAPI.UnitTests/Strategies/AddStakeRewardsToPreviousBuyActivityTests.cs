@@ -1,12 +1,13 @@
 using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.Cryptocurrency.UnitTests
+namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 {
 	public class AddStakeRewardsToPreviousBuyActivityTests
 	{
@@ -166,7 +167,7 @@ namespace GhostfolioSidekick.Cryptocurrency.UnitTests
 			// Arrange
 			var stakeReward = new StakingRewardActivity(null!, DateTime.Now.AddDays(-1), 5, null);
 			var buyActivity = new BuySellActivity(null!, DateTime.Now, 10, null, null);
-			
+
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
 				Activities = new List<IActivity> { buyActivity, stakeReward }

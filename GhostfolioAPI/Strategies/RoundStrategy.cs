@@ -1,6 +1,7 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioSidekick.Model.Strategies
+namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
 	public class RoundStrategy : IHoldingStrategy
 	{

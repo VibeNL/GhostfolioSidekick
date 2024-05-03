@@ -1,11 +1,12 @@
 using AutoFixture;
 using FluentAssertions;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.Model.UnitTests.Strategies
+namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 {
 	public class StockSplitStrategyTests
 	{
