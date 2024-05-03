@@ -28,6 +28,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 					}
 				});
 
+			// Remove activities with 0 quantity
+			holding
+				.Activities
+				.OfType<IActivityWithQuantityAndUnitPrice>()
+				.Where(x => x.Quantity == 0)
+				.ToList()
+				.ForEach(x => holding.Activities.Remove(x));
+
 			return Task.CompletedTask;
 		}
 	}
