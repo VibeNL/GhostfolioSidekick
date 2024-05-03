@@ -14,21 +14,24 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 		{
 			ArgumentNullException.ThrowIfNull(holding, nameof(holding));
 
+			var missingQuantity = 0m;
+
+			// Round quantities and unit prices
 			holding
 				.Activities
 				.OfType<IActivityWithQuantityAndUnitPrice>()
 				.ToList()
 				.ForEach(x =>
 				{
-					x.Quantity = Math.Round(x.Quantity, numberOfDecimals, MidpointRounding.ToZero /* Round buy's down and sell's up */);
+					decimal rounded = Math.Round(x.Quantity, numberOfDecimals, MidpointRounding.ToZero /* Round buy's down and sell's up */);
+					missingQuantity += x.Quantity - rounded;
+					x.Quantity = rounded;
 
 					if (x.UnitPrice != null)
 					{
 						x.UnitPrice = new Money(x.UnitPrice!.Currency, Math.Round(x.UnitPrice!.Amount, numberOfDecimals, MidpointRounding.ToNegativeInfinity /* Always round down*/));
 					}
 				});
-
-			// TODO, try to add the rounded difference to another activity
 
 			// Remove activities with 0 quantity
 			holding
@@ -37,6 +40,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 				.Where(x => x.Quantity == 0)
 				.ToList()
 				.ForEach(x => holding.Activities.Remove(x));
+
+			// Add missing quantity to the last activity
+			if (Math.Round(missingQuantity, numberOfDecimals, MidpointRounding.ToZero /* Round buy's down and sell's up */) != 0)
+			{
+				var lastActivity = holding.Activities.OfType<IActivityWithQuantityAndUnitPrice>().LastOrDefault();
+				if (lastActivity is IActivityWithQuantityAndUnitPrice lastActivityWithQuantityAndUnitPrice)
+				{
+					lastActivityWithQuantityAndUnitPrice.Quantity += missingQuantity;
+				}
+			}
 
 			return Task.CompletedTask;
 		}
