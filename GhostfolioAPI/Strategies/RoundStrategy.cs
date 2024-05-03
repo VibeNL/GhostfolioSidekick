@@ -28,6 +28,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 					}
 				});
 
+			// TODO, try to add the rounded difference to another activity
+
 			// Remove activities with 0 quantity
 			holding
 				.Activities
