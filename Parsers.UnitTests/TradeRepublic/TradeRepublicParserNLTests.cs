@@ -2,12 +2,8 @@ using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Parsers.CentraalBeheer;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.TradeRepublic;
-using Moq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -26,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, new Balance(DateTime.Now, new Money(Currency.EUR, 0)))
 				.Create();
 			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}

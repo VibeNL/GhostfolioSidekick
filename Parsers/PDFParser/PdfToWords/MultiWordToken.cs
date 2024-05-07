@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
-	public class MultiWordToken : IWordToken
+	public record MultiWordToken : WordToken
 	{
 		public MultiWordToken(string keyWord)
 		{
@@ -14,7 +14,7 @@
 
 		public string KeyWord { get; }
 
-		public List<IWordToken> Words { get; } = new List<IWordToken>();
+		public List<WordToken> Words { get; } = new List<WordToken>();
 
 		internal void AddMultiWord(MultiWordToken subWord)
 		{
