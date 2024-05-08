@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 
 				if (marketDate == null)
 				{
-					logger.LogWarning($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of 0 until Ghostfolio has determined the price");
+					logger.LogDebug($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of 0 until Ghostfolio has determined the price");
 				}
 				else
 				{
