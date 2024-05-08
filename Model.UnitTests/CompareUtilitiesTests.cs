@@ -1,9 +1,8 @@
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Compare;
 using Moq;
 using FluentAssertions;
 
-namespace GhostfolioSidekick.UnitTests.Model
+namespace GhostfolioSidekick.Model.UnitTests
 {
 	public class CompareUtilitiesTests
 	{
@@ -32,7 +31,7 @@ namespace GhostfolioSidekick.UnitTests.Model
 		public void AreNumbersEquals_Decimal_ShouldReturnTrue_WhenNumbersAreNull()
 		{
 			// Arrange
-			
+
 			// Act
 			bool result = CompareUtilities.AreNumbersEquals((decimal?)null, null);
 

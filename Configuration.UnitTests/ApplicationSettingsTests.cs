@@ -1,9 +1,8 @@
 ﻿using FluentAssertions;
-using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests.Configuration
+namespace GhostfolioSidekick.Configuration.UnitTests
 {
 	public class ApplicationSettingsTests : IDisposable
 	{

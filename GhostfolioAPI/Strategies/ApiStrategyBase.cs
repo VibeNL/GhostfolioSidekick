@@ -22,7 +22,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 
 			if (marketDate == null)
 			{
-				logger.LogWarning($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of 0 until Ghostfolio has determined the price");
+				marketDate = marketDataProfile?.MarketData?.SingleOrDefault(x => x.Date.Date == date.Date.AddDays(1) || x.Date.Date == date.Date.AddDays(-1));
+
+				if (marketDate == null)
+				{
+					logger.LogDebug($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of 0 until Ghostfolio has determined the price");
+				}
+				else
+				{
+					logger.LogDebug($"No market data found for {symbolProfile.Symbol} on {date.Date}. Assuming price of the {marketDate.Date} until Ghostfolio has determined the price");
+				}
 			}
 
 			return new Money(symbolProfile!.Currency, marketDate?.MarketPrice.Amount ?? 0);

@@ -1,8 +1,5 @@
-﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Strategies;
-using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI.Strategies

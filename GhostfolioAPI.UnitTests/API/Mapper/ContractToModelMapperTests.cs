@@ -4,7 +4,7 @@ using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
+namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 {
 	public class ContractToModelMapperTests
 	{

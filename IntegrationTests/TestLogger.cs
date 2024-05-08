@@ -1,8 +1,6 @@
-﻿
-using GhostfolioSidekick;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace IntegrationTests
+namespace GhostfolioSidekick.IntegrationTests
 {
 	internal class TestLogger(string checkForEndMessage) : ILogger<TimedHostedService>, IDisposable
 	{

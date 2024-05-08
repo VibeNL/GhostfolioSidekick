@@ -1,7 +1,6 @@
 using FluentAssertions;
-using GhostfolioSidekick.Parsers;
 
-namespace GhostfolioSidekick.UnitTests.Parsers
+namespace GhostfolioSidekick.Parsers.UnitTests
 {
 	public class CurrencyToolsTests
 	{
@@ -58,10 +57,10 @@ namespace GhostfolioSidekick.UnitTests.Parsers
 		public void GetCurrencyFromSymbol_InvalidCurrencySymbol_ShouldThrowArgumentException(string currencySymbol)
 		{
 			// Act
-			var act = new System.Action(() => CurrencyTools.GetCurrencyFromSymbol(currencySymbol));
+			var act = new Action(() => CurrencyTools.GetCurrencyFromSymbol(currencySymbol));
 
 			// Assert
-			act.Should().Throw<System.ArgumentException>().WithMessage("Currency symbol not found");
+			act.Should().Throw<ArgumentException>().WithMessage("Currency symbol not found");
 		}
 	}
 }
