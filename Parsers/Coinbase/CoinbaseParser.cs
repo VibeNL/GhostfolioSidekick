@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		{
 			var date = record.Timestamp;
 
-			var id = $"{record.Type}_{record.Asset}_{date.ToInvariantString()}";
+			var id = record.TransactionId ?? $"{record.Type}_{record.Asset}_{date.ToInvariantString()}";
 
 			var currency = currencyMapper.Map(record.Currency);
 			if (record.Fee != null && record.Fee > 0) // Negative fees are not supported
@@ -124,6 +124,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 
 		protected override CsvConfiguration GetConfig()
 		{
+			bool hasStarted = false;
 			return new CsvConfiguration(CultureInfo.InvariantCulture)
 			{
 				HasHeaderRecord = true,
@@ -131,7 +132,8 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 				Delimiter = ",",
 				ShouldSkipRecord = (r) =>
 				{
-					return !r.Row[0]!.StartsWith("Timestamp") && !r.Row[0]!.StartsWith("20");
+					hasStarted = hasStarted || (r.Row[0]!.StartsWith("Timestamp") || r.Row[0]!.StartsWith("ID"));
+					return !hasStarted;
 				},
 			};
 		}
