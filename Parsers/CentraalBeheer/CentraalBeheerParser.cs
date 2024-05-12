@@ -1,10 +1,8 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
-using System.Globalization;
-using Spire.Pdf.Texts;
-using Spire.Pdf;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
@@ -137,7 +135,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		{
 			var price = GetMoney(GetToken(Keyword_Koers, relevantTokens));
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
-			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Skip(2).Select(x => x.Text)); // skip price
+			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Take(2).Select(x => x.Text)); // skip price
 
 			var id = $"Centraal_Beheer_{PartialActivityType.Buy}_{symbol}_{date.ToInvariantDateOnlyString()}";
 
@@ -167,7 +165,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		{
 			var price = GetMoney(GetToken(Keyword_Koers, relevantTokens));
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
-			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Skip(3).Select(x => x.Text)); // skip price
+			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Take(2).Select(x => x.Text)); // skip price
 
 			var id = $"Centraal_Beheer_{PartialActivityType.Buy}_{symbol}_{date.ToInvariantDateOnlyString()}";
 

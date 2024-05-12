@@ -1,5 +1,6 @@
-using Spire.Pdf.Texts;
-using Spire.Pdf;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using System.Text;
 
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
@@ -10,17 +11,14 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		{
 			List<SingleWordToken> words = new List<SingleWordToken>();
 
-			// Load a PDF file
-			using (PdfDocument document = new PdfDocument())
+			using (PdfReader reader = new PdfReader(filePath))
 			{
-				document.LoadFromFile(filePath);
-				var i = 0;
-				foreach (PdfPageBase page in document.Pages)
+				PdfDocument pdfDoc = new PdfDocument(reader);
+				for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
 				{
-					PdfTextExtractor textExtractor = new PdfTextExtractor(page);
-					var text = textExtractor.ExtractText(new PdfTextExtractOptions());
-					words.AddRange(ParseWords(text, i));
-					i++;
+					ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
+					string currentText = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i), strategy);
+					words.AddRange(ParseWords(currentText, i - 1));
 				}
 			}
 
@@ -29,8 +27,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 		protected List<SingleWordToken> ParseWords(string text, int page)
 		{
-			// for each line
-			var lines = text.Split([Environment.NewLine, "\n", "\r\n"], StringSplitOptions.None);
+			var lines = text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 			var words = new List<SingleWordToken>();
 
 			for (int i = 0; i < lines.Length; i++)
