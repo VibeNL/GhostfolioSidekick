@@ -364,4 +364,6 @@ FodyWeavers.xsd
 /ConsoleHelper/Properties/launchSettings.json
 /ConsoleHelper/TestFiles/ScalableCapital.xlsx
 /GhostfolioSidekick/Properties/launchSettings.json
-/Parsers.UnitTests/TestFiles/TradeRepublic/multi-month-statement-nl.pdf
+/Tools/AnonymisePDF/Properties/launchSettings.json
+/202505 statements - redacted.pdf
+/202505 statements.pdf
