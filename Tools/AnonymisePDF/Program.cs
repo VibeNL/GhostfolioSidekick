@@ -6,9 +6,9 @@ using System.Text.RegularExpressions;
 
 namespace AnonymisePDF
 {
-	internal class Program
+	public class Program
 	{
-		static void Main(string[] args)
+		public static void Main(string[] args)
 		{
 			var sourceFile = args[0];
 			var targetFile = args[1];
