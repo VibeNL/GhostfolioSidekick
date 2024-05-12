@@ -2,6 +2,7 @@ using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.TradeRepublic;
 
@@ -17,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public TradeRepublicParserNLTests()
 		{
 			pdfToWords = new TestPdfToWords();
-			parser = new TradeRepublicParserNL(new PdfToWordsParser());
+			parser = new TradeRepublicParserNL(pdfToWords);
 
 			var fixture = new Fixture();
 			account = fixture
@@ -27,10 +28,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}
 
-		[Fact(Skip = "Not Yet Implemented")]
+		[Fact]
 		public async Task CanParseActivities_TestFiles_True()
 		{
-			// Arrange
+			// Arrange, use the real parser to test the real files
+			var parser = new TradeRepublicParserNL(new PdfToWordsParser());
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/", "*.pdf", SearchOption.AllDirectories))
 			{
 				// Act
@@ -41,20 +43,28 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}
 		}
 
-		[Fact(Skip = "Not Yet Implemented")]
-		public async Task ConvertActivitiesForAccount_TestFileSingleBuy_Converted()
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleInterest_Converted()
 		{
 			// Arrange
 			pdfToWords.Text = new Dictionary<int, string>
 			{
-				{ 0, single_buy }
+				{ 0, single_interest }
 			};
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/multi-month-statement-nl.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.Holdings.Should().NotBeEmpty();
+			holdingsAndAccountsCollection.Holdings.Should().BeEquivalentTo(
+				[PartialActivity.CreateInterest(
+						Currency.EUR,
+						new DateTime(2024, 05, 01, 0, 0, 0, DateTimeKind.Utc),
+						33.31m,
+						"Your interest payment",
+						new Money(Currency.EUR, 33.31m),
+						"")
+				]);
 		}
 
 		private class TestPdfToWords : PdfToWordsParser
@@ -73,62 +83,27 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}
 		}
 
-		private string single_buy = @"
-		                ***** **** *****                                                                                               DATUM              01 okt. 2023 - 31 mrt. 2024
-                ***** **** *****                                                                                                IBAN              ********
-                ***** **** *****                                                                                                    BIC                                    ********
+		private string single_interest = @"
+Aangemaakt op 07 mei 2024
+Pagina  1 3
+Trade Republic Bank GmbH
+DATUM 01 mei 2024 - 06 mei 2024
+IBAN
+BIC
+REKENINGOVERZICHT SAMENVATTING
+PRODUCT OPENINGSSALDO BEDRAG BIJ BEDRAF AF EINDSALDO
+Effectenrekening € 10.437,71 € 442,95 € 446,94 € 10.433,72
+MUTATIEOVERZICHT
+DATUM TYPE BESCHRIJVING
+BEDRAG 
+BIJ
+BEDRAF AF SALDO
+01 mei 
+2024
+Rentebetaling Your interest payment € 33,31 € 10.471,02
+
+";
 
 
-
-                REKENINGOVERZICHT SAMENVATTING
-
-
-
-                PRODUCT                                      OPENINGSSALDO                     BEDRAG BIJ                     BEDRAF AF                                      EINDSALDO
-
-                Effectenrekening                             € 0,00                            € 11.692,04                    € 1.847,12                                  € 9.844,92
-
-
-
-                MUTATIEOVERZICHT
-
-
-
-                DATUM       TYPE            BESCHRIJVING                                                                                          BEDRAG BIJ  BEDRAF AF         SALDO
-
-                06 okt.                     Uitvoering Handel Directe aankoop Aankoop DE0001102333 1.75% BUNDANL.V.14/24 
-                            Handel                                                                                                                            € 0,48        € 249,52
-                2023                        1232793620231006
-		";
-
-		private string single_cashdeposit = @"
-		                ***** **** *****                                                                                               DATUM              01 okt. 2023 - 31 mrt. 2024
-                ***** **** *****                                                                                                IBAN              ********
-                ***** **** *****                                                                                                    BIC                                    ********
-
-
-
-                REKENINGOVERZICHT SAMENVATTING
-
-
-
-                PRODUCT                                      OPENINGSSALDO                     BEDRAG BIJ                     BEDRAF AF                                      EINDSALDO
-
-                Effectenrekening                             € 0,00                            € 11.692,04                    € 1.847,12                                  € 9.844,92
-
-
-
-                MUTATIEOVERZICHT
-
-
-
-                DATUM       TYPE            BESCHRIJVING                                                                                          BEDRAG BIJ  BEDRAF AF         SALDO
-
-                06 okt. 
-                            OverschrijvingCustomer ************************************ inpayed net: 250.000000 fee: 0.000000  € 250,00                                     € 250,00
-                2023
-
-                06 okt.                     
-		";
 	}
 }
