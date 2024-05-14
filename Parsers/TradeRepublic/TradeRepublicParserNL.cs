@@ -116,35 +116,59 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				{
 					// start of a new activity
 					SingleWordToken singleWordToken = words[j + 3];
+
+					var items = words.Skip(j + 4).TakeWhile(w => w.BoundingBox!.Row == singleWordToken.BoundingBox!.Row).ToList();
+
+					var amountText = items[items.Count - 2];
+					var currency = new Model.Currency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text.Substring(0, 1)));
+					var amount = decimal.Parse(amountText.Text.Substring(1).Trim(), new CultureInfo("nl-NL"));
+
+					var id = $"Trade_Republic_{singleWordToken.Text}_{date.ToInvariantDateOnlyString()}";
+
 					switch (singleWordToken.Text)
 					{
 						case "Rentebetaling":
-
-							var items = words.Skip(j + 4).TakeWhile(w => w.BoundingBox!.Row == singleWordToken.BoundingBox!.Row).ToList();
-
-							var amountText = items[items.Count - 2];
-							var currency = new Model.Currency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text.Substring(0, 1)));
-							var amount = decimal.Parse(amountText.Text.Substring(1).Trim(), new CultureInfo("nl-NL"));
-
-							var id = $"Trade_Republic_{PartialActivityType.Interest}_{date.ToInvariantDateOnlyString()}";
-
 							activities.Add(PartialActivity.CreateInterest(
 											currency,
 											date,
 											amount,
 											string.Join(" ", items.Take(items.Count - 2)),
-											new Model.Money(currency, amount),
+											new Money(currency, amount),
 											id));
 
-							return j + 3 + items.Count;
+							break;
 						case "Overschrijving":
+							activities.Add(PartialActivity.CreateCashDeposit(
+											currency,
+											date,
+											amount,
+											new Money(currency, amount),
+											id));
+							break;
 						case "Kaarttransactie":
+							activities.Add(PartialActivity.CreateCashWithdrawal(
+												currency,
+												date,
+												amount,
+												new Money(currency, amount),
+												id));
+							break;
 						case "Beloning":
+							activities.Add(PartialActivity.CreateGift(
+													currency,
+													date,
+													amount,
+													new Money(currency, amount),
+													id));
+							break;
 						case "Handel":
+							// Should be handeld by another parser
 							break;
 						default:
 							throw new NotSupportedException();
 					}
+
+					return j + 3 + items.Count;
 				}
 			}
 
