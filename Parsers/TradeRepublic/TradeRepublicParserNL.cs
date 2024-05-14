@@ -137,8 +137,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 											id));
 
 							return j + 3 + items.Count;
-						default:
+						case "Overschrijving":
+						case "Kaarttransactie":
+						case "Beloning":
+						case "Handel":
 							break;
+						default:
+							throw new NotSupportedException();
 					}
 				}
 			}
