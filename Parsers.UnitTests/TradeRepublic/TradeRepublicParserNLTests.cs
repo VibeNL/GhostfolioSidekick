@@ -56,14 +56,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.Holdings.Should().BeEquivalentTo(
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateInterest(
 						Currency.EUR,
 						new DateTime(2024, 05, 01, 0, 0, 0, DateTimeKind.Utc),
 						33.31m,
 						"Your interest payment",
 						new Money(Currency.EUR, 33.31m),
-						"")
+						"Trade_Republic_Interest_2024-05-01")
 				]);
 		}
 

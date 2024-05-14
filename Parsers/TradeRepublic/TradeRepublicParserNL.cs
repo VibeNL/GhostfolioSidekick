@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
@@ -110,8 +111,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					words[j].Text + " " + words[j + 1].Text + " " + words[j + 2].Text,
 					"dd MMM yyyy",
 					new CultureInfo("NL-nl"),
-					DateTimeStyles.None,
-					out var result))
+					DateTimeStyles.AssumeUniversal,
+					out var date))
 				{
 					// start of a new activity
 					SingleWordToken singleWordToken = words[j + 3];
@@ -119,10 +120,23 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					{
 						case "Rentebetaling":
 
-							var items = words.Skip(j + 3).TakeWhile(w => w.BoundingBox!.Row == singleWordToken.BoundingBox!.Row).ToList();
+							var items = words.Skip(j + 4).TakeWhile(w => w.BoundingBox!.Row == singleWordToken.BoundingBox!.Row).ToList();
 
+							var amountText = items[items.Count - 2];
+							var currency = new Model.Currency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text.Substring(0, 1)));
+							var amount = decimal.Parse(amountText.Text.Substring(1).Trim(), new CultureInfo("nl-NL"));
 
-							break;
+							var id = $"Trade_Republic_{PartialActivityType.Interest}_{date.ToInvariantDateOnlyString()}";
+
+							activities.Add(PartialActivity.CreateInterest(
+											currency,
+											date,
+											amount,
+											string.Join(" ", items.Take(items.Count - 2)),
+											new Model.Money(currency, amount),
+											id));
+
+							return j + 3 + items.Count;
 						default:
 							break;
 					}
