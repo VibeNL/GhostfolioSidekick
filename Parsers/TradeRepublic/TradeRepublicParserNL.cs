@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -101,9 +102,34 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return activities;
 		}
 
-		private int ParseActivity(List<SingleWordToken> words, int i, List<PartialActivity> activities)
+		private static int ParseActivity(List<SingleWordToken> words, int i, List<PartialActivity> activities)
 		{
-			throw new NotImplementedException();
+			for (int j = i; j < words.Count - 2; j++)
+			{
+				if (DateTime.TryParseExact(
+					words[j].Text + " " + words[j + 1].Text + " " + words[j + 2].Text,
+					"dd MMM yyyy",
+					new CultureInfo("NL-nl"),
+					DateTimeStyles.None,
+					out var result))
+				{
+					// start of a new activity
+					SingleWordToken singleWordToken = words[j + 3];
+					switch (singleWordToken.Text)
+					{
+						case "Rentebetaling":
+
+							var items = words.Skip(j + 3).TakeWhile(w => w.BoundingBox!.Row == singleWordToken.BoundingBox!.Row).ToList();
+
+
+							break;
+						default:
+							break;
+					}
+				}
+			}
+
+			return int.MaxValue;
 		}
 	}
 }
