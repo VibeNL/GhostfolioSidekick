@@ -44,6 +44,19 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFile1_True()
+		{
+			// Arrange, use the real parser to test the real files
+			var parser = new TradeRepublicParserNL(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().HaveCount(18);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFileSingleInterest_Converted()
 		{
 			// Arrange

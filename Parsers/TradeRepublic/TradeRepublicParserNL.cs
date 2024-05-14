@@ -49,8 +49,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				if (headers.Count == TableKeyWords.Count) // parsing rows
 				{
+					var incr = ParseActivity(words, i, activities);
+					if (incr == int.MaxValue)
+					{
+						break;
+					}
+
 #pragma warning disable S127 // "for" loop stop conditions should be invariant
-					i += ParseActivity(words, i, activities);
+					i += incr;
 #pragma warning restore S127 // "for" loop stop conditions should be invariant
 				}
 
@@ -116,6 +122,10 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				{
 					// start of a new activity
 					SingleWordToken singleWordToken = words[j + 3];
+					if (singleWordToken.Text == "Handel" || singleWordToken.Text == "Pagina")
+					{
+						return j - i + 3;
+					}
 
 					var items = words.Skip(j + 4).TakeWhile(w => w.BoundingBox!.Row == singleWordToken.BoundingBox!.Row).ToList();
 
@@ -168,7 +178,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 							throw new NotSupportedException();
 					}
 
-					return j + 3 + items.Count;
+					return j - i + 3 + items.Count;
 				}
 			}
 
