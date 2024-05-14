@@ -47,7 +47,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				if (headers.Count == TableKeyWords.Count) // parsing rows
 				{
-					throw new NotSupportedException();
+#pragma warning disable S127 // "for" loop stop conditions should be invariant
+					i += ParseActivity(words, i, activities);
+#pragma warning restore S127 // "for" loop stop conditions should be invariant
 				}
 
 				if (Keyword_Datum == word.Text) // start of header
@@ -99,6 +101,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return activities;
 		}
 
-
+		private int ParseActivity(List<SingleWordToken> words, int i, List<PartialActivity> activities)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
