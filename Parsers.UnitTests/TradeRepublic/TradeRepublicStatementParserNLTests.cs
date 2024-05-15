@@ -8,7 +8,7 @@ using GhostfolioSidekick.Parsers.TradeRepublic;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
-	public partial class TradeRepublicStatementParserNLTests
+	public class TradeRepublicStatementParserNLTests
 	{
 		private readonly Account account;
 		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		{
 			// Arrange, use the real parser to test the real files
 			var parser = new TradeRepublicStatementParserNL(new PdfToWordsParser());
-			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/", "*.pdf", SearchOption.AllDirectories))
+			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/", "*_statement.pdf", SearchOption.AllDirectories))
 			{
 				// Act
 				var canParse = await parser.CanParseActivities(file);
