@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Strategies
+﻿namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 {
 	public enum StrategiesPriority
 	{

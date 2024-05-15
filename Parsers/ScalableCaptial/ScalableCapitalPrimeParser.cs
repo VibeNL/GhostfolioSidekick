@@ -1,7 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial

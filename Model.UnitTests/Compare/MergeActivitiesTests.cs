@@ -131,8 +131,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Compare
 			// Assert
 			mergeOrders.Should().BeEquivalentTo(
 				[
-					new GhostfolioAPI.API.MergeOrder(Operation.Removed, profile1, activity1),
-					new GhostfolioAPI.API.MergeOrder(Operation.New, profile2, activity2)]
+					new MergeOrder(Operation.Removed, profile1, activity1),
+					new MergeOrder(Operation.New, profile2, activity2)]
 				);
 		}
 

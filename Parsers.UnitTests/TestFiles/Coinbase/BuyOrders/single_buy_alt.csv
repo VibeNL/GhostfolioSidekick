@@ -1,0 +1,6 @@
+
+Transactions
+User,xxxxxx,xxxxxxxxxxxxxxxxxxx
+
+ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+6637ac0d7724c7009596c364,2023-04-20T04:05:40Z,Buy,ETH,0.00213232,EUR,1810.23,3.86,4.85,0.990000,Bought 0.00213232 ETH for €4.85 EUR

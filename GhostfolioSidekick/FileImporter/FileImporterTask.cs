@@ -1,9 +1,9 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
-using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;

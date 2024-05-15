@@ -1,8 +1,7 @@
 ﻿using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.GhostfolioAPI.API
+namespace GhostfolioSidekick.Model.Compare
 {
 	public sealed class MergeOrder
 	{
@@ -20,9 +19,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		}
 
 		public Operation Operation { get; }
-		
+
 		public SymbolProfile SymbolProfile { get; }
-		
+
 		public IActivity Order1 { get; }
 
 		public IActivity? Order2 { get; }

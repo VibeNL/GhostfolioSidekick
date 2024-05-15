@@ -2,9 +2,8 @@
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Model.Activities;
 using AutoFixture;
-using GhostfolioSidekick.Parsers.UnitTests;
 
-namespace GhostfolioSidekick.UnitTests.Parsers.DeGiro
+namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {
 	public class DeGiroRecordPTTests
 	{
@@ -41,7 +40,7 @@ namespace GhostfolioSidekick.UnitTests.Parsers.DeGiro
 			// Assert
 			result.Should().BeNull();
 		}
-		
+
 		[Fact]
 		public void GetActivityType_WhenDescriptionDoesNotMatchAnyCondition_ShouldReturnNull()
 		{

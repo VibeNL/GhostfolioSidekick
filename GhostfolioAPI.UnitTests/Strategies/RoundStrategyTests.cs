@@ -1,12 +1,13 @@
 using AutoFixture;
 using FluentAssertions;
+using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Strategies;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests.Model.Strategies
+namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 {
 	public class RoundStrategyTests
 	{
@@ -14,7 +15,7 @@ namespace GhostfolioSidekick.UnitTests.Model.Strategies
 
 		public RoundStrategyTests()
 		{
-			_roundStrategy = new RoundStrategy();
+			_roundStrategy = new RoundStrategy(new Mock<ILogger<RoundStrategy>>().Object);
 		}
 
 		[Fact]
@@ -102,6 +103,32 @@ namespace GhostfolioSidekick.UnitTests.Model.Strategies
 
 			// Assert
 			// No exception should be thrown
+		}
+
+		[Fact]
+		public async Task Execute_ShouldNotRoundMissingQuantityToZero()
+		{
+			// Arrange
+			var mockActivity1 = new Mock<IActivityWithQuantityAndUnitPrice>();
+			mockActivity1.SetupProperty(a => a.Quantity, 1.12345678901234567890m);
+			mockActivity1.SetupProperty(a => a.UnitPrice, new Money(Currency.USD, 1.12345678901234567890m));
+
+			var mockActivity2 = new Mock<IActivityWithQuantityAndUnitPrice>();
+			mockActivity2.SetupProperty(a => a.Quantity, 1.12345678901234567890m);
+			mockActivity2.SetupProperty(a => a.UnitPrice, new Money(Currency.USD, 1.12345678901234567890m));
+
+			var holding = new Holding(new Fixture().Create<SymbolProfile>())
+			{
+				Activities = new List<IActivity> { mockActivity1.Object, mockActivity2.Object }
+			};
+
+			// Act
+			await _roundStrategy.Execute(holding);
+
+			// Assert
+			var lastActivity = holding.Activities.OfType<IActivityWithQuantityAndUnitPrice>().LastOrDefault();
+			lastActivity.Should().NotBeNull();
+			lastActivity!.Quantity.Should().NotBe(1.12345m); // The quantity should have been adjusted by the missing quantity
 		}
 
 	}

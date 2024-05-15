@@ -102,6 +102,9 @@
 		<None Update="TestFiles\Coinbase\BuyOrders\single_advance_trade_buy.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Coinbase\BuyOrders\single_buy_alt.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Coinbase\Specials\single_buyfiatfromfiat_bugCoinbase.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

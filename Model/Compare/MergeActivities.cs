@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Compare
