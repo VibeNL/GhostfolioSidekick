@@ -8,12 +8,12 @@ using GhostfolioSidekick.Parsers.TradeRepublic;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
-	public partial class TradeRepublicParserNLTests
+	public partial class TradeRepublicStatementParserNLTests
 	{
 		private readonly Account account;
 		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
-		public TradeRepublicParserNLTests()
+		public TradeRepublicStatementParserNLTests()
 		{
 			var fixture = new Fixture();
 			account = fixture
@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicParserNL(new PdfToWordsParser());
+			var parser = new TradeRepublicStatementParserNL(new PdfToWordsParser());
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/", "*.pdf", SearchOption.AllDirectories))
 			{
 				// Act
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFile1_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicParserNL(new PdfToWordsParser());
+			var parser = new TradeRepublicStatementParserNL(new PdfToWordsParser());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/montly_statement.pdf", holdingsAndAccountsCollection, account.Name);
@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleInterest_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicParserNL(new TestPdfToWords(new Dictionary<int, string>
+			var parser = new TradeRepublicStatementParserNL(new TestPdfToWords(new Dictionary<int, string>
 			{
 				{ 0, single_interest }
 			}));
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleDeposit_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicParserNL(new TestPdfToWords(new Dictionary<int, string>
+			var parser = new TradeRepublicStatementParserNL(new TestPdfToWords(new Dictionary<int, string>
 			{
 				{ 0, single_deposit }
 			}));
@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleWithdrawal_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicParserNL(new TestPdfToWords(new Dictionary<int, string>
+			var parser = new TradeRepublicStatementParserNL(new TestPdfToWords(new Dictionary<int, string>
 			{
 				{ 0, single_withdrawal }
 			}));

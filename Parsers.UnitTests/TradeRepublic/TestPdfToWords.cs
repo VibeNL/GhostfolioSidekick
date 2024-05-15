@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
-	public partial class TradeRepublicParserNLTests
+	public partial class TradeRepublicStatementParserNLTests
 	{
 		internal class TestPdfToWords : PdfToWordsParser
 		{

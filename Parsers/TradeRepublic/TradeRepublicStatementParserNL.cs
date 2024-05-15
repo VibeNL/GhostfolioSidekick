@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicParserNL : PdfBaseParser, IFileImporter
+	public class TradeRepublicStatementParserNL : PdfBaseParser, IFileImporter
 	{
 		private const string Keyword_Datum = "DATUM";
 		private const string Keyword_Type = "TYPE";
@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 		}
 
-		public TradeRepublicParserNL(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
+		public TradeRepublicStatementParserNL(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
 		}
 
