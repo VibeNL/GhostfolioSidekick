@@ -8,18 +8,13 @@ using GhostfolioSidekick.Parsers.TradeRepublic;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
-	public class TradeRepublicParserNLTests
+	public partial class TradeRepublicParserNLTests
 	{
-		private readonly TestPdfToWords pdfToWords;
-		readonly TradeRepublicParserNL parser;
 		private readonly Account account;
 		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
 
 		public TradeRepublicParserNLTests()
 		{
-			pdfToWords = new TestPdfToWords();
-			parser = new TradeRepublicParserNL(pdfToWords);
-
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
@@ -60,10 +55,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleInterest_Converted()
 		{
 			// Arrange
-			pdfToWords.Text = new Dictionary<int, string>
+			var parser = new TradeRepublicParserNL(new TestPdfToWords(new Dictionary<int, string>
 			{
 				{ 0, single_interest }
-			};
+			}));
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
@@ -84,10 +79,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleDeposit_Converted()
 		{
 			// Arrange
-			pdfToWords.Text = new Dictionary<int, string>
+			var parser = new TradeRepublicParserNL(new TestPdfToWords(new Dictionary<int, string>
 			{
 				{ 0, single_deposit }
-			};
+			}));
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
@@ -107,10 +102,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleWithdrawal_Converted()
 		{
 			// Arrange
-			pdfToWords.Text = new Dictionary<int, string>
+			var parser = new TradeRepublicParserNL(new TestPdfToWords(new Dictionary<int, string>
 			{
 				{ 0, single_withdrawal }
-			};
+			}));
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
@@ -124,22 +119,6 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new Money(Currency.EUR, 13.98m),
 						"Trade_Republic_Kaarttransactie_2024-05-05")
 				]);
-		}
-
-		private class TestPdfToWords : PdfToWordsParser
-		{
-			public Dictionary<int, string> Text { get; internal set; } = new Dictionary<int, string>();
-
-			public override List<SingleWordToken> ParseTokens(string filePath)
-			{
-				var lst = new List<SingleWordToken>();
-				foreach (var item in Text)
-				{
-					lst.AddRange(ParseWords(item.Value, item.Key));
-				}
-
-				return lst;
-			}
 		}
 
 		private string single_interest = @"
