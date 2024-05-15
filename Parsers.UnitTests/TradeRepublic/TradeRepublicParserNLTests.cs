@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			var parser = new TradeRepublicParserNL(new PdfToWordsParser());
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/montly_statement.pdf", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().HaveCount(18);
