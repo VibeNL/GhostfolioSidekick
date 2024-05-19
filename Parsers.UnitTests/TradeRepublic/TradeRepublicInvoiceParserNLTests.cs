@@ -39,7 +39,41 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 
 		[Fact]
-		public async Task ConvertActivitiesForAccount_TestFileSingleInterest_Converted()
+		public async Task ConvertActivitiesForAccount_TestFileSingleBuyBond_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/BuyOrders/single_buy_bond.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("DE0001102333")],
+						99m,
+						0.9939m,
+						new Money(Currency.EUR, 98.40m),
+						""),
+				 PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						1.12m,
+						new Money(Currency.EUR, 1.12m),
+						""),
+				 PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						1m,
+						new Money(Currency.EUR, 1m),
+						""),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleBuyStock_Converted()
 		{
 			// Arrange
 			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
@@ -51,7 +85,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 17, 12, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("US2546871060")],
 						0.3247m,
 						77.39m,
