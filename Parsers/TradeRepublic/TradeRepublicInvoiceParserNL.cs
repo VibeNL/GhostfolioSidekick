@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -12,7 +13,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private const string Keyword_Quantity = "QUANTITY";
 		private const string Keyword_Price = "PRICE";
 		private const string Keyword_Amount = "AMOUNT";
-		private const string Keyword_NominaL = "NOMINAL";
+		private const string Keyword_Nominal = "NOMINAL";
 
 		private List<string> TableKeyWords
 		{
@@ -21,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return [
 					Keyword_Position,
 					Keyword_Quantity,
-					Keyword_NominaL,
+					Keyword_Nominal,
 					Keyword_Price,
 					Keyword_Amount,
 				];
@@ -38,24 +39,25 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			// detect headers
 			var headers = new List<MultiWordToken>();
-
+			DateTime? dateTime = null;
 			bool inHeader = false;
 
 			for (int i = 0; i < words.Count; i++)
 			{
 				var word = words[i];
 
+				// Detect first date
+				if (word.Text == "DATE" && dateTime == null)
+				{
+					var date = words[i + 1].Text;
+					dateTime = DateTime.ParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+					i += 1;
+				}
+
 				if (headers.Count == 4) // parsing rows
 				{
-					var incr = ParseActivity(words, i, activities);
-					if (incr == int.MaxValue)
-					{
-						break;
-					}
-
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-					i += incr;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
+					i = ParseActivity(words, i, dateTime.GetValueOrDefault(), headers, activities);
+					headers.Clear();
 				}
 
 				if (Keyword_Position == word.Text) // start of header
@@ -107,9 +109,56 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return activities;
 		}
 
-		private static int ParseActivity(List<SingleWordToken> words, int i, List<PartialActivity> activities)
+		private static int ParseActivity(List<SingleWordToken> words, int i, DateTime dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
 		{
-			throw new NotSupportedException();
+			var headerStrings = headers.Select(h => h.KeyWord).ToList();
+			if (headerStrings.Contains(Keyword_Position)) // Stocks
+			{
+				string? isin = null;
+				while (i < words.Count)
+				{
+					if (words[i].Text == "ISIN:")
+					{
+						isin = words[i + 1].Text;
+						i++;
+						break;
+					}
+
+					i++;
+				}
+
+				if (isin == null)
+				{
+					throw new NotSupportedException("ISIN not found");
+				}
+
+				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
+
+				var quantity = decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture);
+				var price = decimal.Parse(words[i + 3].Text, CultureInfo.InvariantCulture);
+				var currencySymbol = words[i + 4].Text;
+				var total = decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture);
+
+				var currency = new Currency(currencySymbol);	
+
+				activities.Add(PartialActivity.CreateBuy(
+					currency,
+					dateTime,
+					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
+					quantity,
+					price,
+					new Money(currency, total),
+					id));
+
+				return i + 6;	
+			}
+
+			if (headerStrings.Contains(Keyword_Nominal)) // Bonds
+			{
+
+			}
+
+			throw new NotSupportedException("Unknown security type");
 		}
 	}
 }

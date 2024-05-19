@@ -85,12 +85,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 17, 12, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("US2546871060")],
 						0.3247m,
 						77.39m,
 						new Money(Currency.EUR, 25.13m),
-						"")
+						"Trade_Republic_US2546871060_2023-10-06")
 				]);
 		}
 	}
