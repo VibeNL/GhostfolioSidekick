@@ -14,6 +14,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private const string Keyword_Amount = "AMOUNT";
 		private const string Keyword_Nominal = "NOMINAL";
 		private const string Keyword_Income = "INCOME";
+		private const string Keyword_Coupon = "COUPON";
 		private const string Keyword_Total = "TOTAL";
 		private const string Keyword_AverageRate = "AVERAGE RATE";
 
@@ -28,6 +29,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					Keyword_Price,
 					Keyword_AverageRate,
 					Keyword_Income,
+					Keyword_Coupon,
 					Keyword_Amount,
 				];
 			}
@@ -219,7 +221,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i + 6;
 			}
 
-			if (headerStrings.Contains(Keyword_Nominal)) // Bonds
+			if (headerStrings.Contains(Keyword_Nominal) && headerStrings.Contains(Keyword_Price)) // Bonds
 			{
 				string? isin = null;
 				while (i < words.Count)
@@ -260,7 +262,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i + 6;
 			}
 
-			if (headerStrings.Contains(Keyword_Income)) // Dividends
+			if (headerStrings.Contains(Keyword_Income) || headerStrings.Contains(Keyword_Nominal)) // Dividends
 			{
 				string? isin = null;
 				while (i < words.Count)
@@ -283,9 +285,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
 
 				var quantity = decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture);
-				var price = decimal.Parse(words[i + 3].Text, CultureInfo.InvariantCulture);
-				var currencySymbol = words[i + 4].Text;
 				var total = decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture);
+				var currencySymbol = words[i + 6].Text;
 
 				var currency = new Currency(currencySymbol);
 

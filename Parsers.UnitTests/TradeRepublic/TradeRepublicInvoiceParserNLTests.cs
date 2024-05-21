@@ -143,5 +143,47 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						"Trade_Republic_US2546871060_2024-01-09")
 				]);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleInterestBond_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/CashTransactions/single_interest_bond.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateDividend(
+						Currency.EUR,
+						new DateTime(2024, 02, 15, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("DE0001102333")],
+						1.74m,
+						new Money(Currency.EUR, 1.74m),
+						"Trade_Republic_DE0001102333_2024-02-15")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleRepayBond_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/CashTransactions/single_repay_bond.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2024, 02, 14, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("DE0001102333")],
+						1.74m,
+						new Money(Currency.EUR, 1.74m),
+						"Trade_Republic_DE0001102333_2024-02-14")
+				]);
+		}
 	}
 }
