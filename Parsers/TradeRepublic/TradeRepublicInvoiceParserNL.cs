@@ -13,6 +13,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private const string Keyword_Price = "PRICE";
 		private const string Keyword_Amount = "AMOUNT";
 		private const string Keyword_Nominal = "NOMINAL";
+		private const string Keyword_Income = "INCOME";
 		private const string Keyword_Total = "TOTAL";
 		private const string Keyword_AverageRate = "AVERAGE RATE";
 
@@ -26,6 +27,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					Keyword_Nominal,
 					Keyword_Price,
 					Keyword_AverageRate,
+					Keyword_Income,
 					Keyword_Amount,
 				];
 			}
@@ -43,7 +45,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			var headers = new List<MultiWordToken>();
 			DateTime? dateTime = null;
 			bool inHeader = false;
-			var uniqueId = string.Empty;
 
 			for (int i = 0; i < words.Count; i++)
 			{
@@ -64,14 +65,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				if (!inHeader && headers.Count == 4) // parsing rows buys and sells
 				{
-					var r = ParseSecurityRecord(words, i, dateTime.GetValueOrDefault(), headers, activities);
-					i = r.Item1;
-					uniqueId = r.Item2;
+					i = ParseSecurityRecord(words, i, dateTime.GetValueOrDefault(), headers, activities);
 				}
 
-				if (!inHeader && headers.Count == 2)
+				if (!inHeader && headers.Count == 2) // parsing fees
 				{
-					i = ParseFeeRecords(words, i, dateTime.GetValueOrDefault(), uniqueId, activities);
+					i = ParseFeeRecords(words, i, dateTime.GetValueOrDefault(), activities);
 				}
 
 				if (Keyword_Position == word.Text) // start of header
@@ -120,19 +119,30 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				}
 			}
 
+			var mainActivity = activities.Single(x => !string.IsNullOrWhiteSpace(x.TransactionId));
+			activities.ToList().ForEach(x => x.TransactionId = mainActivity.TransactionId);
+
 			return activities;
 		}
 
-		private static int ParseFeeRecords(List<SingleWordToken> words, int i, DateTime dateTime, string uniqueId, List<PartialActivity> activities)
+		private static int ParseFeeRecords(List<SingleWordToken> words, int i, DateTime dateTime, List<PartialActivity> activities)
 		{
-			var skip = 0;
-			if (words[i].Text == "Accrued" && words[i + 1].Text == "interest")
+			int skip;
+			if (IsCheckWords("Accrued interest", words, i))
 			{
 				skip = 2;
 			}
-			else if (words[i].Text == "External" && words[i + 1].Text == "cost" && words[i + 2].Text == "surcharge")
+			else if (IsCheckWords("External cost surcharge", words, i))
 			{
 				skip = 3;
+			}
+			else if (IsCheckWords("Withholding tax for US issuer", words, i))
+			{
+				skip = 5;
+			}
+			else
+			{
+				return i;
 			}
 
 			var price = Math.Abs(decimal.Parse(words[i + skip].Text, CultureInfo.InvariantCulture));
@@ -144,12 +154,28 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					dateTime,
 					price,
 					new Money(currency, price),
-					uniqueId));
+					string.Empty));
 
 			return i + skip + 1;
 		}
 
-		private static (int, string) ParseSecurityRecord(List<SingleWordToken> words, int i, DateTime dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
+		private static bool IsCheckWords(string check, List<SingleWordToken> words, int i)
+		{
+			var splitted = check.Split(" ");
+			for (int j = 0; j < splitted.Length; j++)
+			{
+				var expected = splitted[j];
+				var actual = words[i + j].Text;
+				if (expected != actual)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private static int ParseSecurityRecord(List<SingleWordToken> words, int i, DateTime dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
 		{
 			var headerStrings = headers.Select(h => h.KeyWord).ToList();
 			if (headerStrings.Contains(Keyword_Quantity) && (headerStrings.Contains(Keyword_Price) || headerStrings.Contains(Keyword_AverageRate))) // Stocks
@@ -190,7 +216,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					new Money(currency, total),
 					id));
 
-				return (i + 6, id);
+				return i + 6;
 			}
 
 			if (headerStrings.Contains(Keyword_Nominal)) // Bonds
@@ -231,7 +257,47 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					new Money(currency, total),
 					id));
 
-				return (i + 6, id);
+				return i + 6;
+			}
+
+			if (headerStrings.Contains(Keyword_Income)) // Dividends
+			{
+				string? isin = null;
+				while (i < words.Count)
+				{
+					if (words[i].Text == "ISIN:")
+					{
+						isin = words[i + 1].Text;
+						i++;
+						break;
+					}
+
+					i++;
+				}
+
+				if (isin == null)
+				{
+					throw new NotSupportedException("ISIN not found");
+				}
+
+				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
+
+				var quantity = decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture);
+				var price = decimal.Parse(words[i + 3].Text, CultureInfo.InvariantCulture);
+				var currencySymbol = words[i + 4].Text;
+				var total = decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture);
+
+				var currency = new Currency(currencySymbol);
+
+				activities.Add(PartialActivity.CreateDividend(
+					currency,
+					dateTime,
+					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
+					total,
+					new Money(currency, total),
+					id));
+
+				return i + 6;
 			}
 
 			throw new NotSupportedException("Unknown security type");

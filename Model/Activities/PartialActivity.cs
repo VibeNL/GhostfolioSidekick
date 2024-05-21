@@ -23,7 +23,7 @@
 
 		public decimal Amount { get; private set; }
 
-		public string? TransactionId { get; }
+		public string? TransactionId { get; set; }
 
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
 
