@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -17,6 +18,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private const string Keyword_Coupon = "COUPON";
 		private const string Keyword_Total = "TOTAL";
 		private const string Keyword_AverageRate = "AVERAGE RATE";
+		private const string Keyword_Booking = "BOOKING";
+		private const string Keyword_Security = "SECURITY";
+		private const string Keyword_Number = "NO.";
 
 		private List<string> TableKeyWords
 		{
@@ -31,6 +35,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					Keyword_Income,
 					Keyword_Coupon,
 					Keyword_Amount,
+					Keyword_Booking,
+					Keyword_Security,
+					Keyword_Number
 				];
 			}
 		}
@@ -75,7 +82,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					i = ParseFeeRecords(words, i, dateTime.GetValueOrDefault(), activities);
 				}
 
-				if (Keyword_Position == word.Text) // start of header
+				if (Keyword_Position == word.Text || Keyword_Number == word.Text) // start of header
 				{
 					inHeader = true;
 				}
@@ -299,6 +306,45 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					id));
 
 				return i + 6;
+			}
+
+			if (headerStrings.Contains(Keyword_Security) && headerStrings.Contains(Keyword_Booking)) // Repay of bonds
+			{
+				i = i + 2; // skip column "Number" and "Booking"
+				string? isin = null;
+				while (i < words.Count)
+				{
+					if (Regex.IsMatch(words[i].Text, "\\(20..\\)"))
+					{
+						isin = words[i + 1].Text;
+						i++;
+						break;
+					}
+
+					i++;
+				}
+
+				if (isin == null)
+				{
+					throw new NotSupportedException("ISIN not found");
+				}
+
+				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
+
+				var total = decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture);
+				var currencySymbol = words[i + 2].Text;
+
+				var currency = new Currency(currencySymbol);
+
+				activities.Add(PartialActivity.CreateBondRepay(
+					currency,
+					dateTime,
+					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
+					total,
+					new Money(currency, total),
+					id));
+
+				return i + 2;
 			}
 
 			throw new NotSupportedException("Unknown security type");
