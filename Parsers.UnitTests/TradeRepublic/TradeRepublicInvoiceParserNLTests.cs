@@ -28,7 +28,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		{
 			// Arrange, use the real parser to test the real files
 			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
-			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/BuyOrders", "*.pdf", SearchOption.AllDirectories))
+			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/BuyOrders", "*.pdf", SearchOption.AllDirectories)
+						  .Union(Directory.GetFiles("./TestFiles/TradeRepublic/CashTransactions", "*.pdf", SearchOption.AllDirectories)))
 			{
 				// Act
 				var canParse = await parser.CanParseActivities(file);
@@ -51,21 +52,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("DE0001102333")],
 						99m,
 						0.9939m,
 						new Money(Currency.EUR, 98.40m),
-						""),
+						"Trade_Republic_DE0001102333_2023-10-06"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						1.12m,
 						new Money(Currency.EUR, 1.12m),
 						""),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						1m,
 						new Money(Currency.EUR, 1m),
 						""),
@@ -91,6 +92,49 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						77.39m,
 						new Money(Currency.EUR, 25.13m),
 						"Trade_Republic_US2546871060_2023-10-06")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleBuySavingsplan_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/BuyOrders/single_savingsplan_stock.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2023, 12, 18, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US2546871060")],
+						0.058377m,
+						85.65m,
+						new Money(Currency.EUR, 5m),
+						"Trade_Republic_US2546871060_2023-12-18")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/CashTransactions/single_dividend.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateDividend(
+						Currency.USD,
+						new DateTime(2023, 01, 09, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US2546871060")],
+						0.1m,
+						new Money(Currency.USD, 0.1m),
+						"Trade_Republic_US2546871060_2023-01-09")
 				]);
 		}
 	}
