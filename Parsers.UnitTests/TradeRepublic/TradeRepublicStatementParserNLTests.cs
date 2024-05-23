@@ -121,6 +121,45 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				]);
 		}
 
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicStatementParserNL(new TestPdfToWords(new Dictionary<int, string>
+			{
+				{ 0, single_dividend }
+			}));
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleGift_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicStatementParserNL(new TestPdfToWords(new Dictionary<int, string>
+			{
+				{ 0, single_gift }
+			}));
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateGift(
+						Currency.EUR,
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						25.13m,
+						new Money(Currency.EUR, 25.13m),
+						"Trade_Republic_Verwijzing_2023-10-06")
+				]);
+		}
+
 		private string single_interest = @"
 Aangemaakt op 07 mei 2024
 Pagina  1 3
@@ -181,6 +220,45 @@ BEDRAF AF SALDO
 Kaarttransactie € 13,98 € 10.322,24
   ";
 
+		private string single_dividend = @"
+Aangemaakt op 07 mei 2024
+Pagina  1 3
+Trade Republic Bank GmbH
+DATUM 01 mei 2024 - 06 mei 2024
+IBAN
+BIC
+REKENINGOVERZICHT SAMENVATTING
+PRODUCT OPENINGSSALDO BEDRAG BIJ BEDRAF AF EINDSALDO
+Effectenrekening € 10.437,71 € 442,95 € 446,94 € 10.433,72
+MUTATIEOVERZICHT
+DATUM TYPE BESCHRIJVING
+BEDRAG 
+BIJ
+BEDRAF AF SALDO
+10 jan. 
+2024
+Inkomsten Gebeurtenisuitvoering Inkomsten US2546871060 DISNEY (WALT) CO. 6912966220240110 € 0,07 € 8.883,88
+  ";
+
+		private string single_gift = @"
+Aangemaakt op 07 mei 2024
+Pagina  1 3
+Trade Republic Bank GmbH
+DATUM 01 mei 2024 - 06 mei 2024
+IBAN
+BIC
+REKENINGOVERZICHT SAMENVATTING
+PRODUCT OPENINGSSALDO BEDRAG BIJ BEDRAF AF EINDSALDO
+Effectenrekening € 10.437,71 € 442,95 € 446,94 € 10.433,72
+MUTATIEOVERZICHT
+DATUM TYPE BESCHRIJVING
+BEDRAG 
+BIJ
+BEDRAF AF SALDO
+06 okt. 
+2023
+Verwijzing Restitutie voor je geschenk € 25,13 € 174,13
+";
 
 		private string multi_statement = @"
 Aangemaakt op 07 mei 2024

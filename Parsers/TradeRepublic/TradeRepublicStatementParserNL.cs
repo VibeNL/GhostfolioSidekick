@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				{
 					// start of a new activity
 					SingleWordToken singleWordToken = words[j + 3];
-					if (singleWordToken.Text == "Handel" || singleWordToken.Text == "Pagina")
+					if (singleWordToken.Text == "Handel" || singleWordToken.Text == "Inkomsten" || singleWordToken.Text == "Pagina")
 					{
 						return j - i + 3;
 					}
@@ -172,6 +172,19 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 													id));
 							break;
 						case "Handel":
+							// Buy or sell
+							// Should be handeld by another parser
+							break;
+						case "Verwijzing":
+							activities.Add(PartialActivity.CreateGift(
+													currency,
+													date,
+													amount,
+													new Money(currency, amount),
+													id));
+							break;
+						case "Inkomsten":
+							// Dividend
 							// Should be handeld by another parser
 							break;
 						default:
