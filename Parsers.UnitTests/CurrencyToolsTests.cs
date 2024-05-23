@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			var act = new Action(() => CurrencyTools.GetCurrencyFromSymbol(currencySymbol));
 
 			// Assert
-			act.Should().Throw<ArgumentException>().WithMessage("Currency symbol not found");
+			act.Should().Throw<ArgumentException>().WithMessage("Currency symbol not found. Searched for XYZ");
 		}
 	}
 }

@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.Parsers
 
 			if (isoCurrencySymbol == null)
 			{
-				throw new ArgumentException("Currency symbol not found");
+				throw new ArgumentException($"Currency symbol not found. Searched for {currencySymbol}");
 			}
 
 			return isoCurrencySymbol;
