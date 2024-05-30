@@ -12,6 +12,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 		{
 			ConvertSendAndRecievesToBuyAndSells(holding);
 			ConvertGiftsToInterestOrBuy(holding);
+			ConvertBondRepay(holding);
 
 			return Task.CompletedTask;
 		}
@@ -74,6 +75,32 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 
 				holding.Activities.Remove(activity);
 			}
+		}
+
+		private static void ConvertBondRepay(Holding holding)
+		{
+			var activity = holding.Activities.OfType<RepayBondActivity>().SingleOrDefault();
+
+			if (activity == null)
+			{
+				return;
+			}
+
+			var quantity = holding.Activities.OfType<BuySellActivity>().Sum(x => x.Quantity);
+			var price = activity.TotalRepayAmount.SafeDivide(quantity);
+
+			holding.Activities.Add(new BuySellActivity(
+				activity.Account,
+				activity.Date,
+				quantity,
+				price,
+				activity.TransactionId)
+			{
+				Description = activity.Description,
+				Id = activity.Id,
+				SortingPriority = activity.SortingPriority,
+			});
+			holding.Activities.Remove(activity);
 		}
 	}
 }

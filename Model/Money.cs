@@ -23,6 +23,16 @@
 			return new Money(Currency, Amount * amount);
 		}
 
+		public Money SafeDivide(decimal amount)
+		{
+			if (amount == 0)
+			{
+				return new Money(Currency, 0);
+			}
+
+			return new Money(Currency, Amount / amount);
+		}
+
 		public override string ToString()
 		{
 			return $"{Amount} {Currency}";

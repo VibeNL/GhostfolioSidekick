@@ -39,6 +39,15 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
+		public static PartialSymbolIdentifier CreateStockBondAndETF(string id)
+		{
+			return new PartialSymbolIdentifier(id)
+			{
+				AllowedAssetClasses = [AssetClass.Equity],
+				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock, AssetSubClass.Bond]
+			};
+		}
+
 		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{

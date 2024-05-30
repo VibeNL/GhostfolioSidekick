@@ -182,14 +182,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 				new PartialActivity(PartialActivityType.StakingReward, baseCurrency, new Money(baseCurrency, 0), string.Empty),
 				new PartialActivity(PartialActivityType.Gift, baseCurrency, new Money(baseCurrency, 0), string.Empty),
 				new PartialActivity(PartialActivityType.Send, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Receive, baseCurrency, new Money(baseCurrency, 0), string.Empty)
+				new PartialActivity(PartialActivityType.Receive, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new PartialActivity(PartialActivityType.BondRepay, baseCurrency, new Money(baseCurrency, 0), string.Empty)
 			};
 
 			// Act
 			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Count.Should().Be(10);
+			result.Count.Should().Be(11);
 			result.TrueForAll(x => x.Money.Amount == 0).Should().BeTrue();
 		}
 	}

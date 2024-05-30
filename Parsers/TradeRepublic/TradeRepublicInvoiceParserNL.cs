@@ -219,7 +219,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				activities.Add(PartialActivity.CreateBuy(
 					currency,
 					dateTime,
-					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					quantity,
 					price,
 					new Money(currency, total),
@@ -260,7 +260,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				activities.Add(PartialActivity.CreateBuy(
 					currency,
 					dateTime,
-					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					nominal,
 					price / 100,
 					new Money(currency, total),
@@ -300,7 +300,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				activities.Add(PartialActivity.CreateDividend(
 					currency,
 					dateTime,
-					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					total,
 					new Money(currency, total),
 					id));
@@ -339,7 +339,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				activities.Add(PartialActivity.CreateBondRepay(
 					currency,
 					dateTime,
-					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					total,
 					new Money(currency, total),
 					id));

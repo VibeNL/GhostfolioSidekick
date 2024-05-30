@@ -1,4 +1,5 @@
 using AutoFixture;
+using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -102,5 +103,38 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			Assert.Equal(giftActivity.SortingPriority, interestActivity.SortingPriority);
 		}
 
+		[Fact]
+		public async Task Execute_ShouldReplaceRepayBondToSellActivity()
+		{
+			// Arrange
+			var buyBondActivity = new Fixture()
+				.Build<BuySellActivity>()
+				.With(x => x.Quantity, 4)
+				.With(x => x.UnitPrice, new Model.Money(Model.Currency.EUR, 25))
+				.Create();
+			var repayBondActivity = new Fixture().Create<RepayBondActivity>();
+
+			var holding = new Holding(new Fixture().Create<SymbolProfile>())
+			{
+				Activities = [buyBondActivity, repayBondActivity]
+			};
+
+			// Act
+			await _strategy.Execute(holding);
+
+			// Assert
+			Assert.Empty(holding.Activities.OfType<RepayBondActivity>());
+			holding.Activities.Count().Should().Be(2);
+
+			var buySellActivity = holding.Activities.Except([buyBondActivity]).OfType<BuySellActivity>().First();
+			Assert.Equal(repayBondActivity.Account, buySellActivity.Account);
+			Assert.Equal(repayBondActivity.Date, buySellActivity.Date);
+			Assert.Equal(buyBondActivity.Quantity, buySellActivity.Quantity);
+			Assert.Equal(repayBondActivity.TotalRepayAmount, buySellActivity.UnitPrice!.Times(buySellActivity.Quantity));
+			Assert.Equal(repayBondActivity.TransactionId, buySellActivity.TransactionId);
+			Assert.Equal(repayBondActivity.Description, buySellActivity.Description);
+			Assert.Equal(repayBondActivity.Id, buySellActivity.Id);
+			Assert.Equal(repayBondActivity.SortingPriority, buySellActivity.SortingPriority);
+		}
 	}
 }

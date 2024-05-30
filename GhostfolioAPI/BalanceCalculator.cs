@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			IEnumerable<PartialActivity> activities)
 		{
 			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
-			
+
 			// Check if we have known balances
 			var knownBalances = descendingSortedActivities
 				.Where(x => x.ActivityType == PartialActivityType.KnownBalance);
@@ -62,6 +62,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						break;
 					case PartialActivityType.Liability:
 						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
+						break;
+					case PartialActivityType.BondRepay:
+						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
 						break;
 					case PartialActivityType.Send:
 					case PartialActivityType.Receive:
