@@ -23,7 +23,7 @@
 
 		public decimal Amount { get; private set; }
 
-		public string? TransactionId { get; }
+		public string? TransactionId { get; set; }
 
 		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
 
@@ -345,6 +345,22 @@
 				Amount = 1,
 				SplitFrom = from,
 				SplitTo = to
+			};
+		}
+
+		public static PartialActivity CreateBondRepay(
+			Currency currency,
+			DateTime date,
+			PartialSymbolIdentifier[] symbolIdentifiers,
+			decimal unitPrice,
+			Money totalTransactionAmount,
+			string transactionId)
+		{
+			return new PartialActivity(PartialActivityType.BondRepay, currency, totalTransactionAmount, transactionId)
+			{
+				SymbolIdentifiers = symbolIdentifiers,
+				Date = date,
+				UnitPrice = unitPrice
 			};
 		}
 	}

@@ -238,6 +238,12 @@ namespace GhostfolioSidekick.FileImporter
 						SortingPriority = sortingPriority,
 						Description = description,
 					};
+				case PartialActivityType.BondRepay:
+					return new RepayBondActivity(account, date, money.Times(amount), transactionId)
+					{
+						SortingPriority = sortingPriority,
+						Description = description,
+					};
 				default:
 					throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented");
 			}

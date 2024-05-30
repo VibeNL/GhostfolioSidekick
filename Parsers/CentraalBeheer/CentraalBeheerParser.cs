@@ -1,14 +1,12 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
-using System.Diagnostics.CodeAnalysis;
+using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
-	public class CentraalBeheerParser : IFileImporter
+	public partial class CentraalBeheerParser : PdfBaseParser, IFileImporter
 	{
 		private const string Keyword_Aankoop = "Aankoop";
 		private const string Keyword_Verkoop = "Verkoop";
@@ -22,113 +20,100 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 		private const string Prefix = "Centraal Beheer ";
 
-		private readonly List<string> mainKeyWords =
-		[
-			Keyword_Aankoop,
-			Keyword_Verkoop,
-			KeyWord_Overboeking
-		];
-		private readonly List<string> subKeyWords =
-		[
-			Keyword_Opdrachtdatum,
+		public CentraalBeheerParser(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
+		{
+		}
+
+		private List<string> MainKeyWords
+		{
+			get
+			{
+				return [
+					Keyword_Aankoop,
+					Keyword_Verkoop,
+					KeyWord_Overboeking
+				];
+			}
+		}
+
+		private List<string> SubKeyWords
+		{
+			get
+			{
+				return [
+					Keyword_Opdrachtdatum,
 			Keyword_Aantal_Stukken,
 			Keyword_Koers,
 			Keyword_Aankoopkosten,
 			Keyword_Bruto_Bedrag
-		];
-
-		public CentraalBeheerParser(ICurrencyMapper currencyMapper)
-		{
+				];
+			}
 		}
 
-		public Task<bool> CanParseActivities(string filename)
+		protected override bool CanParseRecords(List<SingleWordToken> words)
 		{
 			try
 			{
-				var records = ParseRecords(filename);
-				return Task.FromResult(records.Any());
+				var records = ParseRecords(words);
+				return records.Any();
 			}
 			catch
 			{
-				return Task.FromResult(false);
+				return false;
 			}
 		}
 
-		public Task ParseActivities(string filename, IHoldingsCollection holdingsAndAccountsCollection, string accountName)
+		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
-			var records = ParseRecords(filename);
-			holdingsAndAccountsCollection.AddPartialActivity(accountName, records);
-
-			return Task.CompletedTask;
-		}
-
-		private List<PartialActivity> ParseRecords(string filename)
-		{
-			List<PartialActivity> records;
-			using (PdfDocument document = PdfDocument.Open(filename))
+			var multiWords = new List<MultiWordToken>();
+			MultiWordToken? currentMainMultiWord = null;
+			MultiWordToken? currentMultiWord = null;
+			for (int i = 0; i < words.Count; i++)
 			{
-				var singleWords = new List<SingleWordToken>();
+				var token = words[i];
 
-				for (var i = 0; i < document.NumberOfPages; i++)
+				var wasKeyword = false;
+				foreach (var keyWord in MainKeyWords.Union(SubKeyWords))
 				{
-					Page page = document.GetPage(i + 1);
-					foreach (var word in page.GetWords())
+					var spaces = keyWord.Count(c => c == ' ');
+
+					if (i + spaces + 1 > words.Count)
 					{
-						singleWords.Add(new SingleWordToken(word.Text));
+						continue;
+					}
+
+					var tokenOfCorrectSize = string.Join(' ', words.GetRange(i, spaces + 1).Select(x => x.Text));
+					var isMatch = tokenOfCorrectSize.Equals(keyWord);
+
+					bool isMainLevel = MainKeyWords.Contains(keyWord);
+					if (isMatch && isMainLevel)
+					{
+						currentMultiWord = currentMainMultiWord = new MultiWordToken(keyWord);
+						multiWords.Add(currentMultiWord);
+#pragma warning disable S127 // "for" loop stop conditions should be invariant
+						i += spaces;
+#pragma warning restore S127 // "for" loop stop conditions should be invariant
+						wasKeyword = true;
+					}
+					else if (isMatch)
+					{
+						var subWord = new MultiWordToken(keyWord);
+						currentMainMultiWord!.AddMultiWord(subWord);
+						currentMultiWord = subWord;
+#pragma warning disable S127 // "for" loop stop conditions should be invariant
+						i += spaces;
+#pragma warning restore S127 // "for" loop stop conditions should be invariant
+						wasKeyword = true;
 					}
 				}
 
-				var multiWords = new List<MultiWordToken>();
-				MultiWordToken? currentMainMultiWord = null;
-				MultiWordToken? currentMultiWord = null;
-				for (int i = 0; i < singleWords.Count; i++)
+				if (currentMultiWord != null && !wasKeyword)
 				{
-					var token = singleWords[i];
-
-					var wasKeyword = false;
-					foreach (var keyWord in mainKeyWords.Union(subKeyWords))
-					{
-						var spaces = keyWord.Count(c => c == ' ');
-
-						if (i + spaces + 1 > singleWords.Count)
-						{
-							continue;
-						}
-
-						var tokenOfCorrectSize = string.Join(' ', singleWords.GetRange(i, spaces + 1).Select(x => x.Text));
-						var isMatch = tokenOfCorrectSize.Equals(keyWord);
-
-						bool isMainLevel = mainKeyWords.Contains(keyWord);
-						if (isMatch && isMainLevel)
-						{
-							currentMultiWord = currentMainMultiWord = new MultiWordToken(keyWord);
-							multiWords.Add(currentMultiWord);
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-							i += spaces;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
-							wasKeyword = true;
-						}
-						else if (isMatch)
-						{
-							var subWord = new MultiWordToken(keyWord);
-							currentMainMultiWord!.AddMultiWord(subWord);
-							currentMultiWord = subWord;
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-							i += spaces;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
-							wasKeyword = true;
-						}
-					}
-
-					if (currentMultiWord != null && !wasKeyword)
-					{
-						currentMultiWord.AddSingleWordToken(token);
-					}
+					currentMultiWord.AddSingleWordToken(token);
 				}
-
-				records = ParseTokens(multiWords);
 			}
 
+			var records = ParseTokens(multiWords);
 			return records;
 		}
 
@@ -151,17 +136,19 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					case var t when t.KeyWord == KeyWord_Overboeking:
 						records.AddRange(CreateOverboekingActivities(t.Words));
 						break;
+					default:
+						break;
 				}
 			}
 
 			return records;
 		}
 
-		private IEnumerable<PartialActivity> CreateAankoopActivities(List<IWordToken> relevantTokens)
+		private IEnumerable<PartialActivity> CreateAankoopActivities(List<WordToken> relevantTokens)
 		{
 			var price = GetMoney(GetToken(Keyword_Koers, relevantTokens));
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
-			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Skip(2).Select(x => x.Text)); // skip price
+			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Take(2).Select(x => x.Text)); // skip price
 
 			var id = $"Centraal_Beheer_{PartialActivityType.Buy}_{symbol}_{date.ToInvariantDateOnlyString()}";
 
@@ -187,11 +174,11 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		private IEnumerable<PartialActivity> CreateVerkoopActivities(List<IWordToken> relevantTokens)
+		private IEnumerable<PartialActivity> CreateVerkoopActivities(List<WordToken> relevantTokens)
 		{
 			var price = GetMoney(GetToken(Keyword_Koers, relevantTokens));
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
-			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Skip(3).Select(x => x.Text)); // skip price
+			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Take(2).Select(x => x.Text)); // skip price
 
 			var id = $"Centraal_Beheer_{PartialActivityType.Buy}_{symbol}_{date.ToInvariantDateOnlyString()}";
 
@@ -205,7 +192,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				id);
 		}
 
-		private IEnumerable<PartialActivity> CreateOverboekingActivities(List<IWordToken> relevantTokens)
+		private IEnumerable<PartialActivity> CreateOverboekingActivities(List<WordToken> relevantTokens)
 		{
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
 			var amount = GetMoney(GetToken(Keyword_Bruto_Bedrag, relevantTokens));
@@ -218,7 +205,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				$"Centraal_Beheer_{PartialActivityType.CashDeposit}_{date.ToInvariantDateOnlyString()}");
 		}
 
-		private string[] GetToken(string keyword, List<IWordToken> relevantTokens)
+		private string[] GetToken(string keyword, List<WordToken> relevantTokens)
 		{
 			return relevantTokens
 				.OfType<MultiWordToken>()
@@ -229,7 +216,6 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				.ToArray();
 		}
 
-		[ExcludeFromCodeCoverage]
 		private DateTime GetDate(params string[] date)
 		{
 			if (!DateTime.TryParse(string.Join(" ", date), cultureInfo, DateTimeStyles.AssumeUniversal, out DateTime parsedDate))
@@ -240,7 +226,6 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			return parsedDate;
 		}
 
-		[ExcludeFromCodeCoverage]
 		private Money GetMoney(params string[] tokens)
 		{
 			if (!decimal.TryParse(tokens[1], cultureInfo, out decimal parsedAmount))
@@ -250,5 +235,6 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 			return new Money(new Currency(CurrencyTools.GetCurrencyFromSymbol(tokens[0])), parsedAmount);
 		}
+
 	}
 }

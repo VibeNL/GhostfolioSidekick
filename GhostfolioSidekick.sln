@@ -33,7 +33,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptocurrency.UnitTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{19A57680-4CFD-44B5-8D7D-7E0FC1B3163D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model.UnitTests", "Model.UnitTests\Model.UnitTests.csproj", "{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model.UnitTests", "Model.UnitTests\Model.UnitTests.csproj", "{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnonymisePDF", "Tools\AnonymisePDF\AnonymisePDF.csproj", "{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{CB44F65D-99C0-4C38-B22C-78CA601159FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnonymisePDF.UnitTests", "Tools\AnonymisePDF.UnitTests\AnonymisePDF.UnitTests.csproj", "{D87AE535-2D63-4114-9EF8-6D92C31E9108}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,9 +99,21 @@ Global
 		{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D87AE535-2D63-4114-9EF8-6D92C31E9108}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D87AE535-2D63-4114-9EF8-6D92C31E9108}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D87AE535-2D63-4114-9EF8-6D92C31E9108}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D87AE535-2D63-4114-9EF8-6D92C31E9108}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED} = {CB44F65D-99C0-4C38-B22C-78CA601159FA}
+		{D87AE535-2D63-4114-9EF8-6D92C31E9108} = {CB44F65D-99C0-4C38-B22C-78CA601159FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {919DDC85-9EE1-4F61-9504-CACAB4B3315C}

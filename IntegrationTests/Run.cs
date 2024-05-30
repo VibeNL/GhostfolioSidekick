@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.IntegrationTests
 {
+	[Collection("IntegrationTest")]
 	public class Run
 	{
 		private Dictionary<string, int> AccountsWithExpectedNumbers = new Dictionary<string, int>

@@ -17,7 +17,9 @@ using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
 using GhostfolioSidekick.Parsers.Nexo;
 using GhostfolioSidekick.Parsers.NIBC;
+using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
+using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.Parsers.Trading212;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -106,6 +108,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							services.AddScoped<IScheduledWork, GatherAllDataTask>();
 
+							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();
 							services.AddScoped<IFileImporter, BunqParser>();
 							services.AddScoped<IFileImporter, CentraalBeheerParser>();
@@ -119,6 +122,8 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalPrimeParser>();
 							services.AddScoped<IFileImporter, StockSplitParser>();
+							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserNL>();
+							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
 
 							services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
