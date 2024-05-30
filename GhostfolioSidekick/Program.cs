@@ -15,6 +15,7 @@ using GhostfolioSidekick.Parsers.CentraalBeheer;
 using GhostfolioSidekick.Parsers.Coinbase;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Parsers.Generic;
+using GhostfolioSidekick.Parsers.MacroTrends;
 using GhostfolioSidekick.Parsers.Nexo;
 using GhostfolioSidekick.Parsers.NIBC;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
@@ -125,6 +126,8 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserNL>();
 							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
+
+							services.AddScoped<IHistoryDataFileImporter, MacroTrendsParser>();
 
 							services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();

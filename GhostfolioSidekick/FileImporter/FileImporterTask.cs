@@ -21,6 +21,7 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly IMarketDataService marketDataManager;
 		private readonly IExchangeRateService exchangeRateService;
 		private readonly IEnumerable<IFileImporter> importers;
+		private readonly IEnumerable<IHistoryDataFileImporter> historyDataFileImporters;
 		private readonly IEnumerable<IHoldingStrategy> strategies;
 		private readonly IMemoryCache memoryCache;
 
@@ -36,6 +37,7 @@ namespace GhostfolioSidekick.FileImporter
 			IMarketDataService marketDataManager,
 			IExchangeRateService exchangeRateService,
 			IEnumerable<IFileImporter> importers,
+			IEnumerable<IHistoryDataFileImporter> historyDataFileImporters,
 			IEnumerable<IHoldingStrategy> strategies,
 			IMemoryCache memoryCache)
 		{
@@ -46,6 +48,7 @@ namespace GhostfolioSidekick.FileImporter
 			this.marketDataManager = marketDataManager;
 			this.exchangeRateService = exchangeRateService;
 			this.importers = importers;
+			this.historyDataFileImporters = historyDataFileImporters;
 			this.strategies = strategies;
 			this.memoryCache = memoryCache;
 		}
@@ -80,6 +83,12 @@ namespace GhostfolioSidekick.FileImporter
 
 					foreach (var file in files)
 					{
+						if (historyDataFileImporters.Any(x => x.CanParseHistoricData(file).Result))
+						{
+							// Ignore in this task
+							continue;
+						}
+
 						var importer = importers.SingleOrDefault(x => x.CanParseActivities(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
 						await importer.ParseActivities(file, holdingsCollection, accountName);
 					}
