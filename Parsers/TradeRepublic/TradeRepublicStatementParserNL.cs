@@ -34,6 +34,28 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 		}
 
+		protected override bool CanParseRecords(List<SingleWordToken> words)
+		{
+			var foundTradeRepublic = false;
+			var foundStatement = false;
+
+			for (int i = 0; i < words.Count; i++)
+			{
+				if (IsCheckWords("Trade Republic Bank GmbH", words, i))
+				{
+					foundTradeRepublic = true;
+				}
+
+				if (
+					IsCheckWords("MUTATIEOVERZICHT", words, i))
+				{
+					foundStatement = true;
+				}
+			}
+
+			return foundTradeRepublic && foundStatement;
+		}
+
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();

@@ -16,8 +16,8 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 		{
 			try
 			{
-				var records = ParseRecords(parsePDfToWords.ParseTokens(filename));
-				return Task.FromResult(records.Any());
+				var words = parsePDfToWords.ParseTokens(filename);
+				return Task.FromResult(CanParseRecords(words));
 			}
 			catch
 			{
@@ -33,6 +33,25 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 			return Task.CompletedTask;
 		}
 
+		protected abstract bool CanParseRecords(List<SingleWordToken> words);
+
 		protected abstract List<PartialActivity> ParseRecords(List<SingleWordToken> words);
+
+
+		protected static bool IsCheckWords(string check, List<SingleWordToken> words, int i)
+		{
+			var splitted = check.Split(" ");
+			for (int j = 0; j < splitted.Length; j++)
+			{
+				var expected = splitted[j];
+				var actual = words[i + j].Text;
+				if (expected != actual)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
 	}
 }

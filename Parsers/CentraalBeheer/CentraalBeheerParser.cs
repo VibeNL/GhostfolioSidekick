@@ -50,6 +50,19 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
+		protected override bool CanParseRecords(List<SingleWordToken> words)
+		{
+			try
+			{
+				var records = ParseRecords(words);
+				return records.Any();
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var multiWords = new List<MultiWordToken>();

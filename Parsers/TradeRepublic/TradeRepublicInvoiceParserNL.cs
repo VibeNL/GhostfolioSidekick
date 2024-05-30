@@ -46,6 +46,31 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 		}
 
+		protected override bool CanParseRecords(List<SingleWordToken> words)
+		{
+			var foundTradeRepublic = false;
+			var foundSecurities = false;
+
+			for (int i = 0; i < words.Count; i++)
+			{
+				if (IsCheckWords("TRADE REPUBLIC BANK GMBH", words, i))
+				{
+					foundTradeRepublic = true;
+				}
+
+				if (
+					IsCheckWords("SECURITIES SETTLEMENT", words, i) ||
+					IsCheckWords("DIVIDEND", words, i) ||
+					IsCheckWords("INTEREST PAYMENT", words, i) ||
+					IsCheckWords("REPAYMENT", words, i))
+				{
+					foundSecurities = true;
+				}
+			}
+
+			return foundTradeRepublic && foundSecurities;
+		}
+
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
@@ -166,22 +191,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					string.Empty));
 
 			return i + skip + 1;
-		}
-
-		private static bool IsCheckWords(string check, List<SingleWordToken> words, int i)
-		{
-			var splitted = check.Split(" ");
-			for (int j = 0; j < splitted.Length; j++)
-			{
-				var expected = splitted[j];
-				var actual = words[i + j].Text;
-				if (expected != actual)
-				{
-					return false;
-				}
-			}
-
-			return true;
 		}
 
 		private static int ParseSecurityRecord(List<SingleWordToken> words, int i, DateTime dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
