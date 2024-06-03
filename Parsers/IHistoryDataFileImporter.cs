@@ -1,9 +1,7 @@
 ﻿namespace GhostfolioSidekick.Parsers
 {
-	public interface IHistoryDataFileImporter
+	public interface IHistoryDataFileImporter : IFileImporter
 	{
-		Task<bool> CanParseHistoricData(string filename);
-
 		Task<IEnumerable<HistoricData>> ParseHistoricData(string filename);
 	}
 }

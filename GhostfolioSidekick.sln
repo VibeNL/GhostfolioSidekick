@@ -35,15 +35,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "Integra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model.UnitTests", "Model.UnitTests\Model.UnitTests.csproj", "{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnonymisePDF", "Tools\AnonymisePDF\AnonymisePDF.csproj", "{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnonymisePDF", "Tools\AnonymisePDF\AnonymisePDF.csproj", "{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{CB44F65D-99C0-4C38-B22C-78CA601159FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnonymisePDF.UnitTests", "Tools\AnonymisePDF.UnitTests\AnonymisePDF.UnitTests.csproj", "{D87AE535-2D63-4114-9EF8-6D92C31E9108}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HistoricDataParsers", "HistoricDataParsers\HistoricDataParsers.csproj", "{3F541968-26D7-4EF6-A9E2-0438FA9E182C}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HistoricDataParsers.UnitTests", "HistoricDataParsers.UnitTests\HistoricDataParsers.UnitTests.csproj", "{CA7D4CEE-5AD6-4309-887C-F0CFBDAE2D63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnonymisePDF.UnitTests", "Tools\AnonymisePDF.UnitTests\AnonymisePDF.UnitTests.csproj", "{D87AE535-2D63-4114-9EF8-6D92C31E9108}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,14 +107,6 @@ Global
 		{D87AE535-2D63-4114-9EF8-6D92C31E9108}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D87AE535-2D63-4114-9EF8-6D92C31E9108}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D87AE535-2D63-4114-9EF8-6D92C31E9108}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3F541968-26D7-4EF6-A9E2-0438FA9E182C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F541968-26D7-4EF6-A9E2-0438FA9E182C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F541968-26D7-4EF6-A9E2-0438FA9E182C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F541968-26D7-4EF6-A9E2-0438FA9E182C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CA7D4CEE-5AD6-4309-887C-F0CFBDAE2D63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CA7D4CEE-5AD6-4309-887C-F0CFBDAE2D63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CA7D4CEE-5AD6-4309-887C-F0CFBDAE2D63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CA7D4CEE-5AD6-4309-887C-F0CFBDAE2D63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

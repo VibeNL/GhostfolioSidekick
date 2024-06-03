@@ -3,7 +3,7 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.PDFParser
 {
-	public abstract class PdfBaseParser
+	public abstract class PdfBaseParser : IActivityFileImporter
 	{
 		private readonly IPdfToWordsParser parsePDfToWords;
 
@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 			this.parsePDfToWords = parsePDfToWords;
 		}
 
-		public Task<bool> CanParseActivities(string filename)
+		public Task<bool> CanParse(string filename)
 		{
 			try
 			{

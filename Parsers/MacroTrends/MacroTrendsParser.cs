@@ -1,13 +1,13 @@
-﻿using CsvHelper.Configuration;
-using CsvHelper;
-using System.Globalization;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Parsers.Coinbase;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.MacroTrends
 {
 	public class MacroTrendsParser : IHistoryDataFileImporter
 	{
-		public Task<bool> CanParseHistoricData(string filename)
+		public Task<bool> CanParse(string filename)
 		{
 			try
 			{

@@ -29,7 +29,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Configuration\Configuration.csproj" />
     <ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
-    <ProjectReference Include="..\HistoricDataParsers\HistoricDataParsers.csproj" />
     <ProjectReference Include="..\Model\Model.csproj" />
     <ProjectReference Include="..\Parsers\Parsers.csproj" />
   </ItemGroup>

@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			foreach (var file in Directory.GetFiles("./TestFiles/GenericStockSplit/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");

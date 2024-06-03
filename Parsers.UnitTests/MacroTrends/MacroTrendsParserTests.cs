@@ -1,7 +1,5 @@
-using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Parsers.MacroTrends;
-using System.Linq.Expressions;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 {
@@ -21,7 +19,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 			foreach (var file in Directory.GetFiles("./MacroTrends/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseHistoricData(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");

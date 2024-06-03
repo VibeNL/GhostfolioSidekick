@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						  .Union(Directory.GetFiles("./TestFiles/TradeRepublic/CashTransactions", "*.pdf", SearchOption.AllDirectories)))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");

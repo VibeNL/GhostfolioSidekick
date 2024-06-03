@@ -127,7 +127,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
 
-							services.AddScoped<IHistoryDataFileImporter, MacroTrendsParser>();
+							services.AddScoped<IFileImporter, MacroTrendsParser>();
 
 							services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();

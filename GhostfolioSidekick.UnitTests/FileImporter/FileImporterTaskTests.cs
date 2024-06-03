@@ -141,7 +141,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		{
 			// Arrange
 			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath");
-			importersMock[0].Setup(x => x.CanParseActivities(It.IsAny<string>())).ReturnsAsync(false);
+			importersMock[0].Setup(x => x.CanParse(It.IsAny<string>())).ReturnsAsync(false);
 
 			var fileImporterTask = new FileImporterTask(
 				loggerMock.Object,
@@ -172,7 +172,7 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 		{
 			// Arrange
 			settingsMock.Setup(x => x.FileImporterPath).Returns("FileImporter/testPath");
-			importersMock[0].Setup(x => x.CanParseActivities(It.IsAny<string>())).Throws(new Exception("Test Exception"));
+			importersMock[0].Setup(x => x.CanParse(It.IsAny<string>())).Throws(new Exception("Test Exception"));
 
 			var fileImporterTask = new FileImporterTask(
 				loggerMock.Object,
