@@ -1,10 +1,12 @@
 ﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
@@ -14,7 +16,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		private readonly ILogger<CreateManualSymbolTask> logger;
 		private readonly IMarketDataService marketDataService;
 		private readonly IActivitiesService activitiesService;
+		private readonly IEnumerable<IFileImporter> importers;
 		private readonly IApplicationSettings applicationSettings;
+		private readonly string fileLocation;
 
 		public TaskPriority Priority => TaskPriority.SetManualPrices;
 
@@ -24,6 +28,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			ILogger<CreateManualSymbolTask> logger,
 			IMarketDataService marketDataManager,
 			IActivitiesService activitiesManager,
+			IEnumerable<IFileImporter> importers,
 			IApplicationSettings applicationSettings)
 		{
 			ArgumentNullException.ThrowIfNull(applicationSettings);
@@ -31,7 +36,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 			this.marketDataService = marketDataManager;
 			this.activitiesService = activitiesManager;
+			this.importers = importers;
 			this.applicationSettings = applicationSettings;
+			fileLocation = applicationSettings.FileImporterPath;
 		}
 
 		public async Task DoWork()
@@ -42,6 +49,32 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			{
 				var profiles = (await marketDataService.GetAllSymbolProfiles()).ToList();
 				var holdings = (await activitiesService.GetAllActivities()).ToList();
+				var directory = new DirectoryInfo(fileLocation);
+
+				var historicData = new List<HistoricData>();
+
+				try
+				{
+					var files = directory.GetFiles("*.*", SearchOption.AllDirectories).Select(x => x.FullName)
+						.Where(x => x.EndsWith("csv", StringComparison.InvariantCultureIgnoreCase));
+
+					foreach (var file in files)
+					{
+						var importer = importers.SingleOrDefault(x => x.CanParse(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
+
+						if (importer is IHistoryDataFileImporter activityImporter)
+						{
+							historicData.AddRange(await activityImporter.ParseHistoricData(file));
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Error {Message}", ex.Message);
+				}
+
+				//TODO: process historic data
+				throw new NotSupportedException();
 
 				var symbolConfigurations = applicationSettings.ConfigurationInstance.Symbols;
 				foreach (var symbolConfiguration in symbolConfigurations ?? [])
