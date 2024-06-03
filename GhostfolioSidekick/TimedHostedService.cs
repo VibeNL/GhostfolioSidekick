@@ -38,7 +38,7 @@ namespace GhostfolioSidekick
 
 									if (DateTime.Now < workItem.NextSchedule)
 									{
-										await Task.Delay(Math.Max(workItem.NextSchedule - DateTime.Now), 0);
+										await Task.Delay(Math.Max(workItem.NextSchedule - DateTime.Now, 0));
 										continue;
 									}
 
