@@ -73,32 +73,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					logger.LogError(ex, "Error {Message}", ex.Message);
 				}
 
-				foreach (var group in historicData.DistinctBy(x => new { x.Symbol, x.Date }).GroupBy(x => x.Symbol))
-				{
-					var symbolname = group.Key;
-					var symbol = profiles.SingleOrDefault(x => x.Symbol == symbolname && x.DataSource == Datasource.MANUAL);
-					if (symbol != null)
-					{
-						foreach (var item in group)
-						{
-							// TODO Skip if price is already set
-							var price = new Money(Currency.USD, item.Close);
-							await marketDataService.SetMarketPrice(symbol, price, item.Date);
-						}
-					}
-				}
-
 				var symbolConfigurations = applicationSettings.ConfigurationInstance.Symbols;
 				foreach (var symbolConfiguration in symbolConfigurations ?? [])
 				{
-					// TODO : Check if symbol is already processed by a file
 					var manualSymbolConfiguration = symbolConfiguration.ManualSymbolConfiguration;
 					if (manualSymbolConfiguration == null)
 					{
 						continue;
 					}
 
-					await SetKnownPrices(symbolConfiguration, profiles, holdings);
+					await SetKnownPrices(symbolConfiguration, profiles, holdings, historicData);
 				}
 			}
 			catch (NotAuthorizedException)
@@ -110,7 +94,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			logger.LogDebug($"{nameof(SetManualPricesTask)} Done");
 		}
 
-		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<SymbolProfile> profiles, List<Holding> holdings)
+		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<SymbolProfile> profiles, List<Holding> holdings, List<HistoricData> historicData)
 		{
 			var mdi = profiles.SingleOrDefault(x =>
 				x.Symbol == symbolConfiguration.Symbol &&
@@ -167,21 +151,31 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				DateTime toDate = toActivity?.Date ?? DateTime.Today.AddDays(1);
 				for (var date = fromActivity.Date; date <= toDate; date = date.AddDays(1))
 				{
-					var a = (decimal)(date - fromActivity.Date).TotalDays;
-					var b = (decimal)(toDate - date).TotalDays;
+					decimal expectedPrice;
 
-					var percentage = a / (a + b);
-					decimal amountFrom = fromActivity.UnitPrice!.Amount;
-					decimal amountTo = toActivity?.UnitPrice?.Amount ?? fromActivity.UnitPrice?.Amount ?? 0;
-					var expectedPrice = amountFrom + (percentage * (amountTo - amountFrom));
+					var knownPrice = historicData.SingleOrDefault(x => x.Symbol == symbolConfiguration!.Symbol && x.Date.Date == date.Date);
+					if (knownPrice != null)
+					{
+						expectedPrice = knownPrice.Close;
+					}
+					else
+					{
+						var a = (decimal)(date - fromActivity.Date).TotalDays;
+						var b = (decimal)(toDate - date).TotalDays;
 
-					var price = md.SingleOrDefault(x => x.Date.Date == date.Date);
+						var percentage = a / (a + b);
+						decimal amountFrom = fromActivity.UnitPrice!.Amount;
+						decimal amountTo = toActivity?.UnitPrice?.Amount ?? fromActivity.UnitPrice?.Amount ?? 0;
+						expectedPrice = amountFrom + (percentage * (amountTo - amountFrom));
+					}
 
-					var diff = (price?.MarketPrice.Amount ?? 0) - expectedPrice;
+					var priceFromGhostfolio = md.SingleOrDefault(x => x.Date.Date == date.Date);
+
+					var diff = (priceFromGhostfolio?.MarketPrice.Amount ?? 0) - expectedPrice;
 					if (Math.Abs(diff) >= Constants.Epsilon)
 					{
 						var scraperDefined = symbolConfiguration?.ManualSymbolConfiguration?.ScraperConfiguration != null;
-						var priceIsAvailable = (price?.MarketPrice.Amount ?? 0) != 0;
+						var priceIsAvailable = (priceFromGhostfolio?.MarketPrice.Amount ?? 0) != 0;
 						var isToday = date >= DateTime.Today;
 						var shouldSkip = scraperDefined && (priceIsAvailable || isToday);
 
