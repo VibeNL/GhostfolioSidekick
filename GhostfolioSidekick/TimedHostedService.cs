@@ -36,9 +36,10 @@ namespace GhostfolioSidekick
 								{
 									var workItem = workQueue.Peek();
 
-									if (DateTime.Now < workItem.NextSchedule)
+									var delay = (workItem.NextSchedule - DateTime.Now).TotalMilliseconds;
+									if (delay > 0)
 									{
-										await Task.Delay(Math.Max(workItem.NextSchedule - DateTime.Now, 0));
+										await Task.Delay(TimeSpan.FromMilliseconds(delay));
 										continue;
 									}
 
