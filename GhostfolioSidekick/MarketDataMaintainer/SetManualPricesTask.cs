@@ -73,12 +73,25 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					logger.LogError(ex, "Error {Message}", ex.Message);
 				}
 
-				//TODO: process historic data
-				throw new NotSupportedException();
+				foreach (var group in historicData.DistinctBy(x => new { x.Symbol, x.Date }).GroupBy(x => x.Symbol))
+				{
+					var symbolname = group.Key;
+					var symbol = profiles.SingleOrDefault(x => x.Symbol == symbolname && x.DataSource == Datasource.MANUAL);
+					if (symbol != null)
+					{
+						foreach (var item in group)
+						{
+							// TODO Skip if price is already set
+							var price = new Money(Currency.USD, item.Close);
+							await marketDataService.SetMarketPrice(symbol, price, item.Date);
+						}
+					}
+				}
 
 				var symbolConfigurations = applicationSettings.ConfigurationInstance.Symbols;
 				foreach (var symbolConfiguration in symbolConfigurations ?? [])
 				{
+					// TODO : Check if symbol is already processed by a file
 					var manualSymbolConfiguration = symbolConfiguration.ManualSymbolConfiguration;
 					if (manualSymbolConfiguration == null)
 					{
