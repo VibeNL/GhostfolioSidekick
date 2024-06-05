@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			this.marketDataService = marketDataService;
 		}
 
-		public async Task ProcessActivities(SymbolConfiguration symbolConfiguration, SymbolProfile mdi, List<MarketData> md, List<BuySellActivity> unsortedActivities, List<HistoricData> historicData)
+		public async Task ProcessActivities(SymbolConfiguration symbolConfiguration, SymbolProfile symbolProfile, List<MarketData> marketDataList, List<BuySellActivity> unsortedActivities, List<HistoricData> historicData)
 		{
 			var sortedActivities = SortActivities(unsortedActivities);
 			for (var i = 0; i < sortedActivities.Count; i++)
@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				for (var date = fromActivity.Date; date <= toDate; date = date.AddDays(1))
 				{
 					decimal expectedPrice = CalculateExpectedPrice(symbolConfiguration, fromActivity, toActivity, date, historicData);
-					var priceFromGhostfolio = md.SingleOrDefault(x => x.Date.Date == date.Date);
+					var priceFromGhostfolio = marketDataList.SingleOrDefault(x => x.Date.Date == date.Date);
 
 					var diff = (priceFromGhostfolio?.MarketPrice.Amount ?? 0) - expectedPrice;
 					if (Math.Abs(diff) >= Constants.Epsilon)
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							continue;
 						}
 
-						await marketDataService.SetMarketPrice(mdi, new Money(fromActivity.UnitPrice!.Currency, expectedPrice), date);
+						await marketDataService.SetMarketPrice(symbolProfile, new Money(fromActivity.UnitPrice!.Currency, expectedPrice), date);
 					}
 				}
 			}

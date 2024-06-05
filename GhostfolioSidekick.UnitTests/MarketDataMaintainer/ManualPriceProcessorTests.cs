@@ -23,17 +23,34 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		}
 
 		[Fact]
-		public async Task ProcessActivities_ShouldCallSetMarketPrice_WhenPriceDiffersFromExpected()
+		public async Task ProcessActivities_ShouldNotSetMarketPrice_WhenNoActivitiesAreFound()
 		{
 			// Arrange
 			var symbolConfiguration = new Fixture().Create<SymbolConfiguration>();
-			var mdi = new Fixture().Create<SymbolProfile>();
-			var md = new List<MarketData>();
+			var symbolProfile = new Fixture().Create<SymbolProfile>();
+			var marketDataList = new Fixture().CreateMany<MarketData>().ToList();
 			var unsortedActivities = new List<BuySellActivity>();
-			var historicData = new List<HistoricData>();
+			var historicData = new Fixture().CreateMany<HistoricData>().ToList();
 
 			// Act
-			await manualPriceProcessor.ProcessActivities(symbolConfiguration, mdi, md, unsortedActivities, historicData);
+			await manualPriceProcessor.ProcessActivities(symbolConfiguration, symbolProfile, marketDataList, unsortedActivities, historicData);
+
+			// Assert
+			marketDataServiceMock.Verify(x => x.SetMarketPrice(It.IsAny<SymbolProfile>(), It.IsAny<Money>(), It.IsAny<DateTime>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task ProcessActivities_ShouldSetMarketPrice_WhenPricesAreDifferent()
+		{
+			// Arrange
+			var symbolConfiguration = new Fixture().Create<SymbolConfiguration>();
+			var symbolProfile = new Fixture().Create<SymbolProfile>();
+			var marketDataList = new Fixture().CreateMany<MarketData>().ToList();
+			var unsortedActivities = new Fixture().CreateMany<BuySellActivity>().ToList();
+			var historicData = new Fixture().CreateMany<HistoricData>().ToList();
+
+			// Act
+			await manualPriceProcessor.ProcessActivities(symbolConfiguration, symbolProfile, marketDataList, unsortedActivities, historicData);
 
 			// Assert
 			marketDataServiceMock.Verify(x => x.SetMarketPrice(It.IsAny<SymbolProfile>(), It.IsAny<Money>(), It.IsAny<DateTime>()), Times.AtLeastOnce);
@@ -42,14 +59,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		[Fact]
 		public void ProcessActivities_ShouldNotCallSetMarketPrice_WhenPriceMatchesExpected()
 		{
-			// Arrange
-			// Similar to the previous test, but you'll need to set up your mock data such that the expected price matches the actual price
-
-			// Act
-			// Similar to the previous test
-
-			// Assert
-			marketDataServiceMock.Verify(x => x.SetMarketPrice(It.IsAny<SymbolProfile>(), It.IsAny<Money>(), It.IsAny<DateTime>()), Times.Never);
+			throw new NotImplementedException();
 		}
 
 		// Add more tests here for other methods and scenarios
