@@ -55,13 +55,5 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			// Assert
 			marketDataServiceMock.Verify(x => x.SetMarketPrice(It.IsAny<SymbolProfile>(), It.IsAny<Money>(), It.IsAny<DateTime>()), Times.AtLeastOnce);
 		}
-
-		[Fact]
-		public void ProcessActivities_ShouldNotCallSetMarketPrice_WhenPriceMatchesExpected()
-		{
-			throw new NotImplementedException();
-		}
-
-		// Add more tests here for other methods and scenarios
 	}
 }
