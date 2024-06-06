@@ -169,9 +169,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 				.Excluding(x => x.SymbolProfile.Currency)
 				.Excluding(x => x.SymbolProfile.AssetClass)
 				.Excluding(x => x.SymbolProfile.AssetSubClass));
-			result[0].SymbolProfile.Currency.Symbol.Should().Be(activities[0].SymbolProfile.Currency);
-			result[0].SymbolProfile.AssetClass.Should().Be(EnumMapper.ParseAssetClass(activities[0].SymbolProfile.AssetClass));
-			result[0].SymbolProfile.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(activities[0].SymbolProfile.AssetSubClass));
+			result[0].SymbolProfile!.Currency.Symbol.Should().Be(activities[0].SymbolProfile.Currency);
+			result[0].SymbolProfile!.AssetClass.Should().Be(EnumMapper.ParseAssetClass(activities[0].SymbolProfile.AssetClass));
+			result[0].SymbolProfile!.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(activities[0].SymbolProfile.AssetSubClass));
 		}
 
 		[Fact]
@@ -204,7 +204,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 				.With(x => x.Type, ActivityType.BUY)
 				.With(x => x.SymbolProfile, new SymbolProfile
 				{
-					AssetClass = null,
+					AssetClass = null!,
 					AssetSubClass = null,
 					DataSource = "MANUAL",
 					Symbol = Guid.NewGuid().ToString(),
@@ -235,7 +235,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 				.With(x => x.Type, ActivityType.BUY)
 				.With(x => x.SymbolProfile, new SymbolProfile
 				{
-					AssetClass = null,
+					AssetClass = null!,
 					AssetSubClass = null,
 					DataSource = "YAHOO",
 					Symbol = "GOOGL",

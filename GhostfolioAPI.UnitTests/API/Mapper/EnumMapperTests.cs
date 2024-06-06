@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		[InlineData("PRIVATE_EQUITY", AssetSubClass.PrivateEquity)]
 		[InlineData(null, null)]
 		[InlineData("", null)]
-		public void ParseEnum_AssetSubClass_ValidInput_ReturnsExpectedResult(string input, AssetSubClass? expectedResult)
+		public void ParseEnum_AssetSubClass_ValidInput_ReturnsExpectedResult(string? input, AssetSubClass? expectedResult)
 		{
 			// Act
 			var result = EnumMapper.ParseAssetSubClass(input);
@@ -40,10 +40,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		[InlineData("REAL_ESTATE", AssetClass.RealEstate)]
 		[InlineData(null, AssetClass.Undefined)]
 		[InlineData("", AssetClass.Undefined)]
-		public void ParseOptionalEnumAsset_AssetClass_ValidInput_ReturnsExpectedResult(string input, AssetClass expectedResult)
+		public void ParseOptionalEnumAsset_AssetClass_ValidInput_ReturnsExpectedResult(string? input, AssetClass expectedResult)
 		{
 			// Act
-			var result = EnumMapper.ParseAssetClass(input);
+			var result = EnumMapper.ParseAssetClass(input!);
 
 			// Assert
 			Assert.Equal(expectedResult, result);

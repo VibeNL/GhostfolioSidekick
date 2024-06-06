@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString()!.StartsWith("Skipping ignore transaction")),
 					It.IsAny<Exception>(),
-					It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
 
 		[Fact]

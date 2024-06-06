@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Act
 			var result = await marketDataService.FindSymbolByIdentifier(
-								[asymbol.ISIN],
+								[asymbol.ISIN!],
 								new Currency(asymbol.Currency),
 								[AssetClass.Equity],
 								[AssetSubClass.Etf],
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Assert
 			result.Should().NotBeNull();
-			result.ISIN.Should().Be(asymbol.ISIN);
+			result!.ISIN.Should().Be(asymbol.ISIN);
 		}
 
 		[Fact]
@@ -68,6 +68,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			// Act
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 			var result = await marketDataService.FindSymbolByIdentifier(
 								null,
 								Currency.USD,
@@ -75,6 +76,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 								[AssetSubClass.Etf],
 								true,
 								false);
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
 			// Assert
 			result.Should().BeNull();
@@ -114,14 +116,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Act
 			var resultA = await marketDataService.FindSymbolByIdentifier(
-								[asymbol.ISIN],
+								[asymbol.ISIN!],
 								new Currency(asymbol.Currency),
 								[AssetClass.Equity],
 								[AssetSubClass.Etf],
 								true,
 								false);
 			var resultB = await marketDataService.FindSymbolByIdentifier(
-								[asymbol.ISIN],
+								[asymbol.ISIN!],
 								new Currency(asymbol.Currency),
 								[AssetClass.Equity],
 								[AssetSubClass.Etf],
@@ -149,7 +151,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 
 			// Act
 			var result = await marketDataService.FindSymbolByIdentifier(
-								[asymbol.ISIN],
+								[asymbol.ISIN!],
 								new Currency(asymbol.Currency),
 								[AssetClass.Liquidity],
 								[AssetSubClass.CryptoCurrency],
