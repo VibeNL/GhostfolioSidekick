@@ -40,8 +40,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities =
 				[
-					new StockSplitActivity(null, DateTime.Now.AddDays(1), 1, 2, string.Empty),
-					new BuySellActivity(null, DateTime.Now, 100, new Money(Currency.EUR, 50), string.Empty)
+					new StockSplitActivity(null!, DateTime.Now.AddDays(1), 1, 2, string.Empty),
+					new BuySellActivity(null!, DateTime.Now, 100, new Money(Currency.EUR, 50), string.Empty)
 				]
 			};
 
@@ -62,8 +62,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities =
 				[
-					new StockSplitActivity(null, DateTime.Now.AddDays(-1), 1, 2, string.Empty),
-					new BuySellActivity(null, DateTime.Now, 100, new Money(Currency.EUR, 50), string.Empty)
+					new StockSplitActivity(null!, DateTime.Now.AddDays(-1), 1, 2, string.Empty),
+					new BuySellActivity(null!, DateTime.Now, 100, new Money(Currency.EUR, 50), string.Empty)
 				]
 			};
 
@@ -84,8 +84,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities =
 				[
-					new StockSplitActivity(null, DateTime.Now.AddDays(1), 1, 2, string.Empty),
-					new BuySellActivity(null, DateTime.Now, 100, null, string.Empty)
+					new StockSplitActivity(null!, DateTime.Now.AddDays(1), 1, 2, string.Empty),
+					new BuySellActivity(null!, DateTime.Now, 100, null, string.Empty)
 				]
 			};
 

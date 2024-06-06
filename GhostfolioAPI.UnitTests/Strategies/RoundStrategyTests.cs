@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Arrange
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { null }
+				Activities = new List<IActivity> { null! }
 			};
 
 			// Act
@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 		public async Task Execute_ShouldNotRoundWhenHoldingIsNull()
 		{
 			// Arrange
-			Holding holding = null;
+			Holding holding = null!;
 
 			// Act
 			Func<Task> act = async () => await _roundStrategy.Execute(holding);

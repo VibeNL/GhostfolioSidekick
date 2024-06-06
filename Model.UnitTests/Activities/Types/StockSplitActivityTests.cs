@@ -1,9 +1,9 @@
-using Moq;
+using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
-using AutoFixture;
+using Moq;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {
@@ -16,8 +16,6 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		{
 			var account = new Fixture().Create<Account>();
 			var dateTime = new DateTime(2024, 03, 06);
-			var from = 1m;
-			var to = 3m;
 			var transactionId = "transactionId";
 
 			exchangeRateServiceMock = new Mock<IExchangeRateService>();

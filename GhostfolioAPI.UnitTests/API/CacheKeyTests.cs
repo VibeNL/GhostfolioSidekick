@@ -124,7 +124,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var assetSubClasses1 = new AssetSubClass[] { AssetSubClass.Etf, AssetSubClass.Stock };
 
 			CacheKey cacheKey1 = new CacheKey(identifiers1, assetClasses1, assetSubClasses1);
-			CacheKey cacheKey2 = null;
+			CacheKey cacheKey2 = null!;
 
 			// Act
 			var result = cacheKey1.Equals(cacheKey2);

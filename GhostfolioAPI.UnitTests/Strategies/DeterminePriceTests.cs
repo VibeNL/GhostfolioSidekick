@@ -31,9 +31,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities = new List<IActivity>
 				{
-					new SendAndReceiveActivity(null, DateTime.Now, 1, string.Empty),
-					new GiftActivity(null, DateTime.Now, 1, string.Empty),
-					new StakingRewardActivity(null, DateTime.Now, 1, string.Empty),
+					new SendAndReceiveActivity(null!, DateTime.Now, 1, string.Empty),
+					new GiftActivity(null!, DateTime.Now, 1, string.Empty),
+					new StakingRewardActivity(null!, DateTime.Now, 1, string.Empty),
 				}
 			};
 
@@ -95,8 +95,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities = new List<IActivity>
 				{
-					new SendAndReceiveActivity(null, DateTime.Now, 1, string.Empty),
-					new GiftActivity(null, DateTime.Now, 1, string.Empty),
+					new SendAndReceiveActivity(null!, DateTime.Now, 1, string.Empty),
+					new GiftActivity(null!, DateTime.Now, 1, string.Empty),
 				}
 			};
 
@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			{
 				Activities = new List<IActivity>
 				{
-					new SendAndReceiveActivity(null, DateTime.Now, 1, string.Empty)
+					new SendAndReceiveActivity(null!, DateTime.Now, 1, string.Empty)
 				}
 			};
 
