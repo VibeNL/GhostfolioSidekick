@@ -1,6 +1,6 @@
+using FluentAssertions;
 using GhostfolioSidekick.Model.Compare;
 using Moq;
-using FluentAssertions;
 
 namespace GhostfolioSidekick.Model.UnitTests
 {
@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.Model.UnitTests
 
 			// Assert
 			result.Should().NotBeNull();
-			result.Currency.Should().Be(target);
+			result!.Currency.Should().Be(target);
 			result.Amount.Should().BeApproximately(1.05m, 0.01m);
 		}
 	}

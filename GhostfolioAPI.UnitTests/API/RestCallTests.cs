@@ -1,13 +1,13 @@
-using Moq;
+using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Moq;
+using Newtonsoft.Json;
 using RestSharp;
 using System.Net;
-using GhostfolioSidekick.GhostfolioAPI.Contract;
-using Newtonsoft.Json;
-using AutoFixture;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 {
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		}
 
 		[Fact]
-		public async Task InvalidUrl_ThrowException()
+		public void InvalidUrl_ThrowException()
 		{
 			// Arrange
 			// Act
@@ -138,14 +138,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString() == "Circuit Breaker on a break"),
 					It.IsAny<Exception>(),
-					It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 			loggerMock.Verify(
 							x => x.Log(
 								LogLevel.Warning,
 								It.IsAny<EventId>(),
 								It.Is<It.IsAnyType>((v, t) => v.ToString() == "Circuit Breaker reset"),
 								It.IsAny<Exception>(),
-								It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Never);
+								It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
 
 			// Arrange
 			await Task.Delay(TimeSpan.FromMilliseconds(100));
@@ -163,7 +163,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString() == "Circuit Breaker reset"),
 					It.IsAny<Exception>(),
-					It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
 
 		[Fact]

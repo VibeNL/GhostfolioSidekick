@@ -9,10 +9,6 @@
 		<RootNamespace>GhostfolioSidekick.Tools.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="itext7.bouncy-castle-adapter" Version="8.0.3" />
 		<PackageReference Include="itext7.pdfsweep" Version="4.0.2" />

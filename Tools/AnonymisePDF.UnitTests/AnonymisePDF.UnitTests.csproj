@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -9,10 +9,6 @@
 		<IsTestProject>true</IsTestProject>
 		<AssemblyName>GhostfolioSidekick.Tools.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.Tools.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
