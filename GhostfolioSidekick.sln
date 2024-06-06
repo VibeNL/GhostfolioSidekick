@@ -46,7 +46,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Parsers", "Parsers", "{40A7DE6F-65B7-493A-A419-ECCC967EEFEE}"
 	ProjectSection(SolutionItems) = preProject
 		Documentation\Parsers\DeGiro.md = Documentation\Parsers\DeGiro.md
-		Documentation\Parsers\Template.md = Documentation\Parsers\Template.md
+		Documentation\Parsers\Trading212.md = Documentation\Parsers\Trading212.md
 	EndProjectSection
 EndProject
 Global

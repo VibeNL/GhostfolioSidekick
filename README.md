@@ -146,7 +146,7 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | |
 | Scalable Capital (Prime only) | The CSV files export via the transaction view | |
 | Trading Republic | Montly Statements and individual invoices | |
-| Trading 212 | Export of transaction history | |
+| Trading 212 | Export of transaction history | [Documentation](./Documentation/Parsers/Trading212.md) |
 
 #### Generic import format
 Beside the supported exchanges and brokers there is also a generic format. 
