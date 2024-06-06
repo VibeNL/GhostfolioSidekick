@@ -134,7 +134,7 @@ Maintaining symbols in ghostfolio
 The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.
 
 | Platform | Source of the files | Documentation |
-|--|--|--|--|--|--|
+|--|--|--|
 | Bitvavo (Broken) | Export of transaction history | |
 | Bunq (Bank) | Export CSV (Semicolom delimited) | |
 | Centraal Beheer Begeleid beleggen (Dutch insurance company) | Export of transaction history via print pdf | |
