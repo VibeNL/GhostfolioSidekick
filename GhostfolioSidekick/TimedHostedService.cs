@@ -32,14 +32,14 @@ namespace GhostfolioSidekick
 						{
 							try
 							{
-								while (!cancellationToken.IsCancellationRequested)
+								while (!cancellationTokenSource.Token.IsCancellationRequested)
 								{
 									var workItem = workQueue.Peek();
 
 									var delay = (workItem.NextSchedule - DateTime.Now).TotalMilliseconds;
 									if (delay > 0)
 									{
-										await Task.Delay(TimeSpan.FromMilliseconds(delay));
+										await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenSource.Token);
 										continue;
 									}
 
@@ -77,21 +77,30 @@ namespace GhostfolioSidekick
 			return Task.CompletedTask;
 		}
 
-		public Task StopAsync(CancellationToken cancellationToken)
+		public async Task StopAsync(CancellationToken cancellationToken)
 		{
 			logger.LogDebug("Service is stopping.");
 
 			if (task == null)
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
 			cancellationTokenSource!.Cancel();
-			cancellationTokenSource.Dispose();
 
+			try
+			{
+				await task.WaitAsync(cancellationToken);
+			}
+			catch (OperationCanceledException)
+			{
+				// ignore
+			}
+
+			task.Dispose();
 			task = null;
-
-			return Task.CompletedTask;
+			cancellationTokenSource.Dispose();
+			cancellationTokenSource = null;
 		}
 
 		private sealed class Scheduled
