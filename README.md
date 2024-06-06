@@ -133,19 +133,20 @@ Maintaining symbols in ghostfolio
 ### Supported formats
 The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.
 
-| Platform | Source of the files | Buy | Sell | Dividend | Interest & Cash balance |
+| Platform | Source of the files | 
 |--|--|--|--|--|--|
-| Generic importer | See below | X | X | X | X |
-| Trading 212 | Export of transaction history | X | X | X | X |
-| De Giro | Export of account history (Language dependend, NL and PT supported currently) | X | X | X | X |
-| Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | X | X | X | X |
-| Scalable Capital (Prime only) | The CSV files export via the transaction view | X | X | X | X |
-| Bunq (Bank) | Export CSV (Semicolom delimited) | - | - | - | X |
-| NIBC (Bank) | Export CSV (Semicolom delimited) | - | - | - | X |
-| Nexo (Broken) | Export of transaction history | X | - | - | X |
-| Bitvavo (Broken) | Export of transaction history | X | X | - | X |
-| Coinbase (Broken) | Export of transaction history | X | X | - | X |
-| Centraal Beheer Begeleid beleggen (Dutch insurance company) | Export of transaction history via print pdf | X | X | - | X |
+| Bitvavo (Broken) | Export of transaction history | 
+| Bunq (Bank) | Export CSV (Semicolom delimited) | 
+| Centraal Beheer Begeleid beleggen (Dutch insurance company) | Export of transaction history via print pdf | 
+| Coinbase (Broken) | Export of transaction history | 
+| De Giro | Export of account history (Language dependend, NL and PT supported currently) | 
+| Generic importer | See below | 
+| Nexo (Broken) | Export of transaction history | 
+| NIBC (Bank) | Export CSV (Semicolom delimited) | 
+| Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | 
+| Scalable Capital (Prime only) | The CSV files export via the transaction view | 
+| Trading Republic | Montly Statements and individual invoices | 
+| Trading 212 | Export of transaction history | 
 
 #### Generic import format
 Beside the supported exchanges and brokers there is also a generic format. 
