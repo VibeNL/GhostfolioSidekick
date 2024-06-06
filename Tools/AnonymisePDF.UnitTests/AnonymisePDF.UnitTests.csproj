@@ -11,6 +11,10 @@
 		<RootNamespace>GhostfolioSidekick.Tools.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="6.0.2" />
 		<PackageReference Include="FluentAssertions" Version="6.12.0" />
