@@ -104,6 +104,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
 							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
 							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+							services.AddScoped<IScheduledWork, SetManualPricesTask>();
 							services.AddScoped<IScheduledWork, SetBenchmarksTask>();
 							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
