@@ -5,6 +5,8 @@ namespace GhostfolioSidekick
 {
 	public class TimedHostedService : IHostedService
 	{
+		private CancellationTokenSource? cancellationTokenSource;
+
 		private Task? task;
 		private readonly ILogger logger;
 		private readonly PriorityQueue<Scheduled, DateTime> workQueue = new PriorityQueue<Scheduled, DateTime>();
@@ -21,6 +23,8 @@ namespace GhostfolioSidekick
 
 		public Task StartAsync(CancellationToken cancellationToken)
 		{
+			cancellationTokenSource = new CancellationTokenSource();
+
 			logger.LogInformation("Service is starting.");
 
 			// create a task that runs continuously
@@ -68,7 +72,7 @@ namespace GhostfolioSidekick
 							{
 								logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", nameof(TimedHostedService), ex.Message);
 							}
-						}, cancellationToken);
+						}, cancellationTokenSource.Token);
 
 			return Task.CompletedTask;
 		}
@@ -77,20 +81,16 @@ namespace GhostfolioSidekick
 		{
 			logger.LogDebug("Service is stopping.");
 
-			if (task != null)
+			if (task == null)
 			{
-				try
-				{
-					task.Wait(cancellationToken);
-					task.Dispose();
-				}
-				catch (OperationCanceledException)
-				{
-					// Ignore the exception
-				}
+				return Task.CompletedTask;
 			}
 
+			cancellationTokenSource!.Cancel();
+			cancellationTokenSource.Dispose();
+
 			task = null;
+
 			return Task.CompletedTask;
 		}
 
