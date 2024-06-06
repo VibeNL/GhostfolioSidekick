@@ -69,6 +69,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							historicData.AddRange(await activityImporter.ParseHistoricData(file));
 						}
 					}
+
+					await MapSymbolsToKnownSymbols(historicData);
 				}
 				catch (Exception ex)
 				{
@@ -94,6 +96,24 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			}
 
 			logger.LogDebug($"{nameof(SetManualPricesTask)} Done");
+		}
+
+		private async Task MapSymbolsToKnownSymbols(List<HistoricData> historicData)
+		{
+			foreach (var symbolFromHistoricData in historicData.Select(x => x.Symbol).Distinct())
+			{
+				var symbol = await marketDataService.FindSymbolByIdentifier(
+					[symbolFromHistoricData],
+					null,
+					null,
+					null,
+					true,
+					false);
+				if (symbol != null)
+				{
+					historicData.ForEach(x => x.Symbol = symbol.Symbol);
+				}
+			}
 		}
 
 		private async Task SetKnownPrices(SymbolConfiguration symbolConfiguration, List<SymbolProfile> profiles, List<Holding> holdings, List<HistoricData> historicData)
