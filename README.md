@@ -185,6 +185,27 @@ US67066G1040,2023-08-07,1,3
 ## Run in Docker
 The docker image is named: vibenl/ghostfoliosidekick
 
+Example docker-compose.yml:
+```
+ghostfoliosidekick:
+	image: vibenl/ghostfoliosidekick:latest
+	container_name: Ghostfolio-Ghostfoliosidekick
+	hostname: ghostfoliosidekick
+	security_opt:
+		- no-new-privileges:true
+	environment:
+		- GHOSTFOLIO_URL=url
+		- GHOSTFOLIO_ACCESTOKEN=abc
+		- FILEIMPORTER_PATH=/var/lib/data
+		- CONFIGURATIONFILE_PATH=/var/lib/data/config.json
+	restart: always
+	volumes:
+		- /volume1/docker/ghostfolio/sidekick:/var/lib/data:r
+	depends_on:
+	ghostfolio:
+		condition: service_started
+```
+
 ### Settings
 | Envs |Description  |
 |--|--|
