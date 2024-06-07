@@ -129,8 +129,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			var buySellActivity = holding.Activities.Except([buyBondActivity]).OfType<BuySellActivity>().First();
 			Assert.Equal(repayBondActivity.Account, buySellActivity.Account);
 			Assert.Equal(repayBondActivity.Date, buySellActivity.Date);
-			Assert.Equal(buyBondActivity.Quantity, buySellActivity.Quantity);
-			Assert.Equal(repayBondActivity.TotalRepayAmount, buySellActivity.UnitPrice!.Times(buySellActivity.Quantity));
+			Assert.Equal(buyBondActivity.Quantity, -buySellActivity.Quantity);
+			Assert.Equal(repayBondActivity.TotalRepayAmount, buySellActivity.UnitPrice!.Times(-buySellActivity.Quantity));
 			Assert.Equal(repayBondActivity.TransactionId, buySellActivity.TransactionId);
 			Assert.Equal(repayBondActivity.Description, buySellActivity.Description);
 			Assert.Equal(repayBondActivity.Id, buySellActivity.Id);
