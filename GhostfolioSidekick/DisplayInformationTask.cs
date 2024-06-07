@@ -43,6 +43,7 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"CryptoWorkaroundStakeReward : {settings.CryptoWorkaroundStakeReward}");
 			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
+			sb.AppendLine($"SubstractTaxesOnDividendFromDividend : {settings.SubstractTaxesOnDividendFromDividend}");
 
 			PrintUsedMappings(sb);
 
