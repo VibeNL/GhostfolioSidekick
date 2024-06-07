@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
-	public partial class CentraalBeheerParser : PdfBaseParser, IFileImporter
+	public partial class CentraalBeheerParser : PdfBaseParser
 	{
 		private const string Keyword_Aankoop = "Aankoop";
 		private const string Keyword_Verkoop = "Verkoop";

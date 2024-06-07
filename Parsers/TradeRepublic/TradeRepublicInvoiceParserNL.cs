@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicInvoiceParserNL : PdfBaseParser, IFileImporter
+	public class TradeRepublicInvoiceParserNL : PdfBaseParser
 	{
 		private const string Keyword_Position = "POSITION";
 		private const string Keyword_Quantity = "QUANTITY";

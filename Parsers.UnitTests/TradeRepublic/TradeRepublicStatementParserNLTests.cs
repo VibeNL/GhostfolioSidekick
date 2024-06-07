@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/", "*_statement.pdf", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");

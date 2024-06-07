@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 			foreach (var file in Directory.GetFiles("./TestFiles/CentraalBeheer/", "*.pdf", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");

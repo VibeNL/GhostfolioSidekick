@@ -49,6 +49,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="MacroTrends\MacroTrends_Data_Download_ATVI.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Bitvavo\BuyOrders\single_buy.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

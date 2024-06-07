@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			foreach (var file in Directory.GetFiles("./TestFiles/ScalableCapital/BaaderBank/", "rkk.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -67,8 +67,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 				[
 					PartialActivity.CreateDividend(
 						Currency.EUR,
-						new DateTime(2023, 8, 2, 0, 0, 0, DateTimeKind.Utc), 
-						[PartialSymbolIdentifier.CreateStockAndETF("US92343V1044")], 
+						new DateTime(2023, 8, 2, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US92343V1044")],
 						14 * 0.5057142857142857142857142857M,
 						new Money(Currency.EUR, 7.08M),
 						"WWEK 16100100")
@@ -87,9 +87,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2023, 8, 2, 0, 0, 0, 0, DateTimeKind.Utc),
-						0.99M, 
+						0.99M,
 						new Money(Currency.EUR, 0.99M),
 						"SCALQbWiZnN9DtQ")
 				]);
@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2023, 8, 2, 0, 0, 0, 0, DateTimeKind.Utc),
 						0.99M,
 						new Money(Currency.EUR, 0.99M),

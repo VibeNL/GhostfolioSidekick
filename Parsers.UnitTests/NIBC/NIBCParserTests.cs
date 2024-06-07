@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			foreach (var file in Directory.GetFiles("./TestFiles/NIBC/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -51,9 +51,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
-						Currency.EUR, 
-						new DateTime(2020, 01, 27, 0, 0, 0, 0, DateTimeKind.Utc), 
-						250M, 
+						Currency.EUR,
+						new DateTime(2020, 01, 27, 0, 0, 0, 0, DateTimeKind.Utc),
+						250M,
 						new Money(Currency.EUR, 250M),
 						"C0A27XM003000782")
 				]);
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
-						Currency.EUR, 
+						Currency.EUR,
 						new DateTime(2022, 01, 06, 0, 0, 0, 0, DateTimeKind.Utc),
 						10000M,
 						new Money(Currency.EUR, 10000),
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 				[
 					PartialActivity.CreateInterest(
 						Currency.EUR,
-						new DateTime(2021, 09, 30, 0, 0, 0, 0, DateTimeKind.Utc), 
+						new DateTime(2021, 09, 30, 0, 0, 0, 0, DateTimeKind.Utc),
 						0.51M,
 						"Renteuitkering",
 						new Money(Currency.EUR, 0.51M),
@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 						Currency.EUR,
 						new DateTime(2021, 6, 30, 0, 0, 0, DateTimeKind.Utc),
 						1.1M,
-						"Bonusrente", 
+						"Bonusrente",
 						new Money(Currency.EUR, 1.1M),
 						"C1F30IN0000A000Q")
 				]);

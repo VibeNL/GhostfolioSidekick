@@ -80,8 +80,12 @@ namespace GhostfolioSidekick.FileImporter
 
 					foreach (var file in files)
 					{
-						var importer = importers.SingleOrDefault(x => x.CanParseActivities(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
-						await importer.ParseActivities(file, holdingsCollection, accountName);
+						var importer = importers.SingleOrDefault(x => x.CanParse(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
+
+						if (importer is IActivityFileImporter activityImporter)
+						{
+							await activityImporter.ParseActivities(file, holdingsCollection, accountName);
+						}
 					}
 
 					accountNames.Add(accountName);
@@ -95,7 +99,7 @@ namespace GhostfolioSidekick.FileImporter
 
 					foreach (var file in files)
 					{
-						var importerString = string.Join(", ", importers.Select(x => $"Importer: {x.GetType().Name} CanConvert: {x.CanParseActivities(file).Result}"));
+						var importerString = string.Join(", ", importers.Select(x => $"Importer: {x.GetType().Name} CanConvert: {x.CanParse(file).Result}"));
 						sb.AppendLine($"{accountName} | {file} can be imported by {importerString}");
 					}
 
