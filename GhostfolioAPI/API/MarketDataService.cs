@@ -401,13 +401,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return;
 			}
 
-			JObject mappingObject = new();
+			JObject mappingObject = [];
 			if (symbolProfile.Mappings.TrackInsight != null)
 			{
 				mappingObject.Add("TRACKINSIGHT", symbolProfile.Mappings.TrackInsight);
 			}
 
-			JObject scraperConfiguration = new();
+			JObject scraperConfiguration = [];
 			if (symbolProfile.ScraperConfiguration.IsValid)
 			{
 				scraperConfiguration.Add("url", symbolProfile.ScraperConfiguration.Url);
@@ -419,7 +419,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				}
 			}
 
-			JArray countries = new();
+			JArray countries = [];
 			foreach (var country in symbolProfile.Countries)
 			{
 				countries.Add(new JObject
@@ -431,7 +431,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				});
 			}
 
-			JArray sectors = new();
+			JArray sectors = [];
 			foreach (var sector in symbolProfile.Sectors)
 			{
 				sectors.Add(new JObject
@@ -479,8 +479,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return;
 			}
 
-			var o = new JObject();
-			o["marketPrice"] = money.Amount;
+			var o = new JObject
+			{
+				["marketPrice"] = money.Amount
+			};
 
 			var res = o.ToString();
 

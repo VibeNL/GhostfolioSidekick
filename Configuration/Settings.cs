@@ -29,6 +29,9 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("use.crypto.workaround.stakereward.add.to.last.buy")]
 		public bool CryptoWorkaroundStakeReward { get; set; }
 
+		[JsonPropertyName("use.dividend.workaround.tax.substract.from.amount")]
+		public bool SubstractTaxesOnDividendFromDividend { get; set; }
+
 		#region Obsolete
 
 		[JsonPropertyName("use.crypto.workaround.stakereward.as.dividends")]
@@ -36,7 +39,7 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("use.crypto.workaround.dust")]
 		public bool CryptoWorkaroundDustObsolete { get; set; }
-
+		
 		#endregion
 	}
 }

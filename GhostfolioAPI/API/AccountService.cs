@@ -148,10 +148,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			// Update all balances that are in the new list
 			foreach (var newBalance in balances)
 			{
-				var o = new JObject();
-				o["balance"] = newBalance.Value.Money.Amount;
-				o["date"] = newBalance.Key.ToString("o");
-				o["accountId"] = existingAccount.Id;
+				var o = new JObject
+				{
+					["balance"] = newBalance.Value.Money.Amount,
+					["date"] = newBalance.Key.ToString("o"),
+					["accountId"] = existingAccount.Id
+				};
 				var res = o.ToString();
 
 				// check if balance already exists
