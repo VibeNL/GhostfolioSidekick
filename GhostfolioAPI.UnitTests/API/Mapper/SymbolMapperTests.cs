@@ -12,11 +12,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 		public SymbolMapperTests()
 		{
-			mappings = new List<Mapping>
-			{
+			mappings =
+			[
 				new Mapping { MappingType = MappingType.Currency, Source = "USD", Target = "US Dollar" },
 				new Mapping { MappingType = MappingType.Symbol, Source = "AAPL", Target = "Apple Inc." }
-			};
+			];
 
 			symbolMapper = new SymbolMapper(mappings);
 		}

@@ -14,7 +14,7 @@
 
 		public string KeyWord { get; }
 
-		public List<WordToken> Words { get; } = new List<WordToken>();
+		public List<WordToken> Words { get; } = [];
 
 		internal void AddMultiWord(MultiWordToken subWord)
 		{

@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 	{
 		public virtual List<SingleWordToken> ParseTokens(string filePath)
 		{
-			List<SingleWordToken> words = new List<SingleWordToken>();
+			List<SingleWordToken> words = [];
 
 			using (PdfReader reader = new PdfReader(filePath))
 			{

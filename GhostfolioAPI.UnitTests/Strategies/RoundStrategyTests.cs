@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { mockActivity.Object }
+				Activities = [mockActivity.Object]
 			};
 
 			// Act
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { mockActivity.Object }
+				Activities = [mockActivity.Object]
 			};
 
 			// Act
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Arrange
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { null! }
+				Activities = [null!]
 			};
 
 			// Act
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Arrange
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity>()
+				Activities = []
 			};
 
 			// Act
@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { mockActivity1.Object, mockActivity2.Object }
+				Activities = [mockActivity1.Object, mockActivity2.Object]
 			};
 
 			// Act

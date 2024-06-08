@@ -2,16 +2,18 @@
 {
 	public enum StrategiesPriority
 	{
-		DeterminePrice = 0,
+		DeterminePrice,
 
-		StockSplit = 1,
+		StockSplit,
 
-		StakeRewardWorkaround = 2,
+		StakeRewardWorkaround,
 
-		NotNativeSupportedTransactionsInGhostfolio = 3,
+		NotNativeSupportedTransactionsInGhostfolio,
 
-		Rounding = 4,
+		TaxesOnDividends,
 
-		ApplyDustCorrection = 5,
+		Rounding,
+
+		ApplyDustCorrection,
 	}
 }

@@ -29,12 +29,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			var symbolProfile = DefaultFixture.Create().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create();
 			var holding = new Holding(symbolProfile)
 			{
-				Activities = new List<IActivity>
-				{
+				Activities =
+				[
 					new SendAndReceiveActivity(null!, DateTime.Now, 1, string.Empty),
 					new GiftActivity(null!, DateTime.Now, 1, string.Empty),
 					new StakingRewardActivity(null!, DateTime.Now, 1, string.Empty),
-				}
+				]
 			};
 
 			var marketDataProfile = new MarketDataProfile
@@ -93,11 +93,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Arrange
 			var holding = new Holding(null)
 			{
-				Activities = new List<IActivity>
-				{
+				Activities =
+				[
 					new SendAndReceiveActivity(null!, DateTime.Now, 1, string.Empty),
 					new GiftActivity(null!, DateTime.Now, 1, string.Empty),
-				}
+				]
 			};
 
 			// Act
@@ -114,10 +114,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			var symbolProfile = DefaultFixture.Create().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create();
 			var holding = new Holding(symbolProfile)
 			{
-				Activities = new List<IActivity>
-				{
+				Activities =
+				[
 					new SendAndReceiveActivity(null!, DateTime.Now, 1, string.Empty)
-				}
+				]
 			};
 
 			var marketDataProfile = new MarketDataProfile

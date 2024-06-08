@@ -7,6 +7,7 @@ using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
@@ -118,6 +119,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, DeGiroParserNL>();
 							services.AddScoped<IFileImporter, DeGiroParserPT>();
 							services.AddScoped<IFileImporter, GenericParser>();
+							services.AddScoped<IFileImporter, MacroTrendsParser>();
 							services.AddScoped<IFileImporter, NexoParser>();
 							services.AddScoped<IFileImporter, NIBCParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
@@ -127,15 +129,14 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserNL>();
 							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
-
-							services.AddScoped<IFileImporter, MacroTrendsParser>();
-
-							services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
-							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
-							services.AddScoped<IHoldingStrategy, DeterminePrice>();
-							services.AddScoped<IHoldingStrategy, RoundStrategy>();
-							services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
+							
 							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
+							services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
+							services.AddScoped<IHoldingStrategy, DeterminePrice>();
+							services.AddScoped<IHoldingStrategy, HandleTaxesOnDividends>();
+							services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
+							services.AddScoped<IHoldingStrategy, RoundStrategy>();
+							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 						});
 		}
 	}
