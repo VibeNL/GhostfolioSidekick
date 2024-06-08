@@ -50,20 +50,20 @@ jobs:
       - name: Test
         run: dotnet test GhostfolioSidekick.sln --configuration Release --no-build --logger "trx;logfilename=testResults.trx" --verbosity normal --collect:"XPlat Code Coverage"
       
-      - name: Install Code coverage report generator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      - name: Run Code coverage report generator
-        run: reportgenerator -reports:**/coverage.cobertura.xml -targetdir:./CoverageReport -reporttypes:Cobertura
-      
-      - name: Add to PR
-        uses: 5monkeys/cobertura-action@master
-        if: ${{ github.event_name == 'pull_request' }}
+      - name: SonarScanner for .NET 8 with pull request decoration support
+        uses: highbyte/sonarscan-dotnet@v2.3.2
         with:
-          path: ./CoverageReport/Cobertura.xml
-          minimum_coverage: 60
-          show_class_names: true
-
+          # The key of the SonarQube project
+          sonarProjectKey: VibeNL_GhostfolioSidekick
+          # The name of the SonarQube project
+          sonarProjectName:  GhostfolioSidekick
+          # The name of the SonarQube organization in SonarCloud. For hosted SonarQube, skip this setting.
+        sonarOrganization: vibenl
+          # Optional command arguments to dotnet test
+          dotnetTestArguments: --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+          # Optional extra command arguments the the SonarScanner 'begin' command
+          sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
+        
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
