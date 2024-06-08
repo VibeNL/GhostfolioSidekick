@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				if (DateTime.TryParseExact(
 					words[j].Text + " " + words[j + 1].Text + " " + words[j + 2].Text,
 					"dd MMM yyyy",
-					new CultureInfo("NL-nl"),
+					new CultureInfo("nl-NL"),
 					DateTimeStyles.AssumeUniversal,
 					out var date))
 				{
