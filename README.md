@@ -2,6 +2,8 @@
 
 [![Build & deploy application](https://github.com/VibeNL/GhostfolioSidekick/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/VibeNL/GhostfolioSidekick/actions/workflows/docker-publish.yml)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=VibeNL_GhostfolioSidekick&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VibeNL_GhostfolioSidekick)
+
 A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. 
 The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). 
 It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.

@@ -135,10 +135,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			for (int j = i; j < words.Count - 2; j++)
 			{
+				CultureInfo dutchCultureInfo = new CultureInfo("nl-NL");
 				if (DateTime.TryParseExact(
 					words[j].Text + " " + words[j + 1].Text + " " + words[j + 2].Text,
 					"dd MMM yyyy",
-					new CultureInfo("NL-nl"),
+					dutchCultureInfo,
 					DateTimeStyles.AssumeUniversal,
 					out var date))
 				{
@@ -153,7 +154,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 					var amountText = items[items.Count - 2];
 					var currency = new Model.Currency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text.Substring(0, 1)));
-					var amount = decimal.Parse(amountText.Text.Substring(1).Trim(), new CultureInfo("nl-NL"));
+					var amount = decimal.Parse(amountText.Text.Substring(1).Trim(), dutchCultureInfo);
 
 					var id = $"Trade_Republic_{singleWordToken.Text}_{date.ToInvariantDateOnlyString()}";
 
