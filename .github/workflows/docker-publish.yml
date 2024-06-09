@@ -73,33 +73,7 @@ jobs:
           dotnet build
           dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-
-      # - name: Install dependencies
-      #   run: dotnet restore
-      
-      # - name: Install Code coverage report generator
-      #   run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-      # - name: Build
-      #   run: dotnet build --configuration Release --no-restore
-
-      # - name: Test
-      #   run: dotnet test GhostfolioSidekick.sln --configuration Release --no-build --logger "trx;logfilename=testResults.trx" --verbosity normal --collect:"XPlat Code Coverage"
-
-      # - name: SonarScanner for .NET 8 with pull request decoration support
-      #   uses: highbyte/sonarscan-dotnet@v2.3.2
-      #   with:
-      #     # The key of the SonarQube project
-      #     sonarProjectKey: VibeNL_GhostfolioSidekick
-      #     # The name of the SonarQube project
-      #     sonarProjectName:  GhostfolioSidekick
-      #     # The name of the SonarQube organization in SonarCloud. For hosted SonarQube, skip this setting.
-      #     sonarOrganization: vibenl
-      #     # Optional command arguments to dotnet test
-      #     dotnetTestArguments: --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
-      #     # Optional extra command arguments the the SonarScanner 'begin' command
-      #     sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx"
-        
+          
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
@@ -165,18 +139,3 @@ jobs:
           comment_tag: "development-ghostfoliosidekick-published"
           mode: "recreate"
           pr_number: ${{ github.event.number }}
-
-      # # Sign the resulting Docker image digest except on PRs.
-      # # This will only write to the public Rekor transparency log when the Docker
-      # # repository is public to avoid leaking data.  If you would like to publish
-      # # transparency data even for private images, pass --force to cosign below.
-      # # https://github.com/sigstore/cosign
-      # - name: Sign the published Docker image
-      #   if: ${{ github.event_name != 'pull_request' }}
-      #   env:
-      #     # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
-      #     TAGS: vibenl/ghostfoliosidekick:latest
-      #     DIGEST: ${{ steps.build-and-push.outputs.digest }}
-      #   # This step uses the identity token to provision an ephemeral certificate
-      #   # against the sigstore community Fulcio instance.
-      #   run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
