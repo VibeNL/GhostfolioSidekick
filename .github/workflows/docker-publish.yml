@@ -45,6 +45,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: 21
+          distribution: 'temurin'
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
