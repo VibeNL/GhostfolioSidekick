@@ -53,6 +53,7 @@ Also allows the following sybol settings
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0.001,
 		"use.crypto.workaround.stakereward.add.to.last.buy" : true // default is false,
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
+		"use.dividend.workaround.tax.substract.from.amount": true // default is false. If set to true, the tax is substracted from the dividend amount. If set to false, the tax is added as a fee.
 	},
 	"platforms":[
 		{ "name": "De Giro", "url":"https://www.degiro.nl/" }

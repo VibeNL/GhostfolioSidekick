@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Parsers
 {
 	public abstract class RecordBaseImporter<T> : IActivityFileImporter where T : class
 	{
-		private readonly Dictionary<string, bool> KnownHeaderCache = new Dictionary<string, bool>();
+		private readonly Dictionary<string, bool> KnownHeaderCache = [];
 
 		protected RecordBaseImporter()
 		{

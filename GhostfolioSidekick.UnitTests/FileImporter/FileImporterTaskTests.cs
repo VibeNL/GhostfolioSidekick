@@ -30,8 +30,8 @@ namespace GhostfolioSidekick.UnitTests.FileImporter
 			accountManagerMock = new Mock<IAccountService>();
 			marketDataManagerMock = new Mock<IMarketDataService>();
 			exchangeRateServiceMock = new Mock<IExchangeRateService>();
-			importersMock = new List<Mock<IFileImporter>>() { new Mock<IFileImporter>() };
-			strategiesMock = new List<Mock<IHoldingStrategy>>() { new Mock<IHoldingStrategy>() };
+			importersMock = [new Mock<IFileImporter>()];
+			strategiesMock = [new Mock<IHoldingStrategy>()];
 			memoryCache = new MemoryCache(new MemoryCacheOptions());
 		}
 

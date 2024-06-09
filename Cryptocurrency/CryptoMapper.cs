@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 {
 	public class CryptoMapper
 	{
-		private readonly Dictionary<string, string> mappings = new();
+		private readonly Dictionary<string, string> mappings = [];
 
 		private CryptoMapper()
 		{

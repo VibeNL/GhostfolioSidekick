@@ -73,17 +73,19 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private static Task<string> ConvertToBody(Contract.Activity activity)
 		{
-			var o = new JObject();
-			o["accountId"] = activity.AccountId;
-			o["comment"] = activity.Comment;
-			o["currency"] = activity.SymbolProfile?.Currency;
-			o["dataSource"] = activity.SymbolProfile?.DataSource;
-			o["date"] = activity.Date.ToString("o");
-			o["fee"] = activity.Fee;
-			o["quantity"] = activity.Quantity;
-			o["symbol"] = activity.SymbolProfile?.Symbol;
-			o["type"] = activity.Type.ToString();
-			o["unitPrice"] = activity.UnitPrice;
+			var o = new JObject
+			{
+				["accountId"] = activity.AccountId,
+				["comment"] = activity.Comment,
+				["currency"] = activity.SymbolProfile?.Currency,
+				["dataSource"] = activity.SymbolProfile?.DataSource,
+				["date"] = activity.Date.ToString("o"),
+				["fee"] = activity.Fee,
+				["quantity"] = activity.Quantity,
+				["symbol"] = activity.SymbolProfile?.Symbol,
+				["type"] = activity.Type.ToString(),
+				["unitPrice"] = activity.UnitPrice
+			};
 			var res = o.ToString();
 			return Task.FromResult(res);
 		}

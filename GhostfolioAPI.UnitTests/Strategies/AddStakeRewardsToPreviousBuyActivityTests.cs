@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
-				Activities = new List<IActivity> { buyActivity, stakeReward }
+				Activities = [buyActivity, stakeReward]
 			};
 
 			// Act
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
-				Activities = new List<IActivity> { buyActivity1, stakeReward1, buyActivity2, stakeReward2 }
+				Activities = [buyActivity1, stakeReward1, buyActivity2, stakeReward2]
 			};
 
 			// Act
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(null)
 			{
-				Activities = new List<IActivity> { stakeReward }
+				Activities = [stakeReward]
 			};
 
 			// Act
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(null)
 			{
-				Activities = new List<IActivity> { buyActivity }
+				Activities = [buyActivity]
 			};
 
 			// Act
@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.PrivateEquity).Create())
 			{
-				Activities = new List<IActivity> { buyActivity, stakeReward }
+				Activities = [buyActivity, stakeReward]
 			};
 
 			// Act
@@ -127,7 +127,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
-				Activities = new List<IActivity> { buyActivity, stakeReward },
+				Activities = [buyActivity, stakeReward],
 			};
 
 			_strategy = new AddStakeRewardsToPreviousBuyActivity(new Settings { CryptoWorkaroundStakeReward = false });
@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
-				Activities = new List<IActivity> { buyActivity, stakeReward }
+				Activities = [buyActivity, stakeReward]
 			};
 
 			// Act
@@ -170,7 +170,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
-				Activities = new List<IActivity> { buyActivity, stakeReward }
+				Activities = [buyActivity, stakeReward]
 			};
 
 			// Act
@@ -190,7 +190,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Build<SymbolProfile>().With(x => x.AssetSubClass, AssetSubClass.CryptoCurrency).Create())
 			{
-				Activities = new List<IActivity> { buyActivity, stakeReward }
+				Activities = [buyActivity, stakeReward]
 			};
 
 			// Act
