@@ -11,6 +11,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		private const string Keyword_Aankoop = "Aankoop";
 		private const string Keyword_Verkoop = "Verkoop";
 		private const string Keyword_DividendUitkering = "Dividend Uitkering";
+  private const string Keyword_DividendReservering = "Dividend reservering";
 		private const string KeyWord_Overboeking = "Overboeking";
 		private const string Keyword_Opdrachtdatum = "Opdrachtdatum";
 		private const string Keyword_Aantal_Stukken = "Aantal stukken";
@@ -36,6 +37,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					Keyword_Verkoop,
 					KeyWord_Overboeking,
 					Keyword_DividendUitkering
+     Keyword_DividendReservering
 				];
 			}
 		}
