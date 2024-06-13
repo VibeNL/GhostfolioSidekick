@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			else
 			{
 				AddToCache(key, null, memoryCache);
-				logger.LogError($"Could not find any identifier [{string.Join(",", identifiers)}] as a symbol");
+				logger.LogError("Could not find any identifier [{Identifiers}] as a symbol", string.Join(",", identifiers));
 			}
 		}
 
@@ -344,7 +344,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						try
 						{
 							await restCall.DoRestPost($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol}", newRes);
-							logger.LogDebug($"Created symbol {foundAsset.Symbol}");
+							logger.LogDebug("Created symbol {Symbol}", foundAsset.Symbol);
 						}
 						catch
 						{
@@ -362,7 +362,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						await restCall.DoRestPatch($"api/v1/admin/profile-data/{foundAsset.DataSource}/{foundAsset.Symbol.Replace("-", "")}", res);
 					}
 
-					logger.LogDebug($"Updated symbol {foundAsset.Symbol}, IDs {string.Join(",", identifiers)}");
+					logger.LogDebug("Updated symbol {Symbol}, IDs {Identifiers}", foundAsset.Symbol, string.Join(",", identifiers));
 				}
 				catch
 				{
@@ -403,7 +403,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Creation failed {symbolProfile.Symbol}");
 			}
 
-			logger.LogDebug($"Created symbol {symbolProfile.Symbol}");
+			logger.LogDebug("Created symbol {Symbol}", symbolProfile.Symbol);
 
 			// Set name and assetClass (BUG / Quirk Ghostfolio?)
 			await UpdateSymbol(symbolProfile);
@@ -484,7 +484,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Update failed on symbol {symbolProfile.Symbol}.");
 			}
 
-			logger.LogDebug($"Updated symbol {symbolProfile.Symbol}");
+			logger.LogDebug("Updated symbol {Symbol}", symbolProfile.Symbol);
 
 			ClearCache();
 		}
@@ -509,7 +509,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"SetMarketPrice failed {symbolProfile.Symbol} {dateTime}");
 			}
 
-			logger.LogDebug($"SetMarketPrice symbol {symbolProfile.Symbol} {dateTime} @ {money.Amount}");
+			logger.LogDebug("SetMarketPrice symbol {Symbol} {Date} @ {Amount}", symbolProfile.Symbol, dateTime, money.Amount);
 		}
 
 		public async Task DeleteSymbol(SymbolProfile symbolProfile)
@@ -525,7 +525,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Deletion failed {symbolProfile.Symbol}");
 			}
 
-			logger.LogDebug($"Deleted symbol {symbolProfile.Symbol}");
+			logger.LogDebug("Deleted symbol {Symbol}", symbolProfile.Symbol);
 		}
 
 		public async Task SetSymbolAsBenchmark(SymbolProfile symbolProfile)
@@ -555,7 +555,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Updating symbol failed to mark as a benchmark {symbolProfile.Symbol}");
 			}
 
-			logger.LogDebug($"Updated symbol to be a benchmark {symbolProfile.Symbol}");
+			logger.LogDebug("Updated symbol to be a benchmark {Symbol}", symbolProfile.Symbol);
 		}
 
 		public async Task GatherAllMarktData()
