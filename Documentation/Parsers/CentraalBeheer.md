@@ -24,4 +24,4 @@ In addition to its core insurance offerings, Centraal Beheer provides investment
 See test files in the repository.
 
 # Known limitations
-Dividends are not yet supported
+No known limitations so far.

@@ -41,14 +41,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{CB44F65D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnonymisePDF.UnitTests", "Tools\AnonymisePDF.UnitTests\AnonymisePDF.UnitTests.csproj", "{D87AE535-2D63-4114-9EF8-6D92C31E9108}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{498D8FAD-64DE-41A1-997A-D84B121B1ED0}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Parsers", "Parsers", "{40A7DE6F-65B7-493A-A419-ECCC967EEFEE}"
-	ProjectSection(SolutionItems) = preProject
-		Documentation\Parsers\DeGiro.md = Documentation\Parsers\DeGiro.md
-		Documentation\Parsers\Trading212.md = Documentation\Parsers\Trading212.md
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -122,7 +114,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED} = {CB44F65D-99C0-4C38-B22C-78CA601159FA}
 		{D87AE535-2D63-4114-9EF8-6D92C31E9108} = {CB44F65D-99C0-4C38-B22C-78CA601159FA}
-		{40A7DE6F-65B7-493A-A419-ECCC967EEFEE} = {498D8FAD-64DE-41A1-997A-D84B121B1ED0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {919DDC85-9EE1-4F61-9504-CACAB4B3315C}
