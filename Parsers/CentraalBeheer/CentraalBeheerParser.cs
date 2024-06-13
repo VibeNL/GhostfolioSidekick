@@ -10,12 +10,15 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 	{
 		private const string Keyword_Aankoop = "Aankoop";
 		private const string Keyword_Verkoop = "Verkoop";
+		private const string Keyword_DividendUitkering = "Dividend Uitkering";
 		private const string KeyWord_Overboeking = "Overboeking";
 		private const string Keyword_Opdrachtdatum = "Opdrachtdatum";
 		private const string Keyword_Aantal_Stukken = "Aantal stukken";
 		private const string Keyword_Koers = "Koers";
 		private const string Keyword_Aankoopkosten = "Aankoopkosten";
 		private const string Keyword_Bruto_Bedrag = "Bruto bedrag";
+		private const string Keyword_DividendBelasting = "Dividendbelasting";
+
 		private readonly CultureInfo cultureInfo = new("nl-NL");
 
 		private const string Prefix = "Centraal Beheer ";
@@ -31,7 +34,8 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				return [
 					Keyword_Aankoop,
 					Keyword_Verkoop,
-					KeyWord_Overboeking
+					KeyWord_Overboeking,
+					Keyword_DividendUitkering
 				];
 			}
 		}
@@ -42,10 +46,11 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			{
 				return [
 					Keyword_Opdrachtdatum,
-			Keyword_Aantal_Stukken,
-			Keyword_Koers,
-			Keyword_Aankoopkosten,
-			Keyword_Bruto_Bedrag
+					Keyword_Aantal_Stukken,
+					Keyword_Koers,
+					Keyword_Aankoopkosten,
+					Keyword_Bruto_Bedrag,
+					Keyword_DividendBelasting
 				];
 			}
 		}
@@ -136,6 +141,9 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					case var t when t.KeyWord == KeyWord_Overboeking:
 						records.AddRange(CreateOverboekingActivities(t.Words));
 						break;
+					case var t when t.KeyWord == Keyword_DividendUitkering:
+						records.AddRange(CreateDividendActivities(t.Words));
+						break;
 					default:
 						break;
 				}
@@ -148,7 +156,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		{
 			var price = GetMoney(GetToken(Keyword_Koers, relevantTokens));
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
-			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Take(2).Select(x => x.Text)); // skip price
+			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().TakeWhile(FilterOutPrice).Select(x => x.Text)); // skip price
 
 			var id = $"Centraal_Beheer_{PartialActivityType.Buy}_{symbol}_{date.ToInvariantDateOnlyString()}";
 
@@ -169,7 +177,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					fee.Currency,
 					date,
 					fee.Amount,
-					new Money(price.Currency, 0),
+					new Money(price.Currency, fee.Amount),
 					id);
 			}
 		}
@@ -178,7 +186,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		{
 			var price = GetMoney(GetToken(Keyword_Koers, relevantTokens));
 			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
-			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().Take(2).Select(x => x.Text)); // skip price
+			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().TakeWhile(FilterOutPrice).Select(x => x.Text)); // skip price
 
 			var id = $"Centraal_Beheer_{PartialActivityType.Buy}_{symbol}_{date.ToInvariantDateOnlyString()}";
 
@@ -203,6 +211,40 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				amount.Amount,
 				amount,
 				$"Centraal_Beheer_{PartialActivityType.CashDeposit}_{date.ToInvariantDateOnlyString()}");
+		}
+
+		private IEnumerable<PartialActivity> CreateDividendActivities(List<WordToken> relevantTokens)
+		{
+			var price = GetMoney(GetToken(Keyword_Bruto_Bedrag, relevantTokens));
+			var date = GetDate(GetToken(Keyword_Opdrachtdatum, relevantTokens));
+			var symbol = Prefix + string.Join(" ", relevantTokens.OfType<SingleWordToken>().TakeWhile(FilterOutPrice).Select(x => x.Text)); // skip price
+
+			var id = $"Centraal_Beheer_{PartialActivityType.Dividend}_{symbol}_{date.ToInvariantDateOnlyString()}";
+
+			yield return PartialActivity.CreateDividend(
+				price.Currency,
+				date,
+				[PartialSymbolIdentifier.CreateStockAndETF(symbol)],
+				price.Amount,
+				GetMoney(GetToken(Keyword_Bruto_Bedrag, relevantTokens)),
+				id);
+
+			var feeToken = GetToken(Keyword_DividendBelasting, relevantTokens);
+			if (feeToken.Any())
+			{
+				Money tax = GetMoney(feeToken);
+				yield return PartialActivity.CreateTax(
+					tax.Currency,
+					date,
+					tax.Amount,
+					new Money(price.Currency, tax.Amount),
+					id);
+			}
+		}
+
+		private static bool FilterOutPrice(SingleWordToken x)
+		{
+			return !x.Text.Contains("€") && !x.Text.Contains("-");
 		}
 
 		private string[] GetToken(string keyword, List<WordToken> relevantTokens)
