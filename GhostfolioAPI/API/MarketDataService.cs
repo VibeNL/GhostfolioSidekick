@@ -54,176 +54,192 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			var key = new CacheKey(identifiers, allowedAssetClass, allowedAssetSubClass);
-
-			if (memoryCache.TryGetValue(key, out CacheValue? cacheValue))
+			if (TryGetFromCache(key, out var cacheValue))
 			{
-				return cacheValue!.Asset;
+				return cacheValue;
 			}
 
-			bool isCrypto = allowedAssetSubClass?.Contains(AssetSubClass.CryptoCurrency) ?? false;
-
-			var allIdentifiers = identifiers
-				.Union(identifiers.Select(x => symbolMapper.MapSymbol(x)))
-				.Union(isCrypto ? identifiers.Select(CryptoMapper.Instance.GetFullname) : [])
-				.Union(isCrypto ? identifiers.Select(CreateCryptoForYahoo) : [])
-				.Where(x => !string.IsNullOrWhiteSpace(x))
-				.Distinct()
-				.ToList(); // Materialize the query to avoid multiple enumerations;
-
-			var foundAsset = await FindByMarketData(allIdentifiers);
+			var allIdentifiers = GenerateAllIdentifiers(identifiers, allowedAssetSubClass);
+			var foundAsset = await FindByMarketData(allIdentifiers, allowedAssetClass, allowedAssetSubClass);
 
 			if (checkExternalDataProviders && foundAsset == null)
 			{
 				foundAsset = await FindByDataProvider(allIdentifiers, expectedCurrency, allowedAssetClass, allowedAssetSubClass, includeIndexes);
 			}
 
+			await ProcessFoundAsset(foundAsset, key, identifiers);
+			return foundAsset;
+		}
+
+		private async Task ProcessFoundAsset(SymbolProfile? foundAsset, CacheKey key, string[] identifiers)
+		{
 			if (foundAsset != null)
 			{
 				AddToCache(key, foundAsset, memoryCache);
 				await UpdateKnownIdentifiers(foundAsset, identifiers);
-				return foundAsset;
+			}
+			else
+			{
+				AddToCache(key, null, memoryCache);
+				logger.LogError($"Could not find any identifier [{string.Join(",", identifiers)}] as a symbol");
+			}
+		}
+
+		private bool TryGetFromCache(CacheKey key, out SymbolProfile? cacheValue)
+		{
+			if (memoryCache.TryGetValue(key, out CacheValue? cached))
+			{
+				cacheValue = cached!.Asset;
+				return true;
 			}
 
-			AddToCache(key, null, memoryCache);
-			logger.LogError($"Could not find any identifier [{string.Join(",", identifiers)}] as a symbol");
+			cacheValue = null;
+			return false;
+		}
+
+		private List<string> GenerateAllIdentifiers(string[] identifiers, AssetSubClass[]? allowedAssetSubClass)
+		{
+			bool isCrypto = allowedAssetSubClass?.Contains(AssetSubClass.CryptoCurrency) ?? false;
+
+			return identifiers
+				.Union(identifiers.Select(x => symbolMapper.MapSymbol(x)))
+				.Union(isCrypto ? identifiers.Select(CryptoMapper.Instance.GetFullname) : Enumerable.Empty<string>())
+				.Union(isCrypto ? identifiers.Select(CreateCryptoForYahoo) : Enumerable.Empty<string>())
+				.Where(x => !string.IsNullOrWhiteSpace(x))
+				.Distinct()
+				.ToList();
+		}
+
+		private static void AddToCache(CacheKey key, SymbolProfile? asset, IMemoryCache cache)
+		{
+			cache.Set(key, new CacheValue(asset), asset != null ? CacheDuration.Long() : CacheDuration.Short());
+		}
+
+		private async Task<SymbolProfile?> FindByMarketData(IEnumerable<string> allIdentifiers, AssetClass[]? allowedAssetClass, AssetSubClass[]? allowedAssetSubClass)
+		{
+			try
+			{
+				var r = await GetAllSymbolProfiles();
+
+				foreach (var identifier in allIdentifiers)
+				{
+					var foundSymbol = r
+						.Where(x => allowedAssetClass?.Contains(x.AssetClass) ?? true)
+						.Where(x => allowedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
+						.SingleOrDefault(x =>
+							x.Symbol == identifier ||
+							x.ISIN == identifier ||
+							x.Identifiers.Any(x => x.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)));
+					if (foundSymbol != null)
+					{
+						return foundSymbol;
+					}
+				}
+			}
+			catch (NotAuthorizedException)
+			{
+				// Ignore for now
+			}
+
 			return null;
+		}
 
-			static void AddToCache(CacheKey key, SymbolProfile? asset, IMemoryCache cache)
-			{
-				cache.Set(key, new CacheValue(asset), asset != null ? CacheDuration.Long() : CacheDuration.Short());
-			}
+		private async Task<SymbolProfile?> FindByDataProvider(IEnumerable<string> ids, Currency? expectedCurrency, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass, bool includeIndexes)
+		{
+			var identifiers = ids.ToList();
+			var allAssets = new List<SymbolProfile>();
 
-			async Task<SymbolProfile?> FindByMarketData(IEnumerable<string> allIdentifiers)
+			foreach (var identifier in identifiers)
 			{
-				try
+				for (var i = 0; i < 5; i++)
 				{
-					var r = await GetAllSymbolProfiles();
-
-					foreach (var identifier in allIdentifiers)
+					var content = await restCall.DoRestGet(
+						$"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices={includeIndexes.ToString().ToLowerInvariant()}");
+					if (content == null)
 					{
-						var foundSymbol = r
-							.Where(x => allowedAssetClass?.Contains(x.AssetClass) ?? true)
-							.Where(x => allowedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
-							.SingleOrDefault(x =>
-								x.Symbol == identifier ||
-								x.ISIN == identifier ||
-								x.Identifiers.Any(x => x.Equals(identifier, StringComparison.InvariantCultureIgnoreCase)));
-						if (foundSymbol != null)
-						{
-							return foundSymbol;
-						}
+						continue;
+					}
+
+					var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
+					var assets = symbolProfileList?.Items.Select(ContractToModelMapper.MapSymbolProfile);
+
+					if (assets?.Any() ?? false)
+					{
+						allAssets.AddRange(assets);
+						break;
 					}
 				}
-				catch (NotAuthorizedException)
-				{
-					// Ignore for now
-				}
-
-				return null;
 			}
 
-			async Task<SymbolProfile?> FindByDataProvider(
-				IEnumerable<string> ids,
-				Currency? expectedCurrency,
-				AssetClass[]? expectedAssetClass,
-				AssetSubClass[]? expectedAssetSubClass,
-				bool includeIndexes)
-			{
-				var identifiers = ids.ToList();
-				var allAssets = new List<SymbolProfile>();
-
-				foreach (var identifier in identifiers)
+			var filteredAsset = allAssets
+				.Where(x => x != null)
+				.Select(FixYahooCrypto)
+				.Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
+				.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
+				.OrderBy(x => identifiers.Exists(y => MatchId(x, y)) ? 0 : 1)
+				.ThenByDescending(x => FussyMatch(identifiers, x))
+				.ThenBy(x => x.AssetSubClass == AssetSubClass.CryptoCurrency && x.Name.Contains("[OLD]") ? 1 : 0)
+				.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
+				.ThenBy(x => new[] { Currency.EUR.Symbol, Currency.USD.Symbol, Currency.GBP.Symbol, Currency.GBp.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
+				.ThenBy(x =>
 				{
-					for (var i = 0; i < 5; i++)
+					var index = SortorderDataSources.IndexOf(x.DataSource.ToString().ToUpperInvariant());
+					if (index < 0)
 					{
-						var content = await restCall.DoRestGet(
-							$"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices={includeIndexes.ToString().ToLowerInvariant()}");
-						if (content == null)
-						{
-							continue;
-						}
-
-						var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
-						var assets = symbolProfileList?.Items.Select(ContractToModelMapper.MapSymbolProfile);
-
-						if (assets?.Any() ?? false)
-						{
-							allAssets.AddRange(assets);
-							break;
-						}
+						index = int.MaxValue;
 					}
-				}
 
-				var filteredAsset = allAssets
-					.Where(x => x != null)
-					.Select(FixYahooCrypto)
-					.Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
-					.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
-					.OrderBy(x => identifiers.Exists(y => MatchId(x, y)) ? 0 : 1)
-					.ThenByDescending(x => FussyMatch(identifiers, x))
-					.ThenBy(x => x.AssetSubClass == AssetSubClass.CryptoCurrency && x.Name.Contains("[OLD]") ? 1 : 0)
-					.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
-					.ThenBy(x => new[] { Currency.EUR.Symbol, Currency.USD.Symbol, Currency.GBP.Symbol, Currency.GBp.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
-					.ThenBy(x =>
-					{
-						var index = SortorderDataSources.IndexOf(x.DataSource.ToString().ToUpperInvariant());
-						if (index < 0)
-						{
-							index = int.MaxValue;
-						}
+					return index;
+				}) // prefer Yahoo above Coingecko due to performance
+				.ThenBy(x => x.Name?.Length ?? int.MaxValue)
+				.FirstOrDefault();
+			return filteredAsset;
+		}
 
-						return index;
-					}) // prefer Yahoo above Coingecko due to performance
-					.ThenBy(x => x.Name?.Length ?? int.MaxValue)
-					.FirstOrDefault();
-				return filteredAsset;
-			}
+		private static int FussyMatch(List<string> identifiers, SymbolProfile profile)
+		{
+			return identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile?.Name ?? string.Empty), FuzzySharp.Fuzz.Ratio(x, profile?.Symbol ?? string.Empty)));
+		}
 
-			bool MatchId(SymbolProfile x, string id)
+		private static string CreateCryptoForYahoo(string x)
+		{
+			return x + "-USD";
+		}
+
+		private static SymbolProfile FixYahooCrypto(SymbolProfile x)
+		{
+			// Workaround for bug Ghostfolio
+			if (x.AssetSubClass == AssetSubClass.CryptoCurrency && Model.Symbols.Datasource.YAHOO.ToString().Equals(x.DataSource, StringComparison.InvariantCultureIgnoreCase) && x.Symbol.Length >= 6)
 			{
-				if (string.Equals(x.ISIN, id, StringComparison.InvariantCultureIgnoreCase))
-				{
-					return true;
-				}
-
-				if (string.Equals(x.Symbol, id, StringComparison.InvariantCultureIgnoreCase) ||
-					(x.AssetSubClass == AssetSubClass.CryptoCurrency &&
-					string.Equals(x.Symbol, id + "-USD", StringComparison.InvariantCultureIgnoreCase)) || // Add USD for Yahoo crypto
-					(x.AssetSubClass == AssetSubClass.CryptoCurrency &&
-					string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase))) // Add dashes for CoinGecko
-				{
-					return true;
-				}
-
-				if (string.Equals(x.Name, id, StringComparison.InvariantCultureIgnoreCase))
-				{
-					return true;
-				}
-
-				return false;
+				var t = x.Symbol;
+				x.Symbol = string.Concat(t.AsSpan(0, t.Length - 3), "-", t.AsSpan(t.Length - 3, 3));
 			}
 
-			SymbolProfile FixYahooCrypto(SymbolProfile x)
+			return x;
+		}
+
+		private static bool MatchId(SymbolProfile x, string id)
+		{
+			if (string.Equals(x.ISIN, id, StringComparison.InvariantCultureIgnoreCase))
 			{
-				// Workaround for bug Ghostfolio
-				if (x.AssetSubClass == AssetSubClass.CryptoCurrency && Model.Symbols.Datasource.YAHOO.ToString().Equals(x.DataSource, StringComparison.InvariantCultureIgnoreCase) && x.Symbol.Length >= 6)
-				{
-					var t = x.Symbol;
-					x.Symbol = string.Concat(t.AsSpan(0, t.Length - 3), "-", t.AsSpan(t.Length - 3, 3));
-				}
-
-				return x;
+				return true;
 			}
 
-			string CreateCryptoForYahoo(string x)
+			if (string.Equals(x.Symbol, id, StringComparison.InvariantCultureIgnoreCase) ||
+				(x.AssetSubClass == AssetSubClass.CryptoCurrency &&
+				string.Equals(x.Symbol, id + "-USD", StringComparison.InvariantCultureIgnoreCase)) || // Add USD for Yahoo crypto
+				(x.AssetSubClass == AssetSubClass.CryptoCurrency &&
+				string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase))) // Add dashes for CoinGecko
 			{
-				return x + "-USD";
+				return true;
 			}
 
-			int FussyMatch(List<string> identifiers, SymbolProfile profile)
+			if (string.Equals(x.Name, id, StringComparison.InvariantCultureIgnoreCase))
 			{
-				return identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile?.Name ?? string.Empty), FuzzySharp.Fuzz.Ratio(x, profile?.Symbol ?? string.Empty)));
+				return true;
 			}
+
+			return false;
 		}
 
 		public async Task<IEnumerable<SymbolProfile>> GetAllSymbolProfiles()
