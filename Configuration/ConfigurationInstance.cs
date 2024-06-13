@@ -6,6 +6,14 @@ namespace GhostfolioSidekick.Configuration
 {
 	public class ConfigurationInstance
 	{
+		private static JsonSerializerOptions options = new()
+		{
+			Converters =
+				{
+					new JsonStringEnumConverter()
+				}
+		};
+
 		[JsonPropertyName("platforms")]
 		public PlatformConfiguration[]? Platforms { get; set; }
 
@@ -26,13 +34,6 @@ namespace GhostfolioSidekick.Configuration
 
 		public static ConfigurationInstance? Parse(string configuration)
 		{
-			JsonSerializerOptions options = new()
-			{
-				Converters ={
-					new JsonStringEnumConverter()
-				}
-			};
-
 			return JsonSerializer.Deserialize<ConfigurationInstance>(configuration, options);
 		}
 

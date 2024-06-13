@@ -67,13 +67,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				.Union(isCrypto ? identifiers.Select(CryptoMapper.Instance.GetFullname) : [])
 				.Union(isCrypto ? identifiers.Select(CreateCryptoForYahoo) : [])
 				.Where(x => !string.IsNullOrWhiteSpace(x))
-				.Distinct();
+				.Distinct()
+				.ToList(); // Materialize the query to avoid multiple enumerations;
 
 			var foundAsset = await FindByMarketData(allIdentifiers);
 
-			if (checkExternalDataProviders)
+			if (checkExternalDataProviders && foundAsset == null)
 			{
-				foundAsset ??= await FindByDataProvider(allIdentifiers, expectedCurrency, allowedAssetClass, allowedAssetSubClass, includeIndexes);
+				foundAsset = await FindByDataProvider(allIdentifiers, expectedCurrency, allowedAssetClass, allowedAssetSubClass, includeIndexes);
 			}
 
 			if (foundAsset != null)
