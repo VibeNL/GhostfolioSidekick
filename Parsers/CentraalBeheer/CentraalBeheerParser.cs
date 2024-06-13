@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					Keyword_Aankoop,
 					Keyword_Verkoop,
 					KeyWord_Overboeking,
-					Keyword_DividendUitkering
+					Keyword_DividendUitkering,
      Keyword_DividendReservering
 				];
 			}
