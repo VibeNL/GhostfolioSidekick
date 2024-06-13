@@ -108,5 +108,45 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 						"Centraal_Beheer_Buy_Centraal Beheer Mixfonds Voorzichtig_2023-07-26")
 				]);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileDividends_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/CentraalBeheer/dividends.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateDividend(
+						Currency.EUR,
+						new DateTime(2024, 6, 7, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Zeer Ambitieus")],
+						25.20m,
+						new Money(Currency.EUR,  25.20m),
+						"a"),
+					PartialActivity.CreateTax(
+						Currency.EUR,
+						new DateTime(2024, 6, 7, 0, 0, 0, DateTimeKind.Utc),
+						3.78m,
+						new Money(Currency.EUR, 3.78m),
+						"a"),
+					PartialActivity.CreateDividend(
+						Currency.EUR,
+						new DateTime(2024, 6, 7, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Ambitieus")],
+						27.54m,
+						new Money(Currency.EUR,  27.54m),
+						"b"),
+					PartialActivity.CreateTax(
+						Currency.EUR,
+						new DateTime(2024, 6, 7, 0, 0, 0, DateTimeKind.Utc),
+						4.13m,
+						new Money(Currency.EUR, 4.13m),
+						"b")
+				]);
+		}
 	}
 }
