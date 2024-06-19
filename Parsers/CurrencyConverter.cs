@@ -15,13 +15,13 @@ namespace GhostfolioSidekick.Parsers
 			this.cultureInfo = new CultureInfo(culture);
 		}
 
-		public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 		{
 			return decimal.Parse(text, NumberStyles.Currency, cultureInfo);
 		}
 
 		[ExcludeFromCodeCoverage]
-		public override string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
+		public override string? ConvertToString(object? value, IWriterRow row, MemberMapData memberMapData)
 		{
 			return string.Empty;
 		}
