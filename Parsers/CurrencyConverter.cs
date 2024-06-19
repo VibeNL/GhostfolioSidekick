@@ -17,6 +17,7 @@ namespace GhostfolioSidekick.Parsers
 
 		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 		{
+if (text == null){ return null;}
 			return decimal.Parse(text, NumberStyles.Currency, cultureInfo);
 		}
 
