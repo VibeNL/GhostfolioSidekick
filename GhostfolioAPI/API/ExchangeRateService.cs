@@ -49,9 +49,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 			catch
 			{
-#pragma warning disable S6667 // Logging in a catch clause should pass the caught exception as a parameter.
-				logger.LogWarning($"Exchange rate not found for {sourceCurrency}-{targetCurrency.Symbol} on {dateTime}. Assuming rate of 1");
-#pragma warning restore S6667 // Logging in a catch clause should pass the caught exception as a parameter.
+				logger.LogWarning("Exchange rate not found for {SourceCurrency}-{TargetCurrency} on {Date}. Assuming rate of 1", sourceCurrency, targetCurrency.Symbol, dateTime.ToShortDateString());
 			}
 
 			return 1;

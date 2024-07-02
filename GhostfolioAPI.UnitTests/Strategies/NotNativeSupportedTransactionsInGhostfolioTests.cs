@@ -124,7 +124,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			// Assert
 			Assert.Empty(holding.Activities.OfType<RepayBondActivity>());
-			holding.Activities.Count().Should().Be(2);
+			holding.Activities.Count.Should().Be(2);
 
 			var buySellActivity = holding.Activities.Except([buyBondActivity]).OfType<BuySellActivity>().First();
 			Assert.Equal(repayBondActivity.Account, buySellActivity.Account);

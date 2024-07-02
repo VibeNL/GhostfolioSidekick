@@ -86,10 +86,9 @@ namespace GhostfolioSidekick
 				return;
 			}
 
-			cancellationTokenSource!.Cancel();
-
 			try
 			{
+				await cancellationTokenSource!.CancelAsync();
 				await task.WaitAsync(cancellationToken);
 			}
 			catch (OperationCanceledException)
@@ -99,7 +98,7 @@ namespace GhostfolioSidekick
 
 			task.Dispose();
 			task = null;
-			cancellationTokenSource.Dispose();
+			cancellationTokenSource?.Dispose();
 			cancellationTokenSource = null;
 		}
 

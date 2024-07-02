@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				&& x.StatusCode != System.Net.HttpStatusCode.BadRequest)
 				.WaitAndRetry(options.MaxRetryAttempts, x => x * options.PauseBetweenFailures, (iRestResponse, timeSpan, retryCount, context) =>
 				{
-					logger.LogWarning($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
+					logger.LogWarning($"The request failed. HttpStatusCode={iRestResponse.Result.StatusCode}. Waiting {timeSpan.TotalSeconds} seconds before retry. Number attempt {retryCount}. Uri={iRestResponse.Result.ResponseUri};");
 				});
 
 			basicCircuitBreakerPolicy = Policy
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				var r = policy.Execute(() => restClient.ExecuteGetAsync(request).Result);
 				stopwatch.Stop();
 
-				logger.LogTrace($"Url {url}/{suffixUrl} took {stopwatch.ElapsedMilliseconds}ms");
+				logger.LogTrace("Url {0}/{1} took {2}ms", url, suffixUrl, stopwatch.ElapsedMilliseconds);
 
 				if (!r.IsSuccessStatusCode)
 				{

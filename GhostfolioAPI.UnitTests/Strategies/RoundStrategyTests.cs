@@ -52,11 +52,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 				Activities = [mockActivity.Object]
 			};
 
-			// Act
-			await _roundStrategy.Execute(holding);
-
-			// Assert
-			// No exception should be thrown
+			// Act & Assert
+			await _roundStrategy.Invoking(async x => await x.Execute(holding)).Should().NotThrowAsync();
 		}
 
 
@@ -69,11 +66,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 				Activities = [null!]
 			};
 
-			// Act
-			await _roundStrategy.Execute(holding);
-
-			// Assert
-			// No exception should be thrown
+			// Act & Assert
+			await _roundStrategy.Invoking(async x => await x.Execute(holding)).Should().NotThrowAsync();
 		}
 
 		[Fact]
@@ -98,11 +92,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 				Activities = []
 			};
 
-			// Act
-			await _roundStrategy.Execute(holding);
-
-			// Assert
-			// No exception should be thrown
+			// Act & Assert
+			await _roundStrategy.Invoking(async x => await x.Execute(holding)).Should().NotThrowAsync();
 		}
 
 		[Fact]
