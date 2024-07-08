@@ -390,6 +390,9 @@
 		<None Update="TestFiles\TradeRepublic\CashTransactions\single_dividend.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\TradeRepublic\CashTransactions\single_dividend_nl.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\TradeRepublic\CashTransactions\single_interest_bond.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

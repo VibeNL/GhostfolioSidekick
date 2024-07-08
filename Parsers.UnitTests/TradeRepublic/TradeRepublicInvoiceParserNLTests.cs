@@ -145,6 +145,33 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_NL_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/CashTransactions/single_dividend_nl.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateDividend(
+						Currency.USD,
+						new DateTime(2024, 01, 09, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
+						0.1m,
+						new Money(Currency.USD, 0.1m),
+						"Trade_Republic_US2546871060_2024-01-09"),
+				 PartialActivity.CreateFee(
+						Currency.USD,
+						new DateTime(2024, 01, 09, 0, 0, 0, DateTimeKind.Utc),
+						0.02m,
+						new Money(Currency.USD, 0.02m),
+						"Trade_Republic_US2546871060_2024-01-09")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFileSingleInterestBond_Converted()
 		{
 			// Arrange
