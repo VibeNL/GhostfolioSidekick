@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				var r = policy.Execute(() => restClient.ExecuteGetAsync(request).Result);
 				stopwatch.Stop();
 
-				logger.LogTrace("Url {0}/{1} took {2}ms", url, suffixUrl, stopwatch.ElapsedMilliseconds);
+				logger.LogTrace("Url {Url}/{SuffixUrl} took {ElapsedMilliseconds}ms", url, suffixUrl, stopwatch.ElapsedMilliseconds);
 
 				if (!r.IsSuccessStatusCode)
 				{
