@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			// Arrange
 
 			// Act
-			var result = await importer.CanParseActivities(Filename);
+			var result = await importer.CanParse(Filename);
 
 			// Assert
 			result.Should().BeTrue();
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			// Arrange
 
 			// Act
-			var result = await new ScalableCapitalWUMParser(DummyCurrencyMapper.Instance).CanParseActivities(Filename);
+			var result = await new ScalableCapitalWUMParser(DummyCurrencyMapper.Instance).CanParse(Filename);
 
 			// Assert
 			result.Should().BeFalse();

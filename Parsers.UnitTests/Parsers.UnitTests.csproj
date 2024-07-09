@@ -41,7 +41,7 @@
 	<ItemGroup>
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
-		<Folder Include="TestFiles\CentraalBeheer\" />
+		<Folder Include="TestFiles\TradeRepublic\NL\BuyOrders\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -49,6 +49,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="MacroTrends\MacroTrends_Data_Download_ATVI.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Bitvavo\BuyOrders\single_buy.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -99,6 +102,9 @@
 		</None>
 		<None Update="TestFiles\CentraalBeheer\deposit.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\CentraalBeheer\dividends.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\CentraalBeheer\sell_order.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -373,25 +379,28 @@
 		<None Update="TestFiles\ScalableCapital\Prime\SellOrders\single_sell_euro.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\BuyOrders\single_buy_bond.pdf">
+		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_buy_bond.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\BuyOrders\single_buy_stock.pdf">
+		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_buy_stock.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\BuyOrders\single_savingsplan_stock.pdf">
+		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_savingsplan_stock.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\CashTransactions\single_dividend.pdf">
+		<None Update="TestFiles\TradeRepublic\EN\CashTransactions\single_dividend.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\CashTransactions\single_interest_bond.pdf">
+		<None Update="TestFiles\TradeRepublic\NL\CashTransactions\single_dividend.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\EN\CashTransactions\single_interest_bond.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\CashTransactions\single_repay_bond.pdf">
+		<None Update="TestFiles\TradeRepublic\EN\CashTransactions\single_repay_bond.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="TestFiles\TradeRepublic\montly_statement.pdf">
+		<None Update="TestFiles\TradeRepublic\NL\montly_statement.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\TradeRepublic\multi-month-statement-nl.pdf">

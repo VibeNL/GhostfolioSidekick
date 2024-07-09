@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { mockActivity.Object }
+				Activities = [mockActivity.Object]
 			};
 
 			// Act
@@ -49,14 +49,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { mockActivity.Object }
+				Activities = [mockActivity.Object]
 			};
 
-			// Act
-			await _roundStrategy.Execute(holding);
-
-			// Assert
-			// No exception should be thrown
+			// Act & Assert
+			await _roundStrategy.Invoking(async x => await x.Execute(holding)).Should().NotThrowAsync();
 		}
 
 
@@ -66,14 +63,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Arrange
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { null! }
+				Activities = [null!]
 			};
 
-			// Act
-			await _roundStrategy.Execute(holding);
-
-			// Assert
-			// No exception should be thrown
+			// Act & Assert
+			await _roundStrategy.Invoking(async x => await x.Execute(holding)).Should().NotThrowAsync();
 		}
 
 		[Fact]
@@ -95,14 +89,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 			// Arrange
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity>()
+				Activities = []
 			};
 
-			// Act
-			await _roundStrategy.Execute(holding);
-
-			// Assert
-			// No exception should be thrown
+			// Act & Assert
+			await _roundStrategy.Invoking(async x => await x.Execute(holding)).Should().NotThrowAsync();
 		}
 
 		[Fact]
@@ -119,7 +110,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.Strategies
 
 			var holding = new Holding(new Fixture().Create<SymbolProfile>())
 			{
-				Activities = new List<IActivity> { mockActivity1.Object, mockActivity2.Object }
+				Activities = [mockActivity1.Object, mockActivity2.Object]
 			};
 
 			// Act

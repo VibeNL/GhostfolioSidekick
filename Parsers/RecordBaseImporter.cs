@@ -4,15 +4,15 @@ using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers
 {
-	public abstract class RecordBaseImporter<T> : IFileImporter
+	public abstract class RecordBaseImporter<T> : IActivityFileImporter where T : class
 	{
-		private readonly Dictionary<string, bool> KnownHeaderCache = new Dictionary<string, bool>();
+		private readonly Dictionary<string, bool> KnownHeaderCache = [];
 
 		protected RecordBaseImporter()
 		{
 		}
 
-		public virtual Task<bool> CanParseActivities(string filename)
+		public virtual Task<bool> CanParse(string filename)
 		{
 			string? record = null;
 

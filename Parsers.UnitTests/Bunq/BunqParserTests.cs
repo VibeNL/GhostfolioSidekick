@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 			foreach (var file in Directory.GetFiles("./TestFiles/Bunq/", "*.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -115,14 +115,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 						new Money(Currency.EUR, 1000),
 						"2023-07-20 00:00:00:+00:00_1"),
 					PartialActivity.CreateCashDeposit(
-						Currency.EUR, 
-						new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 
+						Currency.EUR,
+						new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc),
 						1000,
 						new Money(Currency.EUR, 1000),
 						"2023-07-20 00:00:00:+00:00_2"),
 					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
-						new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc), 
+						new DateTime(2023, 07, 20, 0, 0, 0, DateTimeKind.Utc),
 						1000,
 						new Money(Currency.EUR, 1000),
 						"2023-07-20 00:00:00:+00:00_3")]

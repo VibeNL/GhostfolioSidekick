@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.Strategies
 			holding.Activities.Add(new BuySellActivity(
 				activity.Account,
 				activity.Date,
-				quantity,
+				-quantity,
 				price,
 				activity.TransactionId)
 			{

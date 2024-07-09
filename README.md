@@ -2,6 +2,8 @@
 
 [![Build & deploy application](https://github.com/VibeNL/GhostfolioSidekick/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/VibeNL/GhostfolioSidekick/actions/workflows/docker-publish.yml)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=VibeNL_GhostfolioSidekick&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VibeNL_GhostfolioSidekick)
+
 A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. 
 The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). 
 It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
@@ -51,6 +53,7 @@ Also allows the following sybol settings
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0.001,
 		"use.crypto.workaround.stakereward.add.to.last.buy" : true // default is false,
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
+		"use.dividend.workaround.tax.substract.from.amount": true // default is false. If set to true, the tax is substracted from the dividend amount. If set to false, the tax is added as a fee.
 	},
 	"platforms":[
 		{ "name": "De Giro", "url":"https://www.degiro.nl/" }

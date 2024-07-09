@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 			foreach (var file in Directory.GetFiles("./TestFiles/CentraalBeheer/", "*.pdf", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 						Currency.EUR,
 						new DateTime(2023, 09, 12, 0, 0, 0, DateTimeKind.Utc),
 						3M,
-						new Money(Currency.EUR, 0),
+						new Money(Currency.EUR, 3M),
 						"Centraal_Beheer_Buy_Centraal Beheer Mixfonds Ambitieus_2023-09-12")
 				]);
 		}
@@ -106,6 +106,46 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 						26.28M,
 						new Money(Currency.EUR,  50.76M),
 						"Centraal_Beheer_Buy_Centraal Beheer Mixfonds Voorzichtig_2023-07-26")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileDividends_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/CentraalBeheer/dividends.pdf", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateDividend(
+						Currency.EUR,
+						new DateTime(2024, 6, 7, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Zeer Ambitieus")],
+						25.20m,
+						new Money(Currency.EUR,  25.20m),
+						"Centraal_Beheer_Dividend_Centraal Beheer Mixfonds Zeer Ambitieus_2024-06-07"),
+					PartialActivity.CreateTax(
+						Currency.EUR,
+						new DateTime(2024, 6, 7, 0, 0, 0, DateTimeKind.Utc),
+						3.78m,
+						new Money(Currency.EUR, 3.78m),
+						"Centraal_Beheer_Dividend_Centraal Beheer Mixfonds Zeer Ambitieus_2024-06-07"),
+					PartialActivity.CreateDividend(
+						Currency.EUR,
+						new DateTime(2024, 6, 7, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Ambitieus")],
+						27.54m,
+						new Money(Currency.EUR,  27.54m),
+						"Centraal_Beheer_Dividend_Centraal Beheer Mixfonds Ambitieus_2024-06-07"),
+					PartialActivity.CreateTax(
+						Currency.EUR,
+						new DateTime(2024, 6, 7, 0, 0, 0, DateTimeKind.Utc),
+						4.13m,
+						new Money(Currency.EUR, 4.13m),
+						"Centraal_Beheer_Dividend_Centraal Beheer Mixfonds Ambitieus_2024-06-07")
 				]);
 		}
 	}

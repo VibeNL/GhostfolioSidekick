@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Configuration
 			}
 			catch (Exception ex)
 			{
-				logger.LogWarning($"No (valid) configuration file found at {Environment.GetEnvironmentVariable(CONFIGURATIONFILE)}. Using default configuration.. Error was {ex.Message}");
+				logger.LogWarning("No (valid) configuration file found at {Configfile}. Using default configuration. Error was {Message}", Environment.GetEnvironmentVariable(CONFIGURATIONFILE), ex.Message);
 				configuration = new ConfigurationInstance();
 			}
 		}

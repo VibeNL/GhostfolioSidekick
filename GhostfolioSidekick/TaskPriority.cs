@@ -2,20 +2,22 @@
 {
 	public enum TaskPriority
 	{
-		DisplayInformation = 0,
+		DisplayInformation,
 
-		AccountCreation = 1,
+		AccountCreation,
 
-		CreateManualSymbols = 2,
+		CreateManualSymbols,
 
-		FileImporter = 3,
+		SetManualPrices,
 
-		DeleteUnusedSymbols = 4,
+		FileImporter,
 
-		SetTrackingInsightOnSymbols = 5,
+		DeleteUnusedSymbols,
 
-		SetBenchmarks = 6,
+		SetTrackingInsightOnSymbols,
 
-		GatherAllData = 7,
+		SetBenchmarks,
+
+		GatherAllData,
 	}
 }

@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			foreach (var file in Directory.GetFiles("./TestFiles/ScalableCapital/BaaderBank/", "wum.csv", SearchOption.AllDirectories))
 			{
 				// Act
-				var canParse = await parser.CanParseActivities(file);
+				var canParse = await parser.CanParse(file);
 
 				// Assert
 				canParse.Should().BeTrue($"File {file}  cannot be parsed");
@@ -52,9 +52,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc), 
+						new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")],
-						5, 
+						5,
 						8.685M,
 						new Money(Currency.EUR, 43.43M),
 						"SCALQbWiZnN9DtQ")
