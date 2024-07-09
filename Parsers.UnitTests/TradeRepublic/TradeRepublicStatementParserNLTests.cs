@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		{
 			// Arrange, use the real parser to test the real files
 			var parser = new TradeRepublicStatementParserNL(new PdfToWordsParser());
-			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/", "*_statement.pdf", SearchOption.AllDirectories))
+			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/NL/", "*_statement.pdf", SearchOption.AllDirectories))
 			{
 				// Act
 				var canParse = await parser.CanParse(file);
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			var parser = new TradeRepublicStatementParserNL(new PdfToWordsParser());
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/montly_statement.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/NL/montly_statement.pdf", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().HaveCount(18);
