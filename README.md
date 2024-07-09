@@ -136,20 +136,20 @@ Maintaining symbols in ghostfolio
 ### Supported formats
 The goal is to support all platforms as best as possible. Due to the continuous growth of Ghostfolio, new features may be added when possible.
 
-| Platform | Source of the files | 
-|--|--|--|--|--|--|
-| Bitvavo (Broken) | Export of transaction history | 
-| Bunq (Bank) | Export CSV (Semicolom delimited) | 
-| Centraal Beheer Begeleid beleggen (Dutch insurance company) | Export of transaction history via print pdf | 
-| Coinbase (Broken) | Export of transaction history | 
-| De Giro | Export of account history (Language dependend, NL and PT supported currently) | 
-| Generic importer | See below | 
-| Nexo (Broken) | Export of transaction history | 
-| NIBC (Bank) | Export CSV (Semicolom delimited) | 
-| Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | 
-| Scalable Capital (Prime only) | The CSV files export via the transaction view | 
-| Trading Republic | Montly Statements and individual invoices | 
-| Trading 212 | Export of transaction history | 
+| Platform | Source of the files | Documentation |
+|--|--|--|
+| Bitvavo (Broken) | Export of transaction history | |
+| Bunq (Bank) | Export CSV (Semicolom delimited) | |
+| Centraal Beheer Begeleid beleggen (Dutch insurance company) | Export of transaction history via print pdf | [Documentation](./Documentation/Parsers/CentraalBeheer.md) |
+| Coinbase (Broken) | Export of transaction history | |
+| De Giro | Export of account history (Language dependend, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
+| Generic importer | See below | |
+| Nexo (Broken) | Export of transaction history | |
+| NIBC (Bank) | Export CSV (Semicolom delimited) | |
+| Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | |
+| Scalable Capital (Prime only) | The CSV files export via the transaction view | |
+| Trading Republic | Montly Statements and individual invoices | |
+| Trading 212 | Export of transaction history | [Documentation](./Documentation/Parsers/Trading212.md) |
 
 #### Generic import format
 Beside the supported exchanges and brokers there is also a generic format. 
