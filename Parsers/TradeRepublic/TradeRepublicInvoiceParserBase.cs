@@ -45,10 +45,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 		}
 
-		public TradeRepublicInvoiceParserBase(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
+		protected TradeRepublicInvoiceParserBase(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Not needed for now")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S127:\"for\" loop stop conditions should be invariant", Justification = "Needed for parser")]
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
@@ -111,9 +113,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						{
 							headers.Add(new MultiWordToken(kw, word.BoundingBox));
 							matched = true;
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
 							i += keywordSplitted.Length - 1;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
 							break;
 						}
 					}
@@ -226,7 +226,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			if (headerStrings.Contains(Keyword_Income) || headerStrings.Contains(Keyword_Nominal)) // Dividends
 			{
-				string? isin = GetIsin(words, ref i); 
+				string? isin = GetIsin(words, ref i);
 
 				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
 
@@ -289,30 +289,20 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				i++;
 			}
 
+			// Detect via pattern
 			i = sourceI;
-			if (isin == null)
+			while (i < words.Count)
 			{
-				// Detect via pattern
-				i = sourceI;
-				while (i < words.Count)
+				if (Isin.ValidateCheckDigit(words[i].Text))
 				{
-					if (Isin.ValidateCheckDigit(words[i].Text))
-					{
-						isin = words[i].Text;
-						return isin;
-					}
-
-					i++;
+					isin = words[i].Text;
+					return isin;
 				}
 
+				i++;
 			}
 
-			if (isin == null)
-			{
-				throw new NotSupportedException("ISIN not found");
-			}
-
-			return isin;
+			throw new NotSupportedException("ISIN not found");
 		}
 	}
 }
