@@ -47,9 +47,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				return rate;
 			}
-			catch
+			catch(Exception ex)
 			{
-				logger.LogWarning("Exchange rate not found for {SourceCurrency}-{TargetCurrency} on {Date}. Assuming rate of 1", sourceCurrency, targetCurrency.Symbol, dateTime.ToShortDateString());
+				logger.LogWarning(ex, "Exchange rate not found for {SourceCurrency}-{TargetCurrency} on {Date}. Assuming rate of 1", sourceCurrency, targetCurrency.Symbol, dateTime.ToShortDateString());
 			}
 
 			return 1;

@@ -144,6 +144,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return null;
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Needed for the functionality, splitting will not solve anything")]
 		private async Task<SymbolProfile?> FindByDataProvider(IEnumerable<string> ids, Currency? expectedCurrency, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass, bool includeIndexes)
 		{
 			var identifiers = ids.ToList();
