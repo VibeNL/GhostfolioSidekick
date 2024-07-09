@@ -32,12 +32,18 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			var foundTradeRepublic = false;
 			var foundSecurities = false;
+			var foundLanguage = false;
 
 			for (int i = 0; i < words.Count; i++)
 			{
 				if (IsCheckWords("TRADE REPUBLIC BANK GMBH", words, i))
 				{
 					foundTradeRepublic = true;
+				}
+
+				if (IsCheckWords(DATE, words, i))
+				{
+					foundLanguage = true;
 				}
 
 				if (
@@ -50,7 +56,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				}
 			}
 
-			return foundTradeRepublic && foundSecurities;
+			return foundLanguage && foundTradeRepublic && foundSecurities;
 		}
 	}
 }
