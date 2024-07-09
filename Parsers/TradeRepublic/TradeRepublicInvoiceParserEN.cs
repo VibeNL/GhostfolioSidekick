@@ -7,24 +7,24 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicInvoiceParserNL : TradeRepublicInvoiceParserBase
+	public class TradeRepublicInvoiceParserEN : TradeRepublicInvoiceParserBase
 	{
 		// EN
-		protected override string Keyword_Position => "POSITIE";
-		protected override string Keyword_Quantity => "AANTAL";
-		protected override string Keyword_Price => string.Empty;
-		protected override string Keyword_Amount => "BEDRAG";
-		protected override string Keyword_Nominal => string.Empty;
-		protected override string Keyword_Income => "OPBRENGST";
-		protected override string Keyword_Coupon => string.Empty;
-		protected override string Keyword_Total => "TOTAAL";
-		protected override string Keyword_AverageRate => string.Empty;
-		protected override string Keyword_Booking => string.Empty;
-		protected override string Keyword_Security => string.Empty;
-		protected override string Keyword_Number => string.Empty;
-		protected override string DATE => "DATUM";
+		protected override string Keyword_Position => "POSITION";
+		protected override string Keyword_Quantity => "QUANTITY";
+		protected override string Keyword_Price => "PRICE";
+		protected override string Keyword_Amount => "AMOUNT";
+		protected override string Keyword_Nominal => "NOMINAL";
+		protected override string Keyword_Income => "INCOME";
+		protected override string Keyword_Coupon => "COUPON";
+		protected override string Keyword_Total => "TOTAL";
+		protected override string Keyword_AverageRate => "AVERAGE RATE";
+		protected override string Keyword_Booking => "BOOKING";
+		protected override string Keyword_Security => "SECURITY";
+		protected override string Keyword_Number => "NO.";
+		protected override string DATE => "DATE";
 
-		public TradeRepublicInvoiceParserNL(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
+		public TradeRepublicInvoiceParserEN(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
 		}
 
