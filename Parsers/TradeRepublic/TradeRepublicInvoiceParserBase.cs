@@ -4,13 +4,11 @@ using GhostfolioSidekick.Model.ISIN;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
-using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
 	public abstract class TradeRepublicInvoiceParserBase : PdfBaseParser
 	{
-		// EN
 		protected abstract string Keyword_Position { get; }
 		protected abstract string Keyword_Quantity { get; }
 		protected abstract string Keyword_Price { get; }
@@ -47,6 +45,37 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected TradeRepublicInvoiceParserBase(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
+		}
+
+		protected override bool CanParseRecords(List<SingleWordToken> words)
+		{
+			var foundTradeRepublic = false;
+			var foundSecurities = false;
+			var foundLanguage = false;
+
+			for (int i = 0; i < words.Count; i++)
+			{
+				if (IsCheckWords("TRADE REPUBLIC BANK GMBH", words, i))
+				{
+					foundTradeRepublic = true;
+				}
+
+				if (IsCheckWords(DATE, words, i))
+				{
+					foundLanguage = true;
+				}
+
+				if (
+					IsCheckWords("SECURITIES SETTLEMENT", words, i) ||
+					IsCheckWords("DIVIDEND", words, i) ||
+					IsCheckWords("INTEREST PAYMENT", words, i) ||
+					IsCheckWords("REPAYMENT", words, i))
+				{
+					foundSecurities = true;
+				}
+			}
+
+			return foundLanguage && foundTradeRepublic && foundSecurities;
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Not needed for now")]

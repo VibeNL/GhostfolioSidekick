@@ -1,9 +1,4 @@
-﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Parsers.PDFParser;
-using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using System.Globalization;
-using System.Text.RegularExpressions;
+﻿using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -26,37 +21,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		public TradeRepublicInvoiceParserNL(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
-		}
-
-		protected override bool CanParseRecords(List<SingleWordToken> words)
-		{
-			var foundTradeRepublic = false;
-			var foundSecurities = false;
-			var foundLanguage = false;
-
-			for (int i = 0; i < words.Count; i++)
-			{
-				if (IsCheckWords("TRADE REPUBLIC BANK GMBH", words, i))
-				{
-					foundTradeRepublic = true;
-				}
-
-				if (IsCheckWords(DATE, words, i))
-				{
-					foundLanguage = true;
-				}
-
-				if (
-					IsCheckWords("SECURITIES SETTLEMENT", words, i) ||
-					IsCheckWords("DIVIDEND", words, i) ||
-					IsCheckWords("INTEREST PAYMENT", words, i) ||
-					IsCheckWords("REPAYMENT", words, i))
-				{
-					foundSecurities = true;
-				}
-			}
-
-			return foundLanguage && foundTradeRepublic && foundSecurities;
 		}
 	}
 }
