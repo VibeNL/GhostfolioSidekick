@@ -205,24 +205,16 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			var headerStrings = headers.Select(h => h.KeyWord).ToList();
 			if (headerStrings.Contains(Keyword_Quantity) && (headerStrings.Contains(Keyword_Price) || headerStrings.Contains(Keyword_AverageRate))) // Stocks
 			{
-				string? isin = GetIsin(words, ref i);
-
-				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
-
-				var quantity = decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture);
-				var price = decimal.Parse(words[i + 3].Text, CultureInfo.InvariantCulture);
-				var currencySymbol = words[i + 4].Text;
-				var total = decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture);
-
-				var currency = new Currency(currencySymbol);
+				var isin = GetIsin(words, ref i);
+				string id = GetId(dateTime, isin);
 
 				activities.Add(PartialActivity.CreateBuy(
-					currency,
+					new Currency(words[i + 4].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					quantity,
-					price,
-					new Money(currency, total),
+					decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture),
+					decimal.Parse(words[i + 3].Text, CultureInfo.InvariantCulture),
+					new Money(new Currency(words[i + 4].Text), decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture)),
 					id));
 
 				return i + 6;
@@ -230,24 +222,16 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			if (headerStrings.Contains(Keyword_Nominal) && headerStrings.Contains(Keyword_Price)) // Bonds
 			{
-				string? isin = GetIsin(words, ref i);
-
-				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
-
-				var nominal = decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture);
-				var price = decimal.Parse(words[i + 3].Text, CultureInfo.InvariantCulture);
-				var currencySymbol = words[i + 6].Text;
-				var total = decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture);
-
-				var currency = new Currency(currencySymbol);
+				var isin = GetIsin(words, ref i);
+				string id = GetId(dateTime, isin);
 
 				activities.Add(PartialActivity.CreateBuy(
-					currency,
+					new Currency(words[i + 6].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					nominal,
-					price / 100,
-					new Money(currency, total),
+					decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture),
+					decimal.Parse(words[i + 3].Text, CultureInfo.InvariantCulture) / 100,
+					new Money(new Currency(words[i + 6].Text), decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture)),
 					id));
 
 				return i + 6;
@@ -255,22 +239,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			if (headerStrings.Contains(Keyword_Income) || headerStrings.Contains(Keyword_Nominal)) // Dividends
 			{
-				string? isin = GetIsin(words, ref i);
-
-				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
-
-				var quantity = decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture);
-				var total = decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture);
-				var currencySymbol = words[i + 6].Text;
-
-				var currency = new Currency(currencySymbol);
+				var isin = GetIsin(words, ref i);
+				string id = GetId(dateTime, isin);
 
 				activities.Add(PartialActivity.CreateDividend(
-					currency,
+					new Currency(words[i + 6].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					total,
-					new Money(currency, total),
+					decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture),
+					new Money(new Currency(words[i + 6].Text), decimal.Parse(words[i + 5].Text, CultureInfo.InvariantCulture)),
 					id));
 
 				return i + 6;
@@ -279,27 +256,26 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			if (headerStrings.Contains(Keyword_Security) && headerStrings.Contains(Keyword_Booking)) // Repay of bonds
 			{
 				i = i + 2; // skip column "Number" and "Booking"
-				string? isin = GetIsin(words, ref i);
-
-				var id = $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
-
-				var total = decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture);
-				var currencySymbol = words[i + 2].Text;
-
-				var currency = new Currency(currencySymbol);
+				var isin = GetIsin(words, ref i);
+				string id = GetId(dateTime, isin);
 
 				activities.Add(PartialActivity.CreateBondRepay(
-					currency,
+					new Currency(words[i + 2].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					total,
-					new Money(currency, total),
+					decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture),
+					new Money(new Currency(words[i + 2].Text), decimal.Parse(words[i + 1].Text, CultureInfo.InvariantCulture)),
 					id));
 
 				return i + 2;
 			}
 
 			throw new NotSupportedException("Unknown security type");
+
+			static string GetId(DateTime dateTime, string isin)
+			{
+				return $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
+			}
 		}
 
 		private static string GetIsin(List<SingleWordToken> words, ref int i)
