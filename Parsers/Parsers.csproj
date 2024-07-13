@@ -22,4 +22,10 @@
 		<ProjectReference Include="..\Model\Model.csproj" />
 	</ItemGroup>
 
+<ItemGroup>
+	<SonarQubeSetting Include="sonar.cpd.exclusions">
+		<Value>**/*.cs</Value>
+	</SonarQubeSetting>
+</ItemGroup>
+
 </Project>
