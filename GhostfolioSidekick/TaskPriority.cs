@@ -4,6 +4,8 @@
 	{
 		DisplayInformation,
 
+		PrepareDatabaseTask,
+
 		AutomatedStockSplit,
 
 		AccountCreation,

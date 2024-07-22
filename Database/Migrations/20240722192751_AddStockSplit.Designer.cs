@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240722191059_AddStockSplit")]
+    [Migration("20240722192751_AddStockSplit")]
     partial class AddStockSplit
     {
         /// <inheritdoc />
@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Symbol")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -153,8 +153,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Database.Model.SymbolProfile", b =>
                 {
-                    b.Navigation("StockSplitList")
-                        .IsRequired();
+                    b.Navigation("StockSplitList");
                 });
 #pragma warning restore 612, 618
         }

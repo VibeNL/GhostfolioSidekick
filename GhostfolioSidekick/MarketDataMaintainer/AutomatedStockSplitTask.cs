@@ -17,6 +17,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		public async Task DoWork()
 		{
 			var dbContext = await DatabaseContext.GetDatabaseContext();
+
+
 		}
 	}
 }

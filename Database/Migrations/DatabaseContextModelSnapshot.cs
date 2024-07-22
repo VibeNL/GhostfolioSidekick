@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Symbol")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -150,8 +150,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Database.Model.SymbolProfile", b =>
                 {
-                    b.Navigation("StockSplitList")
-                        .IsRequired();
+                    b.Navigation("StockSplitList");
                 });
 #pragma warning restore 612, 618
         }

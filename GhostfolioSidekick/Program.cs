@@ -110,6 +110,8 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							services.AddScoped<IScheduledWork, GatherAllDataTask>();
+							services.AddScoped<IScheduledWork, AutomatedStockSplitTask>();
+							services.AddScoped<IScheduledWork, PrepareDatabaseTask>();
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();

@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false)
+                    Symbol = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

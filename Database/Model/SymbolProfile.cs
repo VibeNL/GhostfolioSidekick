@@ -18,6 +18,6 @@
 
 		public string? ISIN { get; set; }
 
-		public required StockSplitList StockSplitList { get; set; }
+		public StockSplitList? StockSplitList { get; set; }
 	}
 }
