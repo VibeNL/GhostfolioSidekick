@@ -4,6 +4,8 @@
 	{
 		DisplayInformation,
 
+		AutomatedStockSplit,
+
 		AccountCreation,
 
 		CreateManualSymbols,
