@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
-	internal class SymbolProfileTypeConfiguration : IEntityTypeConfiguration<SymbolProfile>
+	internal class StockSplitTypeConfiguration : IEntityTypeConfiguration<StockSplit>
 	{
-		public void Configure(EntityTypeBuilder<SymbolProfile> builder)
+		public void Configure(EntityTypeBuilder<StockSplit> builder)
 		{
-			builder.HasIndex(x => x.Symbol).IsUnique();
+			builder.HasIndex(x => new { x.SymbolProfileId, x.Date }).IsUnique();
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Database;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +16,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork()
 		{
-			using var db = new DatabaseContext();
-			
-
-
+			var dbContext = await DatabaseContext.GetDatabaseContext();
 		}
 	}
 }

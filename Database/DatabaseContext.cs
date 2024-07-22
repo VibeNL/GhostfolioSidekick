@@ -34,5 +34,12 @@ namespace GhostfolioSidekick.Database
 		{
 			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 		}
+
+		public static async Task<DatabaseContext> GetDatabaseContext()
+		{
+			var db = new DatabaseContext();
+			await db.Database.MigrateAsync();
+			return db;
+		}
 	}
 }
