@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GhostfolioSidekick.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class AddStockSplit : Migration
+    public partial class StockSplits : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -64,8 +64,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         name: "FK_StockSplitLists_SymbolProfiles_SymbolProfileId",
                         column: x => x.SymbolProfileId,
                         principalTable: "SymbolProfiles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -75,6 +74,8 @@ namespace GhostfolioSidekick.Database.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Date = table.Column<DateOnly>(type: "TEXT", nullable: false),
+                    FromAmount = table.Column<int>(type: "INTEGER", nullable: false),
+                    ToAmount = table.Column<int>(type: "INTEGER", nullable: false),
                     SymbolProfileId = table.Column<int>(type: "INTEGER", nullable: false),
                     StockSplitListId = table.Column<int>(type: "INTEGER", nullable: true)
                 },

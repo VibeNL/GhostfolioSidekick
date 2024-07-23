@@ -23,14 +23,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			var dbContext = await DatabaseContext.GetDatabaseContext();
 
-			foreach (var item in dbContext.SymbolProfiles.Where(x => x.AssetSubClass == Database.Model.AssetSubClass.Stock))
+			foreach (var item in dbContext.SymbolProfiles.Include(x => x.StockSplitList).Where(x => x.AssetSubClass == Database.Model.AssetSubClass.Stock))
 			{
 				if (item.StockSplitList != null)
 				{
 					continue;
 				}
 
-				// url https://financialmodelingprep.com/api/v3/historical-price-full/stock_split/NVDA?apikey=
+				// url https://financialmodelingprep.com/api/v3/historical-price-full/stock_split/NVDA?apikey=<key>
 				var url = $"https://financialmodelingprep.com/api/v3/historical-price-full/stock_split/{item.Symbol}?apikey={FinancialModelingPrepApiKey}";
 				var restRequest = new RestRequest(url, Method.Get);
 				var result = await restCallClient.GetAsync<SplitResult>(restRequest);
@@ -49,6 +49,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						SymbolProfile = item,
 						SymbolProfileId = item.Id
 					});
+					await dbContext.SaveChangesAsync();
 				}
 			}
 

@@ -41,10 +41,16 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("FromAmount")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("StockSplitListId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("SymbolProfileId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ToAmount")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -126,7 +132,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasOne("GhostfolioSidekick.Database.Model.SymbolProfile", "SymbolProfile")
                         .WithOne("StockSplitList")
                         .HasForeignKey("GhostfolioSidekick.Database.Model.StockSplitList", "SymbolProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("SymbolProfile");
