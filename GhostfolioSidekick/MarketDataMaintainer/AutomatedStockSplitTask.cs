@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 				}
 
-				var r = await stockSplitRepository.GetStockSplits(item.Symbol, new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+				var r = await stockSplitRepository.GetStockSplits(item.Symbol);
 
 				var splits = r.Select(r => new Database.Model.StockSplit
 				{
@@ -40,6 +40,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}).ToList();
 
 				item.StockSplitList = new StockSplitList { SymbolProfile = item, SymbolProfileId = item.Id, StockSplits = splits };
+				await dbContext.SaveChangesAsync();
 			}
 
 		}

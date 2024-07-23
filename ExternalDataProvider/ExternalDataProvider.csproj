@@ -10,6 +10,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="OoplesFinance.YahooFinanceAPI" Version="1.6.4" />
+	  <PackageReference Include="Polly" Version="8.4.1" />
 	</ItemGroup>
 
 	<ItemGroup>
