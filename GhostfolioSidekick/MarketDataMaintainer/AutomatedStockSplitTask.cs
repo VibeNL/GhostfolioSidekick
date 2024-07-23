@@ -1,7 +1,9 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Model;
+using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.EntityFrameworkCore;
+using Polly.Caching;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -11,10 +13,8 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class AutomatedStockSplitTask(IRestClient restCallClient) : IScheduledWork
+	internal partial class AutomatedStockSplitTask(IStockSplitRepository stockSplitRepository) : IScheduledWork
 	{
-		private readonly object FinancialModelingPrepApiKey = "";
-
 		public TaskPriority Priority => TaskPriority.AutomatedStockSplit;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
@@ -30,44 +30,18 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 				}
 
-				// url https://financialmodelingprep.com/api/v3/historical-price-full/stock_split/NVDA?apikey=<key>
-				var url = $"https://financialmodelingprep.com/api/v3/historical-price-full/stock_split/{item.Symbol}?apikey={FinancialModelingPrepApiKey}";
-				var restRequest = new RestRequest(url, Method.Get);
-				var result = await restCallClient.GetAsync<SplitResult>(restRequest);
+				var r = await stockSplitRepository.GetStockSplits(item.Symbol, new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc));
 
-				if (result != null)
+				var splits = r.Select(r => new Database.Model.StockSplit
 				{
-					await dbContext.StockSplitLists.AddAsync(new StockSplitList
-					{
-						StockSplits = result.Historical.Select(x => new StockSplit
-						{
-							Date = x.Date,
-							ToAmount = x.Numerator,
-							FromAmount = x.Denominator,
-							SymbolProfileId = item.Id
-						}).ToList(),
-						SymbolProfile = item,
-						SymbolProfileId = item.Id
-					});
-					await dbContext.SaveChangesAsync();
-				}
+					Date = DateOnly.FromDateTime(r.Date),
+					FromAmount = r.FromFactor,
+					ToAmount = r.ToFactor,
+				}).ToList();
+
+				item.StockSplitList = new StockSplitList { SymbolProfile = item, SymbolProfileId = item.Id, StockSplits = splits };
 			}
 
-		}
-
-		public class SplitResult
-		{
-			public required string Symbol { get; set; }
-			public required List<Split> Historical { get; set; }
-		}
-
-		public class Split
-		{
-			public DateOnly Date { get; set; }
-
-			public required int Numerator { get; set; }
-
-			public required int Denominator { get; set; }
 		}
 	}
 }

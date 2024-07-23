@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
@@ -99,6 +100,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<IActivitiesService, ActivitiesService>();
 							services.AddSingleton<IAccountService, AccountService>();
 							services.AddSingleton<IMarketDataService, MarketDataService>();
+							services.AddSingleton<IStockSplitRepository, StockSplitRepository>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							services.AddScoped<IScheduledWork, FileImporterTask>();
