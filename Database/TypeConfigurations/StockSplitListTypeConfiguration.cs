@@ -16,7 +16,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			builder.HasOne(x => x.SymbolProfile)
 				.WithOne(x => x.StockSplitList)
-				.HasForeignKey<StockSplitList>(x => x.SymbolProfileId);
+				.HasForeignKey<StockSplitList>(x => x.SymbolProfileId)
+				.OnDelete(DeleteBehavior.ClientCascade);
 		}
 	}
 }
