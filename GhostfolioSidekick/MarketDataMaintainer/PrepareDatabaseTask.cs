@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Model;
 using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -44,6 +45,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						Name = record.Name,
 						Currency = currency,
 						DataSource = record.DataSource,
+						AssetClass = Enum.Parse<AssetClass>(record.AssetClass.ToString()),
+						AssetSubClass = record.AssetSubClass != null ? Enum.Parse<AssetSubClass>(record.AssetSubClass!.ToString()!) : null
 					});
 				}
 				else
@@ -51,12 +54,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					profile.Name = record.Name;
 					profile.Currency = currency;
 					profile.DataSource = record.DataSource;
+					profile.AssetClass = Enum.Parse<AssetClass>(record.AssetClass.ToString());
+					profile.AssetSubClass = record.AssetSubClass != null ? Enum.Parse<AssetSubClass>(record.AssetSubClass!.ToString()!) : null;
 				}
 			}
 
 			await dbContext.SaveChangesAsync();
 
-			foreach (var symbol in dbContext.SymbolProfiles.ToList().Where(x => !marketData.Any(s => s.Symbol == x.Symbol)))
+			foreach (var symbol in (await dbContext.SymbolProfiles.ToListAsync()).Where(x => !marketData.Any(s => s.Symbol == x.Symbol)))
 			{
 				dbContext.SymbolProfiles.Remove(symbol);
 			}
