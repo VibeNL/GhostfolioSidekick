@@ -32,6 +32,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						Symbol = record.Currency.Symbol
 					};
 					await dbContext.Currencies.AddAsync(currency);
+					await dbContext.SaveChangesAsync();
 				}
 
 				var profile = await dbContext.SymbolProfiles.FirstOrDefaultAsync(s => s.Symbol == record.Symbol);
@@ -51,8 +52,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					profile.Currency = currency;
 					profile.DataSource = record.DataSource;
 				}
-				
 			}
+
+			await dbContext.SaveChangesAsync();
+
+			foreach (var symbol in dbContext.SymbolProfiles.ToList().Where(x => !marketData.Any(s => s.Symbol == x.Symbol)))
+			{
+				dbContext.SymbolProfiles.Remove(symbol);
+			}
+
+			await dbContext.SaveChangesAsync();
 		}
 	}
 }
