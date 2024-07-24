@@ -38,21 +38,13 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		{
 			var yahooClient = new YahooClient();
 
-			try
+			var r = policy.Execute(() => yahooClient.GetStockSplitDataAsync(symbol, OoplesFinance.YahooFinanceAPI.Enums.DataFrequency.Daily, new DateTime(1000, 1, 1, 0, 0, 0, DateTimeKind.Utc)).GetAwaiter().GetResult());
+			return r.Select(r => new StockSplit
 			{
-				var r = policy.Execute(() => yahooClient.GetStockSplitDataAsync(symbol, OoplesFinance.YahooFinanceAPI.Enums.DataFrequency.Daily, new DateTime(1000, 1, 1, 0, 0, 0, DateTimeKind.Utc)).GetAwaiter().GetResult());
-				return r.Select(r => new StockSplit
-				{
-					Date = r.Date,
-					FromFactor = GetSplit(r, false),
-					ToFactor = GetSplit(r, true),
-				});
-			}
-			catch (Exception e)
-			{
-				logger.LogWarning($"Failed to get stock split information for {symbol}");
-				return [];
-			}
+				Date = r.Date,
+				FromFactor = GetSplit(r, false),
+				ToFactor = GetSplit(r, true),
+			});
 		}
 
 		private static int GetSplit(StockSplitData r, bool to)

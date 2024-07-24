@@ -44,10 +44,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<int>("FromAmount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("StockSplitListId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("SymbolProfileId")
+                    b.Property<int>("StockSplitListId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("ToAmount")
@@ -55,9 +52,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StockSplitListId");
-
-                    b.HasIndex("SymbolProfileId", "Date")
+                    b.HasIndex("StockSplitListId", "Date")
                         .IsUnique();
 
                     b.ToTable("StockSplits");
@@ -122,9 +117,13 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Database.Model.StockSplit", b =>
                 {
-                    b.HasOne("GhostfolioSidekick.Database.Model.StockSplitList", null)
+                    b.HasOne("GhostfolioSidekick.Database.Model.StockSplitList", "StockSplitList")
                         .WithMany("StockSplits")
-                        .HasForeignKey("StockSplitListId");
+                        .HasForeignKey("StockSplitListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StockSplitList");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Database.Model.StockSplitList", b =>

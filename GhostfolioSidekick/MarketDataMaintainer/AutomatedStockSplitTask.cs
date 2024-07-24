@@ -3,6 +3,7 @@ using GhostfolioSidekick.Database.Model;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Polly.Caching;
 using RestSharp;
 using System;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal partial class AutomatedStockSplitTask(IStockSplitRepository stockSplitRepository) : IScheduledWork
+	internal partial class AutomatedStockSplitTask(IStockSplitRepository stockSplitRepository, ILogger<AutomatedStockSplitTask> logger) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.AutomatedStockSplit;
 
@@ -30,19 +31,26 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 				}
 
-				var r = await stockSplitRepository.GetStockSplits(item.Symbol);
-
-				var splits = r.Select(r => new Database.Model.StockSplit
+				try
 				{
-					Date = DateOnly.FromDateTime(r.Date),
-					FromAmount = r.FromFactor,
-					ToAmount = r.ToFactor,
-				}).ToList();
+					var r = await stockSplitRepository.GetStockSplits(item.Symbol);
 
-				item.StockSplitList = new StockSplitList { SymbolProfile = item, SymbolProfileId = item.Id, StockSplits = splits };
-				await dbContext.SaveChangesAsync();
+					var splits = r.Select(r => new Database.Model.StockSplit
+					{
+						Date = DateOnly.FromDateTime(r.Date),
+						FromAmount = r.FromFactor,
+						ToAmount = r.ToFactor,
+					}).ToList();
+
+					item.StockSplitList = new StockSplitList { SymbolProfile = item, SymbolProfileId = item.Id, StockSplits = splits };
+					logger.LogDebug("Got stock splits for {symbol}", item.Symbol);
+					await dbContext.SaveChangesAsync();
+				}
+				catch
+				{
+					logger.LogWarning("Failed to get stock splits for {symbol}", item.Symbol);
+				}
 			}
-
 		}
 	}
 }

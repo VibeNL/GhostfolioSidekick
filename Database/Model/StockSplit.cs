@@ -10,6 +10,8 @@
 
 		public int ToAmount { get; set;  }
 
-		public int SymbolProfileId { get; set; }
+		public int StockSplitListId { get; set; }
+
+		public StockSplitList StockSplitList { get; set; }
 	}
 }

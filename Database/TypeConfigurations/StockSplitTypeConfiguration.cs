@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 	{
 		public void Configure(EntityTypeBuilder<StockSplit> builder)
 		{
-			builder.HasIndex(x => new { x.SymbolProfileId, x.Date }).IsUnique();
+			builder.HasIndex(x => new { x.StockSplitListId, x.Date }).IsUnique();
 		}
 	}
 }

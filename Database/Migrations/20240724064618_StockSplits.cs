@@ -76,8 +76,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     Date = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     FromAmount = table.Column<int>(type: "INTEGER", nullable: false),
                     ToAmount = table.Column<int>(type: "INTEGER", nullable: false),
-                    SymbolProfileId = table.Column<int>(type: "INTEGER", nullable: false),
-                    StockSplitListId = table.Column<int>(type: "INTEGER", nullable: true)
+                    StockSplitListId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -86,7 +85,8 @@ namespace GhostfolioSidekick.Database.Migrations
                         name: "FK_StockSplits_StockSplitLists_StockSplitListId",
                         column: x => x.StockSplitListId,
                         principalTable: "StockSplitLists",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -96,14 +96,9 @@ namespace GhostfolioSidekick.Database.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_StockSplits_StockSplitListId",
+                name: "IX_StockSplits_StockSplitListId_Date",
                 table: "StockSplits",
-                column: "StockSplitListId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StockSplits_SymbolProfileId_Date",
-                table: "StockSplits",
-                columns: new[] { "SymbolProfileId", "Date" },
+                columns: new[] { "StockSplitListId", "Date" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
