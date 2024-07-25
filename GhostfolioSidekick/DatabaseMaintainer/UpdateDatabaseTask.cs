@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.DatabaseMaintainer
 	{
 		public TaskPriority Priority => TaskPriority.PrepareDatabaseTask;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
+		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
 		public async Task DoWork()
 		{
