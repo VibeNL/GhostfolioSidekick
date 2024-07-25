@@ -12,9 +12,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GhostfolioSidekick.MarketDataMaintainer
+namespace GhostfolioSidekick.DatabaseMaintainer
 {
-	internal partial class AutomatedStockSplitTask(IStockSplitRepository stockSplitRepository, ILogger<AutomatedStockSplitTask> logger) : IScheduledWork
+	internal partial class UpdateStockSplits(IStockSplitRepository stockSplitRepository, ILogger logger)
 	{
 		public TaskPriority Priority => TaskPriority.AutomatedStockSplit;
 
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			var dbContext = await DatabaseContext.GetDatabaseContext();
 
-			foreach (var item in dbContext.SymbolProfiles.Include(x => x.StockSplitList).Where(x => x.AssetSubClass == Database.Model.AssetSubClass.Stock))
+			foreach (var item in dbContext.SymbolProfiles.Include(x => x.StockSplitList).Where(x => x.AssetSubClass == AssetSubClass.Stock))
 			{
 				if (item.StockSplitList != null)
 				{
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				{
 					var r = await stockSplitRepository.GetStockSplits(item.Symbol);
 
-					var splits = r.Select(r => new Database.Model.StockSplit
+					var splits = r.Select(r => new StockSplit
 					{
 						Date = DateOnly.FromDateTime(r.Date),
 						FromAmount = r.FromFactor,

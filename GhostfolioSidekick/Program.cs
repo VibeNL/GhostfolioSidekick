@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.DatabaseMaintainer;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
@@ -112,8 +113,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							services.AddScoped<IScheduledWork, GatherAllDataTask>();
-							services.AddScoped<IScheduledWork, AutomatedStockSplitTask>();
-							services.AddScoped<IScheduledWork, PrepareDatabaseTask>();
+							services.AddScoped<IScheduledWork, UpdateDatabaseTask>();
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();
