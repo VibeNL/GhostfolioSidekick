@@ -48,10 +48,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_buy_usd.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
-			IEnumerable<PartialActivity> partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance);
-			partialActivities.Should().BeEquivalentTo(
-				[
-					PartialActivity.CreateBuy(
+			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+
+			var currencyConversion = PartialActivity.CreateCurrencyConvert(
+						new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
+						new Money(Currency.GBP, 82.8M),
+						new Money(Currency.USD, 106.55M),
+						new Money(Currency.GBP, 0.43M),
+						"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d");
+			IEnumerable<PartialActivity> expectation = [
+								PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("US40434L1052")],
@@ -70,8 +76,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
 						0.43M,
 						new Money(Currency.GBP, 0.43M),
-						"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d")
-				]);
+						"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
+
+				];
+			partialActivities.Should().BeEquivalentTo(
+				expectation.Union(currencyConversion));
 		}
 
 		[Fact]
