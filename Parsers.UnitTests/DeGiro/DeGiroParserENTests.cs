@@ -50,37 +50,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Assert
 			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
-			var currencyConversion = PartialActivity.CreateCurrencyConvert(
-						new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
-						new Money(Currency.GBP, 82.8M),
-						new Money(Currency.USD, 106.55M),
-						new Money(Currency.GBP, 0.43M),
-						"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d");
 			IEnumerable<PartialActivity> expectation = [
-								PartialActivity.CreateBuy(
-						Currency.USD,
-						new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US40434L1052")],
-						5,
-						21.31m,
-						new Money(Currency.USD, 106.55M),
-						"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
-					PartialActivity.CreateFee(
-						Currency.GBP,
-						new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
-						0.02M,
-						new Money(Currency.GBP, 0.02M),
-						"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
-					PartialActivity.CreateFee(
-						Currency.GBP,
-						new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
-						0.43M,
-						new Money(Currency.GBP, 0.43M),
-						"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
-
+						PartialActivity.CreateBuy(
+							Currency.USD,
+							new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateStockAndETF("US40434L1052")],
+							5,
+							21.31m,
+							new Money(Currency.USD, 106.55M),
+							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
+						PartialActivity.CreateFee(
+							Currency.GBP,
+							new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
+							0.02M,
+							new Money(Currency.GBP, 0.02M),
+							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
+						PartialActivity.CreateFee(
+							Currency.GBP,
+							new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
+							0.43M,
+							new Money(Currency.GBP, 0.43M),
+							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
 				];
-			partialActivities.Should().BeEquivalentTo(
-				expectation.Union(currencyConversion));
+			partialActivities.Should().BeEquivalentTo(expectation);
 		}
 
 		[Fact]
