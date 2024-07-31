@@ -82,21 +82,21 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public override decimal GetQuantity()
 		{
-			var quantity = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)").Groups[2].Value;
+			var quantity = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		public override decimal GetUnitPrice()
 		{
-			var quantity = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)").Groups[3].Value;
+			var quantity = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[3].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		public override Currency GetCurrency(ICurrencyMapper currencyMapper)
 		{
-			var currency = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)").Groups[4].Value;
+			var currency = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[4].Value;
 
 			return currencyMapper.Map(currency);
 		}
