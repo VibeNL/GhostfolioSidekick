@@ -23,14 +23,14 @@ namespace GhostfolioSidekick.DatabaseMaintainer
 
 			foreach (var item in dbContext.SymbolProfiles.Include(x => x.StockSplitList).Where(x => x.AssetSubClass == AssetSubClass.Stock))
 			{
-				if (item.StockSplitList != null && item.StockSplitList.LastUpdate >= DateTime.Today)
+				if (item.StockSplitList?.LastUpdate >= DateTime.Today)
 				{
 					continue;
 				}
 
 				try
 				{
-					var r = await stockSplitRepository.GetStockSplits(item.Symbol);
+					var r = await stockSplitRepository.GetStockSplits(item);
 
 					var splits = r.Select(r => new StockSplit
 					{

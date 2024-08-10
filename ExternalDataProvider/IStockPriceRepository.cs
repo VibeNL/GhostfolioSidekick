@@ -3,8 +3,8 @@ using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.ExternalDataProvider
 {
-	public interface IStockSplitRepository
+	public interface IStockPriceRepository
 	{
-		Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol);
+		Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol);
 	}
 }

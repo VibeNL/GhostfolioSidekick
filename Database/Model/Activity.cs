@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.Database.Model
 {
-	public class Currency
+	public class Activity
 	{
-		public required string Symbol { get; set; }
+		public DateTime Date { get; set; }
 	}
 }

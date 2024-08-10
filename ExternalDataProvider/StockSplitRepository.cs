@@ -1,4 +1,6 @@
-﻿using GhostfolioSidekick.Model.Market;
+﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OoplesFinance.YahooFinanceAPI;
@@ -18,7 +20,7 @@ namespace GhostfolioSidekick.ExternalDataProvider
 
 	public class StockSplitRepository : IStockSplitRepository
 	{
-		private Policy policy;
+		private readonly Policy policy;
 		private readonly ILogger<StockSplitRepository> logger;
 
 		public StockSplitRepository(ILogger<StockSplitRepository> logger)
@@ -34,11 +36,16 @@ namespace GhostfolioSidekick.ExternalDataProvider
 			this.logger = logger;
 		}
 
-		public async Task<IEnumerable<StockSplit>> GetStockSplits(string symbol)
+		public async Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol)
 		{
+			if (symbol?.AssetSubClass != AssetSubClass.Stock)
+			{
+				return [];
+			}
+
 			var yahooClient = new YahooClient();
 
-			var r = policy.Execute(() => yahooClient.GetStockSplitDataAsync(symbol, OoplesFinance.YahooFinanceAPI.Enums.DataFrequency.Daily, new DateTime(1000, 1, 1, 0, 0, 0, DateTimeKind.Utc)).GetAwaiter().GetResult());
+			var r = await policy.Execute(async () => await yahooClient.GetStockSplitDataAsync(symbol.Symbol, OoplesFinance.YahooFinanceAPI.Enums.DataFrequency.Daily, new DateTime(1000, 1, 1, 0, 0, 0, DateTimeKind.Utc)));
 			return r.Select(r => new StockSplit
 			{
 				Date = r.Date,

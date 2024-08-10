@@ -19,5 +19,9 @@
 		public string? ISIN { get; set; }
 
 		public StockSplitList? StockSplitList { get; set; }
+
+		public StockPriceList? StockPricesList { get; set; }
+		
+		public IEnumerable<Activity> Activities { get; set; }
 	}
 }
