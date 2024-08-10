@@ -4,9 +4,7 @@
 	{
 		DisplayInformation,
 
-		PrepareDatabaseTask,
-
-		AutomatedStockSplit,
+		PrepareDatabaseTask, // TODO: Move after manual prices
 
 		AccountCreation,
 

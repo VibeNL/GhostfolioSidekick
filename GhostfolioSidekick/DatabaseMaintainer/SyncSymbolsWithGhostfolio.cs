@@ -1,27 +1,15 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Model;
 using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
-using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GhostfolioSidekick.MarketDataMaintainer
+namespace GhostfolioSidekick.DatabaseMaintainer
 {
-	internal class PrepareDatabaseTask(IMarketDataService marketDataService) : IScheduledWork
+	internal class SyncSymbolsWithGhostfolio(IMarketDataService marketDataService)
 	{
-		public TaskPriority Priority => TaskPriority.PrepareDatabaseTask;
-
-		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
-
-		public async Task DoWork()
+		public async Task Sync()
 		{
-			var dbContext = await DatabaseContext.GetDatabaseContext();
-
+			using var dbContext = await DatabaseContext.GetDatabaseContext();
 			var marketData = (await marketDataService.GetAllSymbolProfiles()).ToList();
 			foreach (var record in marketData)
 			{
@@ -58,7 +46,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					profile.AssetSubClass = record.AssetSubClass != null ? Enum.Parse<AssetSubClass>(record.AssetSubClass!.ToString()!) : null;
 				}
 			}
-
 			await dbContext.SaveChangesAsync();
 
 			foreach (var symbol in (await dbContext.SymbolProfiles.ToListAsync()).Where(x => !marketData.Any(s => s.Symbol == x.Symbol)))

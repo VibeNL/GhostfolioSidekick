@@ -12,21 +12,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GhostfolioSidekick.MarketDataMaintainer
+namespace GhostfolioSidekick.DatabaseMaintainer
 {
-	internal partial class AutomatedStockSplitTask(IStockSplitRepository stockSplitRepository, ILogger<AutomatedStockSplitTask> logger) : IScheduledWork
+	internal partial class UpdateStockSplits(IStockSplitRepository stockSplitRepository, ILogger logger)
 	{
-		public TaskPriority Priority => TaskPriority.AutomatedStockSplit;
-
-		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
-
 		public async Task DoWork()
 		{
 			var dbContext = await DatabaseContext.GetDatabaseContext();
+			var dateTime = DateTime.Now;
 
-			foreach (var item in dbContext.SymbolProfiles.Include(x => x.StockSplitList).Where(x => x.AssetSubClass == Database.Model.AssetSubClass.Stock))
+			foreach (var item in dbContext.SymbolProfiles.Include(x => x.StockSplitList).Where(x => x.AssetSubClass == AssetSubClass.Stock))
 			{
-				if (item.StockSplitList != null)
+				if (item.StockSplitList != null && item.StockSplitList.LastUpdate >= DateTime.Today)
 				{
 					continue;
 				}
@@ -35,14 +32,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				{
 					var r = await stockSplitRepository.GetStockSplits(item.Symbol);
 
-					var splits = r.Select(r => new Database.Model.StockSplit
+					var splits = r.Select(r => new StockSplit
 					{
 						Date = DateOnly.FromDateTime(r.Date),
 						FromAmount = r.FromFactor,
 						ToAmount = r.ToFactor,
 					}).ToList();
 
-					item.StockSplitList = new StockSplitList { SymbolProfile = item, SymbolProfileId = item.Id, StockSplits = splits };
+					item.StockSplitList = new StockSplitList { SymbolProfile = item, SymbolProfileId = item.Id, StockSplits = splits, LastUpdate = dateTime };
 					logger.LogDebug("Got stock splits for {symbol}", item.Symbol);
 					await dbContext.SaveChangesAsync();
 				}

@@ -15,5 +15,7 @@ namespace GhostfolioSidekick.Database.Model
 		public required SymbolProfile SymbolProfile { get; set; }
 
 		public required List<StockSplit> StockSplits { get; set; }
+
+		public DateTime LastUpdate { get; set; }
 	}
 }
