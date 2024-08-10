@@ -41,6 +41,7 @@
 	<ItemGroup>
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
+		<Folder Include="TestFiles\DeGiro\EN\SellOrders\" />
 		<Folder Include="TestFiles\TradeRepublic\NL\BuyOrders\" />
 	</ItemGroup>
 
@@ -150,6 +151,12 @@
 		</None>
 		<None Update="TestFiles\Coinbase\Specials\single_stakereward_alt.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\EN\BuyOrders\single_buy_usd.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\EN\CashTransactions\single_dividend.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_euro.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
