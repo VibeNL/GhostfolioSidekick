@@ -8,115 +8,95 @@ using System.Text.RegularExpressions;
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
 	[Delimiter(",")]
-	public class DeGiroRecordPT : DeGiroRecordBase
+	public class DeGiroRecordEN : DeGiroRecordBase
 	{
 		[Format("dd-MM-yyyy")]
-		[Name("Data")]
+		[Name("Date")]
 		public override DateOnly Date { get; set; }
 
-		[Name("Hora")]
+		[Name("Time")]
 		public override TimeOnly Time { get; set; }
 
 		[ExcludeFromCodeCoverage]
-		[Name("Data Valor")]
+		[Name("Value date")]
 		[Format("dd-MM-yyyy")]
 		public override DateOnly CurrencyDate { get; set; }
 
-		[Name("Produto")]
+		[Name("Product")]
 		public override string? Product { get; set; }
 
 		[Name("ISIN")]
 		public override string? ISIN { get; set; }
 
-		[Name("Descrição")]
+		[Name("Description")]
 		public override required string Description { get; set; }
 
 		[ExcludeFromCodeCoverage]
-		[Name("T.")]
+		[Name("FX")]
 		public override string? FX { get; set; }
 
-		[Name("Mudança")]
+		[Name("Change")]
 		public override required string Mutation { get; set; }
 
 		[Index(8)]
 		public override decimal? Total { get; set; }
 
-		[Name("Saldo")]
+		[Name("Balance")]
 		public override required string BalanceCurrency { get; set; }
 
 		[Index(10)]
 		public override decimal Balance { get; set; }
 
-		[Name("ID da Ordem")]
+		[Name("Order Id")]
 		public override string? TransactionId { get; set; }
 
 		public override PartialActivityType? GetActivityType()
 		{
-			if (string.IsNullOrWhiteSpace(Description))
-			{
-				return null;
-			}
-
-			if (Description == "Comissões de transação DEGIRO e/ou taxas de terceiros")
+			if (Description.Equals("DEGIRO Transaction and/or third party fees"))
 			{
 				return PartialActivityType.Fee;
 			}
 
-			if (Description.Contains("Venda"))
+			if (Description.Equals("Dividend Tax"))
+			{
+				return PartialActivityType.Tax;
+			}
+
+			if (Description.Contains("Sell"))
 			{
 				return PartialActivityType.Sell;
 			}
 
-			if (Description.Contains("Compra"))
+			if (Description.Contains("Buy"))
 			{
 				return PartialActivityType.Buy;
 			}
 
-			if (Description.Equals("Dividendo"))
+			if (Description.Equals("Dividend"))
 			{
 				return PartialActivityType.Dividend;
 			}
-
-			if (Description.Equals("Processed Flatex Withdrawal"))
-			{
-				return PartialActivityType.CashWithdrawal;
-			}
-
-			if (Description.Contains("Depósitos"))
-			{
-				return PartialActivityType.CashDeposit;
-			}
-
-			if (Description.Contains("Flatex Interest Income"))
-			{
-				return PartialActivityType.Interest;
-			}
-
-			if (Description.Contains("Custo de Conectividade DEGIRO"))
-			{
-				return PartialActivityType.Fee;
-			}
-
+			
 			return null;
 		}
 
 		public override decimal GetQuantity()
 		{
-			var quantity = Regex.Match(Description!, "[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[2].Value;
+			var quantity = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[2].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		public override decimal GetUnitPrice()
 		{
-			var quantity = Regex.Match(Description!, "[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[3].Value;
+			var quantity = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[3].Value;
 
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
 		public override Currency GetCurrency(ICurrencyMapper currencyMapper)
 		{
-			var currency = Regex.Match(Description!, "[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[4].Value;
+			var currency = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[4].Value;
 
 			return currencyMapper.Map(currency);
 		}
@@ -130,6 +110,12 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			var activity = GetActivityType();
 			var mutation = Mutation;
+			const string dividendText = "Dividend";
+			if (Description.StartsWith(dividendText))
+			{
+				mutation = dividendText;
+				activity = PartialActivityType.Dividend;
+			}
 
 			TransactionId = $"{activity}_{recordDate.ToInvariantString()}_{Product}_{ISIN}_{mutation}";
 		}
@@ -140,7 +126,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			{
 				NumberFormat =
 				{
-					NumberDecimalSeparator = ","
+					NumberDecimalSeparator = "."
 				}
 			};
 		}
