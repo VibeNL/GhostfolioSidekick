@@ -3,23 +3,37 @@ using GhostfolioSidekick.Model.Market;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
 	public sealed class SymbolProfile : IEquatable<SymbolProfile>
 	{
-		private string? comment;
-		private readonly List<string> identifiers = [];
+		internal SymbolProfile()
+		{
+			// EF Core
+			Symbol = null!;
+			Name = null!;
+			Currency = null!;
+			DataSource = null!;
+			AssetClass = 0;
+			AssetSubClass = null!;
+			CountryWeight = null!;
+			SectorWeights = null!;
+			Identifiers = new List<string>();
+		}
 
+		[SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "DDD")]
 		public SymbolProfile(
 			string symbol,
 			string name,
+			List<string> identifiers,
 			Currency currency,
 			string dataSource,
 			AssetClass assetClass,
 			AssetSubClass? assetSubClass,
-			Country[] countries,
-			Sector[] sectors)
+			CountryWeight[] countries,
+			SectorWeight[] sectors)
 		{
 			Symbol = symbol;
 			Name = name;
@@ -27,8 +41,9 @@ namespace GhostfolioSidekick.Model.Symbols
 			DataSource = dataSource;
 			AssetClass = assetClass;
 			AssetSubClass = assetSubClass;
-			Countries = countries;
-			Sectors = sectors;
+			CountryWeight = countries;
+			SectorWeights = sectors;
+			Identifiers = identifiers;
 		}
 
 		public Currency Currency { get; set; }
@@ -45,53 +60,13 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string? ISIN { get; set; }
 
-		public MarketDataMappings Mappings { get; } = new MarketDataMappings();
+		public List<string> Identifiers { get; set; }
 
-		public ScraperConfiguration ScraperConfiguration { get; set; } = new ScraperConfiguration();
+		public string? Comment { get; set; }
 
-		public ReadOnlyCollection<string> Identifiers { get => new(identifiers); }
+		public IEnumerable<CountryWeight> CountryWeight { get; set; }
 
-		public string? Comment
-		{
-			get => comment;
-			set
-			{
-				comment = value;
-				ParseIdentifiers();
-			}
-		}
-
-		public int ActivitiesCount { get; set; }
-
-		public IEnumerable<Country> Countries { get; set; }
-
-		public IEnumerable<Sector> Sectors { get; set; }
-
-		public void AddIdentifier(string id)
-		{
-			identifiers.Add(id);
-			comment = $"Known Identifiers: [{string.Join(',', identifiers)}]";
-		}
-
-		private void ParseIdentifiers()
-		{
-			if (comment == null)
-			{
-				return;
-			}
-
-			var pattern = @"Known Identifiers: \[(.*?)\]";
-			var match = Regex.Match(comment, pattern);
-			var ids = match.Groups.Count > 1 ? match.Groups[1].Value : null;
-
-			if (string.IsNullOrEmpty(ids))
-			{
-				return;
-			}
-
-			identifiers.Clear();
-			identifiers.AddRange(ids.Split(','));
-		}
+		public IEnumerable<SectorWeight> SectorWeights { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		public bool Equals(SymbolProfile? other)

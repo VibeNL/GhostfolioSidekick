@@ -1,18 +1,20 @@
 ﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace GhostfolioSidekick.Database
 {
 	internal class DatabaseContext : DbContext
 	{
-		public DbSet<StockSplit> StockSplits { get; set; }
+		public DbSet<Platform> Platforms { get; set; }
+
+		public DbSet<Account> Accounts { get; set; }
 
 		public DbSet<SymbolProfile> SymbolProfiles { get; set; }
-
-		public DbSet<Currency> Currencies { get; set; }
 
 		public string DbPath { get; }
 

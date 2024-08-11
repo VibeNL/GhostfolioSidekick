@@ -1,12 +1,25 @@
 ﻿namespace GhostfolioSidekick.Model
 {
-	public class Money(Currency currency, decimal amount)
-	{
-		public decimal Amount { get; set; } = amount;
+	public class Money
+    {
+        public decimal Amount { get; set; }
 
-		public Currency Currency { get; set; } = currency;
+		public Currency Currency { get; set; }
 
-		public override bool Equals(object? obj)
+		internal Money()
+		{
+			// EF Core
+			Amount = 0;
+			Currency = Currency.USD;
+		}
+
+		public Money(Currency currency, decimal amount)
+        {
+			Amount = amount;
+			Currency = currency;
+		}
+
+        public override bool Equals(object? obj)
 		{
 			return obj is Money money &&
 				   Currency.Equals(money.Currency) &&
