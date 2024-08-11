@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,8 @@ namespace GhostfolioSidekick.Database
 		public DbSet<Account> Accounts { get; set; }
 
 		public DbSet<SymbolProfile> SymbolProfiles { get; set; }
+
+		public DbSet<Holding> Holdings { get; set; }
 
 		public string DbPath { get; }
 

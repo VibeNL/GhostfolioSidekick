@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.Model.Compare
 {
 	public sealed class MergeOrder
 	{
-		public MergeOrder(Operation operation, SymbolProfile symbolProfile, IActivity order1)
+		public MergeOrder(Operation operation, SymbolProfile symbolProfile, Activity order1)
 		{
 			Operation = operation;
 			SymbolProfile = symbolProfile;
@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Model.Compare
 			Order2 = null;
 		}
 
-		public MergeOrder(Operation operation, SymbolProfile symbolProfile, IActivity order1, IActivity order2) : this(operation, symbolProfile, order1)
+		public MergeOrder(Operation operation, SymbolProfile symbolProfile, Activity order1, Activity order2) : this(operation, symbolProfile, order1)
 		{
 			Order2 = order2;
 		}
@@ -22,8 +22,8 @@ namespace GhostfolioSidekick.Model.Compare
 
 		public SymbolProfile SymbolProfile { get; }
 
-		public IActivity Order1 { get; }
+		public Activity Order1 { get; }
 
-		public IActivity? Order2 { get; }
+		public Activity? Order2 { get; }
 	}
 }

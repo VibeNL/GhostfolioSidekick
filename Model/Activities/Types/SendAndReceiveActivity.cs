@@ -4,35 +4,17 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record SendAndReceiveActivity : BaseActivity<SendAndReceiveActivity>, IActivityWithQuantityAndUnitPrice
+	public record SendAndReceiveActivity : ActivityWithQuantityAndUnitPrice
 	{
 		public SendAndReceiveActivity(
 		Account account,
 		DateTime dateTime,
 		decimal amount,
-		string? transactionId)
+		string? transactionId) : base(account, dateTime, amount, null, transactionId, null, null)
 		{
-			Account = account;
-			Date = dateTime;
-			Quantity = amount;
-			TransactionId = transactionId;
 		}
 
-		public override Account Account { get; }
-
-		public override DateTime Date { get; }
-
-		public decimal Quantity { get; set; }
-
-		public Money? UnitPrice { get; set; }
-
 		public IEnumerable<Money> Fees { get; set; } = [];
-
-		public override string? TransactionId { get; set; }
-
-		public override int? SortingPriority { get; set; }
-
-		public override string? Id { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		public override string ToString()
@@ -40,18 +22,19 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			return $"{Account}_{Date}";
 		}
 
-		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, SendAndReceiveActivity otherActivity)
+		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, Activity otherActivity)
 		{
+			var otherSendAndReceiveActivity = (SendAndReceiveActivity)otherActivity;
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
 				Quantity,
-				otherActivity.Quantity);
+				otherSendAndReceiveActivity.Quantity);
 
 			var feesEquals = CompareUtilities.AreMoneyEquals(
 				exchangeRateService,
-				otherActivity.UnitPrice?.Currency ?? Currency.USD,
-				otherActivity.Date,
+				otherSendAndReceiveActivity.UnitPrice?.Currency ?? Currency.USD,
+				otherSendAndReceiveActivity.Date,
 				Fees.ToList(),
-				otherActivity.Fees.ToList());
+				otherSendAndReceiveActivity.Fees.ToList());
 			return Task.FromResult(quantityTimesUnitPriceEquals && feesEquals);
 		}
 	}

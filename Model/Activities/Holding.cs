@@ -5,14 +5,21 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public class Holding
 	{
+		internal Holding()
+		{
+			// EF Core
+		}
+
 		public Holding(SymbolProfile? symbolProfile)
 		{
 			SymbolProfile = symbolProfile;
 		}
 
+		public int Id { get; set; }
+
 		public SymbolProfile? SymbolProfile { get; }
 
-		public List<IActivity> Activities { get; set; } = [];
+		public virtual List<Activity> Activities { get; set; } = [];
 
 		[ExcludeFromCodeCoverage]
 		override public string ToString()

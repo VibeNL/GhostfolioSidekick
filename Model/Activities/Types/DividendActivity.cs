@@ -4,23 +4,16 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class DividendActivity : BaseActivity<DividendActivity>
+	public record class DividendActivity : Activity
 	{
 		public DividendActivity(
 			Account account,
 			DateTime dateTime,
 			Money amount,
-			string? transactionId)
+			string? transactionId) : base(account, dateTime, transactionId, null, null)
 		{
-			Account = account;
-			Date = dateTime;
 			Amount = amount;
-			TransactionId = transactionId;
 		}
-
-		public override Account Account { get; }
-
-		public override DateTime Date { get; }
 
 		public IEnumerable<Money> Fees { get; set; } = [];
 
@@ -28,30 +21,24 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public IEnumerable<Money> Taxes { get; set; } = [];
 
-		public override string? TransactionId { get; set; }
-
-		public override int? SortingPriority { get; set; }
-
-		public override string? Id { get; set; }
-
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"{Account}_{Date}";
 		}
 
-		override protected async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, DividendActivity otherActivity)
+		override protected async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, Activity otherActivity)
 		{
-			var existingAmount = await CompareUtilities.Convert(exchangeRateService, otherActivity.Amount, Amount.Currency, Date);
+			var otherDividendActivity = (DividendActivity)otherActivity;
+			var existingAmount = await CompareUtilities.Convert(exchangeRateService, otherDividendActivity.Amount, Amount.Currency, Date);
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
 				Amount,
 				existingAmount);
 			var feesAndTaxesEquals = CompareUtilities.AreMoneyEquals(
 				exchangeRateService,
-				otherActivity.Amount.Currency,
-				otherActivity.Date,
+				otherDividendActivity.Amount.Currency,
+				otherDividendActivity.Date,
 				Fees.Union(Taxes).ToList(),
-				otherActivity.Fees.Union(otherActivity.Taxes).ToList());
+				otherDividendActivity.Fees.Union(otherDividendActivity.Taxes).ToList());
 			return quantityTimesUnitPriceEquals &&
 				feesAndTaxesEquals;
 		}

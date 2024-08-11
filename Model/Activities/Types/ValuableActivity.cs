@@ -4,31 +4,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class ValuableActivity : BaseActivity<ValuableActivity>
+	public record class ValuableActivity : Activity
 	{
 		public ValuableActivity(
 			Account account,
 			DateTime dateTime,
 			Money amount,
-			string? transactionId)
+			string? transactionId) : base(account, dateTime, transactionId, null, null)
 		{
-			Account = account;
-			Date = dateTime;
 			Price = amount;
-			TransactionId = transactionId;
 		}
 
-		public override Account Account { get; }
-
-		public override DateTime Date { get; }
-
 		public Money Price { get; set; }
-
-		public override string? TransactionId { get; set; }
-
-		public override int? SortingPriority { get; set; }
-
-		public override string? Id { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		public override string ToString()
@@ -36,16 +23,17 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			return $"{Account}_{Date}";
 		}
 
-		protected override async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, ValuableActivity otherActivity)
+		protected override async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, Activity otherActivity)
 		{
-			var existingAmount = await CompareUtilities.Convert(exchangeRateService, otherActivity.Price, Price.Currency, Date);
+			var otherValuableActivity = (ValuableActivity)otherActivity;
+			var existingAmount = await CompareUtilities.Convert(exchangeRateService, otherValuableActivity.Price, Price.Currency, Date);
 			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
 				Price,
 				existingAmount);
 			var feesAndTaxesEquals = CompareUtilities.AreMoneyEquals(
 				exchangeRateService,
-				otherActivity.Price.Currency,
-				otherActivity.Date,
+				otherValuableActivity.Price.Currency,
+				otherValuableActivity.Date,
 				[], []);
 			return quantityTimesUnitPriceEquals &&
 				feesAndTaxesEquals;

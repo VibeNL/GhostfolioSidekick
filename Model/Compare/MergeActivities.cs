@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.Model.Compare
 			return false;
 		}
 
-		private Task<List<MergeOrder>> Merge(SymbolProfile symbolProfile, IEnumerable<IActivity> existingActivities, IEnumerable<IActivity> newActivities)
+		private Task<List<MergeOrder>> Merge(SymbolProfile symbolProfile, IEnumerable<Activity> existingActivities, IEnumerable<Activity> newActivities)
 		{
 			var existingOrdersWithMatchFlag = existingActivities.Select(x => new MatchActivity { Activity = x, IsMatched = false }).ToList();
 			var r = newActivities.GroupJoin(existingOrdersWithMatchFlag,
