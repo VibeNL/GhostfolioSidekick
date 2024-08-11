@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GhostfolioSidekick.Database.Model
+namespace GhostfolioSidekick.Model.Tasks
 {
-	public class Activity
+	public enum TypeOfTaskRun
 	{
-		public DateTime Date { get; set; }
+		StockSplit,
+
+		StockPrices
 	}
 }

@@ -1,13 +1,13 @@
-﻿using GhostfolioSidekick.Database.Model;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace GhostfolioSidekick.Database
 {
-	public class DatabaseContext : DbContext
+	internal class DatabaseContext : DbContext
 	{
-		public DbSet<StockSplitList> StockSplitLists { get; set; }
-
 		public DbSet<StockSplit> StockSplits { get; set; }
 
 		public DbSet<SymbolProfile> SymbolProfiles { get; set; }
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Database
 			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 		}
 
-		public static async Task<DatabaseContext> GetDatabaseContext()
+		internal static async Task<DatabaseContext> GetDatabaseContext()
 		{
 			var db = new DatabaseContext();
 			await db.Database.MigrateAsync();

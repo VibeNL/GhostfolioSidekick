@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database.Model;
+﻿using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;

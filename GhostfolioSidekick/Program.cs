@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.DatabaseMaintainer;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
@@ -113,7 +112,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							services.AddScoped<IScheduledWork, GatherAllDataTask>();
-							services.AddScoped<IScheduledWork, UpdateDatabaseTask>();
+							//services.AddScoped<IScheduledWork, UpdateDatabaseTask>();
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();
@@ -122,7 +121,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, CoinbaseParser>();
 							services.AddScoped<IFileImporter, DeGiroParserNL>();
 							services.AddScoped<IFileImporter, DeGiroParserEN>();
-      services.AddScoped<IFileImporter, DeGiroParserPT>();
+							services.AddScoped<IFileImporter, DeGiroParserPT>();
 							services.AddScoped<IFileImporter, GenericParser>();
 							services.AddScoped<IFileImporter, MacroTrendsParser>();
 							services.AddScoped<IFileImporter, NexoParser>();
@@ -135,7 +134,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserNL>();
 							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
-							
+
 							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
 							services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
 							services.AddScoped<IHoldingStrategy, DeterminePrice>();
