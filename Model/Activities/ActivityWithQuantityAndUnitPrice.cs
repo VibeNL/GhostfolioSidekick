@@ -1,10 +1,16 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
+using System.Drawing;
 
 namespace GhostfolioSidekick.Model.Activities
 {
 	public abstract record ActivityWithQuantityAndUnitPrice : Activity
 	{
+		protected ActivityWithQuantityAndUnitPrice() : base()
+		{
+			// EF Core
+		}
+
 		protected ActivityWithQuantityAndUnitPrice(
 			Account account,
 			DateTime dateTime,

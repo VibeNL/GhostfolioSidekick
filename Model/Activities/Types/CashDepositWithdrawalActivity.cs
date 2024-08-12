@@ -6,6 +6,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record CashDepositWithdrawalActivity : Activity
 	{
+		public CashDepositWithdrawalActivity() : base()
+		{
+			// EF Core
+			Amount = null!;
+		}
+
 		public CashDepositWithdrawalActivity(
 			Account account,
 			DateTime dateTime,

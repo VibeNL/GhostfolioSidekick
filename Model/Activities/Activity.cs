@@ -5,6 +5,12 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public abstract record Activity
 	{
+		protected Activity()
+		{
+			// EF Core
+			Account = null!;
+		}
+
 		protected Activity(Account account, DateTime date, string? transactionId, int? sortingPriority, string? description)
 		{
 			Account = account;

@@ -6,13 +6,19 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class BuySellActivity : ActivityWithQuantityAndUnitPrice
 	{
+		internal BuySellActivity() : base()
+		{
+			// EF Core
+
+		}
+
 		public BuySellActivity(
 		Account account,
 		DateTime dateTime,
 		decimal quantity,
 		Money? unitPrice,
 		string? transactionId) : base(account, dateTime, quantity, unitPrice, transactionId, null, null)
-		{			
+		{
 		}
 
 		public IEnumerable<Money> Fees { get; set; } = [];
