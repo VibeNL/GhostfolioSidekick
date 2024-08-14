@@ -1,15 +1,8 @@
-﻿using GhostfolioSidekick.AccountMaintainer;
-using GhostfolioSidekick.Configuration;
+﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Strategies;
-using GhostfolioSidekick.MarketDataMaintainer;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -95,24 +88,24 @@ namespace GhostfolioSidekick
 								return settings!.ConfigurationInstance.Settings;
 							});
 
-							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
-							services.AddSingleton<IExchangeRateService, ExchangeRateService>();
+							////services.AddSingleton<ICurrencyMapper, SymbolMapper>();
+							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 							services.AddSingleton<IActivitiesService, ActivitiesService>();
 							services.AddSingleton<IAccountService, AccountService>();
 							services.AddSingleton<IMarketDataService, MarketDataService>();
 							services.AddSingleton<IStockSplitRepository, StockSplitRepository>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
-							services.AddScoped<IScheduledWork, FileImporterTask>();
+							////services.AddScoped<IScheduledWork, FileImporterTask>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
-							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
-							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
-							services.AddScoped<IScheduledWork, SetManualPricesTask>();
-							services.AddScoped<IScheduledWork, SetBenchmarksTask>();
-							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
-							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
-							services.AddScoped<IScheduledWork, GatherAllDataTask>();
-							//services.AddScoped<IScheduledWork, UpdateDatabaseTask>();
+							////services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
+							////services.AddScoped<IScheduledWork, SetBenchmarksTask>();
+							////services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
+							////services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
+							////services.AddScoped<IScheduledWork, GatherAllDataTask>();
+							////services.AddScoped<IScheduledWork, UpdateDatabaseTask>();
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();
