@@ -2,14 +2,12 @@ using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Compare;
 using AutoFixture;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {
 	public class BuySellActivityTests
 	{
-		private readonly Mock<IExchangeRateService> exchangeRateServiceMock;
 		private readonly BuySellActivity activity;
 
 		public BuySellActivityTests()
@@ -20,7 +18,6 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var unitPrice = new Money(Currency.EUR, 1);
 			var transactionId = "transactionId";
 
-			exchangeRateServiceMock = new Mock<IExchangeRateService>();
 			activity = new BuySellActivity(account, dateTime, quantity, unitPrice, transactionId, null, null);
 		}
 
@@ -35,54 +32,6 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 
 			// Assert
 			result.Should().Be(expectedFormat);
-		}
-
-		[Fact]
-		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
-		{
-			// Arrange
-			var otherActivity = new BuySellActivity(activity.Account, activity.Date, activity.Quantity, activity.UnitPrice, activity.TransactionId, null, null);
-
-			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
-				.ReturnsAsync(1);
-
-			// Act
-			var result = await activity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
-
-			// Assert
-			result.Should().BeTrue();
-		}
-
-		[Fact]
-		public async Task AreEqual_ShouldReturnFalse_WhenUnitPriceIsNotEqual()
-		{
-			// Arrange
-			var otherActivity = new BuySellActivity(activity.Account, activity.Date, activity.Quantity, new Money(Currency.USD, 5), activity.TransactionId, null, null);
-
-			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
-				.ReturnsAsync(1);
-
-			// Act
-			var result = await activity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
-
-			// Assert
-			result.Should().BeFalse();
-		}
-
-		[Fact]
-		public async Task AreEqual_ShouldReturnFalse_WhenQuantityIsNotEqual()
-		{
-			// Arrange
-			var otherActivity = new BuySellActivity(activity.Account, activity.Date, 9M, activity.UnitPrice, activity.TransactionId, null, null);
-
-			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
-				.ReturnsAsync(1);
-
-			// Act
-			var result = await activity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
-
-			// Assert
-			result.Should().BeFalse();
 		}
 	}
 }

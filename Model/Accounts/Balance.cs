@@ -23,7 +23,6 @@ namespace GhostfolioSidekick.Model.Accounts
 
 		public Money Money { get; set; }
 
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return DateTime.ToInvariantString() + " " + Money.ToString();

@@ -50,42 +50,6 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 		}
 
 		[Fact]
-		public void ParseIdentifiers_ShouldParseIdentifiersFromComment()
-		{
-			// Arrange
-			var symbolProfile = new SymbolProfile("symbol", "name", [], new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], [])
-			{
-				Comment = "Known Identifiers: [id1,id2,id3]"
-			};
-
-			// Act
-			// The ParseIdentifiers method is called inside the Comment setter
-
-			// Assert
-			symbolProfile.Identifiers.Should().Contain(new[] { "id1", "id2", "id3" });
-		}
-
-		[Theory]
-		[InlineData(null)]
-		[InlineData("")]
-		[InlineData("Known Identifiers:")]
-		[InlineData("[a,b,c]")]
-		public void ParseIdentifiers_EmptyComment_ShouldParseIdentifiersFromComment(string? comment)
-		{
-			// Arrange
-			var symbolProfile = new SymbolProfile("symbol", "name", [], new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], [])
-			{
-				Comment = comment
-			};
-
-			// Act
-			// The ParseIdentifiers method is called inside the Comment setter
-
-			// Assert
-			symbolProfile.Identifiers.Should().BeEmpty();
-		}
-
-		[Fact]
 		public void GetHashCode_ShouldReturnSameHashCode_ForEqualObjects()
 		{
 			// Arrange
@@ -119,10 +83,10 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 		public void PropertyTests()
 		{
 			// Arrange
-			var symbolProfile = new SymbolProfile("symbol", "name", [], new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], []);
+			List<string> identifiers = ["id1", "id2"];
+			var symbolProfile = new SymbolProfile("symbol", "name", identifiers, new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], []);
 			var newCurrency = new Currency("EUR");
 			var newScraperConfiguration = new ScraperConfiguration();
-			var newIdentifiers = new List<string> { "id1", "id2" };
 
 			// Act
 			symbolProfile.Currency = newCurrency;
@@ -142,7 +106,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 			symbolProfile.AssetClass.Should().Be(AssetClass.FixedIncome);
 			symbolProfile.AssetSubClass.Should().Be(AssetSubClass.Stock);
 			symbolProfile.ISIN.Should().Be("newISIN");
-			symbolProfile.Identifiers.Should().BeEquivalentTo(newIdentifiers);
+			symbolProfile.Identifiers.Should().BeEquivalentTo(identifiers);
 			symbolProfile.Comment.Should().Be("Known Identifiers: [id1,id2]");
 		}
 

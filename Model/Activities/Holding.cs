@@ -21,7 +21,6 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public virtual List<Activity> Activities { get; set; } = [];
 
-		[ExcludeFromCodeCoverage]
 		override public string ToString()
 		{
 			return $"{SymbolProfile?.Symbol} - {Activities.Count} activities";

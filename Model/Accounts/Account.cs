@@ -27,7 +27,6 @@ namespace GhostfolioSidekick.Model.Accounts
 
 		public Platform? Platform { get; set; }
 
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return Name;

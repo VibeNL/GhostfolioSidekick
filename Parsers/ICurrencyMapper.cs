@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick.Model
+﻿using GhostfolioSidekick.Model;
+
+namespace GhostfolioSidekick.Parsers
 {
 	public interface ICurrencyMapper
 	{

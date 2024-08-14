@@ -21,7 +21,6 @@ namespace GhostfolioSidekick.Model.Accounts
 
 		public string? Id { get; set; }
 
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return Name;

@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -19,7 +18,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<RepayBondActivity>,
 		IEntityTypeConfiguration<SendAndReceiveActivity>,
 		IEntityTypeConfiguration<StakingRewardActivity>,
-		IEntityTypeConfiguration<StockSplitActivity>,
 		IEntityTypeConfiguration<ValuableActivity>
 
 	{
@@ -223,11 +221,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
 				});
 			});
-		}
-
-		public void Configure(EntityTypeBuilder<StockSplitActivity> builder)
-		{
-			// Left empty on purpose
 		}
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)

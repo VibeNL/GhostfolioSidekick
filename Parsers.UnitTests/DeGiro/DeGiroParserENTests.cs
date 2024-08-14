@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(DateTime.Today, new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, [new Balance(DateTime.Today, new Money(Currency.EUR, 0))])
 				.Create();
 			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
 		}

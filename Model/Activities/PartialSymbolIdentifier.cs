@@ -48,7 +48,6 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"{Identifier} [{string.Join(",", AllowedAssetClasses ?? [])}] [{string.Join(",", AllowedAssetSubClasses ?? [])}]";

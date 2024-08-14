@@ -3,18 +3,8 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OoplesFinance.YahooFinanceAPI;
-using OoplesFinance.YahooFinanceAPI.Models;
 using Polly;
-using Polly.Wrap;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization.Metadata;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.ExternalDataProvider
 {
