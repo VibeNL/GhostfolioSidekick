@@ -6,6 +6,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record KnownBalanceActivity : Activity
 	{
+		internal KnownBalanceActivity() : base()
+		{
+			// EF Core
+			Amount = null!;
+		}
+
 		public KnownBalanceActivity(
 			Account account,
 			DateTime dateTime,

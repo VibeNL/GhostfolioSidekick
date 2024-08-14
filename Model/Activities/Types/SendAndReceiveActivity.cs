@@ -6,6 +6,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record SendAndReceiveActivity : ActivityWithQuantityAndUnitPrice
 	{
+		internal SendAndReceiveActivity() : base()
+		{
+			// EF Core
+		}
+
 		public SendAndReceiveActivity(
 		Account account,
 		DateTime dateTime,

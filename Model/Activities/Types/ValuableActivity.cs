@@ -6,6 +6,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class ValuableActivity : Activity
 	{
+		internal ValuableActivity() : base()
+		{
+			// EF Core
+			Price = null!;
+		}
+
 		public ValuableActivity(
 			Account account,
 			DateTime dateTime,

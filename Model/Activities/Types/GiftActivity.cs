@@ -6,6 +6,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class GiftActivity : ActivityWithQuantityAndUnitPrice
 	{
+		internal GiftActivity() : base()
+		{
+			// EF Core
+		}
+
 		public GiftActivity(
 		Account account,
 		DateTime dateTime,

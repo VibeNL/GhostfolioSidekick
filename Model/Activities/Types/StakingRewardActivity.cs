@@ -6,6 +6,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class StakingRewardActivity : ActivityWithQuantityAndUnitPrice
 	{
+		internal StakingRewardActivity() : base()
+		{
+			// EF Core
+		}
+
 		public StakingRewardActivity(
 		Account account,
 		DateTime dateTime,

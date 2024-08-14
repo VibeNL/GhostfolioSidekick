@@ -6,6 +6,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record StockSplitActivity : Activity
 	{
+		internal StockSplitActivity() : base()
+		{
+			// EF Core
+		}
+
 		public StockSplitActivity(
 			Account account,
 			DateTime dateTime,

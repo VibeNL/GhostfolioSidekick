@@ -6,6 +6,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class LiabilityActivity : Activity
 	{
+		internal LiabilityActivity() : base()
+		{
+			// EF Core
+			Price = null!;
+		}
+
 		public LiabilityActivity(
 			Account account,
 			DateTime dateTime,
