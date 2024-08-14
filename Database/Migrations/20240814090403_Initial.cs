@@ -123,7 +123,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     SortingPriority = table.Column<int>(type: "INTEGER", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     HoldingId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Type = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
+                    Type = table.Column<string>(type: "TEXT", maxLength: 34, nullable: false),
                     Quantity = table.Column<decimal>(type: "TEXT", nullable: true),
                     Amount = table.Column<decimal>(type: "TEXT", nullable: true),
                     Currency = table.Column<string>(type: "TEXT", nullable: true)
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Activities_Fees",
+                name: "BuySellActivityFees",
                 columns: table => new
                 {
                     BuySellActivityId = table.Column<string>(type: "TEXT", nullable: false),
@@ -176,9 +176,9 @@ namespace GhostfolioSidekick.Database.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Activities_Fees", x => new { x.BuySellActivityId, x.Id });
+                    table.PrimaryKey("PK_BuySellActivityFees", x => new { x.BuySellActivityId, x.Id });
                     table.ForeignKey(
-                        name: "FK_Activities_Fees_Activities_BuySellActivityId",
+                        name: "FK_BuySellActivityFees_Activities_BuySellActivityId",
                         column: x => x.BuySellActivityId,
                         principalTable: "Activities",
                         principalColumn: "Id",
@@ -186,7 +186,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Activities_Taxes",
+                name: "BuySellActivityTaxes",
                 columns: table => new
                 {
                     BuySellActivityId = table.Column<string>(type: "TEXT", nullable: false),
@@ -196,10 +196,70 @@ namespace GhostfolioSidekick.Database.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Activities_Taxes", x => new { x.BuySellActivityId, x.Id });
+                    table.PrimaryKey("PK_BuySellActivityTaxes", x => new { x.BuySellActivityId, x.Id });
                     table.ForeignKey(
-                        name: "FK_Activities_Taxes_Activities_BuySellActivityId",
+                        name: "FK_BuySellActivityTaxes_Activities_BuySellActivityId",
                         column: x => x.BuySellActivityId,
+                        principalTable: "Activities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DividendActivityFees",
+                columns: table => new
+                {
+                    DividendActivityId = table.Column<string>(type: "TEXT", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Amount = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Currency = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DividendActivityFees", x => new { x.DividendActivityId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_DividendActivityFees_Activities_DividendActivityId",
+                        column: x => x.DividendActivityId,
+                        principalTable: "Activities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DividendActivityTaxes",
+                columns: table => new
+                {
+                    DividendActivityId = table.Column<string>(type: "TEXT", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Amount = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Currency = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DividendActivityTaxes", x => new { x.DividendActivityId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_DividendActivityTaxes_Activities_DividendActivityId",
+                        column: x => x.DividendActivityId,
+                        principalTable: "Activities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SendAndReceiveActivityFees",
+                columns: table => new
+                {
+                    SendAndReceiveActivityId = table.Column<string>(type: "TEXT", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Amount = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Currency = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SendAndReceiveActivityFees", x => new { x.SendAndReceiveActivityId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_SendAndReceiveActivityFees_Activities_SendAndReceiveActivityId",
+                        column: x => x.SendAndReceiveActivityId,
                         principalTable: "Activities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -240,25 +300,34 @@ namespace GhostfolioSidekick.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Activities_Fees");
-
-            migrationBuilder.DropTable(
-                name: "Activities_Taxes");
-
-            migrationBuilder.DropTable(
                 name: "Balances");
+
+            migrationBuilder.DropTable(
+                name: "BuySellActivityFees");
+
+            migrationBuilder.DropTable(
+                name: "BuySellActivityTaxes");
 
             migrationBuilder.DropTable(
                 name: "CountryWeights");
 
             migrationBuilder.DropTable(
+                name: "DividendActivityFees");
+
+            migrationBuilder.DropTable(
+                name: "DividendActivityTaxes");
+
+            migrationBuilder.DropTable(
                 name: "SectorWeights");
 
             migrationBuilder.DropTable(
-                name: "Activities");
+                name: "SendAndReceiveActivityFees");
 
             migrationBuilder.DropTable(
                 name: "SymbolProfiles");
+
+            migrationBuilder.DropTable(
+                name: "Activities");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

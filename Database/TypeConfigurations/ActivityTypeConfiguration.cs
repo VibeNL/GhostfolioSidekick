@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
-	internal class ActivityTypeConfiguration : 
+	internal class ActivityTypeConfiguration :
 		IEntityTypeConfiguration<Activity>,
 		IEntityTypeConfiguration<BuySellActivity>,
 		IEntityTypeConfiguration<CashDepositWithdrawalActivity>,
@@ -26,10 +26,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		private const string AmountColumn = "Amount";
 		private const string CurrencyColumn = "Currency";
 
+		private const string FeeAmountColumn = "Amount";
+		private const string TaxAmountColumn = "Amount";
+
 		public void Configure(EntityTypeBuilder<Activity> builder)
 		{
 			builder.ToTable("Activities");
-			var discriminatorBuilder =  builder.HasDiscriminator<string>("Type");
+			var discriminatorBuilder = builder.HasDiscriminator<string>("Type");
 
 			var type = typeof(Activity);
 			var types = AppDomain.CurrentDomain.GetAssemblies()
@@ -44,7 +47,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			discriminatorBuilder.IsComplete();
 
 		}
-	
+
 		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
 		{
 			builder.OwnsOne(b => b.UnitPrice, m =>
@@ -57,7 +60,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			});
 			builder.OwnsMany(b => b.Fees, m =>
 			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
+				m.ToTable("BuySellActivityFees");
+				m.Property(p => p.Amount).HasColumnName(FeeAmountColumn);
 				m.OwnsOne(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
@@ -65,14 +69,15 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			});
 			builder.OwnsMany(b => b.Taxes, m =>
 			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
+				m.ToTable("BuySellActivityTaxes");
+				m.Property(p => p.Amount).HasColumnName(TaxAmountColumn);
 				m.OwnsOne(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
 				});
 			});
 		}
-	
+
 		public void Configure(EntityTypeBuilder<CashDepositWithdrawalActivity> builder)
 		{
 			builder.OwnsOne(b => b.Amount, m =>
@@ -84,7 +89,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				});
 			});
 		}
-	
+
 		public void Configure(EntityTypeBuilder<DividendActivity> builder)
 		{
 			builder.OwnsOne(b => b.Amount, m =>
@@ -97,7 +102,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			});
 			builder.OwnsMany(b => b.Fees, m =>
 			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
+				m.ToTable("DividendActivityFees");
+				m.Property(p => p.Amount).HasColumnName(FeeAmountColumn);
 				m.OwnsOne(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
@@ -105,14 +111,15 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			});
 			builder.OwnsMany(b => b.Taxes, m =>
 			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
+				m.ToTable("DividendActivityTaxes");
+				m.Property(p => p.Amount).HasColumnName(TaxAmountColumn);
 				m.OwnsOne(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
 				});
 			});
 		}
-	
+
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
 		{
 			builder.OwnsOne(b => b.Amount, m =>
@@ -124,7 +131,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				});
 			});
 		}
-	
+
 		public void Configure(EntityTypeBuilder<GiftActivity> builder)
 		{
 			builder.OwnsOne(b => b.UnitPrice, m =>
@@ -197,7 +204,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			});
 			builder.OwnsMany(b => b.Fees, m =>
 			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
+				m.ToTable("SendAndReceiveActivityFees");
+				m.Property(p => p.Amount).HasColumnName(FeeAmountColumn);
 				m.OwnsOne(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
