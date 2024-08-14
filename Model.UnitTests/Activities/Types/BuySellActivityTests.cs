@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var transactionId = "transactionId";
 
 			exchangeRateServiceMock = new Mock<IExchangeRateService>();
-			activity = new BuySellActivity(account, dateTime, quantity, unitPrice, transactionId);
+			activity = new BuySellActivity(account, dateTime, quantity, unitPrice, transactionId, null, null);
 		}
 
 		[Fact]
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
 		{
 			// Arrange
-			var otherActivity = new BuySellActivity(activity.Account, activity.Date, activity.Quantity, activity.UnitPrice, activity.TransactionId);
+			var otherActivity = new BuySellActivity(activity.Account, activity.Date, activity.Quantity, activity.UnitPrice, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalse_WhenUnitPriceIsNotEqual()
 		{
 			// Arrange
-			var otherActivity = new BuySellActivity(activity.Account, activity.Date, activity.Quantity, new Money(Currency.USD, 5), activity.TransactionId);
+			var otherActivity = new BuySellActivity(activity.Account, activity.Date, activity.Quantity, new Money(Currency.USD, 5), activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalse_WhenQuantityIsNotEqual()
 		{
 			// Arrange
-			var otherActivity = new BuySellActivity(activity.Account, activity.Date, 9M, activity.UnitPrice, activity.TransactionId);
+			var otherActivity = new BuySellActivity(activity.Account, activity.Date, 9M, activity.UnitPrice, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);

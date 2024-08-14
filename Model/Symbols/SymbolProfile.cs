@@ -1,9 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Market;
-using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace GhostfolioSidekick.Model.Symbols
 {

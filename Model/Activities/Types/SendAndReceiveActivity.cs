@@ -12,10 +12,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		}
 
 		public SendAndReceiveActivity(
-		Account account,
-		DateTime dateTime,
-		decimal amount,
-		string? transactionId) : base(account, dateTime, amount, null, transactionId, null, null)
+			Account account,
+			DateTime dateTime,
+			decimal amount,
+			string? transactionId,
+			int? sortingPriority,
+			string? description) : base(account, dateTime, amount, null, transactionId, sortingPriority, description)
 		{
 		}
 

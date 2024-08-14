@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var transactionId = "transactionId";
 
 			exchangeRateServiceMock = new Mock<IExchangeRateService>();
-			activity = new ValuableActivity(account, dateTime, unitPrice, transactionId);
+			activity = new ValuableActivity(account, dateTime, unitPrice, transactionId, null, null);
 		}
 
 		[Fact]
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
 		{
 			// Arrange
-			var otherActivity = new ValuableActivity(activity.Account, activity.Date, activity.Price, activity.TransactionId);
+			var otherActivity = new ValuableActivity(activity.Account, activity.Date, activity.Price, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalse_WhenUnitPriceIsNotEqual()
 		{
 			// Arrange
-			var otherActivity = new ValuableActivity(activity.Account, activity.Date, new Money(Currency.USD, 5), activity.TransactionId);
+			var otherActivity = new ValuableActivity(activity.Account, activity.Date, new Money(Currency.USD, 5), activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);

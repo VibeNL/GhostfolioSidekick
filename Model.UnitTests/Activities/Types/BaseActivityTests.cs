@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_DifferentType_ReturnsFalse()
 		{
 			// Arrange
-			var otherActivity = new StockSplitActivity(baseActivity.Account, baseActivity.Date, 1, 2, null);
+			var otherActivity = new StockSplitActivity(baseActivity.Account, baseActivity.Date, 1, 2, null, null, null);
 
 			// Act
 			var result = await baseActivity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		{
 			// Arrange
 			var otherActivity = new DummyActivity(baseActivity.Account, baseActivity.Date);
-			baseActivity.Description = "Test";
+			baseActivity.SetDescription("Test");
 
 			// Act
 			var result = await baseActivity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
@@ -103,26 +103,25 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public void AllProperties_ShouldBeReadable()
 		{
 			// Arrang
-			var type = typeof(IActivity);
+			var type = typeof(Activity);
 			var types = type.Assembly.GetTypes()
 							.Where(p => type.IsAssignableFrom(p) && !p.IsAbstract);
 
 			Fixture fixture = new Fixture();
 			foreach (var myType in types)
 			{
-				IActivity activity = (IActivity)fixture.Create(myType, new SpecimenContext(fixture));
+				var activity = (Activity)fixture.Create(myType, new SpecimenContext(fixture));
 
 				// Act & Assert
 				activity.Account.Should().NotBeNull();
 				activity.Date.Should().NotBe(DateTime.MinValue);
 				activity.TransactionId.Should().NotBeNull();
 				activity.SortingPriority.Should().NotBeNull();
-				activity.Id.Should().NotBeNull();
 				activity.Description.Should().NotBeNull();
 			}
 		}
 
-		private record DummyActivity : BaseActivity<DummyActivity>
+		private record DummyActivity : Activity
 		{
 			public DummyActivity(Account account, DateTime date)
 			{
@@ -130,19 +129,14 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 				Date = date;
 			}
 
-			public override Account Account { get; }
-
-			public override DateTime Date { get; }
-
-			public override string? TransactionId { get; set; }
-
-			public override int? SortingPriority { get; set; }
-
-			public override string? Id { get; set; }
-
-			protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, DummyActivity otherActivity)
+			protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, Activity otherActivity)
 			{
 				return Task.FromResult(true);
+			}
+
+			internal void SetDescription(string v)
+			{
+				Description = v;
 			}
 		}
 	}

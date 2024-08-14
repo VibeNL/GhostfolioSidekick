@@ -16,7 +16,9 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			DateTime dateTime,
 			int fromAmount,
 			int toAmount,
-			string? transactionId) : base(account, dateTime, transactionId, null, "Stock split")
+			string? transactionId,
+			int? sortingPriority,
+			string? description) : base(account, dateTime, transactionId, sortingPriority, "Stock split")
 		{
 			FromAmount = fromAmount;
 			ToAmount = toAmount;

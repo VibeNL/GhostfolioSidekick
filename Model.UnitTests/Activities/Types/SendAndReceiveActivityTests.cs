@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var transactionId = "transactionId";
 
 			exchangeRateServiceMock = new Mock<IExchangeRateService>();
-			activity = new SendAndReceiveActivity(account, dateTime, quantity, transactionId);
+			activity = new SendAndReceiveActivity(account, dateTime, quantity, transactionId, null, null);
 		}
 
 		[Fact]
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
 		{
 			// Arrange
-			var otherActivity = new SendAndReceiveActivity(activity.Account, activity.Date, activity.Quantity, activity.TransactionId);
+			var otherActivity = new SendAndReceiveActivity(activity.Account, activity.Date, activity.Quantity, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalse_WhenQuantityIsNotEqual()
 		{
 			// Arrange
-			var otherActivity = new SendAndReceiveActivity(activity.Account, activity.Date, 9M, activity.TransactionId);
+			var otherActivity = new SendAndReceiveActivity(activity.Account, activity.Date, 9M, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalseWithUnitPrice_WhenQuantityIsNotEqual()
 		{
 			// Arrange
-			var otherActivity = new SendAndReceiveActivity(activity.Account, activity.Date, 9M, activity.TransactionId)
+			var otherActivity = new SendAndReceiveActivity(activity.Account, activity.Date, 9M, activity.TransactionId, null, null)
 			{
 				UnitPrice = new Money(Currency.USD, 10M)
 			};

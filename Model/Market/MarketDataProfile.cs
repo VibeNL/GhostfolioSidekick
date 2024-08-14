@@ -6,6 +6,8 @@ namespace GhostfolioSidekick.Model.Market
 	{
 		public required List<MarketData> MarketData { get; set; }
 
+		public required List<StockSplit> StockSplit { get; set; }
+
 		public required SymbolProfile AssetProfile { get; set; }
 	}
 }

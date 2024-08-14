@@ -14,10 +14,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		}
 
 		public RepayBondActivity(
-		Account account,
-		DateTime dateTime,
-		Money totalRepayAmount,
-		string? transactionId) : base(account, dateTime, transactionId, null, null)
+			Account account,
+			DateTime dateTime,
+			Money totalRepayAmount,
+			string? transactionId,
+			int? sortingPriority,
+			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{
 			TotalRepayAmount = totalRepayAmount;
 		}

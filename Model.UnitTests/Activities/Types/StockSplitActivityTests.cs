@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var transactionId = "transactionId";
 
 			exchangeRateServiceMock = new Mock<IExchangeRateService>();
-			activity = new StockSplitActivity(account, dateTime, 1, 3, transactionId);
+			activity = new StockSplitActivity(account, dateTime, 1, 3, transactionId, null, null);
 		}
 
 		[Fact]
@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalse_WhenOtherType()
 		{
 			// Arrange
-			var otherActivity = new DividendActivity(activity.Account, activity.Date, new Money(Currency.USD, 1), activity.TransactionId);
+			var otherActivity = new DividendActivity(activity.Account, activity.Date, new Money(Currency.USD, 1), activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
 		{
 			// Arrange
-			var otherActivity = new StockSplitActivity(activity.Account, activity.Date, activity.FromAmount, activity.ToAmount, activity.TransactionId);
+			var otherActivity = new StockSplitActivity(activity.Account, activity.Date, activity.FromAmount, activity.ToAmount, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalse_WhenFromIsNotEqual()
 		{
 			// Arrange
-			var otherActivity = new StockSplitActivity(activity.Account, activity.Date, 25, activity.ToAmount, activity.TransactionId);
+			var otherActivity = new StockSplitActivity(activity.Account, activity.Date, 25, activity.ToAmount, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalse_WhenToIsNotEqual()
 		{
 			// Arrange
-			var otherActivity = new StockSplitActivity(activity.Account, activity.Date, activity.FromAmount, 25, activity.TransactionId);
+			var otherActivity = new StockSplitActivity(activity.Account, activity.Date, activity.FromAmount, 25, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);

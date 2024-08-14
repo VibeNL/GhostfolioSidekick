@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var transactionId = "transactionId";
 
 			exchangeRateServiceMock = new Mock<IExchangeRateService>();
-			activity = new GiftActivity(account, dateTime, amount, transactionId);
+			activity = new GiftActivity(account, dateTime, amount, transactionId, null, null);
 		}
 
 		[Fact]
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
 		{
 			// Arrange
-			var otherActivity = new GiftActivity(activity.Account, activity.Date, activity.Quantity, activity.TransactionId);
+			var otherActivity = new GiftActivity(activity.Account, activity.Date, activity.Quantity, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public async Task AreEqual_ShouldReturnFalse_WhenUnitPriceIsNotEqual()
 		{
 			// Arrange
-			var otherActivity = new GiftActivity(activity.Account, activity.Date, 5M, activity.TransactionId);
+			var otherActivity = new GiftActivity(activity.Account, activity.Date, 5M, activity.TransactionId, null, null);
 
 			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
 				.ReturnsAsync(1);
