@@ -4,22 +4,24 @@
 	{
 		DisplayInformation,
 
-		PrepareDatabaseTask, // TODO: Move after manual prices
+		PrepareDatabaseTask,
 
-		AccountCreation,
+		//PrepareDatabaseTask, // TODO: Move after manual prices
 
-		CreateManualSymbols,
+		//AccountCreation,
 
-		SetManualPrices,
+		//CreateManualSymbols,
 
-		FileImporter,
+		//SetManualPrices,
 
-		DeleteUnusedSymbols,
+		//FileImporter,
 
-		SetTrackingInsightOnSymbols,
+		//DeleteUnusedSymbols,
 
-		SetBenchmarks,
+		//SetTrackingInsightOnSymbols,
 
-		GatherAllData,
+		//SetBenchmarks,
+
+		//GatherAllData,
 	}
 }
