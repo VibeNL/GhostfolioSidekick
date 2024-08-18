@@ -5,6 +5,10 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class GiftActivity : ActivityWithQuantityAndUnitPrice
 	{
+		internal GiftActivity()
+		{			
+		}
+
 		public GiftActivity(
 		Account account,
 		DateTime dateTime,

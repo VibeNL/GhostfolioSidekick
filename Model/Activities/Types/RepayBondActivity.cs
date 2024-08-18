@@ -5,6 +5,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class RepayBondActivity : Activity
 	{
+		internal RepayBondActivity()
+		{
+			// EF Core
+			TotalRepayAmount = null!;
+		}
+
 		public RepayBondActivity(
 		Account account,
 		DateTime dateTime,

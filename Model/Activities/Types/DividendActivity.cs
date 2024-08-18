@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class DividendActivity : Activity
 	{
-		internal DividendActivity() : base()
+		internal DividendActivity()
 		{
 			// EF Core
 			Amount = null!;

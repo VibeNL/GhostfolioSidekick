@@ -1,5 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.DatabaseMaintainer;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
@@ -18,6 +18,7 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
 using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.Parsers.Trading212;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -88,6 +89,11 @@ namespace GhostfolioSidekick
 								var settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
+							services.AddDbContext<DatabaseContext>(options =>
+							{
+								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+								options.UseSqlite($"Data Source={settings!.FileImporterPath}");
+							});
 
 							////services.AddSingleton<ICurrencyMapper, SymbolMapper>();
 							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
@@ -106,7 +112,7 @@ namespace GhostfolioSidekick
 							////services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 							////services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							////services.AddScoped<IScheduledWork, GatherAllDataTask>();
-							services.AddScoped<IScheduledWork, UpdateDatabaseTask>();
+							services.AddScoped<IScheduledWork, GenerateDatabaseTask>();
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();

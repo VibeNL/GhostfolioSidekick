@@ -5,6 +5,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class FeeActivity : Activity
 	{
+		internal FeeActivity()
+		{
+			// EF Core
+			Amount = null!;
+		}
+
 		public FeeActivity(
 			Account account,
 			DateTime dateTime,

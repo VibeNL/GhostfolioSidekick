@@ -4,7 +4,7 @@
 	{
 		DisplayInformation,
 
-		PrepareDatabaseTask,
+		GenerateDatabaseTask,
 
 		//PrepareDatabaseTask, // TODO: Move after manual prices
 
