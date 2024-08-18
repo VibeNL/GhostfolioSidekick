@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
@@ -8,7 +9,7 @@ namespace GhostfolioSidekick
 {
 	public class GenerateDatabaseTask(
 		ILogger<GenerateDatabaseTask> logger,
-		DbContext dbContext) : IScheduledWork
+		DatabaseContext dbContext) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.GenerateDatabaseTask;
 

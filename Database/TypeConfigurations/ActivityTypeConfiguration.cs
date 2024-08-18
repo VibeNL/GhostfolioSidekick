@@ -33,9 +33,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			var discriminatorBuilder = builder.HasDiscriminator<string>("Type");
 
 			var type = typeof(Activity);
-			var types = AppDomain.CurrentDomain.GetAssemblies()
-				.SelectMany(s => s.GetTypes())
-				.Where(type.IsAssignableFrom);
+			var types = type.Assembly.GetTypes().Where(type.IsAssignableFrom);
 
 			foreach (var t in types)
 			{

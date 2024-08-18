@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var amount = 1;
 			var transactionId = "transactionId";
 
-			activity = new GiftActivity(account, dateTime, amount, transactionId);
+			activity = new GiftActivity(account, dateTime, amount, transactionId, null, null);
 		}
 
 		[Fact]

@@ -92,7 +92,7 @@ namespace GhostfolioSidekick
 							services.AddDbContext<DatabaseContext>(options =>
 							{
 								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
-								options.UseSqlite($"Data Source={settings!.FileImporterPath}");
+								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
 							});
 
 							////services.AddSingleton<ICurrencyMapper, SymbolMapper>();

@@ -6,15 +6,13 @@
 
 		GenerateDatabaseTask,
 
-		//PrepareDatabaseTask, // TODO: Move after manual prices
+		FileImporter,
 
 		//AccountCreation,
 
 		//CreateManualSymbols,
 
 		//SetManualPrices,
-
-		//FileImporter,
 
 		//DeleteUnusedSymbols,
 

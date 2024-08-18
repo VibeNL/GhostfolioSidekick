@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var quantity = 10m;
 			var transactionId = "transactionId";
 
-			activity = new SendAndReceiveActivity(account, dateTime, quantity, transactionId);
+			activity = new SendAndReceiveActivity(account, dateTime, quantity, transactionId, null, null);
 		}
 
 		[Fact]

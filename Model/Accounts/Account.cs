@@ -11,15 +11,14 @@ namespace GhostfolioSidekick.Model.Accounts
 			Balance = null!;
 		}
 
-		public Account(string name, Balance balance)
+		public Account(string name)
 		{
 			Name = name;
-			Balance = [balance];
 		}
 
 		public string Name { get; set; }
 
-		public List<Balance> Balance { get; set; }
+		public List<Balance> Balance { get; set; } = new List<Balance>();
 
 		public string? Id { get; set; }
 

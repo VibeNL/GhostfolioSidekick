@@ -13,7 +13,9 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		Account account,
 		DateTime dateTime,
 		decimal amount,
-		string? transactionId) : base(account, dateTime, amount, null, transactionId, null, null)
+		string? transactionId,
+		int? sortingPriority,
+		string? description) : base(account, dateTime, amount, null, transactionId, sortingPriority, description)
 		{
 		}
 

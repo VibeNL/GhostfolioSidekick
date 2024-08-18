@@ -33,10 +33,6 @@
 
 		public string? Description { get; private set; }
 
-		public int SplitFrom { get; private set; }
-
-		public int SplitTo { get; private set; }
-
 		public Money TotalTransactionAmount { get; private set; }
 
 		public static PartialActivity CreateCashDeposit(
