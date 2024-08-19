@@ -17,6 +17,7 @@
 	<ItemGroup>
 		<PackageReference Include="itext7.bouncy-castle-adapter" Version="8.0.5" />
 		<PackageReference Include="itext7.pdfsweep" Version="4.0.3" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
 	</ItemGroup>
 
 </Project>
