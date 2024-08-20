@@ -1,9 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.GhostfolioAPI.Strategies;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -47,7 +43,7 @@ namespace GhostfolioSidekick.FileImporter
 			var activities = activityManager.GenerateActivities();
 
 			// write to the dabaase
-			await activityRepository.StoreAll(activityRepository);
+			await activityRepository.StoreAll(activities);
 
 			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
 

@@ -1,9 +1,7 @@
-﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Model.Accounts;
+﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System.Reflection;
 
 namespace GhostfolioSidekick.Database
@@ -16,9 +14,9 @@ namespace GhostfolioSidekick.Database
 
 		public DbSet<SymbolProfile> SymbolProfiles { get; set; }
 
-		public DbSet<Holding> Holdings { get; set; }
+		public DbSet<Activity> Activities { get; set; }
 
-		internal DatabaseContext()
+		public DatabaseContext()
 		{
 		}
 

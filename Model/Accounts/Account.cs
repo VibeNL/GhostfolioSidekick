@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace GhostfolioSidekick.Model.Accounts
+﻿namespace GhostfolioSidekick.Model.Accounts
 {
 	public class Account
 	{

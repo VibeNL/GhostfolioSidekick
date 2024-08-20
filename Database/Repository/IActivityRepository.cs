@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Database.Repository
 {
 	public interface IActivityRepository
 	{
-		Task StoreAll(IActivityRepository activityRepository);
+		Task StoreAll(IEnumerable<Activity> activities);
 	}
 }

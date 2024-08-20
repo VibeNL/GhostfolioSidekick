@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GhostfolioSidekick.Model.Activities;
+using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Database.Repository
 {
-	public class ActivityRepository : IActivityRepository
+	public class ActivityRepository(DatabaseContext databaseContext) : IActivityRepository
 	{
-		public Task StoreAll(IActivityRepository activityRepository)
+		public async Task StoreAll(IEnumerable<Activity> activities)
 		{
-			throw new NotImplementedException();
+			await databaseContext.Activities.ExecuteDeleteAsync();
+			await databaseContext.Activities.AddRangeAsync(activities);
+			await databaseContext.SaveChangesAsync();
 		}
 	}
 }

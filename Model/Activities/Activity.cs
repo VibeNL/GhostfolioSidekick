@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Model.Activities
 			Description = description;
 		}
 
-		public string? Id { get; protected set; }
+		public long Id { get; protected set; }
 
 		public Account Account { get; protected set; }
 

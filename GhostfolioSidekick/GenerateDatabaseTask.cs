@@ -1,9 +1,6 @@
-﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
-using System.Text;
 
 namespace GhostfolioSidekick
 {

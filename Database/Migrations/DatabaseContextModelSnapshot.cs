@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasIndex("PlatformId");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("Accounts", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Balance", b =>
@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Platforms");
+                    b.ToTable("Platforms", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Activity", b =>
@@ -320,7 +320,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         .WithMany("Balance")
                         .HasForeignKey("AccountId");
 
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Money", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Accounts.Balance.Money#GhostfolioSidekick.Model.Money", "Money", b1 =>
                         {
                             b1.Property<int>("BalanceId")
                                 .HasColumnType("INTEGER");
@@ -331,12 +331,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("BalanceId");
 
-                            b1.ToTable("Balances");
+                            b1.ToTable("Balances", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("BalanceId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Accounts.Balance.Money#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyBalanceId")
                                         .HasColumnType("INTEGER");
@@ -348,7 +348,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyBalanceId");
 
-                                    b2.ToTable("Balances");
+                                    b2.ToTable("Balances", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyBalanceId");
@@ -395,7 +395,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Symbols.SymbolProfile.Currency#GhostfolioSidekick.Model.Currency", "Currency", b1 =>
                         {
                             b1.Property<string>("SymbolProfileSymbol")
                                 .HasColumnType("TEXT");
@@ -407,7 +407,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("SymbolProfileSymbol");
 
-                            b1.ToTable("SymbolProfiles");
+                            b1.ToTable("SymbolProfiles", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SymbolProfileSymbol");
@@ -419,7 +419,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.CashDepositWithdrawalActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Amount", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.CashDepositWithdrawalActivity.Amount#GhostfolioSidekick.Model.Money", "Amount", b1 =>
                         {
                             b1.Property<string>("CashDepositWithdrawalActivityId")
                                 .HasColumnType("TEXT");
@@ -431,12 +431,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("CashDepositWithdrawalActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("CashDepositWithdrawalActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.CashDepositWithdrawalActivity.Amount#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyCashDepositWithdrawalActivityId")
                                         .HasColumnType("TEXT");
@@ -449,7 +449,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyCashDepositWithdrawalActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyCashDepositWithdrawalActivityId");
@@ -465,7 +465,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.DividendActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Amount", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.DividendActivity.Amount#GhostfolioSidekick.Model.Money", "Amount", b1 =>
                         {
                             b1.Property<string>("DividendActivityId")
                                 .HasColumnType("TEXT");
@@ -477,12 +477,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("DividendActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("DividendActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.DividendActivity.Amount#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyDividendActivityId")
                                         .HasColumnType("TEXT");
@@ -495,7 +495,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyDividendActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyDividendActivityId");
@@ -505,7 +505,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsMany("GhostfolioSidekick.Model.Money", "Fees", b1 =>
+                    b.OwnsMany("GhostfolioSidekick.Model.Activities.Types.DividendActivity.Fees#GhostfolioSidekick.Model.Money", "Fees", b1 =>
                         {
                             b1.Property<string>("DividendActivityId")
                                 .HasColumnType("TEXT");
@@ -525,7 +525,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("DividendActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.DividendActivity.Fees#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyDividendActivityId")
                                         .HasColumnType("TEXT");
@@ -540,7 +540,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyDividendActivityId", "MoneyId");
 
-                                    b2.ToTable("DividendActivityFees");
+                                    b2.ToTable("DividendActivityFees", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyDividendActivityId", "MoneyId");
@@ -550,7 +550,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsMany("GhostfolioSidekick.Model.Money", "Taxes", b1 =>
+                    b.OwnsMany("GhostfolioSidekick.Model.Activities.Types.DividendActivity.Taxes#GhostfolioSidekick.Model.Money", "Taxes", b1 =>
                         {
                             b1.Property<string>("DividendActivityId")
                                 .HasColumnType("TEXT");
@@ -570,7 +570,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("DividendActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.DividendActivity.Taxes#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyDividendActivityId")
                                         .HasColumnType("TEXT");
@@ -585,7 +585,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyDividendActivityId", "MoneyId");
 
-                                    b2.ToTable("DividendActivityTaxes");
+                                    b2.ToTable("DividendActivityTaxes", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyDividendActivityId", "MoneyId");
@@ -605,7 +605,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.FeeActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Amount", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.FeeActivity.Amount#GhostfolioSidekick.Model.Money", "Amount", b1 =>
                         {
                             b1.Property<string>("FeeActivityId")
                                 .HasColumnType("TEXT");
@@ -617,12 +617,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("FeeActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("FeeActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.FeeActivity.Amount#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyFeeActivityId")
                                         .HasColumnType("TEXT");
@@ -635,7 +635,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyFeeActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyFeeActivityId");
@@ -651,7 +651,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.InterestActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Amount", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.InterestActivity.Amount#GhostfolioSidekick.Model.Money", "Amount", b1 =>
                         {
                             b1.Property<string>("InterestActivityId")
                                 .HasColumnType("TEXT");
@@ -663,12 +663,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("InterestActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("InterestActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.InterestActivity.Amount#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyInterestActivityId")
                                         .HasColumnType("TEXT");
@@ -681,7 +681,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyInterestActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyInterestActivityId");
@@ -697,7 +697,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.KnownBalanceActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Amount", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.KnownBalanceActivity.Amount#GhostfolioSidekick.Model.Money", "Amount", b1 =>
                         {
                             b1.Property<string>("KnownBalanceActivityId")
                                 .HasColumnType("TEXT");
@@ -709,12 +709,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("KnownBalanceActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("KnownBalanceActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.KnownBalanceActivity.Amount#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyKnownBalanceActivityId")
                                         .HasColumnType("TEXT");
@@ -727,7 +727,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyKnownBalanceActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyKnownBalanceActivityId");
@@ -743,7 +743,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.LiabilityActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Price", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.LiabilityActivity.Price#GhostfolioSidekick.Model.Money", "Price", b1 =>
                         {
                             b1.Property<string>("LiabilityActivityId")
                                 .HasColumnType("TEXT");
@@ -755,12 +755,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("LiabilityActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("LiabilityActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.LiabilityActivity.Price#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyLiabilityActivityId")
                                         .HasColumnType("TEXT");
@@ -773,7 +773,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyLiabilityActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyLiabilityActivityId");
@@ -789,7 +789,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.RepayBondActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "TotalRepayAmount", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.RepayBondActivity.TotalRepayAmount#GhostfolioSidekick.Model.Money", "TotalRepayAmount", b1 =>
                         {
                             b1.Property<string>("RepayBondActivityId")
                                 .HasColumnType("TEXT");
@@ -801,12 +801,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("RepayBondActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("RepayBondActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.RepayBondActivity.TotalRepayAmount#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyRepayBondActivityId")
                                         .HasColumnType("TEXT");
@@ -819,7 +819,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyRepayBondActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyRepayBondActivityId");
@@ -835,7 +835,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.ValuableActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Price", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.ValuableActivity.Price#GhostfolioSidekick.Model.Money", "Price", b1 =>
                         {
                             b1.Property<string>("ValuableActivityId")
                                 .HasColumnType("TEXT");
@@ -847,12 +847,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("ValuableActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ValuableActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.ValuableActivity.Price#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyValuableActivityId")
                                         .HasColumnType("TEXT");
@@ -865,7 +865,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyValuableActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyValuableActivityId");
@@ -881,7 +881,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.BuySellActivity", b =>
                 {
-                    b.OwnsMany("GhostfolioSidekick.Model.Money", "Fees", b1 =>
+                    b.OwnsMany("GhostfolioSidekick.Model.Activities.Types.BuySellActivity.Fees#GhostfolioSidekick.Model.Money", "Fees", b1 =>
                         {
                             b1.Property<string>("BuySellActivityId")
                                 .HasColumnType("TEXT");
@@ -901,7 +901,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("BuySellActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.BuySellActivity.Fees#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyBuySellActivityId")
                                         .HasColumnType("TEXT");
@@ -916,7 +916,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyBuySellActivityId", "MoneyId");
 
-                                    b2.ToTable("BuySellActivityFees");
+                                    b2.ToTable("BuySellActivityFees", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyBuySellActivityId", "MoneyId");
@@ -926,7 +926,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsMany("GhostfolioSidekick.Model.Money", "Taxes", b1 =>
+                    b.OwnsMany("GhostfolioSidekick.Model.Activities.Types.BuySellActivity.Taxes#GhostfolioSidekick.Model.Money", "Taxes", b1 =>
                         {
                             b1.Property<string>("BuySellActivityId")
                                 .HasColumnType("TEXT");
@@ -946,7 +946,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("BuySellActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.BuySellActivity.Taxes#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyBuySellActivityId")
                                         .HasColumnType("TEXT");
@@ -961,7 +961,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyBuySellActivityId", "MoneyId");
 
-                                    b2.ToTable("BuySellActivityTaxes");
+                                    b2.ToTable("BuySellActivityTaxes", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyBuySellActivityId", "MoneyId");
@@ -971,7 +971,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "UnitPrice", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.BuySellActivity.UnitPrice#GhostfolioSidekick.Model.Money", "UnitPrice", b1 =>
                         {
                             b1.Property<string>("BuySellActivityId")
                                 .HasColumnType("TEXT");
@@ -983,12 +983,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("BuySellActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("BuySellActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.BuySellActivity.UnitPrice#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyBuySellActivityId")
                                         .HasColumnType("TEXT");
@@ -1001,7 +1001,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyBuySellActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyBuySellActivityId");
@@ -1020,7 +1020,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.GiftActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "UnitPrice", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.GiftActivity.UnitPrice#GhostfolioSidekick.Model.Money", "UnitPrice", b1 =>
                         {
                             b1.Property<string>("GiftActivityId")
                                 .HasColumnType("TEXT");
@@ -1032,12 +1032,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("GiftActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("GiftActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.GiftActivity.UnitPrice#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyGiftActivityId")
                                         .HasColumnType("TEXT");
@@ -1050,7 +1050,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyGiftActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyGiftActivityId");
@@ -1065,7 +1065,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.SendAndReceiveActivity", b =>
                 {
-                    b.OwnsMany("GhostfolioSidekick.Model.Money", "Fees", b1 =>
+                    b.OwnsMany("GhostfolioSidekick.Model.Activities.Types.SendAndReceiveActivity.Fees#GhostfolioSidekick.Model.Money", "Fees", b1 =>
                         {
                             b1.Property<string>("SendAndReceiveActivityId")
                                 .HasColumnType("TEXT");
@@ -1085,7 +1085,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("SendAndReceiveActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.SendAndReceiveActivity.Fees#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneySendAndReceiveActivityId")
                                         .HasColumnType("TEXT");
@@ -1100,7 +1100,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneySendAndReceiveActivityId", "MoneyId");
 
-                                    b2.ToTable("SendAndReceiveActivityFees");
+                                    b2.ToTable("SendAndReceiveActivityFees", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneySendAndReceiveActivityId", "MoneyId");
@@ -1110,7 +1110,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "UnitPrice", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.SendAndReceiveActivity.UnitPrice#GhostfolioSidekick.Model.Money", "UnitPrice", b1 =>
                         {
                             b1.Property<string>("SendAndReceiveActivityId")
                                 .HasColumnType("TEXT");
@@ -1122,12 +1122,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("SendAndReceiveActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SendAndReceiveActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.SendAndReceiveActivity.UnitPrice#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneySendAndReceiveActivityId")
                                         .HasColumnType("TEXT");
@@ -1140,7 +1140,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneySendAndReceiveActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneySendAndReceiveActivityId");
@@ -1157,7 +1157,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Money", "UnitPrice", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity.UnitPrice#GhostfolioSidekick.Model.Money", "UnitPrice", b1 =>
                         {
                             b1.Property<string>("StakingRewardActivityId")
                                 .HasColumnType("TEXT");
@@ -1169,12 +1169,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("StakingRewardActivityId");
 
-                            b1.ToTable("Activities");
+                            b1.ToTable("Activities", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("StakingRewardActivityId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity.UnitPrice#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<string>("MoneyStakingRewardActivityId")
                                         .HasColumnType("TEXT");
@@ -1187,7 +1187,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyStakingRewardActivityId");
 
-                                    b2.ToTable("Activities");
+                                    b2.ToTable("Activities", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyStakingRewardActivityId");

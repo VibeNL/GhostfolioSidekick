@@ -1,4 +1,3 @@
-using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;

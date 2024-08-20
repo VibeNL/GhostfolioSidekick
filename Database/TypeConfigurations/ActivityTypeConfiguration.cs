@@ -32,6 +32,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.ToTable("Activities");
 			var discriminatorBuilder = builder.HasDiscriminator<string>("Type");
 
+			builder.HasKey(a => a.Id);
+
 			var type = typeof(Activity);
 			var types = type.Assembly.GetTypes().Where(type.IsAssignableFrom);
 

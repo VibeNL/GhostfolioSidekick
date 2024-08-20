@@ -1,7 +1,4 @@
-﻿
-using System.Diagnostics.CodeAnalysis;
-
-namespace GhostfolioSidekick.Model.Activities
+﻿namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialSymbolIdentifier
 	{

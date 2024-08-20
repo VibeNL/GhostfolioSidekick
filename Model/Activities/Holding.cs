@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Model.Symbols;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities
 {
