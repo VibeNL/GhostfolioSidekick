@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model.Accounts;
@@ -15,7 +16,7 @@ namespace GhostfolioSidekick.FileImporter
 		ILogger<FileImporterTask> logger,
 		IApplicationSettings settings,
 		IEnumerable<IFileImporter> importers,
-		IEnumerable<IHoldingStrategy> strategies,
+		IActivityRepository activityRepository,
 		IMemoryCache memoryCache) : IScheduledWork
 	{
 		private readonly string fileLocation = settings.FileImporterPath;
@@ -38,8 +39,23 @@ namespace GhostfolioSidekick.FileImporter
 
 			logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask));
 
-			var holdingsCollection = new HoldingsCollection(logger);
+			var activityManager = new ActivityManager(logger);
 			var accountNames = new List<string>();
+			await ParseFiles(logger, importers, directories, activityManager, accountNames);
+
+			logger.LogDebug("Generating activities");
+			var activities = activityManager.GenerateActivities();
+
+			// write to the dabaase
+			await activityRepository.StoreAll(activityRepository);
+
+			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
+
+			logger.LogDebug("{Name} Done", nameof(FileImporterTask));
+		}
+
+		private static async Task ParseFiles(ILogger<FileImporterTask> logger, IEnumerable<IFileImporter> importers, string[] directories, ActivityManager activityManager, List<string> accountNames)
+		{
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))
 			{
 				var accountName = directory.Name;
@@ -58,7 +74,7 @@ namespace GhostfolioSidekick.FileImporter
 
 						if (importer is IActivityFileImporter activityImporter)
 						{
-							await activityImporter.ParseActivities(file, holdingsCollection, accountName);
+							await activityImporter.ParseActivities(file, activityManager, accountName);
 						}
 					}
 
@@ -84,13 +100,6 @@ namespace GhostfolioSidekick.FileImporter
 					logger.LogError(ex, "Error {Message}", ex.Message);
 				}
 			}
-
-			logger.LogDebug("Generating activities");
-			await holdingsCollection.GenerateActivities();
-
-			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
-
-			logger.LogDebug("{Name} Done", nameof(FileImporterTask));
 		}
 
 		private static string CalculateHash(string[] directories)

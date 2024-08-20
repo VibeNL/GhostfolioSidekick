@@ -2,10 +2,10 @@
 
 namespace GhostfolioSidekick.Parsers
 {
-	public interface IHoldingsCollection
+	public interface IActivityManager
 	{
 		void AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities);
 
-		Task<IEnumerable<Holding>> GenerateActivities();
+		IEnumerable<Activity> GenerateActivities();
 	}
 }

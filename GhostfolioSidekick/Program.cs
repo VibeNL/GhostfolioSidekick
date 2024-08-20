@@ -1,9 +1,8 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.GhostfolioAPI.Strategies;
+using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -74,16 +73,16 @@ namespace GhostfolioSidekick
 								return new RestClient(options);
 							});
 
-							services.AddSingleton(x =>
-							{
-								var settings = x.GetService<IApplicationSettings>();
-								return new RestCall(x.GetService<IRestClient>()!,
-													x.GetService<MemoryCache>()!,
-													x.GetService<ILogger<RestCall>>()!,
-													settings!.GhostfolioUrl,
-													settings!.GhostfolioAccessToken,
-													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
-							});
+							//services.AddSingleton(x =>
+							//{
+							//	var settings = x.GetService<IApplicationSettings>();
+							//	return new RestCall(x.GetService<IRestClient>()!,
+							//						x.GetService<MemoryCache>()!,
+							//						x.GetService<ILogger<RestCall>>()!,
+							//						settings!.GhostfolioUrl,
+							//						settings!.GhostfolioAccessToken,
+							//						new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
+							//});
 							services.AddSingleton(x =>
 							{
 								var settings = x.GetService<IApplicationSettings>();
@@ -95,15 +94,17 @@ namespace GhostfolioSidekick
 								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
 							});
 
-							////services.AddSingleton<ICurrencyMapper, SymbolMapper>();
+							services.AddScoped<IActivityRepository, ActivityRepository>();
+
+							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
 							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
-							services.AddSingleton<IActivitiesService, ActivitiesService>();
-							services.AddSingleton<IAccountService, AccountService>();
-							services.AddSingleton<IMarketDataService, MarketDataService>();
+							//services.AddSingleton<IActivitiesService, ActivitiesService>();
+							//services.AddSingleton<IAccountService, AccountService>();
+							//services.AddSingleton<IMarketDataService, MarketDataService>();
 							services.AddSingleton<IStockSplitRepository, StockSplitRepository>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
-							////services.AddScoped<IScheduledWork, FileImporterTask>();
+							services.AddScoped<IScheduledWork, FileImporterTask>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
 							////services.AddScoped<IScheduledWork, AccountMaintainerTask>();
 							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
@@ -129,19 +130,18 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalPrimeParser>();
-							services.AddScoped<IFileImporter, StockSplitParser>();
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserEN>();
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserNL>();
 							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
 
-							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
-							services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
-							services.AddScoped<IHoldingStrategy, DeterminePrice>();
-							services.AddScoped<IHoldingStrategy, HandleTaxesOnDividends>();
-							services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
-							services.AddScoped<IHoldingStrategy, RoundStrategy>();
-							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
+							//services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
+							//services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
+							//services.AddScoped<IHoldingStrategy, DeterminePrice>();
+							//services.AddScoped<IHoldingStrategy, HandleTaxesOnDividends>();
+							//services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
+							//services.AddScoped<IHoldingStrategy, RoundStrategy>();
+							//services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 						});
 		}
 	}

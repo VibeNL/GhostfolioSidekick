@@ -8,11 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.FileImporter
 {
-	internal class HoldingsCollection(
-		ILogger logger) : IHoldingsCollection
+	internal class ActivityManager(
+		ILogger logger) : IActivityManager
 	{
-		private readonly List<Holding> holdings = [new Holding(null)];
-
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
 		private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -24,8 +22,9 @@ namespace GhostfolioSidekick.FileImporter
 			}
 		}
 
-		public async Task<IEnumerable<Holding>> GenerateActivities()
+		public IEnumerable<Activity> GenerateActivities()
 		{
+			var activities = new List<Activity>();
 			foreach (var partialActivityPerAccount in unusedPartialActivities)
 			{
 				var accountName = partialActivityPerAccount.Key;
@@ -34,7 +33,7 @@ namespace GhostfolioSidekick.FileImporter
 				{
 					try
 					{
-						await DetermineActivity(account, [.. transaction]);
+						DetermineActivity(activities, account, [.. transaction]);
 					}
 					catch (SymbolNotFoundException symbol)
 					{
@@ -47,10 +46,10 @@ namespace GhostfolioSidekick.FileImporter
 
 			unusedPartialActivities.Clear();
 
-			return holdings;
+			return activities;
 		}
 
-		private async Task DetermineActivity(Account account, List<PartialActivity> transactions)
+		private void DetermineActivity(List<Activity> activities, Account account, List<PartialActivity> transactions)
 		{
 			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Length != 0) ?? transactions[0];
 
@@ -71,7 +70,7 @@ namespace GhostfolioSidekick.FileImporter
 				sourceTransaction.SortingPriority,
 				sourceTransaction.Description ?? "<EMPTY>");
 
-			(await GetorAddHolding(sourceTransaction)).Activities.Add(activity);
+			activities.Add(activity);
 
 			int counter = 2;
 			foreach (var transaction in otherTransactions)
@@ -88,7 +87,7 @@ namespace GhostfolioSidekick.FileImporter
 					transaction.SortingPriority,
 					sourceTransaction.Description ?? "<EMPTY>");
 
-				(await GetorAddHolding(transaction)).Activities.Add(activity);
+				activities.Add(activity);
 			}
 		}
 
@@ -158,48 +157,6 @@ namespace GhostfolioSidekick.FileImporter
 				default:
 					throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented");
 			}
-		}
-
-		private async Task<Holding> GetorAddHolding(PartialActivity activity)
-		{
-			if (activity.SymbolIdentifiers.Length == 0)
-			{
-				return holdings.Single(x => x.SymbolProfile == null);
-			}
-
-			var allowedAssetClass = EmptyToNull(activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetClasses ?? []));
-			var allowedAssetSubClass = EmptyToNull(activity.SymbolIdentifiers.SelectMany(x => x.AllowedAssetSubClasses ?? []));
-			var symbol = await MarketDataService.FindSymbolByIdentifier(
-				activity.SymbolIdentifiers.Select(x => x.Identifier).ToArray(),
-				activity.Currency,
-				allowedAssetClass?.ToArray(),
-				allowedAssetSubClass?.ToArray(),
-				true,
-				false);
-
-			if (symbol == null)
-			{
-				throw new SymbolNotFoundException(activity.SymbolIdentifiers);
-			}
-
-			var holding = holdings.SingleOrDefault(x => x.SymbolProfile?.Equals(symbol) ?? false);
-			if (holding == null)
-			{
-				holding = new Holding(symbol);
-				holdings.Add(holding);
-			}
-
-			return holding;
-		}
-
-		private static List<T>? EmptyToNull<T>(IEnumerable<T> array)
-		{
-			if (array.All(x => object.Equals(x, default(T))))
-			{
-				return null;
-			}
-
-			return array.Where(x => !object.Equals(x, default(T))).ToList();
 		}
 	}
 }
