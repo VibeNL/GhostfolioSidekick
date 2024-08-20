@@ -16,15 +16,12 @@ namespace GhostfolioSidekick.FileImporter
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
 		private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-		public Task AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities)
+		public void AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities)
 		{
-			if (unusedPartialActivities.TryAdd(accountName, partialActivities.ToList()))
+			if (!unusedPartialActivities.TryAdd(accountName, partialActivities.ToList()))
 			{
-				return Task.CompletedTask;
+				unusedPartialActivities[accountName].AddRange(partialActivities);
 			}
-
-			unusedPartialActivities[accountName].AddRange(partialActivities);
-			return Task.CompletedTask;
 		}
 
 		public async Task<IEnumerable<Holding>> GenerateActivities()

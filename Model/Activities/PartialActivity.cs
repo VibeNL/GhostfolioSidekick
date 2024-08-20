@@ -267,6 +267,7 @@
 			};
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "<Pending>")]
 		public static IEnumerable<PartialActivity> CreateAssetConvert(
 			DateTime date,
 			PartialSymbolIdentifier[] source,
@@ -326,24 +327,7 @@
 				Description = description
 			};
 		}
-
-		public static PartialActivity CreateStockSplit(
-			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
-			int from,
-			int to,
-			string transactionId)
-		{
-			return new PartialActivity(PartialActivityType.StockSplit, null!, new Money(Currency.EUR, 0), transactionId)
-			{
-				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
-				Amount = 1,
-				SplitFrom = from,
-				SplitTo = to
-			};
-		}
-
+		
 		public static PartialActivity CreateBondRepay(
 			Currency currency,
 			DateTime date,

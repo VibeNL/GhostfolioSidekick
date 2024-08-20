@@ -4,25 +4,19 @@ using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {
-	internal class TestHoldingsCollection : IHoldingsCollection
+	internal class TestHoldingsCollection(string AccountName) : IHoldingsCollection
 	{
-		private readonly List<Holding> holdings = [];
-		private readonly Account account;
-
-		public IReadOnlyList<Holding> Holdings => holdings;
-
 		public List<PartialActivity> PartialActivities { get; set; } = [];
 
-		public TestHoldingsCollection(Account account)
+		public void AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities)
 		{
-			this.account = account;
+			accountName.Should().Be(AccountName);
+			PartialActivities.AddRange(partialActivities);
 		}
 
-		public Task AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities)
+		public Task<IEnumerable<Holding>> GenerateActivities()
 		{
-			accountName.Should().Be(account.Name);
-			PartialActivities.AddRange(partialActivities);
-			return Task.CompletedTask;
+			throw new NotImplementedException();
 		}
-	}
+		}
 }
