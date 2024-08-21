@@ -108,30 +108,30 @@ namespace GhostfolioSidekick.FileImporter
 				case PartialActivityType.Buy:
 					return new BuySellActivity(account, date, amount, money, transactionId, sortingPriority, description)
 					{
-						Taxes = taxes,
-						Fees = fees,
+						Taxes = taxes.ToList(),
+						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Sell:
 					return new BuySellActivity(account, date, -amount, money, transactionId, sortingPriority, description)
 					{
-						Taxes = taxes,
-						Fees = fees,
+						Taxes = taxes.ToList(),
+						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Receive:
 					return new SendAndReceiveActivity(account, date, amount, transactionId, sortingPriority, description)
 					{
-						Fees = fees,
+						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Send:
 					return new SendAndReceiveActivity(account, date, -amount, transactionId, sortingPriority, description)
 					{
-						Fees = fees,
+						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Dividend:
 					return new DividendActivity(account, date, money.Times(amount), transactionId, sortingPriority, description)
 					{
-						Taxes = taxes,
-						Fees = fees,
+						Taxes = taxes.ToList(),
+						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Interest:
 					return new InterestActivity(account, date, money.Times(amount), transactionId, sortingPriority, description);

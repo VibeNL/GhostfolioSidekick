@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		{
 		}
 
-		public IEnumerable<Money> Fees { get; set; } = [];
+		public ICollection<Money> Fees { get; set; } = [];
 
 		public override string ToString()
 		{

@@ -18,7 +18,7 @@
 
 		public List<Balance> Balance { get; set; } = new List<Balance>();
 
-		public string? Id { get; set; }
+		public int Id { get; set; }
 
 		public string? Comment { get; set; }
 

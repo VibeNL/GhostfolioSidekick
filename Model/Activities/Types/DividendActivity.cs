@@ -21,11 +21,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			Amount = amount;
 		}
 
-		public IEnumerable<Money> Fees { get; set; } = [];
+		public ICollection<Money> Fees { get; set; } = [];
 
 		public Money Amount { get; set; }
 
-		public IEnumerable<Money> Taxes { get; set; } = [];
+		public ICollection<Money> Taxes { get; set; } = [];
 
 		public override string ToString()
 		{
