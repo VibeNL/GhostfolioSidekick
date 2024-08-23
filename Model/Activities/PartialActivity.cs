@@ -1,15 +1,18 @@
-﻿namespace GhostfolioSidekick.Model.Activities
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialActivity
 	{
-		private DateTime date;
 		public PartialActivity(
 			PartialActivityType activityType,
+			DateTime dateTime,
 			Currency currency,
 			Money TotalTransactionAmount,
 			string? transactionId)
 		{
 			ActivityType = activityType;
+			Date = dateTime.ToUniversalTime();
 			Currency = currency;
 			this.TotalTransactionAmount = TotalTransactionAmount;
 			TransactionId = transactionId;
@@ -19,7 +22,7 @@
 
 		public Currency Currency { get; }
 
-		public DateTime Date { get => date; private set => date = value.ToUniversalTime(); }
+		public DateTime Date { get; private set; }
 
 		public decimal Amount { get; private set; }
 
@@ -46,9 +49,8 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.CashDeposit, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.CashDeposit, date, currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = amount,
 			};
 		}
@@ -60,9 +62,8 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.CashWithdrawal, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.CashWithdrawal, date, currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = amount,
 			};
 		}
@@ -74,9 +75,8 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Gift, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Gift, date, currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = amount,
 				Description = "Gift"
 			};
@@ -88,9 +88,8 @@
 			decimal amount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Gift, Currency.EUR, new Money(Currency.USD, 0), transactionId)
+			return new PartialActivity(PartialActivityType.Gift, date, Currency.EUR, new Money(Currency.USD, 0), transactionId)
 			{
-				Date = date,
 				Amount = amount,
 				SymbolIdentifiers = symbolIdentifiers
 			};
@@ -104,9 +103,8 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Interest, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Interest, date, currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = amount,
 				Description = description,
 			};
@@ -118,9 +116,8 @@
 			decimal amount,
 			int? rownumber = 0)
 		{
-			return new PartialActivity(PartialActivityType.KnownBalance, currency, new Money(Currency.USD, 0), null)
+			return new PartialActivity(PartialActivityType.KnownBalance, date, currency, new Money(Currency.USD, 0), null)
 			{
-				Date = date,
 				Amount = amount,
 				SortingPriority = rownumber
 			};
@@ -133,9 +130,8 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Tax, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Tax, date, currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = amount,
 				Description = "Tax",
 			};
@@ -148,9 +144,8 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Fee, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Fee, date, currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = amount,
 				Description = "Fee",
 			};
@@ -165,10 +160,9 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Buy, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Buy, date, currency, totalTransactionAmount, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
 				Amount = amount,
 				UnitPrice = unitPrice
 			};
@@ -183,10 +177,9 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Sell, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Sell, date, currency, totalTransactionAmount, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
 				Amount = amount,
 				UnitPrice = unitPrice
 			};
@@ -200,10 +193,9 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Dividend, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Dividend, date, currency, totalTransactionAmount, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
 				Amount = amount,
 				UnitPrice = 1,
 				TotalTransactionAmount = new Money(currency, amount)
@@ -217,14 +209,12 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			yield return new PartialActivity(PartialActivityType.CashWithdrawal, source.Currency, totalTransactionAmount, transactionId)
+			yield return new PartialActivity(PartialActivityType.CashWithdrawal, date, source.Currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = source.Amount
 			};
-			yield return new PartialActivity(PartialActivityType.CashDeposit, target.Currency, totalTransactionAmount, transactionId)
+			yield return new PartialActivity(PartialActivityType.CashDeposit, date, target.Currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = target.Amount
 			};
 		}
@@ -235,10 +225,9 @@
 				decimal amount,
 				string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.StakingReward, Currency.USD, new Money(Currency.EUR, 0), transactionId)
+			return new PartialActivity(PartialActivityType.StakingReward, date, Currency.USD, new Money(Currency.EUR, 0), transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
 				Amount = amount
 			};
 		}
@@ -249,10 +238,9 @@
 			decimal amount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Send, Currency.USD, new Money(Currency.USD, 0), transactionId)
+			return new PartialActivity(PartialActivityType.Send, date, Currency.USD, new Money(Currency.USD, 0), transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
 				Amount = amount,
 			};
 		}
@@ -263,10 +251,9 @@
 			decimal amount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Receive, Currency.USD, new Money(Currency.USD, 0), transactionId)
+			return new PartialActivity(PartialActivityType.Receive, date, Currency.USD, new Money(Currency.USD, 0), transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
 				Amount = amount,
 			};
 		}
@@ -281,17 +268,15 @@
 			decimal? targetUnitprice,
 			string transactionId)
 		{
-			yield return new PartialActivity(PartialActivityType.Send, Currency.USD, new Money(Currency.EUR, 0), transactionId)
+			yield return new PartialActivity(PartialActivityType.Send, date, Currency.USD, new Money(Currency.EUR, 0), transactionId)
 			{
 				SymbolIdentifiers = source,
-				Date = date,
 				Amount = sourceAmount,
 				UnitPrice = sourceUnitprice
 			};
-			yield return new PartialActivity(PartialActivityType.Receive, Currency.USD, new Money(Currency.EUR, 0), transactionId)
+			yield return new PartialActivity(PartialActivityType.Receive, date, Currency.USD, new Money(Currency.EUR, 0), transactionId)
 			{
 				SymbolIdentifiers = target,
-				Date = date,
 				Amount = targetAmount,
 				UnitPrice = targetUnitprice
 			};
@@ -305,9 +290,8 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Valuable, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Valuable, date, currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = 1,
 				UnitPrice = value,
 				Description = description
@@ -322,9 +306,8 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Liability, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Liability,date, currency, totalTransactionAmount, transactionId)
 			{
-				Date = date,
 				Amount = 1,
 				UnitPrice = value,
 				Description = description
@@ -338,10 +321,9 @@
 			int to,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.StockSplit, null!, new Money(Currency.EUR, 0), transactionId)
+			return new PartialActivity(PartialActivityType.StockSplit, date, null!, new Money(Currency.EUR, 0), transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
 				Amount = 1,
 				SplitFrom = from,
 				SplitTo = to
@@ -356,10 +338,9 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.BondRepay, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.BondRepay, date, currency, totalTransactionAmount, transactionId)
 			{
 				SymbolIdentifiers = symbolIdentifiers,
-				Date = date,
 				UnitPrice = unitPrice
 			};
 		}

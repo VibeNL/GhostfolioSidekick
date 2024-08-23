@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var activities = new List<PartialActivity>
 			{
-				new PartialActivity(PartialActivityType.Undefined, baseCurrency, new Money(baseCurrency, 0), string.Empty)
+				new(PartialActivityType.Undefined, DateTime.Today, baseCurrency, new Money(baseCurrency, 0), string.Empty)
 			};
 
 			// Act & Assert
@@ -168,22 +168,22 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var activities = new List<PartialActivity>
 			{
-				new PartialActivity(PartialActivityType.Buy, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Sell, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Dividend, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Interest, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Fee, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.CashDeposit, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.CashWithdrawal, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Tax, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Valuable, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Liability, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.StockSplit, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.StakingReward, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Gift, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Send, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.Receive, baseCurrency, new Money(baseCurrency, 0), string.Empty),
-				new PartialActivity(PartialActivityType.BondRepay, baseCurrency, new Money(baseCurrency, 0), string.Empty)
+				new(PartialActivityType.Buy, DateTime.Today, baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Sell, DateTime.Today.AddDays(-1), baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Dividend,DateTime.Today.AddDays(-2), baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Interest, DateTime.Today.AddDays(-3), baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Fee, DateTime.Today.AddDays(-4), baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.CashDeposit,DateTime.Today.AddDays(-5),  baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.CashWithdrawal,DateTime.Today.AddDays(-6),  baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Tax, DateTime.Today.AddDays(-7), baseCurrency,  new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Valuable,DateTime.Today.AddDays(-8),  baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Liability,DateTime.Today.AddDays(-9),  baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.StockSplit,DateTime.Today.AddDays(-10),  baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.StakingReward, DateTime.Today.AddDays(-11), baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Gift, DateTime.Today.AddDays(-12), baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Send, DateTime.Today.AddDays(-13), baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.Receive, DateTime.Today.AddDays(-14), baseCurrency, new Money(baseCurrency, 0), string.Empty),
+				new(PartialActivityType.BondRepay,DateTime.Today.AddDays(-15),  baseCurrency, new Money(baseCurrency, 0), string.Empty)
 			};
 
 			// Act
@@ -195,7 +195,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		}
 
 		[Fact]
-		public async Task Calculate_Bug286_ReturnsExpectedBalance()
+		public async Task Calculate_MUltipleOnTheSameDay_ReturnsExpectedBalance()
 		{
 			// Arrange
 			var dt1 = new DateTime(2024, 05, 14, 0, 0, 0, DateTimeKind.Utc);
@@ -224,8 +224,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			result.Count.Should().Be(2);
-			result[0].Money.Amount.Should().Be(-100);
-			result[1].Money.Amount.Should().Be(0);
+			result[0].Money.Amount.Should().Be(-100.034800M);
+			result[1].Money.Amount.Should().Be(0.143200M);
 		}
 	}
 }
