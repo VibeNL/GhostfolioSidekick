@@ -18,6 +18,11 @@ namespace GhostfolioSidekick.Database.Repository
 			await databaseContext.SaveChangesAsync();
 		}
 
+		public Task<Account?> GetAccountByName(string accountName)
+		{
+			return databaseContext.Accounts.SingleOrDefaultAsync(x => x.Name == accountName);
+		}
+
 		public Task<List<Account>> GetAllAccounts()
 		{
 			return databaseContext.Accounts.ToListAsync();

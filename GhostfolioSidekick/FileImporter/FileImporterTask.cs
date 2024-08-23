@@ -13,6 +13,7 @@ namespace GhostfolioSidekick.FileImporter
 		IApplicationSettings settings,
 		IEnumerable<IFileImporter> importers,
 		IActivityRepository activityRepository,
+		IAccountRepository accountRepository,
 		IMemoryCache memoryCache) : IScheduledWork
 	{
 		private readonly string fileLocation = settings.FileImporterPath;
@@ -35,12 +36,12 @@ namespace GhostfolioSidekick.FileImporter
 
 			logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask));
 
-			var activityManager = new ActivityManager(logger);
+			var activityManager = new ActivityManager(logger, accountRepository);
 			var accountNames = new List<string>();
 			await ParseFiles(logger, importers, directories, activityManager, accountNames);
 
 			logger.LogDebug("Generating activities");
-			var activities = activityManager.GenerateActivities();
+			var activities = await activityManager.GenerateActivities();
 
 			// write to the dabaase
 			await activityRepository.StoreAll(activities);

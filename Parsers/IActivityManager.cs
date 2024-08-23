@@ -6,6 +6,6 @@ namespace GhostfolioSidekick.Parsers
 	{
 		void AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities);
 
-		IEnumerable<Activity> GenerateActivities();
+		Task<IEnumerable<Activity>> GenerateActivities();
 	}
 }

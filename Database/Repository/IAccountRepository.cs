@@ -11,6 +11,7 @@ namespace GhostfolioSidekick.Database.Repository
 	{
 		Task AddAccount(Account account);
 		Task AddPlatform(Platform platform);
+		Task<Account?> GetAccountByName(string accountName);
 		Task<List<Account>> GetAllAccounts();
 		Task<Platform?> GetPlatformByName(string name);
 	}

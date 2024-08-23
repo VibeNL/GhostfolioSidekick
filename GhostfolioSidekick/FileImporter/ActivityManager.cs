@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -8,7 +9,8 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.FileImporter
 {
 	internal class ActivityManager(
-		ILogger logger) : IActivityManager
+		ILogger logger,
+		IAccountRepository accountRepository) : IActivityManager
 	{
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
 		private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -21,13 +23,13 @@ namespace GhostfolioSidekick.FileImporter
 			}
 		}
 
-		public IEnumerable<Activity> GenerateActivities()
+		public async Task<IEnumerable<Activity>> GenerateActivities()
 		{
 			var activities = new List<Activity>();
 			foreach (var partialActivityPerAccount in unusedPartialActivities)
 			{
 				var accountName = partialActivityPerAccount.Key;
-				var account = new Account(accountName);
+				var account = await accountRepository.GetAccountByName(accountName) ?? new Account(accountName);
 				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
 					try
