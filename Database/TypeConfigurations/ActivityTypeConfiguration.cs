@@ -1,12 +1,18 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
 	internal class ActivityTypeConfiguration :
 		IEntityTypeConfiguration<Activity>,
+		IEntityTypeConfiguration<ActivityWithQuantityAndUnitPrice>,
 		IEntityTypeConfiguration<BuySellActivity>,
 		IEntityTypeConfiguration<CashDepositWithdrawalActivity>,
 		IEntityTypeConfiguration<DividendActivity>,
@@ -27,6 +33,16 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		private const string FeeAmountColumn = "Amount";
 		private const string TaxAmountColumn = "Amount";
 
+		private readonly ValueComparer<ICollection<Money>> moneyListComparer;
+
+		public ActivityTypeConfiguration()
+		{
+			moneyListComparer = new ValueComparer<ICollection<Money>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList());
+		}
+
 		public void Configure(EntityTypeBuilder<Activity> builder)
 		{
 			builder.ToTable("Activities");
@@ -43,196 +59,159 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			}
 
 			discriminatorBuilder.IsComplete();
+		}
 
+		public void Configure(EntityTypeBuilder<ActivityWithQuantityAndUnitPrice> builder)
+		{
+			builder.Property(b => b.UnitPrice)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
 		{
-			builder.OwnsOne(b => b.UnitPrice, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
-			builder.OwnsMany(b => b.Fees, m =>
-			{
-				m.ToTable("BuySellActivityFees");
-				m.Property(p => p.Amount).HasColumnName(FeeAmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
-			builder.OwnsMany(b => b.Taxes, m =>
-			{
-				m.ToTable("BuySellActivityTaxes");
-				m.Property(p => p.Amount).HasColumnName(TaxAmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.UnitPrice)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
+
+			builder.Property(b => b.Fees)
+				.HasConversion(
+						v => MoniesToString(v),
+						v => StringToMonies(v),
+						moneyListComparer);
+
+			builder.Property(b => b.Taxes)
+				.HasConversion(
+						v => MoniesToString(v),
+						v => StringToMonies(v),
+						moneyListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<CashDepositWithdrawalActivity> builder)
 		{
-			builder.OwnsOne(b => b.Amount, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.Amount)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<DividendActivity> builder)
 		{
-			builder.OwnsOne(b => b.Amount, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
-			builder.OwnsMany(b => b.Fees, m =>
-			{
-				m.ToTable("DividendActivityFees");
-				m.Property(p => p.Amount).HasColumnName(FeeAmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
-			builder.OwnsMany(b => b.Taxes, m =>
-			{
-				m.ToTable("DividendActivityTaxes");
-				m.Property(p => p.Amount).HasColumnName(TaxAmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.Amount)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
+
+			builder.Property(b => b.Fees)
+				.HasConversion(
+						v => MoniesToString(v),
+						v => StringToMonies(v),
+						moneyListComparer);
+
+			builder.Property(b => b.Taxes)
+				.HasConversion(
+						v => MoniesToString(v),
+						v => StringToMonies(v),
+						moneyListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
 		{
-			builder.OwnsOne(b => b.Amount, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.Amount)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<GiftActivity> builder)
 		{
-			builder.OwnsOne(b => b.UnitPrice, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.UnitPrice)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<InterestActivity> builder)
 		{
-			builder.OwnsOne(b => b.Amount, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.Amount)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<KnownBalanceActivity> builder)
 		{
-			builder.OwnsOne(b => b.Amount, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.Amount)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<LiabilityActivity> builder)
 		{
-			builder.OwnsOne(b => b.Price, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.Price)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<RepayBondActivity> builder)
 		{
-			builder.OwnsOne(b => b.TotalRepayAmount, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.TotalRepayAmount)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<SendAndReceiveActivity> builder)
 		{
-			builder.OwnsOne(b => b.UnitPrice, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
-			builder.OwnsMany(b => b.Fees, m =>
-			{
-				m.ToTable("SendAndReceiveActivityFees");
-				m.Property(p => p.Amount).HasColumnName(FeeAmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.UnitPrice)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
+			builder.Property(b => b.Fees)
+				.HasConversion(
+						v => MoniesToString(v),
+						v => StringToMonies(v),
+						moneyListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
 		{
-			builder.OwnsOne(b => b.UnitPrice, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.UnitPrice)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)
 		{
-			builder.OwnsOne(b => b.Price, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName(AmountColumn);
-				m.OwnsOne(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName(CurrencyColumn);
-				});
-			});
+			builder.Property(b => b.Price)
+				.HasConversion(
+					v => MoneyToString(v),
+					v => StringToMoney(v));
+		}
+
+		private ICollection<Money> StringToMonies(string v)
+		{
+			return JsonSerializer.Deserialize<ICollection<Money>>(v) ?? [];
+		}
+
+		private string MoniesToString(ICollection<Money> v)
+		{
+			return JsonSerializer.Serialize(v);
+		}
+
+		private Money StringToMoney(string v)
+		{
+			return JsonSerializer.Deserialize<Money>(v) ?? null!;
+		}
+
+		private string MoneyToString(Money v)
+		{
+			return JsonSerializer.Serialize(v);
 		}
 	}
 }
