@@ -6,9 +6,9 @@
 
 		GenerateDatabaseTask,
 
-		FileImporter,
+		AccountCreation,
 
-		//AccountCreation,
+		FileImporter,
 
 		//CreateManualSymbols,
 

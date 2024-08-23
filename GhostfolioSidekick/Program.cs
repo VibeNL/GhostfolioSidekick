@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Configuration;
+﻿using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
@@ -94,6 +95,7 @@ namespace GhostfolioSidekick
 								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
 							});
 
+							services.AddScoped<IAccountRepository, AccountRepository>();
 							services.AddScoped<IActivityRepository, ActivityRepository>();
 
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
@@ -104,17 +106,17 @@ namespace GhostfolioSidekick
 							services.AddSingleton<IStockSplitRepository, StockSplitRepository>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
-							services.AddScoped<IScheduledWork, FileImporterTask>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
-							////services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+							services.AddScoped<IScheduledWork, GenerateDatabaseTask>();
+							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+							services.AddScoped<IScheduledWork, FileImporterTask>();
 							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
 							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
 							////services.AddScoped<IScheduledWork, SetBenchmarksTask>();
 							////services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 							////services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							////services.AddScoped<IScheduledWork, GatherAllDataTask>();
-							services.AddScoped<IScheduledWork, GenerateDatabaseTask>();
-
+							
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();
 							services.AddScoped<IFileImporter, BunqParser>();
