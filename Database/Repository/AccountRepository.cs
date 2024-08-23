@@ -6,14 +6,16 @@ namespace GhostfolioSidekick.Database.Repository
 {
 	public class AccountRepository(DatabaseContext databaseContext) : IAccountRepository
 	{
-		public Task AddAccount(Account account)
+		public async Task AddAccount(Account account)
 		{
-			return databaseContext.Accounts.AddAsync(account).AsTask();
+			await databaseContext.Accounts.AddAsync(account).AsTask();
+			await databaseContext.SaveChangesAsync();
 		}
 
-		public Task AddPlatform(Platform platform)
+		public async Task AddPlatform(Platform platform)
 		{
-			return databaseContext.Platforms.AddAsync(platform).AsTask();
+			await databaseContext.Platforms.AddAsync(platform).AsTask();
+			await databaseContext.SaveChangesAsync();
 		}
 
 		public Task<List<Account>> GetAllAccounts()
