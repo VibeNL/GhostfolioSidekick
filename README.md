@@ -4,7 +4,7 @@
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=VibeNL_GhostfolioSidekick&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=VibeNL_GhostfolioSidekick)
 
-[![Shield: Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Support-yellow?logo=buymeacoffee)](buymeacoffee.com/vibenl)
+[![Shield: Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Support-yellow?logo=buymeacoffee)](https://www.buymeacoffee.com/vibenl)
 
 A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. 
 The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). 
