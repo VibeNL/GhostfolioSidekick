@@ -193,5 +193,39 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			result.Count.Should().Be(11);
 			result.TrueForAll(x => x.Money.Amount == 0).Should().BeTrue();
 		}
+
+		[Fact]
+		public async Task Calculate_Bug286_ReturnsExpectedBalance()
+		{
+			// Arrange
+			var dt1 = new DateTime(2024, 05, 14, 0, 0, 0, DateTimeKind.Utc);
+			var dt2 = new DateTime(2024, 07, 2, 0, 0, 0, DateTimeKind.Utc);
+			PartialActivity Generate(DateTime dateTime, decimal quantity, decimal price)
+			{
+				return PartialActivity.CreateBuy(Currency.EUR, dateTime, [], quantity, price, new Money(baseCurrency, quantity * price), Guid.NewGuid().ToString());
+			}
+
+			var activities = new List<PartialActivity>
+			{
+				Generate(dt1, 5.4800m, 5.17m), //BUY ADB
+				Generate(dt1, 0.64m, 23.05m), //BUY DEF
+				Generate(dt1, 0.250m, 49.43m), //BUY GHI
+				Generate(dt1, 1.69m, 20.53m), //BUY JKL
+				Generate(dt1, 0.35m, 28.28m), //BUY MNO
+				Generate(dt2, 5.4800m, 5.21m), //SELL ADB
+				Generate(dt2, 0.64m, 22.95m), //SELL DEF
+				Generate(dt2, 0.250m, 46.97m), //SELL GHI
+				Generate(dt2, 1.69m, 20.63m), //SELL JKL
+				Generate(dt2, 0.35m, 29.52m), //SELL MNO
+			};
+
+			// Act
+			var result = await new BalanceCalculator(exchangeRateServiceMock.Object).Calculate(baseCurrency, activities);
+
+			// Assert
+			result.Count.Should().Be(2);
+			result[0].Money.Amount.Should().Be(-100);
+			result[1].Money.Amount.Should().Be(0);
+		}
 	}
 }
