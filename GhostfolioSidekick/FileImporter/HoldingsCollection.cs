@@ -125,6 +125,7 @@ namespace GhostfolioSidekick.FileImporter
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "Price to pay for a generic function")]
 		private static IActivity GenerateActivity(
 			Account account,
 			PartialActivityType activityType,
