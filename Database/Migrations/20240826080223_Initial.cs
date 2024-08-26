@@ -12,18 +12,6 @@ namespace GhostfolioSidekick.Database.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Holdings",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Holdings", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Platforms",
                 columns: table => new
                 {
@@ -125,7 +113,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     TransactionId = table.Column<string>(type: "TEXT", nullable: true),
                     SortingPriority = table.Column<int>(type: "INTEGER", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
-                    HoldingId = table.Column<int>(type: "INTEGER", nullable: false),
                     Type = table.Column<string>(type: "TEXT", maxLength: 34, nullable: false),
                     Quantity = table.Column<decimal>(type: "TEXT", nullable: true),
                     UnitPrice = table.Column<string>(type: "TEXT", nullable: true),
@@ -142,12 +129,6 @@ namespace GhostfolioSidekick.Database.Migrations
                         name: "FK_Activities_Accounts_AccountId",
                         column: x => x.AccountId,
                         principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Activities_Holdings_HoldingId",
-                        column: x => x.HoldingId,
-                        principalTable: "Holdings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -183,11 +164,6 @@ namespace GhostfolioSidekick.Database.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Activities_HoldingId",
-                table: "Activities",
-                column: "HoldingId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Balances_AccountId",
                 table: "Balances",
                 column: "AccountId");
@@ -217,9 +193,6 @@ namespace GhostfolioSidekick.Database.Migrations
 
             migrationBuilder.DropTable(
                 name: "SectorWeights");
-
-            migrationBuilder.DropTable(
-                name: "Holdings");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

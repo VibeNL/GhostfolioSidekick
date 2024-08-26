@@ -1,28 +1,28 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+﻿//using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.Model.Activities
-{
-	public class Holding
-	{
-		internal Holding()
-		{
-			// EF Core
-		}
+//namespace GhostfolioSidekick.Model.Activities
+//{
+//	public class Holding
+//	{
+//		internal Holding()
+//		{
+//			// EF Core
+//		}
 
-		public Holding(SymbolProfile? symbolProfile)
-		{
-			SymbolProfile = symbolProfile;
-		}
+//		public Holding(SymbolProfile? symbolProfile)
+//		{
+//			SymbolProfile = symbolProfile;
+//		}
 
-		public int Id { get; set; }
+//		public int Id { get; set; }
 
-		public SymbolProfile? SymbolProfile { get; }
+//		public SymbolProfile? SymbolProfile { get; }
 
-		public virtual List<Activity> Activities { get; set; } = [];
+//		public virtual List<Activity> Activities { get; set; } = [];
 
-		override public string ToString()
-		{
-			return $"{SymbolProfile?.Symbol} - {Activities.Count} activities";
-		}
-	}
-}
+//		override public string ToString()
+//		{
+//			return $"{SymbolProfile?.Symbol} - {Activities.Count} activities";
+//		}
+//	}
+//}

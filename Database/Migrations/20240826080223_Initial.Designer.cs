@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20240826075022_Initial")]
+    [Migration("20240826080223_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -92,9 +92,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("HoldingId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int?>("SortingPriority")
                         .HasColumnType("INTEGER");
 
@@ -110,24 +107,11 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("HoldingId");
-
                     b.ToTable("Activities", (string)null);
 
                     b.HasDiscriminator<string>("Type").IsComplete(true).HasValue("Activity");
 
                     b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Holding", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Holdings", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.CountryWeight", b =>
@@ -449,12 +433,6 @@ namespace GhostfolioSidekick.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GhostfolioSidekick.Model.Activities.Holding", null)
-                        .WithMany("Activities")
-                        .HasForeignKey("HoldingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Account");
                 });
 
@@ -499,11 +477,6 @@ namespace GhostfolioSidekick.Database.Migrations
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
                 {
                     b.Navigation("Balance");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Holding", b =>
-                {
-                    b.Navigation("Activities");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
