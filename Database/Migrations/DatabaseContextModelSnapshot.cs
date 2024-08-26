@@ -214,7 +214,8 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UnitPrice")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("UnitPrice");
 
                     b.HasDiscriminator().HasValue("ActivityWithQuantityAndUnitPrice");
                 });
@@ -225,7 +226,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Amount")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Amount");
 
                     b.HasDiscriminator().HasValue("CashDepositWithdrawalActivity");
                 });
@@ -236,27 +239,21 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Amount")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Amount");
 
                     b.Property<string>("Fees")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Fees");
 
                     b.Property<string>("Taxes")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.ToTable("Activities", t =>
-                        {
-                            t.Property("Amount")
-                                .HasColumnName("DividendActivity_Amount");
-
-                            t.Property("Fees")
-                                .HasColumnName("DividendActivity_Fees");
-
-                            t.Property("Taxes")
-                                .HasColumnName("DividendActivity_Taxes");
-                        });
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Taxes");
 
                     b.HasDiscriminator().HasValue("DividendActivity");
                 });
@@ -267,13 +264,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Amount")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.ToTable("Activities", t =>
-                        {
-                            t.Property("Amount")
-                                .HasColumnName("FeeActivity_Amount");
-                        });
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Amount");
 
                     b.HasDiscriminator().HasValue("FeeActivity");
                 });
@@ -284,13 +277,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Amount")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.ToTable("Activities", t =>
-                        {
-                            t.Property("Amount")
-                                .HasColumnName("InterestActivity_Amount");
-                        });
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Amount");
 
                     b.HasDiscriminator().HasValue("InterestActivity");
                 });
@@ -301,13 +290,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Amount")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.ToTable("Activities", t =>
-                        {
-                            t.Property("Amount")
-                                .HasColumnName("KnownBalanceActivity_Amount");
-                        });
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Amount");
 
                     b.HasDiscriminator().HasValue("KnownBalanceActivity");
                 });
@@ -318,7 +303,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Price")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Price");
 
                     b.HasDiscriminator().HasValue("LiabilityActivity");
                 });
@@ -329,7 +316,8 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("TotalRepayAmount")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("TotalRepayAmount");
 
                     b.HasDiscriminator().HasValue("RepayBondActivity");
                 });
@@ -340,13 +328,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Price")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.ToTable("Activities", t =>
-                        {
-                            t.Property("Price")
-                                .HasColumnName("ValuableActivity_Price");
-                        });
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Price");
 
                     b.HasDiscriminator().HasValue("ValuableActivity");
                 });
@@ -357,11 +341,15 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Fees")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Fees");
 
                     b.Property<string>("Taxes")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Taxes");
 
                     b.HasDiscriminator().HasValue("BuySellActivity");
                 });
@@ -379,13 +367,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("Fees")
                         .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.ToTable("Activities", t =>
-                        {
-                            t.Property("Fees")
-                                .HasColumnName("SendAndReceiveActivity_Fees");
-                        });
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Fees");
 
                     b.HasDiscriminator().HasValue("SendAndReceiveActivity");
                 });

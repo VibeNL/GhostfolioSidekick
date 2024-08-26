@@ -131,17 +131,9 @@ namespace GhostfolioSidekick.Database.Migrations
                     UnitPrice = table.Column<string>(type: "TEXT", nullable: true),
                     Fees = table.Column<string>(type: "TEXT", nullable: true),
                     Taxes = table.Column<string>(type: "TEXT", nullable: true),
-                    SendAndReceiveActivity_Fees = table.Column<string>(type: "TEXT", nullable: true),
                     Amount = table.Column<string>(type: "TEXT", nullable: true),
-                    DividendActivity_Fees = table.Column<string>(type: "TEXT", nullable: true),
-                    DividendActivity_Amount = table.Column<string>(type: "TEXT", nullable: true),
-                    DividendActivity_Taxes = table.Column<string>(type: "TEXT", nullable: true),
-                    FeeActivity_Amount = table.Column<string>(type: "TEXT", nullable: true),
-                    InterestActivity_Amount = table.Column<string>(type: "TEXT", nullable: true),
-                    KnownBalanceActivity_Amount = table.Column<string>(type: "TEXT", nullable: true),
                     Price = table.Column<string>(type: "TEXT", nullable: true),
-                    TotalRepayAmount = table.Column<string>(type: "TEXT", nullable: true),
-                    ValuableActivity_Price = table.Column<string>(type: "TEXT", nullable: true)
+                    TotalRepayAmount = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

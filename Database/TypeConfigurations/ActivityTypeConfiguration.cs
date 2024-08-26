@@ -27,12 +27,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<ValuableActivity>
 
 	{
-		private const string AmountColumn = "Amount";
-		private const string CurrencyColumn = "Currency";
-
-		private const string FeeAmountColumn = "Amount";
-		private const string TaxAmountColumn = "Amount";
-
+		private const string UnitPrice = "UnitPrice";
+		private const string Fees = "Fees";
+		private const string Taxes = "Taxes";
+		private const string Amount = "Amount";
+		private const string Price = "Price";
 		private readonly ValueComparer<ICollection<Money>> moneyListComparer;
 
 		public ActivityTypeConfiguration()
@@ -64,6 +63,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<ActivityWithQuantityAndUnitPrice> builder)
 		{
 			builder.Property(b => b.UnitPrice)
+					.HasColumnName(UnitPrice)
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
@@ -72,18 +72,21 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
 		{
 			builder.Property(b => b.UnitPrice)
+					.HasColumnName(UnitPrice)
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
 
 			builder.Property(b => b.Fees)
-				.HasConversion(
+					.HasColumnName(Fees)
+					.HasConversion(
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
 
 			builder.Property(b => b.Taxes)
-				.HasConversion(
+					.HasColumnName(Taxes)
+					.HasConversion(
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
@@ -92,6 +95,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<CashDepositWithdrawalActivity> builder)
 		{
 			builder.Property(b => b.Amount)
+					.HasColumnName(Amount)
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
@@ -100,18 +104,21 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<DividendActivity> builder)
 		{
 			builder.Property(b => b.Amount)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(Amount)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 
 			builder.Property(b => b.Fees)
-				.HasConversion(
+					.HasColumnName(Fees)
+					.HasConversion(
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
 
 			builder.Property(b => b.Taxes)
-				.HasConversion(
+					.HasColumnName(Taxes)
+					.HasConversion(
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
@@ -120,59 +127,67 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
 		{
 			builder.Property(b => b.Amount)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(Amount)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<GiftActivity> builder)
 		{
 			builder.Property(b => b.UnitPrice)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(UnitPrice)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<InterestActivity> builder)
 		{
 			builder.Property(b => b.Amount)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(Amount)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<KnownBalanceActivity> builder)
 		{
 			builder.Property(b => b.Amount)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(Amount)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<LiabilityActivity> builder)
 		{
 			builder.Property(b => b.Price)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(Price)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<RepayBondActivity> builder)
 		{
 			builder.Property(b => b.TotalRepayAmount)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName("TotalRepayAmount")
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<SendAndReceiveActivity> builder)
 		{
 			builder.Property(b => b.UnitPrice)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(UnitPrice)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 			builder.Property(b => b.Fees)
-				.HasConversion(
+					.HasColumnName(Fees)
+					.HasConversion(
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
@@ -181,17 +196,19 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
 		{
 			builder.Property(b => b.UnitPrice)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(UnitPrice)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)
 		{
 			builder.Property(b => b.Price)
-				.HasConversion(
-					v => MoneyToString(v),
-					v => StringToMoney(v));
+					.HasColumnName(Price)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		private ICollection<Money> StringToMonies(string v)
