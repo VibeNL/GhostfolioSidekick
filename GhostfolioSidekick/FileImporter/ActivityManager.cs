@@ -32,16 +32,7 @@ namespace GhostfolioSidekick.FileImporter
 				var account = await accountRepository.GetAccountByName(accountName) ?? new Account(accountName);
 				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
-					try
-					{
-						DetermineActivity(activities, account, [.. transaction]);
-					}
-					catch (SymbolNotFoundException symbol)
-					{
-						logger.LogError(symbol, "Symbol [{Identifiers}] not found for transaction {Key}. Skipping transaction",
-							string.Join(",", symbol.SymbolIdentifiers.Select(x => x.Identifier)),
-							transaction.Key);
-					}
+					DetermineActivity(activities, account, [.. transaction]);
 				}
 			}
 

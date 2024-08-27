@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.FileImporter
 			logger.LogDebug("Generating activities");
 			var activities = await activityManager.GenerateActivities();
 
-			// write to the dabaase
+			// write to the dababase
 			await activityRepository.StoreAll(activities);
 
 			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
