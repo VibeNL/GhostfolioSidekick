@@ -9,11 +9,9 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.FileImporter
 {
 	internal class ActivityManager(
-		ILogger logger,
 		IAccountRepository accountRepository) : IActivityManager
 	{
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
-		private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 		public void AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities)
 		{

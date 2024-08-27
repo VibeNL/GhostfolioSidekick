@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.FileImporter
 
 			logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask));
 
-			var activityManager = new ActivityManager(logger, accountRepository);
+			var activityManager = new ActivityManager(accountRepository);
 			var accountNames = new List<string>();
 			await ParseFiles(logger, importers, directories, activityManager, accountNames);
 
