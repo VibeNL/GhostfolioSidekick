@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			var currencyRecord = currencyMapper.Map(record.Mutation);
 			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
-
+			
 			record.SetGenerateTransactionIdIfEmpty(recordDate);
 
 			switch (activityType)
@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
 						record.GetUnitPrice(),
-						new Money(currencyRecord, recordTotal),
+						new Money(currencyRecord, GetRecordTotal(recordTotal, record)),
 						record.TransactionId!);
 					break;
 				case PartialActivityType.CashDeposit:
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
 						record.GetUnitPrice(),
-						new Money(currencyRecord, recordTotal),
+						new Money(currencyRecord, GetRecordTotal(recordTotal, record)),
 						record.TransactionId!);
 					break;
 				default:
@@ -81,6 +81,16 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			}
 
 			return [knownBalance, partialActivity];
+		}
+
+		private static decimal GetRecordTotal(decimal recordTotal, T record)
+		{
+			if (recordTotal == 0)
+			{
+				recordTotal = Math.Abs(record.GetQuantity() * record.GetUnitPrice());
+			}
+
+			return recordTotal;
 		}
 
 		protected override CsvConfiguration GetConfig()

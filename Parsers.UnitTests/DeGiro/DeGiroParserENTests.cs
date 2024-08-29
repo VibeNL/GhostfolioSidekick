@@ -93,8 +93,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
 							0.5m,
 							1m,
-							new Money(Currency.GBP, 1M),
-							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d")
+							new Money(Currency.GBP, 0.5M),
+							"Buy_2024-08-09 16:10:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}
