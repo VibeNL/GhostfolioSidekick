@@ -76,6 +76,54 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyMarketFund_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_buy_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+
+			IEnumerable<PartialActivity> expectation = [
+						PartialActivity.CreateBuy(
+							Currency.GBP,
+							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							0.5m,
+							1m,
+							new Money(Currency.GBP, 1M),
+							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d")
+				];
+			partialActivities.Should().BeEquivalentTo(expectation);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleSellMarketFund_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_sell_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+
+			IEnumerable<PartialActivity> expectation = [
+						PartialActivity.CreateSell(
+							Currency.GBP,
+							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							0.5m,
+							1m,
+							new Money(Currency.GBP, 1M),
+							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d")
+				];
+			partialActivities.Should().BeEquivalentTo(expectation);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDividend_Converted()
 		{
 			// Arrange
@@ -112,6 +160,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new Money(Currency.USD, 0.21M),
 						transactionId!)
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDividendMarketFund_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_dividend_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+
+			IEnumerable<PartialActivity> expectation = [
+						PartialActivity.CreateDividend(
+							Currency.GBP,
+							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							1m,
+							new Money(Currency.GBP, 1M),
+							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d")
+				];
+			partialActivities.Should().BeEquivalentTo(expectation);
 		}
 	}
 }
