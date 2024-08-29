@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_sell_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/SellOrders/single_sell_marketfund.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
@@ -168,7 +168,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_dividend_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/CashTransactions/single_dividend_marketfund.csv", holdingsAndAccountsCollection, account.Name);
 
 			// Assert
 			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
