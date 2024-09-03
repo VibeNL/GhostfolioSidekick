@@ -113,12 +113,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			IEnumerable<PartialActivity> expectation = [
 						PartialActivity.CreateSell(
 							Currency.GBP,
-							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
+							new DateTime(2024, 08, 07, 15, 30, 0, DateTimeKind.Utc),
 							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
-							0.5m,
+							0.02m,
 							1m,
-							new Money(Currency.GBP, 1M),
-							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d")
+							new Money(Currency.GBP, 0.02M),
+							"Sell_2024-08-07 15:30:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}
@@ -176,11 +176,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			IEnumerable<PartialActivity> expectation = [
 						PartialActivity.CreateDividend(
 							Currency.GBP,
-							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
+							new DateTime(2024, 08, 08, 15, 27, 0, DateTimeKind.Utc),
 							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
-							1m,
-							new Money(Currency.GBP, 1M),
-							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d")
+							0.5m,
+							new Money(Currency.GBP, 0.5M),
+							"Dividend_2024-08-08 15:27:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_GBP")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}

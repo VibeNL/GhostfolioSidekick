@@ -76,10 +76,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				return PartialActivityType.Buy;
 			}
 
-			if (Description.Equals("Dividend"))
+			if (Description.Equals("Dividend") || Description.Equals("Fund Distribution"))
 			{
 				return PartialActivityType.Dividend;
 			}
+
 			
 			return null;
 		}

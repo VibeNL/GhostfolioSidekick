@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			var activityType = record.GetActivityType();
 
-			var currencyRecord = currencyMapper.Map(record.Mutation);
+			var currencyRecord = !string.IsNullOrWhiteSpace(record.Mutation) ? currencyMapper.Map(record.Mutation) : record.GetCurrency(currencyMapper);
 			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
 			
 			record.SetGenerateTransactionIdIfEmpty(recordDate);
