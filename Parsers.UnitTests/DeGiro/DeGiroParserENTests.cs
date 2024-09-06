@@ -76,6 +76,54 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyMarketFund_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_buy_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+
+			IEnumerable<PartialActivity> expectation = [
+						PartialActivity.CreateBuy(
+							Currency.GBP,
+							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							0.5m,
+							1m,
+							new Money(Currency.GBP, 0.5M),
+							"Buy_2024-08-09 16:10:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
+				];
+			partialActivities.Should().BeEquivalentTo(expectation);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleSellMarketFund_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/SellOrders/single_sell_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+
+			IEnumerable<PartialActivity> expectation = [
+						PartialActivity.CreateSell(
+							Currency.GBP,
+							new DateTime(2024, 08, 07, 15, 30, 0, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							0.02m,
+							1m,
+							new Money(Currency.GBP, 0.02M),
+							"Sell_2024-08-07 15:30:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
+				];
+			partialActivities.Should().BeEquivalentTo(expectation);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDividend_Converted()
 		{
 			// Arrange
@@ -112,6 +160,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new Money(Currency.USD, 0.21M),
 						transactionId!)
 				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDividendMarketFund_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/CashTransactions/single_dividend_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+
+			// Assert
+			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+
+			IEnumerable<PartialActivity> expectation = [
+						PartialActivity.CreateDividend(
+							Currency.GBP,
+							new DateTime(2024, 08, 08, 15, 27, 0, DateTimeKind.Utc),
+							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							0.5m,
+							new Money(Currency.GBP, 0.5M),
+							"Dividend_2024-08-08 15:27:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_GBP")
+				];
+			partialActivities.Should().BeEquivalentTo(expectation);
 		}
 	}
 }

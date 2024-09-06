@@ -10,6 +10,10 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 	[Delimiter(",")]
 	public class DeGiroRecordEN : DeGiroRecordBase
 	{
+		private const string Pattern = "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)";
+		private const string PatternMoneyMarketfunds = "Money Market fund conversion: (Buy|Sell) (?<amount>[.0-9]*) at (?<price>[.0-9]*) (?<currency>[A-Z]+)";
+
+
 		[Format("dd-MM-yyyy")]
 		[Name("Date")]
 		public override DateOnly Date { get; set; }
@@ -72,33 +76,29 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				return PartialActivityType.Buy;
 			}
 
-			if (Description.Equals("Dividend"))
+			if (Description.Equals("Dividend") || Description.Equals("Fund Distribution"))
 			{
 				return PartialActivityType.Dividend;
 			}
+
 			
 			return null;
 		}
 
 		public override decimal GetQuantity()
 		{
-			var quantity = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[2].Value;
-
-			return decimal.Parse(quantity, GetCultureForParsingNumbers());
+			return decimal.Parse(GetValue(2), GetCultureForParsingNumbers());
 		}
 
+		
 		public override decimal GetUnitPrice()
 		{
-			var quantity = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[3].Value;
-
-			return decimal.Parse(quantity, GetCultureForParsingNumbers());
+			return decimal.Parse(GetValue(3), GetCultureForParsingNumbers());
 		}
 
 		public override Currency GetCurrency(ICurrencyMapper currencyMapper)
 		{
-			var currency = Regex.Match(Description!, "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[4].Value;
-
-			return currencyMapper.Map(currency);
+			return currencyMapper.Map(GetValue(4));
 		}
 
 		public override void SetGenerateTransactionIdIfEmpty(DateTime recordDate)
@@ -129,6 +129,19 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					NumberDecimalSeparator = "."
 				}
 			};
+		}
+
+		private string GetValue(int group)
+		{
+			string quantity;
+			if (Regex.IsMatch(Description!, PatternMoneyMarketfunds, RegexOptions.None, TimeSpan.FromMilliseconds(100)))
+			{
+				quantity = Regex.Match(Description!, PatternMoneyMarketfunds, RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[group].Value;
+				return quantity;
+			}
+
+			quantity = Regex.Match(Description!, Pattern, RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[group].Value;
+			return quantity;
 		}
 	}
 }

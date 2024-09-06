@@ -83,11 +83,14 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			var balances = new List<Balance>();
 			var totalAmount = 0m;
-			foreach (var money in moneyTrail)
+			foreach (var moneyPerDate in moneyTrail.GroupBy(x => x.Item1.Date))
 			{
-				var activityAmount = (await exchangeRateService.GetConversionRate(money.Item2.Currency, baseCurrency, money.Item1)) * money.Item2.Amount;
-				totalAmount += activityAmount;
-				balances.Add(new Balance(money.Item1, new Money(baseCurrency, totalAmount)));
+				foreach (var money in moneyPerDate)
+				{
+					var activityAmount = (await exchangeRateService.GetConversionRate(money.Item2.Currency, baseCurrency, money.Item1)) * money.Item2.Amount;
+					totalAmount += activityAmount;
+				}
+				balances.Add(new Balance(moneyPerDate.Key, new Money(baseCurrency, totalAmount)));
 			}
 
 			return balances;
