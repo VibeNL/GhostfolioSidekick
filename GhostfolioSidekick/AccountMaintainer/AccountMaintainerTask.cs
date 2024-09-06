@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 		private readonly IAccountRepository accountRepository;
 		private readonly IApplicationSettings applicationSettings;
 
-		public TaskPriority Priority => TaskPriority.AccountCreation;
+		public TaskPriority Priority => TaskPriority.AccountMaintainer;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 

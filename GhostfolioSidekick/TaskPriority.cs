@@ -6,11 +6,13 @@
 
 		GenerateDatabaseTask,
 
-		AccountCreation,
+		AccountMaintainer,
 
 		FileImporter,
 
+		CurrencyGatherer,
 
+		SymbolMapper,
 
 		//CreateManualSymbols,
 
