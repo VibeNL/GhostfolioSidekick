@@ -154,10 +154,19 @@
 		<None Update="TestFiles\Coinbase\Specials\single_stakereward_alt.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\DeGiro\EN\BuyOrders\single_buy_marketfund.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\DeGiro\EN\BuyOrders\single_buy_usd.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\DeGiro\EN\CashTransactions\single_dividend_marketfund.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\DeGiro\EN\CashTransactions\single_dividend.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\DeGiro\EN\SellOrders\single_sell_marketfund.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_euro.csv">
