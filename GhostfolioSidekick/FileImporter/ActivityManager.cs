@@ -51,6 +51,7 @@ namespace GhostfolioSidekick.FileImporter
 			var activity = GenerateActivity(
 				account,
 				sourceTransaction.ActivityType,
+				sourceTransaction.SymbolIdentifiers,
 				sourceTransaction.Date,
 				sourceTransaction.Amount,
 				new Money(sourceTransaction.Currency, sourceTransaction.UnitPrice ?? 0),
@@ -68,6 +69,7 @@ namespace GhostfolioSidekick.FileImporter
 				activity = GenerateActivity(
 					account,
 					transaction.ActivityType,
+					sourceTransaction.SymbolIdentifiers,
 					transaction.Date,
 					transaction.Amount,
 					new Money(transaction.Currency, transaction.UnitPrice ?? 0),
@@ -85,6 +87,7 @@ namespace GhostfolioSidekick.FileImporter
 		private static Activity GenerateActivity(
 			Account account,
 			PartialActivityType activityType,
+			PartialSymbolIdentifier[] partialSymbolIdentifiers,
 			DateTime date,
 			decimal amount,
 			Money money,
@@ -97,29 +100,29 @@ namespace GhostfolioSidekick.FileImporter
 			switch (activityType)
 			{
 				case PartialActivityType.Buy:
-					return new BuySellActivity(account, date, amount, money, transactionId, sortingPriority, description)
+					return new BuySellActivity(account, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Sell:
-					return new BuySellActivity(account, date, -amount, money, transactionId, sortingPriority, description)
+					return new BuySellActivity(account, partialSymbolIdentifiers, date, -amount, money, transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Receive:
-					return new SendAndReceiveActivity(account, date, amount, transactionId, sortingPriority, description)
+					return new SendAndReceiveActivity(account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 					{
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Send:
-					return new SendAndReceiveActivity(account, date, -amount, transactionId, sortingPriority, description)
+					return new SendAndReceiveActivity(account, partialSymbolIdentifiers, date, -amount, transactionId, sortingPriority, description)
 					{
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Dividend:
-					return new DividendActivity(account, date, money.Times(amount), transactionId, sortingPriority, description)
+					return new DividendActivity(account, partialSymbolIdentifiers, date, money.Times(amount), transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
@@ -135,15 +138,15 @@ namespace GhostfolioSidekick.FileImporter
 				case PartialActivityType.KnownBalance:
 					return new KnownBalanceActivity(account, date, money, transactionId, sortingPriority, description);
 				case PartialActivityType.Valuable:
-					return new ValuableActivity(account, date, money.Times(amount), transactionId, sortingPriority, description);
+					return new ValuableActivity(account, partialSymbolIdentifiers, date, money.Times(amount), transactionId, sortingPriority, description);
 				case PartialActivityType.Liability:
-					return new LiabilityActivity(account, date, money.Times(amount), transactionId, sortingPriority, description);
+					return new LiabilityActivity(account, partialSymbolIdentifiers, date, money.Times(amount), transactionId, sortingPriority, description);
 				case PartialActivityType.Gift:
-					return new GiftActivity(account, date, amount, transactionId, sortingPriority, description);
+					return new GiftActivity(account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
 				case PartialActivityType.StakingReward:
-					return new StakingRewardActivity(account, date, amount, transactionId, sortingPriority, description);
+					return new StakingRewardActivity(account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
 				case PartialActivityType.BondRepay:
-					return new RepayBondActivity(account, date, money.Times(amount), transactionId, sortingPriority, description);
+					return new RepayBondActivity(account, partialSymbolIdentifiers, date, money.Times(amount), transactionId, sortingPriority, description);
 				default:
 					throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented");
 			}

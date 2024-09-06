@@ -2,6 +2,12 @@
 {
 	public class PartialSymbolIdentifier
 	{
+		internal PartialSymbolIdentifier()
+		{
+			// EF Core
+			Identifier = null!;
+		}
+
 		private PartialSymbolIdentifier(string id)
 		{
 			Identifier = id;

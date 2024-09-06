@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var quantity = 10m;
 			var transactionId = "transactionId";
 
-			activity = new StakingRewardActivity(account, dateTime, quantity, transactionId, null, null);
+			activity = new StakingRewardActivity(account, [], dateTime, quantity, transactionId, null, null);
 		}
 
 		[Fact]

@@ -114,6 +114,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     SortingPriority = table.Column<int>(type: "INTEGER", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     Type = table.Column<string>(type: "TEXT", maxLength: 34, nullable: false),
+                    PartialSymbolIdentifiers = table.Column<string>(type: "TEXT", nullable: true),
                     Quantity = table.Column<decimal>(type: "TEXT", nullable: true),
                     UnitPrice = table.Column<string>(type: "TEXT", nullable: true),
                     Fees = table.Column<string>(type: "TEXT", nullable: true),

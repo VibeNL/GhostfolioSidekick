@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var unitPrice = new Money(Currency.EUR, 1);
 			var transactionId = "transactionId";
 
-			activity = new ValuableActivity(account, dateTime, unitPrice, transactionId, null, null);
+			activity = new ValuableActivity(account, [], dateTime, unitPrice, transactionId, null, null);
 		}
 
 		[Fact]

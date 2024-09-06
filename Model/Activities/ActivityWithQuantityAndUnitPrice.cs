@@ -11,6 +11,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		protected ActivityWithQuantityAndUnitPrice(
 			Account account,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			decimal quantity,
 			Money? unitPrice,
@@ -18,9 +19,12 @@ namespace GhostfolioSidekick.Model.Activities
 			int? sortingPriority,
 			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{
+			PartialSymbolIdentifiers = partialSymbolIdentifiers;
 			Quantity = quantity;
 			UnitPrice = unitPrice;
 		}
+
+		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public decimal Quantity { get; set; }
 

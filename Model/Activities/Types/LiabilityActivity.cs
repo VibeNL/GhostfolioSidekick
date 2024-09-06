@@ -12,14 +12,18 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public LiabilityActivity(
 			Account account,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			Money amount,
 			string? transactionId,
 			int? sortingPriority,
 			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{
+			PartialSymbolIdentifiers = partialSymbolIdentifiers;
 			Price = amount;
 		}
+
+		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money Price { get; set; }
 

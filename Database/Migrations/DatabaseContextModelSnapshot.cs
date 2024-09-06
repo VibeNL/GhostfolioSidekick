@@ -194,6 +194,12 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
 
+                    b.Property<string>("PartialSymbolIdentifiers")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PartialSymbolIdentifiers");
+
                     b.Property<decimal>("Quantity")
                         .HasColumnType("TEXT");
 
@@ -232,6 +238,12 @@ namespace GhostfolioSidekick.Database.Migrations
                         .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("TEXT")
                         .HasColumnName("Fees");
+
+                    b.Property<string>("PartialSymbolIdentifiers")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PartialSymbolIdentifiers");
 
                     b.Property<string>("Taxes")
                         .IsRequired()
@@ -285,6 +297,12 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
 
+                    b.Property<string>("PartialSymbolIdentifiers")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PartialSymbolIdentifiers");
+
                     b.Property<string>("Price")
                         .IsRequired()
                         .ValueGeneratedOnUpdateSometimes()
@@ -298,6 +316,12 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
 
+                    b.Property<string>("PartialSymbolIdentifiers")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PartialSymbolIdentifiers");
+
                     b.Property<string>("TotalRepayAmount")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -309,6 +333,12 @@ namespace GhostfolioSidekick.Database.Migrations
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.ValuableActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+
+                    b.Property<string>("PartialSymbolIdentifiers")
+                        .IsRequired()
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PartialSymbolIdentifiers");
 
                     b.Property<string>("Price")
                         .IsRequired()
