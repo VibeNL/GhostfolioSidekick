@@ -4,6 +4,7 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -99,6 +100,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IActivityRepository, ActivityRepository>();
 
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
+							services.AddSingleton<ICurrencyRepository, CurrencyRepository>();
 							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 							//services.AddSingleton<IActivitiesService, ActivitiesService>();
 							//services.AddSingleton<IAccountService, AccountService>();
@@ -110,13 +112,14 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, GenerateDatabaseTask>();
 							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
 							services.AddScoped<IScheduledWork, FileImporterTask>();
+							services.AddScoped<IScheduledWork, CurrencyGathererTask>();
 							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
 							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
 							////services.AddScoped<IScheduledWork, SetBenchmarksTask>();
 							////services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 							////services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							////services.AddScoped<IScheduledWork, GatherAllDataTask>();
-							
+
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();
 							services.AddScoped<IFileImporter, BunqParser>();

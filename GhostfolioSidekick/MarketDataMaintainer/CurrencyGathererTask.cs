@@ -19,21 +19,32 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork()
 		{
-			var activities = activityRepository.GetAllActivities();
+			var activities = await activityRepository.GetAllActivities();
 
-			var currencies = new List<(DateTime, Currency)>();
+			var currencies = new Dictionary<Currency, DateTime>();
 			foreach (var activity in activities)
 			{
 				switch (activity)
 				{
 					case ActivityWithQuantityAndUnitPrice activityWithQuantityAndUnitPrice:
 						{
-							currencies.Add((activity.Date, activityWithQuantityAndUnitPrice.UnitPrice?.Currency ?? null!));
+							Currency key = activityWithQuantityAndUnitPrice.UnitPrice?.Currency ?? null!;
+							if (!currencies.ContainsKey(key) || currencies[key] < activity.Date)
+							{
+								currencies.Remove(key, out _);
+								currencies.Add(key, activity.Date);
+							}
 						}
 						break;
 					default:
 						break;
 				}
+			}
+
+			foreach (var item in currencies)
+			{
+				var currencyHistory = await currencyRepository.GetCurrencyHistory(item.Key, Currency.USD, DateOnly.FromDateTime(item.Value));
+				
 			}
 		}
 	}
