@@ -22,16 +22,15 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var activities = await activityRepository.GetAllActivities();
 
 			var currencies = new Dictionary<Currency, DateTime>();
-			foreach (var activity in activities)
+			foreach (var activity in activities.OrderBy(x => x.Date))
 			{
 				switch (activity)
 				{
 					case ActivityWithQuantityAndUnitPrice activityWithQuantityAndUnitPrice:
 						{
-							Currency key = activityWithQuantityAndUnitPrice.UnitPrice?.Currency ?? null!;
-							if (!currencies.ContainsKey(key) || currencies[key] < activity.Date)
+							Currency? key = activityWithQuantityAndUnitPrice.UnitPrice?.Currency;
+							if (key != null && !currencies.ContainsKey(key))
 							{
-								currencies.Remove(key, out _);
 								currencies.Add(key, activity.Date);
 							}
 						}
