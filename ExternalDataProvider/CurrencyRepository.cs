@@ -15,9 +15,9 @@ namespace GhostfolioSidekick.ExternalDataProvider
 	public class CurrencyRepository : ICurrencyRepository
 	{
 		private readonly Policy policy;
-		private readonly ILogger<StockPriceRepository> logger;
+		private readonly ILogger<CurrencyRepository> logger;
 
-		public CurrencyRepository(ILogger<StockPriceRepository> logger)
+		public CurrencyRepository(ILogger<CurrencyRepository> logger)
 		{
 			var retryPolicy = Policy
 				.Handle<Exception>()
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		{
 			var yahooClient = new YahooClient();
 
-			var symbol = currencyFrom.Symbol + currencyTo.Symbol+"=X";
+			var symbol = "AAPL"; //currencyFrom.Symbol + currencyTo.Symbol+"=X";
 
 			try
 			{
