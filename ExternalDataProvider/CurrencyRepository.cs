@@ -1,14 +1,8 @@
 ﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using Microsoft.Extensions.Logging;
-using OoplesFinance.YahooFinanceAPI;
 using Polly;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider
 {
@@ -32,15 +26,16 @@ namespace GhostfolioSidekick.ExternalDataProvider
 
 		public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
-			var yahooClient = new YahooClient();
-
-			var symbol = "AAPL"; //currencyFrom.Symbol + currencyTo.Symbol+"=X";
-
 			try
 			{
+				var history = await Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily);
 
-				var r = await policy.Execute(() => yahooClient.GetHistoricalDataAsync(symbol, OoplesFinance.YahooFinanceAPI.Enums.DataFrequency.Daily, fromDate.ToDateTime(TimeOnly.MinValue)));
-				return r.Select(x => new MarketData(new Money(currencyTo, (decimal)x.Close), x.Date));
+				foreach (var candle in history)
+				{
+					Console.WriteLine($"DateTime: {candle.DateTime}, Open: {candle.Open}, High: {candle.High}, Low: {candle.Low}, Close: {candle.Close}, Volume: {candle.Volume}, AdjustedClose: {candle.AdjustedClose}");
+				}
+
+				return [];
 			}
 			catch (Exception e)
 			{

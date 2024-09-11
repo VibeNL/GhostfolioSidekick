@@ -105,7 +105,7 @@ namespace GhostfolioSidekick
 							//services.AddSingleton<IActivitiesService, ActivitiesService>();
 							//services.AddSingleton<IAccountService, AccountService>();
 							//services.AddSingleton<IMarketDataService, MarketDataService>();
-							services.AddSingleton<IStockSplitRepository, StockSplitRepository>();
+							//services.AddSingleton<IStockSplitRepository, StockSplitRepository>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();

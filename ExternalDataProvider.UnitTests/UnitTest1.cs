@@ -12,7 +12,7 @@ namespace ExternalDataProvider.UnitTests
 		{
 			var x = new CurrencyRepository(new Mock<ILogger<CurrencyRepository>>().Object);
 
-			var r = await x.GetCurrencyHistory(Currency.EUR, Currency.USD, new DateOnly(1900, 1, 1));
+			var r = await x.GetCurrencyHistory(Currency.EUR, Currency.USD, new DateOnly(1950, 1, 1));
 
 		}
 	}
