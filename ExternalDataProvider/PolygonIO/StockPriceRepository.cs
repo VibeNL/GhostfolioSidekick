@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.ExternalDataProvider.PolygonIO.Contract;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
@@ -47,7 +48,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.PolygonIO
 					fromDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-365 * 2));
 				}
 
-				string requestUri = $"https://api.polygon.io/v2/aggs/ticker/{symbol.Symbol.ToUpperInvariant()}/range/1/day/{fromDate:yyyy-MM-dd}/{DateTime.Today:yyyy-MM-dd}?apiKey={apiKey}";
+				var toSearchSymbol = symbol.Symbol.ToUpperInvariant();
+				if (symbol.AssetSubClass == AssetSubClass.CryptoCurrency)
+				{
+					toSearchSymbol = $"X:{toSearchSymbol}{symbol.Currency.Symbol.ToUpperInvariant()}";
+				}
+
+				string requestUri = $"https://api.polygon.io/v2/aggs/ticker/{toSearchSymbol.ToUpperInvariant()}/range/1/day/{fromDate:yyyy-MM-dd}/{DateTime.Today:yyyy-MM-dd}?apiKey={apiKey}";
 				HttpResponseMessage response = await client.GetAsync(requestUri);
 				response.EnsureSuccessStatusCode();
 
