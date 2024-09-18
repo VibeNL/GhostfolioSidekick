@@ -1,8 +1,10 @@
-﻿using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.ExternalDataProvider.PolygonIO;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Market;
 using Microsoft.Extensions.Logging;
 using Polly;
-using YahooFinanceApi;
+using System.IO;
+using System.Net.Http.Json;
 
 namespace GhostfolioSidekick.ExternalDataProvider
 {
@@ -10,6 +12,8 @@ namespace GhostfolioSidekick.ExternalDataProvider
 	{
 		private readonly Policy policy;
 		private readonly ILogger<CurrencyRepository> logger;
+
+		static HttpClient client = new HttpClient();
 
 		public CurrencyRepository(ILogger<CurrencyRepository> logger)
 		{
@@ -28,12 +32,10 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		{
 			try
 			{
-				var history = await Yahoo.GetHistoricalAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1), Period.Daily);
+				HttpResponseMessage response = await client.GetAsync("https://api.polygon.io/v2/aggs/ticker/C:EURUSD/range/1/day/2023-01-09/2023-01-09?apiKey=");
+				response.EnsureSuccessStatusCode();
 
-				foreach (var candle in history)
-				{
-					Console.WriteLine($"DateTime: {candle.DateTime}, Open: {candle.Open}, High: {candle.High}, Low: {candle.Low}, Close: {candle.Close}, Volume: {candle.Volume}, AdjustedClose: {candle.AdjustedClose}");
-				}
+				var r = await response.Content.ReadFromJsonAsync<CurrencyQueryResult>();
 
 				return [];
 			}
