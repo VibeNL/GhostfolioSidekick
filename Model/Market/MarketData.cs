@@ -1,15 +1,12 @@
 ﻿namespace GhostfolioSidekick.Model.Market
 {
-	public class MarketData
-	{
-		public MarketData(Money marketPrice, DateTime date)
-		{
-			MarketPrice = marketPrice;
-			Date = date;
-		}
-
-		public Money MarketPrice { get; }
-
-		public DateTime Date { get; }
-	}
+	public record MarketData(
+			Money Close,
+			Money Open,
+			Money High,
+			Money Low,
+			decimal TradingVolume,
+			decimal NumberOfTransactions,
+			Money VolumeWeightedAveragePrice,
+			DateTime Date);
 }

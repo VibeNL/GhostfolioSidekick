@@ -1,6 +1,6 @@
-﻿namespace GhostfolioSidekick.ExternalDataProvider.PolygonIO
+﻿namespace GhostfolioSidekick.ExternalDataProvider.PolygonIO.Contract
 {
-	internal class CurrencyQueryResult
+	internal class TickerQueryResult
 	{
 		public string Ticker { get; set; }
 
@@ -10,6 +10,6 @@
 
 		public bool Adjusted { get; set; }
 
-		public List<CurrencyTickerResult> Results { get; set; }
+		public List<TickerResult> Results { get; set; }
 	}
 }

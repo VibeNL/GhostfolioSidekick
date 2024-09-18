@@ -3,6 +3,7 @@ using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.ExternalDataProvider.PolygonIO;
 using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Parsers;

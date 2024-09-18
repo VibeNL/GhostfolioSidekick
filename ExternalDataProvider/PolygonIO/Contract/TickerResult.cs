@@ -1,9 +1,12 @@
-﻿namespace GhostfolioSidekick.ExternalDataProvider.PolygonIO
+﻿using System.Globalization;
+using System.Text.Json.Serialization;
+
+namespace GhostfolioSidekick.ExternalDataProvider.PolygonIO.Contract
 {
-	public class CurrencyTickerResult
+	public class TickerResult
 	{
 		// Trading volume
-		public int V { get; set; }
+		public decimal V { get; set; }
 
 		// Volume weighted average price
 		public decimal VW { get; set; }
@@ -24,6 +27,6 @@
 		public long T { get; set; }
 
 		// Number of transactions
-		public long N { get; set; }
+		public decimal N { get; set; }
 	}
 }
