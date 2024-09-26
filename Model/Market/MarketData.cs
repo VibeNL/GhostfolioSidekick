@@ -6,7 +6,5 @@
 			Money High,
 			Money Low,
 			decimal TradingVolume,
-			decimal NumberOfTransactions,
-			Money VolumeWeightedAveragePrice,
 			DateTime Date);
 }

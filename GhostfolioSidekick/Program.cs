@@ -101,7 +101,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IActivityRepository, ActivityRepository>();
 
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
-							services.AddSingleton<ICurrencyRepository, CurrencyRepository>();
+							services.AddSingleton<ICurrencyRepository, YahooRepository>();
 							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 							//services.AddSingleton<IActivitiesService, ActivitiesService>();
 							//services.AddSingleton<IAccountService, AccountService>();

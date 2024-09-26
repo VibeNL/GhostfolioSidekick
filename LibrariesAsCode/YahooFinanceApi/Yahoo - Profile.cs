@@ -63,5 +63,55 @@ namespace YahooFinanceApi
 
             return new SecurityProfile(pascalDictionary);
         }
-    }
+
+		public static async Task<IEnumerable<SearchResult>> FindProfileAsync(string symbol, CancellationToken token = default)
+		{
+			await YahooSession.InitAsync(token);
+
+			var url = $"https://query2.finance.yahoo.com/v1/finance/search?q={symbol}"
+				.SetQueryParam("modules", "assetProfile,convert_dates")
+				.SetQueryParam("crumb", YahooSession.Crumb);
+
+			// Invalid symbols as part of a request are ignored by Yahoo.
+			// So the number of symbols returned may be less than requested.
+			// If there are no valid symbols, an exception is thrown by Flurl.
+			// This exception is caught (below) and an empty dictionary is returned.
+			// There seems to be no easy way to reliably identify changed symbols.
+
+			dynamic data = null;
+
+			try
+			{
+				data = await url
+					.WithCookie(YahooSession.Cookie.Name, YahooSession.Cookie.Value)
+					.WithHeader(YahooSession.UserAgentKey, YahooSession.UserAgentValue)
+					.GetAsync(token)
+					.ReceiveJson()
+					.ConfigureAwait(false);
+			}
+			catch (FlurlHttpException ex)
+			{
+				if (ex.Call.Response.StatusCode == (int)System.Net.HttpStatusCode.NotFound)
+				{
+					return null;
+				}
+				else
+				{
+					throw;
+				}
+			}
+
+			var response = data.quotes;
+			
+			var profiles = new List<SearchResult>();
+			foreach (var item in response)
+			{
+				var pascalDictionary = ((IDictionary<string, dynamic>)item).ToDictionary(x => x.Key.ToPascal(), x => x.Value);
+				var profile = new SearchResult(pascalDictionary);
+				profiles.Add(profile);
+			}
+
+			return profiles;
+		}
+	}
 }
