@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.PolygonIO;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -10,7 +11,7 @@ namespace ExternalDataProvider.UnitTests
 {
 	public class UnitTest1
 	{
-		private const string apiKey = "TODO";
+		private const string apiKey = "RE9XXn0JZkiD8DLjqePRk6zV7qF60cK1";
 
 		[Fact]
 		public async Task Test1()
@@ -78,6 +79,29 @@ namespace ExternalDataProvider.UnitTests
 			// Act
 			var symbol = new SymbolProfile("BTC", "Bitcoin", [], Currency.USD, "", AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
 			var r = (await x.GetStockMarketData(symbol, DateOnly.FromDateTime(DateTime.Today.AddDays(-365 * 2)))).ToList();
+
+			// Assert
+			Assert.NotNull(r);
+		}
+
+		[Fact]
+		public async Task Test4()
+		{
+			// Arrange
+			var appSettingsMock = new Mock<IApplicationSettings>();
+
+			appSettingsMock.Setup(x => x.ConfigurationInstance).Returns(new ConfigurationInstance
+			{
+				Settings = new Settings
+				{
+					DataProviderPolygonIOApiKey = apiKey
+				}
+			});
+
+			var x = new SymbolMatcher(new Mock<ILogger<SymbolMatcher>>().Object, appSettingsMock.Object);
+
+			// Act
+			var r = await x.MatchSymbol([PartialSymbolIdentifier.CreateGeneric("US2546871060")]);
 
 			// Assert
 			Assert.NotNull(r);
