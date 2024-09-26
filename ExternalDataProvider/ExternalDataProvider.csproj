@@ -15,6 +15,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Configuration\Configuration.csproj" />
+	  <ProjectReference Include="..\LibrariesAsCode\YahooFinanceApi\YahooFinanceApi.csproj" />
 	  <ProjectReference Include="..\Model\Model.csproj" />
 	</ItemGroup>
 
