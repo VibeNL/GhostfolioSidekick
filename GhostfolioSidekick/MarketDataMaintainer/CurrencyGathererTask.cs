@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class CurrencyGathererTask(ICurrencyRepository currencyRepository, IActivityRepository activityRepository) : IScheduledWork
+	internal class CurrencyGathererTask(ICurrencyRepository currencyRepository, IActivityRepository activityRepository, IMarketDataRepository marketDataRepository) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.CurrencyGatherer;
 
@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			foreach (var item in currencies)
 			{
 				var currencyHistory = await currencyRepository.GetCurrencyHistory(item.Key, Currency.USD, DateOnly.FromDateTime(item.Value));
-					
+				await marketDataRepository.StoreAll(currencyHistory).ConfigureAwait(false);
 			}
 		}
 	}
