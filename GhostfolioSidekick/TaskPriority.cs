@@ -9,7 +9,7 @@
 		AccountMaintainer,
 
 		FileImporter,
-
+		
 		CurrencyGatherer,
 
 		SymbolMapper,

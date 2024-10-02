@@ -102,6 +102,7 @@ namespace GhostfolioSidekick
 
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
 							services.AddSingleton<ICurrencyRepository, YahooRepository>();
+							services.AddSingleton<ISymbolMatcher, YahooRepository>();
 							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 							//services.AddSingleton<IActivitiesService, ActivitiesService>();
 							//services.AddSingleton<IAccountService, AccountService>();
@@ -113,6 +114,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, GenerateDatabaseTask>();
 							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
 							services.AddScoped<IScheduledWork, FileImporterTask>();
+							services.AddScoped<IScheduledWork, SymbolMatcherTask>();
 							services.AddScoped<IScheduledWork, CurrencyGathererTask>();
 							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
 							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
