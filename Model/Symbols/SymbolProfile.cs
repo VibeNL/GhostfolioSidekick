@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public IEnumerable<SectorWeight> SectorWeights { get; set; }
 
-		public IEnumerable<MarketData> MarketData { get; set; }
+		public List<MarketData> MarketData { get; set; } = [];
 
 		[ExcludeFromCodeCoverage]
 		public bool Equals(SymbolProfile? other)

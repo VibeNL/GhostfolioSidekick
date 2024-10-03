@@ -6,14 +6,25 @@ namespace GhostfolioSidekick.Database.Repository
 {
 	public class MarketDataRepository(DatabaseContext databaseContext) : IMarketDataRepository
 	{
-		public IEnumerable<SymbolProfile> GetSymbols()
+		public Task<SymbolProfile?> GetSymbolProfileBySymbol(string symbolString)
 		{
-			throw new NotImplementedException();
+			return databaseContext.SymbolProfiles.SingleOrDefaultAsync(x => x.Symbol == symbolString);
 		}
 
-		public async Task StoreAll(IEnumerable<MarketData> data)
+		public async Task<IEnumerable<SymbolProfile>> GetSymbolProfiles()
 		{
-			await databaseContext.SymbolProfiles.AddRangeAsync(activities);
+			return await databaseContext.SymbolProfiles.ToListAsync();
+		}
+
+		public async Task Store(SymbolProfile symbolProfile)
+		{
+			ArgumentNullException.ThrowIfNull(symbolProfile);
+
+			if (!await databaseContext.SymbolProfiles.ContainsAsync(symbolProfile).ConfigureAwait(false))
+			{
+				await databaseContext.SymbolProfiles.AddAsync(symbolProfile);
+			}
+
 			await databaseContext.SaveChangesAsync();
 		}
 	}

@@ -5,9 +5,11 @@ namespace GhostfolioSidekick.Database.Repository
 {
 	public interface IMarketDataRepository
 	{
-		public IEnumerable<SymbolProfile> GetSymbols();
+		Task<SymbolProfile?> GetSymbolProfileBySymbol(string symbolString);
+
+		Task<IEnumerable<SymbolProfile>> GetSymbolProfiles();
 
 
-		Task StoreAll(IEnumerable<MarketData> data);
+		Task Store(SymbolProfile symbolProfile);
 	}
 }
