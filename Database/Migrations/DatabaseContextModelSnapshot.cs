@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasAnnotation("Key", 0);
 
                     b.Property<DateTime>("Date")
@@ -497,7 +497,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.OwnsOne("GhostfolioSidekick.Model.Money", "Close", b1 =>
                         {
                             b1.Property<int>("MarketDataID")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<decimal>("Amount")
                                 .HasColumnType("TEXT")
@@ -513,7 +513,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyMarketDataID")
-                                        .HasColumnType("int");
+                                        .HasColumnType("integer");
 
                                     b2.Property<string>("Symbol")
                                         .IsRequired()
@@ -535,7 +535,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.OwnsOne("GhostfolioSidekick.Model.Money", "High", b1 =>
                         {
                             b1.Property<int>("MarketDataID")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<decimal>("Amount")
                                 .HasColumnType("TEXT")
@@ -551,7 +551,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyMarketDataID")
-                                        .HasColumnType("int");
+                                        .HasColumnType("integer");
 
                                     b2.Property<string>("Symbol")
                                         .IsRequired()
@@ -573,7 +573,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.OwnsOne("GhostfolioSidekick.Model.Money", "Low", b1 =>
                         {
                             b1.Property<int>("MarketDataID")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<decimal>("Amount")
                                 .HasColumnType("TEXT")
@@ -589,7 +589,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyMarketDataID")
-                                        .HasColumnType("int");
+                                        .HasColumnType("integer");
 
                                     b2.Property<string>("Symbol")
                                         .IsRequired()
@@ -611,7 +611,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.OwnsOne("GhostfolioSidekick.Model.Money", "Open", b1 =>
                         {
                             b1.Property<int>("MarketDataID")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<decimal>("Amount")
                                 .HasColumnType("TEXT")
@@ -627,7 +627,7 @@ namespace GhostfolioSidekick.Database.Migrations
                             b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyMarketDataID")
-                                        .HasColumnType("int");
+                                        .HasColumnType("integer");
 
                                     b2.Property<string>("Symbol")
                                         .IsRequired()

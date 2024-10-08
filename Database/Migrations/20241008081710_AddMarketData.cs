@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 name: "MarketData",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Close = table.Column<decimal>(type: "TEXT", nullable: false),
                     CurrencyClose = table.Column<string>(type: "TEXT", nullable: false),

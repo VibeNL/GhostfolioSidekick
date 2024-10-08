@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.ToTable("MarketData");
 
 			builder.Property<int>("ID")
-				.HasColumnType("int")
+				.HasColumnType("integer")
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
 
