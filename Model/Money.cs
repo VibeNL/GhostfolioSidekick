@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Model
 {
-	public class Money
+	public record Money
     {
         public decimal Amount { get; set; }
 
@@ -19,19 +19,7 @@
 			Currency = currency;
 		}
 
-        public override bool Equals(object? obj)
-		{
-			return obj is Money money &&
-				   Currency.Equals(money.Currency) &&
-				   Amount == money.Amount;
-		}
-
-		override public int GetHashCode()
-		{
-			return HashCode.Combine(Currency, Amount);
-		}
-
-		public Money Times(decimal amount)
+        public Money Times(decimal amount)
 		{
 			return new Money(Currency, Amount * amount);
 		}

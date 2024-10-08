@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					var symbol = await marketDataRepository.GetSymbolProfileBySymbol(symbolString);
 					if (symbol == null)
 					{
-						symbol = new SymbolProfile(symbolString, symbolString, [], match.Item1.Key, "YAHOO", AssetClass.Undefined, null, [], []);
+						symbol = new SymbolProfile(symbolString, symbolString, [], match.Item1.Key with {}, "YAHOO", AssetClass.Undefined, null, [], []);
 					}
 
 					symbol.MarketData.Clear();

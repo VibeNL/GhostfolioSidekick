@@ -20,10 +20,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			foreach (var candle in history)
 			{
 				MarketData item = new MarketData(
-									new Money(currencyTo, candle.Close),
-									new Money(currencyTo, candle.Open),
-									new Money(currencyTo, candle.High),
-									new Money(currencyTo, candle.Low),
+									new Money(currencyTo with { }, candle.Close),
+									new Money(currencyTo with { }, candle.Open),
+									new Money(currencyTo with { }, candle.High),
+									new Money(currencyTo with { }, candle.Low),
 									candle.Volume,
 									candle.DateTime.Date);
 				list.Add(item);
