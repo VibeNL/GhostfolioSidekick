@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(x => x.AssetClass).HasConversion<string>();
 			builder.Property(x => x.AssetSubClass).HasConversion<string>();
 
-			builder.OwnsMany(x => x.MarketData).WithOwner().HasForeignKey("Symbol");
+			builder.HasMany(x => x.MarketData).WithOne().HasForeignKey("Symbol");
 		}
 	}
 }
