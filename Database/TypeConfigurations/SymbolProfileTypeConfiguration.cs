@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<SymbolProfile> builder)
 		{
 			builder.ToTable("SymbolProfiles");
-			builder.HasKey(x => x.Symbol);
+			builder.HasKey(x => new { x.Symbol, x.DataSource });
 
 			builder.OwnsOne<Currency>(b => b.Currency, m =>
 			{
@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(x => x.AssetClass).HasConversion<string>();
 			builder.Property(x => x.AssetSubClass).HasConversion<string>();
 
-			builder.HasMany(x => x.MarketData).WithOne().HasForeignKey("Symbol");
+			builder.HasMany(x => x.MarketData).WithOne()/*.HasForeignKey("Symbol")*/;
 		}
 	}
 }

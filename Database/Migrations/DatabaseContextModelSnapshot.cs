@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Platforms", (string)null);
+                    b.ToTable("Platforms");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Activity", b =>
@@ -122,7 +122,10 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("Date");
 
-                    b.Property<string>("Symbol")
+                    b.Property<string>("SymbolProfileDataSource")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SymbolProfileSymbol")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("TradingVolume")
@@ -131,7 +134,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("Symbol");
+                    b.HasIndex("SymbolProfileSymbol", "SymbolProfileDataSource");
 
                     b.ToTable("MarketData", (string)null);
                 });
@@ -149,6 +152,9 @@ namespace GhostfolioSidekick.Database.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("SymbolProfileDataSource")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("SymbolProfileSymbol")
                         .HasColumnType("TEXT");
 
@@ -157,7 +163,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Code");
 
-                    b.HasIndex("SymbolProfileSymbol");
+                    b.HasIndex("SymbolProfileSymbol", "SymbolProfileDataSource");
 
                     b.ToTable("CountryWeights", (string)null);
                 });
@@ -165,6 +171,9 @@ namespace GhostfolioSidekick.Database.Migrations
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SectorWeight", b =>
                 {
                     b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SymbolProfileDataSource")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SymbolProfileSymbol")
@@ -175,7 +184,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Name");
 
-                    b.HasIndex("SymbolProfileSymbol");
+                    b.HasIndex("SymbolProfileSymbol", "SymbolProfileDataSource");
 
                     b.ToTable("SectorWeights", (string)null);
                 });
@@ -183,6 +192,9 @@ namespace GhostfolioSidekick.Database.Migrations
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
                 {
                     b.Property<string>("Symbol")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DataSource")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("AssetClass")
@@ -193,10 +205,6 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Comment")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DataSource")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ISIN")
@@ -210,7 +218,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Symbol");
+                    b.HasKey("Symbol", "DataSource");
 
                     b.ToTable("SymbolProfiles", (string)null);
                 });
@@ -435,7 +443,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         .WithMany("Balance")
                         .HasForeignKey("AccountId");
 
-                    b.OwnsOne("GhostfolioSidekick.Model.Accounts.Balance.Money#GhostfolioSidekick.Model.Money", "Money", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Money", b1 =>
                         {
                             b1.Property<int>("BalanceId")
                                 .HasColumnType("INTEGER");
@@ -446,12 +454,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("BalanceId");
 
-                            b1.ToTable("Balances", (string)null);
+                            b1.ToTable("Balances");
 
                             b1.WithOwner()
                                 .HasForeignKey("BalanceId");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Accounts.Balance.Money#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyBalanceId")
                                         .HasColumnType("INTEGER");
@@ -463,7 +471,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyBalanceId");
 
-                                    b2.ToTable("Balances", (string)null);
+                                    b2.ToTable("Balances");
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyBalanceId");
@@ -492,9 +500,9 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("MarketData")
-                        .HasForeignKey("Symbol");
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
 
-                    b.OwnsOne("GhostfolioSidekick.Model.Market.MarketData.Close#GhostfolioSidekick.Model.Money", "Close", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Close", b1 =>
                         {
                             b1.Property<int>("MarketDataID")
                                 .HasColumnType("integer");
@@ -505,12 +513,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("MarketDataID");
 
-                            b1.ToTable("MarketData", (string)null);
+                            b1.ToTable("MarketData");
 
                             b1.WithOwner()
                                 .HasForeignKey("MarketDataID");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Market.MarketData.Close#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyMarketDataID")
                                         .HasColumnType("integer");
@@ -522,7 +530,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyMarketDataID");
 
-                                    b2.ToTable("MarketData", (string)null);
+                                    b2.ToTable("MarketData");
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyMarketDataID");
@@ -532,7 +540,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("GhostfolioSidekick.Model.Market.MarketData.High#GhostfolioSidekick.Model.Money", "High", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Money", "High", b1 =>
                         {
                             b1.Property<int>("MarketDataID")
                                 .HasColumnType("integer");
@@ -543,12 +551,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("MarketDataID");
 
-                            b1.ToTable("MarketData", (string)null);
+                            b1.ToTable("MarketData");
 
                             b1.WithOwner()
                                 .HasForeignKey("MarketDataID");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Market.MarketData.High#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyMarketDataID")
                                         .HasColumnType("integer");
@@ -560,7 +568,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyMarketDataID");
 
-                                    b2.ToTable("MarketData", (string)null);
+                                    b2.ToTable("MarketData");
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyMarketDataID");
@@ -570,7 +578,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("GhostfolioSidekick.Model.Market.MarketData.Low#GhostfolioSidekick.Model.Money", "Low", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Low", b1 =>
                         {
                             b1.Property<int>("MarketDataID")
                                 .HasColumnType("integer");
@@ -581,12 +589,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("MarketDataID");
 
-                            b1.ToTable("MarketData", (string)null);
+                            b1.ToTable("MarketData");
 
                             b1.WithOwner()
                                 .HasForeignKey("MarketDataID");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Market.MarketData.Low#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyMarketDataID")
                                         .HasColumnType("integer");
@@ -598,7 +606,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyMarketDataID");
 
-                                    b2.ToTable("MarketData", (string)null);
+                                    b2.ToTable("MarketData");
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyMarketDataID");
@@ -608,7 +616,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("GhostfolioSidekick.Model.Market.MarketData.Open#GhostfolioSidekick.Model.Money", "Open", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Money", "Open", b1 =>
                         {
                             b1.Property<int>("MarketDataID")
                                 .HasColumnType("integer");
@@ -619,12 +627,12 @@ namespace GhostfolioSidekick.Database.Migrations
 
                             b1.HasKey("MarketDataID");
 
-                            b1.ToTable("MarketData", (string)null);
+                            b1.ToTable("MarketData");
 
                             b1.WithOwner()
                                 .HasForeignKey("MarketDataID");
 
-                            b1.OwnsOne("GhostfolioSidekick.Model.Market.MarketData.Open#GhostfolioSidekick.Model.Money.Currency#GhostfolioSidekick.Model.Currency", "Currency", b2 =>
+                            b1.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b2 =>
                                 {
                                     b2.Property<int>("MoneyMarketDataID")
                                         .HasColumnType("integer");
@@ -636,7 +644,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                                     b2.HasKey("MoneyMarketDataID");
 
-                                    b2.ToTable("MarketData", (string)null);
+                                    b2.ToTable("MarketData");
 
                                     b2.WithOwner()
                                         .HasForeignKey("MoneyMarketDataID");
@@ -663,21 +671,24 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("CountryWeight")
-                        .HasForeignKey("SymbolProfileSymbol");
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SectorWeight", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("SectorWeights")
-                        .HasForeignKey("SymbolProfileSymbol");
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
                 {
-                    b.OwnsOne("GhostfolioSidekick.Model.Symbols.SymbolProfile.Currency#GhostfolioSidekick.Model.Currency", "Currency", b1 =>
+                    b.OwnsOne("GhostfolioSidekick.Model.Currency", "Currency", b1 =>
                         {
                             b1.Property<string>("SymbolProfileSymbol")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("SymbolProfileDataSource")
                                 .HasColumnType("TEXT");
 
                             b1.Property<string>("Symbol")
@@ -685,12 +696,12 @@ namespace GhostfolioSidekick.Database.Migrations
                                 .HasColumnType("TEXT")
                                 .HasColumnName("Currency");
 
-                            b1.HasKey("SymbolProfileSymbol");
+                            b1.HasKey("SymbolProfileSymbol", "SymbolProfileDataSource");
 
-                            b1.ToTable("SymbolProfiles", (string)null);
+                            b1.ToTable("SymbolProfiles");
 
                             b1.WithOwner()
-                                .HasForeignKey("SymbolProfileSymbol");
+                                .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
                         });
 
                     b.Navigation("Currency")
