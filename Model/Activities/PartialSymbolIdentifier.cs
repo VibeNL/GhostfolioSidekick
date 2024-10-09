@@ -1,6 +1,6 @@
 ﻿namespace GhostfolioSidekick.Model.Activities
 {
-	public class PartialSymbolIdentifier
+	public record PartialSymbolIdentifier
 	{
 		internal PartialSymbolIdentifier()
 		{

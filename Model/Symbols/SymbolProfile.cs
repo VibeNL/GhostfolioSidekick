@@ -67,6 +67,8 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public List<MarketData> MarketData { get; set; } = [];
 
+		public ICollection<PartialSymbolIdentifier> MatchedPartialIdentifiers { get; set; } = [];
+
 		[ExcludeFromCodeCoverage]
 		public bool Equals(SymbolProfile? other)
 		{
@@ -112,6 +114,17 @@ namespace GhostfolioSidekick.Model.Symbols
 		public override string ToString()
 		{
 			return Symbol;
+		}
+
+		public void MergeKnownIdentifiers(ICollection<PartialSymbolIdentifier> newIds)
+		{
+			foreach (var id in newIds)
+			{
+				if (!MatchedPartialIdentifiers.Contains(id))
+				{
+					MatchedPartialIdentifiers.Add(id);
+				}
+			}
 		}
 	}
 }

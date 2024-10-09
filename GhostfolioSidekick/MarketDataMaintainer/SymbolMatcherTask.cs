@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class SymbolMatcherTask(ISymbolMatcher symbolMatcher, IActivityRepository activityRepository) : IScheduledWork
+	internal class SymbolMatcherTask(ISymbolMatcher symbolMatcher, IActivityRepository activityRepository, IMarketDataRepository marketDataRepository) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.SymbolMapper;
 
@@ -30,7 +30,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 							var ids = activityWithQuantityAndUnitPrice.PartialSymbolIdentifiers;
 							var symbol = await symbolMatcher.MatchSymbol(ids.ToArray()).ConfigureAwait(false);
 
-
+							if (symbol != null)
+							{
+								symbol.MergeKnownIdentifiers(ids);
+								await marketDataRepository.Store(symbol);
+							}
 						}
 						break;
 					default:
