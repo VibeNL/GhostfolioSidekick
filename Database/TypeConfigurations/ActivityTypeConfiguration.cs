@@ -78,8 +78,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(b => b.PartialSymbolIdentifiers)
 				.HasColumnName(PartialSymbolIdentifiers)
 				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
+					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
+					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
 					partialSymbolIdentifiersListComparer);
 		}
 
@@ -140,8 +140,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(b => b.PartialSymbolIdentifiers)
 				.HasColumnName(PartialSymbolIdentifiers)
 				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
+					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
+					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
 					partialSymbolIdentifiersListComparer);
 		}
 
@@ -165,8 +165,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(b => b.PartialSymbolIdentifiers)
 				.HasColumnName(PartialSymbolIdentifiers)
 				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
+					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
+					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
 					partialSymbolIdentifiersListComparer);
 		}
 
@@ -199,8 +199,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(b => b.PartialSymbolIdentifiers)
 				.HasColumnName(PartialSymbolIdentifiers)
 				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
+					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
+					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
 					partialSymbolIdentifiersListComparer);
 		}
 
@@ -215,8 +215,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(b => b.PartialSymbolIdentifiers)
 				.HasColumnName(PartialSymbolIdentifiers)
 				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
+					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
+					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
 					partialSymbolIdentifiersListComparer);
 		}
 
@@ -255,8 +255,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(b => b.PartialSymbolIdentifiers)
 				.HasColumnName(PartialSymbolIdentifiers)
 				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
+					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
+					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
 					partialSymbolIdentifiersListComparer);
 		}
 
@@ -279,17 +279,5 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			return JsonSerializer.Serialize(v);
 		}
-
-		private ICollection<PartialSymbolIdentifier> StringToPartialSymbolIdentifiers(string v)
-		{
-			return JsonSerializer.Deserialize<ICollection<PartialSymbolIdentifier>>(v) ?? [];
-		}
-
-		private string PartialSymbolIdentifiersToString(ICollection<PartialSymbolIdentifier> v)
-		{
-			return JsonSerializer.Serialize(v);
-		}
-
-		
 	}
 }
