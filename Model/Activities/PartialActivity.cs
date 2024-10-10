@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateGift(
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateBuy(
 			Currency currency,
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			decimal unitPrice,
 			Money totalTransactionAmount,
@@ -185,7 +185,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateDividend(
 			Currency currency,
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			Money totalTransactionAmount,
 			string transactionId)
@@ -218,7 +218,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateStakingReward(
 				DateTime date,
-				PartialSymbolIdentifier[] symbolIdentifiers,
+				ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 				decimal amount,
 				string transactionId)
 		{
@@ -231,7 +231,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateSend(
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -244,7 +244,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateReceive(
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -258,10 +258,10 @@ namespace GhostfolioSidekick.Model.Activities
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "<Pending>")]
 		public static IEnumerable<PartialActivity> CreateAssetConvert(
 			DateTime date,
-			PartialSymbolIdentifier[] source,
+			ICollection<PartialSymbolIdentifier> source,
 			decimal sourceAmount,
 			decimal? sourceUnitprice,
-			PartialSymbolIdentifier[] target,
+			ICollection<PartialSymbolIdentifier> target,
 			decimal targetAmount,
 			decimal? targetUnitprice,
 			string transactionId)
@@ -315,7 +315,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateBondRepay(
 			Currency currency,
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal unitPrice,
 			Money totalTransactionAmount,
 			string transactionId)
