@@ -34,16 +34,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		private const string Price = "Price";
 		private const string PartialSymbolIdentifiers = "PartialSymbolIdentifiers";
 		private readonly ValueComparer<ICollection<Money>> moneyListComparer;
-		private readonly ValueComparer<ICollection<PartialSymbolIdentifier>> partialSymbolIdentifiersListComparer;
 
 		public ActivityTypeConfiguration()
 		{
 			moneyListComparer = new ValueComparer<ICollection<Money>>(
-				(c1, c2) => c1.SequenceEqual(c2),
-				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-				c => c.ToList());
-
-			partialSymbolIdentifiersListComparer = new ValueComparer<ICollection<PartialSymbolIdentifier>>(
 				(c1, c2) => c1.SequenceEqual(c2),
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 				c => c.ToList());
@@ -74,13 +68,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
-					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
@@ -136,13 +123,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
-					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
@@ -161,13 +141,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
-					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<InterestActivity> builder)
@@ -195,13 +168,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
-					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<RepayBondActivity> builder)
@@ -211,13 +177,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
-					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<SendAndReceiveActivity> builder)
@@ -251,13 +210,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifierHelper.PartialSymbolIdentifiersToString(v),
-					v => PartialSymbolIdentifierHelper.StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		private ICollection<Money> StringToMonies(string v)

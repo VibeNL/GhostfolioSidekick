@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick.Model.Activities
+﻿using GhostfolioSidekick.Model.Symbols;
+
+namespace GhostfolioSidekick.Model.Activities
 {
 	public record PartialSymbolIdentifier
 	{
@@ -18,6 +20,8 @@
 		public List<AssetClass>? AllowedAssetClasses { get; private set; }
 
 		public List<AssetSubClass>? AllowedAssetSubClasses { get; private set; }
+
+		public int Id { get; set; }
 
 		public static PartialSymbolIdentifier CreateCrypto(string id)
 		{

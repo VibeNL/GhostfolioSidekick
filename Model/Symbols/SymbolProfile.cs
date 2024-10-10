@@ -18,6 +18,7 @@ namespace GhostfolioSidekick.Model.Symbols
 			CountryWeight = null!;
 			SectorWeights = null!;
 			Identifiers = new List<string>();
+			MatchedPartialIdentifiers = new List<PartialSymbolIdentifier>();
 		}
 
 		[SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "DDD")]
@@ -41,6 +42,7 @@ namespace GhostfolioSidekick.Model.Symbols
 			CountryWeight = countries;
 			SectorWeights = sectors;
 			Identifiers = identifiers;
+			MatchedPartialIdentifiers = new List<PartialSymbolIdentifier>();
 		}
 
 		public Currency Currency { get; set; }
@@ -67,7 +69,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public List<MarketData> MarketData { get; set; } = [];
 
-		public ICollection<PartialSymbolIdentifier> MatchedPartialIdentifiers { get; set; } = [];
+		public ICollection<PartialSymbolIdentifier> MatchedPartialIdentifiers { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		public bool Equals(SymbolProfile? other)
