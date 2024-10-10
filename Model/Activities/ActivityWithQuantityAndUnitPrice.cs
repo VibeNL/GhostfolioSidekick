@@ -7,6 +7,7 @@ namespace GhostfolioSidekick.Model.Activities
 		protected ActivityWithQuantityAndUnitPrice() : base()
 		{
 			// EF Core
+			PartialSymbolIdentifiers = new List<PartialSymbolIdentifier>();
 		}
 
 		protected ActivityWithQuantityAndUnitPrice(
@@ -22,9 +23,10 @@ namespace GhostfolioSidekick.Model.Activities
 			PartialSymbolIdentifiers = partialSymbolIdentifiers;
 			Quantity = quantity;
 			UnitPrice = unitPrice;
+			PartialSymbolIdentifiers = new List<PartialSymbolIdentifier>();
 		}
 
-		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
 
 		public decimal Quantity { get; set; }
 
