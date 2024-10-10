@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.FileImporter
 
 		private void DetermineActivity(List<Activity> activities, Account account, List<PartialActivity> transactions)
 		{
-			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Length != 0) ?? transactions[0];
+			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Count != 0) ?? transactions[0];
 
 			var fees = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Fee).ToList();
 			var taxes = transactions.Except([sourceTransaction]).Where(x => x.ActivityType == PartialActivityType.Tax).ToList();
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.FileImporter
 		private static Activity GenerateActivity(
 			Account account,
 			PartialActivityType activityType,
-			PartialSymbolIdentifier[] partialSymbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime date,
 			decimal amount,
 			Money money,

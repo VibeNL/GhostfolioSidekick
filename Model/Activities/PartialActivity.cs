@@ -16,6 +16,7 @@ namespace GhostfolioSidekick.Model.Activities
 			Currency = currency;
 			this.TotalTransactionAmount = TotalTransactionAmount;
 			TransactionId = transactionId;
+			SymbolIdentifiers = new List<PartialSymbolIdentifier>();
 		}
 
 		public PartialActivityType ActivityType { get; }
@@ -28,7 +29,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public string? TransactionId { get; set; }
 
-		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
+		public ICollection<PartialSymbolIdentifier> SymbolIdentifiers { get; private set; }
 
 		public decimal? UnitPrice { get; private set; } = 1;
 
