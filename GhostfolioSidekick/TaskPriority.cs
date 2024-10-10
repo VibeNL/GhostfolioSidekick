@@ -4,20 +4,26 @@
 	{
 		DisplayInformation,
 
-		AccountCreation,
+		GenerateDatabaseTask,
 
-		CreateManualSymbols,
-
-		SetManualPrices,
+		AccountMaintainer,
 
 		FileImporter,
+		
+		CurrencyGatherer,
 
-		DeleteUnusedSymbols,
+		SymbolMapper,
 
-		SetTrackingInsightOnSymbols,
+		//CreateManualSymbols,
 
-		SetBenchmarks,
+		//SetManualPrices,
 
-		GatherAllData,
+		//DeleteUnusedSymbols,
+
+		//SetTrackingInsightOnSymbols,
+
+		//SetBenchmarks,
+
+		//GatherAllData,
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -9,20 +10,20 @@ namespace GhostfolioSidekick.AccountMaintainer
 	public class AccountMaintainerTask : IScheduledWork
 	{
 		private readonly ILogger<AccountMaintainerTask> logger;
-		private readonly IAccountService api;
+		private readonly IAccountRepository accountRepository;
 		private readonly IApplicationSettings applicationSettings;
 
-		public TaskPriority Priority => TaskPriority.AccountCreation;
+		public TaskPriority Priority => TaskPriority.AccountMaintainer;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
 		public AccountMaintainerTask(
 			ILogger<AccountMaintainerTask> logger,
-			IAccountService api,
+			IAccountRepository accountRepository,
 			IApplicationSettings applicationSettings)
 		{
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.api = api ?? throw new ArgumentNullException(nameof(api));
+			this.accountRepository = accountRepository ?? throw new ArgumentNullException(nameof(accountRepository));
 			this.applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		}
 
@@ -34,7 +35,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 			{
 				await AddOrUpdateAccountsAndPlatforms();
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				logger.LogError(ex, "{Name} Failed", nameof(AccountMaintainerTask));
 				return;
@@ -47,7 +48,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 		{
 			var platforms = applicationSettings.ConfigurationInstance.Platforms;
 			var accounts = applicationSettings.ConfigurationInstance.Accounts;
-			var existingAccounts = await api.GetAllAccounts();
+			var existingAccounts = await accountRepository.GetAllAccounts();
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{
@@ -66,9 +67,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 		{
 			var platform = await CreateOrUpdatePlatform(platformConfiguration);
 
-			await api.CreateAccount(new Account(
-				accountConfig.Name,
-				new Balance(DateTime.Today, new Money(new Currency(accountConfig.Currency), 0)))
+			await accountRepository.AddAccount(new Account(accountConfig.Name)
 			{
 				Comment = accountConfig.Comment,
 				Platform = platform,
@@ -82,13 +81,13 @@ namespace GhostfolioSidekick.AccountMaintainer
 				return null;
 			}
 
-			var platform = await api.GetPlatformByName(platformConfiguration.Name);
+			var platform = await accountRepository.GetPlatformByName(platformConfiguration.Name);
 
 			if (platform == null)
 			{
 				try
 				{
-					await api.CreatePlatform(new Platform(platformConfiguration.Name)
+					await accountRepository.AddPlatform(new Platform(platformConfiguration.Name)
 					{
 						Url = platformConfiguration.Url,
 					});
@@ -101,7 +100,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 			}
 
 			// TODO Update platform
-			return await api.GetPlatformByName(platformConfiguration.Name);
+			return await accountRepository.GetPlatformByName(platformConfiguration.Name);
 		}
 	}
 }

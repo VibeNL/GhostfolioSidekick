@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.UnitTests
 		}
 
 		[Theory]
-		[InlineData(typeof(IScheduledWork), 9)]
+		[InlineData(typeof(IScheduledWork), 10)]
 		[InlineData(typeof(IFileImporter), 19)]
 		[InlineData(typeof(IHoldingStrategy), 7)]
 		public void CheckIfAllServicesAreRegistered(Type interfaceName, int count)
