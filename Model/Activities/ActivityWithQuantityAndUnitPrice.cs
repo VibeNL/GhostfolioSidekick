@@ -23,7 +23,6 @@ namespace GhostfolioSidekick.Model.Activities
 			PartialSymbolIdentifiers = partialSymbolIdentifiers;
 			Quantity = quantity;
 			UnitPrice = unitPrice;
-			PartialSymbolIdentifiers = new List<PartialSymbolIdentifier>();
 		}
 
 		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
