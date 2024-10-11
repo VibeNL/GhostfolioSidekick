@@ -45,6 +45,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			foreach (var match in currenciesMatches)
 			{
+				if (match.Item1.Key.IsKnownPair(match.Item2.Key))
+				{
+					continue;
+				}
+
 				string symbolString = match.Item1.Key.Symbol + match.Item2.Key.Symbol;
 				DateOnly fromDate = DateOnly.FromDateTime(new DateTime[] { match.Item1.Value, match.Item2.Value }.Min());
 
@@ -64,7 +69,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					symbol = await marketDataRepository.GetSymbolProfileBySymbol(symbolString);
 					if (symbol == null)
 					{
-						symbol = new SymbolProfile(symbolString, symbolString, [], match.Item1.Key with {}, "YAHOO", AssetClass.Undefined, null, [], []);
+						symbol = new SymbolProfile(symbolString, symbolString, [], match.Item1.Key with {}, Datasource.YAHOO, AssetClass.Undefined, null, [], []);
 					}
 
 					symbol.MarketData.Clear();

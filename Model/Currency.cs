@@ -13,8 +13,7 @@ namespace GhostfolioSidekick.Model
 		public static Currency GBp = new("GBp");
 
 		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp];
-
-		public Currency() // EF Core
+				public Currency() // EF Core
 		{
 			Symbol = default!;
 		}
@@ -39,6 +38,11 @@ namespace GhostfolioSidekick.Model
 		public override string ToString()
 		{
 			return Symbol;
+		}
+
+		public bool IsKnownPair(Currency key)
+		{
+			return Symbol.Equals(key.Symbol, StringComparison.CurrentCultureIgnoreCase); // TODO GBP == GBp
 		}
 	}
 }
