@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Database.Repository
 			{
 				foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers.ToList())
 				{
-					var existingPartialSymbolIdentifier = list.FirstOrDefault(p => p == partialSymbolIdentifier);
+					var existingPartialSymbolIdentifier = list.FirstOrDefault(CompareIdentifier(partialSymbolIdentifier));
 					if (existingPartialSymbolIdentifier != null)
 					{
 						activity.PartialSymbolIdentifiers.Remove(partialSymbolIdentifier);
@@ -53,6 +53,13 @@ namespace GhostfolioSidekick.Database.Repository
 			}
 
 			await databaseContext.SaveChangesAsync();
+		}
+
+		private static Func<PartialSymbolIdentifier, bool> CompareIdentifier(PartialSymbolIdentifier partialSymbolIdentifier)
+		{
+			return p => p.Identifier == partialSymbolIdentifier.Identifier &&
+						Enumerable.SequenceEqual(p.AllowedAssetClasses ?? [], partialSymbolIdentifier.AllowedAssetClasses ?? []) &&
+						Enumerable.SequenceEqual(p.AllowedAssetSubClasses ?? [], partialSymbolIdentifier.AllowedAssetSubClasses ?? []);
 		}
 
 		private static Func<Activity, bool> CompareActivity(Activity activity)
