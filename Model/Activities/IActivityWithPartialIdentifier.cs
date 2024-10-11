@@ -8,6 +8,6 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public interface IActivityWithPartialIdentifier
 	{
-		ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
+		IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
 	}
 }

@@ -19,11 +19,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			int? sortingPriority,
 			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{
-			PartialSymbolIdentifiers = partialSymbolIdentifiers;
+			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
 			Price = amount;
 		}
 
-		public virtual ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money Price { get; set; }
 

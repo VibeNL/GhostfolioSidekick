@@ -20,12 +20,12 @@ namespace GhostfolioSidekick.Model.Activities
 			int? sortingPriority,
 			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{
-			PartialSymbolIdentifiers = partialSymbolIdentifiers;
+			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
 			Quantity = quantity;
 			UnitPrice = unitPrice;
 		}
 
-		public virtual ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
+		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
 
 		public decimal Quantity { get; set; }
 
