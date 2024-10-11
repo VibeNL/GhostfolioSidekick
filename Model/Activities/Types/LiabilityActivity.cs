@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class LiabilityActivity : Activity
+	public record class LiabilityActivity : Activity, IActivityWithPartialIdentifier
 	{
 		public LiabilityActivity()
 		{

@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Model.Activities
 {
-	public abstract record ActivityWithQuantityAndUnitPrice : Activity
+	public abstract record ActivityWithQuantityAndUnitPrice : Activity, IActivityWithPartialIdentifier
 	{
 		protected ActivityWithQuantityAndUnitPrice() : base()
 		{

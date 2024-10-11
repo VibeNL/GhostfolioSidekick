@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class RepayBondActivity : Activity
+	public record class RepayBondActivity : Activity, IActivityWithPartialIdentifier
 	{
 		public RepayBondActivity()
 		{

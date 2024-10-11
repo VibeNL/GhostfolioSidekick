@@ -17,6 +17,8 @@ namespace GhostfolioSidekick.Database
 
 		public DbSet<Activity> Activities { get; set; }
 
+		public DbSet<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
+
 		public DatabaseContext()
 		{
 		}

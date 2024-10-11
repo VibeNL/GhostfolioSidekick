@@ -12,9 +12,52 @@ namespace GhostfolioSidekick.Database.Repository
 
 		public async Task StoreAll(IEnumerable<Activity> activities)
 		{
-			await databaseContext.Activities.ExecuteDeleteAsync();
-			await databaseContext.Activities.AddRangeAsync(activities);
+			// Deduplicate entities
+			var existingActivities = await databaseContext.Activities.ToListAsync();
+			foreach (var activity in activities)
+			{
+				var existingActivity = existingActivities.FirstOrDefault(CompareActivity(activity));
+				if (existingActivity != null)
+				{
+					continue;
+				}
+
+				await databaseContext.Activities.AddAsync(activity);
+			}
+
+			// Remove activities that are not in the new list
+			foreach (var existingActivity in existingActivities)
+			{
+				if (!activities.Any(CompareActivity(existingActivity)))
+				{
+					databaseContext.Activities.Remove(existingActivity);
+				}
+			}
+
+			// Deduplicate partial identifiers
+			var list = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
+			{
+				foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers.ToList())
+				{
+					var existingPartialSymbolIdentifier = list.FirstOrDefault(p => p == partialSymbolIdentifier);
+					if (existingPartialSymbolIdentifier != null)
+					{
+						activity.PartialSymbolIdentifiers.Remove(partialSymbolIdentifier);
+						activity.PartialSymbolIdentifiers.Add(existingPartialSymbolIdentifier);
+						continue;
+					}
+
+					list.Add(partialSymbolIdentifier);
+				}
+			}
+
 			await databaseContext.SaveChangesAsync();
+		}
+
+		private static Func<Activity, bool> CompareActivity(Activity activity)
+		{
+			return a => a.Date == activity.Date && a.TransactionId == activity.TransactionId;
 		}
 	}
 }
