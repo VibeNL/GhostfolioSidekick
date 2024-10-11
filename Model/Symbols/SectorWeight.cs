@@ -1,7 +1,13 @@
 ﻿namespace GhostfolioSidekick.Model.Symbols
 {
-	public class SectorWeight
+	public record SectorWeight
 	{
+		public SectorWeight()
+		{
+			// EF Core
+			Name = default!;
+		}
+
 		public SectorWeight(
 			string name,
 			decimal weight)

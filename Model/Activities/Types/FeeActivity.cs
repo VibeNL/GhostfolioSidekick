@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class FeeActivity : Activity
 	{
-		internal FeeActivity()
+		public FeeActivity()
 		{
 			// EF Core
 			Amount = null!;

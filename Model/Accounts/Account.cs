@@ -2,7 +2,7 @@
 {
 	public class Account
 	{
-		internal Account()
+		public Account()
 		{
 			// EF Core
 			Name = null!;
@@ -16,13 +16,13 @@
 
 		public string Name { get; set; }
 
-		public List<Balance> Balance { get; set; } = new List<Balance>();
+		public virtual List<Balance> Balance { get; set; } = new List<Balance>();
 
 		public int Id { get; set; }
 
 		public string? Comment { get; set; }
 
-		public Platform? Platform { get; set; }
+		public virtual Platform? Platform { get; set; }
 
 		public override string ToString()
 		{

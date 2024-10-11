@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class ValuableActivity : Activity
 	{
-		internal ValuableActivity()
+		public ValuableActivity()
 		{
 			// EF Core
 			Price = null!;
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			Price = amount;
 		}
 
-		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public virtual ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money Price { get; set; }
 

@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public long Id { get; protected set; }
 
-		public Account Account { get; protected set; }
+		public virtual Account Account { get; protected set; }
 
 		public DateTime Date { get; protected set; }
 

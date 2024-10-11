@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Model.Activities
 			UnitPrice = unitPrice;
 		}
 
-		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
+		public virtual ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
 
 		public decimal Quantity { get; set; }
 

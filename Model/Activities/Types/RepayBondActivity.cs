@@ -4,26 +4,26 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class RepayBondActivity : Activity
 	{
-		internal RepayBondActivity()
+		public RepayBondActivity()
 		{
 			// EF Core
 			TotalRepayAmount = null!;
 		}
 
 		public RepayBondActivity(
-		Account account,
-		ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
-		DateTime dateTime,
-		Money totalRepayAmount,
-		string? transactionId,
-		int? sortingPriority,
-		string? description) : base(account, dateTime, transactionId, sortingPriority, description)
+			Account account,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
+			DateTime dateTime,
+			Money totalRepayAmount,
+			string? transactionId,
+			int? sortingPriority,
+			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{
 			PartialSymbolIdentifiers = partialSymbolIdentifiers;
 			TotalRepayAmount = totalRepayAmount;
 		}
 
-		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public virtual ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money TotalRepayAmount { get; }
 

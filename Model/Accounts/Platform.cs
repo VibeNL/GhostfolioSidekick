@@ -2,7 +2,7 @@
 {
 	public class Platform
 	{
-		internal Platform()
+		public Platform()
 		{
 			// EF Core
 			Name = null!;

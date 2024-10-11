@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public record PartialSymbolIdentifier
 	{
-		internal PartialSymbolIdentifier()
+		public PartialSymbolIdentifier()
 		{
 			// EF Core
 			Identifier = null!;
@@ -27,9 +27,9 @@ namespace GhostfolioSidekick.Model.Activities
 		
 		public int Id { get; set; }
 
-		public ICollection<SymbolProfile> SymbolProfiles { get; set; }
+		public virtual ICollection<SymbolProfile> SymbolProfiles { get; set; }
 
-		public ICollection<Activity> Activities { get; set; }
+		public virtual ICollection<Activity> Activities { get; set; }
 
 		public static PartialSymbolIdentifier CreateCrypto(string id)
 		{

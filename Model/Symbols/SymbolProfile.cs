@@ -4,9 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
-	public sealed class SymbolProfile : IEquatable<SymbolProfile>
+	public record class SymbolProfile
 	{
-		internal SymbolProfile()
+		public SymbolProfile()
 		{
 			// EF Core
 			Symbol = null!;
@@ -63,55 +63,13 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string? Comment { get; set; }
 
-		public IEnumerable<CountryWeight> CountryWeight { get; set; }
+		public virtual ICollection<CountryWeight> CountryWeight { get; set; }
 
-		public IEnumerable<SectorWeight> SectorWeights { get; set; }
+		public virtual ICollection<SectorWeight> SectorWeights { get; set; }
 
-		public List<MarketData> MarketData { get; set; } = [];
+		public virtual ICollection<MarketData> MarketData { get; set; } = [];
 
-		public ICollection<PartialSymbolIdentifier> MatchedPartialIdentifiers { get; set; }
-
-		[ExcludeFromCodeCoverage]
-		public bool Equals(SymbolProfile? other)
-		{
-			return
-				Currency.Symbol == other?.Currency.Symbol &&
-				Name == other?.Name &&
-				Symbol == other?.Symbol &&
-				AssetClass == other?.AssetClass &&
-				AssetSubClass == other.AssetSubClass;
-		}
-
-		public static bool operator ==(SymbolProfile? left, SymbolProfile? right)
-		{
-			if (ReferenceEquals(left, null))
-			{
-				return ReferenceEquals(right, null);
-			}
-
-			return left.Equals(right);
-		}
-
-		public static bool operator !=(SymbolProfile? left, SymbolProfile? right)
-		{
-			return !(left == right);
-		}
-
-		public override bool Equals(object? obj)
-		{
-			return Equals(obj as SymbolProfile);
-		}
-
-		public override int GetHashCode()
-		{
-			int hash = 17;
-			hash = hash * 23 + Currency.Symbol.GetHashCode();
-			hash = hash * 23 + Name.GetHashCode();
-			hash = hash * 23 + Symbol.GetHashCode();
-			hash = hash * 23 + AssetClass.GetHashCode();
-			hash = hash * 23 + (AssetSubClass?.GetHashCode() ?? 0);
-			return hash;
-		}
+		public virtual ICollection<PartialSymbolIdentifier> MatchedPartialIdentifiers { get; set; }
 
 		public override string ToString()
 		{

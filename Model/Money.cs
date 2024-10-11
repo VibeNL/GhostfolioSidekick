@@ -6,7 +6,7 @@
 
 		public Currency Currency { get; set; }
 
-		internal Money()
+		public Money()
 		{
 			// EF Core
 			Amount = 0;

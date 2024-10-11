@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.Model
 
 		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp];
 
-		internal Currency() // EF Core
+		public Currency() // EF Core
 		{
 			Symbol = default!;
 		}

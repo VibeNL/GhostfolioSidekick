@@ -46,17 +46,33 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			foreach (var match in currenciesMatches)
 			{
 				string symbolString = match.Item1.Key.Symbol + match.Item2.Key.Symbol;
-				var currencyHistory = await currencyRepository.GetCurrencyHistory(match.Item1.Key, match.Item2.Key, DateOnly.FromDateTime(new DateTime[] { match.Item1.Value, match.Item2.Value }.Min()));
+				DateOnly fromDate = DateOnly.FromDateTime(new DateTime[] { match.Item1.Value, match.Item2.Value }.Min());
+
+				var symbol = await marketDataRepository.GetSymbolProfileBySymbol(symbolString);
+				
+				// Check if we need to update our data
+				if (symbol != null && symbol.MarketData.Count > 0 &&
+						DateOnly.FromDateTime(symbol.MarketData.Min(x => x.Date)) == fromDate &&
+						symbol.MarketData.Max(x => x.Date) == DateTime.Today)
+				{
+					continue;
+				}
+
+				var currencyHistory = await currencyRepository.GetCurrencyHistory(match.Item1.Key, match.Item2.Key, fromDate);
 				if (currencyHistory != null)
 				{
-					var symbol = await marketDataRepository.GetSymbolProfileBySymbol(symbolString);
+					symbol = await marketDataRepository.GetSymbolProfileBySymbol(symbolString);
 					if (symbol == null)
 					{
 						symbol = new SymbolProfile(symbolString, symbolString, [], match.Item1.Key with {}, "YAHOO", AssetClass.Undefined, null, [], []);
 					}
 
 					symbol.MarketData.Clear();
-					symbol.MarketData.AddRange(currencyHistory);
+
+					foreach (var item in currencyHistory)
+					{
+						symbol.MarketData.Add(item);
+					}
 
 					await marketDataRepository.Store(symbol).ConfigureAwait(false);
 				}

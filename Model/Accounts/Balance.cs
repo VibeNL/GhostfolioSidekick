@@ -2,7 +2,7 @@
 {
 	public class Balance
 	{
-		internal Balance()
+		public Balance()
 		{
 			// EF Core
 			DateTime = default!;

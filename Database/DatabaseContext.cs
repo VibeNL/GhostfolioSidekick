@@ -28,11 +28,12 @@ namespace GhostfolioSidekick.Database
 
 		// The following configures EF to create a Sqlite database file in the
 		// special "local" folder for your platform.
-		protected override void OnConfiguring(DbContextOptionsBuilder options)
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			if (!options.IsConfigured)
+			optionsBuilder.UseLazyLoadingProxies();
+			if (!optionsBuilder.IsConfigured)
 			{
-				options.UseSqlite($"Data Source=ghostfoliosidekick.db");
+				optionsBuilder.UseSqlite($"Data Source=ghostfoliosidekick.db");
 			}
 		}
 

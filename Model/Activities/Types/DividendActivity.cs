@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class DividendActivity : Activity
 	{
-		internal DividendActivity()
+		public DividendActivity()
 		{
 			// EF Core
 			Amount = null!;
@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public ICollection<Money> Fees { get; set; } = [];
 
-		public ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public virtual ICollection<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 		
 		public Money Amount { get; set; }
 

@@ -4,6 +4,15 @@ namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialActivity
 	{
+		public PartialActivity()
+		{
+			// EF Core
+			Currency = default!;
+			SymbolIdentifiers = [];
+			TotalTransactionAmount = default!;
+		}
+
+
 		public PartialActivity(
 			PartialActivityType activityType,
 			DateTime dateTime,
@@ -16,7 +25,7 @@ namespace GhostfolioSidekick.Model.Activities
 			Currency = currency;
 			this.TotalTransactionAmount = TotalTransactionAmount;
 			TransactionId = transactionId;
-			SymbolIdentifiers = new List<PartialSymbolIdentifier>();
+			SymbolIdentifiers = [];
 		}
 
 		public PartialActivityType ActivityType { get; }
@@ -304,14 +313,14 @@ namespace GhostfolioSidekick.Model.Activities
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Liability,date, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Liability, date, currency, totalTransactionAmount, transactionId)
 			{
 				Amount = 1,
 				UnitPrice = value,
 				Description = description
 			};
 		}
-		
+
 		public static PartialActivity CreateBondRepay(
 			Currency currency,
 			DateTime date,

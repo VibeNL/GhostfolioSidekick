@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 {
 	public record class BuySellActivity : ActivityWithQuantityAndUnitPrice
 	{
-		internal BuySellActivity()
+		public BuySellActivity()
 		{
 			// EF Core
 		}

@@ -1,7 +1,15 @@
 ﻿namespace GhostfolioSidekick.Model.Symbols
 {
-	public class CountryWeight
+	public record CountryWeight
 	{
+		public CountryWeight()
+		{
+			// EF Core
+			Code = default!;
+			Continent = default!;
+			Name = default!;
+		}
+
 		public CountryWeight(
 			string name,
 			string code,
