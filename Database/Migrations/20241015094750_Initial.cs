@@ -12,6 +12,21 @@ namespace GhostfolioSidekick.Database.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "PartialSymbolIdentifiers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Identifier = table.Column<string>(type: "TEXT", nullable: false),
+                    AllowedAssetClasses = table.Column<string>(type: "TEXT", nullable: true),
+                    AllowedAssetSubClasses = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PartialSymbolIdentifiers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Platforms",
                 columns: table => new
                 {
@@ -115,6 +130,31 @@ namespace GhostfolioSidekick.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MatchedPartialIdentifiers",
+                columns: table => new
+                {
+                    SymbolProfileSymbol = table.Column<string>(type: "TEXT", nullable: false),
+                    SymbolProfileDataSource = table.Column<string>(type: "TEXT", nullable: false),
+                    PartialIdentifierId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MatchedPartialIdentifiers", x => new { x.SymbolProfileSymbol, x.SymbolProfileDataSource, x.PartialIdentifierId });
+                    table.ForeignKey(
+                        name: "FK_MatchedPartialIdentifiers_PartialSymbolIdentifiers_PartialIdentifierId",
+                        column: x => x.PartialIdentifierId,
+                        principalTable: "PartialSymbolIdentifiers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MatchedPartialIdentifiers_SymbolProfiles_SymbolProfileSymbol_SymbolProfileDataSource",
+                        columns: x => new { x.SymbolProfileSymbol, x.SymbolProfileDataSource },
+                        principalTable: "SymbolProfiles",
+                        principalColumns: new[] { "Symbol", "DataSource" },
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SectorWeights",
                 columns: table => new
                 {
@@ -185,55 +225,26 @@ namespace GhostfolioSidekick.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PartialSymbolIdentifiers",
+                name: "ActivityPartialIdentifiers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Identifier = table.Column<string>(type: "TEXT", nullable: false),
-                    AllowedAssetClasses = table.Column<string>(type: "TEXT", nullable: true),
-                    AllowedAssetSubClasses = table.Column<string>(type: "TEXT", nullable: true),
-                    ActivityWithQuantityAndUnitPriceId = table.Column<long>(type: "INTEGER", nullable: true),
-                    DividendActivityId = table.Column<long>(type: "INTEGER", nullable: true),
-                    LiabilityActivityId = table.Column<long>(type: "INTEGER", nullable: true),
-                    RepayBondActivityId = table.Column<long>(type: "INTEGER", nullable: true),
-                    SymbolProfileDataSource = table.Column<string>(type: "TEXT", nullable: true),
-                    SymbolProfileSymbol = table.Column<string>(type: "TEXT", nullable: true),
-                    ValuableActivityId = table.Column<long>(type: "INTEGER", nullable: true)
+                    ActivityId = table.Column<long>(type: "INTEGER", nullable: false),
+                    PartialIdentifierId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PartialSymbolIdentifiers", x => x.Id);
+                    table.PrimaryKey("PK_ActivityPartialIdentifiers", x => new { x.ActivityId, x.PartialIdentifierId });
                     table.ForeignKey(
-                        name: "FK_PartialSymbolIdentifiers_Activities_ActivityWithQuantityAndUnitPriceId",
-                        column: x => x.ActivityWithQuantityAndUnitPriceId,
+                        name: "FK_ActivityPartialIdentifiers_Activities_ActivityId",
+                        column: x => x.ActivityId,
                         principalTable: "Activities",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_PartialSymbolIdentifiers_Activities_DividendActivityId",
-                        column: x => x.DividendActivityId,
-                        principalTable: "Activities",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PartialSymbolIdentifiers_Activities_LiabilityActivityId",
-                        column: x => x.LiabilityActivityId,
-                        principalTable: "Activities",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PartialSymbolIdentifiers_Activities_RepayBondActivityId",
-                        column: x => x.RepayBondActivityId,
-                        principalTable: "Activities",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PartialSymbolIdentifiers_Activities_ValuableActivityId",
-                        column: x => x.ValuableActivityId,
-                        principalTable: "Activities",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PartialSymbolIdentifiers_SymbolProfiles_SymbolProfileSymbol_SymbolProfileDataSource",
-                        columns: x => new { x.SymbolProfileSymbol, x.SymbolProfileDataSource },
-                        principalTable: "SymbolProfiles",
-                        principalColumns: new[] { "Symbol", "DataSource" });
+                        name: "FK_ActivityPartialIdentifiers_PartialSymbolIdentifiers_PartialIdentifierId",
+                        column: x => x.PartialIdentifierId,
+                        principalTable: "PartialSymbolIdentifiers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -245,6 +256,11 @@ namespace GhostfolioSidekick.Database.Migrations
                 name: "IX_Activities_AccountId",
                 table: "Activities",
                 column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ActivityPartialIdentifiers_PartialIdentifierId",
+                table: "ActivityPartialIdentifiers",
+                column: "PartialIdentifierId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Balances_AccountId",
@@ -262,34 +278,15 @@ namespace GhostfolioSidekick.Database.Migrations
                 columns: new[] { "SymbolProfileSymbol", "SymbolProfileDataSource" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_PartialSymbolIdentifiers_ActivityWithQuantityAndUnitPriceId",
-                table: "PartialSymbolIdentifiers",
-                column: "ActivityWithQuantityAndUnitPriceId");
+                name: "IX_MatchedPartialIdentifiers_PartialIdentifierId",
+                table: "MatchedPartialIdentifiers",
+                column: "PartialIdentifierId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PartialSymbolIdentifiers_DividendActivityId",
+                name: "IX_PartialSymbolIdentifiers_Identifier_AllowedAssetClasses_AllowedAssetSubClasses",
                 table: "PartialSymbolIdentifiers",
-                column: "DividendActivityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PartialSymbolIdentifiers_LiabilityActivityId",
-                table: "PartialSymbolIdentifiers",
-                column: "LiabilityActivityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PartialSymbolIdentifiers_RepayBondActivityId",
-                table: "PartialSymbolIdentifiers",
-                column: "RepayBondActivityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PartialSymbolIdentifiers_SymbolProfileSymbol_SymbolProfileDataSource",
-                table: "PartialSymbolIdentifiers",
-                columns: new[] { "SymbolProfileSymbol", "SymbolProfileDataSource" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PartialSymbolIdentifiers_ValuableActivityId",
-                table: "PartialSymbolIdentifiers",
-                column: "ValuableActivityId");
+                columns: new[] { "Identifier", "AllowedAssetClasses", "AllowedAssetSubClasses" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SectorWeights_SymbolProfileSymbol_SymbolProfileDataSource",
@@ -301,6 +298,9 @@ namespace GhostfolioSidekick.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ActivityPartialIdentifiers");
+
+            migrationBuilder.DropTable(
                 name: "Balances");
 
             migrationBuilder.DropTable(
@@ -310,13 +310,16 @@ namespace GhostfolioSidekick.Database.Migrations
                 name: "MarketData");
 
             migrationBuilder.DropTable(
-                name: "PartialSymbolIdentifiers");
+                name: "MatchedPartialIdentifiers");
 
             migrationBuilder.DropTable(
                 name: "SectorWeights");
 
             migrationBuilder.DropTable(
                 name: "Activities");
+
+            migrationBuilder.DropTable(
+                name: "PartialSymbolIdentifiers");
 
             migrationBuilder.DropTable(
                 name: "SymbolProfiles");

@@ -21,6 +21,21 @@ namespace GhostfolioSidekick.Database.Migrations
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
 
+            modelBuilder.Entity("ActivityPartialIdentifiers", b =>
+                {
+                    b.Property<long>("ActivityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PartialIdentifierId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ActivityId", "PartialIdentifierId");
+
+                    b.HasIndex("PartialIdentifierId");
+
+                    b.ToTable("ActivityPartialIdentifiers");
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
                 {
                     b.Property<int>("Id")
@@ -93,9 +108,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("PartialSymbolIdentifierId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int?>("SortingPriority")
                         .HasColumnType("INTEGER");
 
@@ -111,8 +123,6 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("PartialSymbolIdentifierId");
-
                     b.ToTable("Activities", (string)null);
 
                     b.HasDiscriminator<string>("Type").IsComplete(true).HasValue("Activity");
@@ -126,42 +136,17 @@ namespace GhostfolioSidekick.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("ActivityWithQuantityAndUnitPriceId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("AllowedAssetClasses")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("AllowedAssetSubClasses")
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("DividendActivityId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Identifier")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<long?>("LiabilityActivityId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long?>("RepayBondActivityId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long?>("ValuableActivityId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ActivityWithQuantityAndUnitPriceId");
-
-                    b.HasIndex("DividendActivityId");
-
-                    b.HasIndex("LiabilityActivityId");
-
-                    b.HasIndex("RepayBondActivityId");
-
-                    b.HasIndex("ValuableActivityId");
 
                     b.HasIndex("Identifier", "AllowedAssetClasses", "AllowedAssetSubClasses")
                         .IsUnique();
@@ -281,22 +266,22 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.ToTable("SymbolProfiles", (string)null);
                 });
 
-            modelBuilder.Entity("PartialSymbolIdentifierSymbolProfile", b =>
+            modelBuilder.Entity("MatchedPartialIdentifiers", b =>
                 {
-                    b.Property<int>("MatchedPartialIdentifiersId")
+                    b.Property<string>("SymbolProfileSymbol")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SymbolProfileDataSource")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PartialIdentifierId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("SymbolProfilesSymbol")
-                        .HasColumnType("TEXT");
+                    b.HasKey("SymbolProfileSymbol", "SymbolProfileDataSource", "PartialIdentifierId");
 
-                    b.Property<string>("SymbolProfilesDataSource")
-                        .HasColumnType("TEXT");
+                    b.HasIndex("PartialIdentifierId");
 
-                    b.HasKey("MatchedPartialIdentifiersId", "SymbolProfilesSymbol", "SymbolProfilesDataSource");
-
-                    b.HasIndex("SymbolProfilesSymbol", "SymbolProfilesDataSource");
-
-                    b.ToTable("PartialSymbolIdentifierSymbolProfile");
+                    b.ToTable("MatchedPartialIdentifiers");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", b =>
@@ -474,6 +459,19 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasDiscriminator().HasValue("StakingRewardActivity");
                 });
 
+            modelBuilder.Entity("ActivityPartialIdentifiers", b =>
+                {
+                    b.HasOne("GhostfolioSidekick.Model.Activities.Activity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId");
+
+                    b.HasOne("GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier", null)
+                        .WithMany()
+                        .HasForeignKey("PartialIdentifierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Accounts.Platform", "Platform")
@@ -539,34 +537,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier", null)
-                        .WithMany("Activities")
-                        .HasForeignKey("PartialSymbolIdentifierId");
-
                     b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier", b =>
-                {
-                    b.HasOne("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", null)
-                        .WithMany("PartialSymbolIdentifiers")
-                        .HasForeignKey("ActivityWithQuantityAndUnitPriceId");
-
-                    b.HasOne("GhostfolioSidekick.Model.Activities.Types.DividendActivity", null)
-                        .WithMany("PartialSymbolIdentifiers")
-                        .HasForeignKey("DividendActivityId");
-
-                    b.HasOne("GhostfolioSidekick.Model.Activities.Types.LiabilityActivity", null)
-                        .WithMany("PartialSymbolIdentifiers")
-                        .HasForeignKey("LiabilityActivityId");
-
-                    b.HasOne("GhostfolioSidekick.Model.Activities.Types.RepayBondActivity", null)
-                        .WithMany("PartialSymbolIdentifiers")
-                        .HasForeignKey("RepayBondActivityId");
-
-                    b.HasOne("GhostfolioSidekick.Model.Activities.Types.ValuableActivity", null)
-                        .WithMany("PartialSymbolIdentifiers")
-                        .HasForeignKey("ValuableActivityId");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>
@@ -781,17 +752,17 @@ namespace GhostfolioSidekick.Database.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PartialSymbolIdentifierSymbolProfile", b =>
+            modelBuilder.Entity("MatchedPartialIdentifiers", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier", null)
                         .WithMany()
-                        .HasForeignKey("MatchedPartialIdentifiersId")
+                        .HasForeignKey("PartialIdentifierId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany()
-                        .HasForeignKey("SymbolProfilesSymbol", "SymbolProfilesDataSource")
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -801,11 +772,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Navigation("Balance");
                 });
 
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier", b =>
-                {
-                    b.Navigation("Activities");
-                });
-
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
                 {
                     b.Navigation("CountryWeight");
@@ -813,31 +779,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Navigation("MarketData");
 
                     b.Navigation("SectorWeights");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", b =>
-                {
-                    b.Navigation("PartialSymbolIdentifiers");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.DividendActivity", b =>
-                {
-                    b.Navigation("PartialSymbolIdentifiers");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.LiabilityActivity", b =>
-                {
-                    b.Navigation("PartialSymbolIdentifiers");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.RepayBondActivity", b =>
-                {
-                    b.Navigation("PartialSymbolIdentifiers");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.ValuableActivity", b =>
-                {
-                    b.Navigation("PartialSymbolIdentifiers");
                 });
 #pragma warning restore 612, 618
         }
