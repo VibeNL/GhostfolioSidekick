@@ -51,10 +51,10 @@ namespace GhostfolioSidekick.Database.Repository
 
 					list.Add(partialSymbolIdentifier);
 					partialSymbolIdentifier.Activities.Add((Activity)activity);
+					await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
 				}
 			}
-
-			await databaseContext.PartialSymbolIdentifiers.AddRangeAsync(list);
+						
 			await databaseContext.SaveChangesAsync();
 		}
 

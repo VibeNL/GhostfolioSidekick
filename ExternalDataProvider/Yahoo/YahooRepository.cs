@@ -81,11 +81,21 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		private SectorWeight[] GetSectors(SecurityProfile securityProfile)
 		{
+			if (!securityProfile.Fields.ContainsKey(ProfileFields.Sector.ToString()))
+			{
+				return [];
+			}
+
 			return [new SectorWeight(securityProfile.Sector, 1)];
 		}
 
 		private CountryWeight[] GetCountries(SecurityProfile securityProfile)
 		{
+			if (!securityProfile.Fields.ContainsKey(ProfileFields.Country.ToString()))
+			{
+				return [];
+			}
+
 			return [new CountryWeight(securityProfile.Country, string.Empty, string.Empty, 1)];
 		}
 
