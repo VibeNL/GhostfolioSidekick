@@ -22,8 +22,6 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public List<AssetSubClass>? AllowedAssetSubClasses { get; private set; }
 		
-		public int Id { get; set; }
-
 		public static PartialSymbolIdentifier CreateCrypto(string id)
 		{
 			return new PartialSymbolIdentifier(id)
