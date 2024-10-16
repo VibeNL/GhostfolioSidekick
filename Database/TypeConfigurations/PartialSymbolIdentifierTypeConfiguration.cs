@@ -10,6 +10,15 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 {
 	internal class PartialSymbolIdentifierTypeConfiguration : IEntityTypeConfiguration<PartialSymbolIdentifier>
 	{
+		private readonly JsonSerializerOptions opts;
+
+		public PartialSymbolIdentifierTypeConfiguration()
+		{
+			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
+			opts = new JsonSerializerOptions();
+			opts.Converters.Add(stringEnumConverter);
+		}
+
 		public void Configure(EntityTypeBuilder<PartialSymbolIdentifier> builder)
 		{
 			builder.ToTable("PartialSymbolIdentifiers");
@@ -17,16 +26,16 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			builder.Property(e => e.AllowedAssetClasses)
 					.HasConversion(
-						v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
-						v => JsonSerializer.Deserialize<List<AssetClass>>(v, (JsonSerializerOptions)null!)!,
+						v => JsonSerializer.Serialize(v, opts),
+						v => JsonSerializer.Deserialize<List<AssetClass>>(v, opts),
 						new ValueComparer<ICollection<AssetClass>>(
 							(c1, c2) => c1!.SequenceEqual(c2!),
 							c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 							c => (ICollection<AssetClass>)c.ToList()));
 			builder.Property(e => e.AllowedAssetSubClasses)
 					.HasConversion(
-						v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
-						v => JsonSerializer.Deserialize<List<AssetSubClass>>(v, (JsonSerializerOptions)null!)!,
+						v => JsonSerializer.Serialize(v, opts),
+						v => JsonSerializer.Deserialize<List<AssetSubClass>>(v, opts),
 						new ValueComparer<ICollection<AssetSubClass>>(
 							(c1, c2) => c1!.SequenceEqual(c2!),
 							c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),

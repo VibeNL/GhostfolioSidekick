@@ -45,13 +45,16 @@ namespace GhostfolioSidekick.Database.Repository
 					{
 						activity.PartialSymbolIdentifiers.Remove(partialSymbolIdentifier);
 						activity.PartialSymbolIdentifiers.Add(existingPartialSymbolIdentifier);
+						existingPartialSymbolIdentifier.Activities.Add((Activity)activity);
 						continue;
 					}
 
 					list.Add(partialSymbolIdentifier);
+					partialSymbolIdentifier.Activities.Add((Activity)activity);
 				}
 			}
 
+			await databaseContext.PartialSymbolIdentifiers.AddRangeAsync(list);
 			await databaseContext.SaveChangesAsync();
 		}
 
