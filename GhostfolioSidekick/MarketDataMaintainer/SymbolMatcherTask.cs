@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						continue;
 					}
 
-					if (await activityRepository.HasMatch(activity))
+					if (await activityRepository.HasMatch(ids))
 					{
 						continue;
 					}

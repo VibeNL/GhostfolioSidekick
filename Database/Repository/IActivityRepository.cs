@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Database.Repository
 	public interface IActivityRepository
 	{
 		Task<IEnumerable<Activity>> GetAllActivities();
-		Task<bool> HasMatch(Activity activity);
+		Task<bool> HasMatch(ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers);
 		Task SetMatch(Activity activity, SymbolProfile symbolProfile);
 		Task StoreAll(IEnumerable<Activity> activities);
 	}
