@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace GhostfolioSidekick.Model.Activities
+﻿namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialActivity
 	{

@@ -1,6 +1,5 @@
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;

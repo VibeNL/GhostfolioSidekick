@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+﻿using GhostfolioSidekick.Model.Matches;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Activities
 {
@@ -8,15 +9,11 @@ namespace GhostfolioSidekick.Model.Activities
 		{
 			// EF Core
 			Identifier = null!;
-			SymbolProfiles = new List<SymbolProfile>();
-			Activities = new List<Activity>();
 		}
 
 		private PartialSymbolIdentifier(string id)
 		{
 			Identifier = id;
-			SymbolProfiles = new List<SymbolProfile>();
-			Activities = new List<Activity>();
 		}
 
 		public string Identifier { get; private set; }
@@ -26,10 +23,6 @@ namespace GhostfolioSidekick.Model.Activities
 		public List<AssetSubClass>? AllowedAssetSubClasses { get; private set; }
 		
 		public int Id { get; set; }
-
-		public virtual ICollection<SymbolProfile> SymbolProfiles { get; set; }
-
-		public virtual ICollection<Activity> Activities { get; set; }
 
 		public static PartialSymbolIdentifier CreateCrypto(string id)
 		{

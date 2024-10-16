@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace YahooFinanceApi.Tests
 {
-    public class QuotesTest
+	public class QuotesTest
     {
         [Fact]
         public async Task TestQuoteAsync()

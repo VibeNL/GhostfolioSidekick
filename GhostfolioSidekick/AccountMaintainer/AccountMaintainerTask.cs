@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 

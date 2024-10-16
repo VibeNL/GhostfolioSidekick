@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Symbols;
+﻿using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Database.Repository

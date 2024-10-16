@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -43,21 +42,21 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			builder.HasIndex(psi => new { psi.Identifier, psi.AllowedAssetClasses, psi.AllowedAssetSubClasses }).IsUnique();
 
-			builder.HasMany(psi => psi.SymbolProfiles)
-					.WithMany(sp => sp.MatchedPartialIdentifiers)
-					.UsingEntity(
-						"MatchedPartialIdentifiers",
-						l => l.HasOne(typeof(SymbolProfile)).WithMany().HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource").HasPrincipalKey(nameof(SymbolProfile.Symbol), nameof(SymbolProfile.DataSource)),
-						r => r.HasOne(typeof(PartialSymbolIdentifier)).WithMany().HasForeignKey("PartialIdentifierId").HasPrincipalKey(nameof(PartialSymbolIdentifier.Id)),
-						j => j.HasKey("SymbolProfileSymbol", "SymbolProfileDataSource", "PartialIdentifierId"));
+			//builder.HasMany(psi => psi.SymbolProfiles)
+			//		.WithMany(sp => sp.MatchedPartialIdentifiers)
+			//		.UsingEntity(
+			//			"MatchedPartialIdentifiers",
+			//			l => l.HasOne(typeof(SymbolProfile)).WithMany().HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource").IsRequired(false).HasPrincipalKey(nameof(SymbolProfile.Symbol), nameof(SymbolProfile.DataSource)),
+			//			r => r.HasOne(typeof(PartialSymbolIdentifier)).WithMany().HasForeignKey("PartialIdentifierId").IsRequired(false).HasPrincipalKey(nameof(PartialSymbolIdentifier.Id)),
+			//			j => j.HasKey("SymbolProfileSymbol", "SymbolProfileDataSource", "PartialIdentifierId"));
 
-			builder.HasMany(psi => psi.Activities)
-					.WithMany(nameof(IActivityWithPartialIdentifier.PartialSymbolIdentifiers))
-					.UsingEntity(
-						"ActivityPartialIdentifiers",
-						l => l.HasOne(typeof(Activity)).WithMany().HasForeignKey("ActivityId").IsRequired(false).HasPrincipalKey(nameof(Activity.Id)),
-						r => r.HasOne(typeof(PartialSymbolIdentifier)).WithMany().HasForeignKey("PartialIdentifierId").HasPrincipalKey(nameof(PartialSymbolIdentifier.Id)),
-						j => j.HasKey("ActivityId", "PartialIdentifierId"));
+			//builder.HasMany(psi => psi.Activities)
+			//		.WithMany(nameof(IActivityWithPartialIdentifier.PartialSymbolIdentifiers))
+			//		.UsingEntity(
+			//			"ActivityPartialIdentifiers",
+			//			l => l.HasOne(typeof(Activity)).WithMany().HasForeignKey("ActivityId").IsRequired(false).HasPrincipalKey(nameof(Activity.Id)),
+			//			r => r.HasOne(typeof(PartialSymbolIdentifier)).WithMany().HasForeignKey("PartialIdentifierId").IsRequired(false).HasPrincipalKey(nameof(PartialSymbolIdentifier.Id)),
+			//			j => j.HasKey("ActivityId", "PartialIdentifierId"));
 		}
 	}
 }

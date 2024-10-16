@@ -1,9 +1,6 @@
-﻿using CsvHelper;
-using Flurl;
-using Flurl.Http;
+﻿using Flurl.Http;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;

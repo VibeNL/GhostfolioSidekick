@@ -4,8 +4,6 @@ using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
 using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations

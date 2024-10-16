@@ -34,26 +34,26 @@ namespace GhostfolioSidekick.Database.Repository
 				}
 			}
 
-			// Deduplicate partial identifiers
-			var list = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
-			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
-			{
-				foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers.ToList())
-				{
-					var existingPartialSymbolIdentifier = list.FirstOrDefault(CompareIdentifier(partialSymbolIdentifier));
-					if (existingPartialSymbolIdentifier != null)
-					{
-						activity.PartialSymbolIdentifiers.Remove(partialSymbolIdentifier);
-						activity.PartialSymbolIdentifiers.Add(existingPartialSymbolIdentifier);
-						existingPartialSymbolIdentifier.Activities.Add((Activity)activity);
-						continue;
-					}
+			//// Deduplicate partial identifiers
+			//var list = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+			//foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
+			//{
+			//	foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers.ToList())
+			//	{
+			//		var existingPartialSymbolIdentifier = list.FirstOrDefault(CompareIdentifier(partialSymbolIdentifier));
+			//		if (existingPartialSymbolIdentifier != null)
+			//		{
+			//			activity.PartialSymbolIdentifiers.Remove(partialSymbolIdentifier);
+			//			activity.PartialSymbolIdentifiers.Add(existingPartialSymbolIdentifier);
+			//			existingPartialSymbolIdentifier.Activities.Add((Activity)activity);
+			//			continue;
+			//		}
 
-					list.Add(partialSymbolIdentifier);
-					partialSymbolIdentifier.Activities.Add((Activity)activity);
-					await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
-				}
-			}
+			//		list.Add(partialSymbolIdentifier);
+			//		partialSymbolIdentifier.Activities.Add((Activity)activity);
+			//		await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
+			//	}
+			//}
 						
 			await databaseContext.SaveChangesAsync();
 		}

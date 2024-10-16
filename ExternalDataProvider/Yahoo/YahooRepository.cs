@@ -3,7 +3,6 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo

@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.ExternalDataProvider
 {

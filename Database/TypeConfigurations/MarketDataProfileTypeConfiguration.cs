@@ -1,10 +1,7 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {

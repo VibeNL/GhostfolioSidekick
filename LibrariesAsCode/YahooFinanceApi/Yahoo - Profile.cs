@@ -1,6 +1,5 @@
 ﻿using Flurl;
 using Flurl.Http;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace YahooFinanceApi
 {
-    public sealed partial class Yahoo
+	public sealed partial class Yahoo
     {
 
         public static async Task<SecurityProfile> QueryProfileAsync(string symbol, CancellationToken token = default)
