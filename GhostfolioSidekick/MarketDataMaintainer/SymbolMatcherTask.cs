@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 							if (symbol != null)
 							{
-								symbol.MergeKnownIdentifiers(ids);
+								//symbol.MergeKnownIdentifiers(ids);
 								await marketDataRepository.Store(symbol);
 							}
 						}
