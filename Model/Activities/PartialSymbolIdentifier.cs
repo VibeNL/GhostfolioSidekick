@@ -16,11 +16,11 @@ namespace GhostfolioSidekick.Model.Activities
 			Identifier = id;
 		}
 
-		public string Identifier { get; private set; }
+		public string Identifier { get; set; }
 
-		public List<AssetClass>? AllowedAssetClasses { get; private set; }
+		public List<AssetClass>? AllowedAssetClasses { get; set; }
 
-		public List<AssetSubClass>? AllowedAssetSubClasses { get; private set; }
+		public List<AssetSubClass>? AllowedAssetSubClasses { get; set; }
 		
 		public static PartialSymbolIdentifier CreateCrypto(string id)
 		{
