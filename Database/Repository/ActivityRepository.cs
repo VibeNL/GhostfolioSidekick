@@ -39,15 +39,22 @@ namespace GhostfolioSidekick.Database.Repository
 			await databaseContext.SaveChangesAsync();
 		}
 
-		public async Task SetMatch(Activity activty, SymbolProfile symbolProfile)
+		public async Task<bool> HasMatch(Activity activity)
 		{
-			var match = await databaseContext.ActivitySymbols.SingleAsync(x => x.Activity == activty && x.SymbolProfile == symbolProfile);
+			var match = await databaseContext.ActivitySymbols.SingleOrDefaultAsync(x => x.Activity == activity);
+
+			return match != null;
+		}
+
+		public async Task SetMatch(Model.Activities.Activity activity, SymbolProfile symbolProfile)
+		{
+			var match = await databaseContext.ActivitySymbols.SingleOrDefaultAsync(x => x.Activity == activity && x.SymbolProfile == symbolProfile);
 
 			if (match == null)
 			{
 				var newMatch = new ActivitySymbol
 				{
-					Activity = activty,
+					Activity = activity,
 					SymbolProfile = symbolProfile
 				};
 

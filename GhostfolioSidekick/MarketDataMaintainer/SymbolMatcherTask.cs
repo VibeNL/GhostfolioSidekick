@@ -21,6 +21,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				if (activity is IActivityWithPartialIdentifier activityWithPartialIdentifier)
 				{
 					var ids = activityWithPartialIdentifier.PartialSymbolIdentifiers;
+
+					if (ids == null || ids.Count == 0)
+					{
+						continue;
+					}
+
+					if (await activityRepository.HasMatch(activity))
+					{
+						continue;
+					}
+
 					var symbol = await symbolMatcher.MatchSymbol(ids.ToArray()).ConfigureAwait(false);
 
 					if (symbol != null)
