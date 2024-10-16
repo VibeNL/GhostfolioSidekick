@@ -18,22 +18,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var currencies = new Dictionary<Currency, DateTime>();
 			foreach (var activity in activities.OrderBy(x => x.Date))
 			{
-				switch (activity)
+				if (activity is IActivityWithPartialIdentifier activityWithPartialIdentifier)
 				{
-					case ActivityWithQuantityAndUnitPrice activityWithQuantityAndUnitPrice:
-						{
-							var ids = activityWithQuantityAndUnitPrice.PartialSymbolIdentifiers;
-							var symbol = await symbolMatcher.MatchSymbol(ids.ToArray()).ConfigureAwait(false);
+					var ids = activityWithPartialIdentifier.PartialSymbolIdentifiers;
+					var symbol = await symbolMatcher.MatchSymbol(ids.ToArray()).ConfigureAwait(false);
 
-							if (symbol != null)
-							{
-								//symbol.MergeKnownIdentifiers(ids);
-								await marketDataRepository.Store(symbol);
-							}
-						}
-						break;
-					default:
-						break;
+					if (symbol != null)
+					{
+						await marketDataRepository.Store(symbol);
+						await activityRepository.SetMatch(activity, symbol);
+					}
 				}
 			}
 		}

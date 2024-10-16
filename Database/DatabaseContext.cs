@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Matches;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -15,6 +16,8 @@ namespace GhostfolioSidekick.Database
 		public DbSet<SymbolProfile> SymbolProfiles { get; set; }
 
 		public DbSet<Activity> Activities { get; set; }
+
+		public DbSet<ActivitySymbol> ActivitySymbols { get; set; }
 
 		public DatabaseContext()
 		{

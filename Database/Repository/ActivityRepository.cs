@@ -1,4 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Matches;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Database.Repository
@@ -34,28 +36,24 @@ namespace GhostfolioSidekick.Database.Repository
 				}
 			}
 
-			//// Deduplicate partial identifiers
-			//var list = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
-			//foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
-			//{
-			//	foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers.ToList())
-			//	{
-			//		var existingPartialSymbolIdentifier = list.FirstOrDefault(CompareIdentifier(partialSymbolIdentifier));
-			//		if (existingPartialSymbolIdentifier != null)
-			//		{
-			//			activity.PartialSymbolIdentifiers.Remove(partialSymbolIdentifier);
-			//			activity.PartialSymbolIdentifiers.Add(existingPartialSymbolIdentifier);
-			//			existingPartialSymbolIdentifier.Activities.Add((Activity)activity);
-			//			continue;
-			//		}
-
-			//		list.Add(partialSymbolIdentifier);
-			//		partialSymbolIdentifier.Activities.Add((Activity)activity);
-			//		await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
-			//	}
-			//}
-						
 			await databaseContext.SaveChangesAsync();
+		}
+
+		public async Task SetMatch(Activity activty, SymbolProfile symbolProfile)
+		{
+			var match = await databaseContext.ActivitySymbols.SingleAsync(x => x.Activity == activty && x.SymbolProfile == symbolProfile);
+
+			if (match == null)
+			{
+				var newMatch = new ActivitySymbol
+				{
+					Activity = activty,
+					SymbolProfile = symbolProfile
+				};
+
+				await databaseContext.ActivitySymbols.AddAsync(newMatch);
+				await databaseContext.SaveChangesAsync();
+			}
 		}
 
 		private static Func<PartialSymbolIdentifier, bool> CompareIdentifier(PartialSymbolIdentifier partialSymbolIdentifier)
