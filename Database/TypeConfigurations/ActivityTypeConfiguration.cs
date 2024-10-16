@@ -32,6 +32,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		private const string Price = "Price";
 		private const string PartialSymbolIdentifiers = "PartialSymbolIdentifiers";
 		private readonly ValueComparer<ICollection<Money>> moneyListComparer;
+		private readonly ValueComparer<ICollection<PartialSymbolIdentifier>> partialSymbolIdentifiersListComparer;
+		private readonly JsonSerializerOptions serializationOptions;
 
 		public ActivityTypeConfiguration()
 		{
@@ -39,6 +41,15 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				(c1, c2) => c1.SequenceEqual(c2),
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 				c => c.ToList());
+
+			partialSymbolIdentifiersListComparer = new ValueComparer<ICollection<PartialSymbolIdentifier>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList());
+
+			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
+			serializationOptions = new JsonSerializerOptions();
+			serializationOptions.Converters.Add(stringEnumConverter);
 		}
 
 		public void Configure(EntityTypeBuilder<Activity> builder)
@@ -66,6 +77,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
+
+			builder.Property(b => b.PartialSymbolIdentifiers)
+				.HasColumnName(PartialSymbolIdentifiers)
+				.HasConversion(
+					v => PartialSymbolIdentifiersToString(v),
+					v => StringToPartialSymbolIdentifiers(v),
+					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
@@ -121,6 +139,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
+
+			builder.Property(b => b.PartialSymbolIdentifiers)
+				.HasColumnName(PartialSymbolIdentifiers)
+				.HasConversion(
+					v => PartialSymbolIdentifiersToString(v),
+					v => StringToPartialSymbolIdentifiers(v),
+					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
@@ -139,6 +164,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
+
+			builder.Property(b => b.PartialSymbolIdentifiers)
+				.HasColumnName(PartialSymbolIdentifiers)
+				.HasConversion(
+					v => PartialSymbolIdentifiersToString(v),
+					v => StringToPartialSymbolIdentifiers(v),
+					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<InterestActivity> builder)
@@ -166,6 +198,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
+
+			builder.Property(b => b.PartialSymbolIdentifiers)
+				.HasColumnName(PartialSymbolIdentifiers)
+				.HasConversion(
+					v => PartialSymbolIdentifiersToString(v),
+					v => StringToPartialSymbolIdentifiers(v),
+					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<RepayBondActivity> builder)
@@ -175,6 +214,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
+
+			builder.Property(b => b.PartialSymbolIdentifiers)
+				.HasColumnName(PartialSymbolIdentifiers)
+				.HasConversion(
+					v => PartialSymbolIdentifiersToString(v),
+					v => StringToPartialSymbolIdentifiers(v),
+					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<SendAndReceiveActivity> builder)
@@ -190,6 +236,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
+
+			builder.Property(b => b.PartialSymbolIdentifiers)
+				.HasColumnName(PartialSymbolIdentifiers)
+				.HasConversion(
+					v => PartialSymbolIdentifiersToString(v),
+					v => StringToPartialSymbolIdentifiers(v),
+					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
@@ -199,6 +252,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
+
+			builder.Property(b => b.PartialSymbolIdentifiers)
+				.HasColumnName(PartialSymbolIdentifiers)
+				.HasConversion(
+					v => PartialSymbolIdentifiersToString(v),
+					v => StringToPartialSymbolIdentifiers(v),
+					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)
@@ -208,6 +268,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
+
+			builder.Property(b => b.PartialSymbolIdentifiers)
+				.HasColumnName(PartialSymbolIdentifiers)
+				.HasConversion(
+					v => PartialSymbolIdentifiersToString(v),
+					v => StringToPartialSymbolIdentifiers(v),
+					partialSymbolIdentifiersListComparer);
 		}
 
 		private ICollection<Money> StringToMonies(string v)
@@ -228,6 +295,16 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		private string MoneyToString(Money v)
 		{
 			return JsonSerializer.Serialize(v);
+		}
+
+		private IList<PartialSymbolIdentifier> StringToPartialSymbolIdentifiers(string v)
+		{
+			return JsonSerializer.Deserialize<ICollection<PartialSymbolIdentifier>>(v, serializationOptions)?.ToList() ?? [];
+		}
+
+		private string PartialSymbolIdentifiersToString(ICollection<PartialSymbolIdentifier> v)
+		{
+			return JsonSerializer.Serialize(v, serializationOptions);
 		}
 	}
 }
