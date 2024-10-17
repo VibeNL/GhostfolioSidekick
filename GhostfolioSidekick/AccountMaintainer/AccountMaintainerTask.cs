@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model.Accounts;
 using Microsoft.Extensions.Logging;
 
@@ -91,7 +90,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 						Url = platformConfiguration.Url,
 					});
 				}
-				catch (NotAuthorizedException)
+				catch //(NotAuthorizedException)
 				{
 					// Running against a managed instance?
 					applicationSettings.AllowAdminCalls = false;
