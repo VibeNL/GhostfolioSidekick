@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.Parsers
 			return Task.FromResult(true);
 		}
 
-		public Task ParseActivities(string filename, IHoldingsCollection holdingsAndAccountsCollection, string accountName)
+		public Task ParseActivities(string filename, IActivityManager holdingsAndAccountsCollection, string accountName)
 		{
 			var csvConfig = GetConfig();
 			using var streamReader = GetStreamReader(filename);

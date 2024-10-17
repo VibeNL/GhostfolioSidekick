@@ -1,5 +1,4 @@
 ﻿using CsvHelper.Configuration;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
@@ -13,11 +12,8 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		protected override IEnumerable<PartialActivity> ParseRow(StockSplitRecord record, int rowNumber)
 		{
-					yield return PartialActivity.CreateStockSplit(record.Date,
-						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)], 
-						record.StockSplitFrom, 
-						record.StockSplitTo,
-						$"{PartialActivityType.StockSplit}_{record.Symbol}_{record.Date.ToInvariantDateOnlyString()}_{record.StockSplitFrom.ToString(CultureInfo.InvariantCulture)}_{record.StockSplitTo.ToString(CultureInfo.InvariantCulture)}");
+			// TODO What to do with this?
+			return [];
 		}
 
 		protected override CsvConfiguration GetConfig()

@@ -14,6 +14,9 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("delete.unused.symbols")]
 		public bool DeleteUnusedSymbols { get; set; } = true;
 
+		[JsonPropertyName("dataprovider.polygonio.apikey")]
+		public string? DataProviderPolygonIOApiKey{ get; set; } = null;
+
 		[JsonPropertyName("dataprovider.preference.order")]
 		public required string DataProviderPreference { get; set; } = "YAHOO;COINGECKO";
 

@@ -12,6 +12,7 @@
 
 	<PropertyGroup>
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<UserSecretsId>6629f599-8913-4b11-b453-def1f7486753</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -31,7 +32,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Configuration\Configuration.csproj" />
-		<ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
+		<ProjectReference Include="..\Database\Database.csproj" />
+		<ProjectReference Include="..\ExternalDataProvider\ExternalDataProvider.csproj" />
 		<ProjectReference Include="..\Model\Model.csproj" />
 		<ProjectReference Include="..\Parsers\Parsers.csproj" />
 	</ItemGroup>

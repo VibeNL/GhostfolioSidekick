@@ -1,14 +1,11 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
-using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.MarketDataMaintainer;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -23,6 +20,7 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
 using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.Parsers.Trading212;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,38 +76,53 @@ namespace GhostfolioSidekick
 								return new RestClient(options);
 							});
 
-							services.AddSingleton(x =>
-							{
-								var settings = x.GetService<IApplicationSettings>();
-								return new RestCall(x.GetService<IRestClient>()!,
-													x.GetService<MemoryCache>()!,
-													x.GetService<ILogger<RestCall>>()!,
-													settings!.GhostfolioUrl,
-													settings!.GhostfolioAccessToken,
-													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
-							});
+							//services.AddSingleton(x =>
+							//{
+							//	var settings = x.GetService<IApplicationSettings>();
+							//	return new RestCall(x.GetService<IRestClient>()!,
+							//						x.GetService<MemoryCache>()!,
+							//						x.GetService<ILogger<RestCall>>()!,
+							//						settings!.GhostfolioUrl,
+							//						settings!.GhostfolioAccessToken,
+							//						new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
+							//});
 							services.AddSingleton(x =>
 							{
 								var settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
+							services.AddDbContext<DatabaseContext>(options =>
+							{
+								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+							});
+
+							services.AddScoped<IAccountRepository, AccountRepository>();
+							services.AddScoped<IActivityRepository, ActivityRepository>();
 
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
-							services.AddSingleton<IExchangeRateService, ExchangeRateService>();
-							services.AddSingleton<IActivitiesService, ActivitiesService>();
-							services.AddSingleton<IAccountService, AccountService>();
-							services.AddSingleton<IMarketDataService, MarketDataService>();
+							services.AddSingleton<ICurrencyRepository, YahooRepository>();
+							services.AddSingleton<ISymbolMatcher, YahooRepository>();
+							services.AddSingleton<IMarketDataRepository, MarketDataRepository>();
+							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
+							//services.AddSingleton<IActivitiesService, ActivitiesService>();
+							//services.AddSingleton<IAccountService, AccountService>();
+							//services.AddSingleton<IMarketDataService, MarketDataService>();
+							//services.AddSingleton<IStockSplitRepository, StockSplitRepository>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
-							services.AddScoped<IScheduledWork, FileImporterTask>();
 							services.AddScoped<IScheduledWork, DisplayInformationTask>();
+							services.AddScoped<IScheduledWork, GenerateDatabaseTask>();
 							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
-							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
-							services.AddScoped<IScheduledWork, SetManualPricesTask>();
-							services.AddScoped<IScheduledWork, SetBenchmarksTask>();
-							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
-							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
-							services.AddScoped<IScheduledWork, GatherAllDataTask>();
+							services.AddScoped<IScheduledWork, FileImporterTask>();
+							services.AddScoped<IScheduledWork, SymbolMatcherTask>();
+							services.AddScoped<IScheduledWork, CurrencyGathererTask>();
+							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
+							////services.AddScoped<IScheduledWork, SetBenchmarksTask>();
+							////services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
+							////services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
+							////services.AddScoped<IScheduledWork, GatherAllDataTask>();
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();
@@ -118,27 +131,27 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, CoinbaseParser>();
 							services.AddScoped<IFileImporter, DeGiroParserNL>();
 							services.AddScoped<IFileImporter, DeGiroParserEN>();
-      services.AddScoped<IFileImporter, DeGiroParserPT>();
+							services.AddScoped<IFileImporter, DeGiroParserPT>();
 							services.AddScoped<IFileImporter, GenericParser>();
+							services.AddScoped<IFileImporter, StockSplitParser>();
 							services.AddScoped<IFileImporter, MacroTrendsParser>();
 							services.AddScoped<IFileImporter, NexoParser>();
 							services.AddScoped<IFileImporter, NIBCParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
 							services.AddScoped<IFileImporter, ScalableCapitalPrimeParser>();
-							services.AddScoped<IFileImporter, StockSplitParser>();
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserEN>();
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserNL>();
 							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
-							
-							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
-							services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
-							services.AddScoped<IHoldingStrategy, DeterminePrice>();
-							services.AddScoped<IHoldingStrategy, HandleTaxesOnDividends>();
-							services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
-							services.AddScoped<IHoldingStrategy, RoundStrategy>();
-							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
+
+							//services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
+							//services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
+							//services.AddScoped<IHoldingStrategy, DeterminePrice>();
+							//services.AddScoped<IHoldingStrategy, HandleTaxesOnDividends>();
+							//services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
+							//services.AddScoped<IHoldingStrategy, RoundStrategy>();
+							//services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 						});
 		}
 	}
