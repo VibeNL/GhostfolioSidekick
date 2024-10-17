@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Model.Matches
 
 		public virtual SymbolProfile? SymbolProfile { get; set; }
 
-		public IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public PartialSymbolIdentifier PartialSymbolIdentifier { get; set; } = default!;
 
 		public int Id { get; set; }
 	}

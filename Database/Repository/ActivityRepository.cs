@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Database.Repository
 
 		public async Task<bool> HasMatch(ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers)
 		{
-			var match = await databaseContext.ActivitySymbols.SingleOrDefaultAsync(x => x.PartialSymbolIdentifiers.Any(y => partialSymbolIdentifiers.Any(z => y == z)));
+			var match = await databaseContext.ActivitySymbols.SingleOrDefaultAsync(x => partialSymbolIdentifiers.Contains(x.PartialSymbolIdentifier));
 
 			return match != null;
 		}
@@ -52,13 +52,18 @@ namespace GhostfolioSidekick.Database.Repository
 
 			if (match == null)
 			{
-				var newMatch = new ActivitySymbol
+				foreach (var item in ((IActivityWithPartialIdentifier)activity).PartialSymbolIdentifiers)
 				{
-					Activity = activity,
-					SymbolProfile = symbolProfile
-				};
+					var newMatch = new ActivitySymbol
+					{
+						Activity = activity,
+						SymbolProfile = symbolProfile,
+						PartialSymbolIdentifier = item
+					};
 
-				await databaseContext.ActivitySymbols.AddAsync(newMatch);
+					await databaseContext.ActivitySymbols.AddAsync(newMatch);
+				}
+				
 				await databaseContext.SaveChangesAsync();
 			}
 		}
