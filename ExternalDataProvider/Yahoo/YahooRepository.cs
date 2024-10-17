@@ -1,13 +1,15 @@
-﻿using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository(ILogger<YahooRepository> logger) :
+	public class YahooRepository(ILogger<YahooRepository> logger, DatabaseContext databaseContext) :
 		ICurrencyRepository,
 		ISymbolMatcher
 	{
@@ -56,7 +58,18 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			var securityProfile = await YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol);
 
-			return new SymbolProfile(symbol.Symbol, symbol.LongName, [], new Currency(symbol.Currency), "YAHOO", ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
+			// Check if already in database
+			var existingSymbol = await databaseContext.SymbolProfiles.SingleOrDefaultAsync(x => x.Symbol == symbol.Symbol && x.DataSource == Datasource.YAHOO);
+			if (existingSymbol != null)
+			{
+				return existingSymbol;
+			}
+
+			var symbolProfile = new SymbolProfile(symbol.Symbol, symbol.LongName, [], new Currency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
+
+			await databaseContext.SymbolProfiles.AddAsync(symbolProfile);
+			await databaseContext.SaveChangesAsync();
+			return symbolProfile;
 
 			bool FilterOnAllowedType(SearchResult x, PartialSymbolIdentifier id)
 			{
