@@ -19,13 +19,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			foreach (var symbol in symbols)
 			{
 				var date = await marketDataRepository.GetEarliestActivityDate(symbol);
-				
-				var minDate = DateOnly.FromDateTime(symbol.MarketData.Min(x => x.Date));
-				var maxDate = DateOnly.FromDateTime(symbol.MarketData.Max(x => x.Date));	
 
-				if (date >= minDate && DateOnly.FromDateTime(DateTime.Today.AddDays(-1)) <= maxDate) // For now 1 day old only
+				if (symbol.MarketData.Count != 0)
 				{
-					continue;
+					var minDate = DateOnly.FromDateTime(symbol.MarketData.Min(x => x.Date));
+					var maxDate = DateOnly.FromDateTime(symbol.MarketData.Max(x => x.Date));
+
+					if (date >= minDate && DateOnly.FromDateTime(DateTime.Today.AddDays(-1)) <= maxDate) // For now 1 day old only
+					{
+						continue;
+					}
 				}
 
 				var stockPriceRepository = stockPriceRepositories.Single(x => x.DataSource == symbol.DataSource);
