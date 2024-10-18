@@ -4,7 +4,7 @@
 	{
 		DisplayInformation,
 
-		GenerateDatabaseTask,
+		GenerateDatabase,
 
 		AccountMaintainer,
 
@@ -15,6 +15,8 @@
 		SymbolMatcher,
 
 		MarketDataGatherer,
+
+		CleanupDatabase,
 
 		//CreateManualSymbols,
 

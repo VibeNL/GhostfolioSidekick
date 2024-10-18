@@ -119,6 +119,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, SymbolMatcherTask>();
 							services.AddScoped<IScheduledWork, CurrencyGathererTask>();
 							services.AddScoped<IScheduledWork, MarketDataGathererTask>();
+							services.AddScoped<IScheduledWork, CleanupDatabaseTask>();
 							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
 							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
 							////services.AddScoped<IScheduledWork, SetBenchmarksTask>();

@@ -8,7 +8,7 @@ namespace GhostfolioSidekick
 		ILogger<GenerateDatabaseTask> logger,
 		DatabaseContext dbContext) : IScheduledWork
 	{
-		public TaskPriority Priority => TaskPriority.GenerateDatabaseTask;
+		public TaskPriority Priority => TaskPriority.GenerateDatabase;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.MaxValue;
 
