@@ -24,11 +24,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 	{
 		public string DataSource => Datasource.COINGECKO;
 
-		public Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
-		{
-			throw new NotImplementedException();
-		}
-
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] identifiers)
 		{
 			using var restClient = new CoinGeckoRestClient();
@@ -39,13 +34,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 					continue;
 				}
 
-				var coinGeckoAssets = await GetCoinGeckoAsset(id.Identifier);
-				if (coinGeckoAssets == null)
+				var coinGeckoAsset = await GetCoinGeckoAsset(id.Identifier);
+				if (coinGeckoAsset == null)
 				{
 					continue;
 				}
 
-				var symbolProfile = new SymbolProfile(coinGeckoAssets.Symbol, coinGeckoAssets.Name, [], Currency.USD with { }, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
+				var symbolProfile = new SymbolProfile(coinGeckoAsset.Symbol, coinGeckoAsset.Name, [], Currency.USD with { }, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
 				await databaseContext.SymbolProfiles.AddAsync(symbolProfile);
 				await databaseContext.SaveChangesAsync();
 				return symbolProfile;
@@ -54,7 +49,40 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			return null;
 		}
 
-		public async Task<Database.Caches.CachedCoinGeckoAsset?> GetCoinGeckoAsset(string identifier)
+		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
+		{
+			using var restClient = new CoinGeckoRestClient();
+
+			var coinGeckoAsset = await GetCoinGeckoAsset(symbol.Symbol);
+			if (coinGeckoAsset == null)
+			{
+				return [];
+			}
+
+			var r = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
+
+			if (r == null || !r.Success)
+			{
+				return [];
+			}
+
+			var list = new List<MarketData>();
+			foreach (var candle in r.Data)
+			{
+				var item = new MarketData(
+									new Money(Currency.USD with { }, candle.Close),
+									new Money(Currency.USD with { }, candle.Open),
+									new Money(Currency.USD with { }, candle.High),
+									new Money(Currency.USD with { }, candle.Low),
+									0,
+									candle.Timestamp.Date);
+				list.Add(item);
+			}
+
+			return list;
+		}
+
+		private async Task<Database.Caches.CachedCoinGeckoAsset?> GetCoinGeckoAsset(string identifier)
 		{
 			if (!await databaseContext.CachedCoinGeckoAssets.AnyAsync()) // TODO, needs to be updated sometimes
 			{
