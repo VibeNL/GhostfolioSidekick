@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class MarketDataGathererTask(IMarketDataRepository marketDataRepository, IStockPriceRepository stockPriceRepository) : IScheduledWork
+	internal class MarketDataGathererTask(IMarketDataRepository marketDataRepository, IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
 
@@ -27,6 +27,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				{
 					continue;
 				}
+
+				var stockPriceRepository = stockPriceRepositories.Single(x => x.DataSource == symbol.DataSource);
 
 				var md = await stockPriceRepository.GetStockMarketData(symbol, date);
 

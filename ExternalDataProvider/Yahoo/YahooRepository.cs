@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		ISymbolMatcher,
 		IStockPriceRepository
 	{
+		public string DataSource => Datasource.YAHOO;
+
 		public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
 			var history = await YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily);
