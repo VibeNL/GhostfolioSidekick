@@ -3,6 +3,7 @@ using System;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20241018184914_Initial5")]
+    partial class Initial5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,7 +39,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CachedCoinGeckoAsset", (string)null);
+                    b.ToTable("CoinGeckoAsset", "cached");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
