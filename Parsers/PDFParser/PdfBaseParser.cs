@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 			}
 		}
 
-		public Task ParseActivities(string filename, IHoldingsCollection holdingsAndAccountsCollection, string accountName)
+		public Task ParseActivities(string filename, IActivityManager holdingsAndAccountsCollection, string accountName)
 		{
 			var records = ParseRecords(parsePDfToWords.ParseTokens(filename));
 			holdingsAndAccountsCollection.AddPartialActivity(accountName, records);
