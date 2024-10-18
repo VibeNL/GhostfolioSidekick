@@ -27,6 +27,24 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 							c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 							c => (ICollection<string>)c.ToList()));
 
+			builder.Property(e => e.SectorWeights)
+					.HasConversion(
+						v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
+						v => JsonSerializer.Deserialize<List<SectorWeight>>(v, (JsonSerializerOptions)null!)!,
+						new ValueComparer<ICollection<SectorWeight>>(
+							(c1, c2) => c1!.SequenceEqual(c2!),
+							c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+							c => (ICollection<SectorWeight>)c.ToList()));
+
+			builder.Property(e => e.CountryWeight)
+					.HasConversion(
+						v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
+						v => JsonSerializer.Deserialize<List<CountryWeight>>(v, (JsonSerializerOptions)null!)!,
+						new ValueComparer<ICollection<CountryWeight>>(
+							(c1, c2) => c1!.SequenceEqual(c2!),
+							c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+							c => (ICollection<CountryWeight>)c.ToList()));
+
 			builder.Property(x => x.AssetClass).HasConversion<string>();
 			builder.Property(x => x.AssetSubClass).HasConversion<string>();
 

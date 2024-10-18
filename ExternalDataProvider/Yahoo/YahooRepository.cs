@@ -56,8 +56,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			var symbols = await YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync();
 			var symbol = symbols.OrderBy(x => x.Value.Symbol == bestMatch.Symbol).First().Value;
 
-			var securityProfile = await YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol);
+			if (symbol== null)
+			{
+				return null;
+			}
 
+			var securityProfile = await YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol);
+			
 			// Check if already in database
 			var existingSymbol = await databaseContext.SymbolProfiles.SingleOrDefaultAsync(x => x.Symbol == symbol.Symbol && x.DataSource == Datasource.YAHOO);
 			if (existingSymbol != null)
@@ -91,8 +96,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			}
 		}
 
-		private SectorWeight[] GetSectors(SecurityProfile securityProfile)
+		private SectorWeight[] GetSectors(SecurityProfile? securityProfile)
 		{
+			if (securityProfile is null)
+			{
+				return [];
+			}
+
 			if (!securityProfile.Fields.ContainsKey(ProfileFields.Sector.ToString()))
 			{
 				return [];
@@ -101,8 +111,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return [new SectorWeight(securityProfile.Sector, 1)];
 		}
 
-		private CountryWeight[] GetCountries(SecurityProfile securityProfile)
+		private CountryWeight[] GetCountries(SecurityProfile? securityProfile)
 		{
+			if (securityProfile is null)
+			{
+				return [];
+			}
+
 			if (!securityProfile.Fields.ContainsKey(ProfileFields.Country.ToString()))
 			{
 				return [];
