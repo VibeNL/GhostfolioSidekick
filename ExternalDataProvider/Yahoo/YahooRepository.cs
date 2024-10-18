@@ -30,9 +30,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
         {
 			this.logger = logger;
 			this.databaseContext = databaseContext;
-			_retryPolicy = Policy
-			   .Handle<Exception>()
-			   .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+			
 		}
 
         public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
@@ -245,17 +243,5 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			};
 		}
 
-
-		private AsyncFallbackPolicy<T> GetFallbackPolicy<T>()
-		{
-			return Policy<T>
-				.Handle<WebException>()
-				.Or<Exception>()
-				.FallbackAsync((action) =>
-				{
-					logger.LogInformation("All Retries Failed");
-					return Task.FromResult<T>(default!);
-				});
-		}
 	}
 }
