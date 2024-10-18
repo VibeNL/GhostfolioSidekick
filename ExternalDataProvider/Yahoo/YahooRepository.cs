@@ -159,6 +159,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return AssetClass.Equity;
 				case "MUTUALFUND":
 					return AssetClass.Undefined;
+				case "CRYPTOCURRENCY":
+					return AssetClass.Liquidity;
 				default: 
 					return AssetClass.Undefined;
 			};
@@ -172,6 +174,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return AssetSubClass.Stock;
 				case "ETF":
 					return AssetSubClass.Etf;
+				case "CRYPTOCURRENCY":
+					return AssetSubClass.CryptoCurrency;
 				default:
 					return null;
 			};
