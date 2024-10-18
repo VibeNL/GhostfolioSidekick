@@ -44,7 +44,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				{
 					continue;
 				}
-				var symbolProfile = new SymbolProfile(coinGeckoAssets.Symbol, coinGeckoAssets.Name, [], Currency.USD, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
+
+				var symbolProfile = new SymbolProfile(coinGeckoAssets.Symbol, coinGeckoAssets.Name, [], Currency.USD with { }, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
 				await databaseContext.SymbolProfiles.AddAsync(symbolProfile);
 				await databaseContext.SaveChangesAsync();
 				return symbolProfile;
@@ -52,6 +53,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 			return null;
 		}
+
 		public async Task<Database.Caches.CachedCoinGeckoAsset?> GetCoinGeckoAsset(string identifier)
 		{
 			if (!await databaseContext.CachedCoinGeckoAssets.AnyAsync()) // TODO, needs to be updated sometimes
@@ -76,7 +78,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				await databaseContext.SaveChangesAsync();
 			}
 
-			return await databaseContext.CachedCoinGeckoAssets.SingleOrDefaultAsync(x => x.Symbol.ToLower() == identifier.ToLower());
+			return await databaseContext.CachedCoinGeckoAssets
+				.Where(x => x.Symbol.ToLower() == identifier.ToLower())
+				.OrderByDescending(x => x.Id.ToLower() == x.Name.ToLower()) // prefer when the name is equal to the id (first to be added to the set
+				.OrderBy(x => x.Name.Length) // prefer shorter names
+				.FirstOrDefaultAsync();
 		}
 	}
 }

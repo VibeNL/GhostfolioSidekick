@@ -1,24 +1,50 @@
-﻿using GhostfolioSidekick.Database;
+﻿using Castle.Core.Logging;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Polly;
+using Polly.Fallback;
+using Polly.Retry;
+using Polly.Wrap;
+using System.Net;
 using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository(ILogger<YahooRepository> logger, DatabaseContext databaseContext) :
-		ICurrencyRepository,
+	public class YahooRepository :
+        ICurrencyRepository,
 		ISymbolMatcher,
 		IStockPriceRepository
 	{
 		public string DataSource => Datasource.YAHOO;
 
-		public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
+		private readonly AsyncRetryPolicy _retryPolicy;
+		private readonly ILogger<YahooRepository> logger;
+		private readonly DatabaseContext databaseContext;
+
+		public YahooRepository(ILogger<YahooRepository> logger, DatabaseContext databaseContext)
+        {
+			this.logger = logger;
+			this.databaseContext = databaseContext;
+			_retryPolicy = Policy
+			   .Handle<Exception>()
+			   .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+		}
+
+        public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
-			var history = await YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily);
+			var history = await _retryPolicy
+					.WrapAsync(GetFallbackPolicy<IReadOnlyList<Candle>>())
+					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily))					;
+
+			if (history == null)
+			{
+				return [];
+			}
 
 			var list = new List<MarketData>();
 			foreach (var candle in history)
@@ -48,7 +74,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					identifier = $"{identifier}-USD";
 				}
 
-				var searchResults = await YahooFinanceApi.Yahoo.FindProfileAsync(identifier);
+				var searchResults = await _retryPolicy.WrapAsync(GetFallbackPolicy<IEnumerable<SearchResult>>()).ExecuteAsync(() => YahooFinanceApi.Yahoo.FindProfileAsync(identifier));
 				if (searchResults != null)
 				{
 					matches.AddRange((IEnumerable<SearchResult>)searchResults.Where(x => FilterOnAllowedType(x, id)));
@@ -63,7 +89,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			// Get the best match of the correct QuoteType
 			var bestMatch = matches.OrderByDescending(x => x.Score).First();
 
-			var symbols = await YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync();
+			var symbols = await _retryPolicy.WrapAsync(GetFallbackPolicy<IReadOnlyDictionary<string, Security>>()).ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync());
+			if (symbols == null)
+			{
+				return null;
+			}
+
 			var symbol = symbols.OrderBy(x => x.Value.Symbol == bestMatch.Symbol).First().Value;
 
 			if (symbol == null)
@@ -71,7 +102,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
-			var securityProfile = await YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol);
+			var securityProfile = await _retryPolicy.WrapAsync(GetFallbackPolicy<SecurityProfile>()).ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol));
 
 			// Check if already in database
 			var existingSymbol = await databaseContext.SymbolProfiles.SingleOrDefaultAsync(x => x.Symbol == symbol.Symbol && x.DataSource == Datasource.YAHOO);
@@ -80,7 +111,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return existingSymbol;
 			}
 
-			var symbolProfile = new SymbolProfile(symbol.Symbol, symbol.LongName, [], new Currency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
+			var symbolProfile = new SymbolProfile(symbol.Symbol, GetName(symbol), [], new Currency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
 
 			await databaseContext.SymbolProfiles.AddAsync(symbolProfile);
 			await databaseContext.SaveChangesAsync();
@@ -127,6 +158,26 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return list;
 		}
 
+		private string GetName(Security security)
+		{
+			if (security is null)
+			{
+				return null;
+			}
+
+			if (security.Fields.ContainsKey(Field.LongName.ToString()))
+			{
+				return security.LongName;
+			}
+
+			if (security.Fields.ContainsKey(Field.ShortName.ToString()))
+			{
+				return security.ShortName;
+			}
+
+			return security.Symbol;
+		}
+
 		private SectorWeight[] GetSectors(SecurityProfile? securityProfile)
 		{
 			if (securityProfile is null)
@@ -167,8 +218,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return AssetClass.Equity;
 				case "MUTUALFUND":
 					return AssetClass.Undefined;
+				case "CURRENCY":
 				case "CRYPTOCURRENCY":
 					return AssetClass.Liquidity;
+				case "INDEX":
+					return AssetClass.Undefined;
 				default:
 					return AssetClass.Undefined;
 			};
@@ -184,9 +238,24 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return AssetSubClass.Etf;
 				case "CRYPTOCURRENCY":
 					return AssetSubClass.CryptoCurrency;
+				case "CURRENCY":
+					return AssetSubClass.Undefined;
 				default:
 					return null;
 			};
+		}
+
+
+		private AsyncFallbackPolicy<T> GetFallbackPolicy<T>()
+		{
+			return Policy<T>
+				.Handle<WebException>()
+				.Or<Exception>()
+				.FallbackAsync((action) =>
+				{
+					logger.LogInformation("All Retries Failed");
+					return Task.FromResult<T>(default!);
+				});
 		}
 	}
 }
