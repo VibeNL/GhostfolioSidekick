@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class SymbolMatcherTask(ISymbolMatcher symbolMatcher, IActivityRepository activityRepository, IMarketDataRepository marketDataRepository) : IScheduledWork
 	{
-		public TaskPriority Priority => TaskPriority.SymbolMapper;
+		public TaskPriority Priority => TaskPriority.SymbolMatcher;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 

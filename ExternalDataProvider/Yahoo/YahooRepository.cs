@@ -11,16 +11,17 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
 	public class YahooRepository(ILogger<YahooRepository> logger, DatabaseContext databaseContext) :
 		ICurrencyRepository,
-		ISymbolMatcher
+		ISymbolMatcher,
+		IStockPriceRepository
 	{
 		public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
-			var history = await YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue), DateTime.Today, Period.Daily);
+			var history = await YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily);
 
 			var list = new List<MarketData>();
 			foreach (var candle in history)
 			{
-				MarketData item = new MarketData(
+				var item = new MarketData(
 									new Money(currencyTo with { }, candle.Close),
 									new Money(currencyTo with { }, candle.Open),
 									new Money(currencyTo with { }, candle.High),
@@ -96,6 +97,26 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			}
 		}
 
+		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
+		{
+			var history = await YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily);
+
+			var list = new List<MarketData>();
+			foreach (var candle in history)
+			{
+				var item = new MarketData(
+									new Money(symbol.Currency with { }, candle.Close),
+									new Money(symbol.Currency with { }, candle.Open),
+									new Money(symbol.Currency with { }, candle.High),
+									new Money(symbol.Currency with { }, candle.Low),
+									candle.Volume,
+									candle.DateTime.Date);
+				list.Add(item);
+			}
+
+			return list;
+		}
+
 		private SectorWeight[] GetSectors(SecurityProfile? securityProfile)
 		{
 			if (securityProfile is null)
@@ -153,6 +174,5 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return null;
 			};
 		}
-
 	}
 }

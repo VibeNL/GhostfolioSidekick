@@ -12,7 +12,9 @@
 		
 		CurrencyGatherer,
 
-		SymbolMapper,
+		SymbolMatcher,
+
+		MarketDataGatherer,
 
 		//CreateManualSymbols,
 
