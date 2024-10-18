@@ -27,13 +27,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						continue;
 					}
 
-					if (await activityRepository.HasMatch(ids))
-					{
-						continue;
-					}
-
 					foreach(var symbolMatcher in symbolMatchers)
 					{
+						if (await activityRepository.HasMatch(ids, symbolMatcher.DataSource))
+						{
+							continue;
+						}
+
 						var symbol = await symbolMatcher.MatchSymbol([.. ids]).ConfigureAwait(false);
 
 						if (symbol != null)

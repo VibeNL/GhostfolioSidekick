@@ -5,6 +5,8 @@ namespace GhostfolioSidekick.ExternalDataProvider
 {
 	public interface ISymbolMatcher
 	{
+		string DataSource { get; }
+
 		Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] identifiers);
 	}
 }

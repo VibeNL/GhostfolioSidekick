@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 					continue;
 				}
 
-				var asset = await restClient.Api.GetAssetDetailsAsync(id.Identifier);
+				var asset = await restClient.Api.GetAssetsAsync();
 
 
 			}

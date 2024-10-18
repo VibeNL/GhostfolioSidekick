@@ -39,9 +39,9 @@ namespace GhostfolioSidekick.Database.Repository
 			await databaseContext.SaveChangesAsync();
 		}
 
-		public async Task<bool> HasMatch(ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers)
+		public async Task<bool> HasMatch(ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers, string dataSource)
 		{
-			var match = await databaseContext.ActivitySymbols.SingleOrDefaultAsync(x => partialSymbolIdentifiers.Contains(x.PartialSymbolIdentifier));
+			var match = await databaseContext.ActivitySymbols.SingleOrDefaultAsync(x => partialSymbolIdentifiers.Contains(x.PartialSymbolIdentifier) && x.SymbolProfile!.DataSource == dataSource);
 
 			return match != null;
 		}

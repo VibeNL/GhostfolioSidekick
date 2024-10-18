@@ -41,7 +41,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			var matches = new List<SearchResult>();
 			foreach (var id in identifiers)
 			{
-				var searchResults = await YahooFinanceApi.Yahoo.FindProfileAsync(id.Identifier);
+				var identifier = id.Identifier;
+
+				if (id.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
+				{
+					identifier = $"{identifier}-USD";
+				}
+
+				var searchResults = await YahooFinanceApi.Yahoo.FindProfileAsync(identifier);
 				if (searchResults != null)
 				{
 					matches.AddRange((IEnumerable<SearchResult>)searchResults.Where(x => FilterOnAllowedType(x, id)));
@@ -59,13 +66,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			var symbols = await YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync();
 			var symbol = symbols.OrderBy(x => x.Value.Symbol == bestMatch.Symbol).First().Value;
 
-			if (symbol== null)
+			if (symbol == null)
 			{
 				return null;
 			}
 
 			var securityProfile = await YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol);
-			
+
 			// Check if already in database
 			var existingSymbol = await databaseContext.SymbolProfiles.SingleOrDefaultAsync(x => x.Symbol == symbol.Symbol && x.DataSource == Datasource.YAHOO);
 			if (existingSymbol != null)
@@ -86,7 +93,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return true;
 				}
 
-				if (!id.AllowedAssetClasses.Contains(ParseQuoteType(x.QuoteType))){
+				if (!id.AllowedAssetClasses.Contains(ParseQuoteType(x.QuoteType)))
+				{
 					return false;
 				}
 
@@ -161,7 +169,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return AssetClass.Undefined;
 				case "CRYPTOCURRENCY":
 					return AssetClass.Liquidity;
-				default: 
+				default:
 					return AssetClass.Undefined;
 			};
 		}
