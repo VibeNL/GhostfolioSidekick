@@ -16,9 +16,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			var symbols = await marketDataRepository.GetSymbolProfiles();
 			
-			foreach (var symbol in symbols)
+			foreach (var symbol in symbols.Where(x => x.AssetClass != AssetClass.Undefined))
 			{
 				var date = await marketDataRepository.GetEarliestActivityDate(symbol);
+				
+				var stockPriceRepository = stockPriceRepositories.Single(x => x.DataSource == symbol.DataSource);
 
 				if (symbol.MarketData.Count != 0)
 				{
@@ -29,10 +31,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					{
 						continue;
 					}
+
+					if (minDate <= stockPriceRepository.MinDate && DateOnly.FromDateTime(DateTime.Today.AddDays(-1)) <= maxDate) // For now 1 day old only
+					{
+						continue;
+					}
 				}
-
-				var stockPriceRepository = stockPriceRepositories.Single(x => x.DataSource == symbol.DataSource);
-
+				
 				var md = await stockPriceRepository.GetStockMarketData(symbol, date);
 
 				symbol.MarketData.Clear();

@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.ExternalDataProvider
 			   .Handle<Exception>()
 			   .WaitAndRetryAsync(3, retryAttempt =>
 			   {
-				   return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+				   return TimeSpan.FromSeconds(30);
 			   }, 
 			   (exception, timeSpan, retryCount, context) =>
 			   {

@@ -1,6 +1,8 @@
 ﻿using CoinGecko.Net.Clients;
+using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.CommonObjects;
 using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.Objects;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.Model;
@@ -24,6 +26,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 		IStockPriceRepository
 	{
 		public string DataSource => Datasource.COINGECKO;
+
+		public DateOnly MinDate => DateOnly.FromDateTime(DateTime.Today.AddDays(-365));
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] identifiers)
 		{
@@ -60,20 +64,50 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return [];
 			}
 
-			var r = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
+			var longRange = await RetryPolicyHelper
+						.GetRetryPolicy(logger)
+						.WrapAsync(RetryPolicyHelper
+							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger))
+							.ExecuteAsync(async () =>
+							{
+								var response = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
 
-			if (r == null || !r.Success)
-			{
-				if (r?.ResponseStatusCode == HttpStatusCode.TooManyRequests)
-				{
-					Task.Delay(4000).Wait();
-				}
+								if (response == null || !response.Success)
+								{
+									if (response?.ResponseStatusCode == HttpStatusCode.TooManyRequests)
+									{
+										Task.Delay(30000).Wait();
+									}
 
-				return [];
-			}
+									throw new InvalidOperationException();
+								}
+
+								return response;
+							});
+
+			var shortRange = await RetryPolicyHelper
+						.GetRetryPolicy(logger)
+						.WrapAsync(RetryPolicyHelper
+							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger))
+							.ExecuteAsync(async () =>
+							{
+								var response = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
+
+								if (response == null || !response.Success)
+								{
+									if (response?.ResponseStatusCode == HttpStatusCode.TooManyRequests)
+									{
+										Task.Delay(30000).Wait();
+									}
+
+									throw new InvalidOperationException();
+								}
+
+								return response;
+							});
 
 			var list = new List<MarketData>();
-			foreach (var candle in r.Data)
+			foreach (var candle in ((longRange?.Data) ?? []).Union((shortRange?.Data ?? [])))
 			{
 				var item = new MarketData(
 									new Money(Currency.USD with { }, candle.Close),
@@ -85,7 +119,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				list.Add(item);
 			}
 
-			return list;
+			// Add the existing market data
+			list = list.Union(symbol.MarketData).ToList();
+
+			var x = list.OrderByDescending(x => x.Date).DistinctBy(x => DateOnly.FromDateTime(x.Date));
+			return x;
 		}
 
 		private async Task<Database.Caches.CachedCoinGeckoAsset?> GetCoinGeckoAsset(string identifier)
