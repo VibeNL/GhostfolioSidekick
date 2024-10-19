@@ -35,8 +35,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
         public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
-			var history = await RetryPolicyHelper.GetRetryPolicy(logger)
-					.WrapAsync(RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger))
+			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
+					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
 					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily))					;
 
 			if (history == null)
@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					identifier = $"{identifier}-USD";
 				}
 
-				var searchResults = await RetryPolicyHelper.GetRetryPolicy(logger).WrapAsync(RetryPolicyHelper.GetFallbackPolicy<IEnumerable<SearchResult>>(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.FindProfileAsync(identifier));
+				var searchResults = await RetryPolicyHelper.GetFallbackPolicy<IEnumerable<SearchResult>>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.FindProfileAsync(identifier));
 				if (searchResults != null)
 				{
 					matches.AddRange((IEnumerable<SearchResult>)searchResults.Where(x => FilterOnAllowedType(x, id)));
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			// Get the best match of the correct QuoteType
 			var bestMatch = matches.OrderByDescending(x => x.Score).First();
 
-			var symbols = await RetryPolicyHelper.GetRetryPolicy(logger).WrapAsync(RetryPolicyHelper.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync());
+			var symbols = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync());
 			if (symbols == null)
 			{
 				return null;
@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
-			var securityProfile = await RetryPolicyHelper.GetRetryPolicy(logger).WrapAsync(RetryPolicyHelper.GetFallbackPolicy<SecurityProfile>(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol));
+			var securityProfile = await RetryPolicyHelper.GetFallbackPolicy<SecurityProfile>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol));
 
 			// Check if already in database
 			var existingSymbol = await databaseContext.SymbolProfiles.SingleOrDefaultAsync(x => x.Symbol == symbol.Symbol && x.DataSource == Datasource.YAHOO);

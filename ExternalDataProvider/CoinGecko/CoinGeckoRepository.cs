@@ -65,46 +65,36 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			}
 
 			var longRange = await RetryPolicyHelper
-						.GetRetryPolicy(logger)
-						.WrapAsync(RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger))
-							.ExecuteAsync(async () =>
-							{
-								var response = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
-
-								if (response == null || !response.Success)
+							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger)							
+							.WrapAsync(RetryPolicyHelper
+								.GetRetryPolicy(logger))
+								.ExecuteAsync(async () =>
 								{
-									if (response?.ResponseStatusCode == HttpStatusCode.TooManyRequests)
+									var response = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
+
+									if (response == null || !response.Success)
 									{
-										Task.Delay(30000).Wait();
+										throw new InvalidOperationException(response?.Error?.Message);
 									}
 
-									throw new InvalidOperationException();
-								}
-
-								return response;
-							});
+									return response;
+								});
 
 			var shortRange = await RetryPolicyHelper
-						.GetRetryPolicy(logger)
-						.WrapAsync(RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger))
-							.ExecuteAsync(async () =>
-							{
-								var response = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
-
-								if (response == null || !response.Success)
+							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger)
+							.WrapAsync(RetryPolicyHelper
+								.GetRetryPolicy(logger))
+								.ExecuteAsync(async () =>
 								{
-									if (response?.ResponseStatusCode == HttpStatusCode.TooManyRequests)
+									var response = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
+
+									if (response == null || !response.Success)
 									{
-										Task.Delay(30000).Wait();
+										throw new InvalidOperationException(response?.Error?.Message);
 									}
 
-									throw new InvalidOperationException();
-								}
-
-								return response;
-							});
+									return response;
+								});
 
 			var list = new List<MarketData>();
 			foreach (var candle in ((longRange?.Data) ?? []).Union((shortRange?.Data ?? [])))

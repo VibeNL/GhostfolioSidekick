@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		{
 			return Policy
 			   .Handle<Exception>()
-			   .WaitAndRetryAsync(3, retryAttempt =>
+			   .WaitAndRetryAsync(10, retryAttempt =>
 			   {
 				   return TimeSpan.FromSeconds(30);
 			   }, 
