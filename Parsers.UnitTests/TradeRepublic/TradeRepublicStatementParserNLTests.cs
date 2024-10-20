@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 	public class TradeRepublicStatementParserNLTests
 	{
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public TradeRepublicStatementParserNLTests()
 		{
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				.Build<Account>()
 				.With(x => x.Balance, [new Balance(DateTime.Now, new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			var parser = new TradeRepublicStatementParserNL(new PdfToWordsParser());
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/NL/montly_statement.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/NL/montly_statement.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().HaveCount(18);
+			activityManager.PartialActivities.Should().HaveCount(18);
 		}
 
 		[Fact]
@@ -61,10 +61,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}));
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateInterest(
 						Currency.EUR,
 						new DateTime(2024, 05, 01, 0, 0, 0, DateTimeKind.Utc),
@@ -85,10 +85,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}));
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateCashDeposit(
 						Currency.EUR,
 						new DateTime(2024, 05, 02, 0, 0, 0, DateTimeKind.Utc),
@@ -108,10 +108,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}));
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
 						new DateTime(2024, 05, 05, 0, 0, 0, DateTimeKind.Utc),
@@ -131,10 +131,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}));
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -147,10 +147,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			}));
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateGift(
 						Currency.EUR,
 						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
@@ -160,7 +160,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				]);
 		}
 
-		private string single_interest = @"
+		private readonly string single_interest = @"
 Aangemaakt op 07 mei 2024
 Pagina  1 3
 Trade Republic Bank GmbH
@@ -180,7 +180,7 @@ BEDRAF AF SALDO
 Rentebetaling Your interest payment € 33,31 € 10.471,02
 ";
 
-		private string single_deposit = @"
+		private readonly string single_deposit = @"
 Aangemaakt op 07 mei 2024
 Pagina  1 3
 Trade Republic Bank GmbH
@@ -200,7 +200,7 @@ BEDRAF AF SALDO
 Overschrijving Storting geaccepteerd:  naar € 9,67 € 10.480,69
   ";
 
-		private string single_withdrawal = @"
+		private readonly string single_withdrawal = @"
 Aangemaakt op 07 mei 2024
 Pagina  1 3
 Trade Republic Bank GmbH
@@ -220,7 +220,7 @@ BEDRAF AF SALDO
 Kaarttransactie € 13,98 € 10.322,24
   ";
 
-		private string single_dividend = @"
+		private readonly string single_dividend = @"
 Aangemaakt op 07 mei 2024
 Pagina  1 3
 Trade Republic Bank GmbH
@@ -240,7 +240,7 @@ BEDRAF AF SALDO
 Inkomsten Gebeurtenisuitvoering Inkomsten US2546871060 DISNEY (WALT) CO. 6912966220240110 € 0,07 € 8.883,88
   ";
 
-		private string single_gift = @"
+		private readonly string single_gift = @"
 Aangemaakt op 07 mei 2024
 Pagina  1 3
 Trade Republic Bank GmbH

@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 	{
 		private readonly ScalableCapitalRKKParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public ScalableCapitalRKKParserTests()
 		{
@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 				.Build<Account>()
 				.With(x => x.Balance, [new Balance(DateTime.Today, new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/CashTransactions/single_known_saldo.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/CashTransactions/single_known_saldo.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 04, 11, 00, 00, 00, DateTimeKind.Utc), 21.68M)
 				]);
@@ -60,10 +60,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/CashTransactions/single_dividend.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateDividend(
 						Currency.EUR,
@@ -81,10 +81,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/BuyOrders/SingleBuy/rkk.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/BuyOrders/SingleBuy/rkk.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -101,10 +101,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/SellOrders/SingleSell/rkk.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/SellOrders/SingleSell/rkk.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -121,10 +121,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/empty_rkk.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/empty_rkk.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -133,10 +133,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/no_executiondate_rkk.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/no_executiondate_rkk.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 	}
 }

@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 	{
 		readonly CentraalBeheerParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public CentraalBeheerParserTests()
 		{
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 				.Build<Account>()
 				.With(x => x.Balance, [new Balance(DateTime.Today, new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -46,10 +46,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/CentraalBeheer/deposit.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/CentraalBeheer/deposit.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateCashDeposit(
 					Currency.EUR,
 					new DateTime(2023, 9, 9, 0, 0, 0, DateTimeKind.Utc),
@@ -65,10 +65,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/CentraalBeheer/buy_order.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/CentraalBeheer/buy_order.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
@@ -93,10 +93,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/CentraalBeheer/sell_order.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/CentraalBeheer/sell_order.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSell(
 						Currency.EUR,
@@ -115,10 +115,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/CentraalBeheer/dividends.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/CentraalBeheer/dividends.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateDividend(
 						Currency.EUR,

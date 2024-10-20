@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 	{
 		private readonly ScalableCapitalWUMParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public ScalableCapitalWUMParserTests()
 		{
@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 				.Build<Account>()
 				.With(x => x.Balance, [new Balance(DateTime.Today, new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/BuyOrders/SingleBuy/wum.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/BuyOrders/SingleBuy/wum.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
@@ -67,10 +67,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/SellOrders/SingleSell/wum.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/SellOrders/SingleSell/wum.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSell(
 						Currency.EUR,
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			Func<Task> a = () => parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/invalid_action.csv", holdingsAndAccountsCollection, account.Name);
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/ScalableCapital/BaaderBank/Invalid/invalid_action.csv", activityManager, account.Name);
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();

@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 	{
 		private readonly DeGiroParserNL parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public DeGiroParserNLTests()
 		{
@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 				.Build<Account>()
 				.With(x => x.Balance, [new Balance(DateTime.Today, new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/CashTransactions/single_deposit.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
@@ -70,10 +70,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/CashTransactions/single_withdrawal.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
@@ -95,10 +95,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_euro.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_euro.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
@@ -133,10 +133,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_euro_whole_number.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_euro_whole_number.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
@@ -171,10 +171,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_usd.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_usd.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.USD,
@@ -209,10 +209,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/SellOrders/single_sell_euro.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/SellOrders/single_sell_euro.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
@@ -247,10 +247,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/SellOrders/single_sell_usd.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/SellOrders/single_sell_usd.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.USD,
@@ -285,10 +285,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_euro_multipart.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_euro_multipart.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
@@ -336,12 +336,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/CashTransactions/single_dividend.csv", activityManager, account.Name);
 
 			// Assert
-			var transactionId = holdingsAndAccountsCollection.PartialActivities.Single(x => x.ActivityType == PartialActivityType.Dividend).TransactionId;
+			var transactionId = activityManager.PartialActivities.Single(x => x.ActivityType == PartialActivityType.Dividend).TransactionId;
 			transactionId.Should().NotBeNullOrWhiteSpace();
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
@@ -375,10 +375,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL//CashTransactions/single_dividend_notax.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL//CashTransactions/single_dividend_notax.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.EUR,
@@ -401,10 +401,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/NL/Invalid/no_description.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/Invalid/no_description.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(Currency.EUR, new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc), 33.96M, 1),
 				]);

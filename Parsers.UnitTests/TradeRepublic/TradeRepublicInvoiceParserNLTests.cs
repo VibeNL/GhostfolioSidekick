@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 	public class TradeRepublicInvoiceParserNLTests
 	{
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public TradeRepublicInvoiceParserNLTests()
 		{
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 				.Build<Account>()
 				.With(x => x.Balance, [new Balance(DateTime.Now, new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/NL/CashTransactions/single_dividend.pdf", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/NL/CashTransactions/single_dividend.pdf", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateDividend(
 						Currency.USD,
 						new DateTime(2024, 06, 27, 0, 0, 0, DateTimeKind.Utc),
