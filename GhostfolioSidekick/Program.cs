@@ -98,6 +98,11 @@ namespace GhostfolioSidekick
 								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
 								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
 							});
+							services.AddDbContextFactory<DatabaseContext>(options =>
+							{
+								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+							});
 
 							services.AddScoped<IAccountRepository, AccountRepository>();
 							services.AddScoped<IActivityRepository, ActivityRepository>();
