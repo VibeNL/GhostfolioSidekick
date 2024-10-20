@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			var types = type.Assembly.GetTypes()
 							.Where(p => type.IsAssignableFrom(p) && !p.IsAbstract);
 
-			Fixture fixture = new Fixture();
+			var fixture = new Fixture();
 			foreach (var myType in types)
 			{
 				var activity = (Activity)fixture.Create(myType, new SpecimenContext(fixture));

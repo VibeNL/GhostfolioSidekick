@@ -19,16 +19,16 @@ namespace GhostfolioSidekick.Model.Activities
 			Description = description;
 		}
 
-		public long Id { get; protected set; }
+		public long Id { get; set; }
 
-		public virtual Account Account { get; protected set; }
+		public virtual Account Account { get; set; }
 
-		public DateTime Date { get; protected set; }
+		public DateTime Date { get; set; }
 
-		public string? TransactionId { get; protected set; }
+		public string? TransactionId { get; set; }
 
-		public int? SortingPriority { get; protected set; }
+		public int? SortingPriority { get; set; }
 
-		public string? Description { get; protected set; }
+		public string? Description { get; set; }
 	}
 }
