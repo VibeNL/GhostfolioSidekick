@@ -16,6 +16,11 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 		{
 			try
 			{
+				if (!filename.EndsWith(".pdf", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return Task.FromResult(false);
+				}
+
 				var words = parsePDfToWords.ParseTokens(filename);
 				return Task.FromResult(CanParseRecords(words));
 			}

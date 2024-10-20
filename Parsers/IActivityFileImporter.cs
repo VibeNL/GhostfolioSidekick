@@ -2,6 +2,6 @@
 {
 	public interface IActivityFileImporter : IFileImporter
 	{
-		Task ParseActivities(string filename, IActivityManager holdingsAndAccountsCollection, string accountName);
+		Task ParseActivities(string filename, IActivityManager activityManager, string accountName);
 	}
 }

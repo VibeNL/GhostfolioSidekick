@@ -14,6 +14,11 @@ namespace GhostfolioSidekick.Parsers
 
 		public virtual Task<bool> CanParse(string filename)
 		{
+			if (!filename.EndsWith(".csv", StringComparison.InvariantCultureIgnoreCase))
+			{
+				return Task.FromResult(false);
+			}
+
 			string? record = null;
 
 			try
