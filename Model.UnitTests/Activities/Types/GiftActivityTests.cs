@@ -1,15 +1,12 @@
-using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Compare;
 using AutoFixture;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {
 	public class GiftActivityTests
 	{
-		private readonly Mock<IExchangeRateService> exchangeRateServiceMock;
 		private readonly GiftActivity activity;
 
 		public GiftActivityTests()
@@ -19,8 +16,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var amount = 1;
 			var transactionId = "transactionId";
 
-			exchangeRateServiceMock = new Mock<IExchangeRateService>();
-			activity = new GiftActivity(account, dateTime, amount, transactionId);
+			activity = new GiftActivity(account, [], dateTime, amount, transactionId, null, null);
 		}
 
 		[Fact]
@@ -34,38 +30,6 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 
 			// Assert
 			result.Should().Be(expectedFormat);
-		}
-
-		[Fact]
-		public async Task AreEqual_ShouldReturnTrue_WhenActivitiesAreEqual()
-		{
-			// Arrange
-			var otherActivity = new GiftActivity(activity.Account, activity.Date, activity.Quantity, activity.TransactionId);
-
-			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
-				.ReturnsAsync(1);
-
-			// Act
-			var result = await activity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
-
-			// Assert
-			result.Should().BeTrue();
-		}
-
-		[Fact]
-		public async Task AreEqual_ShouldReturnFalse_WhenUnitPriceIsNotEqual()
-		{
-			// Arrange
-			var otherActivity = new GiftActivity(activity.Account, activity.Date, 5M, activity.TransactionId);
-
-			exchangeRateServiceMock.Setup(x => x.GetConversionRate(It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<DateTime>()))
-				.ReturnsAsync(1);
-
-			// Act
-			var result = await activity.AreEqual(exchangeRateServiceMock.Object, otherActivity);
-
-			// Assert
-			result.Should().BeFalse();
 		}
 	}
 }

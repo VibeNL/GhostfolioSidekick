@@ -1,9 +1,16 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace GhostfolioSidekick.Model.Activities
+﻿namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialActivity
 	{
+		public PartialActivity()
+		{
+			// EF Core
+			Currency = default!;
+			SymbolIdentifiers = [];
+			TotalTransactionAmount = default!;
+		}
+
+
 		public PartialActivity(
 			PartialActivityType activityType,
 			DateTime dateTime,
@@ -16,6 +23,7 @@ namespace GhostfolioSidekick.Model.Activities
 			Currency = currency;
 			this.TotalTransactionAmount = TotalTransactionAmount;
 			TransactionId = transactionId;
+			SymbolIdentifiers = [];
 		}
 
 		public PartialActivityType ActivityType { get; }
@@ -28,17 +36,13 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public string? TransactionId { get; set; }
 
-		public PartialSymbolIdentifier[] SymbolIdentifiers { get; private set; } = [];
+		public ICollection<PartialSymbolIdentifier> SymbolIdentifiers { get; private set; }
 
 		public decimal? UnitPrice { get; private set; } = 1;
 
 		public int? SortingPriority { get; private set; }
 
 		public string? Description { get; private set; }
-
-		public int SplitFrom { get; private set; }
-
-		public int SplitTo { get; private set; }
 
 		public Money TotalTransactionAmount { get; private set; }
 
@@ -84,7 +88,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateGift(
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -154,7 +158,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateBuy(
 			Currency currency,
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			decimal unitPrice,
 			Money totalTransactionAmount,
@@ -188,7 +192,7 @@ namespace GhostfolioSidekick.Model.Activities
 		public static PartialActivity CreateDividend(
 			Currency currency,
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			Money totalTransactionAmount,
 			string transactionId)
@@ -221,7 +225,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateStakingReward(
 				DateTime date,
-				PartialSymbolIdentifier[] symbolIdentifiers,
+				ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 				decimal amount,
 				string transactionId)
 		{
@@ -234,7 +238,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateSend(
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -247,7 +251,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public static PartialActivity CreateReceive(
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
 			string transactionId)
 		{
@@ -258,12 +262,13 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "<Pending>")]
 		public static IEnumerable<PartialActivity> CreateAssetConvert(
 			DateTime date,
-			PartialSymbolIdentifier[] source,
+			ICollection<PartialSymbolIdentifier> source,
 			decimal sourceAmount,
 			decimal? sourceUnitprice,
-			PartialSymbolIdentifier[] target,
+			ICollection<PartialSymbolIdentifier> target,
 			decimal targetAmount,
 			decimal? targetUnitprice,
 			string transactionId)
@@ -306,7 +311,7 @@ namespace GhostfolioSidekick.Model.Activities
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Liability,date, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.Liability, date, currency, totalTransactionAmount, transactionId)
 			{
 				Amount = 1,
 				UnitPrice = value,
@@ -314,26 +319,10 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		public static PartialActivity CreateStockSplit(
-			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
-			int from,
-			int to,
-			string transactionId)
-		{
-			return new PartialActivity(PartialActivityType.StockSplit, date, null!, new Money(Currency.EUR, 0), transactionId)
-			{
-				SymbolIdentifiers = symbolIdentifiers,
-				Amount = 1,
-				SplitFrom = from,
-				SplitTo = to
-			};
-		}
-
 		public static PartialActivity CreateBondRepay(
 			Currency currency,
 			DateTime date,
-			PartialSymbolIdentifier[] symbolIdentifiers,
+			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal unitPrice,
 			Money totalTransactionAmount,
 			string transactionId)

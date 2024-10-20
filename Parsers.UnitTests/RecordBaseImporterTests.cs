@@ -44,14 +44,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		public async Task ParseActivities_ShouldParseRecordsAndAddToCollection()
 		{
 			// Arrange
-			var holdingsAndAccountsCollection = new Mock<IHoldingsCollection>();
+			var activityManager = new TestActivityManager();
 			var accountName = "TestAccount";
 
 			// Act
-			await importer.ParseActivities(Filename, holdingsAndAccountsCollection.Object, accountName);
+			await importer.ParseActivities(Filename, activityManager, accountName);
 
 			// Assert
-			holdingsAndAccountsCollection.Verify(x => x.AddPartialActivity(accountName, It.IsAny<IEnumerable<PartialActivity>>()), Times.Exactly(1));
+			activityManager.PartialActivities.Count.Should().Be(2);
 		}
 	}
 }
