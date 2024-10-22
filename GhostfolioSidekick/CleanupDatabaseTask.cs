@@ -21,6 +21,7 @@ namespace GhostfolioSidekick
 		private async Task CleanupDatabase()
 		{
 			logger.LogInformation("Cleanup database...");
+			await dbContext.ExecutePragma("PRAGMA integrity_check");
 			await dbContext.Database.ExecuteSqlRawAsync("VACUUM;");
 			logger.LogInformation("Database cleaned.");
 		}

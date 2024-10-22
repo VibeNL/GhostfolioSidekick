@@ -48,5 +48,14 @@ namespace GhostfolioSidekick.Database
 		{
 			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 		}
+
+		public Task ExecutePragma(string pragmaCommand)
+		{
+			var connection = Database.GetDbConnection();
+			connection.Open();
+			using var command = connection.CreateCommand();
+			command.CommandText = pragmaCommand;
+			return command.ExecuteNonQueryAsync();
+		}
 	}
 }

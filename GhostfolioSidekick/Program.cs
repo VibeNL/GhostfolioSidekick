@@ -93,11 +93,11 @@ namespace GhostfolioSidekick
 								var settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
-							services.AddDbContext<DatabaseContext>(options =>
-							{
-								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
-								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
-							});
+							//services.AddDbContext<DatabaseContext>(options =>
+							//{
+							//	var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+							//	options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+							//});
 							services.AddDbContextFactory<DatabaseContext>(options =>
 							{
 								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
