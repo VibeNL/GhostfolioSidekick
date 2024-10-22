@@ -178,15 +178,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			int skip;
 			if (IsCheckWords(ACCRUED_INTEREST, words, i))
 			{
-				skip = 2;
+				skip = ACCRUED_INTEREST.Split(" ").Length;
 			}
 			else if (IsCheckWords(EXTERNAL_COST_SURCHARGE, words, i))
 			{
-				skip = 1;  // TODO make this invariant to position
+				skip = EXTERNAL_COST_SURCHARGE.Split(" ").Length;
 			}
 			else if (IsCheckWords(WITHHOLDING_TAX, words, i))
 			{
-				skip = 5;
+				skip = WITHHOLDING_TAX.Split(" ").Length;
 			}
 			else
 			{
