@@ -29,6 +29,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected abstract string EXTERNAL_COST_SURCHARGE { get; }
 		protected abstract string WITHHOLDING_TAX { get; }
 		protected abstract string DATE { get; }
+		protected abstract CultureInfo CULTURE { get; }
 
 		private List<string> TableKeyWords
 		{
@@ -193,7 +194,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i;
 			}
 			
-			var price = Math.Abs(ParseAmount(words[i + skip].Text));
+			var price = Math.Abs(decimal.Parse(words[i + skip].Text, CULTURE));
 			var currencySymbol = words[i + skip + 1].Text;
 			var currency = new Currency(currencySymbol);
 
@@ -219,9 +220,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					new Currency(words[i + 4].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					ParseAmount(words[i + 1].Text),
-					ParseAmount(words[i + 3].Text),
-					new Money(new Currency(words[i + 4].Text), ParseAmount(words[i + 5].Text)),
+					decimal.Parse(words[i + 1].Text, CULTURE),
+					decimal.Parse(words[i + 3].Text, CULTURE),
+					new Money(new Currency(words[i + 4].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
 					id));
 
 				return i + 6;
@@ -236,9 +237,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					new Currency(words[i + 6].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					ParseAmount(words[i + 1].Text),
-					ParseAmount(words[i + 3].Text) / 100,
-					new Money(new Currency(words[i + 6].Text), ParseAmount(words[i + 5].Text)),
+					decimal.Parse(words[i + 1].Text, CULTURE),
+					decimal.Parse(words[i + 3].Text, CULTURE) / 100,
+					new Money(new Currency(words[i + 6].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
 					id));
 
 				return i + 6;
@@ -253,8 +254,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					new Currency(words[i + 6].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					ParseAmount(words[i + 5].Text),
-					new Money(new Currency(words[i + 6].Text), ParseAmount(words[i + 5].Text)),
+					decimal.Parse(words[i + 5].Text, CULTURE),
+					new Money(new Currency(words[i + 6].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
 					id));
 
 				return i + 6;
@@ -270,8 +271,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					new Currency(words[i + 2].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					ParseAmount(words[i + 1].Text),
-					new Money(new Currency(words[i + 2].Text), ParseAmount(words[i + 1].Text)),
+					decimal.Parse(words[i + 1].Text, CULTURE),
+					new Money(new Currency(words[i + 2].Text), decimal.Parse(words[i + 1].Text, CULTURE)),
 					id));
 
 				return i + 2;
@@ -283,10 +284,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			{
 				return $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
 			}
-		}
-
-		private decimal ParseAmount(string amountWord) {
-			return decimal.Parse(amountWord.Replace(",", "."), CultureInfo.InvariantCulture);
 		}
 
 		private static string GetIsin(List<SingleWordToken> words, ref int i)

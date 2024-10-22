@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -25,6 +26,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string EXTERNAL_COST_SURCHARGE => "External cost surcharge";
 		protected override string WITHHOLDING_TAX => "Withholding tax for US issuer";
 		protected override string DATE => "DATUM";
+		protected override CultureInfo CULTURE => CultureInfo.InvariantCulture;
 
 		public TradeRepublicInvoiceParserNL(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
