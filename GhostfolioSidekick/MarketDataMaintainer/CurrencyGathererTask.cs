@@ -48,6 +48,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						MinDate = g.Min(x => x.Date),
 						MaxDate = g.Max(x => x.Date)
 					})
+					.OrderBy(x => x.MaxDate)
 					.FirstOrDefaultAsync();
 
 				// Check if we need to update our data
