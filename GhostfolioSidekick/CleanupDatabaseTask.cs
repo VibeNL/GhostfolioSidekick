@@ -11,7 +11,7 @@ namespace GhostfolioSidekick
 	{
 		public TaskPriority Priority => TaskPriority.CleanupDatabase;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromDays(1);
+		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
 		public Task DoWork()
 		{
@@ -21,7 +21,7 @@ namespace GhostfolioSidekick
 		private async Task CleanupDatabase()
 		{
 			logger.LogInformation("Cleanup database...");
-			await dbContext.ExecutePragma("PRAGMA integrity_check");
+			await dbContext.ExecutePragma("PRAGMA integrity_check;");
 			await dbContext.Database.ExecuteSqlRawAsync("VACUUM;");
 			logger.LogInformation("Database cleaned.");
 		}
