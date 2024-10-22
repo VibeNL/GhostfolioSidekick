@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -159,15 +160,24 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		public async Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol, DateOnly fromDate)
 		{
-			var history = await YahooFinanceApi.Yahoo.GetSplitsAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today);
-
 			var list = new List<StockSplit>();
-			foreach (var candle in history)
-			{
-				var item = new StockSplit(DateOnly.FromDateTime(candle.DateTime), candle.BeforeSplit, candle.AfterSplit);
-				list.Add(item);
-			}
 
+			try
+			{
+				var history = await YahooFinanceApi.Yahoo.GetSplitsAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today);
+
+				foreach (var candle in history)
+				{
+					var item = new StockSplit(DateOnly.FromDateTime(candle.DateTime), BeforeSplit: candle.AfterSplit, AfterSplit: candle.BeforeSplit); // API has them mixed up
+					list.Add(item);
+				}
+
+			}
+			catch (RuntimeBinderException ex) when (ex.Message.Contains("'System.Dynamic.ExpandoObject' does not contain a definition for 'events'"))
+			{
+				// No split?
+			}
+			
 			return list;
 		}
 

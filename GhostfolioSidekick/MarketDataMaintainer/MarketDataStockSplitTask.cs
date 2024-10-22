@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				
 
 				await databaseContext.SaveChangesAsync();
-				logger.LogDebug($"Stock splits for {symbol.Symbol} from {symbol.DataSource} gathered");
+				logger.LogDebug($"Stock splits for {symbol.Symbol} from {symbol.DataSource} gathered. Found {splits.Count()}");
 			}
 
 		}
