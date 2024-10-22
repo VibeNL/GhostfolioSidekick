@@ -13,6 +13,8 @@
 		CurrencyGatherer,
 
 		SymbolMatcher,
+		
+		MarketDataStockSplit,
 
 		MarketDataGatherer,
 

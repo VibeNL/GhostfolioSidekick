@@ -5,6 +5,8 @@ namespace GhostfolioSidekick.ExternalDataProvider
 {
 	public interface IStockSplitRepository
 	{
-		Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol);
+		string DataSource { get; }
+
+		Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol, DateOnly fromDate);
 	}
 }

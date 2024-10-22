@@ -67,6 +67,8 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public virtual ICollection<MarketData> MarketData { get; set; } = [];
 
+		public virtual ICollection<StockSplit> StockSplits { get; set; } = [];
+
 		public override string ToString()
 		{
 			return Symbol;

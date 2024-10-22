@@ -1,9 +1,8 @@
-﻿namespace GhostfolioSidekick.Model.Market
+﻿using GhostfolioSidekick.Model.Symbols;
+
+namespace GhostfolioSidekick.Model.Market
 {
-	public class StockSplit
+	public record StockSplit(DateOnly Date, decimal BeforeSplit, decimal AfterSplit)
 	{
-		public DateTime Date { get; set; }
-		public int FromFactor { get; set; }
-		public int ToFactor { get; set; }
 	}
 }

@@ -16,9 +16,10 @@ using YahooFinanceApi;
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
 	public class YahooRepository :
-        ICurrencyRepository,
+		ICurrencyRepository,
 		ISymbolMatcher,
-		IStockPriceRepository
+		IStockPriceRepository,
+		IStockSplitRepository
 	{
 		public string DataSource => Datasource.YAHOO;
 
@@ -28,16 +29,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		private readonly DatabaseContext databaseContext;
 
 		public YahooRepository(ILogger<YahooRepository> logger, DatabaseContext databaseContext)
-        {
+		{
 			this.logger = logger;
 			this.databaseContext = databaseContext;
 		}
 
-        public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
+		public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
 			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
 					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
-					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily))					;
+					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily));
 
 			if (history == null)
 			{
@@ -156,6 +157,20 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return list;
 		}
 
+		public async Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol, DateOnly fromDate)
+		{
+			var history = await YahooFinanceApi.Yahoo.GetSplitsAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today);
+
+			var list = new List<StockSplit>();
+			foreach (var candle in history)
+			{
+				var item = new StockSplit(DateOnly.FromDateTime(candle.DateTime), candle.BeforeSplit, candle.AfterSplit);
+				list.Add(item);
+			}
+
+			return list;
+		}
+
 		private string GetName(Security security)
 		{
 			if (security is null)
@@ -242,6 +257,5 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return null;
 			};
 		}
-
 	}
 }
