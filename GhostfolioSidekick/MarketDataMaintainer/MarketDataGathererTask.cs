@@ -63,12 +63,21 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					}
 				}
 
-				var md = await stockPriceRepository.GetStockMarketData(symbol, date);
+				var list = await stockPriceRepository.GetStockMarketData(symbol, date);
 
-				symbol.MarketData.Clear();
-
-				foreach (var marketData in md)
+				foreach (var marketData in list)
 				{
+					var existingRecord = symbol.MarketData.SingleOrDefault(x => x.Date == marketData.Date);
+					if (existingRecord != null && existingRecord.Close == marketData.Close )	
+					{
+						continue;
+					}
+
+					if (existingRecord != null)
+					{
+						symbol.MarketData.Remove(existingRecord);
+					}
+
 					symbol.MarketData.Add(marketData);
 				}
 

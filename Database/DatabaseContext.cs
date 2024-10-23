@@ -49,6 +49,12 @@ namespace GhostfolioSidekick.Database
 			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 		}
 
+		protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+		{
+			base.ConfigureConventions(configurationBuilder);
+			configurationBuilder.DefaultTypeMapping<decimal>(builder => builder.HasPrecision(18, 8));
+		}
+
 		public Task ExecutePragma(string pragmaCommand)
 		{
 			var connection = Database.GetDbConnection();

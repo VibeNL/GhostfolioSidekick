@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
-	internal class MarketDataProfileTypeConfiguration : IEntityTypeConfiguration<MarketData>
+	internal class MarketDataTypeConfiguration : IEntityTypeConfiguration<MarketData>
 	{
 		public void Configure(EntityTypeBuilder<MarketData> builder)
 		{
