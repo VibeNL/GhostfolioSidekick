@@ -53,8 +53,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				// Check if we need to update our data
 				if (dates != null &&
-						DateOnly.FromDateTime(dates.MinDate) == fromDate &&
-						dates.MaxDate == DateTime.Today)
+						dates.MinDate == fromDate &&
+						dates.MaxDate == DateOnly.FromDateTime(DateTime.Today))
 				{
 					continue;
 				}

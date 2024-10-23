@@ -105,14 +105,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 									new Money(Currency.USD with { }, candle.High),
 									new Money(Currency.USD with { }, candle.Low),
 									0,
-									candle.Timestamp.Date);
+									DateOnly.FromDateTime(candle.Timestamp.Date));
 				list.Add(item);
 			}
 
 			// Add the existing market data
 			list = list.Union(symbol.MarketData).ToList();
 
-			var x = list.OrderByDescending(x => x.Date).DistinctBy(x => DateOnly.FromDateTime(x.Date));
+			var x = list.OrderByDescending(x => x.Date).DistinctBy(x => x.Date);
 			return x;
 		}
 

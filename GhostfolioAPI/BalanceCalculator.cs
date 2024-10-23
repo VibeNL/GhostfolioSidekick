@@ -1,99 +1,84 @@
-﻿//using GhostfolioSidekick.Model;
-//using GhostfolioSidekick.Model.Accounts;
-//using GhostfolioSidekick.Model.Activities;
-//using GhostfolioSidekick.Model.Compare;
+﻿using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 
-//namespace GhostfolioSidekick.GhostfolioAPI
-//{
-//	public class BalanceCalculator
-//	{
-//		private readonly IExchangeRateService exchangeRateService;
+namespace GhostfolioSidekick.GhostfolioAPI
+{
+	public class BalanceCalculator
+	{
+		private readonly ICurrencyExchange exchangeRateService;
 
-//		public BalanceCalculator(IExchangeRateService exchangeRateService)
-//		{
-//			this.exchangeRateService = exchangeRateService;
-//		}
+		public BalanceCalculator(ICurrencyExchange exchangeRateService)
+		{
+			this.exchangeRateService = exchangeRateService;
+		}
 
-//		public async Task<List<Balance>> Calculate(
-//			Currency baseCurrency,
-//			IEnumerable<PartialActivity> activities)
-//		{
-//			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
+		public async Task<List<Balance>> Calculate(
+			Currency baseCurrency,
+			IEnumerable<Activity> activities)
+		{
+			var descendingSortedActivities = activities.OrderByDescending(x => x.Date).ThenBy(x => x.SortingPriority);
 
-//			// Check if we have known balances
-//			var knownBalances = descendingSortedActivities
-//				.Where(x => x.ActivityType == PartialActivityType.KnownBalance);
-//			if (knownBalances.Any())
-//			{
-//				return knownBalances.Select(x => new Balance(x.Date, new Money(x.Currency, x.Amount))).ToList();
-//			}
+			// Check if we have known balances
+			var knownBalances = descendingSortedActivities
+				.OfType<KnownBalanceActivity>();
+			if (knownBalances.Any())
+			{
+				return knownBalances.Select(x => new Balance(x.Date, new Money(x.Amount.Currency, x.Amount.Amount))).ToList();
+			}
 
-//			List<Tuple<DateTime, Money>> moneyTrail = [];
-//			foreach (var activity in activities.OrderBy(x => x.Date).ThenBy(x => x.SortingPriority))
-//			{
-//				switch (activity.ActivityType)
-//				{
-//					case PartialActivityType.Buy:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
-//						break;
-//					case PartialActivityType.Sell:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
-//						break;
-//					case PartialActivityType.Dividend:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
-//						break;
-//					case PartialActivityType.Interest:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
-//						break;
-//					case PartialActivityType.Fee:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
-//						break;
-//					case PartialActivityType.CashDeposit:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
-//						break;
-//					case PartialActivityType.CashWithdrawal:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
-//						break;
-//					case PartialActivityType.Tax:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
-//						break;
-//					case PartialActivityType.Valuable:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
-//						break;
-//					case PartialActivityType.Liability:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount.Times(-1)));
-//						break;
-//					case PartialActivityType.BondRepay:
-//						moneyTrail.Add(Tuple.Create(activity.Date, activity.TotalTransactionAmount));
-//						break;
-//					case PartialActivityType.Send:
-//					case PartialActivityType.Receive:
-//					case PartialActivityType.Gift:
-//					case PartialActivityType.StakingReward:
-//					case PartialActivityType.CashConvert:
-//					case PartialActivityType.KnownBalance:
-//					case PartialActivityType.StockSplit:
-//						// ignore for now
-//						break;
-//					case PartialActivityType.Undefined:
-//					default:
-//						throw new NotSupportedException($"Balance failed to generate, {activity.GetType().Name} not supported");
-//				}
-//			}
+			List<Tuple<DateTime, Money>> moneyTrail = [];
+			foreach (var activity in activities.OrderBy(x => x.Date).ThenBy(x => x.SortingPriority))
+			{
+				// write a switch on the type of activity
+				switch (activity)
+				{
+					case BuySellActivity buySellActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TotalTransactionAmount.Times(Math.Sign(buySellActivity.Quantity))));
+						break;
+					case CashDepositWithdrawalActivity cashDepositWithdrawalActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(cashDepositWithdrawalActivity.Date, cashDepositWithdrawalActivity.Amount));
+						break;
+					case DividendActivity dividendActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(dividendActivity.Date, dividendActivity.Amount));
+						break;
+					case FeeActivity feeActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(feeActivity.Date, feeActivity.Amount.Times(-1)));
+						break;
+					case InterestActivity interestActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(interestActivity.Date, interestActivity.Amount));
+						break;
+					case RepayBondActivity repayBondActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(repayBondActivity.Date, repayBondActivity.TotalRepayAmount));
+						break;
+					case GiftActivity giftActivity:
+					case LiabilityActivity liabilityActivity:
+					case SendAndReceiveActivity sendAndReceiveActivity:
+					case StakingRewardActivity:
+					case ValuableActivity:
+						// No change
+						break;
+					default:
+						throw new NotImplementedException($"Activity type {activity.GetType().Name} is not implemented.");
+				}
+			}
 
-//			var balances = new List<Balance>();
-//			var totalAmount = 0m;
-//			foreach (var moneyPerDate in moneyTrail.GroupBy(x => x.Item1.Date))
-//			{
-//				foreach (var money in moneyPerDate)
-//				{
-//					var activityAmount = (await exchangeRateService.GetConversionRate(money.Item2.Currency, baseCurrency, money.Item1)) * money.Item2.Amount;
-//					totalAmount += activityAmount;
-//				}
-//				balances.Add(new Balance(moneyPerDate.Key, new Money(baseCurrency, totalAmount)));
-//			}
+			var balances = new List<Balance>();
+			Money totalAmount = new Money(baseCurrency, 0);
+			foreach (var moneyPerDate in moneyTrail.GroupBy(x => x.Item1.Date))
+			{
+				foreach (var money in moneyPerDate)
+				{
+					var activityAmount = await exchangeRateService.ConvertMoney(money.Item2, baseCurrency, DateOnly.FromDateTime(money.Item1));
+					totalAmount = totalAmount.Add(activityAmount);
+				}
 
-//			return balances;
-//		}
-//	}
-//}
+				balances.Add(new Balance(moneyPerDate.Key, totalAmount));
+			}
+
+			return balances;
+		}
+	}
+}

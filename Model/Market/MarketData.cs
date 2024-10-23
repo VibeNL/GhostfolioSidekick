@@ -8,7 +8,7 @@
 			Money high,
 			Money low,
 			decimal tradingVolume,
-			DateTime date)
+			DateOnly date)
 		{
 			this.Close = close ?? throw new ArgumentNullException(nameof(close));
 			this.Open = open ?? throw new ArgumentNullException(nameof(open));
@@ -31,6 +31,6 @@
 		public Money High { get; set; }
 		public Money Low { get; set; }
 		public decimal TradingVolume { get; set; }
-		public DateTime Date { get; set; }
+		public DateOnly Date { get; set; }
 	}
 }

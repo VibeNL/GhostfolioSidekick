@@ -6,6 +6,7 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Parsers;
@@ -22,6 +23,7 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
 using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.Parsers.Trading212;
+using GhostfolioSidekick.Sync;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -108,7 +110,8 @@ namespace GhostfolioSidekick
 							services.AddScoped<IActivityRepository, ActivityRepository>();
 							services.AddSingleton<IMarketDataRepository, MarketDataRepository>();
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
-							
+							services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
+
 							services.AddSingleton<YahooRepository>();
 							services.AddSingleton<CoinGeckoRepository>();
 
@@ -133,6 +136,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, MarketDataGathererTask>();
 							services.AddScoped<IScheduledWork, MarketDataStockSplitTask>();
 							services.AddScoped<IScheduledWork, CleanupDatabaseTask>();
+							services.AddScoped<IScheduledWork, SyncWithGhostfolioTask>();
 							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
 							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
 							////services.AddScoped<IScheduledWork, SetBenchmarksTask>();

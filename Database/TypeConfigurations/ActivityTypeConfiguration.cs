@@ -25,6 +25,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<ValuableActivity>
 
 	{
+		private const string TotalTransactionAmount = "TotalTransactionAmount";
 		private const string UnitPrice = "UnitPrice";
 		private const string Fees = "Fees";
 		private const string Taxes = "Taxes";
@@ -107,6 +108,12 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
+
+			builder.Property(b => b.TotalTransactionAmount)
+					.HasColumnName(TotalTransactionAmount)
+					.HasConversion(
+						v => MoneyToString(v),
+						v => StringToMoney(v));
 		}
 
 		public void Configure(EntityTypeBuilder<CashDepositWithdrawalActivity> builder)

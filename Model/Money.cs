@@ -24,6 +24,16 @@
 			return new Money(Currency, Amount * amount);
 		}
 
+		public Money Add(Money money)
+		{
+			if (money.Currency != Currency)
+			{
+				throw new ArgumentException("Currencies do not match", nameof(money));
+			}
+
+			return new Money(Currency, Amount + money.Amount);
+		}
+
 		public Money SafeDivide(decimal amount)
 		{
 			if (amount == 0)

@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 									new Money(currencyTo with { }, candle.High),
 									new Money(currencyTo with { }, candle.Low),
 									candle.Volume,
-									candle.DateTime.Date);
+									DateOnly.FromDateTime(candle.DateTime.Date));
 				list.Add(item);
 			}
 
@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 									new Money(symbol.Currency with { }, candle.High),
 									new Money(symbol.Currency with { }, candle.Low),
 									candle.Volume,
-									candle.DateTime.Date);
+									DateOnly.FromDateTime(candle.DateTime.Date));
 				list.Add(item);
 			}
 

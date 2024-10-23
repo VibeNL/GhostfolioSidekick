@@ -15,6 +15,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork()
 		{
 			var symbolIdentifiers = new List<Tuple<string, string>>();
@@ -46,8 +47,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (symbol.MarketData.Count != 0)
 				{
-					var minDate = DateOnly.FromDateTime(symbol.MarketData.Min(x => x.Date));
-					var maxDate = DateOnly.FromDateTime(symbol.MarketData.Max(x => x.Date));
+					var minDate = symbol.MarketData.Min(x => x.Date);
+					var maxDate = symbol.MarketData.Max(x => x.Date);
 
 					if (date >= minDate && DateOnly.FromDateTime(DateTime.Today.AddDays(-1)) <= maxDate) // For now 1 day old only
 					{

@@ -20,6 +20,8 @@
 
 		CleanupDatabase,
 
+		SyncWithGhostfolio,
+
 		//CreateManualSymbols,
 
 		//SetManualPrices,
