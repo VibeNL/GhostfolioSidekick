@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Database.Repository
 
 		private static Func<Activity, bool> CompareActivity(Activity activity)
 		{
-			return a => a.Date == activity.Date && a.TransactionId == activity.TransactionId;
+			return a => a.Date == activity.Date && a.TransactionId == activity.TransactionId; // TODO
 		}
 	}
 }
