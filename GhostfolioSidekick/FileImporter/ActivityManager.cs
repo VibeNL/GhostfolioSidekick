@@ -140,7 +140,7 @@ namespace GhostfolioSidekick.FileImporter
 				case PartialActivityType.CashDeposit:
 					return new CashDepositWithdrawalActivity(account, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.CashWithdrawal:
-					return new CashDepositWithdrawalActivity(account, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new CashDepositWithdrawalActivity(account, date, totalTransactionAmount.Times(-1), transactionId, sortingPriority, description);
 				case PartialActivityType.KnownBalance:
 					return new KnownBalanceActivity(account, date, money, transactionId, sortingPriority, description);
 				case PartialActivityType.Valuable:

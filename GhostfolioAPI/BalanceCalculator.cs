@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				switch (activity)
 				{
 					case BuySellActivity buySellActivity:
-						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TotalTransactionAmount.Times(Math.Sign(buySellActivity.Quantity))));
+						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TotalTransactionAmount.Times(-1 * Math.Sign(buySellActivity.Quantity))));
 						break;
 					case CashDepositWithdrawalActivity cashDepositWithdrawalActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(cashDepositWithdrawalActivity.Date, cashDepositWithdrawalActivity.Amount));

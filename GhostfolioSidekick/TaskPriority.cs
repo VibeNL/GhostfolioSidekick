@@ -6,8 +6,6 @@
 
 		GenerateDatabase,
 
-		SyncWithGhostfolio,
-
 		AccountMaintainer,
 
 		FileImporter,
@@ -22,6 +20,7 @@
 
 		CleanupDatabase,
 
+		SyncWithGhostfolio,
 
 		//CreateManualSymbols,
 
