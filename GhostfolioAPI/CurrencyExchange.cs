@@ -15,6 +15,16 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 
+			if (money.Currency == currency)
+			{
+				return money;
+			}
+
+			if (money.Currency.IsKnownPair(currency))
+			{
+				return new Money(currency, money.Times(money.Currency.GetKnownExchangeRate(currency)).Amount);
+			}
+
 			var exchangeRate = await databaseContext.SymbolProfiles
 								.Where(x => x.Symbol == $"{money.Currency.Symbol}{currency.Symbol}")
 								.SelectMany(x => x.MarketData)

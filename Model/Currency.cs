@@ -44,5 +44,20 @@ namespace GhostfolioSidekick.Model
 		{
 			return Symbol.Equals(key.Symbol, StringComparison.CurrentCultureIgnoreCase); // TODO GBP == GBp
 		}
+
+		public decimal GetKnownExchangeRate(Currency currency)
+		{
+			if (this == Currency.GBP && currency == Currency.GBp)
+			{
+				return 100m;
+			}
+
+			if (this == Currency.GBp && currency == Currency.GBP)
+			{
+				return 0.01m;
+			}
+
+			throw new NotSupportedException();
+		}
 	}
 }
