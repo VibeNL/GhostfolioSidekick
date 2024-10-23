@@ -25,10 +25,20 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				return new Money(currency, money.Times(money.Currency.GetKnownExchangeRate(currency)).Amount);
 			}
 
+			var searchDate = date;
+			if (date.DayOfWeek == DayOfWeek.Saturday)
+			{
+				searchDate = date.AddDays(-1);
+			}
+			else if (date.DayOfWeek == DayOfWeek.Sunday)
+			{
+				searchDate = date.AddDays(-2);
+			}
+
 			var exchangeRate = await databaseContext.SymbolProfiles
 								.Where(x => x.Symbol == $"{money.Currency.Symbol}{currency.Symbol}")
 								.SelectMany(x => x.MarketData)
-								.Where(x => x.Date == date)
+								.Where(x => x.Date == searchDate)
 								.Select(x => x.Close)
 								.AsNoTracking()
 								.SingleAsync();
