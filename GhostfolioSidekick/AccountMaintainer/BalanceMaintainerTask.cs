@@ -40,10 +40,10 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 					var account = await databaseContext.Accounts.FindAsync(accountKey.Id)!;
 
-					var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue } };
+					var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
 
 					var existingBalances = account!.Balance;
-					ComparisonResult result = compareLogic.Compare(existingBalances, balances);
+					ComparisonResult result = compareLogic.Compare(existingBalances.OrderBy(x => x.Date), balances.OrderBy(x => x.Date));
 
 					if (!result.AreEqual)
 					{
