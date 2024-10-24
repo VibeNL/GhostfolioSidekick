@@ -51,26 +51,6 @@ namespace GhostfolioSidekick.Database.Repository
 				}
 			}
 
-			/*foreach (var activity in activities)
-			{
-				var existingActivity = existingActivities.FirstOrDefault(CompareActivity(activity));
-				if (existingActivity != null)
-				{
-					continue;
-				}
-
-				await databaseContext.Activities.AddAsync(activity);
-			}
-
-			// Remove activities that are not in the new list
-			foreach (var existingActivity in existingActivities)
-			{
-				if (!activities.Any(CompareActivity(existingActivity)))
-				{
-					databaseContext.Activities.Remove(existingActivity);
-				}
-			}*/
-
 			await databaseContext.SaveChangesAsync();
 		}
 

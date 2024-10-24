@@ -263,6 +263,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return AssetSubClass.CryptoCurrency;
 				case "CURRENCY":
 					return AssetSubClass.Undefined;
+				case "MUTUALFUND":
+					return AssetSubClass.Undefined;
 				default:
 					return null;
 			};
