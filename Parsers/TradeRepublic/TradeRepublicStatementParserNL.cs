@@ -171,12 +171,30 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 							break;
 						case "Overschrijving":
-							activities.Add(PartialActivity.CreateCashDeposit(
-											currency,
-											date,
-											amount,
-											new Money(currency, amount),
-											id));
+
+							if (items[0].Text == "PayOut")
+							{
+								activities.Add(PartialActivity.CreateCashWithdrawal(
+									currency,
+									date,
+									amount,
+									new Money(currency, amount),
+									id));
+							}
+							else if (items[0].Text == "Storting")
+							{
+								activities.Add(PartialActivity.CreateCashDeposit(
+									currency,
+									date,
+									amount,
+									new Money(currency, amount),
+									id));
+							}
+							else
+							{
+								throw new NotSupportedException();
+							}
+
 							break;
 						case "Kaarttransactie":
 							activities.Add(PartialActivity.CreateCashWithdrawal(

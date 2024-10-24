@@ -99,6 +99,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleWithdrawalViaTransfer_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicStatementParserNL(new TestPdfToWords(new Dictionary<int, string>
+			{
+				{ 0, single_withdrawal_transfer }
+			}));
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/testfile1.pdf", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateCashWithdrawal(
+						Currency.EUR,
+						new DateTime(2024, 05, 02, 0, 0, 0, DateTimeKind.Utc),
+						9.67m,
+						new Money(Currency.EUR, 9.67m),
+						"Trade_Republic_Overschrijving_2024-05-02")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFileSingleWithdrawal_Converted()
 		{
 			// Arrange
@@ -198,6 +221,26 @@ BEDRAF AF SALDO
 02 mei 
 2024
 Overschrijving Storting geaccepteerd:  naar € 9,67 € 10.480,69
+  ";
+
+		private readonly string single_withdrawal_transfer = @"
+Aangemaakt op 07 mei 2024
+Pagina  1 3
+Trade Republic Bank GmbH
+DATUM 01 mei 2024 - 06 mei 2024
+IBAN
+BIC
+REKENINGOVERZICHT SAMENVATTING
+PRODUCT OPENINGSSALDO BEDRAG BIJ BEDRAF AF EINDSALDO
+Effectenrekening € 10.437,71 € 442,95 € 446,94 € 10.433,72
+MUTATIEOVERZICHT
+DATUM TYPE BESCHRIJVING
+BEDRAG 
+BIJ
+BEDRAF AF SALDO
+02 mei 
+2024
+Overschrijving PayOut to transit € 9,67 € 10.480,69
   ";
 
 		private readonly string single_withdrawal = @"
