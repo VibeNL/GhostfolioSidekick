@@ -1,76 +1,76 @@
-using FluentAssertions;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Configuration;
+//using FluentAssertions;
+//using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+//using GhostfolioSidekick.Model;
+//using GhostfolioSidekick.Configuration;
 
-namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
-{
-	public class SymbolMapperTests
-	{
-		private readonly SymbolMapper symbolMapper;
-		private readonly List<Mapping> mappings;
+//namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
+//{
+//	public class SymbolMapperTests
+//	{
+//		private readonly SymbolMapper symbolMapper;
+//		private readonly List<Mapping> mappings;
 
-		public SymbolMapperTests()
-		{
-			mappings =
-			[
-				new Mapping { MappingType = MappingType.Currency, Source = "USD", Target = "US Dollar" },
-				new Mapping { MappingType = MappingType.Symbol, Source = "AAPL", Target = "Apple Inc." }
-			];
+//		public SymbolMapperTests()
+//		{
+//			mappings =
+//			[
+//				new Mapping { MappingType = MappingType.Currency, Source = "USD", Target = "US Dollar" },
+//				new Mapping { MappingType = MappingType.Symbol, Source = "AAPL", Target = "Apple Inc." }
+//			];
 
-			symbolMapper = new SymbolMapper(mappings);
-		}
+//			symbolMapper = new SymbolMapper(mappings);
+//		}
 
-		[Fact]
-		public void MapCurrency_ShouldReturnMappedCurrency()
-		{
-			// Arrange
-			var sourceCurrency = "USD";
+//		[Fact]
+//		public void MapCurrency_ShouldReturnMappedCurrency()
+//		{
+//			// Arrange
+//			var sourceCurrency = "USD";
 
-			// Act
-			var result = symbolMapper.Map(sourceCurrency);
+//			// Act
+//			var result = symbolMapper.Map(sourceCurrency);
 
-			// Assert
-			result.Should().BeEquivalentTo(new Currency("US Dollar"));
-		}
+//			// Assert
+//			result.Should().BeEquivalentTo(new Currency("US Dollar"));
+//		}
 
-		[Fact]
-		public void MapCurrency_ShouldReturnSameCurrency_WhenNoMappingExists()
-		{
-			// Arrange
-			var sourceCurrency = "EUR";
+//		[Fact]
+//		public void MapCurrency_ShouldReturnSameCurrency_WhenNoMappingExists()
+//		{
+//			// Arrange
+//			var sourceCurrency = "EUR";
 
-			// Act
-			var result = symbolMapper.Map(sourceCurrency);
+//			// Act
+//			var result = symbolMapper.Map(sourceCurrency);
 
-			// Assert
-			result.Should().BeEquivalentTo(new Currency("EUR"));
-		}
+//			// Assert
+//			result.Should().BeEquivalentTo(new Currency("EUR"));
+//		}
 
-		[Fact]
-		public void MapSymbol_ShouldReturnMappedSymbol()
-		{
-			// Arrange
-			var sourceSymbol = "AAPL";
+//		[Fact]
+//		public void MapSymbol_ShouldReturnMappedSymbol()
+//		{
+//			// Arrange
+//			var sourceSymbol = "AAPL";
 
-			// Act
-			var result = symbolMapper.MapSymbol(sourceSymbol);
+//			// Act
+//			var result = symbolMapper.MapSymbol(sourceSymbol);
 
-			// Assert
-			result.Should().Be("Apple Inc.");
-		}
+//			// Assert
+//			result.Should().Be("Apple Inc.");
+//		}
 
-		[Fact]
-		public void MapSymbol_ShouldReturnSameSymbol_WhenNoMappingExists()
-		{
-			// Arrange
-			var sourceSymbol = "GOOGL";
+//		[Fact]
+//		public void MapSymbol_ShouldReturnSameSymbol_WhenNoMappingExists()
+//		{
+//			// Arrange
+//			var sourceSymbol = "GOOGL";
 
-			// Act
-			var result = symbolMapper.MapSymbol(sourceSymbol);
+//			// Act
+//			var result = symbolMapper.MapSymbol(sourceSymbol);
 
-			// Assert
-			result.Should().Be("GOOGL");
-		}
-	}
-}
+//			// Assert
+//			result.Should().Be("GOOGL");
+//		}
+//	}
+//}

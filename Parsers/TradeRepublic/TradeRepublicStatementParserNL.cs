@@ -171,12 +171,32 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 							break;
 						case "Overschrijving":
-							activities.Add(PartialActivity.CreateCashDeposit(
-											currency,
-											date,
-											amount,
-											new Money(currency, amount),
-											id));
+
+							if (items[0].Text == "PayOut")
+							{
+								activities.Add(PartialActivity.CreateCashWithdrawal(
+									currency,
+									date,
+									amount,
+									new Money(currency, amount),
+									id));
+							}
+							else if (items[0].Text == "Storting" || 
+									 items.Select(x => x.Text).Contains("inpayed") ||
+									 (items.Select(x => x.Text).Contains("Top") && items.Select(x => x.Text).Contains("up")))
+							{
+								activities.Add(PartialActivity.CreateCashDeposit(
+									currency,
+									date,
+									amount,
+									new Money(currency, amount),
+									id));
+							}
+							else
+							{
+								throw new NotSupportedException($"{items[0].Text} not supported as an {singleWordToken.Text}");
+							}
+
 							break;
 						case "Kaarttransactie":
 							activities.Add(PartialActivity.CreateCashWithdrawal(

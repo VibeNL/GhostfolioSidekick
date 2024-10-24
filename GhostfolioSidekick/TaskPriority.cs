@@ -4,20 +4,36 @@
 	{
 		DisplayInformation,
 
-		AccountCreation,
+		GenerateDatabase,
 
-		CreateManualSymbols,
-
-		SetManualPrices,
+		AccountMaintainer,
 
 		FileImporter,
+		
+		CurrencyGatherer,
 
-		DeleteUnusedSymbols,
+		BalanceMaintainer,
 
-		SetTrackingInsightOnSymbols,
+		SymbolMatcher,
+		
+		MarketDataStockSplit,
 
-		SetBenchmarks,
+		MarketDataGatherer,
 
-		GatherAllData,
+		CleanupDatabase,
+
+		SyncWithGhostfolio,
+		
+		//CreateManualSymbols,
+
+		//SetManualPrices,
+
+		//DeleteUnusedSymbols,
+
+		//SetTrackingInsightOnSymbols,
+
+		//SetBenchmarks,
+
+		//GatherAllData,
 	}
 }
