@@ -12,6 +12,8 @@
 		
 		CurrencyGatherer,
 
+		BalanceMaintainer,
+
 		SymbolMatcher,
 		
 		MarketDataStockSplit,
@@ -21,7 +23,7 @@
 		CleanupDatabase,
 
 		SyncWithGhostfolio,
-
+		
 		//CreateManualSymbols,
 
 		//SetManualPrices,

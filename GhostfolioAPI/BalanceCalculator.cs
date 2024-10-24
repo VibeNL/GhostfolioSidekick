@@ -70,16 +70,16 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			}
 
 			var balances = new List<Balance>();
-			Money totalAmount = new Money(baseCurrency, 0);
+			decimal totalAmount = 0m;
 			foreach (var moneyPerDate in moneyTrail.GroupBy(x => DateOnly.FromDateTime(x.Item1)))
 			{
 				foreach (var money in moneyPerDate)
 				{
 					var activityAmount = await exchangeRateService.ConvertMoney(money.Item2, baseCurrency, DateOnly.FromDateTime(money.Item1));
-					totalAmount = totalAmount.Add(activityAmount);
+					totalAmount += activityAmount.Amount;
 				}
 
-				balances.Add(new Balance(moneyPerDate.Key, totalAmount));
+				balances.Add(new Balance(moneyPerDate.Key, new Money(baseCurrency with { }, totalAmount)));
 			}
 
 			return balances;
