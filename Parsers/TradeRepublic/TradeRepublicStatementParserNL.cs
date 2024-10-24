@@ -181,7 +181,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 									new Money(currency, amount),
 									id));
 							}
-							else if (items[0].Text == "Storting")
+							else if (items[0].Text == "Storting" || 
+									 items.Select(x => x.Text).Contains("inpayed") ||
+									 (items.Select(x => x.Text).Contains("Top") && items.Select(x => x.Text).Contains("up")))
 							{
 								activities.Add(PartialActivity.CreateCashDeposit(
 									currency,
