@@ -8,9 +8,10 @@ namespace GhostfolioSidekick.Model.Activities
 		{
 			// EF Core
 			Account = null!;
+			TransactionId = null!;
 		}
 
-		protected Activity(Account account, DateTime date, string? transactionId, int? sortingPriority, string? description)
+		protected Activity(Account account, DateTime date, string transactionId, int? sortingPriority, string? description)
 		{
 			Account = account;
 			Date = date;
@@ -25,7 +26,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public DateTime Date { get; set; }
 
-		public string? TransactionId { get; set; }
+		public string TransactionId { get; set; }
 
 		public int? SortingPriority { get; set; }
 

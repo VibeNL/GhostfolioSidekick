@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.FileImporter
 			DateTime date,
 			decimal amount,
 			Money money,
-			string? transactionId,
+			string transactionId,
 			IEnumerable<Money> fees,
 			IEnumerable<Money> taxes,
 			Money? totalTransactionAmount,

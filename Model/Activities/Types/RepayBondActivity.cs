@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			Money totalRepayAmount,
-			string? transactionId,
+			string transactionId,
 			int? sortingPriority,
 			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{

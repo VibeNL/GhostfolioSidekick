@@ -8,6 +8,7 @@
 			Currency = default!;
 			SymbolIdentifiers = [];
 			TotalTransactionAmount = default!;
+			TransactionId = default!;
 		}
 
 
@@ -16,7 +17,7 @@
 			DateTime dateTime,
 			Currency currency,
 			Money TotalTransactionAmount,
-			string? transactionId)
+			string transactionId)
 		{
 			ActivityType = activityType;
 			Date = dateTime.ToUniversalTime();
@@ -34,7 +35,7 @@
 
 		public decimal Amount { get; private set; }
 
-		public string? TransactionId { get; set; }
+		public string TransactionId { get; set; }
 
 		public ICollection<PartialSymbolIdentifier> SymbolIdentifiers { get; private set; }
 
@@ -120,7 +121,7 @@
 			decimal amount,
 			int? rownumber = 0)
 		{
-			return new PartialActivity(PartialActivityType.KnownBalance, date, currency, new Money(Currency.USD, 0), null)
+			return new PartialActivity(PartialActivityType.KnownBalance, date, currency, new Money(Currency.USD, 0), $"KNOWNBALANCE_{date}")
 			{
 				Amount = amount,
 				SortingPriority = rownumber

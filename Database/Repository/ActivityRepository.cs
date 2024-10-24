@@ -1,7 +1,11 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Database.Migrations;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Matches;
 using GhostfolioSidekick.Model.Symbols;
+using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Principal;
 
 namespace GhostfolioSidekick.Database.Repository
 {
@@ -16,7 +20,38 @@ namespace GhostfolioSidekick.Database.Repository
 		{
 			// Deduplicate entities
 			var existingActivities = await databaseContext.Activities.ToListAsync();
-			foreach (var activity in activities)
+			var existingTransactionIds = existingActivities.Select(x => x.TransactionId).ToList();
+			var newTransactionIds = activities.Select(x => x.TransactionId).ToList();
+
+			// Delete activities that are not in the new list
+			foreach (var deletedTransaction in existingTransactionIds.Except(newTransactionIds))
+			{
+				databaseContext.Activities.RemoveRange(existingActivities.Where(x => x.TransactionId == deletedTransaction));
+			}
+
+			// Add activities that are not in the existing list
+			foreach (var addedTransaction in newTransactionIds.Except(existingTransactionIds))
+			{
+				await databaseContext.Activities.AddRangeAsync(activities.Where(x => x.TransactionId == addedTransaction));
+			}
+
+			// Update activities that are in both lists
+			foreach (var updatedTransaction in existingTransactionIds.Intersect(newTransactionIds))
+			{
+				var existingActivity = existingActivities.Single(x => x.TransactionId == updatedTransaction);
+				var newActivity = activities.Single(x => x.TransactionId == updatedTransaction);
+
+				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
+				ComparisonResult result = compareLogic.Compare(existingActivity, newActivity);
+
+				if (!result.AreEqual)
+				{
+					databaseContext.Activities.Remove(existingActivity);
+					await databaseContext.Activities.AddAsync(newActivity);
+				}
+			}
+
+			/*foreach (var activity in activities)
 			{
 				var existingActivity = existingActivities.FirstOrDefault(CompareActivity(activity));
 				if (existingActivity != null)
@@ -34,7 +69,7 @@ namespace GhostfolioSidekick.Database.Repository
 				{
 					databaseContext.Activities.Remove(existingActivity);
 				}
-			}
+			}*/
 
 			await databaseContext.SaveChangesAsync();
 		}
@@ -66,18 +101,6 @@ namespace GhostfolioSidekick.Database.Repository
 				
 				await databaseContext.SaveChangesAsync();
 			}
-		}
-
-		private static Func<PartialSymbolIdentifier, bool> CompareIdentifier(PartialSymbolIdentifier partialSymbolIdentifier)
-		{
-			return p => p.Identifier == partialSymbolIdentifier.Identifier &&
-						Enumerable.SequenceEqual(p.AllowedAssetClasses ?? [], partialSymbolIdentifier.AllowedAssetClasses ?? []) &&
-						Enumerable.SequenceEqual(p.AllowedAssetSubClasses ?? [], partialSymbolIdentifier.AllowedAssetSubClasses ?? []);
-		}
-
-		private static Func<Activity, bool> CompareActivity(Activity activity)
-		{
-			return a => a.Date == activity.Date && a.TransactionId == activity.TransactionId; // TODO
 		}
 	}
 }

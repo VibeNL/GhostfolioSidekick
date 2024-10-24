@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			decimal amount,
-			string? transactionId,
+			string transactionId,
 			int? sortingPriority,
 			string? description) : base(account, partialSymbolIdentifiers, dateTime, amount, null, transactionId, sortingPriority, description)
 		{
