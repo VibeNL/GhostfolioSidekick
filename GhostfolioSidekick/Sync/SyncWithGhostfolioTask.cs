@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Sync
 
 				var balanceCalculator = new BalanceCalculator(exchangeRateService);
 				var balance = await balanceCalculator.Calculate(Currency.EUR, activities);
-				var currentBalance = balance.OrderByDescending(x => x.DateTime).FirstOrDefault();
+				var currentBalance = balance.OrderByDescending(x => x.Date).FirstOrDefault();
 			}
 		}
 	}

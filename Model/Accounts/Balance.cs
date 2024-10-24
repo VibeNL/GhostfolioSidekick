@@ -5,25 +5,25 @@
 		public Balance()
 		{
 			// EF Core
-			DateTime = default!;
+			Date = default!;
 			Money = default!;
 		}
 
-		public Balance(DateTime dateTime, Money money)
+		public Balance(DateOnly date, Money money)
 		{
-			DateTime = dateTime;
+			Date = date;
 			Money = money;
 		}
 
 		public int Id { get; set; }
 
-		public DateTime DateTime { get; }
+		public DateOnly Date { get; }
 
 		public Money Money { get; set; }
 
 		public override string ToString()
 		{
-			return DateTime.ToInvariantString() + " " + Money.ToString();
+			return Date.ToShortDateString() + " " + Money.ToString();
 		}
 	}
 }

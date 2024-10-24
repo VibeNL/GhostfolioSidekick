@@ -26,7 +26,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				.OfType<KnownBalanceActivity>();
 			if (knownBalances.Any())
 			{
-				return knownBalances.Select(x => new Balance(x.Date, new Money(x.Amount.Currency, x.Amount.Amount))).ToList();
+				return knownBalances
+					.OrderByDescending(x => x.Date)
+					.Select(x => new Balance(DateOnly.FromDateTime(x.Date), new Money(x.Amount.Currency, x.Amount.Amount)))
+					.DistinctBy(x => x.Date)
+					.ToList();
 			}
 
 			List<Tuple<DateTime, Money>> moneyTrail = [];
@@ -67,7 +71,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			var balances = new List<Balance>();
 			Money totalAmount = new Money(baseCurrency, 0);
-			foreach (var moneyPerDate in moneyTrail.GroupBy(x => x.Item1.Date))
+			foreach (var moneyPerDate in moneyTrail.GroupBy(x => DateOnly.FromDateTime(x.Item1)))
 			{
 				foreach (var money in moneyPerDate)
 				{

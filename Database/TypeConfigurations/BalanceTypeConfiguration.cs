@@ -18,6 +18,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					c.Property(p => p.Symbol).HasColumnName("Currency");
 				});
 			});
+
+			builder.HasIndex("AccountId", "Date").IsUnique();
 		}
 	}
 }
