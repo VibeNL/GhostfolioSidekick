@@ -192,7 +192,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 							}
 							else
 							{
-								throw new NotSupportedException();
+								throw new NotSupportedException($"{items[0].Text} not supported as an {singleWordToken.Text}");
 							}
 
 							break;
