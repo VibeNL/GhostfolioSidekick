@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
+using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
@@ -51,14 +52,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.OrderBy(x => x.MaxDate)
 					.FirstOrDefaultAsync();
 
-				// Check if we need to update our data
-				if (dates != null &&
-						dates.MinDate == fromDate &&
-						dates.MaxDate == DateOnly.FromDateTime(DateTime.Today))
-				{
-					continue;
-				}
-
 				var currencyHistory = await currencyRepository.GetCurrencyHistory(match.Item1.Currency, match.Item2.Currency, fromDate);
 				if (currencyHistory != null)
 				{
@@ -67,13 +60,26 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					var symbolProfile = await writeDatabaseContext.SymbolProfiles
 						.Where(x => x.Symbol == symbolString)
 						.FirstOrDefaultAsync() ?? new SymbolProfile(symbolString, symbolString, [], match.Item1.Currency with { }, Datasource.YAHOO, AssetClass.Undefined, null, [], []);
-					symbolProfile.MarketData.Clear();
-
+					
 					foreach (var item in currencyHistory)
 					{
+						var existing = symbolProfile.MarketData.SingleOrDefault(x => x.Date == item.Date);
+
+						if (existing != null)
+						{
+							var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
+							ComparisonResult result = compareLogic.Compare(existing, item);
+
+							if (result.AreEqual)
+							{
+								continue;
+							}
+							
+							symbolProfile.MarketData.Remove(existing);
+						}
+
 						symbolProfile.MarketData.Add(item);
 					}
-
 
 					if (!await databaseContext.SymbolProfiles.ContainsAsync(symbolProfile).ConfigureAwait(false))
 					{

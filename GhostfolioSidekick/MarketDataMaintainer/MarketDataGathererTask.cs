@@ -50,16 +50,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					var minDate = symbol.MarketData.Min(x => x.Date);
 					var maxDate = symbol.MarketData.Max(x => x.Date);
 
-					if (date >= minDate && DateOnly.FromDateTime(DateTime.Today.AddDays(-1)) <= maxDate) // For now 1 day old only
+					// Only get new data since our earliest date is inside the database
+					// Or we cannot get data ealiers than we already have
+					if (date >= minDate || minDate <= stockPriceRepository.MinDate)
 					{
-						logger.LogDebug($"Skipping {symbol.Symbol} as it is up to date");
-						continue;
-					}
-
-					if (minDate <= stockPriceRepository.MinDate && DateOnly.FromDateTime(DateTime.Today.AddDays(-1)) <= maxDate) // For now 1 day old only
-					{
-						logger.LogDebug($"Skipping {symbol.Symbol} as it is up to date");
-						continue;
+						date = maxDate;
 					}
 				}
 

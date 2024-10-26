@@ -35,31 +35,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			this.databaseContext = databaseContext;
 		}
 
-		public async Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
+		public Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
-			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
-					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
-					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily));
-
-			if (history == null)
-			{
-				return [];
-			}
-
-			var list = new List<MarketData>();
-			foreach (var candle in history)
-			{
-				var item = new MarketData(
-									new Money(currencyTo with { }, candle.Close),
-									new Money(currencyTo with { }, candle.Open),
-									new Money(currencyTo with { }, candle.High),
-									new Money(currencyTo with { }, candle.Low),
-									candle.Volume,
-									DateOnly.FromDateTime(candle.DateTime.Date));
-				list.Add(item);
-			}
-
-			return list;
+			return GetStockMarketData($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", currencyFrom, fromDate);
 		}
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] identifiers)
@@ -140,7 +118,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
-			var history = await YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily);
+			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
+					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily));
+
+			if (history == null)
+			{
+				return [];
+			}
 
 			var list = new List<MarketData>();
 			foreach (var candle in history)
@@ -178,6 +163,33 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				// No split?
 			}
 			
+			return list;
+		}
+
+		private async Task<IEnumerable<MarketData>> GetStockMarketData(string symbol, Currency currency, DateOnly fromDate)
+		{
+			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
+					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily));
+
+			if (history == null)
+			{
+				return [];
+			}
+
+			var list = new List<MarketData>();
+			foreach (var candle in history)
+			{
+				var item = new MarketData(
+									new Money(currency with { }, candle.Close),
+									new Money(currency with { }, candle.Open),
+									new Money(currency with { }, candle.High),
+									new Money(currency with { }, candle.Low),
+									candle.Volume,
+									DateOnly.FromDateTime(candle.DateTime.Date));
+				list.Add(item);
+			}
+
 			return list;
 		}
 
