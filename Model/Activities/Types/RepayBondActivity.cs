@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -11,6 +12,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		}
 
 		public RepayBondActivity(
+			SymbolProfile? symbolProfile,
 			Account account,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
@@ -20,10 +22,13 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
+			SymbolProfile = symbolProfile;
 			TotalRepayAmount = totalRepayAmount;
 		}
 
 		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+
+		public SymbolProfile? SymbolProfile { get; }
 
 		public Money TotalRepayAmount { get; }
 

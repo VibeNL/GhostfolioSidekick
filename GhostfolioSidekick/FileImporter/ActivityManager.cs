@@ -104,31 +104,31 @@ namespace GhostfolioSidekick.FileImporter
 			switch (activityType)
 			{
 				case PartialActivityType.Buy:
-					return new BuySellActivity(account, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
+					return new BuySellActivity(null, account, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Sell:
-					return new BuySellActivity(account, partialSymbolIdentifiers, date, -amount, money, transactionId, sortingPriority, description)
+					return new BuySellActivity(null, account, partialSymbolIdentifiers, date, -amount, money, transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Receive:
-					return new SendAndReceiveActivity(account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
+					return new SendAndReceiveActivity(null, account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 					{
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Send:
-					return new SendAndReceiveActivity(account, partialSymbolIdentifiers, date, -amount, transactionId, sortingPriority, description)
+					return new SendAndReceiveActivity(null, account, partialSymbolIdentifiers, date, -amount, transactionId, sortingPriority, description)
 					{
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Dividend:
-					return new DividendActivity(account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
+					return new DividendActivity(null, account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
@@ -148,11 +148,11 @@ namespace GhostfolioSidekick.FileImporter
 				case PartialActivityType.Liability:
 					return new LiabilityActivity(account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.Gift:
-					return new GiftActivity(account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
+					return new GiftActivity(null, account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
 				case PartialActivityType.StakingReward:
-					return new StakingRewardActivity(account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
+					return new StakingRewardActivity(null, account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
 				case PartialActivityType.BondRepay:
-					return new RepayBondActivity(account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new RepayBondActivity(null, account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				default:
 					throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented");
 			}

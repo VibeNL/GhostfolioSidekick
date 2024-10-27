@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -8,9 +9,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		{
 			// EF Core
 			Amount = null!;
+			SymbolProfile = null!;
 		}
 
 		public DividendActivity(
+			SymbolProfile? symbolProfile,
 			Account account,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
@@ -20,12 +23,15 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
 		{
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
+			SymbolProfile = symbolProfile;
 			Amount = amount;
 		}
 
 		public ICollection<Money> Fees { get; set; } = [];
 
 		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+
+		public SymbolProfile? SymbolProfile { get; }
 		
 		public Money Amount { get; set; }
 

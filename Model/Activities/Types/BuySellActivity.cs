@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -10,14 +11,15 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		}
 
 		public BuySellActivity(
-		Account account,
-		ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
-		DateTime dateTime,
-		decimal quantity,
-		Money? unitPrice,
-		string transactionId,
-		int? sortingPriority,
-		string? description) : base(account, partialSymbolIdentifiers, dateTime, quantity, unitPrice, transactionId, sortingPriority, description)
+			SymbolProfile? symbolProfile,
+			Account account,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
+			DateTime dateTime,
+			decimal quantity,
+			Money? unitPrice,
+			string transactionId,
+			int? sortingPriority,
+			string? description) : base(symbolProfile, account, partialSymbolIdentifiers, dateTime, quantity, unitPrice, transactionId, sortingPriority, description)
 		{
 		}
 

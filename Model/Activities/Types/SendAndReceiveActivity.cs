@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -10,13 +11,14 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		}
 
 		public SendAndReceiveActivity(
+			SymbolProfile? symbolProfile,
 			Account account,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			decimal amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, partialSymbolIdentifiers, dateTime, amount, null, transactionId, sortingPriority, description)
+			string? description) : base(symbolProfile, account, partialSymbolIdentifiers, dateTime, amount, null, transactionId, sortingPriority, description)
 		{
 		}
 
