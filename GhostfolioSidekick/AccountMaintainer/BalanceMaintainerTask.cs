@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model;
 using KellermanSoftware.CompareNetObjects;

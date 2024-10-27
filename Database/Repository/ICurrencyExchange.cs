@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GhostfolioSidekick.GhostfolioAPI
+namespace GhostfolioSidekick.Database.Repository
 {
 	public interface ICurrencyExchange
 	{

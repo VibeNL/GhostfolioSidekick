@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.ExternalDataProvider;
+﻿using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;

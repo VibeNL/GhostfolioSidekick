@@ -6,7 +6,6 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.FileImporter;
-using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Parsers;
