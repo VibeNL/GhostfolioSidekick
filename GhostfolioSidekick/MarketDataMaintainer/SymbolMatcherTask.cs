@@ -5,7 +5,7 @@ using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class SymbolMatcherTask(ISymbolMatcher[] symbolMatchers, IActivityRepository activityRepository, IMarketDataRepository marketDataRepository) : IScheduledWork
+	internal class SymbolMatcherTask(ISymbolMatcher[] symbolMatchers, IActivityRepository activityRepository/*, IMarketDataRepository marketDataRepository*/) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.SymbolMatcher;
 
@@ -29,19 +29,19 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 					foreach(var symbolMatcher in symbolMatchers)
 					{
-						if (await activityRepository.HasMatch(ids, symbolMatcher.DataSource))
-						{
-							continue;
-						}
+						//if (await activityRepository.HasMatch(ids, symbolMatcher.DataSource))
+						//{
+						//	continue;
+						//}
 
-						var symbol = await symbolMatcher.MatchSymbol([.. ids]).ConfigureAwait(false);
+						//var symbol = await symbolMatcher.MatchSymbol([.. ids]).ConfigureAwait(false);
 
-						if (symbol != null)
-						{
-							await marketDataRepository.Store(symbol);
-							await activityRepository.SetMatch(activity, symbol);
-							break;
-						}
+						//if (symbol != null)
+						//{
+						//	await marketDataRepository.Store(symbol);
+						//	await activityRepository.SetMatch(activity, symbol);
+						//	break;
+						//}
 					}
 				}
 			}

@@ -11,9 +11,10 @@ namespace GhostfolioSidekick.Model.Activities
 			TransactionId = null!;
 		}
 
-		protected Activity(Account account, DateTime date, string transactionId, int? sortingPriority, string? description)
+		protected Activity(Account account, Holding? holding, DateTime date, string transactionId, int? sortingPriority, string? description)
 		{
 			Account = account;
+			Holding = holding;
 			Date = date;
 			TransactionId = transactionId;
 			SortingPriority = sortingPriority;
@@ -23,6 +24,8 @@ namespace GhostfolioSidekick.Model.Activities
 		public long Id { get; set; }
 
 		public virtual Account Account { get; set; }
+
+		public Holding? Holding { get; }
 
 		public DateTime Date { get; set; }
 

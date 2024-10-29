@@ -1,7 +1,4 @@
-﻿using GhostfolioSidekick.Model.Matches;
-using GhostfolioSidekick.Model.Symbols;
-
-namespace GhostfolioSidekick.Model.Activities
+﻿namespace GhostfolioSidekick.Model.Activities
 {
 	public record PartialSymbolIdentifier
 	{

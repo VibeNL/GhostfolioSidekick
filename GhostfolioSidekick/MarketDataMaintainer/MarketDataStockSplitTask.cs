@@ -38,8 +38,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.Include(x => x.MarketData)
 					.Where(x => x.Symbol == symbolIds.Item1 && x.DataSource == symbolIds.Item2)
 					.SingleAsync();
-				var minActivityDate = await databaseContext.ActivitySymbols.Where(x => x.SymbolProfile == symbol)
-					.MinAsync(x => x.Activity!.Date);
+				var minActivityDate = await databaseContext.Holdings.Where(x => x.SymbolProfiles.Contains(symbol))
+					.SelectMany(x => x.Activities)
+					.MinAsync(x => x!.Date);
 
 				var date = DateOnly.FromDateTime(minActivityDate);
 				var stockSplitRepository = stockPriceRepositories.SingleOrDefault(x => x.DataSource == symbol.DataSource);

@@ -12,12 +12,13 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public ValuableActivity(
 			Account account,
+			Holding? holding,	
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			Money amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
 		{
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
 			Price = amount;

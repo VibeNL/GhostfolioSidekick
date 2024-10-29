@@ -11,15 +11,15 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		}
 
 		public BuySellActivity(
-			SymbolProfile? symbolProfile,
 			Account account,
+			Holding? holding,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			decimal quantity,
 			Money? unitPrice,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(symbolProfile, account, partialSymbolIdentifiers, dateTime, quantity, unitPrice, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, quantity, unitPrice, transactionId, sortingPriority, description)
 		{
 		}
 

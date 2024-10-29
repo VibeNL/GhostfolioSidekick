@@ -13,12 +13,11 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public GiftActivityTests()
 		{
 			var account = new Fixture().Create<Account>();
-			var symbolProfile = new Fixture().Create<SymbolProfile>();
 			var dateTime = DateTime.Now;
 			var amount = 1;
 			var transactionId = "transactionId";
 
-			activity = new GiftActivity(symbolProfile, account, [], dateTime, amount, transactionId, null, null);
+			activity = new GiftActivity(account, new Holding(), [], dateTime, amount, transactionId, null, null);
 		}
 
 		[Fact]

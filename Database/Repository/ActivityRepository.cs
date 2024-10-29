@@ -1,11 +1,7 @@
-﻿using GhostfolioSidekick.Database.Migrations;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Matches;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Principal;
 
 namespace GhostfolioSidekick.Database.Repository
 {
@@ -52,35 +48,6 @@ namespace GhostfolioSidekick.Database.Repository
 			}
 
 			await databaseContext.SaveChangesAsync();
-		}
-
-		public async Task<bool> HasMatch(ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers, string dataSource)
-		{
-			var match = await databaseContext.ActivitySymbols.SingleOrDefaultAsync(x => partialSymbolIdentifiers.Contains(x.PartialSymbolIdentifier) && x.SymbolProfile!.DataSource == dataSource);
-
-			return match != null;
-		}
-
-		public async Task SetMatch(Activity activity, SymbolProfile symbolProfile)
-		{
-			var match = await databaseContext.ActivitySymbols.SingleOrDefaultAsync(x => x.Activity == activity && x.SymbolProfile == symbolProfile);
-
-			if (match == null)
-			{
-				foreach (var item in ((IActivityWithPartialIdentifier)activity).PartialSymbolIdentifiers)
-				{
-					var newMatch = new ActivitySymbol
-					{
-						Activity = activity,
-						SymbolProfile = symbolProfile,
-						PartialSymbolIdentifier = item
-					};
-
-					await databaseContext.ActivitySymbols.AddAsync(newMatch);
-				}
-				
-				await databaseContext.SaveChangesAsync();
-			}
 		}
 	}
 }

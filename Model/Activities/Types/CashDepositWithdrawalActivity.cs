@@ -12,11 +12,12 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public CashDepositWithdrawalActivity(
 			Account account,
+			Holding? holding,
 			DateTime dateTime,
 			Money amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
 		{
 			Amount = amount;
 		}

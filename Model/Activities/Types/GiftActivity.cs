@@ -10,14 +10,14 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		}
 
 		public GiftActivity(
-			SymbolProfile? symbolProfile,
 			Account account,
+			Holding? holding,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			decimal amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(symbolProfile, account, partialSymbolIdentifiers, dateTime, amount, null, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, amount, null, transactionId, sortingPriority, description)
 		{
 		}
 

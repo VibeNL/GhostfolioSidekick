@@ -13,12 +13,11 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 		public SendAndReceiveActivityTests()
 		{
 			var account = new Fixture().Create<Account>();
-			var symbolProfile = new Fixture().Create<SymbolProfile>();
 			var dateTime = DateTime.Now;
 			var quantity = 10m;
 			var transactionId = "transactionId";
 
-			activity = new SendAndReceiveActivity(symbolProfile, account, [], dateTime, quantity, transactionId, null, null);
+			activity = new SendAndReceiveActivity(account, new Holding(), [], dateTime, quantity, transactionId, null, null);
 		}
 
 		[Fact]

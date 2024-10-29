@@ -104,55 +104,55 @@ namespace GhostfolioSidekick.FileImporter
 			switch (activityType)
 			{
 				case PartialActivityType.Buy:
-					return new BuySellActivity(null, account, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
+					return new BuySellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Sell:
-					return new BuySellActivity(null, account, partialSymbolIdentifiers, date, -amount, money, transactionId, sortingPriority, description)
+					return new BuySellActivity(account, null, partialSymbolIdentifiers, date, -amount, money, transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Receive:
-					return new SendAndReceiveActivity(null, account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
+					return new SendAndReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 					{
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Send:
-					return new SendAndReceiveActivity(null, account, partialSymbolIdentifiers, date, -amount, transactionId, sortingPriority, description)
+					return new SendAndReceiveActivity(account, null, partialSymbolIdentifiers, date, -amount, transactionId, sortingPriority, description)
 					{
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Dividend:
-					return new DividendActivity(null, account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
+					return new DividendActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
 					{
 						Taxes = taxes.ToList(),
 						Fees = fees.ToList(),
 					};
 				case PartialActivityType.Interest:
-					return new InterestActivity(account, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.Fee:
-					return new FeeActivity(account, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new FeeActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.CashDeposit:
-					return new CashDepositWithdrawalActivity(account, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new CashDepositWithdrawalActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.CashWithdrawal:
-					return new CashDepositWithdrawalActivity(account, date, totalTransactionAmount.Times(-1), transactionId, sortingPriority, description);
+					return new CashDepositWithdrawalActivity(account, null, date, totalTransactionAmount.Times(-1), transactionId, sortingPriority, description);
 				case PartialActivityType.KnownBalance:
-					return new KnownBalanceActivity(account, date, money, transactionId, sortingPriority, description);
+					return new KnownBalanceActivity(account, null, date, money, transactionId, sortingPriority, description);
 				case PartialActivityType.Valuable:
-					return new ValuableActivity(account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new ValuableActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.Liability:
-					return new LiabilityActivity(account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new LiabilityActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.Gift:
-					return new GiftActivity(null, account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
+					return new GiftActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
 				case PartialActivityType.StakingReward:
-					return new StakingRewardActivity(null, account, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
+					return new StakingRewardActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
 				case PartialActivityType.BondRepay:
-					return new RepayBondActivity(null, account, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new RepayBondActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				default:
 					throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented");
 			}

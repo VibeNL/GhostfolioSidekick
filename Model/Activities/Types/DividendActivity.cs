@@ -9,21 +9,19 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		{
 			// EF Core
 			Amount = null!;
-			SymbolProfile = null!;
 		}
 
 		public DividendActivity(
-			SymbolProfile? symbolProfile,
 			Account account,
+			Holding? holding,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			Money amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, dateTime, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
 		{
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
-			SymbolProfile = symbolProfile;
 			Amount = amount;
 		}
 
@@ -31,8 +29,6 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
-		public SymbolProfile? SymbolProfile { get; }
-		
 		public Money Amount { get; set; }
 
 		public ICollection<Money> Taxes { get; set; } = [];

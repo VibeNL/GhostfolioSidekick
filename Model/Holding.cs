@@ -9,16 +9,18 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.Model
 {
-	public class Holding(SymbolProfile? symbolProfile)
+	public class Holding
 	{
-		public SymbolProfile? SymbolProfile { get; } = symbolProfile;
+		public int Id { get; set; }
 
-		public List<Activity> Activities { get; set; } = [];
+		public virtual List<SymbolProfile> SymbolProfiles { get; set; } = [];
+
+		public virtual List<Activity> Activities { get; set; } = [];
 
 		[ExcludeFromCodeCoverage]
 		override public string ToString()
 		{
-			return $"{SymbolProfile?.Symbol} - {Activities.Count} activities";
+			return $"{SymbolProfiles.FirstOrDefault()?.Symbol} - {Activities.Count} activities";
 		}
 	}
 }
