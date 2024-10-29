@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,11 @@ namespace GhostfolioSidekick.Database.Repository
 {
 	public class ActivityRepository(DatabaseContext databaseContext) : IActivityRepository
 	{
+		public async Task<Holding?> FindHolding(IList<PartialSymbolIdentifier> ids)
+		{
+			return await databaseContext.Holdings.SingleOrDefaultAsync(x => x.PartialSymbolIdentifiers.Any(y => ids.Contains(y)));
+		}
+
 		public async Task<IEnumerable<Activity>> GetAllActivities()
 		{
 			return await databaseContext.Activities.ToListAsync();

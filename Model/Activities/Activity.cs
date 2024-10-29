@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public virtual Account Account { get; set; }
 
-		public Holding? Holding { get; }
+		public Holding? Holding { get; set; }
 
 		public DateTime Date { get; set; }
 

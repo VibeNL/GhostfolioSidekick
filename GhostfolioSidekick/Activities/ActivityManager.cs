@@ -5,7 +5,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers;
 
-namespace GhostfolioSidekick.FileImporter
+namespace GhostfolioSidekick.Activities
 {
 	internal class ActivityManager(
 		IAccountRepository accountRepository) : IActivityManager

@@ -17,6 +17,19 @@ namespace GhostfolioSidekick.Model
 
 		public virtual List<Activity> Activities { get; set; } = [];
 
+		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+
+		public void MergeIdentifiers(IList<PartialSymbolIdentifier> ids)
+		{
+			foreach (var item in ids)
+			{
+				if (!PartialSymbolIdentifiers.Any(x => x == item))
+				{
+					PartialSymbolIdentifiers.Add(item);
+				}
+			}
+		}
+
 		[ExcludeFromCodeCoverage]
 		override public string ToString()
 		{

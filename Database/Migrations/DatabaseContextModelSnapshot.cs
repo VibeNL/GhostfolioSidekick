@@ -149,6 +149,11 @@ namespace GhostfolioSidekick.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("PartialSymbolIdentifiers")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PartialSymbolIdentifiers");
+
                     b.HasKey("Id");
 
                     b.ToTable("Holdings", (string)null);

@@ -1,11 +1,11 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
-using GhostfolioSidekick.FileImporter;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Parsers;

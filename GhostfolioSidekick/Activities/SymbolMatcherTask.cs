@@ -3,7 +3,7 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.MarketDataMaintainer
+namespace GhostfolioSidekick.Activities
 {
 	internal class SymbolMatcherTask(ISymbolMatcher[] symbolMatchers, IActivityRepository activityRepository/*, IMarketDataRepository marketDataRepository*/) : IScheduledWork
 	{
@@ -27,21 +27,35 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						continue;
 					}
 
-					foreach(var symbolMatcher in symbolMatchers)
+					var holding = await activityRepository.FindHolding(ids);
+
+					if (holding != null)
 					{
-						//if (await activityRepository.HasMatch(ids, symbolMatcher.DataSource))
-						//{
-						//	continue;
-						//}
+						holding.MergeIdentifiers(ids);
+					}
+					else
+					{
+						holding = new Holding
+						{
+							PartialSymbolIdentifiers = ids
+						};
+					}
 
-						//var symbol = await symbolMatcher.MatchSymbol([.. ids]).ConfigureAwait(false);
+					activity.Holding = holding;
 
-						//if (symbol != null)
-						//{
-						//	await marketDataRepository.Store(symbol);
-						//	await activityRepository.SetMatch(activity, symbol);
-						//	break;
-						//}
+					foreach (var symbolMatcher in symbolMatchers)
+					{
+						if (holding.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource))
+						{
+							continue;
+						}
+
+						var symbol = await symbolMatcher.MatchSymbol(ids.ToArray()).ConfigureAwait(false);
+
+						if (symbol != null)
+						{
+							holding.SymbolProfiles.Add(symbol);
+						}
 					}
 				}
 			}

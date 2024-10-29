@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20241029082516_ReintroduceHolding")]
+    [Migration("20241029085641_ReintroduceHolding")]
     partial class ReintroduceHolding
     {
         /// <inheritdoc />
@@ -151,6 +151,11 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("PartialSymbolIdentifiers")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PartialSymbolIdentifiers");
 
                     b.HasKey("Id");
 

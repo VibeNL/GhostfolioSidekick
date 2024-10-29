@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace GhostfolioSidekick.FileImporter
+namespace GhostfolioSidekick.Activities
 {
 	[Serializable]
 	[ExcludeFromCodeCoverage]
