@@ -10,12 +10,26 @@ namespace GhostfolioSidekick.Database.Repository
 	{
 		public async Task<Holding?> FindHolding(IList<PartialSymbolIdentifier> ids)
 		{
-			return await databaseContext.Holdings.SingleOrDefaultAsync(x => x.PartialSymbolIdentifiers.Any(y => ids.Contains(y)));
+			return (await databaseContext.Holdings.ToListAsync()).SingleOrDefault(x => ids.Any(y => x.IdentifierContainsInList(y)));
 		}
 
 		public async Task<IEnumerable<Activity>> GetAllActivities()
 		{
 			return await databaseContext.Activities.ToListAsync();
+		}
+
+		public async Task Store(Holding holding)
+		{
+			if (holding.Id == 0)
+			{
+				await databaseContext.Holdings.AddAsync(holding);
+			}
+			else
+			{
+				databaseContext.Holdings.Update(holding);
+			}
+
+			await databaseContext.SaveChangesAsync();
 		}
 
 		public async Task StoreAll(IEnumerable<Activity> activities)
@@ -55,5 +69,7 @@ namespace GhostfolioSidekick.Database.Repository
 
 			await databaseContext.SaveChangesAsync();
 		}
+
+		
 	}
 }

@@ -12,16 +12,16 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.Sync
 {
-	internal class SyncWithGhostfolioTask(IActivitiesService activitiesService) : IScheduledWork
+	internal class SyncWithGhostfolioTask(/*IActivitiesService activitiesService*/) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.SyncWithGhostfolio;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromMinutes(5);
 
-		public async Task DoWork()
+		public Task DoWork()
 		{
-			var existing = await activitiesService.GetAllActivities();
-
+			//var existing = await activitiesService.GetAllActivities();
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -57,6 +57,8 @@ namespace GhostfolioSidekick.Activities
 							holding.SymbolProfiles.Add(symbol);
 						}
 					}
+
+					await activityRepository.Store(holding);
 				}
 			}
 		}

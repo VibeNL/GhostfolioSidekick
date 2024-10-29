@@ -9,7 +9,9 @@ namespace GhostfolioSidekick.Database.Repository
 		Task<Holding?> FindHolding(IList<PartialSymbolIdentifier> ids);
 
 		Task<IEnumerable<Activity>> GetAllActivities();
-
+		
+		Task Store(Holding holding);
+		
 		Task StoreAll(IEnumerable<Activity> activities);
 	}
 }

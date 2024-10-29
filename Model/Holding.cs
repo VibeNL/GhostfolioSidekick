@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Model
 		{
 			foreach (var item in ids)
 			{
-				if (!PartialSymbolIdentifiers.Any(x => x == item))
+				if (!IdentifierContainsInList(item))
 				{
 					PartialSymbolIdentifiers.Add(item);
 				}
@@ -34,6 +34,23 @@ namespace GhostfolioSidekick.Model
 		override public string ToString()
 		{
 			return $"{SymbolProfiles.FirstOrDefault()?.Symbol} - {Activities.Count} activities";
+		}
+
+		public bool IdentifierContainsInList(PartialSymbolIdentifier newId)
+		{
+			foreach (var item in PartialSymbolIdentifiers)
+			{
+				var idsMatch = item.Identifier == newId.Identifier;
+				var allowedAssetClassesMatch = item.AllowedAssetClasses?.Any(y => newId.AllowedAssetClasses?.Contains(y) ?? true) ?? true;
+				var allowedSubClass = item.AllowedAssetSubClasses?.Any(y => newId.AllowedAssetSubClasses?.Contains(y) ?? true) ?? true;
+
+				if (idsMatch && allowedAssetClassesMatch && allowedSubClass)
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 }
