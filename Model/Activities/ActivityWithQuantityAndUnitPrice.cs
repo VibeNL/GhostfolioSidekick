@@ -31,5 +31,9 @@ namespace GhostfolioSidekick.Model.Activities
 		public decimal Quantity { get; set; }
 
 		public Money? UnitPrice { get; set; }
+
+		public Money? CalculatedUnitPrice { get; set; }
+
+		public IList<CalculatedPriceTrace> CalculatedUnitPriceSource { get; set; } = [];
 	}
 }

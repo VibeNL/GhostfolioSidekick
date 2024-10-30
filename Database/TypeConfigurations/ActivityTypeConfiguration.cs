@@ -34,6 +34,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		private const string PartialSymbolIdentifiers = "PartialSymbolIdentifiers";
 		private readonly ValueComparer<ICollection<Money>> moneyListComparer;
 		private readonly ValueComparer<ICollection<PartialSymbolIdentifier>> partialSymbolIdentifiersListComparer;
+		private readonly ValueComparer<ICollection<CalculatedPriceTrace>> calculatedPriceTrace;
 		private readonly JsonSerializerOptions serializationOptions;
 
 		public ActivityTypeConfiguration()
@@ -44,6 +45,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				c => c.ToList());
 
 			partialSymbolIdentifiersListComparer = new ValueComparer<ICollection<PartialSymbolIdentifier>>(
+				(c1, c2) => c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList());
+
+			calculatedPriceTrace = new ValueComparer<ICollection<CalculatedPriceTrace>>(
 				(c1, c2) => c1.SequenceEqual(c2),
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 				c => c.ToList());
@@ -85,16 +91,22 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					v => PartialSymbolIdentifiersToString(v),
 					v => StringToPartialSymbolIdentifiers(v),
 					partialSymbolIdentifiersListComparer);
-		}
 
-		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
-		{
-			builder.Property(b => b.UnitPrice)
-					.HasColumnName(UnitPrice)
+			builder.Property(b => b.CalculatedUnitPrice)
+					.HasColumnName("CalculatedUnitPrice")
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
 
+			builder.Property(b => b.CalculatedUnitPriceSource)
+				.HasColumnName("CalculatedUnitPriceSource")
+				.HasConversion(
+					v => JsonSerializer.Serialize(v, serializationOptions),
+					v => JsonSerializer.Deserialize<IList<CalculatedPriceTrace>>(v, serializationOptions) ?? new List<CalculatedPriceTrace>());
+		}
+
+		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
+		{
 			builder.Property(b => b.Fees)
 					.HasColumnName(Fees)
 					.HasConversion(
@@ -166,18 +178,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<GiftActivity> builder)
 		{
-			builder.Property(b => b.UnitPrice)
-					.HasColumnName(UnitPrice)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<InterestActivity> builder)
@@ -232,40 +232,16 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<SendAndReceiveActivity> builder)
 		{
-			builder.Property(b => b.UnitPrice)
-					.HasColumnName(UnitPrice)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
 			builder.Property(b => b.Fees)
 					.HasColumnName(Fees)
 					.HasConversion(
 						v => MoniesToString(v),
 						v => StringToMonies(v),
 						moneyListComparer);
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
 		{
-			builder.Property(b => b.UnitPrice)
-					.HasColumnName(UnitPrice)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)
