@@ -1,19 +1,19 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI.Strategies
-{
-	public enum StrategiesPriority
-	{
-		DeterminePrice,
+﻿//namespace GhostfolioSidekick.GhostfolioAPI.Strategies
+//{
+//	public enum StrategiesPriority
+//	{
+//		DeterminePrice,
 
-		StockSplit,
+//		StockSplit,
 
-		StakeRewardWorkaround,
+//		StakeRewardWorkaround,
 
-		NotNativeSupportedTransactionsInGhostfolio,
+//		NotNativeSupportedTransactionsInGhostfolio,
 
-		TaxesOnDividends,
+//		TaxesOnDividends,
 
-		Rounding,
+//		Rounding,
 
-		ApplyDustCorrection,
-	}
-}
+//		ApplyDustCorrection,
+//	}
+//}

@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.GhostfolioAPI.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -9,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace GhostfolioSidekick.Activities.Strategies
 {
-	public class StockSplitStrategy(IActivityRepository activityRepository) : IHoldingStrategy
+	public class StockSplitStrategy : IHoldingStrategy
 	{
 		public int Priority => (int)StrategiesPriority.StockSplit;
 
@@ -34,7 +33,6 @@ namespace GhostfolioSidekick.Activities.Strategies
 				}
 			}
 
-			activityRepository.Store(holding);
 			return Task.CompletedTask;
 		}
 	}

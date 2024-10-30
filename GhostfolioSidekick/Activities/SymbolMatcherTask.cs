@@ -2,10 +2,11 @@
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Activities
 {
-	internal class SymbolMatcherTask(ISymbolMatcher[] symbolMatchers, IActivityRepository activityRepository/*, IMarketDataRepository marketDataRepository*/) : IScheduledWork
+	internal class SymbolMatcherTask(ILogger<SymbolMatcherTask> logger, ISymbolMatcher[] symbolMatchers, IActivityRepository activityRepository/*, IMarketDataRepository marketDataRepository*/) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.SymbolMatcher;
 
@@ -55,6 +56,7 @@ namespace GhostfolioSidekick.Activities
 						if (symbol != null)
 						{
 							holding.SymbolProfiles.Add(symbol);
+							logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",",ids.Select(x => x.Identifier))}");
 						}
 					}
 
