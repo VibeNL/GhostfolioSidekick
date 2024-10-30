@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		private const string PartialSymbolIdentifiers = "PartialSymbolIdentifiers";
 		private readonly ValueComparer<ICollection<Money>> moneyListComparer;
 		private readonly ValueComparer<ICollection<PartialSymbolIdentifier>> partialSymbolIdentifiersListComparer;
-		private readonly ValueComparer<ICollection<CalculatedPriceTrace>> calculatedPriceTrace;
+		private readonly ValueComparer<ICollection<CalculatedPriceTrace>> calculatedPriceTraceComparer;
 		private readonly JsonSerializerOptions serializationOptions;
 
 		public ActivityTypeConfiguration()
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 				c => c.ToList());
 
-			calculatedPriceTrace = new ValueComparer<ICollection<CalculatedPriceTrace>>(
+			calculatedPriceTraceComparer = new ValueComparer<ICollection<CalculatedPriceTrace>>(
 				(c1, c2) => c1.SequenceEqual(c2),
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 				c => c.ToList());
@@ -102,7 +102,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasColumnName("CalculatedUnitPriceSource")
 				.HasConversion(
 					v => JsonSerializer.Serialize(v, serializationOptions),
-					v => JsonSerializer.Deserialize<IList<CalculatedPriceTrace>>(v, serializationOptions) ?? new List<CalculatedPriceTrace>());
+					v => JsonSerializer.Deserialize<IList<CalculatedPriceTrace>>(v, serializationOptions) ?? new List<CalculatedPriceTrace>(),
+					calculatedPriceTraceComparer);
 		}
 
 		public void Configure(EntityTypeBuilder<BuySellActivity> builder)

@@ -267,6 +267,9 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
 
+                    b.Property<decimal?>("CalculatedQuantity")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("CalculatedUnitPrice")
                         .HasColumnType("TEXT")
                         .HasColumnName("CalculatedUnitPrice");

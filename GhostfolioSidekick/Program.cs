@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Activities;
+using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
@@ -135,6 +136,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, BalanceMaintainerTask>();
 							services.AddScoped<IScheduledWork, MarketDataGathererTask>();
 							services.AddScoped<IScheduledWork, MarketDataStockSplitTask>();
+							services.AddScoped<IScheduledWork, CalculatePriceTask>();
 							services.AddScoped<IScheduledWork, CleanupDatabaseTask>();
 							services.AddScoped<IScheduledWork, SyncWithGhostfolioTask>();
 							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
@@ -143,6 +145,9 @@ namespace GhostfolioSidekick
 							////services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
 							////services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							////services.AddScoped<IScheduledWork, GatherAllDataTask>();
+
+							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
+
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();

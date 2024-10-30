@@ -19,11 +19,13 @@
 		MarketDataStockSplit,
 
 		MarketDataGatherer,
+		
+		CalculatePrice,
 
 		CleanupDatabase,
 
 		SyncWithGhostfolio,
-		
+
 		//CreateManualSymbols,
 
 		//SetManualPrices,

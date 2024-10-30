@@ -5,11 +5,17 @@
 namespace GhostfolioSidekick.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class CalculatedPrice : Migration
+    public partial class AddCalculatedPriceAndQuantity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<decimal>(
+                name: "CalculatedQuantity",
+                table: "Activities",
+                type: "TEXT",
+                nullable: true);
+
             migrationBuilder.AddColumn<string>(
                 name: "CalculatedUnitPrice",
                 table: "Activities",
@@ -26,6 +32,10 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "CalculatedQuantity",
+                table: "Activities");
+
             migrationBuilder.DropColumn(
                 name: "CalculatedUnitPrice",
                 table: "Activities");

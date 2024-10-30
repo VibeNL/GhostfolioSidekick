@@ -18,6 +18,11 @@ namespace GhostfolioSidekick.Database.Repository
 			return await databaseContext.Activities.ToListAsync();
 		}
 
+		public async Task<IEnumerable<Holding>> GetAllHoldings()
+		{
+			return await databaseContext.Holdings.ToListAsync();
+		}
+
 		public async Task Store(Holding holding)
 		{
 			if (holding.Id == 0)

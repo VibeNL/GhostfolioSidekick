@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20241030094105_CalculatedPrice")]
-    partial class CalculatedPrice
+    [Migration("20241030115925_AddCalculatedPriceAndQuantity")]
+    partial class AddCalculatedPriceAndQuantity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -269,6 +269,9 @@ namespace GhostfolioSidekick.Database.Migrations
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+
+                    b.Property<decimal?>("CalculatedQuantity")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("CalculatedUnitPrice")
                         .HasColumnType("TEXT")

@@ -8,14 +8,17 @@
 			NewPrice = default!;
 		}
 
-		public CalculatedPriceTrace(string source, Money price)
+		public CalculatedPriceTrace(string source, decimal? quantity, Money? price)
 		{
 			Reason = source;
+			NewQuantity = quantity;
 			NewPrice = price;
 		}
 
 		public string Reason { get; set; } = string.Empty;
 
-		public Money NewPrice { get; set; }
+		public decimal? NewQuantity { get; }
+		
+		public Money? NewPrice { get; set; }
 	}
 }
