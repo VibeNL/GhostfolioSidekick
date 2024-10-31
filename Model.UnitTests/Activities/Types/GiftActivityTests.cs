@@ -2,7 +2,6 @@ using FluentAssertions;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using AutoFixture;
-using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {

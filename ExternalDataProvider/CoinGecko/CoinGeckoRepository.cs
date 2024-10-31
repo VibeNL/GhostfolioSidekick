@@ -1,23 +1,13 @@
 ﻿using CoinGecko.Net.Clients;
 using CoinGecko.Net.Objects.Models;
-using CryptoExchange.Net.CommonObjects;
-using CryptoExchange.Net.Interfaces;
 using CryptoExchange.Net.Objects;
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 {

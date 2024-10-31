@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Activities
 {
@@ -32,10 +31,10 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public Money? UnitPrice { get; set; }
 
-		public decimal? CalculatedQuantity { get; set; }
+		public decimal? AdjustedQuantity { get; set; }
 
-		public Money? CalculatedUnitPrice { get; set; }
+		public Money? AdjustedUnitPrice { get; set; }
 
-		public IList<CalculatedPriceTrace> CalculatedUnitPriceSource { get; set; } = [];
+		public IList<CalculatedPriceTrace> AdjustedUnitPriceSource { get; set; } = [];
 	}
 }

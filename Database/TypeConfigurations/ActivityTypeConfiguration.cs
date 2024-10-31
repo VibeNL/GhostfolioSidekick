@@ -92,13 +92,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					v => StringToPartialSymbolIdentifiers(v),
 					partialSymbolIdentifiersListComparer);
 
-			builder.Property(b => b.CalculatedUnitPrice)
+			builder.Property(b => b.AdjustedUnitPrice)
 					.HasColumnName("CalculatedUnitPrice")
 					.HasConversion(
 						v => MoneyToString(v),
 						v => StringToMoney(v));
 
-			builder.Property(b => b.CalculatedUnitPriceSource)
+			builder.Property(b => b.AdjustedUnitPriceSource)
 				.HasColumnName("CalculatedUnitPriceSource")
 				.HasConversion(
 					v => JsonSerializer.Serialize(v, serializationOptions),
