@@ -121,7 +121,7 @@
 			decimal amount,
 			int? rownumber = 0)
 		{
-			return new PartialActivity(PartialActivityType.KnownBalance, date, currency, new Money(Currency.USD, 0), $"KNOWNBALANCE_{date}")
+			return new PartialActivity(PartialActivityType.KnownBalance, date, currency, new Money(Currency.USD, 0), $"KNOWNBALANCE_{date:yyyyMMdd}")
 			{
 				Amount = amount,
 				SortingPriority = rownumber
