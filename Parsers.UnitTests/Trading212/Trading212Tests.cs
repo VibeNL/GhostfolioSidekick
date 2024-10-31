@@ -93,10 +93,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 				[
 					PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
-						new DateTime(2023, 11, 17, 05, 49, 12, 337, DateTimeKind.Utc),
-						1000,
-						new Money(Currency.EUR, 1000),
-						"5d72520a-388c-428a-90bf-6d9fcff55534")
+						new DateTime(2024, 10, 27, 14, 20, 26, 0, DateTimeKind.Utc),
+						4.30m,
+						new Money(Currency.EUR, 4.30m),
+						"5477a704-5b84-4d9b-a1bd-a41094dfb544")
 				]);
 		}
 
@@ -111,12 +111,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateCashWithdrawal(
+					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
-						new DateTime(2023, 11, 17, 05, 49, 12, 337, DateTimeKind.Utc),
-						1000,
-						new Money(Currency.EUR, 1000),
-						"5d72520a-388c-428a-90bf-6d9fcff55534")
+						new DateTime(2024, 10, 28, 23, 59, 59, DateTimeKind.Utc),
+						1.74m,
+						new Money(Currency.EUR, 1.74m),
+						"87a1a7ee-5b69-47b6-b4c2-c32584751178")
 				]);
 		}
 
