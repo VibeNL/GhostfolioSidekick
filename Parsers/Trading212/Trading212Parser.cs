@@ -29,6 +29,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			switch (record.Action)
 			{
 				case "Deposit":
+				case "Spending cashback":
 					lst.Add(PartialActivity.CreateCashDeposit(
 						currency,
 						record.Time,
@@ -37,6 +38,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Id));
 					break;
 				case "Withdrawal":
+				case "Card debit":
 					lst.Add(PartialActivity.CreateCashWithdrawal(
 						currency,
 						record.Time,
