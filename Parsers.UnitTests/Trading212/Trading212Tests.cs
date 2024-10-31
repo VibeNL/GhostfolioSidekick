@@ -86,10 +86,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_card_debit.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_card_debit.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
@@ -106,10 +106,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_cashback.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_cashback.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
