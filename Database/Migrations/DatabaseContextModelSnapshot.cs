@@ -563,7 +563,8 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("MarketData")
-                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.OwnsOne("GhostfolioSidekick.Model.Money", "Close", b1 =>
                         {
@@ -734,7 +735,8 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("StockSplits")
-                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>

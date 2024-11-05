@@ -48,8 +48,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(x => x.AssetClass).HasConversion<string>();
 			builder.Property(x => x.AssetSubClass).HasConversion<string>();
 
-			builder.HasMany(x => x.MarketData).WithOne();
-			builder.HasMany(x => x.StockSplits).WithOne();
+			builder.HasMany(x => x.MarketData).WithOne().OnDelete(DeleteBehavior.Cascade);
+			builder.HasMany(x => x.StockSplits).WithOne().OnDelete(DeleteBehavior.Cascade);
 		}
 	}
 }
