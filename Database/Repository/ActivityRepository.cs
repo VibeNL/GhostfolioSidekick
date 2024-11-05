@@ -58,16 +58,16 @@ namespace GhostfolioSidekick.Database.Repository
 			// Update activities that are in both lists
 			foreach (var updatedTransaction in existingTransactionIds.Intersect(newTransactionIds))
 			{
-				var existingActivity = existingActivities.Single(x => x.TransactionId == updatedTransaction);
-				var newActivity = activities.Single(x => x.TransactionId == updatedTransaction);
+				var existingActivity = existingActivities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
+				var newActivity = activities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
 
 				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
 				ComparisonResult result = compareLogic.Compare(existingActivity, newActivity);
 
 				if (!result.AreEqual)
 				{
-					databaseContext.Activities.Remove(existingActivity);
-					await databaseContext.Activities.AddAsync(newActivity);
+					databaseContext.Activities.RemoveRange(existingActivity);
+					await databaseContext.Activities.AddRangeAsync(newActivity);
 				}
 			}
 

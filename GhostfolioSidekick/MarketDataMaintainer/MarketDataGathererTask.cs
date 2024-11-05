@@ -41,7 +41,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.MinAsync(x => x.Date);
 
 				var date = DateOnly.FromDateTime(minActivityDate);
-				var stockPriceRepository = stockPriceRepositories.Single(x => x.DataSource == symbol.DataSource);
+				var stockPriceRepository = stockPriceRepositories.SingleOrDefault(x => x.DataSource == symbol.DataSource);
+
+				if (stockPriceRepository == null)
+				{
+					logger.LogWarning($"No stock price repository found for {symbol.DataSource}");
+					continue;
+				}
 
 				if (symbol.MarketData.Count != 0)
 				{
