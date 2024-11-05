@@ -1,6 +1,8 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
+using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -50,20 +52,23 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				var splits = await stockSplitRepository.GetStockSplits(symbol, date);
 
-				symbol.StockSplits.Clear();
+				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
 
 				foreach (var split in splits)
 				{
-					symbol.StockSplits.Add(split);
+					ComparisonResult result = compareLogic.Compare(splits, symbol.StockSplits);
+
+					if (!result.AreEqual)
+					{
+						symbol.StockSplits = splits.ToList();
+						symbol.MarketData.Clear();
+					}
 				}
 
 				if (!await databaseContext.SymbolProfiles.ContainsAsync(symbol).ConfigureAwait(false))
 				{
 					await databaseContext.SymbolProfiles.AddAsync(symbol);
 				}
-
-				// TODO remove data before the split date if it is new
-				
 
 				await databaseContext.SaveChangesAsync();
 				logger.LogDebug($"Stock splits for {symbol.Symbol} from {symbol.DataSource} gathered. Found {splits.Count()}");
