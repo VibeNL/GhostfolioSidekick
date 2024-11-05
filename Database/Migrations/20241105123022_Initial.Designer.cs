@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20241031104640_RenamedCalculatedFields")]
-    partial class RenamedCalculatedFields
+    [Migration("20241105123022_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -564,7 +564,8 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("MarketData")
-                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.OwnsOne("GhostfolioSidekick.Model.Money", "Close", b1 =>
                         {
@@ -735,7 +736,8 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("StockSplits")
-                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
