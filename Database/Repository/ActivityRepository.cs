@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 

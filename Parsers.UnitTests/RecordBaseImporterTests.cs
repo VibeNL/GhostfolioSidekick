@@ -1,8 +1,6 @@
 ﻿using FluentAssertions;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.Generic;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
-using Moq;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {

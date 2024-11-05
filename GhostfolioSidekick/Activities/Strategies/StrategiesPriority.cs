@@ -7,15 +7,5 @@
 		DeterminePrice,
 
 		StockSplit,
-
-		StakeRewardWorkaround,
-
-		NotNativeSupportedTransactionsInGhostfolio,
-
-		TaxesOnDividends,
-
-		Rounding,
-
-		ApplyDustCorrection,
 	}
 }

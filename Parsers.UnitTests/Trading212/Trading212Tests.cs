@@ -81,6 +81,46 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleCardDebit_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_card_debit.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashWithdrawal(
+						Currency.EUR,
+						new DateTime(2024, 10, 27, 14, 20, 26, 0, DateTimeKind.Utc),
+						4.30m,
+						new Money(Currency.EUR, 4.30m),
+						"5477a704-5b84-4d9b-a1bd-a41094dfb544")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleCashback_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_cashback.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2024, 10, 28, 23, 59, 59, DateTimeKind.Utc),
+						1.74m,
+						new Money(Currency.EUR, 1.74m),
+						"87a1a7ee-5b69-47b6-b4c2-c32584751178")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleInterest_Converted()
 		{
 			// Arrange

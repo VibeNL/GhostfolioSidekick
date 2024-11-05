@@ -8,7 +8,6 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.MarketDataMaintainer;
-using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -146,7 +145,7 @@ namespace GhostfolioSidekick
 							////services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
 							////services.AddScoped<IScheduledWork, GatherAllDataTask>();
 
-							services.AddScoped<IHoldingStrategy, SetCalculatedFieldsStrategy>();
+							services.AddScoped<IHoldingStrategy, PopulateAdjustedFieldsStrategy>();
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 
 

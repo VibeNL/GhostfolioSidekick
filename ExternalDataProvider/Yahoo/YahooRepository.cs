@@ -1,5 +1,4 @@
-﻿using Castle.Core.Logging;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -7,11 +6,6 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Fallback;
-using Polly.Retry;
-using Polly.Wrap;
-using System.Net;
 using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo

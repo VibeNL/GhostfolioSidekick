@@ -1,10 +1,5 @@
 ﻿using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Database.Repository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.Activities
 {

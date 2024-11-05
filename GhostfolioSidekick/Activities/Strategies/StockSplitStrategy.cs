@@ -1,10 +1,5 @@
-﻿using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace GhostfolioSidekick.Activities.Strategies
 {
@@ -27,9 +22,9 @@ namespace GhostfolioSidekick.Activities.Strategies
 
 				foreach (var activity in holding.Activities.Where(x => x.Date < split.Date.ToDateTime(TimeOnly.MinValue)).OfType<ActivityWithQuantityAndUnitPrice>())
 				{
-					activity.CalculatedUnitPrice = activity!.CalculatedUnitPrice?.Times(splitFactor);
-					activity.CalculatedQuantity = activity!.CalculatedQuantity * inverseSplitFactor;
-					activity.CalculatedUnitPriceSource.Add(new CalculatedPriceTrace(split.ToString(), activity.CalculatedQuantity, activity.CalculatedUnitPrice));
+					activity.AdjustedUnitPrice = activity!.AdjustedUnitPrice?.Times(splitFactor);
+					activity.AdjustedQuantity = activity!.AdjustedQuantity * inverseSplitFactor;
+					activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace(split.ToString(), activity.AdjustedQuantity, activity.AdjustedUnitPrice));
 				}
 			}
 

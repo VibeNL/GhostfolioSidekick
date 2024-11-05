@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {

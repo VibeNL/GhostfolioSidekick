@@ -3,6 +3,7 @@ using System;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20241031104640_RenamedCalculatedFields")]
+    partial class RenamedCalculatedFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -561,8 +564,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("MarketData")
-                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
 
                     b.OwnsOne("GhostfolioSidekick.Model.Money", "Close", b1 =>
                         {
@@ -733,8 +735,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
                         .WithMany("StockSplits")
-                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
