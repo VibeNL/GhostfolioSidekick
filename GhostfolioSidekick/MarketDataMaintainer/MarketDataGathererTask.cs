@@ -45,7 +45,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (stockPriceRepository == null)
 				{
-					logger.LogWarning($"No stock price repository found for {symbol.DataSource}");
 					continue;
 				}
 
