@@ -1,22 +1,22 @@
 ﻿
-using GhostfolioSidekick.Model.Accounts;
+//using GhostfolioSidekick.Model.Accounts;
 
-namespace GhostfolioSidekick.GhostfolioAPI
-{
-	public interface IAccountService
-	{
-		Task CreateAccount(Account account);
+//namespace GhostfolioSidekick.GhostfolioAPI
+//{
+//	public interface IAccountService
+//	{
+//		Task CreateAccount(Account account);
 
-		Task CreatePlatform(Platform platform);
+//		Task CreatePlatform(Platform platform);
 
-		Task DeleteAccount(string name);
+//		Task DeleteAccount(string name);
 
-		Task<Account?> GetAccountByName(string name);
+//		Task<Account?> GetAccountByName(string name);
 
-		Task<Account[]> GetAllAccounts();
+//		Task<Account[]> GetAllAccounts();
 
-		Task<Platform?> GetPlatformByName(string name);
+//		Task<Platform?> GetPlatformByName(string name);
 
-		Task SetBalances(Account existingAccount, Dictionary<DateOnly, Balance> balances);
-	}
-}
+//		Task SetBalances(Account existingAccount, Dictionary<DateOnly, Balance> balances);
+//	}
+//}

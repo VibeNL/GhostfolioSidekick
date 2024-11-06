@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Parsers
 			return new Currency(Map(MappingType.Currency, currency));
 		}
 
-		internal string MapSymbol(string identifier)
+		public string MapSymbol(string identifier)
 		{
 			return Map(MappingType.Symbol, identifier);
 		}

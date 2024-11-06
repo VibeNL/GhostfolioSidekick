@@ -3,6 +3,8 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Activities
 {
@@ -46,7 +48,7 @@ namespace GhostfolioSidekick.Activities
 
 					foreach (var symbolMatcher in symbolMatchers)
 					{
-						if (holding.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource))
+						if (holding.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource || (x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix) && symbolMatcher.DataSource == Datasource.GHOSTFOLIO ) ))
 						{
 							continue;
 						}

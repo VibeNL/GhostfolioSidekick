@@ -10,5 +10,7 @@ namespace GhostfolioSidekick.Model.Symbols
 		public static readonly string COINGECKO = "COINGECKO";
 
 		public static readonly string MANUAL = "MANUAL";
+
+		public static readonly string GHOSTFOLIO = "GHOSTFOLIO";
 	}
 }

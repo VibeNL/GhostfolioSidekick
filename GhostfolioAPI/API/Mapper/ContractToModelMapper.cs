@@ -1,201 +1,200 @@
-﻿//using GhostfolioSidekick.Model;
-//using GhostfolioSidekick.Model.Accounts;
-//using GhostfolioSidekick.Model.Activities;
-//using GhostfolioSidekick.Model.Activities.Types;
-//using GhostfolioSidekick.Model.Market;
-//using GhostfolioSidekick.Model.Symbols;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Symbols;
 
-//namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
-//{
-//	internal static class ContractToModelMapper
-//	{
-//		//public static Platform MapPlatform(Contract.Platform rawPlatform)
-//		//{
-//		//	return new Platform(rawPlatform.Name)
-//		//	{
-//		//		Id = rawPlatform.Id,
-//		//		Url = rawPlatform.Url,
-//		//	};
-//		//}
+namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
+{
+	public static class ContractToModelMapper
+	{
+		public const string DataSourcePrefix = "GHOSTFOLIO_";
 
-//		//public static Account MapAccount(Contract.Account rawAccount, Platform? platform)
-//		//{
-//		//	return new Account(
-//		//		rawAccount.Name,
-//		//		new Balance(DateTime.Today, new Money(new Currency(rawAccount.Currency), rawAccount.Balance)))
-//		//	{
-//		//		Id = rawAccount.Id,
-//		//		Comment = rawAccount.Comment,
-//		//		Platform = platform,
-//		//	};
-//		//}
+		//public static Platform MapPlatform(Contract.Platform rawPlatform)
+		//{
+		//	return new Platform(rawPlatform.Name)
+		//	{
+		//		Id = rawPlatform.Id,
+		//		Url = rawPlatform.Url,
+		//	};
+		//}
 
-//		//public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile symbolProfile)
-//		//{
-//		//	var symbol = new SymbolProfile(
-//		//		symbolProfile.Symbol,
-//		//		symbolProfile.Name,
-//		//		new Currency(symbolProfile.Currency!),
-//		//		symbolProfile.DataSource,
-//		//		EnumMapper.ParseAssetClass(symbolProfile.AssetClass),
-//		//		EnumMapper.ParseAssetSubClass(symbolProfile.AssetSubClass),
-//		//		MapCountries(symbolProfile.Countries),
-//		//		MapSectors(symbolProfile.Sectors))
-//		//	{
-//		//		Comment = symbolProfile.Comment,
-//		//		ISIN = symbolProfile.ISIN,
-//		//		ActivitiesCount = symbolProfile.ActivitiesCount,
-//		//		ScraperConfiguration = new ScraperConfiguration
-//		//		{
-//		//			Locale = symbolProfile.ScraperConfiguration?.Locale,
-//		//			Url = symbolProfile.ScraperConfiguration?.Url,
-//		//			Selector = symbolProfile.ScraperConfiguration?.Selector
-//		//		}
-//		//	};
-//		//	if (symbolProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out string? trackinsight) ?? false)
-//		//	{
-//		//		symbol.Mappings.TrackInsight = trackinsight;
-//		//	}
+		//public static Account MapAccount(Contract.Account rawAccount, Platform? platform)
+		//{
+		//	return new Account(
+		//		rawAccount.Name,
+		//		new Balance(DateTime.Today, new Money(new Currency(rawAccount.Currency), rawAccount.Balance)))
+		//	{
+		//		Id = rawAccount.Id,
+		//		Comment = rawAccount.Comment,
+		//		Platform = platform,
+		//	};
+		//}
 
-//		//	return symbol;
-//		//}
+		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile symbolProfile)
+		{
+			var symbol = new SymbolProfile(
+				symbolProfile.Symbol,
+				symbolProfile.Name,
+				MapIdentifiers(symbolProfile),
+				new Currency(symbolProfile.Currency!),
+				DataSourcePrefix + symbolProfile.DataSource,
+				EnumMapper.ParseAssetClass(symbolProfile.AssetClass),
+				EnumMapper.ParseAssetSubClass(symbolProfile.AssetSubClass),
+				MapCountries(symbolProfile.Countries),
+				MapSectors(symbolProfile.Sectors))
+			{
+				Comment = symbolProfile.Comment,
+				ISIN = symbolProfile.ISIN,
+			};
 
-//		//private static Sector[] MapSectors(Contract.Sector[] sectors)
-//		//{
-//		//	return (sectors ?? []).Select(x => new Sector(x.Name, x.Weight)).ToArray();
-//		//}
+			return symbol;
+		}
 
-//		//private static Country[] MapCountries(Contract.Country[] countries)
-//		//{
-//		//	return (countries ?? []).Select(x => new Country(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
-//		//}
+		private static List<string> MapIdentifiers(Contract.SymbolProfile symbolProfile)
+		{
+			List<string> value = [symbolProfile.ISIN, symbolProfile.Symbol];
+			value = value.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+			return value;
+		}
 
-//		//public static MarketDataProfile MapMarketDataList(Contract.MarketDataList market)
-//		//{
-//		//	string? trackinsight = null;
-//		//	market.AssetProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out trackinsight);
-//		//	var assetProfile = market.AssetProfile;
-//		//	var mdl = new MarketDataProfile()
-//		//	{
-//		//		AssetProfile = MapSymbolProfile(assetProfile),
-//		//		MarketData = market.MarketData.Select(x => MapMarketData(new Currency(assetProfile.Currency), x)).ToList(),
-//		//	};
+		private static SectorWeight[] MapSectors(Contract.Sector[] sectors)
+		{
+			return (sectors ?? []).Select(x => new SectorWeight(x.Name, x.Weight)).ToArray();
+		}
 
-//		//	mdl.AssetProfile.Mappings.TrackInsight = trackinsight;
-//		//	return mdl;
-//		//}
+		private static CountryWeight[] MapCountries(Contract.Country[] countries)
+		{
+			return (countries ?? []).Select(x => new CountryWeight(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
+		}
 
-//		//private static MarketData MapMarketData(Currency currency, Contract.MarketData marketData)
-//		//{
-//		//	return new MarketData(new Money(currency, marketData.MarketPrice), marketData.Date);
-//		//}
+		//public static MarketDataProfile MapMarketDataList(Contract.MarketDataList market)
+		//{
+		//	string? trackinsight = null;
+		//	market.AssetProfile.SymbolMapping?.TryGetValue("TRACKINSIGHT", out trackinsight);
+		//	var assetProfile = market.AssetProfile;
+		//	var mdl = new MarketDataProfile()
+		//	{
+		//		AssetProfile = MapSymbolProfile(assetProfile),
+		//		MarketData = market.MarketData.Select(x => MapMarketData(new Currency(assetProfile.Currency), x)).ToList(),
+		//	};
 
-//		internal static IEnumerable<Activity> MapToHoldings(Account[] accounts, Contract.Activity[] existingActivities)
-//		{
-//			var dict = new List<Activity>();
+		//	mdl.AssetProfile.Mappings.TrackInsight = trackinsight;
+		//	return mdl;
+		//}
 
-//			foreach (var activity in existingActivities)
-//			{
-//				var profile = MapSymbolProfile(activity.SymbolProfile!);
+		//private static MarketData MapMarketData(Currency currency, Contract.MarketData marketData)
+		//{
+		//	return new MarketData(new Money(currency, marketData.MarketPrice), marketData.Date);
+		//}
 
-//				if (IsAutoGenerated(profile))
-//				{
-//					profile = null;
-//				}
+		//internal static IEnumerable<Activity> MapToHoldings(Account[] accounts, Contract.Activity[] existingActivities)
+		//{
+		//	var dict = new List<Activity>();
 
-//				var holding = dict.SingleOrDefault(x => (x.SymbolProfile == null && profile == null) || (x.SymbolProfile?.Equals(profile) ?? false));
-//				if (holding == null)
-//				{
-//					holding = new Holding(profile);
-//					dict.Add(holding);
-//				}
+		//	foreach (var activity in existingActivities)
+		//	{
+		//		var profile = MapSymbolProfile(activity.SymbolProfile!);
 
-//				holding.Activities.Add(MapActivity(accounts, activity));
-//			}
+		//		if (IsAutoGenerated(profile))
+		//		{
+		//			profile = null;
+		//		}
 
-//			return dict;
-//		}
+		//		var holding = dict.SingleOrDefault(x => (x.SymbolProfile == null && profile == null) || (x.SymbolProfile?.Equals(profile) ?? false));
+		//		if (holding == null)
+		//		{
+		//			holding = new Holding(profile);
+		//			dict.Add(holding);
+		//		}
 
-//		private static bool IsAutoGenerated(SymbolProfile profile)
-//		{
-//			return
-//				profile.AssetSubClass == null &&
-//				profile.AssetClass == AssetClass.Undefined &&
-//				Datasource.MANUAL.ToString().Equals(profile.DataSource, StringComparison.InvariantCultureIgnoreCase) &&
-//				Guid.TryParse(profile.Symbol, out _);
-//		}
+		//		holding.Activities.Add(MapActivity(accounts, activity));
+		//	}
 
-//		private static IActivity MapActivity(Account[] accounts, Contract.Activity activity)
-//		{
-//			switch (activity.Type)
-//			{
-//				case Contract.ActivityType.BUY:
-//				case Contract.ActivityType.SELL:
-//					return new BuySellActivity(accounts.Single(x => x.Id == activity.AccountId),
-//								activity.Date,
-//								(activity.Type == Contract.ActivityType.BUY ? 1 : -1) * activity.Quantity,
-//								new Money(new Currency(activity.SymbolProfile!.Currency), activity.UnitPrice),
-//								TransactionReferenceUtilities.ParseComment(activity)
-//								)
-//					{
-//						Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
-//						Description = activity.SymbolProfile.Name,
-//						Id = activity.Id,
-//					};
-//				case Contract.ActivityType.DIVIDEND:
-//					return new DividendActivity(accounts.Single(x => x.Id == activity.AccountId),
-//								activity.Date,
-//								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
-//								TransactionReferenceUtilities.ParseComment(activity)
-//								)
-//					{
-//						Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
-//						Description = activity.SymbolProfile.Name,
-//						Id = activity.Id,
-//					};
-//				case Contract.ActivityType.INTEREST:
-//					return new InterestActivity(accounts.Single(x => x.Id == activity.AccountId),
-//								activity.Date,
-//								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
-//								TransactionReferenceUtilities.ParseComment(activity)
-//								)
-//					{
-//						Description = activity.SymbolProfile.Name,
-//						Id = activity.Id,
-//					};
-//				case Contract.ActivityType.FEE:
-//					return new FeeActivity(accounts.Single(x => x.Id == activity.AccountId),
-//								activity.Date,
-//								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
-//								TransactionReferenceUtilities.ParseComment(activity)
-//								)
-//					{
-//						Description = activity.SymbolProfile.Name,
-//						Id = activity.Id,
-//					};
-//				case Contract.ActivityType.ITEM:
-//					return new ValuableActivity(accounts.Single(x => x.Id == activity.AccountId),
-//								activity.Date,
-//								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
-//								TransactionReferenceUtilities.ParseComment(activity)
-//								)
-//					{
-//						Description = activity.SymbolProfile.Name,
-//						Id = activity.Id,
-//					};
-//				case Contract.ActivityType.LIABILITY:
-//					return new LiabilityActivity(accounts.Single(x => x.Id == activity.AccountId),
-//								activity.Date,
-//								new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
-//								TransactionReferenceUtilities.ParseComment(activity)
-//								)
-//					{
-//						Description = activity.SymbolProfile.Name,
-//						Id = activity.Id,
-//					};
-//				default:
-//					throw new NotSupportedException($"ActivityType {activity.Type} not supported");
-//			}
-//		}
-//	}
-//}
+		//	return dict;
+		//}
+
+		//private static bool IsAutoGenerated(SymbolProfile profile)
+		//{
+		//	return
+		//		profile.AssetSubClass == null &&
+		//		profile.AssetClass == AssetClass.Undefined &&
+		//		Datasource.MANUAL.ToString().Equals(profile.DataSource, StringComparison.InvariantCultureIgnoreCase) &&
+		//		Guid.TryParse(profile.Symbol, out _);
+		//}
+
+		//private static IActivity MapActivity(Account[] accounts, Contract.Activity activity)
+		//{
+		//	switch (activity.Type)
+		//	{
+		//		case Contract.ActivityType.BUY:
+		//		case Contract.ActivityType.SELL:
+		//			return new BuySellActivity(accounts.Single(x => x.Id == activity.AccountId),
+		//						activity.Date,
+		//						(activity.Type == Contract.ActivityType.BUY ? 1 : -1) * activity.Quantity,
+		//						new Money(new Currency(activity.SymbolProfile!.Currency), activity.UnitPrice),
+		//						TransactionReferenceUtilities.ParseComment(activity)
+		//						)
+		//			{
+		//				Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
+		//				Description = activity.SymbolProfile.Name,
+		//				Id = activity.Id,
+		//			};
+		//		case Contract.ActivityType.DIVIDEND:
+		//			return new DividendActivity(accounts.Single(x => x.Id == activity.AccountId),
+		//						activity.Date,
+		//						new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+		//						TransactionReferenceUtilities.ParseComment(activity)
+		//						)
+		//			{
+		//				Fees = new[] { new Money(new Currency(activity.SymbolProfile!.Currency), activity.Fee) },
+		//				Description = activity.SymbolProfile.Name,
+		//				Id = activity.Id,
+		//			};
+		//		case Contract.ActivityType.INTEREST:
+		//			return new InterestActivity(accounts.Single(x => x.Id == activity.AccountId),
+		//						activity.Date,
+		//						new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+		//						TransactionReferenceUtilities.ParseComment(activity)
+		//						)
+		//			{
+		//				Description = activity.SymbolProfile.Name,
+		//				Id = activity.Id,
+		//			};
+		//		case Contract.ActivityType.FEE:
+		//			return new FeeActivity(accounts.Single(x => x.Id == activity.AccountId),
+		//						activity.Date,
+		//						new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+		//						TransactionReferenceUtilities.ParseComment(activity)
+		//						)
+		//			{
+		//				Description = activity.SymbolProfile.Name,
+		//				Id = activity.Id,
+		//			};
+		//		case Contract.ActivityType.ITEM:
+		//			return new ValuableActivity(accounts.Single(x => x.Id == activity.AccountId),
+		//						activity.Date,
+		//						new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+		//						TransactionReferenceUtilities.ParseComment(activity)
+		//						)
+		//			{
+		//				Description = activity.SymbolProfile.Name,
+		//				Id = activity.Id,
+		//			};
+		//		case Contract.ActivityType.LIABILITY:
+		//			return new LiabilityActivity(accounts.Single(x => x.Id == activity.AccountId),
+		//						activity.Date,
+		//						new Money(new Currency(activity.SymbolProfile!.Currency), activity.Quantity * activity.UnitPrice),
+		//						TransactionReferenceUtilities.ParseComment(activity)
+		//						)
+		//			{
+		//				Description = activity.SymbolProfile.Name,
+		//				Id = activity.Id,
+		//			};
+		//		default:
+		//			throw new NotSupportedException($"ActivityType {activity.Type} not supported");
+		//	}
+		//}
+	}
+}

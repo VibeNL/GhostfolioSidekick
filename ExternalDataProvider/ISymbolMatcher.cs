@@ -7,6 +7,6 @@ namespace GhostfolioSidekick.ExternalDataProvider
 	{
 		string DataSource { get; }
 
-		Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] identifiers);
+		Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers);
 	}
 }

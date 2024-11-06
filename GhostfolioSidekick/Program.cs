@@ -7,6 +7,8 @@ using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
+using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
@@ -79,16 +81,16 @@ namespace GhostfolioSidekick
 								return new RestClient(options);
 							});
 
-							//services.AddSingleton(x =>
-							//{
-							//	var settings = x.GetService<IApplicationSettings>();
-							//	return new RestCall(x.GetService<IRestClient>()!,
-							//						x.GetService<MemoryCache>()!,
-							//						x.GetService<ILogger<RestCall>>()!,
-							//						settings!.GhostfolioUrl,
-							//						settings!.GhostfolioAccessToken,
-							//						new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
-							//});
+							services.AddSingleton(x =>
+							{
+								var settings = x.GetService<IApplicationSettings>();
+								return new RestCall(x.GetService<IRestClient>()!,
+													x.GetService<MemoryCache>()!,
+													x.GetService<ILogger<RestCall>>()!,
+													settings!.GhostfolioUrl,
+													settings!.GhostfolioAccessToken,
+													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
+							});
 							services.AddSingleton(x =>
 							{
 								var settings = x.GetService<IApplicationSettings>();
@@ -113,10 +115,11 @@ namespace GhostfolioSidekick
 
 							services.AddSingleton<YahooRepository>();
 							services.AddSingleton<CoinGeckoRepository>();
+							services.AddSingleton<GhostfolioRepository>();
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
-							services.AddSingleton<ISymbolMatcher[]>(sp => [ sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>() ]);
-							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), /*sp.GetRequiredService<CoinGeckoRepository>()*/]); // TODO
+							services.AddSingleton<ISymbolMatcher[]>(sp => [ sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<GhostfolioRepository>() ]);
+							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>()]);
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 
 							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
