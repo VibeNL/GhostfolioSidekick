@@ -424,6 +424,18 @@
 		<None Update="TestFiles\TradeRepublic\DE\BuyOrders\single_buy_stock_full.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\TradeRepublic\DE\BuyOrders\single_buy_savingsplan_etf.pdf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\DE\BuyOrders\single_limit_buy_stock.pdf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\DE\SellOrders\single_sell_stock.pdf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\DE\CashTransactions\single_dividend_stock.pdf">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\TradeRepublic\NL\montly_statement.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string REPAYMENT => string.Empty;
 		protected override string ACCRUED_INTEREST => string.Empty;
 		protected override string EXTERNAL_COST_SURCHARGE => "Fremdkostenzuschlag";
-		protected override string WITHHOLDING_TAX => string.Empty;
+		protected override string WITHHOLDING_TAX => "Kapitalertragssteuer";
 		protected override string DATE => "DATUM";
 		protected override CultureInfo CULTURE => new CultureInfo("de");
 
