@@ -9,11 +9,11 @@ using Newtonsoft.Json;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public class GhostfolioRepository : ISymbolMatcher
+	public class GhostfolioSymbolMatcher : ISymbolMatcher
 	{
 		private readonly RestCall restCall;
 
-		public GhostfolioRepository(IApplicationSettings settings, RestCall restCall)
+		public GhostfolioSymbolMatcher(IApplicationSettings settings, RestCall restCall)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
 			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));

@@ -8,7 +8,6 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
@@ -115,10 +114,10 @@ namespace GhostfolioSidekick
 
 							services.AddSingleton<YahooRepository>();
 							services.AddSingleton<CoinGeckoRepository>();
-							services.AddSingleton<GhostfolioRepository>();
+							services.AddSingleton<GhostfolioSymbolMatcher>();
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
-							services.AddSingleton<ISymbolMatcher[]>(sp => [ sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<GhostfolioRepository>() ]);
+							services.AddSingleton<ISymbolMatcher[]>(sp => [ sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<GhostfolioSymbolMatcher>() ]);
 							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>()]);
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 

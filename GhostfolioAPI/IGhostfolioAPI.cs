@@ -1,6 +1,6 @@
-﻿namespace GhostfolioSidekick.GhostfolioAPI
-{
-	public interface IGhostfolioAPI
-	{
-	}
-}
+﻿//namespace GhostfolioSidekick.GhostfolioAPI
+//{
+//	public interface IGhostfolioAPI
+//	{
+//	}
+//}

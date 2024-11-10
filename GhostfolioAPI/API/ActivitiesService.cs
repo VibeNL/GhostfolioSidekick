@@ -37,7 +37,7 @@
 
 //			var accounts = await accountService.GetAllAccounts();
 
-//			return ContractToModelMapper.MapToHoldings(accounts, existingActivities);
+//			return ContractToModelMapper.MapToActivities(accounts, existingActivities);
 //		}
 
 //		public Task DeleteAll()
@@ -47,7 +47,7 @@
 
 //		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1121:Assignments should not be made from within sub-expressions", Justification = "Cleaner")]
 //		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
-//		private Task WriteOrder(Model.Activities.Activity activity)
+//		private Task WriteOrder(Model.Activities.Activity? activity)
 //		{
 //			throw new NotImplementedException();
 //			////if (activity.Type == ActivityType.IGNORE)
@@ -64,7 +64,7 @@
 //		}
 
 //		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
-//		private async Task DeleteOrder(Contract.Activity activity)
+//		private async Task DeleteOrder(Contract.Activity? activity)
 //		{
 //			if (string.IsNullOrWhiteSpace(activity.Id))
 //			{
@@ -94,7 +94,7 @@
 //		////	return Task.FromResult(res);
 //		////}
 
-//		public Task InsertActivity(Model.Symbols.SymbolProfile symbolProfile, Model.Activities.Activity activity)
+//		public Task InsertActivity(Model.Symbols.SymbolProfile? symbolProfile, Model.Activities.Activity activity)
 //		{
 //			throw new NotImplementedException();
 //			////var converted = await ModelToContractMapper.ConvertToGhostfolioActivity(exchangeRateService, symbolProfile, activity);
