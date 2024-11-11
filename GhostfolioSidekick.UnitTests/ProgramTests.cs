@@ -38,7 +38,7 @@
 
 //		[Theory]
 //		[InlineData(typeof(IScheduledWork), 10)]
-//		[InlineData(typeof(IFileImporter), 19)]
+//		[InlineData(typeof(IFileImporter), 20)]
 //		[InlineData(typeof(IHoldingStrategy), 7)]
 //		public void CheckIfAllServicesAreRegistered(Type interfaceName, int count)
 //		{

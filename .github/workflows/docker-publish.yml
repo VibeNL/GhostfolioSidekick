@@ -12,7 +12,8 @@ on:
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "master" ]
-
+  workflow_dispatch:
+    
 env:
   # Use docker.io for Docker Hub if empty
   #REGISTRY: ghcr.io
@@ -41,6 +42,18 @@ jobs:
         with:
           fetch-depth: '0'
 
+      - name: Check secrets presence
+        id: checksecrets
+        shell: bash
+        run: |
+          if [ "$SONAR_TOKEN" == "" ]; then
+            echo "secretspresent=NO" >> $GITHUB_OUTPUT
+          else
+            echo "secretspresent=YES" >> $GITHUB_OUTPUT
+          fi
+        env:
+          SECRET: ${{ secrets.SECRET}}
+      
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -64,7 +77,8 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           dotnet tool install --global dotnet-coverage
 
-      - name: Build and analyze
+      - name: Build and analyze with SonarCloud
+        if: (steps.checksecrets.outputs.secretspresent == 'YES')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -74,6 +88,15 @@ jobs:
           dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
           
+      - name: Build and analyze without SonarCloud
+        if: (steps.checksecrets.outputs.secretspresent == 'NO')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet build
+          dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
+      
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
@@ -84,11 +107,13 @@ jobs:
 
       # Workaround: https://github.com/docker/build-push-action/issues/461
       - name: Setup Docker buildx
+        if: (steps.checksecrets.outputs.secretspresent == 'YES')
         uses: docker/setup-buildx-action@v3
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
+        if: (steps.checksecrets.outputs.secretspresent == 'YES')
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -98,6 +123,7 @@ jobs:
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
+        if: (steps.checksecrets.outputs.secretspresent == 'YES')
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -113,6 +139,7 @@ jobs:
       # tags: ${{ steps.meta.outputs.tags }}
       #
       - name: Build and push Docker image
+        if: (steps.checksecrets.outputs.secretspresent == 'YES')
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
@@ -126,7 +153,7 @@ jobs:
 
       - name: Create a PR comment with the published version
         uses: thollander/actions-comment-pull-request@v2
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && steps.checksecrets.outputs.secretspresent == 'YES'}}
         with:
           message: |
             ### Development container published

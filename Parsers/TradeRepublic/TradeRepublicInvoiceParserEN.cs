@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -17,7 +18,17 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string Keyword_Booking => "BOOKING";
 		protected override string Keyword_Security => "SECURITY";
 		protected override string Keyword_Number => "NO.";
+		protected override string SECURITIES_SETTLEMENT => "SECURITIES SETTLEMENT";
+		protected override string DIVIDEND => "DIVIDEND";
+		protected override string INTEREST_PAYMENT => "INTEREST PAYMENT";
+		protected override string REPAYMENT => "REPAYMENT";
+		protected override string ACCRUED_INTEREST => "Accrued interest";
+		protected override string EXTERNAL_COST_SURCHARGE => "External cost surcharge";
+		protected override string WITHHOLDING_TAX => "Withholding tax for US issuer";
 		protected override string DATE => "DATE";
+		protected override CultureInfo CULTURE => CultureInfo.InvariantCulture;
+
+
 
 		public TradeRepublicInvoiceParserEN(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
