@@ -59,6 +59,9 @@ namespace GhostfolioSidekick.Activities
 						{
 							holding.SymbolProfiles.Add(symbol);
 							logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",",ids.Select(x => x.Identifier))}");
+						}else
+						{
+							logger.LogWarning($"No match found for {string.Join(",", ids.Select(x => x.Identifier))}");
 						}
 					}
 
