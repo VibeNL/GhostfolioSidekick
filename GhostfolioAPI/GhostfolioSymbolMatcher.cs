@@ -11,12 +11,12 @@ namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public class GhostfolioSymbolMatcher : ISymbolMatcher
 	{
-		private readonly RestCall restCall;
+		private readonly IApiWrapper apiWrapper;
 
-		public GhostfolioSymbolMatcher(IApplicationSettings settings, RestCall restCall)
+		public GhostfolioSymbolMatcher(IApplicationSettings settings, IApiWrapper apiWrapper)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
-			this.restCall = restCall ?? throw new ArgumentNullException(nameof(restCall));
+			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 		}
 
@@ -50,57 +50,49 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Needed for the functionality, splitting will not solve anything")]
-		private async Task<SymbolProfile?> FindByDataProvider(IEnumerable<string> ids, Currency? expectedCurrency, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass, bool includeIndexes)
-		{
-			var identifiers = ids.ToList();
-			var allAssets = new List<SymbolProfile>();
+        private async Task<SymbolProfile?> FindByDataProvider(IEnumerable<string> ids, Currency? expectedCurrency, AssetClass[]? expectedAssetClass, AssetSubClass[]? expectedAssetSubClass, bool includeIndexes)
+        {
+            var identifiers = ids.ToList();
+            var allAssets = new List<SymbolProfile>();
 
-			foreach (var identifier in identifiers)
-			{
-				for (var i = 0; i < 5; i++)
-				{
-					var content = await restCall.DoRestGet(
-						$"api/v1/symbol/lookup?query={identifier.Trim()}&includeIndices={includeIndexes.ToString().ToLowerInvariant()}");
-					if (content == null)
-					{
-						continue;
-					}
+            foreach (var identifier in identifiers)
+            {
+                for (var i = 0; i < 5; i++)
+                {
+                    var assets = await apiWrapper.GetSymbolProfile(identifier, includeIndexes);
 
-					var symbolProfileList = JsonConvert.DeserializeObject<Contract.SymbolProfileList>(content);
-					var assets = symbolProfileList?.Items.Select(ContractToModelMapper.MapSymbolProfile);
+                    if (assets != null && assets.Count > 0)
+                    {
+                        allAssets.AddRange(assets);
+                        break;
+                    }
+                }
+            }
 
-					if (assets?.Any() ?? false)
-					{
-						allAssets.AddRange(assets);
-						break;
-					}
-				}
-			}
+            var filteredAsset = allAssets
+                .Where(x => x != null)
+                .Select(FixYahooCrypto)
+                .Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
+                .Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
+                .OrderBy(x => identifiers.Exists(y => MatchId(x, y)) ? 0 : 1)
+                .ThenByDescending(x => FussyMatch(identifiers, x))
+                .ThenBy(x => x.AssetSubClass == AssetSubClass.CryptoCurrency && x.Name.Contains("[OLD]") ? 1 : 0)
+                .ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
+                .ThenBy(x => new[] { Currency.EUR.Symbol, Currency.USD.Symbol, Currency.GBP.Symbol, Currency.GBp.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
+                .ThenBy(x =>
+                {
+                    var index = SortorderDataSources.IndexOf(x.DataSource.ToString().ToUpperInvariant());
+                    if (index < 0)
+                    {
+                        index = int.MaxValue;
+                    }
 
-			var filteredAsset = allAssets
-				.Where(x => x != null)
-				.Select(FixYahooCrypto)
-				.Where(x => expectedAssetClass?.Contains(x.AssetClass) ?? true)
-				.Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
-				.OrderBy(x => identifiers.Exists(y => MatchId(x, y)) ? 0 : 1)
-				.ThenByDescending(x => FussyMatch(identifiers, x))
-				.ThenBy(x => x.AssetSubClass == AssetSubClass.CryptoCurrency && x.Name.Contains("[OLD]") ? 1 : 0)
-				.ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
-				.ThenBy(x => new[] { Currency.EUR.Symbol, Currency.USD.Symbol, Currency.GBP.Symbol, Currency.GBp.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
-				.ThenBy(x =>
-				{
-					var index = SortorderDataSources.IndexOf(x.DataSource.ToString().ToUpperInvariant());
-					if (index < 0)
-					{
-						index = int.MaxValue;
-					}
-
-					return index;
-				}) // prefer Yahoo above Coingecko due to performance
-				.ThenBy(x => x.Name?.Length ?? int.MaxValue)
-				.FirstOrDefault();
-			return filteredAsset;
-		}
+                    return index;
+                }) // prefer Yahoo above Coingecko due to performance
+                .ThenBy(x => x.Name?.Length ?? int.MaxValue)
+                .FirstOrDefault();
+            return filteredAsset;
+        }
 
 		private static int FussyMatch(List<string> identifiers, SymbolProfile profile)
 		{
