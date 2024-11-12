@@ -15,27 +15,27 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
 		}
 
-		public void SyncAccount(Account account)
+		public async Task SyncAccount(Account account)
 		{
 			if (account.Platform != null)
 			{
-				var platform = apiWrapper.GetPlatformByName(account.Platform.Name);
+				var platform = await apiWrapper.GetPlatformByName(account.Platform.Name);
 				if (platform == null)
 				{
-					apiWrapper.CreatePlatform(account.Platform);
+					await apiWrapper.CreatePlatform(account.Platform);
 				}
 			}
 
-			var ghostFolioAccount = apiWrapper.GetAccountByName(account.Name);
+			var ghostFolioAccount = await apiWrapper.GetAccountByName(account.Name);
 			if (ghostFolioAccount == null)
 			{
-				apiWrapper.CreateAccount(account);
+				await apiWrapper.CreateAccount(account);
 			}
 
-			apiWrapper.UpdateAccount(account);
+			await apiWrapper.UpdateAccount(account);
 		}
 
-		public void SyncAll(IEnumerable<Activity> allActivities)
+		public Task SyncAll(IEnumerable<Activity> allActivities)
 		{
 			throw new NotImplementedException();
 		}

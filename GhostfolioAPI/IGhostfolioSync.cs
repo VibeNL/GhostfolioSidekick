@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public interface IGhostfolioSync
 	{
-		void SyncAccount(Account account);
-		void SyncAll(IEnumerable<Activity> allActivities);
+		Task SyncAccount(Account account);
+		Task SyncAll(IEnumerable<Activity> allActivities);
 	}
 }
