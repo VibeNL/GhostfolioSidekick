@@ -1,8 +1,6 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
@@ -11,6 +9,26 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 	{
 		public const string DataSourcePrefix = "GHOSTFOLIO_";
 
+		public static Platform MapPlatform(Contract.Platform rawPlatform)
+		{
+			return new Platform(rawPlatform.Name)
+			{
+				Url = rawPlatform.Url,
+			};
+		}
+
+		public static Account MapAccount(Contract.Account rawAccount, Contract.Platform? platform)
+		{
+			var account = new Account(rawAccount.Name)
+			{
+				Comment = rawAccount.Comment,
+				Platform = platform != null ? MapPlatform(platform) : null,
+			};
+
+			account.Balance = [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(new Currency(rawAccount.Currency), rawAccount.Balance))];
+
+			return account;
+		}
 		public static SymbolProfile MapSymbolProfile(Contract.SymbolProfile symbolProfile)
 		{
 			var symbol = new SymbolProfile(

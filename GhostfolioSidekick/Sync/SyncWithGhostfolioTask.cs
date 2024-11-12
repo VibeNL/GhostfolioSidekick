@@ -11,14 +11,14 @@ namespace GhostfolioSidekick.Sync
 
 		public async Task DoWork()
 		{
-			var allActivities = await activityRepository.GetAllActivities();
-			ghostfolioSync.SyncAll(allActivities);
-
 			var allAccounts = await accountRepository.GetAllAccounts();
 			foreach (var account in allAccounts)
 			{
 				ghostfolioSync.SyncAccount(account);
 			}
+
+			var allActivities = await activityRepository.GetAllActivities();
+			ghostfolioSync.SyncAll(allActivities);
 		}
 	}
 }

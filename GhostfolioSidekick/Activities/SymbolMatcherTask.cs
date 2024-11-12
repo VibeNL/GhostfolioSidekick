@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.Activities
 
 					foreach (var symbolMatcher in symbolMatchers)
 					{
-						if (holding.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource || (x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix) && symbolMatcher.DataSource == Datasource.GHOSTFOLIO ) ))
+						if (holding.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource || (x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix) && symbolMatcher.DataSource == Datasource.GHOSTFOLIO)))
 						{
 							continue;
 						}
@@ -58,10 +58,11 @@ namespace GhostfolioSidekick.Activities
 						if (symbol != null)
 						{
 							holding.SymbolProfiles.Add(symbol);
-							logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",",ids.Select(x => x.Identifier))}");
-						}else
+							logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",", ids.Select(x => x.Identifier))}");
+						}
+						else
 						{
-							logger.LogWarning($"No match found for {string.Join(",", ids.Select(x => x.Identifier))}");
+							logger.LogWarning($"No match found for {string.Join(",", ids.Select(x => x.Identifier))} for matcher {symbolMatcher.GetType()}");
 						}
 					}
 

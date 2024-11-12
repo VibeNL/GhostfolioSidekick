@@ -17,7 +17,22 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		public void SyncAccount(Account account)
 		{
-			throw new NotImplementedException();
+			if (account.Platform != null)
+			{
+				var platform = apiWrapper.GetPlatformByName(account.Platform.Name);
+				if (platform == null)
+				{
+					apiWrapper.CreatePlatform(account.Platform);
+				}
+			}
+
+			var ghostFolioAccount = apiWrapper.GetAccountByName(account.Name);
+			if (ghostFolioAccount == null)
+			{
+				apiWrapper.CreateAccount(account);
+			}
+
+			apiWrapper.UpdateAccount(account);
 		}
 
 		public void SyncAll(IEnumerable<Activity> allActivities)
