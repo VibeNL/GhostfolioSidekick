@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
@@ -64,11 +63,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		private static CountryWeight[] MapCountries(Contract.Country[] countries)
 		{
 			return (countries ?? []).Select(x => new CountryWeight(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
-		}
-
-		internal static IEnumerable<Activity> MapToActivities(object accounts, Contract.Activity[] existingActivities)
-		{
-			throw new NotImplementedException();
 		}
 	}
 }

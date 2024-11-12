@@ -2,6 +2,8 @@
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
@@ -35,9 +37,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			await apiWrapper.UpdateAccount(account);
 		}
 
-		public Task SyncAll(IEnumerable<Activity> allActivities)
+		public async Task SyncAll(IEnumerable<Activity> allActivities)
 		{
 			throw new NotImplementedException();
+
 		}
 	}
 }
