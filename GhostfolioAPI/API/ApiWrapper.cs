@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
+﻿using CryptoExchange.Net.CommonObjects;
+using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -22,7 +23,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var o = new JObject
 			{
 				["name"] = account.Name,
-				["currency"] = account.Balance.SingleOrDefault()?.Money.Currency.Symbol ?? Currency.EUR.ToString(),
+				["currency"] = account.Balance.FirstOrDefault()?.Money.Currency.Symbol ?? Currency.EUR.ToString(),
 				["comment"] = account.Comment,
 				["platformId"] = null,
 				["isExcluded"] = false,
@@ -31,7 +32,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			if (account.Platform != null)
 			{
-				var platform = await GetPlatformByName(account.Platform.Name);
+				var platforms = await GetPlatforms();
+				var platform = platforms.SingleOrDefault(x => x.Name == account.Platform.Name);
 				o["platformId"] = platform?.Id;
 			}
 
@@ -67,13 +69,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		public async Task<Model.Accounts.Account?> GetAccountByName(string name)
 		{
 			var accounts = await GetAllAccounts();
-			var platforms = await GetPlatforms();
 			var account = accounts.SingleOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
 			if (account == null)
 			{
 				return null;
 			}
 
+			var platforms = await GetPlatforms();
 			return ContractToModelMapper.MapAccount(
 					account,
 					platforms.SingleOrDefault(x => x.Id == account.PlatformId));
@@ -106,9 +108,53 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return assets;
 		}
 
-		public Task UpdateAccount(Model.Accounts.Account account)
+		public async Task UpdateAccount(Model.Accounts.Account account)
 		{
-			throw new NotImplementedException();
+			var accounts = await GetAllAccounts();
+			var existingAccount = accounts.Single(x => string.Equals(x.Name, account.Name, StringComparison.InvariantCultureIgnoreCase));
+			var content = await restCall.DoRestGet($"api/v1/account/{existingAccount.Id}/balances");
+
+			var balanceList = JsonConvert.DeserializeObject<BalanceList>(content!);
+
+			if (balanceList == null)
+			{
+				throw new NotSupportedException("Account not found");
+			}
+
+			// Delete all balances that are not in the new list
+			foreach (var item in balanceList.Balances.Where(x => !account.Balance.Any(y => DateOnly.FromDateTime(x.Date) == y.Date)))
+			{
+				await restCall.DoRestDelete($"api/v1/account-balance/{item.Id}");
+			}
+
+			// Update all balances that are in the new list
+			foreach (var newBalance in account.Balance)
+			{
+				var o = new JObject
+				{
+					["balance"] = newBalance.Money.Amount,
+					["date"] = newBalance.Date.ToString("o"),
+					["accountId"] = existingAccount.Id
+				};
+				var res = o.ToString();
+
+				// check if balance already exists
+				var existingBalance = balanceList.Balances.SingleOrDefault(x => DateOnly.FromDateTime(x.Date) == newBalance.Date);
+				if (existingBalance != null)
+				{
+					if (Math.Round(existingBalance.Value, 10) == Math.Round(newBalance.Money.Amount, 10))
+					{
+						continue;
+					}
+
+					await restCall.DoRestDelete($"api/v1/account-balance/{existingBalance.Id}");
+					await restCall.DoRestPost($"api/v1/account-balance/", res);
+				}
+				else
+				{
+					await restCall.DoRestPost($"api/v1/account-balance/", res);
+				}
+			}
 		}
 
 		private async Task<Contract.Account[]> GetAllAccounts()
