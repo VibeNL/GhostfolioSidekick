@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20241105123022_Initial")]
+    [Migration("20241112082232_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -252,7 +252,6 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SectorWeights")

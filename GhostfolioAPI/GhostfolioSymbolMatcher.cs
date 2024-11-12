@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
                 .Where(x => expectedAssetSubClass?.Contains(x.AssetSubClass.GetValueOrDefault()) ?? true)
                 .OrderBy(x => identifiers.Exists(y => MatchId(x, y)) ? 0 : 1)
                 .ThenByDescending(x => FussyMatch(identifiers, x))
-                .ThenBy(x => x.AssetSubClass == AssetSubClass.CryptoCurrency && x.Name.Contains("[OLD]") ? 1 : 0)
+                //.ThenBy(x => x.AssetSubClass == AssetSubClass.CryptoCurrency && x.Name?.Contains("[OLD]") ? 1 : 0)
                 .ThenBy(x => string.Equals(x.Currency.Symbol, expectedCurrency?.Symbol, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
                 .ThenBy(x => new[] { Currency.EUR.Symbol, Currency.USD.Symbol, Currency.GBP.Symbol, Currency.GBp.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
                 .ThenBy(x =>

@@ -249,7 +249,6 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SectorWeights")

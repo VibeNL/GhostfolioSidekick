@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Model.Symbols
 		[SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "DDD")]
 		public SymbolProfile(
 			string symbol,
-			string name,
+			string? name,
 			List<string> identifiers,
 			Currency currency,
 			string dataSource,
@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string Symbol { get; set; }
 
-		public string Name { get; set; }
+		public string? Name { get; set; }
 
 		public string DataSource { get; set; }
 

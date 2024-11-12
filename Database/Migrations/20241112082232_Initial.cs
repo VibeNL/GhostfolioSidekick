@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.Database.Migrations
                     Symbol = table.Column<string>(type: "TEXT", nullable: false),
                     DataSource = table.Column<string>(type: "TEXT", nullable: false),
                     Currency = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
                     AssetClass = table.Column<string>(type: "TEXT", nullable: false),
                     AssetSubClass = table.Column<string>(type: "TEXT", nullable: true),
                     ISIN = table.Column<string>(type: "TEXT", nullable: true),
