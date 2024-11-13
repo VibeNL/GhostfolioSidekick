@@ -1,9 +1,11 @@
-﻿using GhostfolioSidekick.Model;
+﻿using Castle.Core.Logging;
+using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Database.Repository
 {
-	public class CurrencyExchange(IDbContextFactory<DatabaseContext> databaseContextFactory) : ICurrencyExchange
+	public class CurrencyExchange(IDbContextFactory<DatabaseContext> databaseContextFactory, ILogger<CurrencyExchange> logger) : ICurrencyExchange
 	{
 		public async Task<Money> ConvertMoney(Money money, Currency currency, DateOnly date)
 		{
@@ -35,7 +37,13 @@ namespace GhostfolioSidekick.Database.Repository
 								.Where(x => x.Date == searchDate)
 								.Select(x => x.Close)
 								.AsNoTracking()
-								.SingleAsync();
+								.SingleOrDefaultAsync();
+
+			if (exchangeRate == null)
+			{
+                logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency} on {SearchDate}. Using 1:1 rate.", money.Currency, currency, searchDate);
+				return new Money(currency, money.Amount);
+			}
 
 			return new Money(currency, money.Times(exchangeRate.Amount).Amount);
 		}

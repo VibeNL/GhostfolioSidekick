@@ -5,7 +5,9 @@ using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
+using KellermanSoftware.CompareNetObjects;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -116,19 +118,70 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var content = await restCall.DoRestGet($"api/v1/order");
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities;
 
+			// fixup
+			foreach (var existingActivity in existingActivities)
+			{
+				existingActivity.FeeCurrency = existingActivity.FeeCurrency ?? existingActivity.SymbolProfile.Currency;
+			}
+
 			var symbols = await GetAllSymbolProfiles();
 
-			// merge existing activities with new activities
-			var newActivities = allActivities.Select(activity =>
+			// Get new activities
+			var newActivities = allActivities.Select(async activity =>
 			{
 				var symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix))?.Symbol);
-				return ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, symbolProfile, activity);
-			}).ToList();
+				if (symbolProfile == null && (activity.Holding?.SymbolProfiles.Any() ?? false))
+				{
+					await CreateSymbol(activity.Holding.SymbolProfiles.First());
+					symbols = await GetAllSymbolProfiles();
+					symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix))?.Symbol);
+					if (symbolProfile == null)
+					{
+						logger.LogWarning("Symbol not found {Symbol}", activity.Holding?.SymbolProfiles.SingleOrDefault(x => x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix))?.Symbol);
+						return null;
+					}
+				}
 
+				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, symbolProfile, activity);
+				return convertedActivity;
+			}).Select(x => x.Result).Where(x => x != null && x.Type != ActivityType.IGNORE).Select(x => x!).ToList();
 
+			var listA = Sortorder(existingActivities);
+			var listB = Sortorder(newActivities.ToArray<Activity>());
 
+			// loop all activities and compare
+			for ( var i = 0; i < Math.Min(listA.Count, listB.Count); i++)
+			{
+				var compareLogic = new CompareLogic();
+				var comparisonResult = compareLogic.Compare(listA[i], listB[i]);
+				if (!comparisonResult.AreEqual)
+				{
+					await DeleteOrder(listA[i]);
+					await WriteOrder(listB[i]);
+				}
+			}
+
+			// Add new activities
+			for (var i = Math.Min(listA.Count, listB.Count); i < listB.Count; i++)
+			{
+				await WriteOrder(listB[i]);
+			}
+
+			// Delete old activities
+			for (var i = Math.Min(listA.Count, listB.Count); i < listA.Count; i++)
+			{
+				await DeleteOrder(listA[i]);
+			}
+
+			static List<Activity> Sortorder(Activity[] existingActivities)
+			{
+				return existingActivities
+						.OrderBy(x => x.Date)
+						.ThenBy(x => x.SymbolProfile.Symbol)
+						.ThenBy(x => x.Comment)
+						.ToList();
+			}
 		}
-
 
 		public async Task UpdateAccount(Model.Accounts.Account account)
 		{
@@ -239,6 +292,81 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			return profiles;
+		}
+
+		private async Task CreateSymbol(Model.Symbols.SymbolProfile symbolProfile)
+		{
+			var o = new JObject
+			{
+				["symbol"] = symbolProfile.Symbol,
+				["isin"] = symbolProfile.ISIN,
+				["name"] = symbolProfile.Name,
+				["comment"] = symbolProfile.Comment,
+				["assetClass"] = symbolProfile.AssetClass.ToString(),
+				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
+				["currency"] = symbolProfile.Currency.Symbol,
+				["datasource"] = symbolProfile.DataSource.ToString(),
+			};
+			var res = o.ToString();
+
+			var r = await restCall.DoRestPost($"api/v1/admin/profile-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}", res);
+			if (!r.IsSuccessStatusCode)
+			{
+				throw new NotSupportedException($"Creation failed {symbolProfile.Symbol}");
+			}
+
+			logger.LogDebug("Created symbol {Symbol}", symbolProfile.Symbol);
+
+			// Set name and assetClass (BUG / Quirk Ghostfolio?)
+			////TODO await UpdateSymbol(symbolProfile);
+		}
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1121:Assignments should not be made from within sub-expressions", Justification = "Cleaner")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
+		private async Task WriteOrder(Activity activity)
+		{
+			if (activity.Type == ActivityType.IGNORE)
+			{
+				logger.LogTrace("Skipping ignore transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
+
+				return;
+			}
+
+			var url = $"api/v1/order";
+			await restCall.DoRestPost(url, await ConvertToBody(activity));
+
+			logger.LogDebug("Added transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
+		}
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
+		private async Task DeleteOrder(Contract.Activity activity)
+		{
+			if (string.IsNullOrWhiteSpace(activity.Id))
+			{
+				throw new NotSupportedException($"Deletion failed, no Id");
+			}
+
+			await restCall.DoRestDelete($"api/v1/order/{activity.Id}");
+			logger.LogDebug("Deleted transaction {Date} {Symbol} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Type);
+		}
+
+		private static Task<string> ConvertToBody(Contract.Activity activity)
+		{
+			var o = new JObject
+			{
+				["accountId"] = activity.AccountId,
+				["comment"] = activity.Comment,
+				["currency"] = activity.SymbolProfile?.Currency,
+				["dataSource"] = activity.SymbolProfile?.DataSource,
+				["date"] = activity.Date.ToString("o"),
+				["fee"] = activity.Fee,
+				["quantity"] = activity.Quantity,
+				["symbol"] = activity.SymbolProfile?.Symbol,
+				["type"] = activity.Type.ToString(),
+				["unitPrice"] = activity.UnitPrice
+			};
+			var res = o.ToString();
+			return Task.FromResult(res);
 		}
 
 	}

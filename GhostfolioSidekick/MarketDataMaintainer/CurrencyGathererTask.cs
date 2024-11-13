@@ -16,16 +16,30 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		public async Task DoWork()
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
-			var currencies = (await databaseContext.Activities
+			var currenciesActivities = (await databaseContext.Activities
 				.OfType<ActivityWithQuantityAndUnitPrice>()
+				.AsNoTracking()
 				.Select(x => new { Currency = x.UnitPrice!.Currency, Date =x.Date })
 				.Distinct()
 				.ToListAsync())
 				.Where(x => x.Currency != null)
 				.GroupBy(x => x.Currency)
 				.Select(x => x.OrderBy(y => y.Date).First());
+			var symbolsActivities = (await databaseContext.SymbolProfiles
+				.AsNoTracking()
+				.Select(x => new { Currency = x.Currency, Date = DateTime.Today })
+				.Distinct()
+				.ToListAsync())
+				.Where(x => x.Currency != null)
+				.GroupBy(x => x.Currency)
+				.Select(x => x.OrderBy(y => y.Date).First());
+			var currencies = currenciesActivities.Concat(symbolsActivities).Distinct().ToList();
 
-			var currenciesMatches = currencies.SelectMany((l) => currencies, (l, r) => Tuple.Create(l, r)).Where(x => x.Item1.Currency != x.Item2.Currency);
+			var currenciesMatches = currencies
+				.GroupBy(x => x.Currency)
+				.Select(x => new { Currency = x.Key, Date = x.Min(x => x.Date) })
+				.SelectMany((l) => currencies, (l, r) => Tuple.Create(l, r))
+				.Where(x => x.Item1.Currency != x.Item2.Currency);
 
 			foreach (var match in currenciesMatches)
 			{
