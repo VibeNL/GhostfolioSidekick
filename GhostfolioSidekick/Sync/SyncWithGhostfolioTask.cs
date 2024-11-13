@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Sync
 			}
 
 			var allActivities = await activityRepository.GetAllActivities();
-			await ghostfolioSync.SyncAll(allActivities);
+			await ghostfolioSync.SyncAllActivities(allActivities);
 		}
 	}
 }

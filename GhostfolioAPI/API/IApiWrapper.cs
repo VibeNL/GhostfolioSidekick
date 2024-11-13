@@ -14,5 +14,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		Task CreatePlatform(Platform platform);
 		Task CreateAccount(Account account);
 		Task UpdateAccount(Account account);
+		Task SyncAllActivities(List<Activity> allActivities);
 	}
 }

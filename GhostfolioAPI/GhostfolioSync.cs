@@ -37,10 +37,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			await apiWrapper.UpdateAccount(account);
 		}
 
-		public async Task SyncAll(IEnumerable<Activity> allActivities)
+		public async Task SyncAllActivities(IEnumerable<Activity> allActivities)
 		{
-			throw new NotImplementedException();
-
+			await apiWrapper.SyncAllActivities(allActivities.ToList());
 		}
 	}
 }

@@ -1,9 +1,12 @@
 ﻿using CryptoExchange.Net.CommonObjects;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
-	public class ApiWrapper(RestCall restCall, ILogger<ApiWrapper> logger) : IApiWrapper
+	public class ApiWrapper(RestCall restCall, ILogger<ApiWrapper> logger, ICurrencyExchange currencyExchange) : IApiWrapper
 	{
 		public async Task CreateAccount(Model.Accounts.Account account)
 		{
@@ -108,6 +111,25 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return assets;
 		}
 
+		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)
+		{
+			var content = await restCall.DoRestGet($"api/v1/order");
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities;
+
+			var symbols = await GetAllSymbolProfiles();
+
+			// merge existing activities with new activities
+			var newActivities = allActivities.Select(activity =>
+			{
+				var symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix))?.Symbol);
+				return ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, symbolProfile, activity);
+			}).ToList();
+
+
+
+		}
+
+
 		public async Task UpdateAccount(Model.Accounts.Account account)
 		{
 			var accounts = await GetAllAccounts();
@@ -194,5 +216,30 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 			return rawPlatforms.ToList();
 		}
+
+		private async Task<List<Contract.SymbolProfile>> GetAllSymbolProfiles()
+		{
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/");
+
+			if (content == null)
+			{
+				return [];
+			}
+
+			var market = JsonConvert.DeserializeObject<MarketDataList>(content);
+
+			var profiles = new List<Contract.SymbolProfile>();
+			foreach (var f in market?.MarketData
+				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
+				.ToList() ?? [])
+			{
+				content = await restCall.DoRestGet($"api/v1/admin/market-data/{f.DataSource}/{f.Symbol}");
+				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
+				profiles.Add(data!.AssetProfile);
+			}
+
+			return profiles;
+		}
+
 	}
 }
