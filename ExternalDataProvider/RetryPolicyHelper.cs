@@ -35,11 +35,17 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		public static AsyncFallbackPolicy<T> GetFallbackPolicy<T>(ILogger logger)
 		{
 			return Policy<T>
-				.Handle<WebException>()
-				.Or<Exception>()
+				.Handle<Exception>()
 				.FallbackAsync((action) =>
 				{
-					logger.LogWarning("All Retries Failed");
+					return Task.FromResult<T>(default!);
+				}, (ex) =>
+				{
+					if (ex.Exception is not FlurlHttpException flurlHttpException || flurlHttpException.StatusCode != (int)HttpStatusCode.NotFound)
+					{
+						logger.LogWarning("All Retries Failed");
+					}
+
 					return Task.FromResult<T>(default!);
 				});
 		}
