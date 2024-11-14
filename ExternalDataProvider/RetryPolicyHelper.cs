@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Flurl.Http;
+using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Fallback;
 using Polly.Retry;
@@ -11,7 +12,16 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		public static AsyncRetryPolicy GetRetryPolicy(ILogger logger)
 		{
 			return Policy
-			   .Handle<Exception>()
+			   .Handle<Exception>(x =>
+			   {
+				   if (x is FlurlHttpException flurlHttpException && flurlHttpException.StatusCode == (int)HttpStatusCode.NotFound)
+				   {
+					   return false;
+				   }
+
+				   logger.LogWarning($"An error occurred: {x.Message}");
+				   return true;
+			   })
 			   .WaitAndRetryAsync(10, retryAttempt =>
 			   {
 				   return TimeSpan.FromSeconds(30);
@@ -26,7 +36,7 @@ namespace GhostfolioSidekick.ExternalDataProvider
 		{
 			return Policy<T>
 				.Handle<WebException>()
-			.Or<Exception>()
+				.Or<Exception>()
 				.FallbackAsync((action) =>
 				{
 					logger.LogWarning("All Retries Failed");
