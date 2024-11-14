@@ -125,6 +125,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			var symbols = await GetAllSymbolProfiles();
+			var accounts = await GetAllAccounts();
 
 			// Get new activities
 			var newActivities = allActivities.Select(async activity =>
@@ -142,9 +143,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					}
 				}
 
-				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, symbolProfile, activity);
+				var account = accounts.SingleOrDefault(x => x.Name == activity.Account.Name);
+				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, symbolProfile, activity, account);
 				return convertedActivity;
-			}).Select(x => x.Result).Where(x => x != null && x.Type != ActivityType.IGNORE).Select(x => x!).ToList();
+			}).Where(x => !x.IsFaulted).Select(x => x.Result).Where(x => x != null && x.Type != ActivityType.IGNORE).Select(x => x!).ToList();
 
 			var listA = Sortorder(existingActivities);
 			var listB = Sortorder(newActivities.ToArray<Activity>());
