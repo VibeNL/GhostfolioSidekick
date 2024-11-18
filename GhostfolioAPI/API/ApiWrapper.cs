@@ -154,7 +154,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			// loop all activities and compare
 			for ( var i = 0; i < Math.Min(listA.Count, listB.Count); i++)
 			{
-				var compareLogic = new CompareLogic();
+				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
 				var comparisonResult = compareLogic.Compare(listA[i], listB[i]);
 				if (!comparisonResult.AreEqual)
 				{
