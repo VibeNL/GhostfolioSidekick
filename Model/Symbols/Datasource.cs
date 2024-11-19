@@ -12,5 +12,10 @@ namespace GhostfolioSidekick.Model.Symbols
 		public static readonly string MANUAL = "MANUAL";
 
 		public static readonly string GHOSTFOLIO = "GHOSTFOLIO";
+
+		public static bool IsGhostfolio(string dataSource)
+		{
+			return dataSource.StartsWith(GHOSTFOLIO, StringComparison.InvariantCultureIgnoreCase);
+		}
 	}
 }

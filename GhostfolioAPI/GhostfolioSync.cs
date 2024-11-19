@@ -8,34 +8,37 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
-	public class GhostfolioSync : IGhostfolioSync
+	public class GhostfolioSync(IApiWrapper apiWrapper, ILogger<GhostfolioSync> logger) : IGhostfolioSync
 	{
-		private readonly IApiWrapper apiWrapper;
-
-		public GhostfolioSync(IApplicationSettings settings, IApiWrapper apiWrapper)
-		{
-			ArgumentNullException.ThrowIfNull(settings);
-			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
-		}
+		private readonly IApiWrapper apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
+		private readonly ILogger<GhostfolioSync> logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
 		public async Task SyncAccount(Account account)
 		{
 			if (account.Platform != null)
 			{
+				logger.LogDebug("Syncing platform {PlatformName}", account.Platform.Name);
 				var platform = await apiWrapper.GetPlatformByName(account.Platform.Name);
 				if (platform == null)
 				{
+					logger.LogDebug("Creating platform {PlatformName}", account.Platform.Name);
 					await apiWrapper.CreatePlatform(account.Platform);
+					logger.LogDebug("Platform {PlatformName} created", account.Platform.Name);
 				}
 			}
 
+			logger.LogDebug("Syncing account {AccountName}", account.Name);
 			var ghostFolioAccount = await apiWrapper.GetAccountByName(account.Name);
 			if (ghostFolioAccount == null)
 			{
+				logger.LogDebug("Creating account {AccountName}", account.Name);
 				await apiWrapper.CreateAccount(account);
+				logger.LogDebug("Account {AccountName} created", account.Name);
 			}
 
+			logger.LogDebug("Updating account {AccountName}", account.Name);
 			await apiWrapper.UpdateAccount(account);
+			logger.LogDebug("Account {AccountName} updated", account.Name);
 		}
 
 		public async Task SyncAllActivities(IEnumerable<Activity> allActivities)
@@ -44,7 +47,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			allActivities = ConvertGiftsToInterestOrBuy(allActivities);
 			allActivities = ConvertBondRepay(allActivities);
 
+			logger.LogDebug("Syncing activities");
 			await apiWrapper.SyncAllActivities(allActivities.ToList());
+			logger.LogDebug("activities synced");
 		}
 
 		private static IEnumerable<Activity> ConvertSendAndRecievesToBuyAndSells(IEnumerable<Activity> activities)

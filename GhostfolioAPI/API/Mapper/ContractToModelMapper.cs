@@ -6,8 +6,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
 	public static class ContractToModelMapper
 	{
-		public const string DataSourcePrefix = "GHOSTFOLIO_";
-
 		public static Platform MapPlatform(Contract.Platform rawPlatform)
 		{
 			return new Platform(rawPlatform.Name)
@@ -35,7 +33,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				symbolProfile.Name,
 				MapIdentifiers(symbolProfile),
 				new Currency(symbolProfile.Currency!),
-				DataSourcePrefix + symbolProfile.DataSource,
+				Datasource.GHOSTFOLIO + "_" + symbolProfile.DataSource,
 				EnumMapper.ParseAssetClass(symbolProfile.AssetClass),
 				EnumMapper.ParseAssetSubClass(symbolProfile.AssetSubClass),
 				MapCountries(symbolProfile.Countries),

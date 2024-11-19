@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.Activities
 
 					foreach (var symbolMatcher in symbolMatchers)
 					{
-						if (holding.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource || (x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix) && symbolMatcher.DataSource == Datasource.GHOSTFOLIO)))
+						if (holding.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource || (Datasource.IsGhostfolio(x.DataSource) && symbolMatcher.DataSource == Datasource.GHOSTFOLIO)))
 						{
 							continue;
 						}

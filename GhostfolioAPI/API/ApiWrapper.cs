@@ -130,15 +130,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			// Get new activities
 			var newActivities = allActivities.Select(async activity =>
 			{
-				var symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix))?.Symbol);
+				var symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource))?.Symbol);
 				if (symbolProfile == null && (activity.Holding?.SymbolProfiles.Any() ?? false))
 				{
 					await CreateSymbol(activity.Holding.SymbolProfiles.First());
 					symbols = await GetAllSymbolProfiles();
-					symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix))?.Symbol);
+					symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource))?.Symbol);
 					if (symbolProfile == null)
 					{
-						logger.LogWarning("Symbol not found {Symbol}", activity.Holding?.SymbolProfiles.SingleOrDefault(x => x.DataSource.StartsWith(ContractToModelMapper.DataSourcePrefix))?.Symbol);
+						logger.LogWarning("Symbol not found {Symbol}", activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource))?.Symbol);
 						return null;
 					}
 				}
@@ -146,15 +146,30 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				var account = accounts.SingleOrDefault(x => x.Name == activity.Account.Name);
 				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, symbolProfile, activity, account);
 				return convertedActivity;
-			}).Where(x => !x.IsFaulted).Select(x => x.Result).Where(x => x != null && x.Type != ActivityType.IGNORE).Select(x => x!).ToList();
+			})
+				.Where(x => !x.IsFaulted)
+				.Select(x => x.Result)
+				.Where(x => x != null && x.Type != ActivityType.IGNORE)
+				.Select(x => x!)
+				.Where(x => x.AccountId != null) // ignore when we have no account
+				.ToList();
 
 			var listA = Sortorder(existingActivities);
 			var listB = Sortorder(newActivities.ToArray<Activity>());
 
 			// loop all activities and compare
-			for ( var i = 0; i < Math.Min(listA.Count, listB.Count); i++)
+			for (var i = 0; i < Math.Min(listA.Count, listB.Count); i++)
 			{
-				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
+				var compareLogic = new CompareLogic()
+				{
+					Config = new ComparisonConfig
+					{
+						MaxDifferences = int.MaxValue,
+						IgnoreObjectTypes = true,
+						MembersToIgnore = [nameof(Activity.Id), nameof(Activity.ReferenceCode)],
+						DecimalPrecision = 5
+					}
+				};
 				var comparisonResult = compareLogic.Compare(listA[i], listB[i]);
 				if (!comparisonResult.AreEqual)
 				{

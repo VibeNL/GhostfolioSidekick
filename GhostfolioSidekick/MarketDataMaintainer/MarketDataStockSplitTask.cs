@@ -2,6 +2,7 @@
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,13 +20,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var symbolIdentifiers = new List<Tuple<string, string>>();
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
 			{
+#pragma warning disable S2971 // LINQ expressions should be simplified
 				(await databaseContext.SymbolProfiles.Where(x => x.AssetSubClass == AssetSubClass.Stock)
 					.Select(x => new Tuple<string, string>(x.Symbol, x.DataSource))
 					.ToListAsync())
 					.OrderBy(x => x.Item1)
 					.ThenBy(x => x.Item2)
 					.ToList()
+					.Where(x => !Datasource.IsGhostfolio(x.Item2))
+					.ToList()
 					.ForEach(x => symbolIdentifiers.Add(x));
+#pragma warning restore S2971 // LINQ expressions should be simplified
 			}
 
 			foreach (var symbolIds in symbolIdentifiers)
@@ -37,9 +42,17 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.Include(x => x.MarketData)
 					.Where(x => x.Symbol == symbolIds.Item1 && x.DataSource == symbolIds.Item2)
 					.SingleAsync();
-				var minActivityDate = await databaseContext.Holdings.Where(x => x.SymbolProfiles.Contains(symbol))
-					.SelectMany(x => x.Activities)
-					.MinAsync(x => x!.Date);
+
+				var activities = databaseContext.Holdings.Where(x => x.SymbolProfiles.Contains(symbol))
+					.SelectMany(x => x.Activities);
+
+				if (!await activities.AnyAsync())
+				{
+					logger.LogTrace($"No activities found for {symbol.Symbol} from {symbol.DataSource}");
+					continue;
+				}
+
+				var minActivityDate = await activities.MinAsync(x => x!.Date);
 
 				var date = DateOnly.FromDateTime(minActivityDate);
 				var stockSplitRepository = stockPriceRepositories.SingleOrDefault(x => x.DataSource == symbol.DataSource);
