@@ -1,14 +1,15 @@
-﻿using GhostfolioSidekick.Database.Repository;
+﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers;
+using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Activities
 {
-	internal class ActivityManager(
-		IAccountRepository accountRepository) : IActivityManager
+	internal class ActivityManager(IList<Account> accounts) : IActivityManager
 	{
 		private readonly Dictionary<string, List<PartialActivity>> unusedPartialActivities = [];
 
@@ -20,13 +21,13 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		public async Task<IEnumerable<Activity>> GenerateActivities()
+		public Task<IEnumerable<Activity>> GenerateActivities()
 		{
 			var activities = new List<Activity>();
 			foreach (var partialActivityPerAccount in unusedPartialActivities)
 			{
 				var accountName = partialActivityPerAccount.Key;
-				var account = await accountRepository.GetAccountByName(accountName) ?? new Account(accountName);
+				var account = accounts.FirstOrDefault(x => x.Name == accountName) ?? new Account(accountName);
 				foreach (var transaction in partialActivityPerAccount.Value.GroupBy(x => x.TransactionId))
 				{
 					DetermineActivity(activities, account, [.. transaction]);
@@ -34,8 +35,7 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			unusedPartialActivities.Clear();
-
-			return activities;
+			return Task.FromResult<IEnumerable<Activity>>(activities);
 		}
 
 		private void DetermineActivity(List<Activity> activities, Account account, List<PartialActivity> transactions)

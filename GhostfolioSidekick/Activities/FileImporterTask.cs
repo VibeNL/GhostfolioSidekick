@@ -1,6 +1,10 @@
 ﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers;
+using KellermanSoftware.CompareNetObjects;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
@@ -12,8 +16,7 @@ namespace GhostfolioSidekick.Activities
 		ILogger<FileImporterTask> logger,
 		IApplicationSettings settings,
 		IEnumerable<IFileImporter> importers,
-		IActivityRepository activityRepository,
-		IAccountRepository accountRepository,
+		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IMemoryCache memoryCache) : IScheduledWork
 	{
 		private readonly string fileLocation = settings.FileImporterPath;
@@ -36,15 +39,16 @@ namespace GhostfolioSidekick.Activities
 
 			logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask));
 
-			var activityManager = new ActivityManager(accountRepository);
+			using var databaseContext = databaseContextFactory.CreateDbContext();
+			var activityManager = new ActivityManager(await databaseContext.Accounts.ToListAsync());
 			var accountNames = new List<string>();
 			await ParseFiles(logger, importers, directories, activityManager, accountNames);
 
 			logger.LogDebug("Generating activities");
 			var activities = await activityManager.GenerateActivities();
 
-			// write to the dababase
-			await activityRepository.StoreAll(activities);
+			// write to the dababase.
+			await StoreAll(databaseContext, activities);
 
 			memoryCache.Set(nameof(FileImporterTask), fileHashes, TimeSpan.FromHours(1));
 
@@ -118,6 +122,44 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			return sb.ToString();
+		}
+
+		public async Task StoreAll(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+		{
+			// Deduplicate entities
+			var existingActivities = await databaseContext.Activities.ToListAsync();
+			var existingTransactionIds = existingActivities.Select(x => x.TransactionId).ToList();
+			var newTransactionIds = activities.Select(x => x.TransactionId).ToList();
+
+			// Delete activities that are not in the new list
+			foreach (var deletedTransaction in existingTransactionIds.Except(newTransactionIds))
+			{
+				databaseContext.Activities.RemoveRange(existingActivities.Where(x => x.TransactionId == deletedTransaction));
+			}
+
+			// Add activities that are not in the existing list
+			foreach (var addedTransaction in newTransactionIds.Except(existingTransactionIds))
+			{
+				await databaseContext.Activities.AddRangeAsync(activities.Where(x => x.TransactionId == addedTransaction));
+			}
+
+			// Update activities that are in both lists
+			foreach (var updatedTransaction in existingTransactionIds.Intersect(newTransactionIds))
+			{
+				var existingActivity = existingActivities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
+				var newActivity = activities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
+
+				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
+				ComparisonResult result = compareLogic.Compare(existingActivity, newActivity);
+
+				if (!result.AreEqual)
+				{
+					databaseContext.Activities.RemoveRange(existingActivity);
+					await databaseContext.Activities.AddRangeAsync(newActivity);
+				}
+			}
+
+			await databaseContext.SaveChangesAsync();
 		}
 	}
 }

@@ -26,8 +26,6 @@
 
 		SyncWithGhostfolio,
 
-		//CreateManualSymbols,
-
 		//SetManualPrices,
 
 		//DeleteUnusedSymbols,

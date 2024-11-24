@@ -5,32 +5,43 @@ using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Configuration;
+using Microsoft.Extensions.Caching.Memory;
+using GhostfolioSidekick.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Activities
 {
-	internal class SymbolMatcherTask(ILogger<SymbolMatcherTask> logger, ISymbolMatcher[] symbolMatchers, IActivityRepository activityRepository/*, IMarketDataRepository marketDataRepository*/) : IScheduledWork
+	internal class SymbolMatcherTask(
+			IMemoryCache memoryCache,
+			ILogger<SymbolMatcherTask> logger,
+			IApplicationSettings applicationSettings,
+			ISymbolMatcher[] symbolMatchers,
+			IDbContextFactory<DatabaseContext> databaseContextFactory) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.SymbolMatcher;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork()
 		{
-			var activities = await activityRepository.GetAllActivities();
+			using var databaseContext = databaseContextFactory.CreateDbContext();
+			var activities = await databaseContext.Activities.ToListAsync();
 
 			var currencies = new Dictionary<Currency, DateTime>();
 			foreach (var activity in activities.OrderBy(x => x.Date))
 			{
 				if (activity is IActivityWithPartialIdentifier activityWithPartialIdentifier)
 				{
-					var ids = activityWithPartialIdentifier.PartialSymbolIdentifiers;
+					var ids = GetIds(activityWithPartialIdentifier.PartialSymbolIdentifiers);
 
 					if (ids == null || ids.Count == 0)
 					{
 						continue;
 					}
 
-					var holding = await activityRepository.FindHolding(ids);
+					var holding = (await databaseContext.Holdings.ToListAsync()).SingleOrDefault(x => ids.Any(y => x.IdentifierContainsInList(y)));
 
 					if (holding != null)
 					{
@@ -53,18 +64,62 @@ namespace GhostfolioSidekick.Activities
 							continue;
 						}
 
+						var cacheKey = $"{symbolMatcher.DataSource}_{string.Join(",", ids)}";
+
+						if (memoryCache.TryGetValue(cacheKey, out SymbolProfile? match) && match == null)
+						{
+							continue;
+						}
+
 						var symbol = await symbolMatcher.MatchSymbol(ids.ToArray()).ConfigureAwait(false);
 
 						if (symbol != null)
 						{
+							holding.MergeIdentifiers(GetIdentifiers(symbol));
 							holding.SymbolProfiles.Add(symbol);
 							logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",", ids.Select(x => x.Identifier))}");
 						}
-					}
 
-					await activityRepository.Store(holding);
+						memoryCache.Set(cacheKey, symbol, TimeSpan.FromHours(1));
+					}
 				}
 			}
+
+			await databaseContext.SaveChangesAsync();
+		}
+
+		private IList<PartialSymbolIdentifier> GetIdentifiers(SymbolProfile symbol)
+		{
+			var lst = new List<PartialSymbolIdentifier>();
+			foreach (var item in symbol.Identifiers)
+			{
+				lst.Add(new PartialSymbolIdentifier
+				{
+					Identifier = item,
+					AllowedAssetClasses = [symbol.AssetClass],
+					AllowedAssetSubClasses = symbol.AssetSubClass != null ?[symbol.AssetSubClass.Value] : null
+				});
+			}
+
+			return lst;
+		}
+
+		private IList<PartialSymbolIdentifier> GetIds(IList<PartialSymbolIdentifier> partialSymbolIdentifiers)
+		{
+			var mappings = applicationSettings.ConfigurationInstance.Mappings ?? [];
+
+			var ids = new List<PartialSymbolIdentifier>();
+			foreach (var partialIdentifier in partialSymbolIdentifiers)
+			{
+				ids.Add(partialIdentifier);
+
+				if (mappings.FirstOrDefault(x => x.Source == partialIdentifier.Identifier) is Mapping mapping)
+				{
+					ids.Add(partialIdentifier with { Identifier = mapping.Target });
+				}
+			}
+
+			return ids.DistinctBy(x => x.Identifier).ToList();
 		}
 	}
 }

@@ -4,24 +4,19 @@ using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
-	public class ApiWrapper(RestCall restCall, ILogger<ApiWrapper> logger, ICurrencyExchange currencyExchange) : IApiWrapper
+	public class ApiWrapper(
+			RestCall restCall,
+			ILogger<ApiWrapper> logger,
+			IApplicationSettings applicationSettings,
+			ICurrencyExchange currencyExchange) : IApiWrapper
 	{
 		public async Task CreateAccount(Model.Accounts.Account account)
 		{
@@ -113,6 +108,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return assets;
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)
 		{
 			var content = await restCall.DoRestGet($"api/v1/order");
@@ -130,21 +126,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			// Get new activities
 			var newActivities = allActivities.Select(async activity =>
 			{
-				var symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource))?.Symbol);
-				if (symbolProfile == null && (activity.Holding?.SymbolProfiles.Any() ?? false))
+				var symbolProfile = activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource));
+				var ghostfolioSymbolProfile = symbols.SingleOrDefault(x => x.Symbol == symbolProfile?.Symbol);
+
+				if (symbolProfile != null && ghostfolioSymbolProfile == null)
 				{
-					await CreateSymbol(activity.Holding.SymbolProfiles.First());
-					symbols = await GetAllSymbolProfiles();
-					symbolProfile = symbols.SingleOrDefault(x => x.Symbol == activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource))?.Symbol);
-					if (symbolProfile == null)
-					{
-						logger.LogWarning("Symbol not found {Symbol}", activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource))?.Symbol);
-						return null;
-					}
+					logger.LogWarning("Symbol not found {Symbol}, skipping activity", symbolProfile.Symbol);
+					return null;
 				}
 
 				var account = accounts.SingleOrDefault(x => x.Name == activity.Account.Name);
-				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, symbolProfile, activity, account);
+				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, ghostfolioSymbolProfile, activity, account);
 				return convertedActivity;
 			})
 				.Where(x => !x.IsFaulted)
@@ -386,5 +378,69 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return Task.FromResult(res);
 		}
 
+		private async Task<bool> CreateManualSymbol(Model.Symbols.SymbolProfile symbolProfile)
+		{
+			var symbolConfigurations = applicationSettings.ConfigurationInstance.Symbols;
+			var symbolConfiguration = (symbolConfigurations ?? []).SingleOrDefault(x => x.Symbol == symbolProfile.Symbol);
+
+			if (symbolConfiguration == null)
+			{
+				return false;
+			}
+
+			var manualSymbolConfiguration = symbolConfiguration.ManualSymbolConfiguration;
+			if (manualSymbolConfiguration == null)
+			{
+				return false;
+			}
+
+			var subClass = EnumMapper.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass);
+			Model.Activities.AssetSubClass[]? expectedAssetSubClass = subClass != null ? [subClass.Value] : null;
+
+			await CreateSymbol(new Model.Symbols.SymbolProfile(
+				symbolConfiguration.Symbol,
+				manualSymbolConfiguration.Name,
+				[symbolConfiguration.Symbol, manualSymbolConfiguration.Name],
+				new Currency(manualSymbolConfiguration.Currency),
+				Datasource.MANUAL,
+				EnumMapper.ParseAssetClass(manualSymbolConfiguration.AssetClass),
+				EnumMapper.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass),
+				manualSymbolConfiguration.Countries.Select(x => new Model.Symbols.CountryWeight(x.Name, x.Code, x.Continent, x.Weight)).ToArray(),
+				manualSymbolConfiguration.Sectors.Select(x => new Model.Symbols.SectorWeight(x.Name, x.Weight)).ToArray())
+			{
+				ISIN = manualSymbolConfiguration.ISIN
+			}
+			);
+
+			////// Set scraper
+			////if (symbol.ScraperConfiguration.Url != manualSymbolConfiguration.ScraperConfiguration?.Url ||
+			////	symbol.ScraperConfiguration.Selector != manualSymbolConfiguration.ScraperConfiguration?.Selector ||
+			////	symbol.ScraperConfiguration.Locale != manualSymbolConfiguration.ScraperConfiguration?.Locale
+			////	)
+			////{
+			////	symbol.ScraperConfiguration.Url = manualSymbolConfiguration.ScraperConfiguration?.Url;
+			////	symbol.ScraperConfiguration.Selector = manualSymbolConfiguration.ScraperConfiguration?.Selector;
+			////	symbol.ScraperConfiguration.Locale = manualSymbolConfiguration.ScraperConfiguration?.Locale;
+			////	await marketDataService.UpdateSymbol(symbol);
+			////}
+
+			////// Set countries, TODO: check all properties
+			////var countries = manualSymbolConfiguration.Countries;
+			////if (countries != null && !countries.Select(x => x.Code).SequenceEqual(symbol.Countries.Select(x => x.Code)))
+			////{
+			////	symbol.Countries = countries.Select(x => new Model.Symbols.Country(x.Name, x.Code, x.Continent, x.Weight));
+			////	await marketDataService.UpdateSymbol(symbol);
+			////}
+
+			////// Set sectors, TODO: check all properties
+			////var sectors = manualSymbolConfiguration.Sectors;
+			////if (sectors != null && !sectors.Select(x => x.Name).SequenceEqual(symbol.Sectors.Select(x => x.Name)))
+			////{
+			////	symbol.Sectors = sectors.Select(x => new Model.Symbols.Sector(x.Name, x.Weight));
+			////	await marketDataService.UpdateSymbol(symbol);
+			////}
+
+			return true;
+		}
 	}
 }

@@ -1,17 +1,18 @@
 ﻿using CoinGecko.Net.Clients;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 {
-	public class CoinGeckoRepository(ILogger<CoinGeckoRepository> logger, DatabaseContext databaseContext) :
+	public class CoinGeckoRepository(
+			ILogger<CoinGeckoRepository> logger,
+			IMemoryCache memoryCache) :
 		ISymbolMatcher,
 		IStockPriceRepository
 	{
@@ -36,8 +37,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				}
 
 				var symbolProfile = new SymbolProfile(coinGeckoAsset.Symbol, coinGeckoAsset.Name, [], Currency.USD with { }, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
-				await databaseContext.SymbolProfiles.AddAsync(symbolProfile);
-				await databaseContext.SaveChangesAsync();
 				return symbolProfile;
 			}
 
@@ -55,7 +54,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			}
 
 			var longRange = await RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger)							
+							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger)
 							.WrapAsync(RetryPolicyHelper
 								.GetRetryPolicy(logger))
 								.ExecuteAsync(async () =>
@@ -106,35 +105,56 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			return x;
 		}
 
-		private async Task<Database.Caches.CachedCoinGeckoAsset?> GetCoinGeckoAsset(string identifier)
+		private async Task<CoinGeckoAsset?> GetCoinGeckoAsset(string identifier)
 		{
-			if (!await databaseContext.CachedCoinGeckoAssets.AnyAsync()) // TODO, needs to be updated sometimes
+			// Check if in the cache
+			if (string.IsNullOrWhiteSpace(identifier))
 			{
-				using var restClient = new CoinGeckoRestClient();
-				var coinGeckoAssets = await restClient.Api.GetAssetsAsync();
-				if (coinGeckoAssets == null || !coinGeckoAssets.Success)
-				{
-					return null;
-				}
-				databaseContext.CachedCoinGeckoAssets.RemoveRange(databaseContext.CachedCoinGeckoAssets);
-				foreach (var asset in coinGeckoAssets.Data)
-				{
-					var cachedCoinGeckoAsset = new Database.Caches.CachedCoinGeckoAsset
-					{
-						Id = asset.Id,
-						Name = asset.Name,
-						Symbol = asset.Symbol
-					};
-					await databaseContext.CachedCoinGeckoAssets.AddAsync(cachedCoinGeckoAsset);
-				}
-				await databaseContext.SaveChangesAsync();
+				return null;
 			}
 
-			return await databaseContext.CachedCoinGeckoAssets
-				.Where(x => x.Symbol.ToLower() == identifier.ToLower())
-				.OrderByDescending(x => x.Id.ToLower() == x.Name.ToLower()) // prefer when the name is equal to the id (first to be added to the set
-				.OrderBy(x => x.Name.Length) // prefer shorter names
-				.FirstOrDefaultAsync();
+			if (memoryCache.TryGetValue<List<CoinGeckoAsset>>(DataSource, out var cachedCoinGecko))
+			{
+				return GetAsset(identifier, cachedCoinGecko!);
+			}
+
+			using var restClient = new CoinGeckoRestClient();
+			var coinGeckoAssets = await restClient.Api.GetAssetsAsync();
+			if (coinGeckoAssets == null || !coinGeckoAssets.Success)
+			{
+				return null;
+			}
+
+			var list = new List<CoinGeckoAsset>();
+			foreach (var asset in coinGeckoAssets.Data)
+			{
+				var cachedCoinGeckoAsset = new CoinGeckoAsset
+				{
+					Id = asset.Id,
+					Name = asset.Name,
+					Symbol = asset.Symbol
+				};
+				list.Add(cachedCoinGeckoAsset);
+			}
+
+			memoryCache.Set(DataSource, list, TimeSpan.FromDays(1));
+
+			if (memoryCache.TryGetValue<List<CoinGeckoAsset>>(DataSource, out cachedCoinGecko))
+			{
+				return GetAsset(identifier, cachedCoinGecko!);
+			}
+
+			return null;
+
+			static CoinGeckoAsset? GetAsset(string identifier, List<CoinGeckoAsset> cachedCoinGecko)
+			{
+				return cachedCoinGecko!
+					.Where(x => x.Symbol.ToLowerInvariant() == identifier.ToLowerInvariant())
+					.OrderBy(x => x.Name.Length) // Prefer the shortest name
+					.ThenBy(x => x.Id)
+					.FirstOrDefault();
+
+			}
 		}
 	}
 }

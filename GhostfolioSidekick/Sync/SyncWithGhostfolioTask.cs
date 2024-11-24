@@ -1,9 +1,11 @@
-﻿using GhostfolioSidekick.Database.Repository;
+﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI;
+using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Sync
 {
-	internal class SyncWithGhostfolioTask(IActivityRepository activityRepository, IAccountRepository accountRepository, IGhostfolioSync ghostfolioSync) : IScheduledWork
+	internal class SyncWithGhostfolioTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IGhostfolioSync ghostfolioSync) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.SyncWithGhostfolio;
 
@@ -11,13 +13,14 @@ namespace GhostfolioSidekick.Sync
 
 		public async Task DoWork()
 		{
-			var allAccounts = await accountRepository.GetAllAccounts();
+			await using var databaseContext = databaseContextFactory.CreateDbContext();
+			var allAccounts = await databaseContext.Accounts.ToListAsync();
 			foreach (var account in allAccounts)
 			{
 				await ghostfolioSync.SyncAccount(account);
 			}
 
-			var allActivities = await activityRepository.GetAllActivities();
+			var allActivities = await databaseContext.Activities.ToListAsync();
 			await ghostfolioSync.SyncAllActivities(allActivities);
 		}
 	}

@@ -107,9 +107,6 @@ namespace GhostfolioSidekick
 								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
 							});
 
-							services.AddScoped<IAccountRepository, AccountRepository>();
-							services.AddScoped<IActivityRepository, ActivityRepository>();
-							services.AddSingleton<IMarketDataRepository, MarketDataRepository>();
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
 							services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
 							services.AddSingleton<IApiWrapper, ApiWrapper>();
@@ -120,7 +117,7 @@ namespace GhostfolioSidekick
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
 							services.AddSingleton<ISymbolMatcher[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<GhostfolioSymbolMatcher>()]);
-							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), /*sp.GetRequiredService<CoinGeckoRepository>()*/]);
+							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>()]);
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 

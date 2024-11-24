@@ -1,9 +1,11 @@
 ﻿using GhostfolioSidekick.Activities.Strategies;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Activities
 {
-	internal class CalculatePriceTask(IEnumerable<IHoldingStrategy> holdingStrategies, IActivityRepository activityRepository) : IScheduledWork
+	internal class CalculatePriceTask(IEnumerable<IHoldingStrategy> holdingStrategies, IDbContextFactory<DatabaseContext> databaseContextFactory) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.CalculatePrice;
 
@@ -11,15 +13,17 @@ namespace GhostfolioSidekick.Activities
 
 		public async Task DoWork()
 		{
-			var holdings = await activityRepository.GetAllHoldings();
+			using var databaseContext = databaseContextFactory.CreateDbContext();
+			var holdings = await databaseContext.Holdings.ToListAsync();
 			foreach (var holdingStrategy in holdingStrategies.OrderBy(x => x.Priority))
 			{
 				foreach (var holding in holdings)
 				{
 					await holdingStrategy.Execute(holding);
-					await activityRepository.Store(holding);
 				}
 			}
+
+			await databaseContext.SaveChangesAsync();
 		}
 	}
 }
