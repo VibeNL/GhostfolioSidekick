@@ -16,6 +16,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Configuration\Configuration.csproj" />
+	  <ProjectReference Include="..\Cryptocurrency\Cryptocurrency.csproj" />
 	  <ProjectReference Include="..\Database\Database.csproj" />
 	  <ProjectReference Include="..\LibrariesAsCode\YahooFinanceApi\YahooFinanceApi.csproj" />
 	  <ProjectReference Include="..\Model\Model.csproj" />

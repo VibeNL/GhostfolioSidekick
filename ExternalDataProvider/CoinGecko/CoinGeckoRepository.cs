@@ -1,6 +1,7 @@
 ﻿using CoinGecko.Net.Clients;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
+using GhostfolioSidekick.Cryptocurrency;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -150,11 +151,17 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			{
 				return cachedCoinGecko!
 					.Where(x => x.Symbol.ToLowerInvariant() == identifier.ToLowerInvariant())
-					.OrderBy(x => x.Name.Length) // Prefer the shortest name
+					.OrderByDescending(x => IsKnown(x)) // true should be first
+					.ThenBy(x => x.Name.Length) // Prefer the shortest name
 					.ThenBy(x => x.Id)
 					.FirstOrDefault();
-
 			}
+		}
+
+		private static bool IsKnown(CoinGeckoAsset x)
+		{
+			var fullName = CryptoMapper.Instance.GetFullname(x.Symbol) ?? string.Empty;
+			return x.Name.ToLowerInvariant() == fullName.ToLowerInvariant();
 		}
 	}
 }
