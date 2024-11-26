@@ -21,12 +21,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		public DateOnly MinDate => DateOnly.MinValue;
 
 		private readonly ILogger<YahooRepository> logger;
-		private readonly DatabaseContext databaseContext;
 
-		public YahooRepository(ILogger<YahooRepository> logger, DatabaseContext databaseContext)
+		public YahooRepository(ILogger<YahooRepository> logger)
 		{
 			this.logger = logger;
-			this.databaseContext = databaseContext;
 		}
 
 		public Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
@@ -76,17 +74,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			var securityProfile = await RetryPolicyHelper.GetFallbackPolicy<SecurityProfile>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol));
 
-			// Check if already in database
-			var existingSymbol = await databaseContext.SymbolProfiles.SingleOrDefaultAsync(x => x.Symbol == symbol.Symbol && x.DataSource == Datasource.YAHOO);
-			if (existingSymbol != null)
-			{
-				return existingSymbol;
-			}
+			var symbolProfile = new SymbolProfile(symbol.Symbol, GetName(symbol), [symbol.Symbol, GetName(symbol)], new Currency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
 
-			var symbolProfile = new SymbolProfile(symbol.Symbol, GetName(symbol), [], new Currency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
-
-			await databaseContext.SymbolProfiles.AddAsync(symbolProfile);
-			await databaseContext.SaveChangesAsync();
 			return symbolProfile;
 
 			bool FilterOnAllowedType(SearchResult x, PartialSymbolIdentifier id)

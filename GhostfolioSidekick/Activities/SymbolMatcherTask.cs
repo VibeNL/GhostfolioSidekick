@@ -29,6 +29,8 @@ namespace GhostfolioSidekick.Activities
 			using var databaseContext = databaseContextFactory.CreateDbContext();
 			var activities = await databaseContext.Activities.ToListAsync();
 
+			var existingHoldings = await databaseContext.Holdings.ToListAsync();
+
 			var currencies = new Dictionary<Currency, DateTime>();
 			foreach (var activity in activities.OrderBy(x => x.Date))
 			{
@@ -41,25 +43,19 @@ namespace GhostfolioSidekick.Activities
 						continue;
 					}
 
-					var holding = (await databaseContext.Holdings.ToListAsync()).SingleOrDefault(x => ids.Any(y => x.IdentifierContainsInList(y)));
-
+					// Match on existing holdings with ids
+					var holding = existingHoldings.SingleOrDefault(x => ids.Any(y => x.IdentifierContainsInList(y)));
 					if (holding != null)
 					{
+						activity.Holding = holding;
 						holding.MergeIdentifiers(ids);
-					}
-					else
-					{
-						holding = new Holding
-						{
-							PartialSymbolIdentifiers = ids
-						};
+						continue;
 					}
 
-					activity.Holding = holding;
-
+					// Find symbol via symbolMatchers
 					foreach (var symbolMatcher in symbolMatchers)
 					{
-						if (holding.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource || (Datasource.IsGhostfolio(x.DataSource) && symbolMatcher.DataSource == Datasource.GHOSTFOLIO)))
+						if (holding?.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource || (Datasource.IsGhostfolio(x.DataSource) && symbolMatcher.DataSource == Datasource.GHOSTFOLIO)) ?? false)
 						{
 							continue;
 						}
@@ -75,8 +71,24 @@ namespace GhostfolioSidekick.Activities
 
 						if (symbol != null)
 						{
+							holding ??= existingHoldings.SingleOrDefault(x => x.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && y.Symbol == symbol.Symbol));
+							holding ??= existingHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x)).Any(y => x.IdentifierContainsInList(y)));
+
+							if (holding == null)
+							{
+								holding = new Holding();
+								holding.MergeIdentifiers(ids);
+								databaseContext.Holdings.Add(holding);
+								existingHoldings.Add(holding);
+							}
+
 							holding.MergeIdentifiers(GetIdentifiers(symbol));
-							holding.SymbolProfiles.Add(symbol);
+
+							if (!holding.SymbolProfiles.Contains(symbol))
+							{
+								holding.SymbolProfiles.Add(symbol);
+							}
+							
 							logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",", ids.Select(x => x.Identifier))}");
 						}
 

@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 					continue;
 				}
 
-				var symbolProfile = new SymbolProfile(coinGeckoAsset.Symbol, coinGeckoAsset.Name, [], Currency.USD with { }, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
+				var symbolProfile = new SymbolProfile(coinGeckoAsset.Symbol, coinGeckoAsset.Name, [coinGeckoAsset.Symbol, coinGeckoAsset.Name], Currency.USD with { }, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, [], []);
 				return symbolProfile;
 			}
 
