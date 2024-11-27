@@ -139,7 +139,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						AssetClass = symbolProfile.AssetClass.ToString(),
 						AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
 						Currency = symbolProfile.Currency.Symbol,
-						DataSource = Datasource.GHOSTFOLIO.ToString(),
+						DataSource = Datasource.GetUnderlyingDataSource(symbolProfile.DataSource).ToString(),
 						Name = symbolProfile.Name ?? symbolProfile.Symbol,
 						Symbol = symbolProfile.Symbol,
 						Sectors = symbolProfile.SectorWeights.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray(),
