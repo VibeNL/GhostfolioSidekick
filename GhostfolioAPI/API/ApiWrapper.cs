@@ -120,6 +120,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				existingActivity.FeeCurrency = existingActivity.FeeCurrency ?? existingActivity.SymbolProfile.Currency;
 			}
 
+			// TODO, only handle activities of the managed accounts, not all
+
 			var symbols = await GetAllSymbolProfiles();
 			var accounts = await GetAllAccounts();
 
