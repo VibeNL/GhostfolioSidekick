@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.Activities
 
 							holding.MergeIdentifiers(GetIdentifiers(symbol));
 
-							if (!holding.SymbolProfiles.Contains(symbol))
+							if (!holding.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && y.Symbol == symbol.Symbol))
 							{
 								holding.SymbolProfiles.Add(symbol);
 							}
@@ -96,6 +96,8 @@ namespace GhostfolioSidekick.Activities
 					}
 				}
 			}
+
+			var allsymbols = existingHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
 
 			await databaseContext.SaveChangesAsync();
 		}
