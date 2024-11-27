@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			var allsymbols = existingHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
+			//// var allsymbols = existingHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
 
 			await databaseContext.SaveChangesAsync();
 		}

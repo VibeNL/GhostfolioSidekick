@@ -102,12 +102,18 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			}
 		}
 
-		private static IEnumerable<Activity> ConvertBondRepay(IEnumerable<Activity> activities)
+		private IEnumerable<Activity> ConvertBondRepay(IEnumerable<Activity> activities)
 		{
 			foreach (var activity in activities)
 			{
 				if (activity is RepayBondActivity repayBondActivity)
 				{
+					if (repayBondActivity.Holding == null)
+					{
+						logger.LogWarning("RepayBondActivity has no holding");
+						continue;
+					}
+
 					var quantity = repayBondActivity.Holding!.Activities.OfType<BuySellActivity>().Sum(x => x.Quantity);
 					var price = repayBondActivity.TotalRepayAmount.SafeDivide(quantity);
 
