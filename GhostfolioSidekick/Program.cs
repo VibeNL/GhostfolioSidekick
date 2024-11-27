@@ -120,6 +120,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>()]);
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
+							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 
 							////services.AddSingleton<IExchangeRateService, ExchangeRateService>();
 							//services.AddSingleton<IActivitiesService, ActivitiesService>();
@@ -140,6 +141,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IScheduledWork, CalculatePriceTask>();
 							services.AddScoped<IScheduledWork, CleanupDatabaseTask>();
 							services.AddScoped<IScheduledWork, SyncWithGhostfolioTask>();
+							services.AddScoped<IScheduledWork, CleanupGhostfolioTask>();
 							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
 							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
 							////services.AddScoped<IScheduledWork, SetBenchmarksTask>();
