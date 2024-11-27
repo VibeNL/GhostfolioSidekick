@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Sync
 				await ghostfolioSync.SyncAccount(account);
 			}
 
-			var allActivities = await databaseContext.Activities.ToListAsync();
+			var allActivities = await databaseContext.Activities.Include(x => x.Holding).ToListAsync();
 			await ghostfolioSync.SyncAllActivities(allActivities);
 		}
 	}

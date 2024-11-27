@@ -129,11 +129,26 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				var symbolProfile = activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource));
 				var ghostfolioSymbolProfile = symbols.SingleOrDefault(x => x.Symbol == symbolProfile?.Symbol);
 
+				// Create symbol if not found
 				if (symbolProfile != null && ghostfolioSymbolProfile == null)
+				{
+					logger.LogWarning("Symbol not found {Symbol}, creating symbol", symbolProfile.Symbol);
+					ghostfolioSymbolProfile = new Contract.SymbolProfile {
+						AssetClass = symbolProfile.AssetClass.ToString(),
+						AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
+						Currency = symbolProfile.Currency.Symbol,
+						DataSource = Datasource.GHOSTFOLIO.ToString(),
+						Name = symbolProfile.Name ?? symbolProfile.Symbol,
+						Symbol = symbolProfile.Symbol,
+						Sectors = symbolProfile.SectorWeights.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray(),
+						Countries = symbolProfile.CountryWeight.Select(x => new Contract.Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray()	
+					};
+				}
+				/*if (symbolProfile != null && ghostfolioSymbolProfile == null)
 				{
 					logger.LogWarning("Symbol not found {Symbol}, skipping activity", symbolProfile.Symbol);
 					return null;
-				}
+				}*/
 
 				var account = accounts.SingleOrDefault(x => x.Name == activity.Account.Name);
 				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, ghostfolioSymbolProfile, activity, account);
