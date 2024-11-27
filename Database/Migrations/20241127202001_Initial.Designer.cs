@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20241112082232_Initial")]
+    [Migration("20241127202001_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -23,24 +23,6 @@ namespace GhostfolioSidekick.Database.Migrations
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
-
-            modelBuilder.Entity("GhostfolioSidekick.Database.Caches.CachedCoinGeckoAsset", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Symbol")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CachedCoinGeckoAsset", (string)null);
-                });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
                 {

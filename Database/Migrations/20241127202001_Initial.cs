@@ -12,19 +12,6 @@ namespace GhostfolioSidekick.Database.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "CachedCoinGeckoAsset",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Symbol = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CachedCoinGeckoAsset", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Holdings",
                 columns: table => new
                 {
@@ -259,9 +246,6 @@ namespace GhostfolioSidekick.Database.Migrations
 
             migrationBuilder.DropTable(
                 name: "Balances");
-
-            migrationBuilder.DropTable(
-                name: "CachedCoinGeckoAsset");
 
             migrationBuilder.DropTable(
                 name: "MarketData");

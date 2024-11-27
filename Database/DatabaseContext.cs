@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Database.Caches;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
@@ -19,10 +18,6 @@ namespace GhostfolioSidekick.Database
 		public DbSet<Activity> Activities { get; set; }
 
 		public DbSet<Holding> Holdings { get; set; }
-
-
-		// Caches
-		public DbSet<CachedCoinGeckoAsset> CachedCoinGeckoAssets { get; set; }
 
 		public DatabaseContext()
 		{
