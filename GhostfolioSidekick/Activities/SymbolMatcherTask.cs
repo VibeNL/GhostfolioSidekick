@@ -94,6 +94,8 @@ namespace GhostfolioSidekick.Activities
 
 						memoryCache.Set(cacheKey, symbol, TimeSpan.FromHours(1));
 					}
+
+					activity.Holding = holding;
 				}
 			}
 
