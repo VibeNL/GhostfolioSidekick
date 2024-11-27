@@ -66,6 +66,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					{
 						date = maxDate;
 					}
+
+					// TODO
+					if (maxDate >= DateOnly.FromDateTime(DateTime.Today))
+					{
+						// For now skip today
+						logger.LogDebug($"Market data for {symbol.Symbol} from {symbol.DataSource} is up to date");
+						continue;
+					}
 				}
 
 				var list = await stockPriceRepository.GetStockMarketData(symbol, date);
@@ -73,7 +81,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				foreach (var marketData in list)
 				{
 					var existingRecord = symbol.MarketData.SingleOrDefault(x => x.Date == marketData.Date);
-					if (existingRecord != null && existingRecord.Close == marketData.Close)
+					if (existingRecord != null && Math.Abs(existingRecord.Close.Amount - marketData.Close.Amount) < 0.00001m)
 					{
 						continue;
 					}
