@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Activities
 
 						if (symbol != null)
 						{
-							holding ??= existingHoldings.SingleOrDefault(x => x.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && y.Symbol == symbol.Symbol));
+							holding ??= existingHoldings.SingleOrDefault(x => x.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && string.Equals(y.Symbol, symbol.Symbol, StringComparison.InvariantCultureIgnoreCase)));
 							holding ??= existingHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x)).Any(y => x.IdentifierContainsInList(y)));
 
 							if (holding == null)
@@ -99,7 +99,13 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			//// var allsymbols = existingHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
+			//var allsymbols = existingHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
+
+			//foreach (var item in allsymbols)
+			//{
+			//	// find holding
+			//	var holding = existingHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == item.Key.DataSource && y.Symbol == item.Key.Symbol)).ToList();
+			//}
 
 			await databaseContext.SaveChangesAsync();
 		}
