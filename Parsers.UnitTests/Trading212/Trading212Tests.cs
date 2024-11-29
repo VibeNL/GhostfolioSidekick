@@ -489,6 +489,28 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStockDividend_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/Specials/single_stock_dividend.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(
+						Currency.USD,
+						new DateTime(2024, 11, 07, 13, 20, 27, 947, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("US84265V1052")],
+						0.0119387200M,
+						0M,
+						new Money(Currency.EUR, 0M),
+						"EOF23150970942"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_InvalidAction_ThrowNotSupported()
 		{
 			// Arrange

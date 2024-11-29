@@ -1,6 +1,7 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using Newtonsoft.Json.Serialization;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trading212
@@ -84,6 +85,16 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time, [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.NumberOfShares!.Value,
 						record.Price!.Value,
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
+					break;
+				case "Stock distribution":
+					lst.Add(PartialActivity.CreateBuy(
+						currency,
+						record.Time,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.NumberOfShares!.Value,
+						0,
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
