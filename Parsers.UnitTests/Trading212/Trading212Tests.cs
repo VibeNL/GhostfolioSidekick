@@ -101,6 +101,26 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleCardCredit_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/CashTransactions/single_card_credit.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2024, 10, 27, 14, 20, 26, 0, DateTimeKind.Utc),
+						4.30m,
+						new Money(Currency.EUR, 4.30m),
+						"5477a704-5b84-4d9b-a1bd-a41094dfb544")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleCashback_Converted()
 		{
 			// Arrange
