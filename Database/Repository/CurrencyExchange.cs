@@ -41,8 +41,22 @@ namespace GhostfolioSidekick.Database.Repository
 
 			if (exchangeRate == null)
 			{
-                logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency} on {SearchDate}. Using 1:1 rate.", money.Currency, currency, searchDate);
-				return new Money(currency, money.Amount);
+                logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency} on {SearchDate}. Using previous rate.", money.Currency, currency, searchDate);
+
+				exchangeRate = await databaseContext.SymbolProfiles
+									.Where(x => x.Symbol == $"{money.Currency.Symbol}{currency.Symbol}")
+									.SelectMany(x => x.MarketData)
+									.Where(x => x.Date < searchDate)
+									.OrderByDescending(x => x.Date)
+									.Select(x => x.Close)
+									.AsNoTracking()
+									.FirstOrDefaultAsync();
+
+				if (exchangeRate == null)
+				{
+					logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency}. Using 1:1 rate.", money.Currency, currency);
+					return new Money(currency, money.Amount);
+				}
 			}
 
 			return new Money(currency, money.Times(exchangeRate.Amount).Amount);

@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Sync
 
 			foreach (var profile in symbols.Where(x => x.ActivitiesCount == 0))
 			{
-				if (IsGeneratedSymbol(profile) || applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols)
+				if (Utils.IsGeneratedSymbol(profile) || applicationSettings.ConfigurationInstance.Settings.DeleteUnusedSymbols)
 				{
 					// Exclude benchmarks and fear and greet index
 					if (IsBenchmark(benchmarks, profile) || IsFearAndGreedIndex(profile))
@@ -37,12 +37,6 @@ namespace GhostfolioSidekick.Sync
 					await ghostfolioMarketData.DeleteSymbol(profile);
 				}
 			}
-		}
-
-		private static bool IsGeneratedSymbol(GhostfolioAPI.Contract.SymbolProfile assetProfile)
-		{
-			var guidRegex = new Regex("^(?:\\{{0,1}(?:[0-9a-fA-F]){8}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){4}-(?:[0-9a-fA-F]){12}\\}{0,1})$");
-			return guidRegex.IsMatch(assetProfile.Symbol) && assetProfile.DataSource == Datasource.MANUAL;
 		}
 
 		private static bool IsBenchmark(GhostfolioAPI.Contract.GenericInfo benchmarks, GhostfolioAPI.Contract.SymbolProfile profile)

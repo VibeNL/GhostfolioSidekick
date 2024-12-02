@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Sync;
 using KellermanSoftware.CompareNetObjects;
 using System;
 using System.Collections.Generic;
@@ -49,18 +50,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 		{
 			var existingListOfItems = Sortorder(existingActivityGroup.ToArray()).GroupBy(x => x.Date.Date);
 			var newListOfItems = Sortorder(newActivityGroup.ToArray()).GroupBy(x => x.Date.Date);
-
-			var compareLogic = new CompareLogic()
-			{
-				Config = new ComparisonConfig
-				{
-					MaxDifferences = int.MaxValue,
-					IgnoreObjectTypes = true,
-					MembersToIgnore = [nameof(Activity.Id), nameof(Activity.ReferenceCode)],
-					DecimalPrecision = 5,
-				}
-			};
-
+			
 			foreach (var existingItem in existingListOfItems)
 			{
 				var newItem = newListOfItems.FirstOrDefault(x => x.Key == existingItem.Key);
@@ -73,6 +63,23 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 					// compare each item individually
 					for (int i = 0; i < int.Min(existingSorted.Count, newSorted.Count); i++)
 					{
+						var compareLogic = new CompareLogic()
+						{
+							Config = new ComparisonConfig
+							{
+								MaxDifferences = int.MaxValue,
+								IgnoreObjectTypes = true,
+								MembersToIgnore = [nameof(Activity.Id), nameof(Activity.ReferenceCode)],
+								DecimalPrecision = 5,
+							}
+						};
+
+						if (Utils.IsGeneratedSymbol(existingSorted[i].SymbolProfile))
+						{
+							compareLogic.Config.MembersToIgnore.Add(nameof(Activity.SymbolProfile));
+							compareLogic.Config.MembersToIgnore.Add(nameof(Activity.FeeCurrency));
+						}
+
 						var comparisonResult = compareLogic.Compare(existingSorted[i], newSorted[i]);
 						if (!comparisonResult.AreEqual)
 						{
