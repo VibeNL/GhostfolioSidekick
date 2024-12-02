@@ -1,9 +1,11 @@
 ﻿using CryptoExchange.Net.CommonObjects;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.Extensions.Logging;
@@ -15,7 +17,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 	public class ApiWrapper(
 			RestCall restCall,
 			ILogger<ApiWrapper> logger,
-			IApplicationSettings applicationSettings,
 			ICurrencyExchange currencyExchange) : IApiWrapper
 	{
 		public async Task CreateAccount(Model.Accounts.Account account)
@@ -146,66 +147,48 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						Countries = symbolProfile.CountryWeight.Select(x => new Contract.Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray()	
 					};
 				}
-				/*if (symbolProfile != null && ghostfolioSymbolProfile == null)
-				{
-					logger.LogWarning("Symbol not found {Symbol}, skipping activity", symbolProfile.Symbol);
-					return null;
-				}*/
 
 				var account = accounts.SingleOrDefault(x => x.Name == activity.Account.Name);
 				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, ghostfolioSymbolProfile, activity, account);
 				return convertedActivity;
 			})
-				.Where(x => !x.IsFaulted)
 				.Select(x => x.Result)
 				.Where(x => x != null && x.Type != ActivityType.IGNORE)
 				.Select(x => x!)
 				.Where(x => x.AccountId != null) // ignore when we have no account
 				.ToList();
 
-			var listA = Sortorder(existingActivities);
-			var listB = Sortorder(newActivities.ToArray<Activity>());
+			var mergeOrders = (await new MergeActivities()
+				.Merge(existingActivities, newActivities))
+				.Where(x => x.Operation != Operation.Duplicate)
+				.OrderBy(x => x.Order1.Date)
+				.ToList();
 
-			// loop all activities and compare
-			for (var i = 0; i < Math.Min(listA.Count, listB.Count); i++)
+			logger.LogDebug("Applying changes");
+			foreach (var item in mergeOrders)
 			{
-				var compareLogic = new CompareLogic()
+				try
 				{
-					Config = new ComparisonConfig
+					switch (item.Operation)
 					{
-						MaxDifferences = int.MaxValue,
-						IgnoreObjectTypes = true,
-						MembersToIgnore = [nameof(Activity.Id), nameof(Activity.ReferenceCode)],
-						DecimalPrecision = 5
+						case Operation.New:
+							await WriteOrder(item.Order1);
+							break;
+						case Operation.Updated:
+							await DeleteOrder(item.Order1);
+							await WriteOrder(item.Order2!);
+							break;
+						case Operation.Removed:
+							await DeleteOrder(item.Order1);
+							break;
+						default:
+							throw new NotSupportedException();
 					}
-				};
-				var comparisonResult = compareLogic.Compare(listA[i], listB[i]);
-				if (!comparisonResult.AreEqual)
-				{
-					await DeleteOrder(listA[i]);
-					await WriteOrder(listB[i]);
 				}
-			}
-
-			// Add new activities
-			for (var i = Math.Min(listA.Count, listB.Count); i < listB.Count; i++)
-			{
-				await WriteOrder(listB[i]);
-			}
-
-			// Delete old activities
-			for (var i = Math.Min(listA.Count, listB.Count); i < listA.Count; i++)
-			{
-				await DeleteOrder(listA[i]);
-			}
-
-			static List<Activity> Sortorder(Activity[] existingActivities)
-			{
-				return existingActivities
-						.OrderBy(x => x.Date)
-						.ThenBy(x => x.SymbolProfile.Symbol)
-						.ThenBy(x => x.Comment)
-						.ToList();
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Transaction failed to write {Exception}, skipping", ex.Message);
+				}
 			}
 		}
 
@@ -320,33 +303,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return profiles;
 		}
 
-		private async Task CreateSymbol(Model.Symbols.SymbolProfile symbolProfile)
-		{
-			var o = new JObject
-			{
-				["symbol"] = symbolProfile.Symbol,
-				["isin"] = symbolProfile.ISIN,
-				["name"] = symbolProfile.Name,
-				["comment"] = symbolProfile.Comment,
-				["assetClass"] = symbolProfile.AssetClass.ToString(),
-				["assetSubClass"] = symbolProfile.AssetSubClass?.ToString(),
-				["currency"] = symbolProfile.Currency.Symbol,
-				["datasource"] = symbolProfile.DataSource.ToString(),
-			};
-			var res = o.ToString();
-
-			var r = await restCall.DoRestPost($"api/v1/admin/profile-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}", res);
-			if (!r.IsSuccessStatusCode)
-			{
-				throw new NotSupportedException($"Creation failed {symbolProfile.Symbol}");
-			}
-
-			logger.LogDebug("Created symbol {Symbol}", symbolProfile.Symbol);
-
-			// Set name and assetClass (BUG / Quirk Ghostfolio?)
-			////TODO await UpdateSymbol(symbolProfile);
-		}
-
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1121:Assignments should not be made from within sub-expressions", Justification = "Cleaner")]
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
 		private async Task WriteOrder(Activity activity)
@@ -393,71 +349,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			};
 			var res = o.ToString();
 			return Task.FromResult(res);
-		}
-
-		private async Task<bool> CreateManualSymbol(Model.Symbols.SymbolProfile symbolProfile)
-		{
-			var symbolConfigurations = applicationSettings.ConfigurationInstance.Symbols;
-			var symbolConfiguration = (symbolConfigurations ?? []).SingleOrDefault(x => x.Symbol == symbolProfile.Symbol);
-
-			if (symbolConfiguration == null)
-			{
-				return false;
-			}
-
-			var manualSymbolConfiguration = symbolConfiguration.ManualSymbolConfiguration;
-			if (manualSymbolConfiguration == null)
-			{
-				return false;
-			}
-
-			var subClass = EnumMapper.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass);
-			Model.Activities.AssetSubClass[]? expectedAssetSubClass = subClass != null ? [subClass.Value] : null;
-
-			await CreateSymbol(new Model.Symbols.SymbolProfile(
-				symbolConfiguration.Symbol,
-				manualSymbolConfiguration.Name,
-				[symbolConfiguration.Symbol, manualSymbolConfiguration.Name],
-				new Currency(manualSymbolConfiguration.Currency),
-				Datasource.MANUAL,
-				EnumMapper.ParseAssetClass(manualSymbolConfiguration.AssetClass),
-				EnumMapper.ParseAssetSubClass(manualSymbolConfiguration.AssetSubClass),
-				manualSymbolConfiguration.Countries.Select(x => new Model.Symbols.CountryWeight(x.Name, x.Code, x.Continent, x.Weight)).ToArray(),
-				manualSymbolConfiguration.Sectors.Select(x => new Model.Symbols.SectorWeight(x.Name, x.Weight)).ToArray())
-			{
-				ISIN = manualSymbolConfiguration.ISIN
-			}
-			);
-
-			////// Set scraper
-			////if (symbol.ScraperConfiguration.Url != manualSymbolConfiguration.ScraperConfiguration?.Url ||
-			////	symbol.ScraperConfiguration.Selector != manualSymbolConfiguration.ScraperConfiguration?.Selector ||
-			////	symbol.ScraperConfiguration.Locale != manualSymbolConfiguration.ScraperConfiguration?.Locale
-			////	)
-			////{
-			////	symbol.ScraperConfiguration.Url = manualSymbolConfiguration.ScraperConfiguration?.Url;
-			////	symbol.ScraperConfiguration.Selector = manualSymbolConfiguration.ScraperConfiguration?.Selector;
-			////	symbol.ScraperConfiguration.Locale = manualSymbolConfiguration.ScraperConfiguration?.Locale;
-			////	await marketDataService.UpdateSymbol(symbol);
-			////}
-
-			////// Set countries, TODO: check all properties
-			////var countries = manualSymbolConfiguration.Countries;
-			////if (countries != null && !countries.Select(x => x.Code).SequenceEqual(symbol.Countries.Select(x => x.Code)))
-			////{
-			////	symbol.Countries = countries.Select(x => new Model.Symbols.Country(x.Name, x.Code, x.Continent, x.Weight));
-			////	await marketDataService.UpdateSymbol(symbol);
-			////}
-
-			////// Set sectors, TODO: check all properties
-			////var sectors = manualSymbolConfiguration.Sectors;
-			////if (sectors != null && !sectors.Select(x => x.Name).SequenceEqual(symbol.Sectors.Select(x => x.Name)))
-			////{
-			////	symbol.Sectors = sectors.Select(x => new Model.Symbols.Sector(x.Name, x.Weight));
-			////	await marketDataService.UpdateSymbol(symbol);
-			////}
-
-			return true;
 		}
 	}
 }

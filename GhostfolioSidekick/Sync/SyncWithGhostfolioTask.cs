@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Sync
 	{
 		public TaskPriority Priority => TaskPriority.SyncWithGhostfolio;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+		public TimeSpan ExecutionFrequency => TimeSpan.FromMinutes(5);
 
 		public async Task DoWork()
 		{
