@@ -35,8 +35,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			foreach (var symbolIds in symbolIdentifiers)
 			{
-				logger.LogDebug($"Gathering stock split data for {symbolIds.Item1} from {symbolIds.Item2}");
-
 				using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 				var symbol = await databaseContext.SymbolProfiles
 					.Include(x => x.MarketData)
@@ -59,7 +57,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (stockSplitRepository == null)
 				{
-					logger.LogWarning($"No stock price repository found for {symbol.DataSource}");
+					logger.LogWarning($"No stock split repository found for {symbol.DataSource}");
 					continue;
 				}
 
@@ -84,7 +82,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 				await databaseContext.SaveChangesAsync();
-				logger.LogDebug($"Stock splits for {symbol.Symbol} from {symbol.DataSource} gathered. Found {splits.Count()}");
+
+				if (splits.Any())
+				{
+					logger.LogDebug($"Stock splits for {symbol.Symbol} from {symbol.DataSource} gathered. Found {splits.Count()}");
+				}
 			}
 
 		}
