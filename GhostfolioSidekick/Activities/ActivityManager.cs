@@ -142,7 +142,7 @@ namespace GhostfolioSidekick.Activities
 				case PartialActivityType.CashWithdrawal:
 					return new CashDepositWithdrawalActivity(account, null, date, totalTransactionAmount.Times(-1), transactionId, sortingPriority, description);
 				case PartialActivityType.KnownBalance:
-					return new KnownBalanceActivity(account, null, date, money, transactionId, sortingPriority, description);
+					return new KnownBalanceActivity(account, null, date, money.Times(amount), transactionId, sortingPriority, description);
 				case PartialActivityType.Valuable:
 					return new ValuableActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.Liability:
