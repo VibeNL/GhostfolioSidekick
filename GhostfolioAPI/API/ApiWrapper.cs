@@ -11,6 +11,7 @@ using KellermanSoftware.CompareNetObjects;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -113,7 +114,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)
 		{
 			var content = await restCall.DoRestGet($"api/v1/order");
-			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities;
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
 
 			// fixup
 			foreach (var existingActivity in existingActivities)
@@ -121,10 +122,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				existingActivity.FeeCurrency = existingActivity.FeeCurrency ?? existingActivity.SymbolProfile.Currency;
 			}
 
-			// TODO, only handle activities of the managed accounts, not all
-
 			var symbols = await GetAllSymbolProfiles();
 			var accounts = await GetAllAccounts();
+
+			// Filter out existing activities that are not in the new list
+			var accountFromActivities = allActivities.Select(x => x.Account.Name).Distinct().ToList();
+			var accountIds = accountFromActivities.Select(x => accounts.SingleOrDefault(y => y.Name == x)?.Id).Where(x => x != null).Select(x => x!).ToList();
+			existingActivities = existingActivities.Where(x => accountIds.Contains(x.AccountId!)).ToList();
 
 			// Get new activities
 			var newActivities = allActivities.Select(async activity =>
