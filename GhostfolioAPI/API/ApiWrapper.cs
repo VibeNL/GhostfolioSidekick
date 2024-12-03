@@ -317,7 +317,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var url = $"api/v1/order";
 			await restCall.DoRestPost(url, await ConvertToBody(activity));
 
-			logger.LogDebug("Added transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
+			logger.LogInformation("Added transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
