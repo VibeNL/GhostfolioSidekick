@@ -1,4 +1,6 @@
-﻿using GhostfolioSidekick.AccountMaintainer;
+﻿using CoinGecko.Net.Clients;
+using CoinGecko.Net.Interfaces;
+using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Configuration;
@@ -114,6 +116,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<YahooRepository>();
 							services.AddSingleton<CoinGeckoRepository>();
 							services.AddSingleton<GhostfolioSymbolMatcher>();
+							services.AddTransient<ICoinGeckoRestClient, CoinGeckoRestClient>();
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
 							services.AddSingleton<ISymbolMatcher[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<GhostfolioSymbolMatcher>()]);
