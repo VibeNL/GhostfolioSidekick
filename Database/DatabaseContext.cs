@@ -9,15 +9,15 @@ namespace GhostfolioSidekick.Database
 {
 	public class DatabaseContext : DbContext
 	{
-		public DbSet<Platform> Platforms { get; set; }
+		public virtual DbSet<Platform> Platforms { get; set; }
 
-		public DbSet<Account> Accounts { get; set; }
+		public virtual DbSet<Account> Accounts { get; set; }
 
-		public DbSet<SymbolProfile> SymbolProfiles { get; set; }
+		public virtual DbSet<SymbolProfile> SymbolProfiles { get; set; }
 
-		public DbSet<Activity> Activities { get; set; }
+		public virtual DbSet<Activity> Activities { get; set; }
 
-		public DbSet<Holding> Holdings { get; set; }
+		public virtual DbSet<Holding> Holdings { get; set; }
 
 		public DatabaseContext()
 		{
