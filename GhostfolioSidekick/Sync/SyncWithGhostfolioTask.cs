@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI;
 using Microsoft.EntityFrameworkCore;
 

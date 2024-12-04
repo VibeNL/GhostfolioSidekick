@@ -1,9 +1,7 @@
-﻿using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.ExternalDataProvider;
+﻿using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Caching.Memory;

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -9,8 +5,6 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
-using YahooFinanceApi;
 
 namespace GhostfolioSidekick.Tests.ExternalDataProvider.Yahoo
 {

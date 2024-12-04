@@ -1,17 +1,12 @@
-﻿using CryptoExchange.Net.CommonObjects;
-using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database.Repository;
+﻿using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using KellermanSoftware.CompareNetObjects;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Linq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {

@@ -1,9 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 using GhostfolioSidekick.Database;
-using KellermanSoftware.CompareNetObjects;
 using FluentAssertions;
 
 namespace GhostfolioSidekick.Tests

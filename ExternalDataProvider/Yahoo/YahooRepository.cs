@@ -1,10 +1,8 @@
-﻿using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.CSharp.RuntimeBinder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using YahooFinanceApi;
 

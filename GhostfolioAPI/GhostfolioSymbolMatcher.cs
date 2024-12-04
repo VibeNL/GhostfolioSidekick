@@ -1,11 +1,9 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using Newtonsoft.Json;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {

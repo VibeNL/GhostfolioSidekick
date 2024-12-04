@@ -1,5 +1,4 @@
-﻿using Castle.Core.Logging;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

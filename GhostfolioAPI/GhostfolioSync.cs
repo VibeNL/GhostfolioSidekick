@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.GhostfolioAPI.API;
+﻿using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;

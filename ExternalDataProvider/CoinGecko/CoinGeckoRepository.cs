@@ -1,5 +1,4 @@
-﻿using CoinGecko.Net.Clients;
-using CoinGecko.Net.Interfaces;
+﻿using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
 using GhostfolioSidekick.Cryptocurrency;

@@ -1,13 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.GhostfolioAPI.Contract;
-using GhostfolioSidekick.Model.Symbols;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 
 namespace GhostfolioSidekick.Sync
 {

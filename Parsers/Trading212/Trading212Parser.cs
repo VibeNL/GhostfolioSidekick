@@ -1,7 +1,6 @@
 ﻿using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using Newtonsoft.Json.Serialization;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trading212

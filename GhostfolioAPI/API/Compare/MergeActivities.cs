@@ -1,13 +1,5 @@
-﻿using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.GhostfolioAPI.Contract;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Sync;
+﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
 using KellermanSoftware.CompareNetObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 {

@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Repository;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Activities

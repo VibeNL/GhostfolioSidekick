@@ -1,11 +1,8 @@
-﻿using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers;
-using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Activities
 {
