@@ -1,4 +1,5 @@
 ﻿using CoinGecko.Net.Clients;
+using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
 using GhostfolioSidekick.Cryptocurrency;
@@ -13,7 +14,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 {
 	public class CoinGeckoRepository(
 			ILogger<CoinGeckoRepository> logger,
-			IMemoryCache memoryCache) :
+			IMemoryCache memoryCache,
+			ICoinGeckoRestClient coinGeckoRestClient
+			) :
 		ISymbolMatcher,
 		IStockPriceRepository
 	{
@@ -23,7 +26,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] identifiers)
 		{
-			using var restClient = new CoinGeckoRestClient();
 			foreach (var id in identifiers)
 			{
 				if (id.AllowedAssetSubClasses == null || !id.AllowedAssetSubClasses.Contains(AssetSubClass.CryptoCurrency))
@@ -46,8 +48,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
 		{
-			using var restClient = new CoinGeckoRestClient();
-
 			var coinGeckoAsset = await GetCoinGeckoAsset(symbol.Symbol);
 			if (coinGeckoAsset == null)
 			{
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 								.GetRetryPolicy(logger))
 								.ExecuteAsync(async () =>
 								{
-									var response = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
+									var response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 365);
 
 									if (response == null || !response.Success)
 									{
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 								.GetRetryPolicy(logger))
 								.ExecuteAsync(async () =>
 								{
-									var response = await restClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
+									var response = await coinGeckoRestClient.Api.GetOhlcAsync(coinGeckoAsset.Id, "usd", 30);
 
 									if (response == null || !response.Success)
 									{
@@ -119,8 +119,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 				return GetAsset(identifier, cachedCoinGecko!);
 			}
 
-			using var restClient = new CoinGeckoRestClient();
-			var coinGeckoAssets = await restClient.Api.GetAssetsAsync();
+			var coinGeckoAssets = await coinGeckoRestClient.Api.GetAssetsAsync();
 			if (coinGeckoAssets == null || !coinGeckoAssets.Success)
 			{
 				return null;
