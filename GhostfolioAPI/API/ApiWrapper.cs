@@ -328,7 +328,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			await restCall.DoRestDelete($"api/v1/order/{activity.Id}");
-			logger.LogDebug("Deleted transaction {Date} {Symbol} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Type);
+			logger.LogInformation("Deleted transaction {Date} {Symbol} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Type);
 		}
 
 		private static Task<string> ConvertToBody(Contract.Activity activity)
