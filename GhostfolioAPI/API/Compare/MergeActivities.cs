@@ -3,9 +3,9 @@ using KellermanSoftware.CompareNetObjects;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 {
-	public class MergeActivities()
+	public static class MergeActivities
 	{
-		public Task<List<MergeOrder>> Merge(IEnumerable<Activity> existingActivities, IEnumerable<Activity> newActivities)
+		public static Task<List<MergeOrder>> Merge(IList<Activity> existingActivities, IList<Activity> newActivities)
 		{
 			var mergeOrders = new List<MergeOrder>();
 
@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
-		private IEnumerable<MergeOrder> MergeMatched(IEnumerable<Activity> existingActivityGroup, IEnumerable<Activity> newActivityGroup)
+		private static IEnumerable<MergeOrder> MergeMatched(IEnumerable<Activity> existingActivityGroup, IEnumerable<Activity> newActivityGroup)
 		{
 			var existingListOfItems = Sortorder(existingActivityGroup.ToArray()).GroupBy(x => x.Date.Date);
 			var newListOfItems = Sortorder(newActivityGroup.ToArray()).GroupBy(x => x.Date.Date);
@@ -61,19 +61,21 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 							{
 								MaxDifferences = int.MaxValue,
 								IgnoreObjectTypes = true,
-								MembersToIgnore = [nameof(Activity.Id), nameof(Activity.ReferenceCode)],
+								MembersToIgnore = [nameof(Activity.Id), nameof(Activity.ReferenceCode), nameof(Activity.SymbolProfile)],
 								DecimalPrecision = 5,
 							}
 						};
 
-						if (Utils.IsGeneratedSymbol(existingSorted[i].SymbolProfile))
+						var isGeneratedSymbol = Utils.IsGeneratedSymbol(existingSorted[i].SymbolProfile);
+						if (isGeneratedSymbol)
 						{
 							compareLogic.Config.MembersToIgnore.Add(nameof(Activity.SymbolProfile));
 							compareLogic.Config.MembersToIgnore.Add(nameof(Activity.FeeCurrency));
 						}
 
 						var comparisonResult = compareLogic.Compare(existingSorted[i], newSorted[i]);
-						if (!comparisonResult.AreEqual)
+						var symbolIsDifferent = (!isGeneratedSymbol && existingSorted[i]?.SymbolProfile?.Symbol != newSorted[i]?.SymbolProfile?.Symbol);
+						if (!comparisonResult.AreEqual || symbolIsDifferent)
 						{
 							yield return new MergeOrder(Operation.Updated, existingSorted[i].SymbolProfile, existingSorted[i], newSorted[i]);
 						}

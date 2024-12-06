@@ -126,15 +126,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			existingActivities = existingActivities.Where(x => accountIds.Contains(x.AccountId!)).ToList();
 
 			// Get new activities
-			var newActivities = allActivities.Select(async activity =>
+			var newActivities = allActivities.Select(activity =>
 			{
 				var symbolProfile = activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource));
-				var ghostfolioSymbolProfile = symbols.SingleOrDefault(x => x.Symbol == symbolProfile?.Symbol);
+				Contract.SymbolProfile? ghostfolioSymbolProfile = null;
 
-				// Create symbol if not found
-				if (symbolProfile != null && ghostfolioSymbolProfile == null)
+				if (symbolProfile != null)
 				{
-					logger.LogWarning("Symbol not found {Symbol}, creating symbol", symbolProfile.Symbol);
 					ghostfolioSymbolProfile = new Contract.SymbolProfile {
 						AssetClass = symbolProfile.AssetClass.ToString(),
 						AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
@@ -148,17 +146,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				}
 
 				var account = accounts.SingleOrDefault(x => x.Name == activity.Account.Name);
-				var convertedActivity = await ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, ghostfolioSymbolProfile, activity, account);
+				var convertedActivity = ModelToContractMapper.ConvertToGhostfolioActivity(currencyExchange, ghostfolioSymbolProfile, activity, account).Result;
 				return convertedActivity;
 			})
-				.Select(x => x.Result)
-				.Where(x => x != null && x.Type != ActivityType.IGNORE)
-				.Select(x => x!)
-				.Where(x => x.AccountId != null) // ignore when we have no account
-				.ToList();
+			.Where(x => x != null && x.Type != ActivityType.IGNORE)
+			.Select(x => x!)
+			.Where(x => x.AccountId != null) // ignore when we have no account
+			.ToList();
 
-			var mergeOrders = (await new MergeActivities()
-				.Merge(existingActivities, newActivities))
+			var mergeOrders = (await MergeActivities.Merge(existingActivities, newActivities))
 				.Where(x => x.Operation != Operation.Duplicate)
 				.OrderBy(x => x.Order1.Date)
 				.ToList();
@@ -328,7 +324,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			await restCall.DoRestDelete($"api/v1/order/{activity.Id}");
-			logger.LogInformation("Deleted transaction {Date} {Symbol} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Type);
+			logger.LogInformation("Deleted transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
 		}
 
 		private static Task<string> ConvertToBody(Contract.Activity activity)

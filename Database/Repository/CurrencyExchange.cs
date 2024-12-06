@@ -40,8 +40,7 @@ namespace GhostfolioSidekick.Database.Repository
 
 			if (exchangeRate == null)
 			{
-                logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency} on {SearchDate}. Using previous rate.", money.Currency, currency, searchDate);
-
+				// Use the last known value. Mayby a holliyday or weekend?
 				exchangeRate = await databaseContext.SymbolProfiles
 									.Where(x => x.Symbol == $"{money.Currency.Symbol}{currency.Symbol}")
 									.SelectMany(x => x.MarketData)
