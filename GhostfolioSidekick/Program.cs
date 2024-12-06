@@ -154,7 +154,7 @@ namespace GhostfolioSidekick
 
 							services.AddScoped<IHoldingStrategy, PopulateAdjustedFieldsStrategy>();
 							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
-
+							services.AddScoped<IHoldingStrategy, DeterminePrice>();
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 							services.AddScoped<IFileImporter, BitvavoParser>();
