@@ -12,14 +12,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 			// Arrange
 			var existingActivities = new List<Activity>();
 			var newActivities = new List<Activity>
-		{
-			new Activity { Comment = "New Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now }
-		};
-
-			var mergeActivities = new MergeActivities();
+			{
+				new Activity { Comment = "New Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now }
+			};
 
 			// Act
-			var result = await mergeActivities.Merge(existingActivities, newActivities);
+			var result = await MergeActivities.Merge(existingActivities, newActivities);
 
 			// Assert
 			Assert.Single(result);
@@ -32,15 +30,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 		{
 			// Arrange
 			var existingActivities = new List<Activity>
-		{
-			new Activity { Comment = "Existing Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now }
-		};
+			{
+				new Activity { Comment = "Existing Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now }
+			};
 			var newActivities = new List<Activity>();
 
-			var mergeActivities = new MergeActivities();
-
 			// Act
-			var result = await mergeActivities.Merge(existingActivities, newActivities);
+			var result = await MergeActivities.Merge(existingActivities, newActivities);
 
 			// Assert
 			Assert.Single(result);
@@ -52,18 +48,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 		{
 			// Arrange
 			var existingActivities = new List<Activity>
-		{
-			new Activity { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 10 }
-		};
+			{
+				new Activity { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 10 }
+			};
 			var newActivities = new List<Activity>
-		{
-			new Activity { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 20 }
-		};
-
-			var mergeActivities = new MergeActivities();
+			{
+				new Activity { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 20 }
+			};
 
 			// Act
-			var result = await mergeActivities.Merge(existingActivities, newActivities);
+			var result = await MergeActivities.Merge(existingActivities, newActivities);
 
 			// Assert
 			Assert.Single(result);
