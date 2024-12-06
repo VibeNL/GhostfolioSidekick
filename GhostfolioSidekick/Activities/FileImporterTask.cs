@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
@@ -148,7 +149,10 @@ namespace GhostfolioSidekick.Activities
 				var existingActivity = existingActivities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
 				var newActivity = activities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
 
-				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
+				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { 
+						MaxDifferences = int.MaxValue, 
+					IgnoreObjectTypes = true, 
+					MembersToIgnore = [nameof(Activity.Id), nameof(BuySellActivity.AdjustedQuantity), nameof(BuySellActivity.AdjustedUnitPrice), nameof(BuySellActivity.AdjustedUnitPriceSource)] } };
 				ComparisonResult result = compareLogic.Compare(existingActivity, newActivity);
 
 				if (!result.AreEqual)
