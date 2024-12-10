@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 
 		public ValuableActivityTests()
 		{
-			var account = new Fixture().Create<Account>();
+			var account = CustomFixture.New().Create<Account>();
 			var dateTime = DateTime.Now;
 			var unitPrice = new Money(Currency.EUR, 1);
 			var transactionId = "transactionId";

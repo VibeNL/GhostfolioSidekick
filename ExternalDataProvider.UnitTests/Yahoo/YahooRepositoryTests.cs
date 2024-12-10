@@ -26,8 +26,8 @@ namespace GhostfolioSidekick.Tests.ExternalDataProvider.Yahoo
         public async Task GetCurrencyHistory_ShouldReturnMarketData()
         {
             // Arrange
-            var currencyFrom = new Currency("USD");
-            var currencyTo = new Currency("EUR");
+            var currencyFrom = Currency.USD;
+            var currencyTo = Currency.EUR;
             var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
 
             // Act
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Tests.ExternalDataProvider.Yahoo
         public async Task GetStockMarketData_ShouldReturnMarketData()
         {
             // Arrange
-            var symbol = new SymbolProfile("AAPL", "Apple Inc.", new List<string> { "AAPL" }, new Currency("USD"), "YAHOO", AssetClass.Equity, AssetSubClass.Stock, new CountryWeight[0], new SectorWeight[0]);
+            var symbol = new SymbolProfile("AAPL", "Apple Inc.", new List<string> { "AAPL" }, Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, new CountryWeight[0], new SectorWeight[0]);
             var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
 
             // Act
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.Tests.ExternalDataProvider.Yahoo
         public async Task GetStockSplits_ShouldReturnStockSplits()
         {
             // Arrange
-            var symbol = new SymbolProfile("AAPL", "Apple Inc.", new List<string> { "AAPL" }, new Currency("USD"), "YAHOO", AssetClass.Equity, AssetSubClass.Stock, new CountryWeight[0], new SectorWeight[0]);
+            var symbol = new SymbolProfile("AAPL", "Apple Inc.", new List<string> { "AAPL" }, Currency.USD, "YAHOO", AssetClass.Equity, AssetSubClass.Stock, new CountryWeight[0], new SectorWeight[0]);
             var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
 
             // Act

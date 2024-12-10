@@ -250,7 +250,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
-						Currency.GBp,
+						Currency.GBX,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("GB0007188757")],
 						0.18625698M,
@@ -305,7 +305,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateDividend(
-						Currency.GBp,
+						Currency.GBX,
 						new DateTime(2024, 01, 12, 13, 25, 07, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("GG00BYZSSY63")],
 						478.496796400000M,
@@ -326,7 +326,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
-						Currency.GBp,
+						Currency.GBX,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("GB0007188757")],
 						0.18625698M,

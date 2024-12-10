@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 
 		public GiftActivityTests()
 		{
-			var account = new Fixture().Create<Account>();
+			var account = CustomFixture.New().Create<Account>();
 			var dateTime = DateTime.Now;
 			var amount = 1;
 			var transactionId = "transactionId";

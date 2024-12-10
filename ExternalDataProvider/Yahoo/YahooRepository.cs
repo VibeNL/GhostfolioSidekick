@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			var securityProfile = await RetryPolicyHelper.GetFallbackPolicy<SecurityProfile>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol));
 
-			var symbolProfile = new SymbolProfile(symbol.Symbol, GetName(symbol), [symbol.Symbol, GetName(symbol)], new Currency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
+			var symbolProfile = new SymbolProfile(symbol.Symbol, GetName(symbol), [symbol.Symbol, GetName(symbol)], Currency.GetCurrency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
 
 			return symbolProfile;
 

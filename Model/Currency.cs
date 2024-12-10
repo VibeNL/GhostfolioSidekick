@@ -7,9 +7,9 @@ namespace GhostfolioSidekick.Model
 	[SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
 	public record Currency
 	{
-		public static Currency EUR = new("EUR");
-		public static Currency USD = new("USD");
-		public static Currency GBP = new("GBP");
+		public static Currency EUR = new("EUR", null, 0);
+		public static Currency USD = new("USD", null, 0);
+		public static Currency GBP = new("GBP", null, 0);
 		public static Currency GBp = new("GBp", GBP, 100);
 		public static Currency GBX = new("GBX", GBP, 100);
 
@@ -20,12 +20,20 @@ namespace GhostfolioSidekick.Model
 			Symbol = default!;
 		}
 
-		public Currency(string symbol)
+		public static Currency GetCurrency(string symbol)
 		{
-			Symbol = symbol;
+			foreach (var currency in knownCurrencies)
+			{
+				if (currency.Symbol == symbol)
+				{
+					return currency;
+				}
+			}
+
+			return new Currency(symbol, null!, 0);
 		}
 
-		public Currency(string symbol, Currency sourceCurrency, decimal factor)
+		private Currency(string symbol, Currency? sourceCurrency, decimal factor)
 		{
 			Symbol = symbol;
 			SourceCurrency = sourceCurrency;
@@ -57,12 +65,12 @@ namespace GhostfolioSidekick.Model
 
 			if (SourceCurrency == targetCurrency)
 			{
-				return Factor;
+				return 1 / Factor;
 			}
 
 			if (targetCurrency.SourceCurrency == this)
 			{
-				return 1 / targetCurrency.Factor;
+				return targetCurrency.Factor;
 			}
 
 			return 0;

@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						-49.35M,
 						1),
 					PartialActivity.CreateBuy(
-						Currency.GBp,
+						Currency.GBX,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("AU000000GBP6")],
 						1,

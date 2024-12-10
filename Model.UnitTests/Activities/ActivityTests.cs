@@ -15,8 +15,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 			var types = type.Assembly.GetTypes()
 							.Where(p => type.IsAssignableFrom(p) && !p.IsAbstract);
 
-			var fixture = new Fixture();
-			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(Holding)));
+			var fixture = CustomFixture.New();
 			foreach (var myType in types)
 			{
 				var activity = (Activity)fixture.Create(myType, new SpecimenContext(fixture));
@@ -25,26 +24,6 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				activity.Account.Should().NotBeNull();
 				activity.Date.Should().NotBe(DateTime.MinValue);
 				activity.TransactionId.Should().NotBeNull();
-			}
-		}
-
-		private class ExcludeTypeSpecimenBuilder : ISpecimenBuilder
-		{
-			private readonly Type _excludedType;
-
-			public ExcludeTypeSpecimenBuilder(Type excludedType)
-			{
-				_excludedType = excludedType;
-			}
-
-			public object Create(object request, ISpecimenContext context)
-			{
-				if (request is Type type && type == _excludedType)
-				{
-					return null!;
-				}
-
-				return new NoSpecimen();
 			}
 		}
 	}

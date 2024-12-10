@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 
 		public SendAndReceiveActivityTests()
 		{
-			var account = new Fixture().Create<Account>();
+			var account = CustomFixture.New().Create<Account>();
 			var dateTime = DateTime.Now;
 			var quantity = 10m;
 			var transactionId = "transactionId";

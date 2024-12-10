@@ -17,6 +17,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public ModelToContractMapperTests()
 		{
 			_fixture = new Fixture();
+			_fixture.Behaviors
+							.OfType<ThrowingRecursionBehavior>()
+							.ToList()
+							.ForEach(b => _fixture.Behaviors.Remove(b));
+			_fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 			_fixture.Customize<DateOnly>(o => o.FromFactory((DateTime dt) => DateOnly.FromDateTime(dt)));
 			_fixture.Customize<TimeOnly>(o => o.FromFactory((DateTime dt) => TimeOnly.FromDateTime(dt)));
 
@@ -33,7 +38,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			_exchangeRateServiceMock
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
-				.ReturnsAsync(new Money(new Currency(symbolProfile.Currency), 100m));
+				.ReturnsAsync(new Money(Currency.GetCurrency(symbolProfile.Currency), 100m));
 
 			// Act
 			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, symbolProfile, buyActivity, account);
@@ -62,7 +67,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			_exchangeRateServiceMock
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
-				.ReturnsAsync(new Money(new Currency(symbolProfile.Currency), 100m));
+				.ReturnsAsync(new Money(Currency.GetCurrency(symbolProfile.Currency), 100m));
 
 			// Act
 			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, symbolProfile, sendAndReceiveActivity, account);
@@ -91,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			_exchangeRateServiceMock
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
-				.ReturnsAsync(new Money(new Currency(symbolProfile.Currency), 100m));
+				.ReturnsAsync(new Money(Currency.GetCurrency(symbolProfile.Currency), 100m));
 
 			// Act
 			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, symbolProfile, dividendActivity, account);

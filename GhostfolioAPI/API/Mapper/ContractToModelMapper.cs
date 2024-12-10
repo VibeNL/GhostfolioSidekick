@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				Platform = platform != null ? MapPlatform(platform) : null,
 			};
 
-			account.Balance = [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(new Currency(rawAccount.Currency), rawAccount.Balance))];
+			account.Balance = [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.GetCurrency(rawAccount.Currency), rawAccount.Balance))];
 
 			return account;
 		}
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				symbolProfile.Symbol,
 				symbolProfile.Name,
 				MapIdentifiers(symbolProfile),
-				new Currency(symbolProfile.Currency!),
+				Currency.GetCurrency(symbolProfile.Currency!),
 				Datasource.GHOSTFOLIO + "_" + symbolProfile.DataSource,
 				EnumMapper.ParseAssetClass(symbolProfile.AssetClass),
 				EnumMapper.ParseAssetSubClass(symbolProfile.AssetSubClass),

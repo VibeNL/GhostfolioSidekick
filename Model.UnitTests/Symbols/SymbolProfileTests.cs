@@ -11,8 +11,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Symbols
 		{
 			// Arrange
 			List<string> identifiers = ["id1", "id2"];
-			var symbolProfile = new SymbolProfile("symbol", "name", identifiers, new Currency("USD"), "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], []);
-			var newCurrency = new Currency("EUR");
+			var symbolProfile = new SymbolProfile("symbol", "name", identifiers, Currency.USD, "dataSource", AssetClass.Equity, AssetSubClass.Etf, [], []);
+			var newCurrency = Currency.EUR;
 			var newScraperConfiguration = new ScraperConfiguration();
 
 			// Act

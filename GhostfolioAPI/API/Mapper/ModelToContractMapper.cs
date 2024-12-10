@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				return 0;
 			}
 
-			return (await exchangeRateService.ConvertMoney(money, new Currency(targetCurrency), DateOnly.FromDateTime(dateTime))).Amount;
+			return (await exchangeRateService.ConvertMoney(money, Currency.GetCurrency(targetCurrency), DateOnly.FromDateTime(dateTime))).Amount;
 		}
 	}
 }
