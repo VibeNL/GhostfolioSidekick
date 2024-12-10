@@ -22,6 +22,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				m.OwnsOne<Currency>(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName("CurrencyClose");
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
 				});
 			});
 			builder.OwnsOne<Money>(b => b.Open, m =>
@@ -30,6 +32,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				m.OwnsOne<Currency>(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName("CurrencyOpen");
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
 				});
 			});
 			builder.OwnsOne<Money>(b => b.High, m =>
@@ -38,6 +42,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				m.OwnsOne<Currency>(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName("CurrencyHigh");
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
 				});
 			});
 			builder.OwnsOne<Money>(b => b.Low, m =>
@@ -46,6 +52,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				m.OwnsOne<Currency>(c => c.Currency, c =>
 				{
 					c.Property(p => p.Symbol).HasColumnName("CurrencyLow");
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
 				});
 			});
 			builder.Property(b => b.TradingVolume).HasColumnName("TradingVolume");

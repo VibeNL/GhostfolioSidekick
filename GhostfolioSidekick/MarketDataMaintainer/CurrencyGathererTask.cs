@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
@@ -13,6 +14,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork()
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
@@ -31,6 +33,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.Distinct()
 				.ToListAsync())
 				.Where(x => x.Currency != null)
+				.Select(x => new { Currency = x.Currency!.GetSourceCurrency(), Date = x.Date })
 				.GroupBy(x => x.Currency)
 				.Select(x => x.OrderBy(y => y.Date).First());
 			var currencies = currenciesActivities.Concat(symbolsActivities).Distinct().ToList();
@@ -43,11 +46,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			foreach (var match in currenciesMatches)
 			{
-				if (match.Item1.Currency.IsKnownPair(match.Item2.Currency))
-				{
-					continue;
-				}
-
 				string symbolString = match.Item1.Currency.Symbol + match.Item2.Currency.Symbol;
 				DateOnly fromDate = DateOnly.FromDateTime(new DateTime[] { match.Item1.Date, match.Item2.Date }.Min());
 

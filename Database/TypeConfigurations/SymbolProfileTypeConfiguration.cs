@@ -17,6 +17,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.OwnsOne<Currency>(b => b.Currency, m =>
 			{
 				m.Property(p => p.Symbol).HasColumnName("Currency");
+				m.Ignore(p => p.SourceCurrency);
+				m.Ignore(p => p.Factor);
 			});
 			builder.Property(e => e.Identifiers)
 					.HasConversion(

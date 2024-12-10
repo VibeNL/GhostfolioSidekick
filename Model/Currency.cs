@@ -10,25 +10,33 @@ namespace GhostfolioSidekick.Model
 		public static Currency EUR = new("EUR");
 		public static Currency USD = new("USD");
 		public static Currency GBP = new("GBP");
-		public static Currency GBp = new("GBp");
+		public static Currency GBp = new("GBp", GBP, 100);
+		public static Currency GBX = new("GBX", GBP, 100);
 
-		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp];
-				public Currency() // EF Core
+		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp, GBX];
+				
+		public Currency() // EF Core
 		{
 			Symbol = default!;
 		}
 
 		public Currency(string symbol)
 		{
-			if (symbol == "GBX")
-			{
-				symbol = GBp.Symbol;
-			}
-
 			Symbol = symbol;
 		}
 
-		public string Symbol { get; set; }
+		public Currency(string symbol, Currency sourceCurrency, decimal factor)
+		{
+			Symbol = symbol;
+			SourceCurrency = sourceCurrency;
+			Factor = factor;
+		}
+
+		public string Symbol { get; init; }
+
+		public Currency? SourceCurrency { get; init; }
+
+		public decimal Factor { get; init; }
 
 		public bool IsFiat()
 		{
@@ -40,24 +48,43 @@ namespace GhostfolioSidekick.Model
 			return Symbol;
 		}
 
-		public bool IsKnownPair(Currency key)
+		public decimal GetKnownExchangeRate(Currency targetCurrency)
 		{
-			return Symbol.Equals(key.Symbol, StringComparison.CurrentCultureIgnoreCase); // TODO GBP == GBp
+			if (this == targetCurrency)
+			{
+				return 1;
+			}
+
+			if (SourceCurrency == targetCurrency)
+			{
+				return Factor;
+			}
+
+			if (targetCurrency.SourceCurrency == this)
+			{
+				return 1 / targetCurrency.Factor;
+			}
+
+			return 0;
+
 		}
 
-		public decimal GetKnownExchangeRate(Currency currency)
+		public Currency GetSourceCurrency()
 		{
-			if (this == Currency.GBP && currency == Currency.GBp)
+			return SourceCurrency != null ? SourceCurrency.GetSourceCurrency() : this;
+		}
+
+		public static Currency MapToStatics(Currency sourceCurrency)
+		{
+			foreach (var currency in knownCurrencies)
 			{
-				return 100m;
+				if (currency.Symbol == sourceCurrency.Symbol)
+				{
+					return currency;
+				}
 			}
 
-			if (this == Currency.GBp && currency == Currency.GBP)
-			{
-				return 0.01m;
-			}
-
-			throw new NotSupportedException();
+			return sourceCurrency;
 		}
 	}
 }
