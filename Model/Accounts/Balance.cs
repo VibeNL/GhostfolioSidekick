@@ -2,19 +2,28 @@
 {
 	public class Balance
 	{
-		public Balance(DateTime dateTime, Money money)
+		public Balance()
 		{
-			DateTime = dateTime;
+			// EF Core
+			Date = default!;
+			Money = default!;
+		}
+
+		public Balance(DateOnly date, Money money)
+		{
+			Date = date;
 			Money = money;
 		}
 
-		public DateTime DateTime { get; }
+		public int Id { get; set; }
+
+		public DateOnly Date { get; }
 
 		public Money Money { get; set; }
 
 		public override string ToString()
 		{
-			return DateTime.ToInvariantString() + " " + Money.ToString();
+			return Date.ToShortDateString() + " " + Money.ToString();
 		}
 	}
 }

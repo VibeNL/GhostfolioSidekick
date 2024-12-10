@@ -5,47 +5,94 @@ namespace GhostfolioSidekick.Model
 	[SuppressMessage("Critical Code Smell", "S2223:Non-constant static fields should not be visible", Justification = "<Pending>")]
 	[SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "<Pending>")]
 	[SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
-	public class Currency
+	public record Currency
 	{
-		public static Currency EUR = new("EUR");
-		public static Currency USD = new("USD");
-		public static Currency GBP = new("GBP");
-		public static Currency GBp = new("GBp");
+		public static Currency EUR = new("EUR", null, 0);
+		public static Currency USD = new("USD", null, 0);
+		public static Currency GBP = new("GBP", null, 0);
+		public static Currency GBp = new("GBp", GBP, 100);
+		public static Currency GBX = new("GBX", GBP, 100);
 
-		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp];
-
-		public Currency(string symbol)
+		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp, GBX];
+				
+		public Currency() // EF Core
 		{
-			if (symbol == "GBX")
-			{
-				symbol = GBp.Symbol;
-			}
-
-			Symbol = symbol;
+			Symbol = default!;
 		}
 
-		public string Symbol { get; set; }
+		public static Currency GetCurrency(string symbol)
+		{
+			foreach (var currency in knownCurrencies)
+			{
+				if (currency.Symbol == symbol)
+				{
+					return currency;
+				}
+			}
+
+			return new Currency(symbol, null!, 0);
+		}
+
+		private Currency(string symbol, Currency? sourceCurrency, decimal factor)
+		{
+			Symbol = symbol;
+			SourceCurrency = sourceCurrency;
+			Factor = factor;
+		}
+
+		public string Symbol { get; init; }
+
+		public Currency? SourceCurrency { get; init; }
+
+		public decimal Factor { get; init; }
 
 		public bool IsFiat()
 		{
 			return knownCurrencies.Exists(x => x.Symbol == Symbol);
 		}
 
-		[ExcludeFromCodeCoverage]
-		public override bool Equals(object? obj)
-		{
-			return obj is Currency currency &&
-				   Symbol == currency.Symbol;
-		}
-
-		override public int GetHashCode()
-		{
-			return HashCode.Combine(Symbol);
-		}
-
 		public override string ToString()
 		{
 			return Symbol;
+		}
+
+		public decimal GetKnownExchangeRate(Currency targetCurrency)
+		{
+			if (this == targetCurrency)
+			{
+				return 1;
+			}
+
+			if (SourceCurrency == targetCurrency)
+			{
+				return 1 / Factor;
+			}
+
+			if (targetCurrency.SourceCurrency == this)
+			{
+				return targetCurrency.Factor;
+			}
+
+			return 0;
+
+		}
+
+		public Currency GetSourceCurrency()
+		{
+			return SourceCurrency != null ? SourceCurrency.GetSourceCurrency() : this;
+		}
+
+		public static Currency MapToStatics(Currency sourceCurrency)
+		{
+			foreach (var currency in knownCurrencies)
+			{
+				if (currency.Symbol == sourceCurrency.Symbol)
+				{
+					return currency;
+				}
+			}
+
+			return sourceCurrency;
 		}
 	}
 }
