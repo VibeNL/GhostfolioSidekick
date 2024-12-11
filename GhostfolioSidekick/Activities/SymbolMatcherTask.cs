@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Activities
 {
-	internal class SymbolMatcherTask(
+	public class SymbolMatcherTask(
 			IMemoryCache memoryCache,
 			ILogger<SymbolMatcherTask> logger,
 			IApplicationSettings applicationSettings,
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Activities
 							continue;
 						}
 
-						var symbol = await symbolMatcher.MatchSymbol(ids.ToArray()).ConfigureAwait(false);
+						var symbol = await symbolMatcher.MatchSymbol([.. ids]).ConfigureAwait(false);
 
 						if (symbol != null)
 						{
@@ -97,14 +97,6 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			//var allsymbols = existingHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
-
-			//foreach (var item in allsymbols)
-			//{
-			//	// find holding
-			//	var holding = existingHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == item.Key.DataSource && y.Symbol == item.Key.Symbol)).ToList();
-			//}
-
 			await databaseContext.SaveChangesAsync();
 		}
 
@@ -126,7 +118,7 @@ namespace GhostfolioSidekick.Activities
 
 		private IList<PartialSymbolIdentifier> GetIds(IList<PartialSymbolIdentifier> partialSymbolIdentifiers)
 		{
-			var mappings = applicationSettings.ConfigurationInstance.Mappings ?? [];
+			var mappings = applicationSettings?.ConfigurationInstance?.Mappings ?? [];
 
 			var ids = new List<PartialSymbolIdentifier>();
 			foreach (var partialIdentifier in partialSymbolIdentifiers)
