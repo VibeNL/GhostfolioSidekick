@@ -12,7 +12,7 @@ namespace YahooFinanceApi
     public sealed partial class Yahoo
     {
         private string[] _symbols;
-        private readonly List<string> _fields = new List<string>();
+        private readonly List<string> _fields = [];
 
         private Yahoo() { }
 

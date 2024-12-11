@@ -60,7 +60,7 @@ namespace YahooFinanceApi
             IDictionary<string, object> expandoObject = data;
 
             if (!expandoObject.ContainsKey("events"))
-                return new List<DividendTick>();
+                return [];
             
             IDictionary<string, dynamic> dvdObj = data.events.dividends;
             var dividends = dvdObj.Values.Select(x => new DividendTick(ToDateTime(x.date, timeZone), ToDecimal(x.amount))).ToList();

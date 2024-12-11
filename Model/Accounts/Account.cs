@@ -16,7 +16,7 @@
 
 		public string Name { get; set; }
 
-		public virtual List<Balance> Balance { get; set; } = new List<Balance>();
+		public virtual List<Balance> Balance { get; set; } = [];
 
 		public int Id { get; set; }
 

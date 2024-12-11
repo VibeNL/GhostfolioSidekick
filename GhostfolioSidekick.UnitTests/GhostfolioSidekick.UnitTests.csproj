@@ -42,4 +42,8 @@
 		<ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Activities\Strategies\" />
+	</ItemGroup>
+
 </Project>

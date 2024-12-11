@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 {
 	internal class TestActivityManager : IActivityManager
 	{
-		public List<PartialActivity> PartialActivities { get; set; } = new List<PartialActivity>();
+		public List<PartialActivity> PartialActivities { get; set; } = [];
 
 		public void AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities)
 		{

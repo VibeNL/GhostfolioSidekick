@@ -7,7 +7,7 @@ namespace YahooFinanceApi;
 
 public static class Cache
 {
-    private static Dictionary<string, TimeZoneInfo> timeZoneCache = new Dictionary<string, TimeZoneInfo>();
+    private static Dictionary<string, TimeZoneInfo> timeZoneCache = [];
 
     public static async Task<TimeZoneInfo> GetTimeZone(string ticker)
     {

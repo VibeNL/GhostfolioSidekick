@@ -15,7 +15,7 @@ internal static class YahooSession
     private static string _crumb;
     private static FlurlCookie _cookie;
     private static SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-    private static Dictionary<string, TimeZoneInfo> timeZoneCache = new Dictionary<string, TimeZoneInfo>();
+    private static Dictionary<string, TimeZoneInfo> timeZoneCache = [];
         
     /// <summary>
     /// The user agent key for HTTP Header

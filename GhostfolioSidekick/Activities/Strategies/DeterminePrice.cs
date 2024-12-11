@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Activities.Strategies
 
 		public Task Execute(Holding holding)
 		{
-			if (holding.SymbolProfiles.Count != 0)
+			if (holding.SymbolProfiles.Count == 0)
 			{
 				return Task.CompletedTask;
 			}

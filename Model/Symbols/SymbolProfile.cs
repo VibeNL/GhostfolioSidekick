@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Model.Symbols
 			AssetSubClass = null!;
 			CountryWeight = null!;
 			SectorWeights = null!;
-			Identifiers = new List<string>();
+			Identifiers = [];
 		}
 
 		[SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "DDD")]
