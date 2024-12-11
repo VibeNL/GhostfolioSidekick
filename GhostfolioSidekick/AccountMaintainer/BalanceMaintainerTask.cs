@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 					var balanceCalculator = new BalanceCalculator(exchangeRateService);
 					var balances = await balanceCalculator.Calculate(Currency.EUR, activities);
 
-					var account = await databaseContext.Accounts.FindAsync(accountKey.Id)!;
+					var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey.Id)!;
 					var existingBalances = account!.Balance;
 
 					var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
