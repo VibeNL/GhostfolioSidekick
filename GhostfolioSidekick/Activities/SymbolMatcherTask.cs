@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 namespace GhostfolioSidekick.Activities
 {
 	public class SymbolMatcherTask(
-			IMemoryCache memoryCache,
 			ILogger<SymbolMatcherTask> logger,
 			IApplicationSettings applicationSettings,
 			ISymbolMatcher[] symbolMatchers,
@@ -21,91 +20,95 @@ namespace GhostfolioSidekick.Activities
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork()
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();
 			var activities = await databaseContext.Activities.ToListAsync();
 
-			var existingHoldings = await databaseContext.Holdings.ToListAsync();
+			var currentHoldings = await databaseContext.Holdings.ToListAsync();
 
 			var currencies = new Dictionary<Currency, DateTime>();
-			foreach (var activity in activities.OrderBy(x => x.Date))
+			foreach (var activityTuple in activities
+					.Select(x => new CustomObject { Activity = x, PartialIdentifier = x as IActivityWithPartialIdentifier })
+					.Where(x => x.PartialIdentifier is not null)
+					.OrderBy(x => GetIds(x.PartialIdentifier!.PartialSymbolIdentifiers).FirstOrDefault()?.Identifier))
 			{
-				if (activity is IActivityWithPartialIdentifier activityWithPartialIdentifier)
-				{
-					var ids = GetIds(activityWithPartialIdentifier.PartialSymbolIdentifiers);
-
-					if (ids == null || ids.Count == 0)
-					{
-						continue;
-					}
-
-					// Match on existing holdings with ids
-					var holding = existingHoldings.SingleOrDefault(x => ids.Any(y => x.IdentifierContainsInList(y)));
-					if (holding != null)
-					{
-						activity.Holding = holding;
-						holding.MergeIdentifiers(ids);
-						continue;
-					}
-
-					// Find symbol via symbolMatchers
-					foreach (var symbolMatcher in symbolMatchers)
-					{
-						if (holding?.SymbolProfiles.Any(x => x.DataSource == symbolMatcher.DataSource || (Datasource.IsGhostfolio(x.DataSource) && symbolMatcher.DataSource == Datasource.GHOSTFOLIO)) ?? false)
-						{
-							continue;
-						}
-
-						var cacheKey = $"{symbolMatcher.DataSource}_{string.Join(",", ids)}";
-
-						if (memoryCache.TryGetValue(cacheKey, out SymbolProfile? match) && match == null)
-						{
-							continue;
-						}
-
-						var symbol = await symbolMatcher.MatchSymbol([.. ids]).ConfigureAwait(false);
-
-						if (symbol != null)
-						{
-							holding ??= existingHoldings.SingleOrDefault(x => CompareSymbolName1(x, symbol));
-							holding ??= existingHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x)).Any(y => x.IdentifierContainsInList(y)));
-
-							if (holding == null)
-							{
-								holding = new Holding();
-								holding.MergeIdentifiers(ids);
-								databaseContext.Holdings.Add(holding);
-								existingHoldings.Add(holding);
-							}
-
-							holding.MergeIdentifiers(GetIdentifiers(symbol));
-
-							if (!holding.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && CompareSymbolName(y.Symbol, symbol.Symbol)))
-							{
-								holding.SymbolProfiles.Add(symbol);
-							}
-
-							logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",", ids.Select(x => x.Identifier))}");
-						}
-
-						memoryCache.Set(cacheKey, symbol, TimeSpan.FromHours(1));
-					}
-
-					activity.Holding = holding;
-				}
+				await HandleActivity(databaseContext, currentHoldings, activityTuple).ConfigureAwait(false);
 			}
 
-			var allsymbols = existingHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
+			var allsymbols = currentHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
 
 			foreach (var item in allsymbols)
 			{
 				// find holding
-				var holding = existingHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == item.Key.DataSource && y.Symbol == item.Key.Symbol)).ToList();
+				var holding = currentHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == item.Key.DataSource && y.Symbol == item.Key.Symbol)).ToList();
+			}
+
+			if (allsymbols.Count != 0)
+			{
+				throw new NotSupportedException("Multiple symbols found");
 			}
 
 			await databaseContext.SaveChangesAsync();
+		}
+
+		private async Task HandleActivity(DatabaseContext databaseContext, List<Holding> currentHoldings, CustomObject activityTuple)
+		{
+			var activity = activityTuple.Activity;
+			var ids = GetIds(activityTuple.PartialIdentifier!.PartialSymbolIdentifiers);
+
+			if (ids == null || ids.Count == 0)
+			{
+				return;
+			}
+
+			// Match on existing holdings with ids
+			var holding = currentHoldings.SingleOrDefault(x => ids.Any(y => x.IdentifierContainsInList(y)));
+			if (holding != null)
+			{
+				activity.Holding = holding;
+				holding.MergeIdentifiers(ids);
+				return;
+			}
+
+			// Find symbol via symbolMatchers
+			foreach (var symbolMatcher in symbolMatchers)
+			{
+				// Match symbol
+				var symbol = await symbolMatcher.MatchSymbol([.. ids]).ConfigureAwait(false);
+
+				if (symbol == null)
+				{
+					// No symbol found
+					continue;
+				}
+
+				// Try to find existing holding
+				holding ??= currentHoldings.SingleOrDefault(x => CompareSymbolName1(x, symbol));
+				holding ??= currentHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x)).Any(y => x.IdentifierContainsInList(y)));
+
+				// Create new holding if not found
+				if (holding == null)
+				{
+					holding = new Holding();
+					holding.MergeIdentifiers(ids);
+					databaseContext.Holdings.Add(holding);
+					currentHoldings.Add(holding);
+				}
+
+				// Merge identifiers
+				holding.MergeIdentifiers(GetIdentifiers(symbol));
+
+				// Add symbol to holding
+				if (!holding.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && CompareSymbolName(y.Symbol, symbol.Symbol)))
+				{
+					holding.SymbolProfiles.Add(symbol);
+				}
+
+				logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",", ids.Select(x => x.Identifier))}");
+			}
+
+			activity.Holding = holding;
 		}
 
 		private bool CompareSymbolName1(Holding x, SymbolProfile symbol)
@@ -130,7 +133,7 @@ namespace GhostfolioSidekick.Activities
 				{
 					Identifier = item,
 					AllowedAssetClasses = [symbol.AssetClass],
-					AllowedAssetSubClasses = symbol.AssetSubClass != null ?[symbol.AssetSubClass.Value] : null
+					AllowedAssetSubClasses = symbol.AssetSubClass != null ? [symbol.AssetSubClass.Value] : null
 				});
 			}
 
@@ -153,6 +156,12 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			return ids.DistinctBy(x => x.Identifier).ToList();
+		}
+
+		private class CustomObject
+		{
+			public Activity Activity { get; set; } = default!;
+			public IActivityWithPartialIdentifier? PartialIdentifier { get; set; } = default!;
 		}
 	}
 }

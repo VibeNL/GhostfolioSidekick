@@ -22,7 +22,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 {
     public class SymbolMatcherTaskTests
     {
-        private readonly IMemoryCache _memoryCache;
         private readonly Mock<ILogger<SymbolMatcherTask>> _mockLogger;
         private readonly Mock<IApplicationSettings> _mockApplicationSettings;
         private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
@@ -32,7 +31,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
         public SymbolMatcherTaskTests()
         {
-            _memoryCache = new MemoryCache(new MemoryCacheOptions());
             _mockLogger = new Mock<ILogger<SymbolMatcherTask>>();
             _mockApplicationSettings = new Mock<IApplicationSettings>();
             _mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
@@ -43,7 +41,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
             };
 
             _symbolMatcherTask = new SymbolMatcherTask(
-                _memoryCache,
                 _mockLogger.Object,
                 _mockApplicationSettings.Object,
                 _symbolMatchers.ToArray(),

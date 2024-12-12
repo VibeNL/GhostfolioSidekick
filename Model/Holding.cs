@@ -36,8 +36,14 @@ namespace GhostfolioSidekick.Model
 			foreach (var item in PartialSymbolIdentifiers)
 			{
 				var idsMatch = item.Identifier == newId.Identifier;
-				var allowedAssetClassesMatch = item.AllowedAssetClasses?.Any(y => newId.AllowedAssetClasses?.Contains(y) ?? true) ?? true;
-				var allowedSubClass = item.AllowedAssetSubClasses?.Any(y => newId.AllowedAssetSubClasses?.Contains(y) ?? true) ?? true;
+				var allowedAssetClassesMatch = 
+					IsEmpty(item.AllowedAssetClasses) ||
+					IsEmpty(newId.AllowedAssetClasses) || 
+					(item.AllowedAssetClasses?.Any(y => newId.AllowedAssetClasses?.Contains(y) ?? true) ?? true);
+				var allowedSubClass =
+					IsEmpty(item.AllowedAssetSubClasses) ||
+					IsEmpty(newId.AllowedAssetSubClasses) ||
+					(item.AllowedAssetSubClasses?.Any(y => newId.AllowedAssetSubClasses?.Contains(y) ?? true) ?? true);
 
 				if (idsMatch && allowedAssetClassesMatch && allowedSubClass)
 				{
@@ -46,6 +52,16 @@ namespace GhostfolioSidekick.Model
 			}
 
 			return false;
+		}
+
+		private bool IsEmpty<T>(List<T>? list)
+		{
+			if (list == null)
+			{
+				return true;
+			}
+
+			return list.Count == 0;
 		}
 	}
 }
