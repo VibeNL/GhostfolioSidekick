@@ -41,7 +41,11 @@ namespace GhostfolioSidekick.Activities
 			foreach (var item in allsymbols)
 			{
 				// find holding
-				var holding = currentHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == item.Key.DataSource && y.Symbol == item.Key.Symbol)).ToList();
+				var holdings = currentHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == item.Key.DataSource && y.Symbol == item.Key.Symbol)).ToList();
+				foreach (var holding in holdings)
+				{
+					logger.LogError($"Multiple symbols found for {item.Key.Symbol} from {item.Key.DataSource}");
+				}
 			}
 
 			if (allsymbols.Count != 0)
