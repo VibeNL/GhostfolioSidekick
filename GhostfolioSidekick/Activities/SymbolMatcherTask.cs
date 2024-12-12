@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.Activities
 
 						if (symbol != null)
 						{
-							holding ??= existingHoldings.SingleOrDefault(x => x.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && string.Equals(y.Symbol, symbol.Symbol, StringComparison.InvariantCultureIgnoreCase)));
+							holding ??= existingHoldings.SingleOrDefault(x => CompareSymbolName1(x, symbol));
 							holding ??= existingHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x)).Any(y => x.IdentifierContainsInList(y)));
 
 							if (holding == null)
@@ -82,11 +82,11 @@ namespace GhostfolioSidekick.Activities
 
 							holding.MergeIdentifiers(GetIdentifiers(symbol));
 
-							if (!holding.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && y.Symbol == symbol.Symbol))
+							if (!holding.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && CompareSymbolName(y.Symbol, symbol.Symbol)))
 							{
 								holding.SymbolProfiles.Add(symbol);
 							}
-							
+
 							logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",", ids.Select(x => x.Identifier))}");
 						}
 
@@ -97,7 +97,28 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
+			var allsymbols = existingHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
+
+			foreach (var item in allsymbols)
+			{
+				// find holding
+				var holding = existingHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == item.Key.DataSource && y.Symbol == item.Key.Symbol)).ToList();
+			}
+
 			await databaseContext.SaveChangesAsync();
+		}
+
+		private bool CompareSymbolName1(Holding x, SymbolProfile symbol)
+		{
+			return x.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && CompareSymbolName(y.Symbol, symbol.Symbol));
+		}
+
+		private bool CompareSymbolName(string a, string b)
+		{
+			return string.Equals(
+					a.Replace("-", string.Empty),
+					b.Replace("-", string.Empty),
+					StringComparison.InvariantCultureIgnoreCase);
 		}
 
 		private IList<PartialSymbolIdentifier> GetIdentifiers(SymbolProfile symbol)

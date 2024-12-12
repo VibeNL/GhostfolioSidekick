@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 namespace GhostfolioSidekick.Database
 {
