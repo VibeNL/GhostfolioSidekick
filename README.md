@@ -42,7 +42,7 @@ For example:
 
 ### Configuration File
 A single json file csv file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio.
-Also allows the following sybol settings
+Also allows the following symbol settings
   - Setting Trackinsight on symbols
   - Adding / Updating Manual symbols 
 
@@ -55,7 +55,7 @@ Also allows the following sybol settings
 		"use.crypto.workaround.dust.threshold": 0.01 // default is 0.001,
 		"use.crypto.workaround.stakereward.add.to.last.buy" : true // default is false,
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
-		"use.dividend.workaround.tax.substract.from.amount": true // default is false. If set to true, the tax is substracted from the dividend amount. If set to false, the tax is added as a fee.
+		"use.dividend.workaround.tax.subtract.from.amount": true // default is false. If set to true, the tax is subtracted from the dividend amount. If set to false, the tax is added as a fee.
 	},
 	"platforms":[
 		{ "name": "De Giro", "url":"https://www.degiro.nl/" }
@@ -88,7 +88,7 @@ Also allows the following sybol settings
 This settings does control if a workaround is used for dust (very small amount that cannot be sold or due to rounding errors).
 The amount is the total value of the assets (thus quantity times unitprice). Unitprice is converted to the currency defined by *use.dust.currency*.
 
-For crypto specifically, another setting will take presidence. See ***use.crypto.workaround.dust.threshold***. This due to the likelyness of higher values for the dust of cryptocurrencies.
+For crypto specifically, another setting will take precedence. See ***use.crypto.workaround.dust.threshold***. This due to the likelyness of higher values for the dust of cryptocurrencies.
 
 ##### use.crypto.workaround.dust.threshold (Experimental)
 This settings does control if a workaround is used for dust (very small amount that cannot be sold or due to rounding errors).
@@ -141,16 +141,16 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 | Platform | Source of the files | Documentation |
 |--|--|--|
 | Bitvavo (Broken) | Export of transaction history | |
-| Bunq (Bank) | Export CSV (Semicolom delimited) | |
+| Bunq (Bank) | Export CSV (Semicolon delimited) | |
 | Centraal Beheer Begeleid beleggen (Dutch insurance company) | Export of transaction history via print pdf | [Documentation](./Documentation/Parsers/CentraalBeheer.md) |
 | Coinbase (Broken) | Export of transaction history | |
 | De Giro | Export of account history (Language dependend, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
 | Generic importer | See below | |
 | Nexo (Broken) | Export of transaction history | |
-| NIBC (Bank) | Export CSV (Semicolom delimited) | |
+| NIBC (Bank) | Export CSV (Semicolon delimited) | |
 | Scalable Capital | The CSV files of the Baader bank. Type WUM and RKK | |
 | Scalable Capital (Prime only) | The CSV files export via the transaction view | |
-| Trading Republic | Montly Statements and individual invoices |  [Documentation](./Documentation/Parsers/TradeRepublic.md) |
+| Trading Republic | Monthly Statements and individual invoices |  [Documentation](./Documentation/Parsers/TradeRepublic.md) |
 | Trading 212 | Export of transaction history | [Documentation](./Documentation/Parsers/Trading212.md) |
 
 #### Generic import format
