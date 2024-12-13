@@ -9,6 +9,7 @@
                 "build",
                 "${workspaceFolder}/GhostfolioSidekick.sln",
                 "/property:GenerateFullPaths=true",
+                "/property:TargetFramework=net9.0",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
             "problemMatcher": "$msCompile"
@@ -21,6 +22,7 @@
                 "publish",
                 "${workspaceFolder}/GhostfolioSidekick.sln",
                 "/property:GenerateFullPaths=true",
+                "/property:TargetFramework=net9.0",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
             "problemMatcher": "$msCompile"
@@ -33,7 +35,9 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/GhostfolioSidekick.sln"
+                "${workspaceFolder}/GhostfolioSidekick.sln",
+                "--framework",
+                "net9.0"
             ],
             "problemMatcher": "$msCompile"
         }
