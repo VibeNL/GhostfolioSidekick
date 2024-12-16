@@ -26,7 +26,8 @@ namespace GhostfolioSidekick.Model
 			{
 				if (currency.Symbol == symbol)
 				{
-					return currency;
+					// Create a copy due to EF Core
+					return currency with { };
 				}
 			}
 
