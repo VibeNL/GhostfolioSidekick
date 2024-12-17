@@ -76,30 +76,43 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			// Find symbol via symbolMatchers
+			var symbols = new List<SymbolProfile>();
 			foreach (var symbolMatcher in symbolMatchers)
 			{
 				// Match symbol
 				var symbol = await symbolMatcher.MatchSymbol([.. ids]).ConfigureAwait(false);
 
-				if (symbol == null)
+				if (symbol != null)
 				{
-					// No symbol found
-					continue;
+					symbols.Add(symbol);
 				}
+			}
 
+			if (symbols.Count == 0)
+			{
+				logger.LogWarning($"No symbol found for {string.Join(",", ids.Select(x => x.Identifier))}");
+				return;
+
+			}
+
+			foreach (var symbol in symbols)
+			{
 				// Try to find existing holding
 				holding ??= currentHoldings.SingleOrDefault(x => CompareSymbolName1(x, symbol));
 				holding ??= currentHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x)).Any(y => x.IdentifierContainsInList(y)));
+			}
 
-				// Create new holding if not found
-				if (holding == null)
-				{
-					holding = new Holding();
-					holding.MergeIdentifiers(ids);
-					databaseContext.Holdings.Add(holding);
-					currentHoldings.Add(holding);
-				}
+			// Create new holding if not found
+			if (holding == null)
+			{
+				holding = new Holding();
+				holding.MergeIdentifiers(ids);
+				databaseContext.Holdings.Add(holding);
+				currentHoldings.Add(holding);
+			}
 
+			foreach (var symbol in symbols)
+			{ 
 				// Merge identifiers
 				holding.MergeIdentifiers(GetIdentifiers(symbol));
 
