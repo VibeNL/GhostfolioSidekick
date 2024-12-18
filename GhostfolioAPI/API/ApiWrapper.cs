@@ -140,8 +140,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						DataSource = Datasource.GetUnderlyingDataSource(symbolProfile.DataSource).ToString(),
 						Name = symbolProfile.Name ?? symbolProfile.Symbol,
 						Symbol = symbolProfile.Symbol,
-						Sectors = symbolProfile.SectorWeights.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray(),
-						Countries = symbolProfile.CountryWeight.Select(x => new Contract.Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray()	
+						Sectors = symbolProfile.SectorWeights?.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray() ?? [],
+						Countries = symbolProfile.CountryWeight?.Select(x => new Contract.Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []	
 					};
 				}
 
@@ -201,7 +201,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			// Delete all balances that are not in the new list
-			foreach (var item in balanceList.Balances.Where(x => !account.Balance.Any(y => DateOnly.FromDateTime(x.Date) == y.Date)))
+			foreach (var item in balanceList.Balances?.Where(x => !account.Balance.Any(y => DateOnly.FromDateTime(x.Date) == y.Date)) ?? [])
 			{
 				await restCall.DoRestDelete($"api/v1/account-balance/{item.Id}");
 			}
@@ -218,7 +218,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				var res = o.ToString();
 
 				// check if balance already exists
-				var existingBalance = balanceList.Balances.SingleOrDefault(x => DateOnly.FromDateTime(x.Date) == newBalance.Date);
+				var existingBalance = balanceList.Balances?.SingleOrDefault(x => DateOnly.FromDateTime(x.Date) == newBalance.Date);
 				if (existingBalance != null)
 				{
 					if (Math.Round(existingBalance.Value, 10) == Math.Round(newBalance.Money.Amount, 10))
