@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					identifier = $"{identifier}-USD";
 				}
 
-				var searchResults = await RetryPolicyHelper.GetFallbackPolicy<IEnumerable<SearchResult>>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.FindProfileAsync(identifier));
+				var searchResults = await RetryPolicyHelper.GetFallbackPolicy<SearchResult[]>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(identifier));
 				if (searchResults != null)
 				{
 					matches.AddRange((IEnumerable<SearchResult>)searchResults.Where(x => FilterOnAllowedType(x, id)));
@@ -55,7 +55,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			}
 
 			// Get the best match of the correct QuoteType
-			var bestMatch = matches.OrderByDescending(x => x.Score).First();
+			// TODO: Fix if score is available
+			var bestMatch = matches.OrderByDescending(x => x.ShortName.Length).First();
 
 			var symbols = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync());
 			if (symbols == null)
@@ -83,7 +84,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return true;
 				}
 
-				if (!id.AllowedAssetClasses.Contains(ParseQuoteType(x.QuoteType)))
+				if (!id.AllowedAssetClasses.Contains(ParseQuoteType(x.Type)))
 				{
 					return false;
 				}
@@ -93,7 +94,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return true;
 				}
 
-				return ParseQuoteTypeAsSub(x.QuoteType) == null || id.AllowedAssetSubClasses.Contains(ParseQuoteTypeAsSub(x.QuoteType).Value);
+				return ParseQuoteTypeAsSub(x.Type) == null || id.AllowedAssetSubClasses.Contains(ParseQuoteTypeAsSub(x.Type).Value);
 			}
 		}
 
