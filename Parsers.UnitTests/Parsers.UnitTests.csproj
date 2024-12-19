@@ -46,6 +46,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="PDFParser\" />
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
 		<Folder Include="TestFiles\DeGiro\EN\SellOrders\" />
