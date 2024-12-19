@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Id));
 					break;
 				case PartialActivityType.Gift:
-					if (new Currency(record.Symbol!).IsFiat())
+					if (Currency.GetCurrency(record.Symbol!).IsFiat())
 					{
 						lst.Add(PartialActivity.CreateGift(
 							currency,
