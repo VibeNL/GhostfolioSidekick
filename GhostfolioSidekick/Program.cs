@@ -132,20 +132,22 @@ namespace GhostfolioSidekick
 							//services.AddSingleton<IStockSplitRepository, StockSplitRepository>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
-							services.AddScoped<IScheduledWork, DisplayInformationTask>();
-							services.AddScoped<IScheduledWork, GenerateDatabaseTask>();
-							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
-							services.AddScoped<IScheduledWork, FileImporterTask>();
-							services.AddScoped<IScheduledWork, SymbolMatcherTask>();
-							services.AddScoped<IScheduledWork, CurrencyGathererTask>();
-							services.AddScoped<IScheduledWork, BalanceMaintainerTask>();
-							services.AddScoped<IScheduledWork, MarketDataGathererTask>();
-							services.AddScoped<IScheduledWork, MarketDataStockSplitTask>();
-							services.AddScoped<IScheduledWork, CalculatePriceTask>();
-							services.AddScoped<IScheduledWork, CleanupDatabaseTask>();
-							services.AddScoped<IScheduledWork, SyncWithGhostfolioTask>();
-							services.AddScoped<IScheduledWork, CleanupGhostfolioTask>();
-							////services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
+							//services.AddScoped<IScheduledWork, DisplayInformationTask>();
+							//services.AddScoped<IScheduledWork, GenerateDatabaseTask>();
+							//services.AddScoped<IScheduledWork, AccountMaintainerTask>();
+							//services.AddScoped<IScheduledWork, FileImporterTask>();
+							//services.AddScoped<IScheduledWork, SymbolMatcherTask>();
+							//services.AddScoped<IScheduledWork, CurrencyGathererTask>();
+							//services.AddScoped<IScheduledWork, BalanceMaintainerTask>();
+							//services.AddScoped<IScheduledWork, MarketDataGathererTask>();
+							//services.AddScoped<IScheduledWork, MarketDataStockSplitTask>();
+							//services.AddScoped<IScheduledWork, CalculatePriceTask>();
+							//services.AddScoped<IScheduledWork, CleanupDatabaseTask>();
+							//services.AddScoped<IScheduledWork, SyncAccountsWithGhostfolioTask>();
+							//services.AddScoped<IScheduledWork, CleanupGhostfolioTask>();
+							//services.AddScoped<IScheduledWork, MaintainManualSymbolTask>();
+							RegisterAllWithInterface<IScheduledWork>(services);
+
 							////services.AddScoped<IScheduledWork, SetManualPricesTask>();
 							////services.AddScoped<IScheduledWork, SetBenchmarksTask>();
 							////services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
@@ -186,6 +188,16 @@ namespace GhostfolioSidekick
 							//services.AddScoped<IHoldingStrategy, RoundStrategy>();
 							//services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 						});
+		}
+
+		private static void RegisterAllWithInterface<T>(IServiceCollection services)
+		{
+			var types = typeof(Program).Assembly.GetTypes()
+				.Where(t => t.GetInterfaces().Contains(typeof(T)) && !t.IsInterface && !t.IsAbstract);
+			foreach (var type in types)
+			{
+				services.AddScoped(typeof(T), type);
+			}
 		}
 	}
 }

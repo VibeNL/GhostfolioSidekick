@@ -8,6 +8,10 @@
 
 		AccountMaintainer,
 
+		MaintainManualSymbol,
+
+		SyncManualActivitiesWithGhostfolio,
+
 		FileImporter,
 		
 		CurrencyGatherer,
@@ -24,7 +28,9 @@
 
 		CleanupDatabase,
 
-		SyncWithGhostfolio,
+		SyncAccountsWithGhostfolio,
+
+		SyncActivitiesWithGhostfolio,
 
 		CleanupGhostfolio,
 

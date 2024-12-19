@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.GhostfolioAPI
@@ -49,6 +50,11 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			logger.LogDebug("Syncing activities");
 			await apiWrapper.SyncAllActivities(allActivities.ToList());
 			logger.LogDebug("activities synced");
+		}
+
+		public async Task SyncSymbolProfiles(IEnumerable<SymbolProfile> manualSymbolProfiles)
+		{
+			await apiWrapper.SyncSymbolProfiles(manualSymbolProfiles);
 		}
 
 		private static IEnumerable<Activity> ConvertSendAndRecievesToBuyAndSells(IEnumerable<Activity> activities)

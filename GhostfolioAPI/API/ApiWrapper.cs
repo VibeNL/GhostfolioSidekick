@@ -236,6 +236,90 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
+		public async Task SyncSymbolProfiles(IEnumerable<Model.Symbols.SymbolProfile> manualSymbolProfiles)
+		{
+			var existingProfiles = await GetAllSymbolProfiles();
+
+			foreach (var manualSymbolProfile in manualSymbolProfiles)
+			{
+				var existingProfile = existingProfiles.SingleOrDefault(x => x.Symbol == manualSymbolProfile.Symbol && x.DataSource == manualSymbolProfile.DataSource);
+				if (existingProfile == null)
+				{
+					var o1 = new JObject
+					{
+						["symbol"] = manualSymbolProfile.Symbol,
+						["isin"] = manualSymbolProfile.ISIN,
+						["name"] = manualSymbolProfile.Name,
+						["comment"] = manualSymbolProfile.Comment,
+						["assetClass"] = manualSymbolProfile.AssetClass.ToString(),
+						["assetSubClass"] = manualSymbolProfile.AssetSubClass?.ToString(),
+						["currency"] = manualSymbolProfile.Currency.Symbol,
+						["datasource"] = manualSymbolProfile.DataSource.ToString(),
+					};
+					var res1 = o1.ToString();
+
+					var r = await restCall.DoRestPost($"api/v1/admin/profile-data/{manualSymbolProfile.DataSource}/{manualSymbolProfile.Symbol}", res1);
+					if (!r.IsSuccessStatusCode)
+					{
+						throw new NotSupportedException($"Creation failed {manualSymbolProfile.Symbol}");
+					}
+
+					logger.LogDebug("Created symbol profile {Symbol}", manualSymbolProfile.Symbol);
+				}
+
+				JObject mappingObject = [];
+
+				JArray countries = [];
+				foreach (var country in manualSymbolProfile.CountryWeight)
+				{
+					countries.Add(new JObject
+					{
+						["code"] = country.Code,
+						["weight"] = country.Weight.ToString(),
+						["continent"] = country.Continent,
+						["name"] = country.Name,
+					});
+				}
+
+				JArray sectors = [];
+				foreach (var sector in manualSymbolProfile.SectorWeights)
+				{
+					sectors.Add(new JObject
+					{
+						["weight"] = sector.Weight.ToString(),
+						["name"] = sector.Name,
+					});
+				}
+
+				var o = new JObject
+				{
+					["name"] = manualSymbolProfile.Name,
+					["assetClass"] = EnumMapper.ConvertAssetClassToString(manualSymbolProfile.AssetClass),
+					["assetSubClass"] = EnumMapper.ConvertAssetSubClassToString(manualSymbolProfile.AssetSubClass),
+					["comment"] = manualSymbolProfile.Comment ?? string.Empty,
+					["symbolMapping"] = mappingObject,
+					["countries"] = countries,
+					["sectors"] = sectors
+				};
+				var res = o.ToString();
+
+				try
+				{
+					var r = await restCall.DoRestPatch($"api/v1/admin/profile-data/{manualSymbolProfile.DataSource}/{manualSymbolProfile.Symbol}", res);
+					if (!r.IsSuccessStatusCode)
+					{
+						throw new NotSupportedException($"Update failed on symbol {manualSymbolProfile.Symbol}");
+					}
+				}
+				catch
+				{
+					throw new NotSupportedException($"Update failed on symbol {manualSymbolProfile.Symbol}.");
+				}
+
+				logger.LogDebug("Updated symbol profile {Symbol}", manualSymbolProfile.Symbol);
+			}
+		}
+
 		private async Task<Contract.Account[]> GetAllAccounts()
 		{
 			var content = await restCall.DoRestGet($"api/v1/account");

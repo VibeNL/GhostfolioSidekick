@@ -12,8 +12,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		Task<List<SymbolProfile>> GetSymbolProfile(string identifier, bool includeIndexes);
 
 		Task CreatePlatform(Platform platform);
+
 		Task CreateAccount(Account account);
+
 		Task UpdateAccount(Account account);
+
 		Task SyncAllActivities(List<Activity> allActivities);
+
+		Task SyncSymbolProfiles(IEnumerable<SymbolProfile> manualSymbolProfiles);
 	}
 }

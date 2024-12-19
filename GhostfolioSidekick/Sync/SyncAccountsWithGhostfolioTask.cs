@@ -1,12 +1,13 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Sync
 {
-	internal class SyncWithGhostfolioTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IGhostfolioSync ghostfolioSync) : IScheduledWork
+	internal class SyncAccountsWithGhostfolioTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IGhostfolioSync ghostfolioSync) : IScheduledWork
 	{
-		public TaskPriority Priority => TaskPriority.SyncWithGhostfolio;
+		public TaskPriority Priority => TaskPriority.SyncAccountsWithGhostfolio;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromMinutes(5);
 
@@ -18,9 +19,6 @@ namespace GhostfolioSidekick.Sync
 			{
 				await ghostfolioSync.SyncAccount(account);
 			}
-
-			var allActivities = await databaseContext.Activities.Include(x => x.Holding).ToListAsync();
-			await ghostfolioSync.SyncAllActivities(allActivities);
 		}
 	}
 }
