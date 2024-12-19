@@ -102,8 +102,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		{
 			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
 					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
-					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today, Period.Daily));
-
+					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily));
+			
 			if (history == null)
 			{
 				return [];
