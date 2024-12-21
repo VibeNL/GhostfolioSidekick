@@ -1,14 +1,14 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+﻿//using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.GhostfolioAPI.API
-{
-	internal class CacheValue
-	{
-		public CacheValue(SymbolProfile? asset)
-		{
-			Asset = asset;
-		}
+//namespace GhostfolioSidekick.GhostfolioAPI.API
+//{
+//	internal class CacheValue
+//	{
+//		public CacheValue(SymbolProfile? asset)
+//		{
+//			Asset = asset;
+//		}
 
-		public SymbolProfile? Asset { get; private set; }
-	}
-}
+//		public SymbolProfile? Asset { get; private set; }
+//	}
+//}

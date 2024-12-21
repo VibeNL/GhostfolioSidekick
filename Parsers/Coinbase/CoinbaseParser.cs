@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 			{
 				case string when record.Type.Contains("Buy", StringComparison.InvariantCultureIgnoreCase):
 
-					if (new Currency(record.Asset).IsFiat())
+					if (Currency.GetCurrency(record.Asset).IsFiat())
 					{
 						yield break;
 					}
