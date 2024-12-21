@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			// Get the best match of the correct QuoteType
 			// TODO: Fix if score is available
-			var bestMatch = matches.OrderByDescending(x => x.ShortName.Length).First();
+			var bestMatch = matches./*OrderByDescending(x => x.Score).*/First();
 
 			var symbols = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync());
 			if (symbols == null)
