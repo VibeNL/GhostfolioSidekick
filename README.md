@@ -159,7 +159,7 @@ This format is only usefull for stocks at the moment, not for cryptocurrency:
 
 | Field | Value(s) | 
 | ----- | ----- |
-| OrderType | BUY ,SELL, DIVIDEND and INTEREST | 
+| ActivityType | BUY ,SELL, DIVIDEND and INTEREST | 
 | Symbol | The symbol to search
 | Date | The date, yyyy-MM-dd |
 | Currency | The currency of the unitprice and fee |
@@ -181,7 +181,7 @@ For stock splits there is a seperate format
 ##### Example
 
 File1:
-OrderType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
+ActivityType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
 BUY,US67066G1040,2023-08-07,USD,0.0267001000,453.33,0.02
 
 File2:
