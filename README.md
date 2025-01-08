@@ -181,7 +181,7 @@ For stock splits there is a seperate format
 ##### Example
 
 File1:
-OrderType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
+ActivityType,Symbol,Date,Currency,Quantity,UnitPrice,Fee
 BUY,US67066G1040,2023-08-07,USD,0.0267001000,453.33,0.02
 
 File2:
