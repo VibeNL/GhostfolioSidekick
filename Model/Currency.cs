@@ -7,11 +7,17 @@ namespace GhostfolioSidekick.Model
 	[SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
 	public record Currency
 	{
-		public static Currency EUR = new("EUR", null, 0);
-		public static Currency USD = new("USD", null, 0);
-		public static Currency GBP = new("GBP", null, 0);
-		public static Currency GBp = new("GBp", GBP, 100);
-		public static Currency GBX = new("GBX", GBP, 100);
+		private static Currency eur = new("EUR", null, 0);
+		private static Currency usd = new("USD", null, 0);
+		private static Currency gbP = new("GBP", null, 0);
+		private static Currency gbp = new("GBp", GBP, 100);
+		private static Currency gbx = new("GBX", GBP, 100);
+
+		public static Currency EUR { get { return eur with { };  } }
+		public static Currency USD { get { return usd with { }; } }
+		public static Currency GBP { get { return gbP with { }; } }
+		public static Currency GBp { get { return gbp with { }; } }
+		public static Currency GBX { get { return gbx with { }; } }
 
 		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp, GBX];
 				

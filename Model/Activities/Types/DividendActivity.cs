@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public ICollection<Money> Fees { get; set; } = [];
 
-		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money Amount { get; set; }
 

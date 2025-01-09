@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Model.Activities
 			UnitPrice = unitPrice;
 		}
 
-		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public decimal Quantity { get; set; }
 
@@ -35,6 +35,6 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public Money? AdjustedUnitPrice { get; set; }
 
-		public IList<CalculatedPriceTrace> AdjustedUnitPriceSource { get; set; } = [];
+		public virtual List<CalculatedPriceTrace> AdjustedUnitPriceSource { get; set; } = [];
 	}
 }

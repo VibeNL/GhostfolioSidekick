@@ -4,7 +4,9 @@ using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Linq.Expressions;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
@@ -25,35 +27,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<ValuableActivity>
 
 	{
-		private const string TotalTransactionAmount = "TotalTransactionAmount";
-		private const string UnitPrice = "UnitPrice";
-		private const string Fees = "Fees";
-		private const string Taxes = "Taxes";
-		private const string Amount = "Amount";
-		private const string Price = "Price";
-		private const string PartialSymbolIdentifiers = "PartialSymbolIdentifiers";
-		private readonly ValueComparer<ICollection<Money>> moneyListComparer;
-		private readonly ValueComparer<ICollection<PartialSymbolIdentifier>> partialSymbolIdentifiersListComparer;
-		private readonly ValueComparer<ICollection<CalculatedPriceTrace>> calculatedPriceTraceComparer;
+		private const string Currency = "Currency";
 		private readonly JsonSerializerOptions serializationOptions;
 
 		public ActivityTypeConfiguration()
 		{
-			moneyListComparer = new ValueComparer<ICollection<Money>>(
-				(c1, c2) => c1.SequenceEqual(c2),
-				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-				c => c.ToList());
-
-			partialSymbolIdentifiersListComparer = new ValueComparer<ICollection<PartialSymbolIdentifier>>(
-				(c1, c2) => c1.SequenceEqual(c2),
-				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-				c => c.ToList());
-
-			calculatedPriceTraceComparer = new ValueComparer<ICollection<CalculatedPriceTrace>>(
-				(c1, c2) => c1.SequenceEqual(c2),
-				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-				c => c.ToList());
-
 			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
 			serializationOptions = new JsonSerializerOptions();
 			serializationOptions.Converters.Add(stringEnumConverter);
@@ -62,7 +40,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<Activity> builder)
 		{
 			builder.ToTable("Activities");
-			builder.UseTptMappingStrategy();
+			builder.UseTphMappingStrategy();
 
 			builder.HasKey(a => a.Id);
 
@@ -72,100 +50,103 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<ActivityWithQuantityAndUnitPrice> builder)
 		{
-			builder.Property(b => b.UnitPrice)
-					.HasColumnName(UnitPrice)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
+			MapMoney<ActivityWithQuantityAndUnitPrice>(builder, x => x.UnitPrice, nameof(ActivityWithQuantityAndUnitPrice.UnitPrice));
+			MapMoney<ActivityWithQuantityAndUnitPrice>(builder, x => x.AdjustedUnitPrice, nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
-
-			builder.Property(b => b.AdjustedUnitPrice)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
-
-			builder.Property(b => b.AdjustedUnitPriceSource)
-				.HasConversion(
-					v => JsonSerializer.Serialize(v, serializationOptions),
-					v => JsonSerializer.Deserialize<IList<CalculatedPriceTrace>>(v, serializationOptions) ?? new List<CalculatedPriceTrace>(),
-					calculatedPriceTraceComparer);
+			builder.OwnsMany<CalculatedPriceTrace>(b => b.AdjustedUnitPriceSource, t =>
+			{
+				t.ToTable("CalculatedPriceTrace");
+				t.Property<long>("ID").HasColumnType("integer").ValueGeneratedOnAdd().HasAnnotation("Key", 0);
+				t.HasKey("ID");
+				t.OwnsOne<Money>(t => t.NewPrice, m =>
+					{
+						m.Property(p => p.Amount).HasColumnName("Amount");
+						m.OwnsOne<Currency>(c => c.Currency, c =>
+						{
+							c.Property(p => p.Symbol).HasColumnName("Currency");
+							c.Ignore(p => p.SourceCurrency);
+							c.Ignore(p => p.Factor);
+						});
+					});
+			});
 		}
 
 		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
 		{
-			builder.Property(b => b.Fees)
-					.HasColumnName(Fees)
-					.HasConversion(
-						v => MoniesToString(v),
-						v => StringToMonies(v),
-						moneyListComparer);
+			MapMoney<BuySellActivity>(builder, x => x.UnitPrice, nameof(BuySellActivity.UnitPrice));
+			MapMoney<BuySellActivity>(builder, x => x.TotalTransactionAmount, nameof(BuySellActivity.TotalTransactionAmount));
 
-			builder.Property(b => b.Taxes)
-					.HasColumnName(Taxes)
-					.HasConversion(
-						v => MoniesToString(v),
-						v => StringToMonies(v),
-						moneyListComparer);
-
-			builder.Property(b => b.TotalTransactionAmount)
-					.HasColumnName(TotalTransactionAmount)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
+			builder.OwnsMany<Money>(x => x.Fees, m =>
+			{
+				m.ToTable("BuySellActivityFees");
+				m.Property<int>("ID").HasColumnType("integer").ValueGeneratedOnAdd().HasAnnotation("Key", 0);
+				m.HasKey("ID");
+				m.Property(p => p.Amount).HasColumnName(nameof(BuySellActivity.Fees));
+				m.OwnsOne<Currency>(c => c.Currency, c =>
+				{
+					c.Property(p => p.Symbol).HasColumnName(Currency + nameof(BuySellActivity.Fees));
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
+				});
+			});
+			builder.OwnsMany<Money>(x => x.Taxes, m =>
+			{
+				m.ToTable("BuySellActivityTaxes");
+				m.Property<int>("ID").HasColumnType("integer").ValueGeneratedOnAdd().HasAnnotation("Key", 0);
+				m.HasKey("ID");
+				m.Property(p => p.Amount).HasColumnName(nameof(BuySellActivity.Taxes));
+				m.OwnsOne<Currency>(c => c.Currency, c =>
+				{
+					c.Property(p => p.Symbol).HasColumnName(Currency + nameof(BuySellActivity.Taxes));
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
+				});
+			});
 		}
 
 		public void Configure(EntityTypeBuilder<CashDepositWithdrawalActivity> builder)
 		{
-			builder.Property(b => b.Amount)
-					.HasColumnName(Amount)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
+			MapMoney<CashDepositWithdrawalActivity>(builder, x => x.Amount, nameof(CashDepositWithdrawalActivity.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<DividendActivity> builder)
 		{
-			builder.Property(b => b.Amount)
-					.HasColumnName(Amount)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
+			MapMoney<DividendActivity>(builder, x => x.Amount, nameof(DividendActivity.Amount));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 
-			builder.Property(b => b.Fees)
-					.HasColumnName(Fees)
-					.HasConversion(
-						v => MoniesToString(v),
-						v => StringToMonies(v),
-						moneyListComparer);
+			builder.OwnsMany<Money>(x => x.Fees, m =>
+			{
+				m.ToTable("DividendActivityFees");
+				m.Property<int>("ID").HasColumnType("integer").ValueGeneratedOnAdd().HasAnnotation("Key", 0);
+				m.HasKey("ID");
+				m.Property(p => p.Amount).HasColumnName(nameof(DividendActivity.Fees));
+				m.OwnsOne<Currency>(c => c.Currency, c =>
+				{
+					c.Property(p => p.Symbol).HasColumnName(Currency + nameof(DividendActivity.Fees));
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
+				});
+			});
 
-			builder.Property(b => b.Taxes)
-					.HasColumnName(Taxes)
-					.HasConversion(
-						v => MoniesToString(v),
-						v => StringToMonies(v),
-						moneyListComparer);
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
+			builder.OwnsMany<Money>(x => x.Taxes, m =>
+			{
+				m.ToTable("DividendActivityTaxes");
+				m.Property<int>("ID").HasColumnType("integer").ValueGeneratedOnAdd().HasAnnotation("Key", 0);
+				m.HasKey("ID");
+				m.Property(p => p.Amount).HasColumnName(nameof(DividendActivity.Taxes));
+				m.OwnsOne<Currency>(c => c.Currency, c =>
+				{
+					c.Property(p => p.Symbol).HasColumnName(Currency + nameof(DividendActivity.Taxes));
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
+				});
+			});
 		}
 
 		public void Configure(EntityTypeBuilder<FeeActivity> builder)
 		{
-			builder.Property(b => b.Amount)
-					.HasColumnName(Amount)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
+			MapMoney<FeeActivity>(builder, x => x.Amount, nameof(FeeActivity.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<GiftActivity> builder)
@@ -174,62 +155,41 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<InterestActivity> builder)
 		{
-			builder.Property(b => b.Amount)
-					.HasColumnName(Amount)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
+			MapMoney<InterestActivity>(builder, x => x.Amount, nameof(InterestActivity.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<KnownBalanceActivity> builder)
 		{
-			builder.Property(b => b.Amount)
-					.HasColumnName(Amount)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
+			MapMoney<KnownBalanceActivity>(builder, x => x.Amount, nameof(KnownBalanceActivity.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<LiabilityActivity> builder)
 		{
-			builder.Property(b => b.Price)
-					.HasColumnName(Price)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
+			MapMoney<LiabilityActivity>(builder, x => x.Price, nameof(LiabilityActivity.Price));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
 		public void Configure(EntityTypeBuilder<RepayBondActivity> builder)
 		{
-			builder.Property(b => b.TotalRepayAmount)
-					.HasColumnName("TotalRepayAmount")
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
+			MapMoney<RepayBondActivity>(builder, x => x.TotalRepayAmount, nameof(RepayBondActivity.TotalRepayAmount));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
 		public void Configure(EntityTypeBuilder<SendAndReceiveActivity> builder)
 		{
-			builder.Property(b => b.Fees)
-					.HasColumnName(Fees)
-					.HasConversion(
-						v => MoniesToString(v),
-						v => StringToMonies(v),
-						moneyListComparer);
+			builder.OwnsMany<Money>(x => x.Fees, m =>
+			{
+				m.ToTable("SendAndReceiveActivityFees");
+				m.Property<int>("ID").HasColumnType("integer").ValueGeneratedOnAdd().HasAnnotation("Key", 0);
+				m.HasKey("ID");
+				m.Property(p => p.Amount).HasColumnName(nameof(SendAndReceiveActivity.Fees));
+				m.OwnsOne<Currency>(c => c.Currency, c =>
+				{
+					c.Property(p => p.Symbol).HasColumnName(Currency + nameof(SendAndReceiveActivity.Fees));
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
+				});
+			});
 		}
 
 		public void Configure(EntityTypeBuilder<StakingRewardActivity> builder)
@@ -238,48 +198,36 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)
 		{
-			builder.Property(b => b.Price)
-					.HasColumnName(Price)
-					.HasConversion(
-						v => MoneyToString(v),
-						v => StringToMoney(v));
-
-			builder.Property(b => b.PartialSymbolIdentifiers)
-				.HasColumnName(PartialSymbolIdentifiers)
-				.HasConversion(
-					v => PartialSymbolIdentifiersToString(v),
-					v => StringToPartialSymbolIdentifiers(v),
-					partialSymbolIdentifiersListComparer);
+			MapMoney<ValuableActivity>(builder, x => x.Price, nameof(ValuableActivity.Price));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
-		private ICollection<Money> StringToMonies(string v)
+		private static void MapPartialSymbolIdentifiers<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, IEnumerable<PartialSymbolIdentifier>?>>? navigationExpression, string name) where TEntity : class
 		{
-			return JsonSerializer.Deserialize<ICollection<Money>>(v) ?? [];
+			builder.HasMany(navigationExpression)
+		   .WithMany()
+		   .UsingEntity<PartialSymbolIdentifierActivity>(
+			   l => l.HasOne<PartialSymbolIdentifier>().WithMany().HasForeignKey("PartialSymbolIdentifierId"),
+			   r => r.HasOne<TEntity>().WithMany().HasForeignKey("ActivityId"));
 		}
 
-		private string MoniesToString(ICollection<Money> v)
+		private static void MapMoney<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, Money?>> navigationExpression, string name) where TEntity : class
 		{
-			return JsonSerializer.Serialize(v);
+			builder.OwnsOne<Money>(navigationExpression, m =>
+			{
+				m.Property(p => p.Amount).HasColumnName(name);
+				m.OwnsOne<Currency>(c => c.Currency, c =>
+				{
+					c.Property(p => p.Symbol).HasColumnName("Currency" + name);
+					c.Ignore(p => p.SourceCurrency);
+					c.Ignore(p => p.Factor);
+				});
+			});
 		}
+	}
 
-		private Money StringToMoney(string v)
-		{
-			return JsonSerializer.Deserialize<Money>(v) ?? null!;
-		}
-
-		private string MoneyToString(Money v)
-		{
-			return JsonSerializer.Serialize(v);
-		}
-
-		private IList<PartialSymbolIdentifier> StringToPartialSymbolIdentifiers(string v)
-		{
-			return JsonSerializer.Deserialize<ICollection<PartialSymbolIdentifier>>(v, serializationOptions)?.ToList() ?? [];
-		}
-
-		private string PartialSymbolIdentifiersToString(ICollection<PartialSymbolIdentifier> v)
-		{
-			return JsonSerializer.Serialize(v, serializationOptions);
-		}
+	public class PartialSymbolIdentifierActivity
+	{
+		public long Id { get; set; }
 	}
 }

@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			Price = amount;
 		}
 
-		public virtual IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
+		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money Price { get; set; }
 

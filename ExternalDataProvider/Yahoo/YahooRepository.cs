@@ -102,7 +102,22 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		{
 			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
 					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
-					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily));
+					.ExecuteAsync(() =>
+						{
+							try
+							{
+								return
+									YahooFinanceApi
+										.Yahoo
+										.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily);
+							}
+							catch (RuntimeBinderException ex) when (ex.Message.Contains("'System.Dynamic.ExpandoObject'"))
+							{
+								// No data?
+							}
+
+							return Task.FromResult<IReadOnlyList<Candle>>(null!);
+						});
 			
 			if (history == null)
 			{
@@ -140,9 +155,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				}
 
 			}
-			catch (RuntimeBinderException ex) when (ex.Message.Contains("'System.Dynamic.ExpandoObject' does not contain a definition for 'events'"))
+			catch (RuntimeBinderException ex) when (ex.Message.Contains("'System.Dynamic.ExpandoObject'"))
 			{
-				// No split?
+				// No data?
 			}
 			
 			return list;

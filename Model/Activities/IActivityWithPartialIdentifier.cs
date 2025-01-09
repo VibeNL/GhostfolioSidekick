@@ -2,6 +2,6 @@
 {
 	public interface IActivityWithPartialIdentifier
 	{
-		IList<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
+		List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
 	}
 }

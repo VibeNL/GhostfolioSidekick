@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Reflection;
 using System.Reflection.Metadata;
 
@@ -33,6 +34,9 @@ namespace GhostfolioSidekick.Database
 		// special "local" folder for your platform.
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
+			optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
+			optionsBuilder.ConfigureWarnings(w => w.Ignore(CoreEventId.DuplicateDependentEntityTypeInstanceWarning)); // We do not duplicate Currency instances
+			
 			optionsBuilder.UseLazyLoadingProxies();
 			if (!optionsBuilder.IsConfigured)
 			{
