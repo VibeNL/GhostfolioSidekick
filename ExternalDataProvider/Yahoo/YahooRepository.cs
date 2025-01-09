@@ -103,22 +103,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
 					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
 					.ExecuteAsync(() =>
-						{
-							try
-							{
-								return
-									YahooFinanceApi
+								YahooFinanceApi
 										.Yahoo
-										.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily);
-							}
-							catch (RuntimeBinderException ex) when (ex.Message.Contains("'System.Dynamic.ExpandoObject'"))
-							{
-								// No data?
-							}
+										.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily)
+					);
 
-							return Task.FromResult<IReadOnlyList<Candle>>(null!);
-						});
-			
 			if (history == null)
 			{
 				return [];
@@ -159,7 +148,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			{
 				// No data?
 			}
-			
+
 			return list;
 		}
 
