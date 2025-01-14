@@ -26,7 +26,7 @@ namespace GhostfolioSidekick
 			await dbContext.ExecutePragma("PRAGMA fullfsync=ON;");
 			await dbContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
 			
-			logger.LogInformation("Do integrety checks and vacuum...");
+			logger.LogInformation("Do integrity checks and vacuum...");
 			await dbContext.ExecutePragma("PRAGMA integrity_check;");
 			await dbContext.Database.ExecuteSqlRawAsync("VACUUM;");
 
