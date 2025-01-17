@@ -115,11 +115,17 @@ namespace ScraperUtilities.ScalableCapital
 			{
 				// find the div with the first child containing the text History
 				var historyNode = page.Locator("div").GetByText("History").First;
-				var nodeFromDescription = historyNode.Locator("div").GetByText(description).First;
+				await historyNode.HoverAsync();
+				var parentHistoryNode = historyNode.Locator("..");
+				await parentHistoryNode.HoverAsync();
+				var nodeFromDescription = parentHistoryNode.Locator("div").GetByText(description).First;
+				await nodeFromDescription.HoverAsync();
 				var parent = nodeFromDescription.Locator("..");
+				await parent.HoverAsync();
 				var dateNode = parent.Locator("div").Nth(1);
+				await dateNode.HoverAsync();
 				var text = await dateNode.InnerTextAsync();
-				return DateTime.ParseExact(text!, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+				return DateTime.ParseExact(text!, "dd MMM yyyy, HH:MM:SS", CultureInfo.InvariantCulture);
 			}
 			catch (Exception)
 			{
