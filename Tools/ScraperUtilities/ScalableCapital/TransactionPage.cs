@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.Playwright;
+using System;
 using System.Globalization;
 using System.Text.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -45,7 +46,7 @@ namespace ScraperUtilities.ScalableCapital
 				list.Add(symbol);
 
 				// Press Close button
-                await page.GetByRole(AriaRole.Button).ClickAsync();
+				await page.GetByRole(AriaRole.Button).ClickAsync();
 			}
 
 			return list.Where(x => x is not null);
@@ -168,7 +169,18 @@ namespace ScraperUtilities.ScalableCapital
 				var dateNode = parent.Locator("div").Nth(1);
 				await dateNode.HoverAsync();
 				var text = await dateNode.InnerTextAsync();
-				return DateTime.ParseExact(text!, "dd MMM yyyy, HH:mm:ss", CultureInfo.InvariantCulture);
+
+				if (DateTime.TryParseExact(text!, "dd MMM yyyy, HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime dateTime))
+				{
+					return dateTime;
+				}
+
+				if (DateTime.TryParseExact(text!, "dd MMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime dateTime))
+				{
+					return dateTime;
+				}
+
+				throw new FieldNotFoundException($"Field '{description}' not found");
 			}
 			catch (Exception)
 			{
