@@ -45,7 +45,7 @@ namespace ScraperUtilities.ScalableCapital
 				list.Add(symbol);
 
 				// Press Close button
-				await page.Locator("button:text('Close')").ClickAsync();
+                await page.GetByRole(AriaRole.Button).ClickAsync();
 			}
 
 			return list.Where(x => x is not null);
@@ -201,15 +201,17 @@ namespace ScraperUtilities.ScalableCapital
 			{
 				var divs = await container.Locator("div").AllAsync();
 
-				if (divs.Count != 2)
-				{
-					continue;
-				}
-
 				// if the first div contains the text
 				if (await divs[0].InnerTextAsync() == description)
 				{
-					return (T)Convert.ChangeType(await divs[1].InnerTextAsync(), typeof(T));
+					var text = await divs[1].InnerTextAsync();
+					if (typeof(T) == typeof(decimal))
+					{
+						text = text.Replace("€", "").Trim();
+						return (T)Convert.ChangeType(decimal.Parse(text, NumberStyles.Currency, CultureInfo.InvariantCulture), typeof(T));
+					}
+
+					return (T)Convert.ChangeType(text, typeof(T));
 				}
 			}
 
