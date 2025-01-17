@@ -10,18 +10,27 @@ namespace ScraperUtilities.ScalableCapital
 {
 	internal partial class TransactionPage(IPage page)
 	{
-		internal async Task<IEnumerable<Activity>> ScrapeTransactions()
+		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
 			// Scroll down the page to load all transactions
-			var cnt = 0;
-			while (cnt != await GetTransacionsCount())
+			var isScrolling = true;
+			var lastUpdate = DateTime.Now;
+			while (isScrolling)
 			{
-				cnt = await GetTransacionsCount();
+				var cnt = await GetTransacionsCount();
 				await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
 				Thread.Sleep(1000);
+
+				var newCnt = await GetTransacionsCount();
+				if (newCnt != cnt)
+				{
+					lastUpdate = DateTime.Now;
+				}
+
+				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
 			}
 
-			var list = new List<Activity?>();
+			var list = new List<ActivityWithSymbol?>();
 			foreach (var transaction in await GetTransactions())
 			{
 				// Click
@@ -31,13 +40,47 @@ namespace ScraperUtilities.ScalableCapital
 				// Overview text is visible
 				await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
-				list.Add(await ProcessDetails());
+				var generatedTransaction = await ProcessDetails();
+				var symbol = await AddSymbol(generatedTransaction);
+				list.Add(symbol);
 
 				// Press Close button
 				await page.Locator("button:text('Close')").ClickAsync();
 			}
 
 			return list.Where(x => x is not null);
+		}
+
+		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
+		{
+			if (generatedTransaction is null)
+			{
+				return null;
+			}
+
+			if (generatedTransaction is CashDepositWithdrawalActivity)
+			{
+				return new ActivityWithSymbol
+				{
+					Activity = generatedTransaction,
+				};
+			}
+
+			var link = page.Locator("[href*=\"/broker/security?\"]").First;
+			var name = await link.InnerTextAsync();
+			var url = await link.GetAttributeAsync("href");
+			if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(name))
+			{
+				return null;
+			}
+
+			var isin = url.Split("isin=")[1];
+			return new ActivityWithSymbol
+			{
+				Activity = generatedTransaction,
+				Symbol = isin,
+				symbolName = name
+			};
 		}
 
 		private Task<IReadOnlyList<ILocator>> GetTransactions()
@@ -125,7 +168,7 @@ namespace ScraperUtilities.ScalableCapital
 				var dateNode = parent.Locator("div").Nth(1);
 				await dateNode.HoverAsync();
 				var text = await dateNode.InnerTextAsync();
-				return DateTime.ParseExact(text!, "dd MMM yyyy, HH:MM:SS", CultureInfo.InvariantCulture);
+				return DateTime.ParseExact(text!, "dd MMM yyyy, HH:mm:ss", CultureInfo.InvariantCulture);
 			}
 			catch (Exception)
 			{
