@@ -175,7 +175,7 @@ namespace ScraperUtilities.ScalableCapital
 					return dateTime;
 				}
 
-				if (DateTime.TryParseExact(text!, "dd MMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime dateTime))
+				if (DateTime.TryParseExact(text!, "dd MMM yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out dateTime))
 				{
 					return dateTime;
 				}
