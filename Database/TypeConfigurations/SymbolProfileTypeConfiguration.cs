@@ -14,12 +14,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.ToTable("SymbolProfiles");
 			builder.HasKey(x => new { x.Symbol, x.DataSource });
 
-			builder.OwnsOne<Currency>(b => b.Currency, m =>
-			{
-				m.Property(p => p.Symbol).HasColumnName("Currency");
-				m.Ignore(p => p.SourceCurrency);
-				m.Ignore(p => p.Factor);
-			});
+			builder.ComplexProperty(b => b.Currency).Property(p => p.Symbol).HasColumnName("Currency");
+
 			builder.Property(e => e.Identifiers)
 					.HasConversion(
 						v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),

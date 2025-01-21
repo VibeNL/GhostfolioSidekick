@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -17,11 +18,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			decimal amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, amount, null, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, amount, new Money(), transactionId, sortingPriority, description)
 		{
 		}
 
-		public ICollection<Money> Fees { get; set; } = [];
+		public virtual ICollection<SendAndReceiveActivityFee> Fees { get; set; } = [];
 
 		public override string ToString()
 		{

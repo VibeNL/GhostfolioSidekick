@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Parsers;
 
 namespace GhostfolioSidekick.Activities
@@ -103,32 +104,32 @@ namespace GhostfolioSidekick.Activities
 				case PartialActivityType.Buy:
 					return new BuySellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 					{
-						Taxes = taxes.ToList(),
-						Fees = fees.ToList(),
+						Taxes = taxes.Select(x => new BuySellActivityTax(x)).ToList(),
+						Fees = fees.Select(x => new BuySellActivityFee(x)).ToList(),
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Sell:
 					return new BuySellActivity(account, null, partialSymbolIdentifiers, date, -amount, money, transactionId, sortingPriority, description)
 					{
-						Taxes = taxes.ToList(),
-						Fees = fees.ToList(),
+						Taxes = taxes.Select(x => new BuySellActivityTax(x)).ToList(),
+						Fees = fees.Select(x => new BuySellActivityFee(x)).ToList(),
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Receive:
 					return new SendAndReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 					{
-						Fees = fees.ToList(),
+						Fees = fees.Select(x => new SendAndReceiveActivityFee(x)).ToList(),
 					};
 				case PartialActivityType.Send:
 					return new SendAndReceiveActivity(account, null, partialSymbolIdentifiers, date, -amount, transactionId, sortingPriority, description)
 					{
-						Fees = fees.ToList(),
+						Fees = fees.Select(x => new SendAndReceiveActivityFee(x)).ToList(),
 					};
 				case PartialActivityType.Dividend:
 					return new DividendActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
 					{
-						Taxes = taxes.ToList(),
-						Fees = fees.ToList(),
+						Taxes = taxes.Select(x => new DividendActivityTax(x)).ToList(),
+						Fees = fees.Select(x => new DividendActivityFee(x)).ToList(),
 					};
 				case PartialActivityType.Interest:
 					return new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace GhostfolioSidekick.Model
 {
@@ -7,20 +8,20 @@ namespace GhostfolioSidekick.Model
 	[SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
 	public record Currency
 	{
-		private static Currency eur = new("EUR", null, 0);
-		private static Currency usd = new("USD", null, 0);
-		private static Currency gbP = new("GBP", null, 0);
-		private static Currency gbp = new("GBp", GBP, 100);
-		private static Currency gbx = new("GBX", GBP, 100);
+		public static readonly Currency EUR = new("EUR");
+		public static readonly Currency USD = new("USD");
+		public static readonly Currency GBP = new("GBP");
+		public static readonly Currency GBp = new("GBp");
+		public static readonly Currency GBX = new("GBX");
 
-		public static Currency EUR { get { return eur with { };  } }
-		public static Currency USD { get { return usd with { }; } }
-		public static Currency GBP { get { return gbP with { }; } }
-		public static Currency GBp { get { return gbp with { }; } }
-		public static Currency GBX { get { return gbx with { }; } }
+		private static readonly List<Currency> allCurrencies = [USD, EUR, GBP, GBp, GBX];
 
-		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp, GBX];
-				
+		private static readonly List<Tuple<Currency, Currency, decimal>> knownExchangeRates = new()
+		{
+			Tuple.Create(GBp, GBP, 0.01m),
+			Tuple.Create(GBX, GBP, 0.01m),
+		};
+
 		public Currency() // EF Core
 		{
 			Symbol = default!;
@@ -28,34 +29,29 @@ namespace GhostfolioSidekick.Model
 
 		public static Currency GetCurrency(string symbol)
 		{
-			foreach (var currency in knownCurrencies)
+			foreach (var currency in allCurrencies)
 			{
 				if (currency.Symbol == symbol)
 				{
-					// Create a copy due to EF Core
-					return currency with { };
+					return currency;
 				}
 			}
 
-			return new Currency(symbol, null!, 0);
+			Currency newCurrency = new(symbol);
+			allCurrencies.Add(newCurrency);
+			return newCurrency;
 		}
 
-		private Currency(string symbol, Currency? sourceCurrency, decimal factor)
+		private Currency(string symbol)
 		{
 			Symbol = symbol;
-			SourceCurrency = sourceCurrency;
-			Factor = factor;
 		}
 
 		public string Symbol { get; init; }
 
-		public Currency? SourceCurrency { get; init; }
-
-		public decimal Factor { get; init; }
-
 		public bool IsFiat()
 		{
-			return knownCurrencies.Exists(x => x.Symbol == Symbol);
+			return allCurrencies.Exists(x => x.Symbol == Symbol);
 		}
 
 		public override string ToString()
@@ -70,36 +66,34 @@ namespace GhostfolioSidekick.Model
 				return 1;
 			}
 
-			if (SourceCurrency == targetCurrency)
+			foreach (var pair in knownExchangeRates)
 			{
-				return 1 / Factor;
-			}
+				if (pair.Item1 == this && pair.Item2 == targetCurrency)
+				{
+					return pair.Item3;
+				}
 
-			if (targetCurrency.SourceCurrency == this)
-			{
-				return targetCurrency.Factor;
+				if (pair.Item1 == targetCurrency && pair.Item2 == this)
+				{
+					return 1 / pair.Item3;
+				}
 			}
 
 			return 0;
 
 		}
 
-		public Currency GetSourceCurrency()
+		public (Currency, decimal) GetSourceCurrency()
 		{
-			return SourceCurrency != null ? SourceCurrency.GetSourceCurrency() : this;
-		}
-
-		public static Currency MapToStatics(Currency sourceCurrency)
-		{
-			foreach (var currency in knownCurrencies)
+			foreach (var pair in knownExchangeRates)
 			{
-				if (currency.Symbol == sourceCurrency.Symbol)
+				if (pair.Item1 == this)
 				{
-					return currency;
+					return (pair.Item2, pair.Item3);
 				}
 			}
 
-			return sourceCurrency;
+			return (this, 1);
 		}
 	}
 }

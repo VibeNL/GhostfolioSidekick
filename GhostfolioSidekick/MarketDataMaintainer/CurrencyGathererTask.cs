@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.Distinct()
 				.ToListAsync())
 				.Where(x => x.Currency != null)
-				.Select(x => new { Currency = x.Currency!.GetSourceCurrency(), Date = x.Date })
+				.Select(x => new { Currency = x.Currency!.GetSourceCurrency().Item1, Date = x.Date })
 				.GroupBy(x => x.Currency)
 				.Select(x => x.OrderBy(y => y.Date).First());
 			var currencies = currenciesActivities.Concat(symbolsActivities).Distinct().ToList();

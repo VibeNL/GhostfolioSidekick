@@ -17,12 +17,12 @@ namespace GhostfolioSidekick.Activities.Strategies
 
 			foreach (var split in stockSplits)
 			{
-				var splitFactor = split.BeforeSplit / (decimal)split.AfterSplit;
-				var inverseSplitFactor = split.AfterSplit / (decimal)split.BeforeSplit;
+				var splitFactor = split.BeforeSplit / split.AfterSplit;
+				var inverseSplitFactor = split.AfterSplit / split.BeforeSplit;
 
 				foreach (var activity in holding.Activities.Where(x => x.Date < split.Date.ToDateTime(TimeOnly.MinValue)).OfType<ActivityWithQuantityAndUnitPrice>())
 				{
-					activity.AdjustedUnitPrice = activity!.AdjustedUnitPrice?.Times(splitFactor);
+					activity.AdjustedUnitPrice = activity!.AdjustedUnitPrice.Times(splitFactor);
 					activity.AdjustedQuantity = activity!.AdjustedQuantity * inverseSplitFactor;
 					activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace(split.ToString(), activity.AdjustedQuantity, activity.AdjustedUnitPrice));
 				}

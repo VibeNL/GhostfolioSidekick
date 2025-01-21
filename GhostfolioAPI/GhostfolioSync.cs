@@ -68,8 +68,8 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						activity.Holding,
 						sendAndReceiveActivity.PartialSymbolIdentifiers,
 						activity.Date,
-						sendAndReceiveActivity.AdjustedQuantity ?? sendAndReceiveActivity.Quantity,
-						sendAndReceiveActivity.AdjustedUnitPrice ?? sendAndReceiveActivity.UnitPrice,
+						sendAndReceiveActivity.AdjustedQuantity != 0 ? sendAndReceiveActivity.AdjustedQuantity : sendAndReceiveActivity.Quantity,
+						sendAndReceiveActivity.AdjustedUnitPrice.Amount != 0 ? sendAndReceiveActivity.AdjustedUnitPrice : sendAndReceiveActivity.UnitPrice,
 						activity.TransactionId,
 						activity.SortingPriority,
 						activity.Description)

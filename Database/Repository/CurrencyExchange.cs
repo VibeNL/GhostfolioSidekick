@@ -30,34 +30,19 @@ namespace GhostfolioSidekick.Database.Repository
 				return exchangeRate;
 			}
 
-			var factor = 1m;
-			var searchSourceCurrency = Currency.MapToStatics(sourceCurrency);
-			var searchTargetCurrency = Currency.MapToStatics(targetCurrency);
-
-			// If the source or target currency is a derived currency, get the source currency
-			if (searchSourceCurrency.SourceCurrency != null)
-			{
-				factor = 1 / searchSourceCurrency.Factor; // Get the factor before overriding the currency
-				searchSourceCurrency = searchSourceCurrency.SourceCurrency;
-			}
-
-			// If the source or target currency is a derived currency, get the source currency
-			if (searchTargetCurrency.SourceCurrency != null)
-			{
-				factor *= searchTargetCurrency.Factor; // Invert the factor before overriding the currency
-				searchTargetCurrency = searchTargetCurrency.SourceCurrency;
-			}
+			var searchSourceCurrency = sourceCurrency.GetSourceCurrency();
+			var searchTargetCurrency = targetCurrency.GetSourceCurrency();
 
 			// If the currencies are the same, return 1
 			if (searchSourceCurrency == searchTargetCurrency)
 			{
-				return 1;
+				return (1m / searchSourceCurrency.Item2) * searchTargetCurrency.Item2;
 			}
 
 			// Get the exchange rate from the database
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			exchangeRate = await databaseContext.SymbolProfiles
-								.Where(x => x.Symbol == $"{searchSourceCurrency.Symbol}{searchTargetCurrency.Symbol}")
+								.Where(x => x.Symbol == $"{searchSourceCurrency.Item1.Symbol}{searchTargetCurrency.Item1.Symbol}")
 								.SelectMany(x => x.MarketData)
 								.Where(x => x.Date == searchDate)
 								.Select(x => x.Close.Amount)
@@ -67,7 +52,7 @@ namespace GhostfolioSidekick.Database.Repository
 			{
 				// Use the last known value. Mayby a holliyday or weekend?
 				exchangeRate = await databaseContext.SymbolProfiles
-									.Where(x => x.Symbol == $"{searchSourceCurrency.Symbol}{searchTargetCurrency.Symbol}")
+									.Where(x => x.Symbol == $"{searchSourceCurrency.Item1.Symbol}{searchTargetCurrency.Item1.Symbol}")
 									.SelectMany(x => x.MarketData)
 									.Where(x => x.Date < searchDate)
 									.OrderByDescending(x => x.Date)
@@ -81,7 +66,7 @@ namespace GhostfolioSidekick.Database.Repository
 				}
 			}
 
-			return exchangeRate * factor;
+			return exchangeRate * (1m / searchSourceCurrency.Item2) * searchTargetCurrency.Item2;
 		}
 	}
 }

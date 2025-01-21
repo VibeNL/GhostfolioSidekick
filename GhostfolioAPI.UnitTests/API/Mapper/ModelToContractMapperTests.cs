@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			result.Date.Should().Be(buyActivity.Date);
 			result.Fee.Should().Be(600m); // Assuming fees and taxes are converted to 100 each
 			result.FeeCurrency.Should().Be(symbolProfile.Currency);
-			result.Quantity.Should().Be(Math.Abs(buyActivity.AdjustedQuantity.GetValueOrDefault()));
+			result.Quantity.Should().Be(Math.Abs(buyActivity.AdjustedQuantity));
 			result.Type.Should().Be(buyActivity.AdjustedQuantity > 0 ? ActivityType.BUY : ActivityType.SELL);
 			result.UnitPrice.Should().Be(100m);
 			result.ReferenceCode.Should().Be(buyActivity.TransactionId);
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			result.Date.Should().Be(sendAndReceiveActivity.Date);
 			result.Fee.Should().Be(300m); // Assuming fees are converted to 100
 			result.FeeCurrency.Should().Be(symbolProfile.Currency);
-			result.Quantity.Should().Be(Math.Abs(sendAndReceiveActivity.AdjustedQuantity.GetValueOrDefault()));
+			result.Quantity.Should().Be(Math.Abs(sendAndReceiveActivity.AdjustedQuantity));
 			result.Type.Should().Be(sendAndReceiveActivity.AdjustedQuantity > 0 ? ActivityType.BUY : ActivityType.SELL);
 			result.UnitPrice.Should().Be(100m);
 			result.ReferenceCode.Should().Be(sendAndReceiveActivity.TransactionId);

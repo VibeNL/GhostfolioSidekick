@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -24,13 +25,13 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			Amount = amount;
 		}
 
-		public ICollection<Money> Fees { get; set; } = [];
+		public virtual ICollection<DividendActivityFee> Fees { get; set; } = [];
 
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money Amount { get; set; }
 
-		public ICollection<Money> Taxes { get; set; } = [];
+		public virtual ICollection<DividendActivityTax> Taxes { get; set; } = [];
 
 		public override string ToString()
 		{

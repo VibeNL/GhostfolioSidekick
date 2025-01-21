@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.Playwright;
 using System;
 using System.Globalization;
@@ -133,7 +134,7 @@ namespace ScraperUtilities.ScalableCapital
 					Quantity = (isSell ? -1 : 1) * await GetField<decimal>("Executed quantity"),
 					UnitPrice = await GetMoneyField("Execution price"),
 					TotalTransactionAmount = await GetMoneyField("Market valuation"),
-					Fees = fee != null ? [fee] : [],
+					Fees = fee != null ? [new BuySellActivityFee(fee)] : [],
 					Date = date,
 					TransactionId = await GetField<string>("Transaction reference"),
 				};

@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
@@ -15,16 +16,16 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			decimal quantity,
-			Money? unitPrice,
+			Money unitPrice,
 			string transactionId,
 			int? sortingPriority,
 			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, quantity, unitPrice, transactionId, sortingPriority, description)
 		{
 		}
 
-		public ICollection<Money> Fees { get; set; } = [];
+		public virtual ICollection<BuySellActivityFee> Fees { get; set; } = [];
 
-		public ICollection<Money> Taxes { get; set; } = [];
+		public virtual ICollection<BuySellActivityTax> Taxes { get; set; } = [];
 
 		public Money TotalTransactionAmount { get; set; } = new Money();
 

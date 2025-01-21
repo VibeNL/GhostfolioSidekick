@@ -10,17 +10,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<Balance> builder)
 		{
 			builder.ToTable("Balances");
-			builder.OwnsOne<Money>(b => b.Money, m =>
-			{
-				m.Property(p => p.Amount).HasColumnName("Amount");
-				m.OwnsOne<Currency>(c => c.Currency, c =>
-				{
-					c.Property(p => p.Symbol).HasColumnName("Currency");
-					c.Ignore(p => p.SourceCurrency);
-					c.Ignore(p => p.Factor);
-				});
-			});
 
+			builder.ComplexProperty(b => b.Money).Property(x => x.Amount).HasColumnName("Amount");
+			builder.ComplexProperty(b => b.Money).ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency");
+			
 			builder.HasIndex("AccountId", "Date").IsUnique();
 		}
 	}
