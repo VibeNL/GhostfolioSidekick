@@ -78,9 +78,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 			var symbolProfile = new SymbolProfile("btc", "Bitcoin", ["btc"], Currency.USD, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, new CountryWeight[0], new SectorWeight[0]);
 			var coinGeckoAsset = new CoinGeckoAsset { Id = "bitcoin", Name = "Bitcoin", Symbol = "btc" };
 			var ohlcData = new List<CoinGeckoOhlc> { new() { Timestamp = DateTime.UtcNow, Open = 100, Close = 200, High = 300, Low = 50 } };
-            restClientMock.Setup(c => c.Api.GetOhlcAsync("bitcoin", "usd", 365, default)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoOhlc>>(
+            restClientMock.Setup(c => c.Api.GetOhlcAsync("bitcoin", "usd", 365, default, CancellationToken.None)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoOhlc>>(
                 null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, ohlcData, null));
-            restClientMock.Setup(c => c.Api.GetOhlcAsync("bitcoin", "usd", 30, default)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoOhlc>>(
+            restClientMock.Setup(c => c.Api.GetOhlcAsync("bitcoin", "usd", 30, default, CancellationToken.None)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoOhlc>>(
                 null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, ohlcData, null));
 			restClientMock.Setup(c => c.Api.GetAssetsAsync(default, default)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoAsset>>(
 				null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, new List<CoinGeckoAsset> { coinGeckoAsset }, null));
@@ -98,9 +98,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 		{
 			// Arrange
 			var symbolProfile = new SymbolProfile("unknown", "Unknown", ["unknown"], Currency.USD, Datasource.COINGECKO, AssetClass.Liquidity, AssetSubClass.CryptoCurrency, new CountryWeight[0], new SectorWeight[0]);
-            restClientMock.Setup(c => c.Api.GetOhlcAsync("unknown", "usd", 365, default)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoOhlc>>(
+            restClientMock.Setup(c => c.Api.GetOhlcAsync("unknown", "usd", 365, default, CancellationToken.None)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoOhlc>>(
                 null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, new List<CoinGeckoOhlc>(), null));
-            restClientMock.Setup(c => c.Api.GetOhlcAsync("unknown", "usd", 30, default)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoOhlc>>(
+            restClientMock.Setup(c => c.Api.GetOhlcAsync("unknown", "usd", 30, default, CancellationToken.None)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoOhlc>>(
                 null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, new List<CoinGeckoOhlc>(), null));
 
 			// Act

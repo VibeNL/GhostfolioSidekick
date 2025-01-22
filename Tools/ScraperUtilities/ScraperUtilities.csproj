@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Model\Model.csproj" />
+    <ProjectReference Include="..\..\Parsers\Parsers.csproj" />
   </ItemGroup>
 
 </Project>

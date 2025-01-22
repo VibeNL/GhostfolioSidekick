@@ -36,7 +36,8 @@ namespace ScraperUtilities.ScalableCapital
 			foreach (var transaction in await GetTransactions())
 			{
 				// Click
-				await transaction.ClickAsync();
+				await transaction.ScrollIntoViewIfNeededAsync();
+				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
 
 				// Wait for the transaction to load
 				// Overview text is visible
@@ -99,36 +100,80 @@ namespace ScraperUtilities.ScalableCapital
 		private async Task<Activity?> ProcessDetails()
 		{
 			// If is Deposit or Withdrawal
-			if (await page.GetByTestId("icon-DEPOSIT").IsVisibleAsync() ||
-				await page.GetByTestId("icon-WITHDRAWAL").IsVisibleAsync())
+			if (await page.GetByTestId("icon-DEPOSIT").IsVisibleAsync())
 			{
+				var dateDeposit = await GetHistoryDate("Deposit settled");
+
 				return new CashDepositWithdrawalActivity
 				{
 					Amount = await GetMoneyField("Amount"),
-					Date = await GetHistoryDate("Deposit settled"),
+					Date = dateDeposit,
+					TransactionId = await GetField<string>("Transaction reference"),
+				};
+			}
+
+			if (await page.GetByTestId("icon-WITHDRAWAL").IsVisibleAsync())
+			{
+				var dateWithdrawal = await GetHistoryDate("Withdrawal settled");
+
+				return new CashDepositWithdrawalActivity
+				{
+					Amount = await GetMoneyField("Amount"),
+					Date = dateWithdrawal,
 					TransactionId = await GetField<string>("Transaction reference"),
 				};
 			}
 
 			// If is Buy or Sell
-			if (await page.GetByTestId("icon-BUY").IsVisibleAsync() ||
-				await page.GetByTestId("icon-SAVINGS_PLAN").IsVisibleAsync() ||
+			var isSaving = await page.GetByTestId("icon-SAVINGS_PLAN").IsVisibleAsync();
+			if (isSaving || 
+				await page.GetByTestId("icon-BUY").IsVisibleAsync() ||
 				await page.GetByTestId("icon-SELL").IsVisibleAsync())
 			{
 				var isSell = await page.GetByTestId("icon-SELL").IsVisibleAsync();
 
-				DateTime date;
-				try
+				DateTime date = DateTime.MinValue;
+				var dateConfirmedTask = GetHistoryDate("Execution confirmed");
+				var dateRejectedTask = GetHistoryDate("Order rejected");
+				var dateCancelledTask = GetHistoryDate("Order cancelled");
+
+				var hasDate = false;
+				while (!hasDate)
 				{
-					date = await GetHistoryDate("Execution confirmed");
-				}
-				catch (FieldNotFoundException)
-				{
-					// Cancelled?
-					return null;
+					if (dateConfirmedTask.IsCompletedSuccessfully)
+					{
+						date = dateConfirmedTask.Result;
+						hasDate = true;
+					}
+					else if (dateRejectedTask.IsCompletedSuccessfully)
+					{
+						// Order rejected
+						return null;
+					}
+					else if (dateCancelledTask.IsCompletedSuccessfully)
+					{
+						// Order cancelled
+						return null;
+					}
+					else if (
+						dateConfirmedTask.IsCompleted &&
+						dateRejectedTask.IsCompleted &&
+						dateCancelledTask.IsCompleted)
+					{
+						throw new FieldNotFoundException("Field \"Execution confirmed\" not found");
+					}
+					else
+					{
+						Thread.Sleep(100);
+					}
 				}
 
-				var fee = await GetMoneyFieldOptional("Order fee");
+				Money? fee = null;
+				if (!isSaving)
+				{
+					fee = await GetMoneyField("Order fee");
+				}
+
 				return new BuySellActivity
 				{
 					Quantity = (isSell ? -1 : 1) * await GetField<decimal>("Executed quantity"),
@@ -160,15 +205,15 @@ namespace ScraperUtilities.ScalableCapital
 			{
 				// find the div with the first child containing the text History
 				var historyNode = page.Locator("div").GetByText("History").First;
-				await historyNode.HoverAsync();
+				//await historyNode.HoverAsync();
 				var parentHistoryNode = historyNode.Locator("..");
-				await parentHistoryNode.HoverAsync();
+				//await parentHistoryNode.HoverAsync();
 				var nodeFromDescription = parentHistoryNode.Locator("div").GetByText(description).First;
-				await nodeFromDescription.HoverAsync();
+				//await nodeFromDescription.HoverAsync();
 				var parent = nodeFromDescription.Locator("..");
-				await parent.HoverAsync();
+				//await parent.HoverAsync();
 				var dateNode = parent.Locator("div").Nth(1);
-				await dateNode.HoverAsync();
+				//await dateNode.HoverAsync();
 				var text = await dateNode.InnerTextAsync();
 
 				if (DateTime.TryParseExact(text!, "dd MMM yyyy, HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime dateTime))
