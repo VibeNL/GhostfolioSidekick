@@ -95,18 +95,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				string symbolString = match.Item1.Currency.Symbol + match.Item2.Currency.Symbol;
 				DateOnly fromDate = DateOnly.FromDateTime(new DateTime[] { match.Item1.Date, match.Item2.Date }.Min());
 
-				var dates = await databaseContext.SymbolProfiles
-					.Where(x => x.Symbol == symbolString)
-					.SelectMany(x => x.MarketData)
-					.GroupBy(x => 1)
-					.Select(g => new
-					{
-						MinDate = g.Min(x => x.Date),
-						MaxDate = g.Max(x => x.Date)
-					})
-					.OrderBy(x => x.MaxDate)
-					.FirstOrDefaultAsync();
-
 				var currencyHistory = await currencyRepository.GetCurrencyHistory(match.Item1.Currency, match.Item2.Currency, fromDate);
 				if (currencyHistory != null)
 				{
@@ -136,12 +124,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						symbolProfile.MarketData.Add(item);
 					}
 
-					if (!await databaseContext.SymbolProfiles.ContainsAsync(symbolProfile).ConfigureAwait(false))
+					if (!await writeDatabaseContext.SymbolProfiles.ContainsAsync(symbolProfile).ConfigureAwait(false))
 					{
-						await databaseContext.SymbolProfiles.AddAsync(symbolProfile);
+						await writeDatabaseContext.SymbolProfiles.AddAsync(symbolProfile);
 					}
 
-					await databaseContext.SaveChangesAsync();
+					await writeDatabaseContext.SaveChangesAsync();
 				}
 			}
 		}
