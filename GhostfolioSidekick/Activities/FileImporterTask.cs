@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Activities
 
 		public TaskPriority Priority => TaskPriority.FileImporter;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromMinutes(5);
+		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		public async Task DoWork()
 		{

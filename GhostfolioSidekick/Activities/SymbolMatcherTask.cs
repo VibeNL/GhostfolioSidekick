@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Activities
 	{
 		public TaskPriority Priority => TaskPriority.SymbolMatcher;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		public async Task DoWork()
 		{

@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 	{
 		public TaskPriority Priority => TaskPriority.BalanceMaintainer;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromMinutes(5);
+		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		public async Task DoWork()
 		{

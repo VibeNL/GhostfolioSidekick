@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork()

@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataStockSplit;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		public async Task DoWork()
 		{

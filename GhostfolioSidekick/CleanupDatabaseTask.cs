@@ -10,7 +10,7 @@ namespace GhostfolioSidekick
 	{
 		public TaskPriority Priority => TaskPriority.CleanupDatabase;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+		public TimeSpan ExecutionFrequency => Frequencies.Daily;
 
 		public Task DoWork()
 		{
