@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Database.Repository
 			// If the currencies are the same, return 1
 			if (searchSourceCurrency == searchTargetCurrency)
 			{
-				return (1m / searchSourceCurrency.Item2) * searchTargetCurrency.Item2;
+				return searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
 			}
 
 			// Get the exchange rate from the database
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.Database.Repository
 				}
 			}
 
-			return exchangeRate * (1m / searchSourceCurrency.Item2) * searchTargetCurrency.Item2;
+			return exchangeRate * searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
 		}
 	}
 }
