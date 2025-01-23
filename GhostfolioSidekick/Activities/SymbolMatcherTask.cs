@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Configuration;
-using Microsoft.Extensions.Caching.Memory;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 

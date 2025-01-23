@@ -1,10 +1,8 @@
 using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Moq;
-using Xunit;
 using FluentAssertions;
 using GhostfolioSidekick.Database.Repository;
 

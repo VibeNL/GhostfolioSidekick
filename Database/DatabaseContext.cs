@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Reflection;
-using System.Reflection.Metadata;
 
 namespace GhostfolioSidekick.Database
 {

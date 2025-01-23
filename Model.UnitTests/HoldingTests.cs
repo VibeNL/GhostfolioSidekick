@@ -1,9 +1,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model.Activities;
-using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 using GhostfolioSidekick.Model.Activities.Types;
 
 namespace GhostfolioSidekick.Tests

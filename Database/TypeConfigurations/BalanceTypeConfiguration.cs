@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
+﻿using GhostfolioSidekick.Model.Accounts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

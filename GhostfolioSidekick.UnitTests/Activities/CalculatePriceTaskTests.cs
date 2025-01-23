@@ -4,17 +4,12 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.Activities
 {
-    public class CalculatePriceTaskTests
+	public class CalculatePriceTaskTests
     {
         private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
         private readonly List<IHoldingStrategy> _holdingStrategies;

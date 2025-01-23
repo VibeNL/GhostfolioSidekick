@@ -1,4 +1,3 @@
-using AutoFixture;
 using AutoFixture.Kernel;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Activities;

@@ -3,17 +3,11 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using Moq;
-using Xunit;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.UnitTests.Activities
 {
-    public class ActivityManagerTests
+	public class ActivityManagerTests
     {
         private readonly List<Account> _accounts;
         private readonly ActivityManager _activityManager;

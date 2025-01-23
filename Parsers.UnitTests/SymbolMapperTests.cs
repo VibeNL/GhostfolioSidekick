@@ -1,14 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Parsers;
 using FluentAssertions;
-using Xunit;
 using GhostfolioSidekick.Configuration;
 
 namespace GhostfolioSidekick.Tests.Parsers
 {
-    public class SymbolMapperTests
+	public class SymbolMapperTests
     {
         private readonly List<Mapping> mappings = new List<Mapping>
         {

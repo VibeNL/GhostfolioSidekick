@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Linq.Expressions;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {

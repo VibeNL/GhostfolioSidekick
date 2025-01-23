@@ -2,14 +2,11 @@ using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
-using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 {
-    public class PopulateAdjustedFieldsStrategyTests
+	public class PopulateAdjustedFieldsStrategyTests
     {
         private readonly PopulateAdjustedFieldsStrategy _populateAdjustedFieldsStrategy;
 

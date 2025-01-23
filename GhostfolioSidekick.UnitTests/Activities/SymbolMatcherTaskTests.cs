@@ -5,22 +5,16 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities.Types;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.Activities
 {
-    public class SymbolMatcherTaskTests
+	public class SymbolMatcherTaskTests
     {
         private readonly Mock<ILogger<SymbolMatcherTask>> _mockLogger;
         private readonly Mock<IApplicationSettings> _mockApplicationSettings;

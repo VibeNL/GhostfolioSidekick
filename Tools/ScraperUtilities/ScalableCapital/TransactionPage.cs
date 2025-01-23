@@ -3,10 +3,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.Playwright;
-using System;
 using System.Globalization;
-using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ScraperUtilities.ScalableCapital
 {

@@ -1,20 +1,13 @@
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using Moq;
-using Xunit;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GhostfolioSidekick.Model.Market;
 
 namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 {
-    public class DeterminePriceTests
+	public class DeterminePriceTests
     {
         private readonly DeterminePrice _determinePrice;
 

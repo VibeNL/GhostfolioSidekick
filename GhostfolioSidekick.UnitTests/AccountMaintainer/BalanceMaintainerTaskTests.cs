@@ -1,17 +1,10 @@
-using GhostfolioSidekick;
 using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
-using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 {

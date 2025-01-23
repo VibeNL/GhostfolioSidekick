@@ -1,13 +1,8 @@
 ﻿using Microsoft.Playwright;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ScraperUtilities.ScalableCapital
 {
-    internal class Scraper
+	internal class Scraper
     {
         private readonly IPage page;
 		private readonly CommandLineArguments arguments;

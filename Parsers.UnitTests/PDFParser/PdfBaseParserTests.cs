@@ -2,17 +2,13 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
 using FluentAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Parsers;
 
 namespace GhostfolioSidekick.Tests.Parsers.PDFParser
 {
-    public class PdfBaseParserTests
+	public class PdfBaseParserTests
     {
         private class TestPdfBaseParser : PdfBaseParser
         {

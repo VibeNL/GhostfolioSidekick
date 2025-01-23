@@ -1,9 +1,7 @@
-﻿using Castle.Core.Logging;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Sync
 {

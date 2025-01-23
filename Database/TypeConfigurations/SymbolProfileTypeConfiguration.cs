@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Symbols;
+﻿using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

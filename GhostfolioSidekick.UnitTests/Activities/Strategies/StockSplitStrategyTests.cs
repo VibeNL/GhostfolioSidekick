@@ -2,18 +2,13 @@ using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
-using Xunit;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model.Market;
 
 namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 {
-    public class StockSplitStrategyTests
+	public class StockSplitStrategyTests
     {
         private readonly StockSplitStrategy _stockSplitStrategy;
 

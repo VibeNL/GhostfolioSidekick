@@ -2,11 +2,9 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Parsers.Generic;
 using Microsoft.Playwright;
 using ScraperUtilities.ScalableCapital;
-using System;
 using System.Globalization;
 
 namespace ScraperUtilities

@@ -4,19 +4,11 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
 using FluentAssertions;
 using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.Model.Accounts;
 using RestSharp;
 using Microsoft.Extensions.Caching.Memory;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
-using Microsoft.DotNet.PlatformAbstractions;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 {
@@ -33,6 +25,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			_mockLogger = new Mock<ILogger<ApiWrapper>>();
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
 			_apiWrapper = new ApiWrapper(new RestCall(_mockRestCall.Object, new MemoryCache(new MemoryCacheOptions()), Mock.Of<ILogger<RestCall>>(), "a", "a", new RestCallOptions()), _mockLogger.Object, _mockCurrencyExchange.Object);
+
+			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>())).ReturnsAsync(new Money { Amount = 100, Currency = Currency.EUR });
 
 			_mockRestCall
 					.Setup(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("auth")), default))
