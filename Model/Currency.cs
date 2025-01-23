@@ -14,7 +14,8 @@ namespace GhostfolioSidekick.Model
 		public static readonly Currency GBp = new("GBp");
 		public static readonly Currency GBX = new("GBX");
 
-		private static readonly List<Currency> allCurrencies = [USD, EUR, GBP, GBp, GBX];
+		private static readonly List<Currency> knownCurrencies = [EUR, USD, GBP, GBp, GBX];
+		private static readonly List<Currency> allCurrencies = [.. knownCurrencies];
 
 		private static readonly List<Tuple<Currency, Currency, decimal>> knownExchangeRates = new()
 		{
@@ -51,7 +52,7 @@ namespace GhostfolioSidekick.Model
 
 		public bool IsFiat()
 		{
-			return allCurrencies.Exists(x => x.Symbol == Symbol);
+			return knownCurrencies.Exists(x => x.Symbol == Symbol);
 		}
 
 		public override string ToString()
