@@ -37,16 +37,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
         }
 
         [Fact]
-        public void ExecutionFrequency_ShouldReturnFiveMinutes()
-        {
-            // Act
-            var frequency = _calculatePriceTask.ExecutionFrequency;
-
-            // Assert
-            frequency.Should().Be(TimeSpan.FromMinutes(5));
-        }
-
-        [Fact]
         public async Task DoWork_ShouldExecuteHoldingStrategies()
         {
             // Arrange

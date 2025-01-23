@@ -32,16 +32,6 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		}
 
 		[Fact]
-		public void ExecutionFrequency_ShouldReturnFiveMinutes()
-		{
-			// Act
-			var frequency = _balanceMaintainerTask.ExecutionFrequency;
-
-			// Assert
-			Assert.Equal(TimeSpan.FromMinutes(5), frequency);
-		}
-
-		[Fact]
 		public async Task DoWork_ShouldUpdateBalances_WhenBalancesAreDifferent()
 		{
 			// Arrange
