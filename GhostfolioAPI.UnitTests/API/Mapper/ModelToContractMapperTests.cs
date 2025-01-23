@@ -1,10 +1,12 @@
 using AutoFixture;
+using AutoFixture.Kernel;
 using FluentAssertions;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Moq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
@@ -22,8 +24,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 							.ToList()
 							.ForEach(b => _fixture.Behaviors.Remove(b));
 			_fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
 			_fixture.Customize<DateOnly>(o => o.FromFactory((DateTime dt) => DateOnly.FromDateTime(dt)));
 			_fixture.Customize<TimeOnly>(o => o.FromFactory((DateTime dt) => TimeOnly.FromDateTime(dt)));
+
+			_fixture.Customize<BuySellActivityFee>(o => o.FromFactory(() => new BuySellActivityFee(new Money(Currency.USD, 100m))));
+			_fixture.Customize<BuySellActivityTax>(o => o.FromFactory(() => new BuySellActivityTax(new Money(Currency.USD, 100m))));
+			_fixture.Customize<DividendActivityFee>(o => o.FromFactory(() => new DividendActivityFee(new Money(Currency.USD, 100m))));
+			_fixture.Customize<DividendActivityTax>(o => o.FromFactory(() => new DividendActivityTax(new Money(Currency.USD, 100m))));
+			_fixture.Customize<SendAndReceiveActivityFee>(o => o.FromFactory(() => new SendAndReceiveActivityFee(new Money(Currency.USD, 100m))));
 
 			_exchangeRateServiceMock = new Mock<ICurrencyExchange>();
 		}

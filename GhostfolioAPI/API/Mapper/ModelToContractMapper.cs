@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			{
 				decimal amount = 0;
 
-				foreach (var money in fees.Union(taxes))
+				foreach (var money in fees.Concat(taxes))
 				{
 					amount += await ConvertPrice(exchangeRateService, money, targetCurrency, dateTime);
 				}
