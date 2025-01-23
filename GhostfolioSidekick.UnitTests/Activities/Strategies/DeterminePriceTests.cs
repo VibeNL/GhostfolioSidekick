@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             await _determinePrice.Execute(holding);
 
             // Assert
-            activity.AdjustedUnitPrice.Should().BeNull();
+            activity.AdjustedUnitPrice.Amount.Should().Be(0);
             activity.AdjustedUnitPriceSource.Should().BeEmpty();
         }
     }
