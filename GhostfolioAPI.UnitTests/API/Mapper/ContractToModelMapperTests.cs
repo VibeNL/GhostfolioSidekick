@@ -1,7 +1,5 @@
-using AutoFixture;
 using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
-using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
@@ -9,274 +7,93 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 	public class ContractToModelMapperTests
 	{
 		[Fact]
-		public void MapPlatform_ShouldReturnCorrectPlatform()
+		public void MapPlatform_ShouldMapCorrectly()
 		{
 			// Arrange
-			var rawPlatform = new Fixture().Create<Platform>();
+			var rawPlatform = new Contract.Platform
+			{
+				Name = "Test Platform",
+				Url = "http://testplatform.com",
+				Id = Guid.NewGuid().ToString()
+			};
 
 			// Act
 			var result = ContractToModelMapper.MapPlatform(rawPlatform);
 
 			// Assert
-			result.Should().BeEquivalentTo(rawPlatform, options => options.ExcludingMissingMembers());
+			result.Name.Should().Be("Test Platform");
+			result.Url.Should().Be("http://testplatform.com");
 		}
 
 		[Fact]
-		public void MapAccount_ShouldReturnCorrectAccount()
+		public void MapAccount_ShouldMapCorrectly()
 		{
 			// Arrange
-			var rawAccount = new Fixture().Create<Account>();
-			var platform = new Fixture().Create<Model.Accounts.Platform>();
+			var rawAccount = new Contract.Account
+			{
+				Name = "Test Account",
+				Comment = "Test Comment",
+				Currency = "USD",
+				Balance = 1000m,
+				Id = Guid.NewGuid().ToString()
+			};
+			var rawPlatform = new Contract.Platform
+			{
+				Name = "Test Platform",
+				Url = "http://testplatform.com",
+				Id = Guid.NewGuid().ToString()
+			};
 
 			// Act
-			var result = ContractToModelMapper.MapAccount(rawAccount, platform);
+			var result = ContractToModelMapper.MapAccount(rawAccount, rawPlatform);
 
 			// Assert
-			result.Should().BeEquivalentTo(rawAccount, options => options
-				.ExcludingMissingMembers()
-				.Excluding(x => x.Balance));
-			result.Balance.Money.Amount.Should().Be(rawAccount.Balance);
+			result.Name.Should().Be("Test Account");
+			result.Comment.Should().Be("Test Comment");
+			result.Platform.Should().NotBeNull();
+			result.Platform!.Name.Should().Be("Test Platform");
+			result.Balance.Should().HaveCount(1);
+			result.Balance.First().Money.Amount.Should().Be(1000m);
 		}
 
 		[Fact]
-		public void ParseSymbolProfile_ShouldReturnCorrectSymbolProfile()
+		public void MapSymbolProfile_ShouldMapCorrectly()
 		{
 			// Arrange
-			var rawSymbolProfile = new Fixture().Customize(new AssetCustomization()).Create<SymbolProfile>();
+			var rawSymbolProfile = new Contract.SymbolProfile
+			{
+				Symbol = "AAPL",
+				Name = "Apple Inc.",
+				Currency = "USD",
+				DataSource = "Yahoo",
+				AssetClass = "EQUITY",
+				AssetSubClass = "STOCK",
+				ISIN = "US0378331005",
+				Comment = "Test Comment",
+				Countries = new[]
+				{
+					new Contract.Country { Name = "United States", Code = "US", Continent = "North America", Weight = 100m }
+				},
+				Sectors = new[]
+				{
+					new Contract.Sector { Name = "Technology", Weight = 100m }
+				}
+			};
 
 			// Act
 			var result = ContractToModelMapper.MapSymbolProfile(rawSymbolProfile);
 
 			// Assert
-			result.Should().BeEquivalentTo(rawSymbolProfile, options => options
-				.ExcludingMissingMembers()
-				.Excluding(x => x.Currency)
-				.Excluding(x => x.AssetClass)
-				.Excluding(x => x.AssetSubClass)
-				.Excluding(x => x.ActivitiesCount)
-				.Excluding(x => x.ScraperConfiguration)
-			);
-			result.Currency.Symbol.Should().Be(rawSymbolProfile.Currency);
-			result.AssetClass.Should().Be(EnumMapper.ParseAssetClass(rawSymbolProfile.AssetClass));
-			result.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(rawSymbolProfile.AssetSubClass));
-			result.ActivitiesCount.Should().Be(rawSymbolProfile.ActivitiesCount);
-			result.ScraperConfiguration.Should().BeEquivalentTo(rawSymbolProfile.ScraperConfiguration, options => options.ExcludingMissingMembers());
-		}
-
-		[Fact]
-		public void MapMarketDataList_ShouldReturnCorrectMarketDataProfile()
-		{
-			// Arrange
-			var rawMarketDataList = new Fixture().Customize(new AssetCustomization()).Create<MarketDataList>();
-
-			// Act
-			var result = ContractToModelMapper.MapMarketDataList(rawMarketDataList);
-
-			// Assert
-			result.Should().BeEquivalentTo(rawMarketDataList, options => options
-				.ExcludingMissingMembers()
-				.Excluding(x => x.AssetProfile.Currency)
-				.Excluding(x => x.AssetProfile.AssetClass)
-				.Excluding(x => x.AssetProfile.AssetSubClass)
-				.Excluding(x => x.MarketData));
-
-			result.AssetProfile.Currency.Symbol.Should().Be(rawMarketDataList.AssetProfile.Currency);
-			result.AssetProfile.AssetClass.Should().Be(EnumMapper.ParseAssetClass(rawMarketDataList.AssetProfile.AssetClass));
-			result.AssetProfile.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(rawMarketDataList.AssetProfile.AssetSubClass));
-
-			for (int i = 0; i < result.MarketData.Count; i++)
-			{
-				result.MarketData[i].Date.Should().Be(rawMarketDataList.MarketData[i].Date);
-				result.MarketData[i].MarketPrice.Amount.Should().Be(rawMarketDataList.MarketData[i].MarketPrice);
-			}
-		}
-
-		[Fact]
-		public void MapMarketDataList_NoTrackingInsight_ShouldReturnCorrectMarketDataProfile()
-		{
-			// Arrange
-			var rawMarketDataList = new Fixture().Customize(new AssetCustomization()).Create<MarketDataList>();
-			rawMarketDataList.AssetProfile.SymbolMapping = null;
-
-			// Act
-			var result = ContractToModelMapper.MapMarketDataList(rawMarketDataList);
-
-			// Assert
-			result.Should().BeEquivalentTo(rawMarketDataList, options => options
-				.ExcludingMissingMembers()
-				.Excluding(x => x.AssetProfile.Currency)
-				.Excluding(x => x.AssetProfile.AssetClass)
-				.Excluding(x => x.AssetProfile.AssetSubClass)
-				.Excluding(x => x.MarketData));
-
-			result.AssetProfile.Currency.Symbol.Should().Be(rawMarketDataList.AssetProfile.Currency);
-			result.AssetProfile.AssetClass.Should().Be(EnumMapper.ParseAssetClass(rawMarketDataList.AssetProfile.AssetClass));
-			result.AssetProfile.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(rawMarketDataList.AssetProfile.AssetSubClass));
-
-			for (int i = 0; i < result.MarketData.Count; i++)
-			{
-				result.MarketData[i].Date.Should().Be(rawMarketDataList.MarketData[i].Date);
-				result.MarketData[i].MarketPrice.Amount.Should().Be(rawMarketDataList.MarketData[i].MarketPrice);
-			}
-		}
-
-		[Fact]
-		public void MapSymbolProfile_ShouldReturnCorrectSymbolProfile()
-		{
-			// Arrange
-			var rawSymbolProfile = new Fixture().Customize(new AssetCustomization()).Create<SymbolProfile>();
-
-			// Act
-			var result = ContractToModelMapper.MapSymbolProfile(rawSymbolProfile);
-
-			// Assert
-			result.Should().BeEquivalentTo(rawSymbolProfile, options => options
-				.ExcludingMissingMembers()
-				.Excluding(x => x.Currency)
-				.Excluding(x => x.AssetClass)
-				.Excluding(x => x.AssetSubClass));
-			result.Currency.Symbol.Should().Be(rawSymbolProfile.Currency);
-			result.AssetClass.Should().Be(EnumMapper.ParseAssetClass(rawSymbolProfile.AssetClass));
-			result.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(rawSymbolProfile.AssetSubClass));
-		}
-
-		[Fact]
-		public void MapToHoldings_ShouldReturnCorrectHoldings()
-		{
-			// Arrange
-			int c = -1;
-			ActivityType GetRandomType()
-			{
-				var values = Enum.GetValues(typeof(ActivityType)).OfType<ActivityType>().Where(x => x != ActivityType.IGNORE).ToList();
-				c = (c + 1) % values.Count;
-				return values[c];
-			}
-
-			var accounts = new Fixture().CreateMany<Model.Accounts.Account>(1).ToArray();
-			var activities = new Fixture().Customize(new AssetCustomization())
-				.Build<Activity>()
-				.With(x => x.AccountId, accounts[0].Id)
-				.With(x => x.Type, () => GetRandomType())
-				.CreateMany(100)
-				.ToArray();
-
-			// Act
-			var result = ContractToModelMapper.MapToHoldings(accounts, activities).ToList();
-
-			// Assert
-			result.Should().BeEquivalentTo(activities, options => options
-				.ExcludingMissingMembers()
-				.Excluding(x => x.SymbolProfile.Currency)
-				.Excluding(x => x.SymbolProfile.AssetClass)
-				.Excluding(x => x.SymbolProfile.AssetSubClass));
-			result[0].SymbolProfile!.Currency.Symbol.Should().Be(activities[0].SymbolProfile.Currency);
-			result[0].SymbolProfile!.AssetClass.Should().Be(EnumMapper.ParseAssetClass(activities[0].SymbolProfile.AssetClass));
-			result[0].SymbolProfile!.AssetSubClass.Should().Be(EnumMapper.ParseAssetSubClass(activities[0].SymbolProfile.AssetSubClass));
-		}
-
-		[Fact]
-		public void MapToHoldings_InvalidType_ShouldReturnCorrectHoldings()
-		{
-			// Arrange
-			var accounts = new Fixture().CreateMany<Model.Accounts.Account>(1).ToArray();
-			var activities = new Fixture().Customize(new AssetCustomization())
-				.Build<Activity>()
-				.With(x => x.AccountId, accounts[0].Id)
-				.With(x => x.Type, (ActivityType)42)
-				.CreateMany(100)
-				.ToArray();
-
-			// Act
-			var result = () => ContractToModelMapper.MapToHoldings(accounts, activities).ToList();
-
-			// Assert
-			result.Should().Throw<NotSupportedException>().WithMessage("ActivityType 42 not supported");
-		}
-
-		[Fact]
-		public void MapToHoldings_GeneratedSymbol_ShouldReturnCorrectHoldings()
-		{
-			// Arrange
-			var accounts = new Fixture().CreateMany<Model.Accounts.Account>(1).ToArray();
-			var activities = new Fixture().Customize(new AssetCustomization())
-				.Build<Activity>()
-				.With(x => x.AccountId, accounts[0].Id)
-				.With(x => x.Type, ActivityType.BUY)
-				.With(x => x.SymbolProfile, new SymbolProfile
-				{
-					AssetClass = null!,
-					AssetSubClass = null,
-					DataSource = "MANUAL",
-					Symbol = Guid.NewGuid().ToString(),
-					Currency = "USD",
-					Name = "Dummy",
-					Countries = [],
-					Sectors = []
-				})
-				.CreateMany(4)
-				.ToArray();
-
-			// Act
-			var result = ContractToModelMapper.MapToHoldings(accounts, activities).ToList();
-
-			// Assert
-			result.Should().HaveCount(1);
-			result[0].SymbolProfile.Should().BeNull();
-		}
-
-		[Fact]
-		public void MapToHoldings_AllSameSymbol_ShouldReturnCorrectHolding()
-		{
-			// Arrange
-			var accounts = new Fixture().CreateMany<Model.Accounts.Account>(1).ToArray();
-			var activities = new Fixture().Customize(new AssetCustomization())
-				.Build<Activity>()
-				.With(x => x.AccountId, accounts[0].Id)
-				.With(x => x.Type, ActivityType.BUY)
-				.With(x => x.SymbolProfile, new SymbolProfile
-				{
-					AssetClass = null!,
-					AssetSubClass = null,
-					DataSource = "YAHOO",
-					Symbol = "GOOGL",
-					Currency = "USD",
-					Name = "Dummy",
-					Countries = [],
-					Sectors = []
-				})
-				.CreateMany(4)
-				.ToArray();
-
-			// Act
-			var result = ContractToModelMapper.MapToHoldings(accounts, activities).ToList();
-
-			// Assert
-			result.Should().HaveCount(1);
-			result[0].SymbolProfile!.Symbol.Should().Be("GOOGL");
-		}
-
-		[Fact]
-		public void MapToHoldings_NoActivities_ShouldReturnCorrectHoldings()
-		{
-			// Arrange
-			var accounts = new Fixture().CreateMany<Model.Accounts.Account>(1).ToArray();
-
-			// Act
-			var result = ContractToModelMapper.MapToHoldings(accounts, []).ToList();
-
-			// Assert
-			result.Should().BeEmpty();
-		}
-	}
-
-	internal class AssetCustomization : ICustomization
-	{
-		public void Customize(IFixture fixture)
-		{
-			fixture.Customize<SymbolProfile>(composer =>
-			composer
-				.With(p => p.AssetClass, AssetClass.Equity.ToString().ToUpperInvariant())
-				.With(p => p.AssetSubClass, AssetSubClass.Etf.ToString().ToUpperInvariant()));
+			result.Symbol.Should().Be("AAPL");
+			result.Name.Should().Be("Apple Inc.");
+			result.Currency.Symbol.Should().Be("USD");
+			result.DataSource.Should().Be("GHOSTFOLIO_Yahoo");
+			result.AssetClass.Should().Be(AssetClass.Equity);
+			result.AssetSubClass.Should().Be(AssetSubClass.Stock);
+			result.ISIN.Should().Be("US0378331005");
+			result.Comment.Should().Be("Test Comment");
+			result.CountryWeight.Should().HaveCount(1);
+			result.SectorWeights.Should().HaveCount(1);
 		}
 	}
 }

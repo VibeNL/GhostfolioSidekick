@@ -1,49 +1,29 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Compare;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class StakingRewardActivity : BaseActivity<StakingRewardActivity>, IActivityWithQuantityAndUnitPrice
+	public record class StakingRewardActivity : ActivityWithQuantityAndUnitPrice
 	{
-		public StakingRewardActivity(
-		Account account,
-		DateTime dateTime,
-		decimal amount,
-		string? transactionId)
+		public StakingRewardActivity()
 		{
-			Account = account;
-			Date = dateTime;
-			Quantity = amount;
-			TransactionId = transactionId;
+			// EF Core
 		}
 
-		public override Account Account { get; }
+		public StakingRewardActivity(
+			Account account,
+			Holding? holding,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
+			DateTime dateTime,
+			decimal amount,
+			string transactionId,
+			int? sortingPriority,
+			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, amount, new Money(), transactionId, sortingPriority, description)
+		{
+		}
 
-		public override DateTime Date { get; }
-
-		public decimal Quantity { get; set; }
-
-		public override string? TransactionId { get; set; }
-
-		public override int? SortingPriority { get; set; }
-
-		public override string? Id { get; set; }
-
-		public Money? UnitPrice { get; set; }
-
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"{Account}_{Date}";
-		}
-
-		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, StakingRewardActivity otherActivity)
-		{
-			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
-				Quantity,
-				otherActivity.Quantity);
-			return Task.FromResult(quantityTimesUnitPriceEquals);
 		}
 	}
 }

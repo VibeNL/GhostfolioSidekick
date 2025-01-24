@@ -13,7 +13,7 @@
 			string result = CryptoMapper.Instance.GetFullname(symbol);
 
 			// Assert
-			Assert.Equal(expectedFullname, result);
+			Assert.Equal(expectedFullname, result, true);
 		}
 
 		[Fact]

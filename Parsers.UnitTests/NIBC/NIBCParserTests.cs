@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 	{
 		private readonly NIBCParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public NIBCParserTests()
 		{
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(DateTime.Today, new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_deposit.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
@@ -65,10 +65,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_withdrawal.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
@@ -85,10 +85,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_interest.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateInterest(
 						Currency.EUR,
@@ -106,10 +106,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_bonus_interest.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/NIBC/CashTransactions/single_bonus_interest.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateInterest(
 						Currency.EUR,
@@ -127,10 +127,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.NIBC
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/NIBC/Invalid/invalid_description.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/NIBC/Invalid/invalid_description.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 	}
 }

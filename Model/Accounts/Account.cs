@@ -1,26 +1,29 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace GhostfolioSidekick.Model.Accounts
+﻿namespace GhostfolioSidekick.Model.Accounts
 {
 	public class Account
 	{
-		public Account(string name, Balance balance)
+		public Account()
+		{
+			// EF Core
+			Name = null!;
+			Balance = null!;
+		}
+
+		public Account(string name)
 		{
 			Name = name;
-			Balance = balance;
 		}
 
 		public string Name { get; set; }
 
-		public Balance Balance { get; set; }
+		public virtual List<Balance> Balance { get; set; } = [];
 
-		public string? Id { get; set; }
+		public int Id { get; set; }
 
 		public string? Comment { get; set; }
 
-		public Platform? Platform { get; set; }
+		public virtual Platform? Platform { get; set; }
 
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return Name;
