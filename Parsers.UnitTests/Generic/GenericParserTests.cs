@@ -384,7 +384,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						25M,
 						new Money(Currency.USD, 25M),
-						"Gift_EUR_2023-08-07_1_USD_"),
+						"GiftFiat_EUR_2023-08-07_1_USD_"),
 				]);
 		}
 
@@ -403,7 +403,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 						new DateTime(2023, 10, 6, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("US2546871060")],
 						0.3247M,
-						"Gift_US2546871060_2023-10-06_0.3247_EUR_"),
+						"GiftAsset_US2546871060_2023-10-06_0.3247_EUR_"),
 				]);
 		}
 
