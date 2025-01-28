@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Activities.Strategies
 				switch (activity)
 				{
 					case SendAndReceiveActivity:
-					case GiftActivity:
+					case GiftAssetActivity:
 					case StakingRewardActivity:
 						SetUnitPrice(holding.SymbolProfiles, activity);
 						break;

@@ -128,7 +128,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			// Get new activities
 			var newActivities = allActivities.Select(activity =>
 			{
-				var symbolProfile = activity.Holding?.SymbolProfiles.SingleOrDefault(x => Datasource.IsGhostfolio(x.DataSource));
+				var symbolProfile = activity
+					.Holding?
+					.SymbolProfiles
+					.Where(x => Datasource.IsGhostfolio(x.DataSource))
+					.OrderBy(x => SortOnDataSource(activity, x)) // Sort on the datasource
+					.FirstOrDefault();
 				Contract.SymbolProfile? ghostfolioSymbolProfile = null;
 
 				if (symbolProfile != null)
@@ -184,6 +189,24 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				{
 					logger.LogError(ex, "Transaction failed to write {Exception}, skipping", ex.Message);
 				}
+			}
+
+			static int SortOnDataSource(Model.Activities.Activity activity, Model.Symbols.SymbolProfile x)
+			{
+				if (activity.Holding == null)
+				{
+					return 0;
+				}
+
+				var isCrypto = x.AssetSubClass == Model.Activities.AssetSubClass.CryptoCurrency && Datasource.GetUnderlyingDataSource(x.DataSource) == Datasource.COINGECKO;
+				var isStock = x.AssetClass == Model.Activities.AssetClass.Equity && Datasource.GetUnderlyingDataSource(x.DataSource) == Datasource.YAHOO;
+
+				if (isCrypto || isStock)
+				{
+					return 1;
+				}
+
+				return int.MaxValue;
 			}
 		}
 

@@ -145,8 +145,10 @@ namespace GhostfolioSidekick.Activities
 					return new ValuableActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.Liability:
 					return new LiabilityActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
-				case PartialActivityType.Gift:
-					return new GiftActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
+				case PartialActivityType.GiftFiat:
+					return new GiftFiatActivity(account, null, date, money.Times(amount), transactionId, sortingPriority, description);
+				case PartialActivityType.GiftAsset:
+					return new GiftAssetActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
 				case PartialActivityType.StakingReward:
 					return new StakingRewardActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
 				case PartialActivityType.BondRepay:

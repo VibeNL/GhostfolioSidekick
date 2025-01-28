@@ -87,16 +87,31 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			foreach (var activity in activities)
 			{
-				if (activity is GiftActivity giftActivity)
+				if (activity is GiftFiatActivity giftFiatActivity)
 				{
 					yield return new InterestActivity(
-						activity.Account,
-						activity.Holding,
-						activity.Date,
-						giftActivity.AdjustedUnitPrice ?? giftActivity.UnitPrice ?? new Money(Currency.EUR, 0),
-						activity.TransactionId,
-						activity.SortingPriority,
-						activity.Description)
+						giftFiatActivity.Account,
+						giftFiatActivity.Holding,
+						giftFiatActivity.Date,
+						giftFiatActivity.Amount,
+						giftFiatActivity.TransactionId,
+						giftFiatActivity.SortingPriority,
+						giftFiatActivity.Description)
+					{
+					};
+				}
+				else if (activity is GiftAssetActivity giftAssetActivity)
+				{
+					yield return new BuySellActivity(
+						giftAssetActivity.Account,
+						giftAssetActivity.Holding,
+						giftAssetActivity.PartialSymbolIdentifiers,
+						giftAssetActivity.Date,
+						giftAssetActivity.AdjustedQuantity != 0 ? giftAssetActivity.AdjustedQuantity : giftAssetActivity.Quantity,
+						giftAssetActivity.AdjustedUnitPrice.Amount != 0 ? giftAssetActivity.AdjustedUnitPrice : giftAssetActivity.UnitPrice,
+						giftAssetActivity.TransactionId,
+						giftAssetActivity.SortingPriority,
+						giftAssetActivity.Description)
 					{
 					};
 				}

@@ -5,18 +5,18 @@ using AutoFixture;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 {
-	public class GiftActivityTests
+	public class GiftAssetActivityTests
 	{
-		private readonly GiftActivity activity;
+		private readonly GiftAssetActivity activity;
 
-		public GiftActivityTests()
+		public GiftAssetActivityTests()
 		{
 			var account = CustomFixture.New().Create<Account>();
 			var dateTime = DateTime.Now;
 			var amount = 1;
 			var transactionId = "transactionId";
 
-			activity = new GiftActivity(account, new Holding(), [], dateTime, amount, transactionId, null, null);
+			activity = new GiftAssetActivity(account, new Holding(), [], dateTime, amount, transactionId, null, null);
 		}
 
 		[Fact]

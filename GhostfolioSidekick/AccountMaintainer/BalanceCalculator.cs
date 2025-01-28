@@ -57,7 +57,10 @@ namespace GhostfolioSidekick.AccountMaintainer
 					case RepayBondActivity repayBondActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(repayBondActivity.Date, repayBondActivity.TotalRepayAmount));
 						break;
-					case GiftActivity giftActivity:
+					case GiftFiatActivity giftFiatActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(giftFiatActivity.Date, giftFiatActivity.Amount));
+						break;
+					case GiftAssetActivity giftActivity:
 					case LiabilityActivity liabilityActivity:
 					case SendAndReceiveActivity sendAndReceiveActivity:
 					case StakingRewardActivity:

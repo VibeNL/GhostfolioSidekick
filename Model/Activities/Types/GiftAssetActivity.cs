@@ -2,13 +2,13 @@
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class GiftActivity : ActivityWithQuantityAndUnitPrice
+	public record class GiftAssetActivity : ActivityWithQuantityAndUnitPrice
 	{
-		public GiftActivity()
+		public GiftAssetActivity()
 		{			
 		}
 
-		public GiftActivity(
+		public GiftAssetActivity(
 			Account account,
 			Holding? holding,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,

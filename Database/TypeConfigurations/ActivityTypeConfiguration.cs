@@ -16,7 +16,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<CashDepositWithdrawalActivity>,
 		IEntityTypeConfiguration<DividendActivity>,
 		IEntityTypeConfiguration<FeeActivity>,
-		IEntityTypeConfiguration<GiftActivity>,
+		IEntityTypeConfiguration<GiftFiatActivity>,
+		IEntityTypeConfiguration<GiftAssetActivity>,
 		IEntityTypeConfiguration<InterestActivity>,
 		IEntityTypeConfiguration<KnownBalanceActivity>,
 		IEntityTypeConfiguration<LiabilityActivity>,
@@ -82,8 +83,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.Amount, nameof(FeeActivity.Amount));
 		}
 
-		public void Configure(EntityTypeBuilder<GiftActivity> builder)
+		public void Configure(EntityTypeBuilder<GiftAssetActivity> builder)
 		{
+		}
+
+		public void Configure(EntityTypeBuilder<GiftFiatActivity> builder)
+		{
+			MapMoney(builder, x => x.Amount, nameof(FeeActivity.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<InterestActivity> builder)

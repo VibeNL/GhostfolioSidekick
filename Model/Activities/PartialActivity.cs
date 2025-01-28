@@ -80,7 +80,7 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Gift, date, currency, totalTransactionAmount, transactionId)
+			return new PartialActivity(PartialActivityType.GiftFiat, date, currency, totalTransactionAmount, transactionId)
 			{
 				Amount = amount,
 				Description = "Gift"
@@ -93,7 +93,7 @@
 			decimal amount,
 			string transactionId)
 		{
-			return new PartialActivity(PartialActivityType.Gift, date, Currency.EUR, new Money(Currency.USD, 0), transactionId)
+			return new PartialActivity(PartialActivityType.GiftAsset, date, Currency.EUR, new Money(Currency.USD, 0), transactionId)
 			{
 				Amount = amount,
 				SymbolIdentifiers = symbolIdentifiers
