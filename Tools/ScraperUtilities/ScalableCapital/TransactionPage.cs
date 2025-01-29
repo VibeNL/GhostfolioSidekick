@@ -9,51 +9,60 @@ namespace ScraperUtilities.ScalableCapital
 {
 	internal partial class TransactionPage(IPage page)
 	{
-		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
-		{
-			// Scroll down the page to load all transactions
-			var isScrolling = true;
-			var lastUpdate = DateTime.Now;
-			while (isScrolling)
-			{
-				var cnt = await GetTransacionsCount();
-				await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
-				Thread.Sleep(1000);
+        internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
+        {
+            // Scroll down the page to load all transactions
+            var isScrolling = true;
+            var lastUpdate = DateTime.Now;
+            while (isScrolling)
+            {
+                var cnt = await GetTransacionsCount();
+                await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
+                Thread.Sleep(1000);
 
-				var newCnt = await GetTransacionsCount();
-				if (newCnt != cnt)
-				{
-					lastUpdate = DateTime.Now;
-				}
+                var newCnt = await GetTransacionsCount();
+                if (newCnt != cnt)
+                {
+                    lastUpdate = DateTime.Now;
+                }
 
-				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
-			}
+                isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
+            }
 
-			var list = new List<ActivityWithSymbol>();
-			foreach (var transaction in await GetTransactions())
-			{
-				// Click
-				await transaction.ScrollIntoViewIfNeededAsync();
-				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
+            var list = new List<ActivityWithSymbol>();
+            int counter = 0;
+            foreach (var transaction in await GetTransactions())
+            {
+                // Every 10 transactions, reload the page to avoid memory leaks
+                if (counter % 10 == 0)
+                {
+                    await page.ReloadAsync();
+                }
 
-				// Wait for the transaction to load
-				// Overview text is visible
-				await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+                // Click
+                await transaction.ScrollIntoViewIfNeededAsync();
+                await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
 
-				var generatedTransaction = await ProcessDetails();
-				var symbol = await AddSymbol(generatedTransaction);
+                // Wait for the transaction to load
+                // Overview text is visible
+                await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
-				if (symbol != null)
-				{
-					list.Add(symbol);
-				}
+                var generatedTransaction = await ProcessDetails();
+                var symbol = await AddSymbol(generatedTransaction);
 
-				// Press Close button
-				await page.GetByRole(AriaRole.Button).ClickAsync();
-			}
+                if (symbol != null)
+                {
+                    list.Add(symbol);
+                }
 
-			return list;
-		}
+                // Press Close button
+                await page.GetByRole(AriaRole.Button).ClickAsync();
+
+                counter++;
+            }
+
+            return list;
+        }
 
 		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
 		{
