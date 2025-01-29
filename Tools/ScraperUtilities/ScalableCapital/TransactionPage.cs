@@ -108,7 +108,9 @@ namespace ScraperUtilities.ScalableCapital
 				return null;
 			}
 
-			var isin = url.Split("isin=")[1];
+			var isin = url.Split(
+				["isin=","&"],
+				StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
 			return new ActivityWithSymbol
 			{
 				Activity = generatedTransaction,
