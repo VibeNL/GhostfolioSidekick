@@ -2,6 +2,8 @@
 {
 	public enum StrategiesPriority
 	{
+		CleanTrace,
+
 		SetInitialValue,
 
 		DeterminePrice,
