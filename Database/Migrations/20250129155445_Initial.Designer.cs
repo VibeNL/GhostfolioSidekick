@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250121145713_OptimizeStorageCurrency")]
-    partial class OptimizeStorageCurrency
+    [Migration("20250129155445_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "9.0.1")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Key", 0);
 
-                    b.Property<long?>("ActivityWithQuantityAndUnitPriceId")
+                    b.Property<long?>("ActivityId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Reason")
@@ -204,7 +204,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("ActivityWithQuantityAndUnitPriceId");
+                    b.HasIndex("ActivityId");
 
                     b.ToTable("CalculatedPriceTrace", (string)null);
                 });
@@ -216,10 +216,10 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Key", 0);
 
-                    b.Property<string>("AllowedAssetClasses")
+                    b.PrimitiveCollection<string>("AllowedAssetClasses")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("AllowedAssetSubClasses")
+                    b.PrimitiveCollection<string>("AllowedAssetSubClasses")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Identifier")
@@ -233,11 +233,11 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.BuySellActivityFee", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("BuySellActivityId")
+                    b.Property<long?>("ActivityId")
                         .HasColumnType("INTEGER");
 
                     b.ComplexProperty<Dictionary<string, object>>("Money", "GhostfolioSidekick.Model.Activities.Types.MoneyLists.BuySellActivityFee.Money#Money", b1 =>
@@ -261,18 +261,18 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BuySellActivityId");
+                    b.HasIndex("ActivityId");
 
                     b.ToTable("BuySellActivityFees", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.BuySellActivityTax", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("BuySellActivityId")
+                    b.Property<long?>("ActivityId")
                         .HasColumnType("INTEGER");
 
                     b.ComplexProperty<Dictionary<string, object>>("Money", "GhostfolioSidekick.Model.Activities.Types.MoneyLists.BuySellActivityTax.Money#Money", b1 =>
@@ -296,18 +296,18 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BuySellActivityId");
+                    b.HasIndex("ActivityId");
 
                     b.ToTable("BuySellActivityTaxes", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.DividendActivityFee", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("DividendActivityId")
+                    b.Property<long?>("ActivityId")
                         .HasColumnType("INTEGER");
 
                     b.ComplexProperty<Dictionary<string, object>>("Money", "GhostfolioSidekick.Model.Activities.Types.MoneyLists.DividendActivityFee.Money#Money", b1 =>
@@ -331,18 +331,18 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DividendActivityId");
+                    b.HasIndex("ActivityId");
 
                     b.ToTable("DividendActivityFees", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.DividendActivityTax", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("DividendActivityId")
+                    b.Property<long?>("ActivityId")
                         .HasColumnType("INTEGER");
 
                     b.ComplexProperty<Dictionary<string, object>>("Money", "GhostfolioSidekick.Model.Activities.Types.MoneyLists.DividendActivityTax.Money#Money", b1 =>
@@ -366,18 +366,18 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DividendActivityId");
+                    b.HasIndex("ActivityId");
 
-                    b.ToTable("DividendActivityTaxex", (string)null);
+                    b.ToTable("DividendActivityTaxes", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.SendAndReceiveActivityFee", b =>
                 {
-                    b.Property<int?>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long?>("SendAndReceiveActivityId")
+                    b.Property<long?>("ActivityId")
                         .HasColumnType("INTEGER");
 
                     b.ComplexProperty<Dictionary<string, object>>("Money", "GhostfolioSidekick.Model.Activities.Types.MoneyLists.SendAndReceiveActivityFee.Money#Money", b1 =>
@@ -401,7 +401,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SendAndReceiveActivityId");
+                    b.HasIndex("ActivityId");
 
                     b.ToTable("SendAndReceiveActivityFees", (string)null);
                 });
@@ -615,7 +615,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
 
-                    b.Property<decimal?>("AdjustedQuantity")
+                    b.Property<decimal>("AdjustedQuantity")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Quantity")
@@ -744,6 +744,34 @@ namespace GhostfolioSidekick.Database.Migrations
                         });
 
                     b.HasDiscriminator().HasValue("FeeActivity");
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.GiftFiatActivity", b =>
+                {
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+
+                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.GiftFiatActivity.Amount#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .ValueGeneratedOnUpdateSometimes()
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Amount");
+
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.GiftFiatActivity.Amount#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .ValueGeneratedOnUpdateSometimes()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyAmount");
+                                });
+                        });
+
+                    b.HasDiscriminator().HasValue("GiftFiatActivity");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.InterestActivity", b =>
@@ -910,11 +938,11 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasDiscriminator().HasValue("BuySellActivity");
                 });
 
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.GiftActivity", b =>
+            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.GiftAssetActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice");
 
-                    b.HasDiscriminator().HasValue("GiftActivity");
+                    b.HasDiscriminator().HasValue("GiftAssetActivity");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.SendAndReceiveActivity", b =>
@@ -935,27 +963,33 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", null)
                         .WithMany()
-                        .HasForeignKey("ActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.DividendActivity", null)
                         .WithMany()
-                        .HasForeignKey("ActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.LiabilityActivity", null)
                         .WithMany()
-                        .HasForeignKey("ActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.RepayBondActivity", null)
                         .WithMany()
-                        .HasForeignKey("ActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.ValuableActivity", null)
                         .WithMany()
-                        .HasForeignKey("ActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("GhostfolioSidekick.Model.Activities.PartialSymbolIdentifier", null)
                         .WithMany()
-                        .HasForeignKey("PartialSymbolIdentifierId");
+                        .HasForeignKey("PartialSymbolIdentifierId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
@@ -995,42 +1029,48 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasOne("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", null)
                         .WithMany("AdjustedUnitPriceSource")
-                        .HasForeignKey("ActivityWithQuantityAndUnitPriceId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.BuySellActivityFee", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.BuySellActivity", null)
                         .WithMany("Fees")
-                        .HasForeignKey("BuySellActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.BuySellActivityTax", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.BuySellActivity", null)
                         .WithMany("Taxes")
-                        .HasForeignKey("BuySellActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.DividendActivityFee", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.DividendActivity", null)
                         .WithMany("Fees")
-                        .HasForeignKey("DividendActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.DividendActivityTax", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.DividendActivity", null)
                         .WithMany("Taxes")
-                        .HasForeignKey("DividendActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.MoneyLists.SendAndReceiveActivityFee", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Activities.Types.SendAndReceiveActivity", null)
                         .WithMany("Fees")
-                        .HasForeignKey("SendAndReceiveActivityId");
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>
