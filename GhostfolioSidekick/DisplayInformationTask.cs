@@ -38,26 +38,12 @@ namespace GhostfolioSidekick
 			sb.AppendLine($"TrottleTimeout : {applicationSettings.TrottleTimeout}");
 
 			Settings settings = applicationSettings.ConfigurationInstance.Settings;
-			sb.AppendLine($"DustThreshold : {settings.DustThreshold.ToString(CultureInfo.InvariantCulture)}");
-			sb.AppendLine($"CryptoWorkaroundDustThreshold : {settings.CryptoWorkaroundDustThreshold.ToString(CultureInfo.InvariantCulture)}");
-			sb.AppendLine($"CryptoWorkaroundStakeReward : {settings.CryptoWorkaroundStakeReward}");
 			sb.AppendLine($"DataProviderPreference : {settings.DataProviderPreference}");
 			sb.AppendLine($"DeleteUnusedSymbols : {settings.DeleteUnusedSymbols}");
-			sb.AppendLine($"SubstractTaxesOnDividendFromDividend : {settings.SubstractTaxesOnDividendFromDividend}");
 
 			PrintUsedMappings(sb);
 
 			logger.LogInformation(sb.ToString());
-
-			if (settings.CryptoWorkaroundStakeRewardObsolete)
-			{
-				logger.LogWarning("Setting 'use.crypto.workaround.stakereward.as.dividends' is obsolete and is no longer in use");
-			}
-
-			if (settings.CryptoWorkaroundDustObsolete)
-			{
-				logger.LogWarning("Setting 'use.crypto.workaround.dust' is obsolete and is no longer in use");
-			}
 		}
 
 		private void PrintUsedMappings(StringBuilder sb)
