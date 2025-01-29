@@ -78,15 +78,11 @@ namespace ScraperUtilities.ScalableCapital
 		private static async Task SetExecutedOnly(IPage page)
 		{
 			// Select Executed Status only
-			try
-			{
-				await page.GetByRole(AriaRole.Button).GetByText("Status").ClickAsync();
-				await page.GetByTestId("EXECUTED").Locator("div").First.ClickAsync();
-				await page.Mouse.ClickAsync(2,2);
-			}
-			catch (Exception)
-			{
-			}
+			await page.GetByRole(AriaRole.Button).GetByText("Status").ClickAsync();
+			await page.GetByTestId("EXECUTED").Locator("div").First.ClickAsync();
+
+			Thread.Sleep(1000);
+			await page.Mouse.ClickAsync(2, 2);
 		}
 
 		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
@@ -223,7 +219,7 @@ namespace ScraperUtilities.ScalableCapital
 			// If is Distribution
 			if (await page.GetByTestId("icon-DIVIDEND").IsVisibleAsync())
 			{
-				return new CashDepositWithdrawalActivity
+				return new DividendActivity
 				{
 					Amount = await GetMoneyField("Amount"),
 					Date = await GetHistoryDate("Dividend settled"),
