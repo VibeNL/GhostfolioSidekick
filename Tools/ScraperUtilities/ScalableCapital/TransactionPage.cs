@@ -9,60 +9,85 @@ namespace ScraperUtilities.ScalableCapital
 {
 	internal partial class TransactionPage(IPage page)
 	{
-        internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
-        {
-            // Scroll down the page to load all transactions
-            var isScrolling = true;
-            var lastUpdate = DateTime.Now;
-            while (isScrolling)
-            {
-                var cnt = await GetTransacionsCount();
-                await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
-                Thread.Sleep(1000);
+		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
+		{
+			await SetExecutedOnly(page);
 
-                var newCnt = await GetTransacionsCount();
-                if (newCnt != cnt)
-                {
-                    lastUpdate = DateTime.Now;
-                }
+			// Scroll down the page to load all transactions
+			var isScrolling = true;
+			var lastUpdate = DateTime.Now;
+			while (isScrolling)
+			{
+				var cnt = await GetTransacionsCount();
+				await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
+				Thread.Sleep(1000);
 
-                isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
-            }
+				var newCnt = await GetTransacionsCount();
+				if (newCnt != cnt)
+				{
+					lastUpdate = DateTime.Now;
+				}
 
-            var list = new List<ActivityWithSymbol>();
-            int counter = 0;
-            foreach (var transaction in await GetTransactions())
-            {
-                // Every 10 transactions, reload the page to avoid memory leaks
-                if (counter % 10 == 0)
-                {
-                    await page.ReloadAsync();
-                }
+				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
+			}
 
-                // Click
-                await transaction.ScrollIntoViewIfNeededAsync();
-                await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
+			var list = new List<ActivityWithSymbol>();
+			int counter = 0;
+			foreach (var transaction in await GetTransactions())
+			{
+				// Every XX transactions, reload the page to avoid memory leaks
+				if (counter % 25 == 0)
+				{
+					await page.ReloadAsync();
+					await SetExecutedOnly(page);
 
-                // Wait for the transaction to load
-                // Overview text is visible
-                await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+					// if transaction is not visible, scroll down
+					// We need to do this manually due to lazy loading
+					while (!await transaction.IsVisibleAsync())
+					{
+						await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
+						Thread.Sleep(1000);
+					}
+				}
 
-                var generatedTransaction = await ProcessDetails();
-                var symbol = await AddSymbol(generatedTransaction);
+				// Click
+				await transaction.ScrollIntoViewIfNeededAsync();
+				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
 
-                if (symbol != null)
-                {
-                    list.Add(symbol);
-                }
+				// Wait for the transaction to load
+				// Overview text is visible
+				await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
-                // Press Close button
-                await page.GetByRole(AriaRole.Button).ClickAsync();
+				var generatedTransaction = await ProcessDetails();
+				var symbol = await AddSymbol(generatedTransaction);
 
-                counter++;
-            }
+				if (symbol != null)
+				{
+					list.Add(symbol);
+				}
 
-            return list;
-        }
+				// Press Close button
+				await page.GetByRole(AriaRole.Button).ClickAsync();
+
+				counter++;
+			}
+
+			return list;
+		}
+
+		private static async Task SetExecutedOnly(IPage page)
+		{
+			// Select Executed Status only
+			try
+			{
+				await page.GetByRole(AriaRole.Button).GetByText("Status").ClickAsync();
+				await page.GetByTestId("EXECUTED").Locator("div").First.ClickAsync();
+				await page.Mouse.ClickAsync(2,2);
+			}
+			catch (Exception)
+			{
+			}
+		}
 
 		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
 		{
