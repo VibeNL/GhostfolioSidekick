@@ -29,7 +29,7 @@ namespace ScraperUtilities.ScalableCapital
 				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
 			}
 
-			var list = new List<ActivityWithSymbol?>();
+			var list = new List<ActivityWithSymbol>();
 			foreach (var transaction in await GetTransactions())
 			{
 				// Click
@@ -42,13 +42,17 @@ namespace ScraperUtilities.ScalableCapital
 
 				var generatedTransaction = await ProcessDetails();
 				var symbol = await AddSymbol(generatedTransaction);
-				list.Add(symbol);
+
+				if (symbol != null)
+				{
+					list.Add(symbol);
+				}
 
 				// Press Close button
 				await page.GetByRole(AriaRole.Button).ClickAsync();
 			}
 
-			return list.Where(x => x is not null);
+			return list;
 		}
 
 		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
@@ -123,7 +127,7 @@ namespace ScraperUtilities.ScalableCapital
 
 			// If is Buy or Sell
 			var isSaving = await page.GetByTestId("icon-SAVINGS_PLAN").IsVisibleAsync();
-			if (isSaving || 
+			if (isSaving ||
 				await page.GetByTestId("icon-BUY").IsVisibleAsync() ||
 				await page.GetByTestId("icon-SELL").IsVisibleAsync())
 			{
@@ -236,41 +240,25 @@ namespace ScraperUtilities.ScalableCapital
 			return new Money(Currency.EUR, await GetField<decimal>(description));
 		}
 
-		private async Task<Money?> GetMoneyFieldOptional(string description)
-		{
-			try
-			{
-				return new Money(Currency.EUR, await GetField<decimal>(description));
-			}
-			catch (FieldNotFoundException)
-			{
-				return null;
-			}
-		}
-
 		private async Task<T> GetField<T>(string description)
 		{
-			var containers = await page.GetByTestId("container").AllAsync();
+			var container = page
+					.GetByTestId("container")
+					.Locator("div")
+					.GetByText(description)
+					.Locator("..")
+					.First;
 
-			foreach (var container in containers)
+			var divs = await container.Locator("div").AllAsync();
+
+			var text = await divs[1].InnerTextAsync();
+			if (typeof(T) == typeof(decimal))
 			{
-				var divs = await container.Locator("div").AllAsync();
-
-				// if the first div contains the text
-				if (await divs[0].InnerTextAsync() == description)
-				{
-					var text = await divs[1].InnerTextAsync();
-					if (typeof(T) == typeof(decimal))
-					{
-						text = text.Replace("€", "").Trim();
-						return (T)Convert.ChangeType(decimal.Parse(text, NumberStyles.Currency, CultureInfo.InvariantCulture), typeof(T));
-					}
-
-					return (T)Convert.ChangeType(text, typeof(T));
-				}
+				text = text.Replace("€", "").Trim();
+				return (T)Convert.ChangeType(decimal.Parse(text, NumberStyles.Currency, CultureInfo.InvariantCulture), typeof(T));
 			}
 
-			throw new FieldNotFoundException($"Field '{description}' not found");
+			return (T)Convert.ChangeType(text, typeof(T));
 		}
 	}
 }
