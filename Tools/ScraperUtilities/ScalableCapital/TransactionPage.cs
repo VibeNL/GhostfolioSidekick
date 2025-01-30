@@ -12,7 +12,59 @@ namespace ScraperUtilities.ScalableCapital
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
 			await SetExecutedOnly(page);
+			await ScrollDown(page);
 
+			var list = new List<ActivityWithSymbol>();
+			int counter = 0;
+			foreach (var transaction in await GetTransactions())
+			{
+				await NavigateToTransaction(page, counter, transaction);
+
+				// Click on the transaction to open the details
+				await transaction.ScrollIntoViewIfNeededAsync();
+				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
+
+				// Wait for the transaction to load
+				await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+
+				// Process transaction details
+				var generatedTransaction = await ProcessDetails();
+				var symbol = await AddSymbol(generatedTransaction);
+
+				if (symbol != null)
+				{
+					list.Add(symbol);
+				}
+
+				// Press Close button to close the details
+				await page.GetByRole(AriaRole.Button).ClickAsync();
+
+				counter++;
+			}
+
+			return list;
+		}
+
+		private static async Task NavigateToTransaction(IPage page, int counter, ILocator transaction)
+		{
+			// Every XX transactions, reload the page to avoid memory leaks
+			if (counter % 25 == 0)
+			{
+				await page.ReloadAsync();
+				await SetExecutedOnly(page);
+
+				// if transaction is not visible, scroll down
+				// We need to do this manually due to lazy loading
+				while (!await transaction.IsVisibleAsync())
+				{
+					await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
+					Thread.Sleep(1000);
+				}
+			}
+		}
+
+		private async Task ScrollDown(IPage page)
+		{
 			// Scroll down the page to load all transactions
 			var isScrolling = true;
 			var lastUpdate = DateTime.Now;
@@ -30,49 +82,6 @@ namespace ScraperUtilities.ScalableCapital
 
 				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
 			}
-
-			var list = new List<ActivityWithSymbol>();
-			int counter = 0;
-			foreach (var transaction in await GetTransactions())
-			{
-				// Every XX transactions, reload the page to avoid memory leaks
-				if (counter % 25 == 0)
-				{
-					await page.ReloadAsync();
-					await SetExecutedOnly(page);
-
-					// if transaction is not visible, scroll down
-					// We need to do this manually due to lazy loading
-					while (!await transaction.IsVisibleAsync())
-					{
-						await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
-						Thread.Sleep(1000);
-					}
-				}
-
-				// Click
-				await transaction.ScrollIntoViewIfNeededAsync();
-				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
-
-				// Wait for the transaction to load
-				// Overview text is visible
-				await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
-
-				var generatedTransaction = await ProcessDetails();
-				var symbol = await AddSymbol(generatedTransaction);
-
-				if (symbol != null)
-				{
-					list.Add(symbol);
-				}
-
-				// Press Close button
-				await page.GetByRole(AriaRole.Button).ClickAsync();
-
-				counter++;
-			}
-
-			return list;
 		}
 
 		private static async Task SetExecutedOnly(IPage page)
