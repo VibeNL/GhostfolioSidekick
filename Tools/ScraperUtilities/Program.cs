@@ -70,7 +70,7 @@ namespace ScraperUtilities
 					Symbol = activity.Symbol,
 					Date = sellActivity.Date,
 					Currency = sellActivity.UnitPrice.Currency.Symbol,
-					Quantity = sellActivity.Quantity,
+					Quantity = sellActivity.Quantity * -1,
 					UnitPrice = sellActivity.UnitPrice.Amount,
 					Fee = Sum(sellActivity.Fees.Select(x => x.Money)),
 					Tax = Sum(sellActivity.Taxes.Select(x => x.Money)),

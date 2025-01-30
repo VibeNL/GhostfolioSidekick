@@ -151,7 +151,7 @@ namespace ScraperUtilities.ScalableCapital
 
 				return new CashDepositWithdrawalActivity
 				{
-					Amount = await GetMoneyField("Amount"),
+					Amount = (await GetMoneyField("Amount")).Times(-1),
 					Date = dateWithdrawal,
 					TransactionId = await GetField<string>("Transaction reference"),
 				};
@@ -159,12 +159,12 @@ namespace ScraperUtilities.ScalableCapital
 
 			// If is Buy or Sell
 			var isSaving = await page.GetByTestId("icon-SAVINGS_PLAN").IsVisibleAsync();
+			bool isBuy = await page.GetByTestId("icon-BUY").IsVisibleAsync();
+			bool isSell = await page.GetByTestId("icon-SELL").IsVisibleAsync();
 			if (isSaving ||
-				await page.GetByTestId("icon-BUY").IsVisibleAsync() ||
-				await page.GetByTestId("icon-SELL").IsVisibleAsync())
+				isBuy ||
+				isSell)
 			{
-				var isSell = await page.GetByTestId("icon-SELL").IsVisibleAsync();
-
 				DateTime date = DateTime.MinValue;
 				var dateConfirmedTask = GetHistoryDate("Execution confirmed");
 				var dateRejectedTask = GetHistoryDate("Order rejected");
