@@ -85,7 +85,7 @@ namespace ScraperUtilities
 					Symbol = activity.Symbol,
 					Date = dividendActivity.Date,
 					Currency = dividendActivity.Amount.Currency.Symbol,
-					Quantity = 0,
+					Quantity = 1,
 					UnitPrice = dividendActivity.Amount.Amount,
 					Fee = Sum(dividendActivity.Fees.Select(x => x.Money)),
 					Tax = Sum(dividendActivity.Taxes.Select(x => x.Money)),
