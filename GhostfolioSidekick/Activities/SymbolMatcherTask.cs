@@ -35,6 +35,13 @@ namespace GhostfolioSidekick.Activities
 				await HandleActivity(databaseContext, currentHoldings, activityTuple).ConfigureAwait(false);
 			}
 
+			AssertNoMultipleSymbols(logger, currentHoldings);
+
+			await databaseContext.SaveChangesAsync();
+		}
+
+		private static void AssertNoMultipleSymbols(ILogger<SymbolMatcherTask> logger, List<Holding> currentHoldings)
+		{
 			var allsymbols = currentHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
 
 			foreach (var item in allsymbols)
@@ -51,10 +58,9 @@ namespace GhostfolioSidekick.Activities
 			{
 				throw new NotSupportedException("Multiple symbols found");
 			}
-
-			await databaseContext.SaveChangesAsync();
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S2696:Instance members should not write to \"static\" fields", Justification = "<Pending>")]
 		private async Task HandleActivity(DatabaseContext databaseContext, List<Holding> currentHoldings, CustomObject activityTuple)
 		{
 			var activity = activityTuple.Activity;
@@ -111,7 +117,7 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			foreach (var symbol in symbols)
-			{ 
+			{
 				// Merge identifiers
 				holding.MergeIdentifiers(GetIdentifiers(symbol));
 
