@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 	{
 		private readonly NexoParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public NexoParserTests()
 		{
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(DateTime.Today, new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_deposit.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
@@ -65,10 +65,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_withdrawal.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
@@ -85,10 +85,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/BuyOrders/single_buy.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/BuyOrders/single_buy.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
@@ -107,10 +107,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/SellOrders/single_sell.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/SellOrders/single_sell.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSell(
 						Currency.EUR,
@@ -129,10 +129,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/BuyOrders/single_convert.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/BuyOrders/single_convert.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 					PartialActivity.CreateAssetConvert(
 						new DateTime(2023, 10, 08, 19, 54, 20, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
@@ -151,10 +151,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_cashback_crypto.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_cashback_crypto.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2023, 10, 12, 10, 44, 32, DateTimeKind.Utc),
@@ -170,10 +170,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_cashback_fiat.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_cashback_fiat.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
 						Currency.EUR,
@@ -190,10 +190,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_referralbonus_pending.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_referralbonus_pending.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -202,10 +202,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_referralbonus_approved.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_referralbonus_approved.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2023, 08, 25, 16, 43, 55, DateTimeKind.Utc),
@@ -221,10 +221,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Receive/single_receive.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/Receive/single_receive.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateReceive(
 						new DateTime(2023, 12, 7, 19, 37, 32, DateTimeKind.Utc),
@@ -240,7 +240,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			Func<Task> a = () => parser.ParseActivities("./TestFiles/Nexo/Invalid/fiat_to_fiat.csv", holdingsAndAccountsCollection, account.Name);
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/Nexo/Invalid/fiat_to_fiat.csv", activityManager, account.Name);
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();
@@ -252,10 +252,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_interest.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateInterest(
 						Currency.EUR,
@@ -273,10 +273,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_interest_fixed_term.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/CashTransactions/single_interest_fixed_term.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateInterest(
 						Currency.EUR,
@@ -294,10 +294,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_interest_crypto.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_interest_crypto.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2024, 01, 10, 06, 00, 00, DateTimeKind.Utc),
@@ -313,10 +313,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_lock_fix_term.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_lock_fix_term.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -325,10 +325,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_unlock_fix_term.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_unlock_fix_term.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -337,7 +337,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Arrange
 
 			// Act
-			Func<Task> a = () => parser.ParseActivities("./TestFiles/Nexo/Invalid/invalid_action.csv", holdingsAndAccountsCollection, account.Name);
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/Nexo/Invalid/invalid_action.csv", activityManager, account.Name);
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();

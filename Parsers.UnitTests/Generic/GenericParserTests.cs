@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 	{
 		private readonly GenericParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public GenericParserTests()
 		{
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(DateTime.Today, new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_buy.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_buy.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.USD,
@@ -73,10 +73,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/SellOrders/single_sell.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/SellOrders/single_sell.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSell(
 						Currency.USD,
@@ -101,10 +101,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/Receive/single_receive.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/Receive/single_receive.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateReceive(
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
@@ -126,10 +126,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/Send/single_send.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/Send/single_send.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSend(
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
@@ -151,10 +151,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_valuable.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_valuable.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateValuable(
 						Currency.EUR,
@@ -172,10 +172,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_liability.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/BuyOrders/single_liability.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateLiability(
 						Currency.EUR,
@@ -193,10 +193,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_deposit.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
 						Currency.USD,
@@ -213,10 +213,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_withdrawal.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
 						Currency.USD,
@@ -233,10 +233,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_interest.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_interest.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateInterest(
 						Currency.USD,
@@ -254,10 +254,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_fee.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_fee.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
 						Currency.USD,
@@ -274,10 +274,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/double_fee.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/double_fee.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
 						Currency.USD,
@@ -300,10 +300,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_tax.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_tax.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateTax(
 						Currency.USD,
@@ -320,10 +320,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/double_tax.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/double_tax.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateTax(
 						Currency.USD,
@@ -346,11 +346,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_dividend.csv", activityManager, account.Name);
 
 			// Assert
 			const decimal Amount = (decimal)(0.3247 * 0.27);
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo<PartialActivity>(
+			activityManager.PartialActivities.Should().BeEquivalentTo<PartialActivity>(
 				[
 					PartialActivity.CreateDividend(
 						Currency.EUR,
@@ -374,17 +374,17 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/Specials/single_gift_fiat.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/Specials/single_gift_fiat.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						25M,
 						new Money(Currency.USD, 25M),
-						"Gift_EUR_2023-08-07_1_USD_"),
+						"GiftFiat_EUR_2023-08-07_1_USD_"),
 				]);
 		}
 
@@ -394,16 +394,16 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Generic/Specials/single_gift_stock.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Generic/Specials/single_gift_stock.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2023, 10, 6, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("US2546871060")],
 						0.3247M,
-						"Gift_US2546871060_2023-10-06_0.3247_EUR_"),
+						"GiftAsset_US2546871060_2023-10-06_0.3247_EUR_"),
 				]);
 		}
 
@@ -413,7 +413,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 			// Arrange
 
 			// Act
-			Func<Task> a = () => parser.ParseActivities("./TestFiles/Generic/Invalid/invalid.csv", holdingsAndAccountsCollection, account.Name);
+			Func<Task> a = () => parser.ParseActivities("./TestFiles/Generic/Invalid/invalid.csv", activityManager, account.Name);
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();

@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			
 			var price = Math.Abs(decimal.Parse(words[i + skip].Text, CULTURE));
 			var currencySymbol = words[i + skip + 1].Text;
-			var currency = new Currency(currencySymbol);
+			var currency = Currency.GetCurrency(currencySymbol);
 
 			activities.Add(PartialActivity.CreateFee(
 					currency,
@@ -217,12 +217,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				string id = GetId(dateTime, isin);
 
 				activities.Add(PartialActivity.CreateBuy(
-					new Currency(words[i + 4].Text),
+					Currency.GetCurrency(words[i + 4].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					decimal.Parse(words[i + 1].Text, CULTURE),
 					decimal.Parse(words[i + 3].Text, CULTURE),
-					new Money(new Currency(words[i + 4].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
+					new Money(Currency.GetCurrency(words[i + 4].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
 					id));
 
 				return i + 6;
@@ -234,12 +234,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				string id = GetId(dateTime, isin);
 
 				activities.Add(PartialActivity.CreateBuy(
-					new Currency(words[i + 6].Text),
+					Currency.GetCurrency(words[i + 6].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					decimal.Parse(words[i + 1].Text, CULTURE),
 					decimal.Parse(words[i + 3].Text, CULTURE) / 100,
-					new Money(new Currency(words[i + 6].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
+					new Money(Currency.GetCurrency(words[i + 6].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
 					id));
 
 				return i + 6;
@@ -251,11 +251,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				string id = GetId(dateTime, isin);
 
 				activities.Add(PartialActivity.CreateDividend(
-					new Currency(words[i + 6].Text),
+					Currency.GetCurrency(words[i + 6].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					decimal.Parse(words[i + 5].Text, CULTURE),
-					new Money(new Currency(words[i + 6].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
+					new Money(Currency.GetCurrency(words[i + 6].Text), decimal.Parse(words[i + 5].Text, CULTURE)),
 					id));
 
 				return i + 6;
@@ -268,11 +268,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				string id = GetId(dateTime, isin);
 
 				activities.Add(PartialActivity.CreateBondRepay(
-					new Currency(words[i + 2].Text),
+					Currency.GetCurrency(words[i + 2].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					decimal.Parse(words[i + 1].Text, CULTURE),
-					new Money(new Currency(words[i + 2].Text), decimal.Parse(words[i + 1].Text, CULTURE)),
+					new Money(Currency.GetCurrency(words[i + 2].Text), decimal.Parse(words[i + 1].Text, CULTURE)),
 					id));
 
 				return i + 2;

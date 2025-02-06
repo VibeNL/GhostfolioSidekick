@@ -17,6 +17,14 @@ Additionally, for self-hosted instances, it can maintain symbols automatically.
 
 ( more to come? Help is always welcome! )
 
+# Note on v2
+Version 2 is a complete rewrite and restructuring of the code. The goal is to make it more maintainable and easier to add new features.
+A database is used to store the transactions and symbols. This allows for better tracking of changes and easier maintenance of the data.
+
+Several crypto workaround still need to be ported to the new version. This will be done in the upcoming changes.
+
+In case of serious issues, please install the latest v1 release via the frozen PR build. This will not be maintained, but can be used as a fallback.
+
 ## Setup
 
 ### Ghostfolio
@@ -42,7 +50,7 @@ For example:
 
 ### Configuration File
 A single json file csv file that contains mapping to convert currencies and symbols to a symbol that can be found via ghostfolio.
-Also allows the following sybol settings
+Also allows the following symbol settings
   - Setting Trackinsight on symbols
   - Adding / Updating Manual symbols 
 
@@ -50,12 +58,7 @@ Also allows the following sybol settings
 {
     "settings" : {
 	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
-		"use.dust.currency" : "EUR", // default is "USD",
-		"use.dust.threshold" : 0.0001 // default is 0.0001,
-		"use.crypto.workaround.dust.threshold": 0.01 // default is 0.001,
-		"use.crypto.workaround.stakereward.add.to.last.buy" : true // default is false,
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
-		"use.dividend.workaround.tax.substract.from.amount": true // default is false. If set to true, the tax is substracted from the dividend amount. If set to false, the tax is added as a fee.
 	},
 	"platforms":[
 		{ "name": "De Giro", "url":"https://www.degiro.nl/" }

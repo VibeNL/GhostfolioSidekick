@@ -30,6 +30,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 			{
 				case "Deposit":
 				case "Spending cashback":
+				case "Card credit":
 					lst.Add(PartialActivity.CreateCashDeposit(
 						currency,
 						record.Time,
@@ -84,6 +85,16 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time, [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.NumberOfShares!.Value,
 						record.Price!.Value,
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
+					break;
+				case "Stock distribution":
+					lst.Add(PartialActivity.CreateBuy(
+						currency,
+						record.Time,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.NumberOfShares!.Value,
+						0,
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;

@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 	{
 		private readonly DeGiroParserEN parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public DeGiroParserENTests()
 		{
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(DateTime.Today, new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_buy_usd.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_buy_usd.csv", activityManager, account.Name);
 
 			// Assert
-			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+			var partialActivities = activityManager.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
 			IEnumerable<PartialActivity> expectation = [
 						PartialActivity.CreateBuy(
@@ -81,10 +81,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_buy_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/BuyOrders/single_buy_marketfund.csv", activityManager, account.Name);
 
 			// Assert
-			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+			var partialActivities = activityManager.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
 			IEnumerable<PartialActivity> expectation = [
 						PartialActivity.CreateBuy(
@@ -105,10 +105,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/EN/SellOrders/single_sell_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/SellOrders/single_sell_marketfund.csv", activityManager, account.Name);
 
 			// Assert
-			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+			var partialActivities = activityManager.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
 			IEnumerable<PartialActivity> expectation = [
 						PartialActivity.CreateSell(
@@ -129,12 +129,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/EN/CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/CashTransactions/single_dividend.csv", activityManager, account.Name);
 
 			// Assert
-			var transactionId = holdingsAndAccountsCollection.PartialActivities.Single(x => x.ActivityType == PartialActivityType.Dividend).TransactionId;
+			var transactionId = activityManager.PartialActivities.Single(x => x.ActivityType == PartialActivityType.Dividend).TransactionId;
 			transactionId.Should().NotBeNullOrWhiteSpace();
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateKnownBalance(
 						Currency.USD,
@@ -168,10 +168,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/DeGiro/EN/CashTransactions/single_dividend_marketfund.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/DeGiro/EN/CashTransactions/single_dividend_marketfund.csv", activityManager, account.Name);
 
 			// Assert
-			var partialActivities = holdingsAndAccountsCollection.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
+			var partialActivities = activityManager.PartialActivities.Where(x => x.ActivityType != PartialActivityType.KnownBalance).ToList();
 
 			IEnumerable<PartialActivity> expectation = [
 						PartialActivity.CreateDividend(

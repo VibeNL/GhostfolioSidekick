@@ -5,47 +5,95 @@ namespace GhostfolioSidekick.Model
 	[SuppressMessage("Critical Code Smell", "S2223:Non-constant static fields should not be visible", Justification = "<Pending>")]
 	[SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible", Justification = "<Pending>")]
 	[SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
-	public class Currency
+	public record Currency
 	{
-		public static Currency EUR = new("EUR");
-		public static Currency USD = new("USD");
-		public static Currency GBP = new("GBP");
-		public static Currency GBp = new("GBp");
+		public static readonly Currency EUR = new("EUR");
+		public static readonly Currency USD = new("USD");
+		public static readonly Currency GBP = new("GBP");
+		public static readonly Currency GBp = new("GBp");
+		public static readonly Currency GBX = new("GBX");
 
-		private static readonly List<Currency> knownCurrencies = [USD, EUR, GBP, GBp];
+		private static readonly List<Currency> knownCurrencies = [EUR, USD, GBP, GBp, GBX];
+		private static readonly List<Currency> allCurrencies = [.. knownCurrencies];
 
-		public Currency(string symbol)
+		private static readonly List<Tuple<Currency, Currency, decimal>> knownExchangeRates = new()
 		{
-			if (symbol == "GBX")
+			Tuple.Create(GBp, GBP, 0.01m),
+			Tuple.Create(GBX, GBP, 0.01m),
+		};
+
+		public Currency() // EF Core
+		{
+			Symbol = default!;
+		}
+
+		public static Currency GetCurrency(string symbol)
+		{
+			foreach (var currency in allCurrencies)
 			{
-				symbol = GBp.Symbol;
+				if (currency.Symbol == symbol)
+				{
+					return currency;
+				}
 			}
 
+			Currency newCurrency = new(symbol);
+			allCurrencies.Add(newCurrency);
+			return newCurrency;
+		}
+
+		private Currency(string symbol)
+		{
 			Symbol = symbol;
 		}
 
-		public string Symbol { get; set; }
+		public string Symbol { get; init; }
 
 		public bool IsFiat()
 		{
 			return knownCurrencies.Exists(x => x.Symbol == Symbol);
 		}
 
-		[ExcludeFromCodeCoverage]
-		public override bool Equals(object? obj)
-		{
-			return obj is Currency currency &&
-				   Symbol == currency.Symbol;
-		}
-
-		override public int GetHashCode()
-		{
-			return HashCode.Combine(Symbol);
-		}
-
 		public override string ToString()
 		{
 			return Symbol;
+		}
+
+		public decimal GetKnownExchangeRate(Currency targetCurrency)
+		{
+			if (this == targetCurrency)
+			{
+				return 1;
+			}
+
+			foreach (var pair in knownExchangeRates)
+			{
+				if (pair.Item1 == this && pair.Item2 == targetCurrency)
+				{
+					return pair.Item3;
+				}
+
+				if (pair.Item1 == targetCurrency && pair.Item2 == this)
+				{
+					return 1 / pair.Item3;
+				}
+			}
+
+			return 0;
+
+		}
+
+		public (Currency, decimal) GetSourceCurrency()
+		{
+			foreach (var pair in knownExchangeRates)
+			{
+				if (pair.Item1 == this)
+				{
+					return (pair.Item2, pair.Item3);
+				}
+			}
+
+			return (this, 1);
 		}
 	}
 }

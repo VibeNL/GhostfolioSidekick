@@ -1,59 +1,41 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Compare;
-using System.Diagnostics.CodeAnalysis;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class DividendActivity : BaseActivity<DividendActivity>
+	public record class DividendActivity : Activity, IActivityWithPartialIdentifier
 	{
-		public DividendActivity(
-			Account account,
-			DateTime dateTime,
-			Money amount,
-			string? transactionId)
+		public DividendActivity()
 		{
-			Account = account;
-			Date = dateTime;
-			Amount = amount;
-			TransactionId = transactionId;
+			// EF Core
+			Amount = null!;
 		}
 
-		public override Account Account { get; }
+		public DividendActivity(
+			Account account,
+			Holding? holding,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
+			DateTime dateTime,
+			Money amount,
+			string transactionId,
+			int? sortingPriority,
+			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
+		{
+			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
+			Amount = amount;
+		}
 
-		public override DateTime Date { get; }
+		public virtual ICollection<DividendActivityFee> Fees { get; set; } = [];
 
-		public IEnumerable<Money> Fees { get; set; } = [];
+		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money Amount { get; set; }
 
-		public IEnumerable<Money> Taxes { get; set; } = [];
+		public virtual ICollection<DividendActivityTax> Taxes { get; set; } = [];
 
-		public override string? TransactionId { get; set; }
-
-		public override int? SortingPriority { get; set; }
-
-		public override string? Id { get; set; }
-
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"{Account}_{Date}";
-		}
-
-		override protected async Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, DividendActivity otherActivity)
-		{
-			var existingAmount = await CompareUtilities.Convert(exchangeRateService, otherActivity.Amount, Amount.Currency, Date);
-			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
-				Amount,
-				existingAmount);
-			var feesAndTaxesEquals = CompareUtilities.AreMoneyEquals(
-				exchangeRateService,
-				otherActivity.Amount.Currency,
-				otherActivity.Date,
-				Fees.Union(Taxes).ToList(),
-				otherActivity.Fees.Union(otherActivity.Taxes).ToList());
-			return quantityTimesUnitPriceEquals &&
-				feesAndTaxesEquals;
 		}
 	}
 }
