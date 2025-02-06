@@ -70,7 +70,9 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			// Match on existing holdings with ids
-			var holding = currentHoldings.SingleOrDefault(x => ids.Any(y => x.IdentifierContainsInList(y)));
+			var matchingHoldings = currentHoldings.Where(x => ids.Any(y => x.IdentifierContainsInList(y))).ToList();
+			var holding = matchingHoldings.SingleOrDefault();
+			
 			if (holding != null)
 			{
 				activity.Holding = holding;
