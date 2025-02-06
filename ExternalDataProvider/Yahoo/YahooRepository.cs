@@ -30,10 +30,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return GetStockMarketData($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", currencyFrom, fromDate);
 		}
 
-		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] identifiers)
+		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
 			var matches = new List<SearchResult>();
-			foreach (var id in identifiers)
+			foreach (var id in symbolIdentifiers)
 			{
 				var identifier = id.Identifier;
 
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				var searchResults = await RetryPolicyHelper.GetFallbackPolicy<SearchResult[]>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(identifier));
 				if (searchResults != null)
 				{
-					matches.AddRange((IEnumerable<SearchResult>)searchResults.Where(x => FilterOnAllowedType(x, id)));
+					matches.AddRange(searchResults.Where(x => FilterOnAllowedType(x, id)));
 				}
 			}
 

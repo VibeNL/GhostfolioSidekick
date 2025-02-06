@@ -23,9 +23,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 		public DateOnly MinDate => DateOnly.FromDateTime(DateTime.Today.AddDays(-365));
 
-		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] identifiers)
+		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
-			foreach (var id in identifiers)
+			foreach (var id in symbolIdentifiers)
 			{
 				if (id.AllowedAssetSubClasses == null || !id.AllowedAssetSubClasses.Contains(AssetSubClass.CryptoCurrency))
 				{

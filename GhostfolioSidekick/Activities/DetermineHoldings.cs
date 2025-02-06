@@ -1,18 +1,20 @@
-﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Caching.Memory;
+using GhostfolioSidekick.GhostfolioAPI.API;
 
 namespace GhostfolioSidekick.Activities.Comparer
 {
 	public class DetermineHoldings(
 			ILogger<DetermineHoldings> logger,
 			ISymbolMatcher[] symbolMatchers,
-			IDbContextFactory<DatabaseContext> databaseContextFactory) : IScheduledWork
+			IDbContextFactory<DatabaseContext> databaseContextFactory,
+			IMemoryCache memoryCache) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.DetermineHoldings;
 
@@ -61,57 +63,63 @@ namespace GhostfolioSidekick.Activities.Comparer
 			await databaseContext.SaveChangesAsync();
 		}
 
-		private async Task CreateOrUpdateHolding(DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary, List<Holding> newHoldings, List<PartialSymbolIdentifier> partialIdentifiers)
-		{
-			var holding = newHoldings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
-			if (holding != null)
-			{
-				// Holding already exists
-				logger.LogTrace("CreateOrUpdateHolding: Holding already exists for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
-				return;
-			}
+        private async Task CreateOrUpdateHolding(DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary, List<Holding> newHoldings, List<PartialSymbolIdentifier> partialIdentifiers)
+        {
+            var holding = newHoldings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
+            if (holding != null)
+            {
+                // Holding already exists
+                logger.LogTrace("CreateOrUpdateHolding: Holding already exists for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
+                return;
+            }
 
-			foreach (var symbolMatcher in symbolMatchers)
-			{
-				var symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
-				if (symbolProfile == null)
-				{
-					logger.LogTrace("CreateOrUpdateHolding: No symbol profile found for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
-					continue;
-				}
+            foreach (var symbolMatcher in symbolMatchers)
+            {
+                var cacheKey = nameof(DetermineHoldings) +  string.Join(",", partialIdentifiers);
+                if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
+                {
+                    symbolProfile = await symbolMatcher.MatchSymbol(partialIdentifiers.ToArray()).ConfigureAwait(false);
+					memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
+                }
 
-				if (symbolHoldingDictionary.TryGetValue(symbolProfile, out holding))
-				{
-					logger.LogTrace("CreateOrUpdateHolding: Holding already exists for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
-					holding.MergeIdentifiers(partialIdentifiers);
-					continue;
-				}
+                if (symbolProfile == null)
+                {
+                    logger.LogTrace("CreateOrUpdateHolding: No symbol profile found for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
+                    continue;
+                }
 
-				holding = newHoldings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
-				if (holding == null)
-				{
-					logger.LogTrace("CreateOrUpdateHolding: Creating new holding for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
-					holding = new Holding();
+                if (symbolHoldingDictionary.TryGetValue(symbolProfile, out holding))
+                {
+                    logger.LogTrace("CreateOrUpdateHolding: Holding already exists for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
+                    holding.MergeIdentifiers(partialIdentifiers);
+                    continue;
+                }
 
-					// Check if symbol profile already exists
-					var existingSymbolProfile = await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol&& x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
-					if (existingSymbolProfile != null)
-					{
-						symbolProfile = existingSymbolProfile;
-					}
+                holding = newHoldings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
+                if (holding == null)
+                {
+                    logger.LogTrace("CreateOrUpdateHolding: Creating new holding for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
+                    holding = new Holding();
 
-					holding.SymbolProfiles.Add(symbolProfile);
-					symbolHoldingDictionary.Add(symbolProfile, holding);
+                    // Check if symbol profile already exists
+                    var existingSymbolProfile = await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
+                    if (existingSymbolProfile != null)
+                    {
+                        symbolProfile = existingSymbolProfile;
+                    }
 
-					holding.MergeIdentifiers(partialIdentifiers);
-					newHoldings.Add(holding);
-				}
-				else
-				{
-					logger.LogTrace("CreateOrUpdateHolding: Merging identifiers for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
-					holding.MergeIdentifiers(partialIdentifiers);
-				}
-			}
-		}
+                    holding.SymbolProfiles.Add(symbolProfile);
+                    symbolHoldingDictionary.Add(symbolProfile, holding);
+
+                    holding.MergeIdentifiers(partialIdentifiers);
+                    newHoldings.Add(holding);
+                }
+                else
+                {
+                    logger.LogTrace("CreateOrUpdateHolding: Merging identifiers for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
+                    holding.MergeIdentifiers(partialIdentifiers);
+                }
+            }
+        }
 	}
 }
