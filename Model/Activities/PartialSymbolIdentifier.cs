@@ -53,7 +53,7 @@
 
 		public override string ToString()
 		{
-			return $"{Identifier} [{string.Join(",", AllowedAssetClasses ?? [])}] [{string.Join(",", AllowedAssetSubClasses ?? [])}]";
+			return $"{Identifier}([{string.Join(",", AllowedAssetClasses ?? [])}][{string.Join(",", AllowedAssetSubClasses ?? [])}])";
 		}
 	}
 }

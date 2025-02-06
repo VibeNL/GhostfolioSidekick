@@ -26,7 +26,6 @@ namespace GhostfolioSidekick.Activities
 
 			var currentHoldings = await databaseContext.Holdings.ToListAsync();
 
-			var currencies = new Dictionary<Currency, DateTime>();
 			foreach (var activityTuple in activities
 					.Select(x => new CustomObject { Activity = x, PartialIdentifier = x as IActivityWithPartialIdentifier })
 					.Where(x => x.PartialIdentifier is not null)
@@ -60,7 +59,6 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S2696:Instance members should not write to \"static\" fields", Justification = "<Pending>")]
 		private async Task HandleActivity(DatabaseContext databaseContext, List<Holding> currentHoldings, CustomObject activityTuple)
 		{
 			var activity = activityTuple.Activity;

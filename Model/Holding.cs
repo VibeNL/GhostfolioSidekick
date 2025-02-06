@@ -54,6 +54,11 @@ namespace GhostfolioSidekick.Model
 			return false;
 		}
 
+		public bool HasPartialSymbolIdentifier(List<PartialSymbolIdentifier> partialIdentifiers)
+		{
+			return partialIdentifiers.Any(x => IdentifierContainsInList(x));
+		}
+
 		private bool IsEmpty<T>(List<T>? list)
 		{
 			if (list == null)

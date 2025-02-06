@@ -18,6 +18,8 @@
 
 		BalanceMaintainer,
 
+		DetermineHoldings,
+
 		SymbolMatcher,
 		
 		MarketDataStockSplit,
