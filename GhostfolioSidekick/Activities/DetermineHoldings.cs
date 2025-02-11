@@ -41,7 +41,14 @@ namespace GhostfolioSidekick.Activities.Comparer
 			{
 				if (!newHoldings.Contains(holding, new HoldingComparer()))
 				{
-					logger.LogInformation($"Removing holding: {holding}");
+					logger.LogInformation("Removing holding with ID {HoldingId} and Symbol {Symbol}: {Holding}", holding.Id, holding.SymbolProfiles.FirstOrDefault()?.Symbol, holding);
+					databaseContext.Holdings.Remove(holding);
+					continue;
+				}
+
+				if (holding.SymbolProfiles.Count == 0)
+				{
+					logger.LogInformation("Removing holding without symbol profile. Holding ID: {HoldingId}, Holding Details: {Holding}", holding.Id, holding);
 					databaseContext.Holdings.Remove(holding);
 				}
 			}
@@ -55,7 +62,7 @@ namespace GhostfolioSidekick.Activities.Comparer
 				}
 				else
 				{
-					logger.LogInformation($"Adding holding: {holding}");
+					logger.LogInformation("Adding holding with ID {HoldingId} and Symbol {Symbol}: {Holding}", holding.Id, holding.SymbolProfiles.FirstOrDefault()?.Symbol, holding);
 					databaseContext.Holdings.Add(holding);
 				}
 			}
