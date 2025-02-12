@@ -15,7 +15,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BouncyCastle.Cryptography" Version="2.5.0" />
+		<PackageReference Include="BouncyCastle.Cryptography" Version="2.5.1" />
 		<PackageReference Include="itext7.bouncy-castle-adapter" Version="9.0.0" />
 		<PackageReference Include="itext7.pdfsweep" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
