@@ -12,6 +12,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
+		public bool ExceptionsAreFatal => false;
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork()
 		{

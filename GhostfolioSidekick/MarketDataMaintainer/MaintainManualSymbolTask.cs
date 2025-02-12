@@ -17,6 +17,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
+		public bool ExceptionsAreFatal => false;
+
 		public async Task DoWork()
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();

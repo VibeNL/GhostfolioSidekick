@@ -10,6 +10,8 @@ namespace GhostfolioSidekick.Activities
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
+		public bool ExceptionsAreFatal => false;
+
 		public async Task DoWork()
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();

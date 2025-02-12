@@ -20,6 +20,8 @@ namespace GhostfolioSidekick.Activities.Comparer
 
 		public TimeSpan ExecutionFrequency => Frequencies.Daily;
 
+		public bool ExceptionsAreFatal => false;
+
 		public async Task DoWork()
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();

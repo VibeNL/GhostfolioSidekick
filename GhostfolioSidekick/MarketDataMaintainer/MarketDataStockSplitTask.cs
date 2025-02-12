@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
+		public bool ExceptionsAreFatal => false;
+
 		public async Task DoWork()
 		{
 			var symbolIdentifiers = new List<Tuple<string, string>>();

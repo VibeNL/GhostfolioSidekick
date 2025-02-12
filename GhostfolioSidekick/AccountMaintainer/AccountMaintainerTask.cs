@@ -16,6 +16,8 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
+		public bool ExceptionsAreFatal => false;
+
 		public AccountMaintainerTask(
 			ILogger<AccountMaintainerTask> logger,
 			IDbContextFactory<DatabaseContext> databaseContextFactory,

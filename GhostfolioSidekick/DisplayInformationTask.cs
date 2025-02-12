@@ -14,6 +14,8 @@ namespace GhostfolioSidekick
 
 		public TimeSpan ExecutionFrequency => TimeSpan.MaxValue;
 
+		public bool ExceptionsAreFatal => true;
+
 		public DisplayInformationTask(
 			ILogger<DisplayInformationTask> logger,
 			IApplicationSettings applicationSettings)

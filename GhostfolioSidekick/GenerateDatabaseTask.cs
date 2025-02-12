@@ -12,6 +12,8 @@ namespace GhostfolioSidekick
 
 		public TimeSpan ExecutionFrequency => TimeSpan.MaxValue;
 
+		public bool ExceptionsAreFatal => true;
+
 		public Task DoWork()
 		{
 			return GenerateDatabase();

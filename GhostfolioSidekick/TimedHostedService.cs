@@ -54,6 +54,11 @@ namespace GhostfolioSidekick
 									catch (Exception ex)
 									{
 										logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
+
+										if (workItem.Work.ExceptionsAreFatal)
+										{
+											throw;
+										}
 									}
 
 									if (workItem.DetermineNextSchedule())
@@ -70,7 +75,7 @@ namespace GhostfolioSidekick
 							}
 							catch (Exception ex)
 							{
-								logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", nameof(TimedHostedService), ex.Message);
+								logger.LogCritical(ex, "An error occurred executing {Name}. Exception message {Message}", nameof(TimedHostedService), ex.Message);
 							}
 						}, cancellationTokenSource.Token);
 

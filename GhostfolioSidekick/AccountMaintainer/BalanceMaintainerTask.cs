@@ -12,6 +12,8 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
+		public bool ExceptionsAreFatal => false;
+
 		public async Task DoWork()
 		{
 			List<AccountKey> accountKeys;

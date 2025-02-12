@@ -12,6 +12,8 @@ namespace GhostfolioSidekick.Sync
 
 		public TimeSpan ExecutionFrequency => Frequencies.Daily;
 
+		public bool ExceptionsAreFatal => false;
+
 		public async Task DoWork()
 		{
 			var symbols = await ghostfolioMarketData.GetAllSymbolProfiles();
