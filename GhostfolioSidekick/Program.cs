@@ -131,6 +131,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserNL>();
 							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserDE>();
 							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
+							services.AddScoped<IFileImporter, TradeRepublicStatementParserEN>();
 							services.AddScoped<IFileImporter, Trading212Parser>();
 							
 							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
