@@ -18,9 +18,18 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
         {
             foreach (var identifier in symbolIdentifiers)
             {
-                var symbolProfile = await databaseContext.SymbolProfiles
-						.Where(x => x.DataSource == Datasource.MANUAL)
-						.FirstOrDefaultAsync(x => x.Symbol == identifier.Identifier);
+				var symbolProfileQuery = databaseContext.SymbolProfiles
+						.Where(x => x.DataSource == Datasource.MANUAL);
+
+				var symbolProfile = (await symbolProfileQuery
+						.Where(x => identifier.AllowedAssetClasses == null || !identifier.AllowedAssetClasses!.Any() || identifier.AllowedAssetClasses!.Contains(x.AssetClass))
+						.Where(x => identifier.AllowedAssetSubClasses == null || x.AssetSubClass == null || !identifier.AllowedAssetSubClasses!.Any() || identifier.AllowedAssetSubClasses!.Contains(x.AssetSubClass.Value))
+						.ToListAsync()) // SQLlite does not support string operations that well
+						.FirstOrDefault(x => 
+							string.Equals(x.Symbol, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
+							string.Equals(x.ISIN, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
+							string.Equals(x.Name, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
+							x.Identifiers.Any(y => string.Equals(y, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase)));
                 if (symbolProfile != null)
                 {
                     return symbolProfile;
