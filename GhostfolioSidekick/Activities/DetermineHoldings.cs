@@ -26,26 +26,24 @@ namespace GhostfolioSidekick.Activities.Comparer
 			var activities = await databaseContext.Activities.ToListAsync();
 
 			var currentHoldings = await databaseContext.Holdings.ToListAsync();
-			var newHoldings = new List<Holding>();
+
+			// Remove all symbolprofiles
+			foreach (var holding in currentHoldings)
+			{
+				holding.SymbolProfiles.Clear();
+			}
 
 			var symbolHoldingDictionary = new Dictionary<SymbolProfile, Holding>(new SymbolComparer());
 			foreach (var partialIdentifiers in activities
 					.OfType<IActivityWithPartialIdentifier>()
 					.Select(x => x.PartialSymbolIdentifiers))
 			{
-				await CreateOrUpdateHolding(databaseContext, symbolHoldingDictionary, newHoldings, partialIdentifiers).ConfigureAwait(false);
+				await CreateOrUpdateHolding(databaseContext, symbolHoldingDictionary, currentHoldings, partialIdentifiers).ConfigureAwait(false);
 			}
 
 			// Remove holdings that are no longer relevant
 			foreach (var holding in currentHoldings)
 			{
-				if (!newHoldings.Contains(holding, new HoldingComparer()))
-				{
-					logger.LogInformation("Removing holding with ID {HoldingId} and Symbol {Symbol}: {Holding}", holding.Id, holding.SymbolProfiles.FirstOrDefault()?.Symbol, holding);
-					databaseContext.Holdings.Remove(holding);
-					continue;
-				}
-
 				if (holding.SymbolProfiles.Count == 0)
 				{
 					logger.LogInformation("Removing holding without symbol profile. Holding ID: {HoldingId}, Holding Details: {Holding}", holding.Id, holding);
@@ -53,27 +51,14 @@ namespace GhostfolioSidekick.Activities.Comparer
 				}
 			}
 
-			// Add or update holdings
-			foreach (var holding in newHoldings)
-			{
-				if (currentHoldings.Contains(holding, new HoldingComparer()))
-				{
-					databaseContext.Holdings.Update(holding);
-				}
-				else
-				{
-					logger.LogInformation("Adding holding with ID {HoldingId} and Symbol {Symbol}: {Holding}", holding.Id, holding.SymbolProfiles.FirstOrDefault()?.Symbol, holding);
-					databaseContext.Holdings.Add(holding);
-				}
-			}
-
 			await databaseContext.SaveChangesAsync();
 		}
 
-		private async Task CreateOrUpdateHolding(DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary, List<Holding> newHoldings, List<PartialSymbolIdentifier> partialIdentifiers)
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
+		private async Task CreateOrUpdateHolding(DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary, List<Holding> holdings, List<PartialSymbolIdentifier> partialIdentifiers)
 		{
-			var holding = newHoldings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
-			if (holding != null)
+			var holding = holdings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
+			if (holding != null && holding.SymbolProfiles.Count != 0)
 			{
 				// Holding already exists
 				logger.LogTrace("CreateOrUpdateHolding: Holding already exists for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
@@ -86,7 +71,18 @@ namespace GhostfolioSidekick.Activities.Comparer
 				if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
 				{
 					symbolProfile = await symbolMatcher.MatchSymbol(partialIdentifiers.ToArray()).ConfigureAwait(false);
-					memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
+
+					// Check if symbol profile already exists
+					if (symbolProfile != null)
+					{
+						var existingSymbolProfile = await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
+						symbolProfile = existingSymbolProfile ?? symbolProfile;
+						memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
+					}
+					else
+					{
+						memoryCache.Set(cacheKey, symbolProfile, CacheDuration.Short());
+					}
 				}
 
 				if (symbolProfile == null)
@@ -102,30 +98,24 @@ namespace GhostfolioSidekick.Activities.Comparer
 					continue;
 				}
 
-				holding = newHoldings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
-				if (holding == null)
+				holding = holdings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
+				if (holding != null)
 				{
-					logger.LogTrace("CreateOrUpdateHolding: Creating new holding for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
-					holding = new Holding();
-
-					// Check if symbol profile already exists
-					var existingSymbolProfile = await databaseContext.SymbolProfiles.FirstOrDefaultAsync(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource).ConfigureAwait(false);
-					if (existingSymbolProfile != null)
-					{
-						symbolProfile = existingSymbolProfile;
-					}
-
-					holding.SymbolProfiles.Add(symbolProfile);
+					logger.LogTrace("CreateOrUpdateHolding: Holding already exists for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
+					holding.MergeIdentifiers(partialIdentifiers);
 					symbolHoldingDictionary.Add(symbolProfile, holding);
+					continue;
+				}
 
-					holding.MergeIdentifiers(partialIdentifiers);
-					newHoldings.Add(holding);
-				}
-				else
-				{
-					logger.LogTrace("CreateOrUpdateHolding: Merging identifiers for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
-					holding.MergeIdentifiers(partialIdentifiers);
-				}
+				logger.LogTrace("CreateOrUpdateHolding: Creating new holding for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
+				holding = new Holding();
+
+				holding.SymbolProfiles.Add(symbolProfile);
+				symbolHoldingDictionary.Add(symbolProfile, holding);
+
+				holding.MergeIdentifiers(partialIdentifiers);
+				holdings.Add(holding);
+				databaseContext.Holdings.Add(holding);
 			}
 		}
 	}
