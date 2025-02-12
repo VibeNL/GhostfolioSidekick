@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Activities
 					.Where(x => x.PartialIdentifier is not null)
 					.OrderBy(x => GetIds(x.PartialIdentifier!.PartialSymbolIdentifiers).FirstOrDefault()?.Identifier))
 			{
-				await HandleActivity(databaseContext, currentHoldings, activityTuple).ConfigureAwait(false);
+				await HandleActivity(currentHoldings, activityTuple).ConfigureAwait(false);
 			}
 
 			AssertNoMultipleSymbols(logger, currentHoldings);
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		private async Task HandleActivity(DatabaseContext databaseContext, List<Holding> currentHoldings, CustomObject activityTuple)
+		private async Task HandleActivity(List<Holding> currentHoldings, CustomObject activityTuple)
 		{
 			var activity = activityTuple.Activity;
 			var ids = GetIds(activityTuple.PartialIdentifier!.PartialSymbolIdentifiers);
@@ -71,6 +71,13 @@ namespace GhostfolioSidekick.Activities
 
 			// Match on existing holdings with ids
 			var matchingHoldings = currentHoldings.Where(x => ids.Any(y => x.IdentifierContainsInList(y))).ToList();
+
+			if (matchingHoldings.Count > 1)
+			{
+                logger.LogWarning("Multiple holdings found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
+				return;
+			}
+
 			var holding = matchingHoldings.SingleOrDefault();
 			
 			if (holding != null)
@@ -95,7 +102,7 @@ namespace GhostfolioSidekick.Activities
 
 			if (symbols.Count == 0)
 			{
-				logger.LogWarning($"No symbol found for {string.Join(",", ids.Select(x => x.Identifier))}");
+                logger.LogWarning("No symbol found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
 				return;
 
 			}
@@ -110,10 +117,12 @@ namespace GhostfolioSidekick.Activities
 			// Create new holding if not found, should not happen
 			if (holding == null)
 			{
-				holding = new Holding();
-				holding.MergeIdentifiers(ids);
-				databaseContext.Holdings.Add(holding);
-				currentHoldings.Add(holding);
+                logger.LogWarning("No holding found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
+				return;
+				////holding = new Holding();
+				////holding.MergeIdentifiers(ids);
+				////databaseContext.Holdings.Add(holding);
+				////currentHoldings.Add(holding);
 			}
 
 			foreach (var symbol in symbols)
