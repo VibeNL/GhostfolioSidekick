@@ -36,7 +36,8 @@ namespace GhostfolioSidekick.Activities.Comparer
 			var symbolHoldingDictionary = new Dictionary<SymbolProfile, Holding>(new SymbolComparer());
 			foreach (var partialIdentifiers in activities
 					.OfType<IActivityWithPartialIdentifier>()
-					.Select(x => x.PartialSymbolIdentifiers))
+					.Select(x => x.PartialSymbolIdentifiers)
+					.OrderBy(x => x[0].Identifier))
 			{
 				await CreateOrUpdateHolding(databaseContext, symbolHoldingDictionary, currentHoldings, partialIdentifiers).ConfigureAwait(false);
 			}
@@ -67,7 +68,7 @@ namespace GhostfolioSidekick.Activities.Comparer
 
 			foreach (var symbolMatcher in symbolMatchers)
 			{
-				var cacheKey = nameof(DetermineHoldings) + string.Join(",", partialIdentifiers);
+                var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
 				if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
 				{
 					symbolProfile = await symbolMatcher.MatchSymbol(partialIdentifiers.ToArray()).ConfigureAwait(false);
@@ -102,6 +103,7 @@ namespace GhostfolioSidekick.Activities.Comparer
 				if (holding != null)
 				{
 					logger.LogTrace("CreateOrUpdateHolding: Holding already exists for {Symbol} with {PartialIdentifiers}", symbolProfile.Symbol, string.Join(", ", partialIdentifiers));
+					holding.SymbolProfiles.Add(symbolProfile);
 					holding.MergeIdentifiers(partialIdentifiers);
 					symbolHoldingDictionary.Add(symbolProfile, holding);
 					continue;
