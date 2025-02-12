@@ -6,6 +6,8 @@
 
 		TimeSpan ExecutionFrequency { get; }
 
+		bool ExceptionsAreFatal { get; }
+
 		Task DoWork();
 	}
 }

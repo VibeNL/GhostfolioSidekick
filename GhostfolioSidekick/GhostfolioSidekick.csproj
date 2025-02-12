@@ -12,9 +12,11 @@
 
 	<PropertyGroup>
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<UserSecretsId>6629f599-8913-4b11-b453-def1f7486753</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CompareNETObjects" Version="4.83.0" />
 		<PackageReference Include="CsvHelper" Version="33.0.1" />
 		<PackageReference Include="FuzzySharp" Version="2.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.1" />
@@ -31,6 +33,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Configuration\Configuration.csproj" />
+		<ProjectReference Include="..\Database\Database.csproj" />
+		<ProjectReference Include="..\ExternalDataProvider\ExternalDataProvider.csproj" />
 		<ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
 		<ProjectReference Include="..\Model\Model.csproj" />
 		<ProjectReference Include="..\Parsers\Parsers.csproj" />

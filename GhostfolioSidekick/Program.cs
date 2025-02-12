@@ -1,14 +1,15 @@
-﻿using GhostfolioSidekick.AccountMaintainer;
+﻿using CoinGecko.Net.Clients;
+using CoinGecko.Net.Interfaces;
+using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.FileImporter;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
+using GhostfolioSidekick.ExternalDataProvider.Manual;
+using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
-using GhostfolioSidekick.GhostfolioAPI.Strategies;
-using GhostfolioSidekick.MarketDataMaintainer;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Compare;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.Bitvavo;
 using GhostfolioSidekick.Parsers.Bunq;
@@ -23,6 +24,7 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.ScalableCaptial;
 using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.Parsers.Trading212;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -93,54 +95,51 @@ namespace GhostfolioSidekick
 								var settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
+							services.AddDbContextFactory<DatabaseContext>(options =>
+							{
+								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+							});
 
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
-							services.AddSingleton<IExchangeRateService, ExchangeRateService>();
-							services.AddSingleton<IActivitiesService, ActivitiesService>();
-							services.AddSingleton<IAccountService, AccountService>();
-							services.AddSingleton<IMarketDataService, MarketDataService>();
+							services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
+							services.AddSingleton<IApiWrapper, ApiWrapper>();
+
+							services.AddSingleton<YahooRepository>();
+							services.AddSingleton<CoinGeckoRepository>();
+							services.AddSingleton<GhostfolioSymbolMatcher>();
+							services.AddSingleton<ManualSymbolMatcher>();
+							services.AddTransient<ICoinGeckoRestClient, CoinGeckoRestClient>();
+
+							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
+							services.AddSingleton<ISymbolMatcher[]>(sp => [
+									sp.GetRequiredService<YahooRepository>(), 
+									sp.GetRequiredService<CoinGeckoRepository>(),
+									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
+									sp.GetRequiredService<ManualSymbolMatcher>()
+								]);
+							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>()]);
+							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
+							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
+							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
-							services.AddScoped<IScheduledWork, FileImporterTask>();
-							services.AddScoped<IScheduledWork, DisplayInformationTask>();
-							services.AddScoped<IScheduledWork, AccountMaintainerTask>();
-							services.AddScoped<IScheduledWork, CreateManualSymbolTask>();
-							services.AddScoped<IScheduledWork, SetManualPricesTask>();
-							services.AddScoped<IScheduledWork, SetBenchmarksTask>();
-							services.AddScoped<IScheduledWork, SetTrackingInsightOnSymbolsTask>();
-							services.AddScoped<IScheduledWork, DeleteUnusedSymbolsTask>();
-							services.AddScoped<IScheduledWork, GatherAllDataTask>();
+							RegisterAllWithInterface<IScheduledWork>(services);
+							RegisterAllWithInterface<IHoldingStrategy>(services);
+							RegisterAllWithInterface<IFileImporter>(services);
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
-							services.AddScoped<IFileImporter, BitvavoParser>();
-							services.AddScoped<IFileImporter, BunqParser>();
-							services.AddScoped<IFileImporter, CentraalBeheerParser>();
-							services.AddScoped<IFileImporter, CoinbaseParser>();
-							services.AddScoped<IFileImporter, DeGiroParserNL>();
-							services.AddScoped<IFileImporter, DeGiroParserEN>();
-      services.AddScoped<IFileImporter, DeGiroParserPT>();
-							services.AddScoped<IFileImporter, GenericParser>();
-							services.AddScoped<IFileImporter, MacroTrendsParser>();
-							services.AddScoped<IFileImporter, NexoParser>();
-							services.AddScoped<IFileImporter, NIBCParser>();
-							services.AddScoped<IFileImporter, ScalableCapitalRKKParser>();
-							services.AddScoped<IFileImporter, ScalableCapitalWUMParser>();
-							services.AddScoped<IFileImporter, ScalableCapitalPrimeParser>();
-							services.AddScoped<IFileImporter, StockSplitParser>();
-							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserEN>();
-							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserNL>();
-							services.AddScoped<IFileImporter, TradeRepublicInvoiceParserDE>();
-							services.AddScoped<IFileImporter, TradeRepublicStatementParserNL>();
-							services.AddScoped<IFileImporter, Trading212Parser>();
-							
-							services.AddScoped<IHoldingStrategy, AddStakeRewardsToPreviousBuyActivity>();
-							services.AddScoped<IHoldingStrategy, ApplyDustCorrection>();
-							services.AddScoped<IHoldingStrategy, DeterminePrice>();
-							services.AddScoped<IHoldingStrategy, HandleTaxesOnDividends>();
-							services.AddScoped<IHoldingStrategy, NotNativeSupportedTransactionsInGhostfolio>();
-							services.AddScoped<IHoldingStrategy, RoundStrategy>();
-							services.AddScoped<IHoldingStrategy, StockSplitStrategy>();
 						});
+		}
+
+		private static void RegisterAllWithInterface<T>(IServiceCollection services)
+		{
+			var types = typeof(T).Assembly.GetTypes()
+				.Where(t => t.GetInterfaces().Contains(typeof(T)) && !t.IsInterface && !t.IsAbstract);
+			foreach (var type in types)
+			{
+				services.AddScoped(typeof(T), type);
+			}
 		}
 	}
 }

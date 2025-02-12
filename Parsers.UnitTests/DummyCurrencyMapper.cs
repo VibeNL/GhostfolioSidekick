@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 
 		public Currency Map(string currency)
 		{
-			return new Currency(currency);
+			return Currency.GetCurrency(currency);
 		}
 	}
 }

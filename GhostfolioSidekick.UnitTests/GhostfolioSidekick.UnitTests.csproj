@@ -19,9 +19,14 @@
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.1" />
 		<PackageReference Include="FluentAssertions" Version="8.0.1" />
+		<PackageReference Include="ILogger.Moq" Version="1.1.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
 		<PackageReference Include="Moq" Version="4.20.72" />
+		<PackageReference Include="Moq.EntityFrameworkCore" Version="9.0.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Polly" Version="8.5.2" />
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />
 		<PackageReference Include="xunit" Version="2.9.3" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
@@ -39,15 +44,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="FileImporter\testPath\acc1\Bitmap1.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Update="FileImporter\testPath\acc1\Bitmap2.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
+	  <Folder Include="Activities\Strategies\" />
 	</ItemGroup>
 
 </Project>
