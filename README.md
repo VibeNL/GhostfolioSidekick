@@ -189,7 +189,7 @@ Symbol,Date,StockSplitFrom,StockSplitTo
 US67066G1040,2023-08-07,1,3
 
 ## Run in Docker
-The docker image is named: vibenl/ghostfoliosidekick
+The docker image is named: vibenl/ghostfoliosidekick:v1
 
 Example docker-compose.yml:
 ```
