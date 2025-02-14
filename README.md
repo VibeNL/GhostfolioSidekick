@@ -194,7 +194,7 @@ The docker image is named: vibenl/ghostfoliosidekick
 Example docker-compose.yml:
 ```
 ghostfoliosidekick:
-	image: vibenl/ghostfoliosidekick:v1
+	image: vibenl/ghostfoliosidekick:latest
 	container_name: Ghostfolio-Ghostfoliosidekick
 	hostname: ghostfoliosidekick
 	security_opt:
