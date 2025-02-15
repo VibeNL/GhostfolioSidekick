@@ -2,6 +2,12 @@
 {
 	public class Platform
 	{
+		public Platform()
+		{
+			// EF Core
+			Name = null!;
+		}
+
 		public Platform(string name)
 		{
 			Name = name;
@@ -11,6 +17,11 @@
 
 		public string? Url { get; set; }
 
-		public string? Id { get; set; }
+		public int Id { get; set; }
+
+		public override string ToString()
+		{
+			return Name;
+		}
 	}
 }

@@ -1,26 +1,37 @@
 ﻿namespace GhostfolioSidekick.Model
 {
-	public class Money(Currency currency, decimal amount)
-	{
-		public decimal Amount { get; set; } = amount;
+	public record Money
+    {
+        public decimal Amount { get; set; }
 
-		public Currency Currency { get; set; } = currency;
+		public Currency Currency { get; set; }
 
-		public override bool Equals(object? obj)
+		public Money()
 		{
-			return obj is Money money &&
-				   Currency.Equals(money.Currency) &&
-				   Amount == money.Amount;
+			// EF Core
+			Amount = 0;
+			Currency = Currency.USD;
 		}
 
-		override public int GetHashCode()
-		{
-			return HashCode.Combine(Currency, Amount);
+		public Money(Currency currency, decimal amount)
+        {
+			Amount = amount;
+			Currency = currency;
 		}
 
-		public Money Times(decimal amount)
+        public Money Times(decimal amount)
 		{
 			return new Money(Currency, Amount * amount);
+		}
+
+		public Money Add(Money money)
+		{
+			if (money.Currency != Currency)
+			{
+				throw new ArgumentException("Currencies do not match", nameof(money));
+			}
+
+			return new Money(Currency, Amount + money.Amount);
 		}
 
 		public Money SafeDivide(decimal amount)

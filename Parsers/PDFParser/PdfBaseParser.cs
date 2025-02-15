@@ -16,6 +16,11 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 		{
 			try
 			{
+				if (!filename.EndsWith(".pdf", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return Task.FromResult(false);
+				}
+
 				var words = parsePDfToWords.ParseTokens(filename);
 				return Task.FromResult(CanParseRecords(words));
 			}
@@ -25,10 +30,10 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 			}
 		}
 
-		public Task ParseActivities(string filename, IHoldingsCollection holdingsAndAccountsCollection, string accountName)
+		public Task ParseActivities(string filename, IActivityManager activityManager, string accountName)
 		{
 			var records = ParseRecords(parsePDfToWords.ParseTokens(filename));
-			holdingsAndAccountsCollection.AddPartialActivity(accountName, records);
+			activityManager.AddPartialActivity(accountName, records);
 
 			return Task.CompletedTask;
 		}

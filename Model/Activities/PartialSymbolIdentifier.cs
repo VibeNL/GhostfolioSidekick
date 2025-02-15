@@ -1,21 +1,24 @@
-﻿
-using System.Diagnostics.CodeAnalysis;
-
-namespace GhostfolioSidekick.Model.Activities
+﻿namespace GhostfolioSidekick.Model.Activities
 {
-	public class PartialSymbolIdentifier
+	public record PartialSymbolIdentifier
 	{
+		public PartialSymbolIdentifier()
+		{
+			// EF Core
+			Identifier = null!;
+		}
+
 		private PartialSymbolIdentifier(string id)
 		{
 			Identifier = id;
 		}
 
-		public string Identifier { get; private set; }
+		public string Identifier { get; set; }
 
-		public List<AssetClass>? AllowedAssetClasses { get; private set; }
+		public List<AssetClass>? AllowedAssetClasses { get; set; }
 
-		public List<AssetSubClass>? AllowedAssetSubClasses { get; private set; }
-
+		public List<AssetSubClass>? AllowedAssetSubClasses { get; set; }
+		
 		public static PartialSymbolIdentifier CreateCrypto(string id)
 		{
 			return new PartialSymbolIdentifier(id)
@@ -48,10 +51,9 @@ namespace GhostfolioSidekick.Model.Activities
 			};
 		}
 
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
-			return $"{Identifier} [{string.Join(",", AllowedAssetClasses ?? [])}] [{string.Join(",", AllowedAssetSubClasses ?? [])}]";
+			return $"{Identifier}([{string.Join(",", AllowedAssetClasses ?? [])}][{string.Join(",", AllowedAssetSubClasses ?? [])}])";
 		}
 	}
 }

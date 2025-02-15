@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 			var obj = JObject.Parse(fileContent);
 			foreach (var item in obj)
 			{
-				mappings.Add(item.Key, item.Value!.ToString());
+				mappings.Add(item.Key.ToLowerInvariant(), item.Value!.ToString().ToLowerInvariant());
 			}
 		}
 
@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Cryptocurrency
 				return symbol;
 			}
 
-			return mappings.TryGetValue(symbol, out var value) ? value : symbol;
+			return mappings.TryGetValue(symbol.ToLowerInvariant(), out var value) ? value : symbol;
 		}
 	}
 }

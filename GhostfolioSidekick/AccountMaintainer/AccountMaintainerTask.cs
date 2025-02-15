@@ -1,7 +1,7 @@
 ﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Accounts;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.AccountMaintainer
@@ -9,20 +9,22 @@ namespace GhostfolioSidekick.AccountMaintainer
 	public class AccountMaintainerTask : IScheduledWork
 	{
 		private readonly ILogger<AccountMaintainerTask> logger;
-		private readonly IAccountService api;
+		private readonly IDbContextFactory<DatabaseContext> databaseContextFactory;
 		private readonly IApplicationSettings applicationSettings;
 
-		public TaskPriority Priority => TaskPriority.AccountCreation;
+		public TaskPriority Priority => TaskPriority.AccountMaintainer;
 
-		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
+		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
+
+		public bool ExceptionsAreFatal => false;
 
 		public AccountMaintainerTask(
 			ILogger<AccountMaintainerTask> logger,
-			IAccountService api,
+			IDbContextFactory<DatabaseContext> databaseContextFactory,
 			IApplicationSettings applicationSettings)
 		{
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.api = api ?? throw new ArgumentNullException(nameof(api));
+			this.databaseContextFactory = databaseContextFactory;
 			this.applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		}
 
@@ -34,7 +36,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 			{
 				await AddOrUpdateAccountsAndPlatforms();
 			}
-			catch(Exception ex)
+			catch (Exception ex)
 			{
 				logger.LogError(ex, "{Name} Failed", nameof(AccountMaintainerTask));
 				return;
@@ -47,7 +49,9 @@ namespace GhostfolioSidekick.AccountMaintainer
 		{
 			var platforms = applicationSettings.ConfigurationInstance.Platforms;
 			var accounts = applicationSettings.ConfigurationInstance.Accounts;
-			var existingAccounts = await api.GetAllAccounts();
+			
+			using var databaseContext = databaseContextFactory.CreateDbContext();
+			var existingAccounts = await databaseContext.Accounts.ToListAsync();
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
 			{
@@ -64,36 +68,36 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		private async Task CreateAccount(AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
 		{
-			var platform = await CreateOrUpdatePlatform(platformConfiguration);
-
-			await api.CreateAccount(new Account(
-				accountConfig.Name,
-				new Balance(DateTime.Today, new Money(new Currency(accountConfig.Currency), 0)))
+			using var databaseContext = databaseContextFactory.CreateDbContext();
+			
+			var platform = await CreateOrUpdatePlatform(databaseContext, platformConfiguration);
+			await databaseContext.Accounts.AddAsync(new Account(accountConfig.Name)
 			{
 				Comment = accountConfig.Comment,
 				Platform = platform,
 			});
+			await databaseContext.SaveChangesAsync();
 		}
 
-		private async Task<Platform?> CreateOrUpdatePlatform(PlatformConfiguration? platformConfiguration)
+		private async Task<Platform?> CreateOrUpdatePlatform(DatabaseContext databaseContext, PlatformConfiguration? platformConfiguration)
 		{
 			if (platformConfiguration is null || !applicationSettings.AllowAdminCalls)
 			{
 				return null;
 			}
 
-			var platform = await api.GetPlatformByName(platformConfiguration.Name);
+			var platform = await databaseContext.Platforms.FirstOrDefaultAsync(x => x.Name == platformConfiguration.Name);
 
 			if (platform == null)
 			{
 				try
 				{
-					await api.CreatePlatform(new Platform(platformConfiguration.Name)
+					await databaseContext.Platforms.AddAsync(new Platform(platformConfiguration.Name)
 					{
 						Url = platformConfiguration.Url,
 					});
 				}
-				catch (NotAuthorizedException)
+				catch //(NotAuthorizedException)
 				{
 					// Running against a managed instance?
 					applicationSettings.AllowAdminCalls = false;
@@ -101,7 +105,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 			}
 
 			// TODO Update platform
-			return await api.GetPlatformByName(platformConfiguration.Name);
+			return await databaseContext.Platforms.FirstOrDefaultAsync(x => x.Name == platformConfiguration.Name);
 		}
 	}
 }

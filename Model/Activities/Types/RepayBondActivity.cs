@@ -1,44 +1,36 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Compare;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class RepayBondActivity : BaseActivity<RepayBondActivity>
+	public record class RepayBondActivity : Activity, IActivityWithPartialIdentifier
 	{
-		public RepayBondActivity(
-		Account account,
-		DateTime dateTime,
-		Money totalRepayAmount,
-		string? transactionId)
+		public RepayBondActivity()
 		{
-			Account = account;
-			Date = dateTime;
-			TotalRepayAmount = totalRepayAmount;
-			TransactionId = transactionId;
+			// EF Core
+			TotalRepayAmount = null!;
 		}
 
-		public override Account Account { get; }
+		public RepayBondActivity(
+			Account account,
+			Holding? holding,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
+			DateTime dateTime,
+			Money totalRepayAmount,
+			string transactionId,
+			int? sortingPriority,
+			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
+		{
+			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
+			TotalRepayAmount = totalRepayAmount;
+		}
 
-		public override DateTime Date { get; }
+		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money TotalRepayAmount { get; }
 
-		public override string? TransactionId { get; set; }
-
-		public override int? SortingPriority { get; set; }
-
-		public override string? Id { get; set; }
-
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"{Account}_{Date}";
-		}
-
-		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, RepayBondActivity otherActivity)
-		{
-			return Task.FromResult(true);
 		}
 	}
 }

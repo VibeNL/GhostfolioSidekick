@@ -277,7 +277,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				throw new ArgumentException("Invalid amount format");
 			}
 
-			return new Money(new Currency(CurrencyTools.GetCurrencyFromSymbol(tokens[0])), parsedAmount);
+			return new Money(Currency.GetCurrency(CurrencyTools.GetCurrencyFromSymbol(tokens[0])), parsedAmount);
 		}
 
 	}

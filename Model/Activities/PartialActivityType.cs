@@ -18,7 +18,9 @@
 
 		Fee,
 
-		Gift,
+		GiftFiat,
+
+		GiftAsset,
 
 		StakingReward,
 

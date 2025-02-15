@@ -11,23 +11,10 @@ namespace GhostfolioSidekick.Model.UnitTests
 			var symbol = "USD";
 
 			// Act
-			var currency = new Currency(symbol);
+			var currency = Currency.GetCurrency(symbol);
 
 			// Assert
 			currency.Symbol.Should().Be(symbol);
-		}
-
-		[Fact]
-		public void Should_Convert_GBX_To_GBp()
-		{
-			// Arrange
-			var symbol = "GBX";
-
-			// Act
-			var currency = new Currency(symbol);
-
-			// Assert
-			currency.Symbol.Should().Be("GBp");
 		}
 
 		[Fact]
@@ -35,7 +22,7 @@ namespace GhostfolioSidekick.Model.UnitTests
 		{
 			// Arrange
 			var symbol = "USD";
-			var currency = new Currency(symbol);
+			var currency = Currency.GetCurrency(symbol);
 
 			// Act
 			var isFiat = currency.IsFiat();
@@ -49,7 +36,7 @@ namespace GhostfolioSidekick.Model.UnitTests
 		{
 			// Arrange
 			var symbol = "BTC";
-			var currency = new Currency(symbol);
+			var currency = Currency.GetCurrency(symbol);
 
 			// Act
 			var isFiat = currency.IsFiat();
@@ -62,8 +49,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 		public void Should_Check_Currency_Equality()
 		{
 			// Arrange
-			var currency1 = new Currency("USD");
-			var currency2 = new Currency("USD");
+			var currency1 = Currency.GetCurrency("USD");
+			var currency2 = Currency.GetCurrency("USD");
 
 			// Act & Assert
 			currency1.Equals(currency2).Should().BeTrue();
@@ -73,8 +60,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 		public void Should_Check_Currency_Inequality()
 		{
 			// Arrange
-			var currency1 = new Currency("USD");
-			var currency2 = new Currency("EUR");
+			var currency1 = Currency.GetCurrency("USD");
+			var currency2 = Currency.GetCurrency("EUR");
 
 			// Act & Assert
 			currency1.Equals(currency2).Should().BeFalse();

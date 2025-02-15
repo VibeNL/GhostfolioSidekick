@@ -1,58 +1,32 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Compare;
-using System.Diagnostics.CodeAnalysis;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record SendAndReceiveActivity : BaseActivity<SendAndReceiveActivity>, IActivityWithQuantityAndUnitPrice
+	public record SendAndReceiveActivity : ActivityWithQuantityAndUnitPrice
 	{
-		public SendAndReceiveActivity(
-		Account account,
-		DateTime dateTime,
-		decimal amount,
-		string? transactionId)
+		public SendAndReceiveActivity()
 		{
-			Account = account;
-			Date = dateTime;
-			Quantity = amount;
-			TransactionId = transactionId;
+			// EF Core
 		}
 
-		public override Account Account { get; }
+		public SendAndReceiveActivity(
+			Account account,
+			Holding? holding,
+			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
+			DateTime dateTime,
+			decimal amount,
+			string transactionId,
+			int? sortingPriority,
+			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, amount, new Money(), transactionId, sortingPriority, description)
+		{
+		}
 
-		public override DateTime Date { get; }
+		public virtual ICollection<SendAndReceiveActivityFee> Fees { get; set; } = [];
 
-		public decimal Quantity { get; set; }
-
-		public Money? UnitPrice { get; set; }
-
-		public IEnumerable<Money> Fees { get; set; } = [];
-
-		public override string? TransactionId { get; set; }
-
-		public override int? SortingPriority { get; set; }
-
-		public override string? Id { get; set; }
-
-		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"{Account}_{Date}";
-		}
-
-		protected override Task<bool> AreEqualInternal(IExchangeRateService exchangeRateService, SendAndReceiveActivity otherActivity)
-		{
-			var quantityTimesUnitPriceEquals = CompareUtilities.AreNumbersEquals(
-				Quantity,
-				otherActivity.Quantity);
-
-			var feesEquals = CompareUtilities.AreMoneyEquals(
-				exchangeRateService,
-				otherActivity.UnitPrice?.Currency ?? Currency.USD,
-				otherActivity.Date,
-				Fees.ToList(),
-				otherActivity.Fees.ToList());
-			return Task.FromResult(quantityTimesUnitPriceEquals && feesEquals);
 		}
 	}
 }

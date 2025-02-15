@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 	{
 		private readonly BitvavoParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public BitvavoParserTests()
 		{
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(DateTime.Today, new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/BuyOrders/single_buy.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/BuyOrders/single_buy.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
@@ -73,10 +73,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/Receive/single_receive.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/Receive/single_receive.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateReceive(
 						new DateTime(2023, 10, 13, 22, 38, 36, DateTimeKind.Utc),
@@ -92,10 +92,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/Send/single_send.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/Send/single_send.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSend(
 						new DateTime(2023, 09, 07, 21, 39, 25, DateTimeKind.Utc),
@@ -111,10 +111,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/CashTransactions/single_deposit.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
@@ -131,10 +131,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/CashTransactions/single_withdrawal.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
@@ -151,10 +151,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/SellOrders/single_sell.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/SellOrders/single_sell.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSell(
 						Currency.EUR,
@@ -179,10 +179,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_stakingreward.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_stakingreward.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2023, 12, 11, 10, 32, 26, DateTimeKind.Utc),
@@ -198,10 +198,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_affiliate.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_affiliate.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
 						Currency.EUR,
@@ -218,10 +218,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_rebate.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_rebate.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
 						Currency.EUR,
@@ -238,10 +238,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Bitvavo/Invalid/single_buy_pending.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Bitvavo/Invalid/single_buy_pending.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -250,7 +250,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 			// Arrange
 
 			// Act
-			Func<Task> a = async () => await parser.ParseActivities("./TestFiles/Bitvavo/Invalid/invalid_type.csv", holdingsAndAccountsCollection, account.Name);
+			Func<Task> a = async () => await parser.ParseActivities("./TestFiles/Bitvavo/Invalid/invalid_type.csv", activityManager, account.Name);
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();

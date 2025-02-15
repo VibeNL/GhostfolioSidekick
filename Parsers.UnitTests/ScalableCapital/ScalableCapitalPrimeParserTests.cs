@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 	{
 		private readonly ScalableCapitalPrimeParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public ScalableCapitalPrimeParserTests()
 		{
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(DateTime.Today, new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_buy_euro.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_buy_euro.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -73,10 +73,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_savingsplan.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_savingsplan.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
@@ -95,10 +95,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/SellOrders/single_sell_euro.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/SellOrders/single_sell_euro.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -123,10 +123,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/CashTransactions/single_deposit.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
@@ -143,10 +143,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/CashTransactions/single_dividend.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/CashTransactions/single_dividend.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateDividend(
 						Currency.EUR,
@@ -164,10 +164,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/CashTransactions/single_withdrawal.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
@@ -184,10 +184,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_buy_euro_pending.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_buy_euro_pending.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -196,10 +196,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_buy_euro_tax.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/BuyOrders/single_buy_euro_tax.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -230,10 +230,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/Invalid/invalid_type.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/ScalableCapital/Prime/Invalid/invalid_type.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 	}
 }

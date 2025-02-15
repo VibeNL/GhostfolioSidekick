@@ -22,9 +22,12 @@
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.1" />
 		<PackageReference Include="FluentAssertions" Version="8.0.1" />
+		<PackageReference Include="ILogger.Moq" Version="1.1.10" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
 		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Polly" Version="8.5.2" />
 		<PackageReference Include="RestSharp" Version="112.1.0" />
 		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
 		<PackageReference Include="xunit" Version="2.9.3" />
@@ -42,6 +45,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
 		<ProjectReference Include="..\Model\Model.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="API\Compare\" />
 	</ItemGroup>
 
 </Project>

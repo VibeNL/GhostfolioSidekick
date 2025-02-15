@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="CoinGecko.Net" Version="3.3.1" />
+	  <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
+	  <PackageReference Include="Polly" Version="8.5.2" />
+	  <PackageReference Include="YahooFinanceApiNext" Version="2.3.9" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Configuration\Configuration.csproj" />
+	  <ProjectReference Include="..\Cryptocurrency\Cryptocurrency.csproj" />
+	  <ProjectReference Include="..\Database\Database.csproj" />
+	  <ProjectReference Include="..\Model\Model.csproj" />
+	</ItemGroup>
+
+</Project>

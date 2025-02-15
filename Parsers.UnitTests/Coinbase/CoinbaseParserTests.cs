@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 	{
 		private readonly CoinbaseParser parser;
 		private readonly Account account;
-		private readonly TestHoldingsCollection holdingsAndAccountsCollection;
+		private readonly TestActivityManager activityManager;
 
 		public CoinbaseParserTests()
 		{
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			var fixture = new Fixture();
 			account = fixture
 				.Build<Account>()
-				.With(x => x.Balance, new Balance(DateTime.Today, new Money(Currency.EUR, 0)))
+				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
 				.Create();
-			holdingsAndAccountsCollection = new TestHoldingsCollection(account);
+			activityManager = new TestActivityManager();
 		}
 
 		[Fact]
@@ -45,10 +45,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/CashTransactions/single_deposit.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/CashTransactions/single_deposit.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashDeposit(
 						Currency.EUR,
@@ -65,10 +65,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/CashTransactions/single_withdrawal.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/CashTransactions/single_withdrawal.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
@@ -85,10 +85,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_buy.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_buy.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
@@ -113,10 +113,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_buy_alt.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_buy_alt.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
@@ -141,10 +141,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_advance_trade_buy.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_advance_trade_buy.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateBuy(
 						Currency.EUR,
@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_convert.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/BuyOrders/single_convert.csv", activityManager, account.Name);
 
 			// Assert
 			var a = PartialActivity.CreateAssetConvert(
@@ -181,7 +181,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						1.629352M,
 						null,
 						"Convert_ETH_2023-04-20 04:05:40:+00:00").ToArray();
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					a[0],
 					a[1],
@@ -200,10 +200,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/SellOrders/single_sell.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/SellOrders/single_sell.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSell(
 						Currency.EUR,
@@ -222,10 +222,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/Receive/single_receive.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/Receive/single_receive.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateReceive(
 						new DateTime(2023, 04, 22, 06, 24, 44, DateTimeKind.Utc),
@@ -241,10 +241,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/Send/single_send.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/Send/single_send.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateSend(
 						new DateTime(2023, 08, 19, 17, 23, 39, DateTimeKind.Utc),
@@ -260,10 +260,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2023, 5, 19, 18, 14, 56, DateTimeKind.Utc),
@@ -279,10 +279,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward_alt.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward_alt.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateStakingReward(
 						new DateTime(2023, 5, 19, 18, 14, 56, DateTimeKind.Utc),
@@ -298,10 +298,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_learningreward.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_learningreward.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEquivalentTo(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateGift(
 						new DateTime(2023, 04, 20, 06, 02, 33, DateTimeKind.Utc),
@@ -317,7 +317,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			Func<Task> a = async () => await parser.ParseActivities("./TestFiles/Coinbase/Invalid/invalid_type.csv", holdingsAndAccountsCollection, account.Name);
+			Func<Task> a = async () => await parser.ParseActivities("./TestFiles/Coinbase/Invalid/invalid_type.csv", activityManager, account.Name);
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();
@@ -329,10 +329,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 			// Arrange
 
 			// Act
-			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_buyfiatfromfiat_bugCoinbase.csv", holdingsAndAccountsCollection, account.Name);
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_buyfiatfromfiat_bugCoinbase.csv", activityManager, account.Name);
 
 			// Assert
-			holdingsAndAccountsCollection.PartialActivities.Should().BeEmpty();
+			activityManager.PartialActivities.Should().BeEmpty();
 		}
 	}
 }
