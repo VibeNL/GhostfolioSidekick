@@ -23,7 +23,7 @@ A database is used to store the transactions and symbols. This allows for better
 
 Several crypto workaround still need to be ported to the new version. This will be done in the upcoming changes.
 
-In case of serious issues, please install the latest v1 release via the frozen PR build. This will not be maintained, but can be used as a fallback.
+In case of serious issues, please install the latest v1. This will not be maintained, but can be used as a fallback.
 
 ## Setup
 
