@@ -21,8 +21,8 @@
 		<PackageReference Include="FuzzySharp" Version="2.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="9.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.1" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
