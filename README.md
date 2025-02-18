@@ -25,6 +25,12 @@ Several crypto workaround still need to be ported to the new version. This will 
 
 In case of serious issues, please install the latest v1. This will not be maintained, but can be used as a fallback.
 
+Install with:
+
+```
+docker pull vibenl/ghostfoliosidekick:v1
+```
+
 ## Setup
 
 ### Ghostfolio
