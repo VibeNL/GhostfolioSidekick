@@ -27,6 +27,24 @@ namespace ScraperUtilities.ScalableCapital
 			{ // ignore
 			}
 
+			// Remove new Scalable banner
+			try
+			{
+				await page.ClickAsync("button:text('Start now')");
+			}
+			catch (Exception)
+			{ // ignore
+			}
+
+			// Select Portfolio
+			var menuItem = page
+					.GetByTestId("sidebar-drawer-desktop")
+					.GetByText(arguments.Portfolio);
+			await menuItem.HighlightAsync();
+
+			await menuItem.GetByText("Broker")
+				.ClickAsync();
+
 			return new MainPage(page);
 		}
 	}
