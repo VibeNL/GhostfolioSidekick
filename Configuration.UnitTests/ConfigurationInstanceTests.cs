@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Shouldly;
 
 namespace GhostfolioSidekick.Configuration.UnitTests
 {
@@ -13,11 +13,11 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var config = ConfigurationInstance.Parse(MappingsAndSymbols);
 
 			// Assert
-			config!.Mappings.Should().BeEquivalentTo(new[] {
+			config!.Mappings.ShouldBe(new[] {
 				new Mapping{ MappingType = MappingType.Currency, Source = "GBX", Target = "GBp" },
 				new Mapping{ MappingType = MappingType.Symbol, Source = "IE00077FRP95", Target = "SDIV.L" }
 			});
-			config.Symbols.Should().BeEquivalentTo(new[] {
+			config.Symbols.ShouldBe(new[] {
 				new SymbolConfiguration{ Symbol="SDIV.L", TrackingInsightSymbol="XLON:SDIV" },
 			});
 		}
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var config = ConfigurationInstance.Parse(ManualSymbol);
 
 			// Assert
-			config!.Symbols.Should().BeEquivalentTo(new[] {
+			config!.Symbols.ShouldBe(new[] {
 				new SymbolConfiguration{
 					Symbol="Manual1",
 					ManualSymbolConfiguration = new ManualSymbolConfiguration{
@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var config = ConfigurationInstance.Parse(ManualSymbolWithScraperConfiguration);
 
 			// Assert
-			config!.Symbols.Should().BeEquivalentTo(new[] {
+			config!.Symbols.ShouldBe(new[] {
 				new SymbolConfiguration{
 					Symbol="Manual1",
 					ManualSymbolConfiguration = new ManualSymbolConfiguration{
@@ -83,13 +83,13 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var config = ConfigurationInstance.Parse(AccountsAndPlatforms);
 
 			// Assert
-			config!.Platforms.Should().BeEquivalentTo(new[] {
+			config!.Platforms.ShouldBe(new[] {
 				new PlatformConfiguration{
 					Name = "Platform1",
 					Url = "someurl"
 				}
 			});
-			config.Accounts.Should().BeEquivalentTo(new[] {
+			config.Accounts.ShouldBe(new[] {
 				new AccountConfiguration{
 					Name = "Account1",
 					Comment = "SomeComment",

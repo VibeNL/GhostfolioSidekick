@@ -2,7 +2,7 @@ using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Model.Market;
 
 namespace GhostfolioSidekick.UnitTests.Activities.Strategies
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             var priority = _determinePrice.Priority;
 
             // Assert
-            priority.Should().Be((int)StrategiesPriority.DeterminePrice);
+            priority.ShouldBe((int)StrategiesPriority.DeterminePrice);
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             await _determinePrice.Execute(holding);
 
             // Assert
-            holding.Activities.Should().BeEmpty();
+            holding.Activities.ShouldBeEmpty();
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             await _determinePrice.Execute(holding);
 
             // Assert
-            holding.Activities.Should().BeEmpty();
+            holding.Activities.ShouldBeEmpty();
         }
 
         [Fact]
@@ -88,8 +88,8 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             await _determinePrice.Execute(holding);
 
             // Assert
-            activity.AdjustedUnitPrice.Should().Be(marketData.Close);
-            activity.AdjustedUnitPriceSource.Should().ContainSingle(trace => trace.Reason == "Determine price" && trace.NewQuantity == activity.AdjustedQuantity && trace.NewPrice == activity.AdjustedUnitPrice);
+            activity.AdjustedUnitPrice.ShouldBe(marketData.Close);
+            activity.AdjustedUnitPriceSource.ShouldContainSingle(trace => trace.Reason == "Determine price" && trace.NewQuantity == activity.AdjustedQuantity && trace.NewPrice == activity.AdjustedUnitPrice);
         }
 
         [Fact]
@@ -121,8 +121,8 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             await _determinePrice.Execute(holding);
 
             // Assert
-            activity.AdjustedUnitPrice.Amount.Should().Be(0);
-            activity.AdjustedUnitPriceSource.Should().BeEmpty();
+            activity.AdjustedUnitPrice.Amount.ShouldBe(0);
+            activity.AdjustedUnitPriceSource.ShouldBeEmpty();
         }
     }
 }

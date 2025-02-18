@@ -1,7 +1,7 @@
 using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -28,14 +28,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 		[Fact]
 		public void DataSource_ShouldReturn_Coingecko()
 		{
-			repository.DataSource.Should().Be(Datasource.COINGECKO);
+			repository.DataSource.ShouldBe(Datasource.COINGECKO);
 		}
 
 		[Fact]
 		public void MinDate_ShouldReturn_OneYearAgo()
 		{
 			var expectedDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-365));
-			repository.MinDate.Should().Be(expectedDate);
+			repository.MinDate.ShouldBe(expectedDate);
 		}
 
 		[Fact]
@@ -51,9 +51,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 			var result = await repository.MatchSymbol(identifiers);
 
 			// Assert
-            result.Should().NotBeNull();
-            result.Symbol.Should().Be("btc");
-            result.Name.Should().Be("Bitcoin");
+            result.ShouldNotBeNull();
+            result.Symbol.ShouldBe("btc");
+            result.Name.ShouldBe("Bitcoin");
 		}
 
 		[Fact]
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 			var result = await repository.MatchSymbol(identifiers);
 
 			// Assert
-			result.Should().BeNull();
+			result.ShouldBeNull();
 		}
 
 		[Fact]
@@ -89,8 +89,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 			var result = await repository.GetStockMarketData(symbolProfile, DateOnly.FromDateTime(DateTime.Today.AddDays(-365)));
 
 			// Assert
-			result.Should().NotBeEmpty();
-			result.Should().ContainSingle();
+			result.ShouldNotBeEmpty();
+			result.ShouldContainSingle();
 		}
 
 		[Fact]
@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 			var result = await repository.GetStockMarketData(symbolProfile, DateOnly.FromDateTime(DateTime.Today.AddDays(-365)));
 
 			// Assert
-			result.Should().BeEmpty();
+			result.ShouldBeEmpty();
 		}
 
 		//[Fact]

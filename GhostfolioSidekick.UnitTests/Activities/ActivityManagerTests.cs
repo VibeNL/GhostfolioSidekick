@@ -3,7 +3,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using FluentAssertions;
+using Shouldly;
 
 namespace GhostfolioSidekick.UnitTests.Activities
 {
@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
             // Assert
             var activities =await  _activityManager.GenerateActivities();
-            activities.Should().HaveCount(1);
+            activities.ShouldHaveCount(1);
         }
 
         [Fact]
@@ -53,8 +53,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
             var activities = await _activityManager.GenerateActivities();
 
             // Assert
-            activities.Should().HaveCount(1);
-            activities.First().Should().BeOfType<BuySellActivity>();
+            activities.ShouldHaveCount(1);
+            activities.First().ShouldBeOfType<BuySellActivity>();
         }
 
         [Fact]
@@ -72,10 +72,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
             var activities = await _activityManager.GenerateActivities();
 
             // Assert
-            activities.Should().HaveCount(1);
+            activities.ShouldHaveCount(1);
             var activity = activities.First() as BuySellActivity;
-            activity.Should().NotBeNull();
-            activity!.Fees.Should().HaveCount(1);
+            activity.ShouldNotBeNull();
+            activity!.Fees.ShouldHaveCount(1);
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
             // Assert
             var activities = await _activityManager.GenerateActivities();
-            activities.Should().BeEmpty();
+            activities.ShouldBeEmpty();
         }
     }
 }

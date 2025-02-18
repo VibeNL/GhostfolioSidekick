@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Database;
-using FluentAssertions;
+using Shouldly;
 
 namespace GhostfolioSidekick.Tests
 {
@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Tests
 
 				// Assert
 				var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-				pendingMigrations.Should().BeEmpty();
+				pendingMigrations.ShouldBeEmpty();
 
 				// Check if table Holding exists
 				var tableExists = await context.Database.ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Holdings';");

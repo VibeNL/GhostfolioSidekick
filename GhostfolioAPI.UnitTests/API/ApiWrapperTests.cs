@@ -4,7 +4,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Database.Repository;
 using RestSharp;
 using Microsoft.Extensions.Caching.Memory;
@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			Func<Task> act = async () => await _apiWrapper.CreateAccount(account);
 
 			// Assert
-			await act.Should().NotThrowAsync();
+			await act.ShouldNotThrowAsync();
 			_mockRestCall.Verify(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("api/v1/account/")), default), Times.Once);
 			_mockLogger.VerifyLog(x => x.LogDebug("Created account {Name}", account.Name), Times.Once);
 		}
@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			Func<Task> act = async () => await _apiWrapper.CreatePlatform(platform);
 
 			// Assert
-			await act.Should().NotThrowAsync();
+			await act.ShouldNotThrowAsync();
 			_mockRestCall.Verify(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("api/v1/platform/")), default), Times.Once);
 			_mockLogger.VerifyLog(x => x.LogDebug("Created platform {Name}", platform.Name), Times.Once);
 		}
@@ -87,8 +87,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var result = await _apiWrapper.GetAccountByName(accountName);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.Name.Should().Be(accountName);
+			result.ShouldNotBeNull();
+			result!.Name.ShouldBe(accountName);
 		}
 
 		[Fact]
@@ -103,8 +103,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var result = await _apiWrapper.GetPlatformByName(platformName);
 
 			// Assert
-			result.Should().NotBeNull();
-			result!.Name.Should().Be(platformName);
+			result.ShouldNotBeNull();
+			result!.Name.ShouldBe(platformName);
 		}
 
 		[Fact]
@@ -119,9 +119,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var result = await _apiWrapper.GetSymbolProfile(identifier, true);
 
 			// Assert
-			result.Should().NotBeNull();
-			result.Should().HaveCount(1);
-			result.First().Symbol.Should().Be(identifier);
+			result.ShouldNotBeNull();
+			result.ShouldHaveSingleItem();
+			result.First().Symbol.ShouldBe(identifier);
 		}
 
 		[Fact]
@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			Func<Task> act = async () => await _apiWrapper.SyncAllActivities(modelActivities);
 
 			// Assert
-			await act.Should().NotThrowAsync();
+			await act.ShouldNotThrowAsync();
 			_mockRestCall.Verify(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("api/v1/order") && y.Method == Method.Post), default), Times.Once);
 			_mockLogger.VerifyLog(x => x.LogDebug("Applying changes"), Times.Once);
 		}
@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			Func<Task> act = async () => await _apiWrapper.UpdateAccount(account);
 
 			// Assert
-			await act.Should().NotThrowAsync();
+			await act.ShouldNotThrowAsync();
 			_mockRestCall.Verify(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("api/v1/account/1/balances")), default), Times.Once);
 			_mockRestCall.Verify(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("api/v1/account-balance/")), default), Times.Once);
 		}

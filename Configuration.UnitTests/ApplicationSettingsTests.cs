@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Shouldly;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -24,8 +24,8 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
 
 			// Assert
-			settings.ConfigurationInstance.Should().NotBeNull();
-			settings.ConfigurationInstance.Settings.DataProviderPreference.Should().Be("COINGECKO,YAHOO");
+			settings.ConfigurationInstance.ShouldNotBeNull();
+			settings.ConfigurationInstance.Settings.DataProviderPreference.ShouldBe("COINGECKO,YAHOO");
 		}
 
 		[Fact]
@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var result = settings.FileImporterPath;
 
 			// Assert
-			Assert.Equal("some_path", result);
+			result.ShouldBe("some_path");
 
 			// Clean up
 			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", null);
@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 
 		[Fact]
 		public void GhostfolioAccessToken_ReturnsEnvironmentVariableValue()
-		{
+			{
 			// Arrange
 			Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", "some_token");
 			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var result = settings.GhostfolioAccessToken;
 
 			// Assert
-			Assert.Equal("some_token", result);
+			result.ShouldBe("some_token");
 
 			// Clean up
 			Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", null);
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var result = settings.GhostfolioUrl;
 
 			// Assert
-			Assert.Equal("http://example.com", result);
+			result.ShouldBe("http://example.com");
 
 			// Clean up
 			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", null);
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var result = settings.ConfigurationInstance;
 
 			// Assert
-			Assert.NotNull(result);
+			result.ShouldNotBeNull();
 		}
 
 		[Fact]
@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var result = settings.AllowAdminCalls;
 
 			// Assert
-			Assert.True(result);
+			result.ShouldBeTrue();
 		}
 
 		[Fact]
@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			var result = settings.ConfigurationInstance;
 
 			// Assert
-			Assert.NotNull(result);
+			result.ShouldNotBeNull();
 		}
 
 		protected virtual void Dispose(bool disposing)

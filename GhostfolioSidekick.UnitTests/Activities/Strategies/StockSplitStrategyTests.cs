@@ -2,7 +2,7 @@ using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model.Market;
 
@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             var priority = _stockSplitStrategy.Priority;
 
             // Assert
-            priority.Should().Be((int)StrategiesPriority.StockSplit);
+            priority.ShouldBe((int)StrategiesPriority.StockSplit);
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             await _stockSplitStrategy.Execute(holding);
 
             // Assert
-            holding.Activities.Should().BeEmpty();
+            holding.Activities.ShouldBeEmpty();
         }
 
         [Fact]
@@ -79,9 +79,9 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             var expectedAdjustedUnitPrice = activity.Object.UnitPrice.Times(2);
             var expectedAdjustedQuantity = activity.Object.Quantity / 2;
 
-            activity.Object.AdjustedUnitPrice.Should().Be(expectedAdjustedUnitPrice);
-            activity.Object.AdjustedQuantity.Should().Be(expectedAdjustedQuantity);
-            activity.Object.AdjustedUnitPriceSource.Should().ContainSingle(trace => trace.Reason == stockSplit.ToString() && trace.NewQuantity == expectedAdjustedQuantity && trace.NewPrice == expectedAdjustedUnitPrice);
+            activity.Object.AdjustedUnitPrice.ShouldBe(expectedAdjustedUnitPrice);
+            activity.Object.AdjustedQuantity.ShouldBe(expectedAdjustedQuantity);
+            activity.Object.AdjustedUnitPriceSource.ShouldContainSingle(trace => trace.Reason == stockSplit.ToString() && trace.NewQuantity == expectedAdjustedQuantity && trace.NewPrice == expectedAdjustedUnitPrice);
         }
 
         [Fact]
@@ -116,9 +116,9 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             await _stockSplitStrategy.Execute(holding);
 
             // Assert
-            activity.Object.AdjustedUnitPrice.Should().Be(activity.Object.UnitPrice);
-            activity.Object.AdjustedQuantity.Should().Be(activity.Object.Quantity);
-            activity.Object.AdjustedUnitPriceSource.Should().BeEmpty();
+            activity.Object.AdjustedUnitPrice.ShouldBe(activity.Object.UnitPrice);
+            activity.Object.AdjustedQuantity.ShouldBe(activity.Object.Quantity);
+            activity.Object.AdjustedUnitPriceSource.ShouldBeEmpty();
         }
     }
 }

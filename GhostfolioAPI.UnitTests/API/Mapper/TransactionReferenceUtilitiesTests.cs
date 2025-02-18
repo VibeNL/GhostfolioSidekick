@@ -1,5 +1,5 @@
 using AutoFixture;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = TransactionReferenceUtilities.GetComment(activity, symbolProfile);
 
 			// Assert
-			result.Should().Be("Transaction Reference: [12345] (Details: asset AAPL)");
+			result.ShouldBe("Transaction Reference: [12345] (Details: asset AAPL)");
 		}
 
 		[Fact]
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = TransactionReferenceUtilities.GetComment(activity, null);
 
 			// Assert
-			result.Should().Be("Transaction Reference: [12345] (Details: asset <EMPTY>)");
+			result.ShouldBe("Transaction Reference: [12345] (Details: asset <EMPTY>)");
 		}
 
 		[Fact]
@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = TransactionReferenceUtilities.GetComment(activity, symbolProfile);
 
 			// Assert
-			result.Should().BeEmpty();
+			result.ShouldBeEmpty();
 		}
 
 		[Fact]
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = TransactionReferenceUtilities.GetComment(activity, symbolProfile);
 
 			// Assert
-			result.Should().BeEmpty();
+			result.ShouldBeEmpty();
 		}
 
 		[Fact]
@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = TransactionReferenceUtilities.GetComment(activity);
 
 			// Assert
-			result.Should().Be("Transaction Reference: [12345]");
+			result.ShouldBe("Transaction Reference: [12345]");
 		}
 
 		[Fact]
@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = TransactionReferenceUtilities.GetComment(activity);
 
 			// Assert
-			result.Should().BeEmpty();
+			result.ShouldBeEmpty();
 		}
 
 		[Fact]
@@ -129,7 +129,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = TransactionReferenceUtilities.GetComment(activity);
 
 			// Assert
-			result.Should().BeEmpty();
+			result.ShouldBeEmpty();
 		}
 	}
 }

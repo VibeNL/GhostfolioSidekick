@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var priority = _fileImporterTask.Priority;
 
 			// Assert
-			priority.Should().Be(TaskPriority.FileImporter);
+			priority.ShouldBe(TaskPriority.FileImporter);
 		}
 
 		[Fact(Skip = "todo implement real db")]
@@ -105,10 +105,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await _fileImporterTask.StoreAll(context, newActivities);
 
 			// Assert
-			(await context.Activities.CountAsync()).Should().Be(2);
-			context.Activities.Should().Contain(newActivities[1]);
-			context.Activities.Should().Contain(existingActivities[1]);
-			context.Activities.Should().NotContain(existingActivities[0]);
+			(await context.Activities.CountAsync()).ShouldBe(2);
+			context.Activities.ShouldContain(newActivities[1]);
+			context.Activities.ShouldContain(existingActivities[1]);
+			context.Activities.ShouldNotContain(existingActivities[0]);
 		}
 	}
 

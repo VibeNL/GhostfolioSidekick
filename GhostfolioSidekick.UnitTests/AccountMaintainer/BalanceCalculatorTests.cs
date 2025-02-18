@@ -3,7 +3,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Moq;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Database.Repository;
 
 namespace GhostfolioSidekick.UnitTests.AccountMaintainer
@@ -35,9 +35,9 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			var result = await balanceCalculator.Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Should().HaveCount(1);
-			result.First().Money.Amount.Should().Be(100);
-			result.First().Money.Currency.Should().Be(baseCurrency);
+			result.ShouldHaveSingleItem();
+			result.First().Money.Amount.ShouldBe(100);
+			result.First().Money.Currency.ShouldBe(baseCurrency);
 		}
 
 		[Fact]
@@ -66,9 +66,9 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			var result = await balanceCalculator.Calculate(baseCurrency, activities);
 
 			// Assert
-			result.Should().HaveCount(2);
-			result.First().Money.Amount.Should().Be(100);
-			result.Last().Money.Amount.Should().Be(50);
+			result.ShouldHaveCount(2);
+			result.First().Money.Amount.ShouldBe(100);
+			result.Last().Money.Amount.ShouldBe(50);
 		}
 
 		[Fact]
@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			Func<Task> act = async () => await balanceCalculator.Calculate(baseCurrency, activities);
 
 			// Assert
-			await act.Should().ThrowAsync<NotImplementedException>()
+			await act.ShouldThrowAsync<NotImplementedException>()
 				.WithMessage("Activity type UnknownActivity is not implemented.");
 		}
 

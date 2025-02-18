@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using AutoFixture;
@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities.Types
 			var result = activity.ToString();
 
 			// Assert
-			result.Should().Be(expectedFormat);
+			result.ShouldBe(expectedFormat);
 		}
 	}
 }

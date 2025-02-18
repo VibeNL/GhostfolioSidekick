@@ -7,7 +7,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities.Types;
 using Moq.EntityFrameworkCore;
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
             var priority = _symbolMatcherTask.Priority;
 
             // Assert
-            priority.Should().Be(TaskPriority.SymbolMatcher);
+            priority.ShouldBe(TaskPriority.SymbolMatcher);
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
             var frequency = _symbolMatcherTask.ExecutionFrequency;
 
             // Assert
-            frequency.Should().Be(TimeSpan.FromHours(1));
+            frequency.ShouldBe(TimeSpan.FromHours(1));
         }
 
         [Fact]
@@ -148,4 +148,3 @@ namespace GhostfolioSidekick.UnitTests.Activities
         }
     }
 }
-

@@ -4,7 +4,7 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using FluentAssertions;
+using Shouldly;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.Activities
@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
             var priority = _calculatePriceTask.Priority;
 
             // Assert
-            priority.Should().Be(TaskPriority.CalculatePrice);
+            priority.ShouldBe(TaskPriority.CalculatePrice);
         }
 
         [Fact]

@@ -1,5 +1,5 @@
 using AutoFixture.Kernel;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities
@@ -20,9 +20,9 @@ namespace GhostfolioSidekick.Model.UnitTests.Activities
 				var activity = (Activity)fixture.Create(myType, new SpecimenContext(fixture));
 
 				// Act & Assert
-				activity.Account.Should().NotBeNull();
-				activity.Date.Should().NotBe(DateTime.MinValue);
-				activity.TransactionId.Should().NotBeNull();
+				activity.Account.ShouldNotBeNull();
+				activity.Date.ShouldNotBe(DateTime.MinValue);
+				activity.TransactionId.ShouldNotBeNull();
 			}
 		}
 	}

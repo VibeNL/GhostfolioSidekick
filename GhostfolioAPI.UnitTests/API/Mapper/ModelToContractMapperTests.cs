@@ -1,6 +1,6 @@
 using AutoFixture;
 using AutoFixture.Kernel;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
@@ -54,16 +54,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Should().Be(symbolProfile);
-			result.Comment.Should().NotBeNull();
-			result.Date.Should().Be(buyActivity.Date);
-			result.Fee.Should().Be(600m); // Assuming fees and taxes are converted to 100 each
-			result.FeeCurrency.Should().Be(symbolProfile.Currency);
-			result.Quantity.Should().Be(Math.Abs(buyActivity.AdjustedQuantity));
-			result.Type.Should().Be(buyActivity.AdjustedQuantity > 0 ? ActivityType.BUY : ActivityType.SELL);
-			result.UnitPrice.Should().Be(100m);
-			result.ReferenceCode.Should().Be(buyActivity.TransactionId);
-			result.AccountId.Should().Be(account.Id);
+			result!.SymbolProfile.ShouldBe(symbolProfile);
+			result.Comment.ShouldNotBeNull();
+			result.Date.ShouldBe(buyActivity.Date);
+			result.Fee.ShouldBe(600m); // Assuming fees and taxes are converted to 100 each
+			result.FeeCurrency.ShouldBe(symbolProfile.Currency);
+			result.Quantity.ShouldBe(Math.Abs(buyActivity.AdjustedQuantity));
+			result.Type.ShouldBe(buyActivity.AdjustedQuantity > 0 ? ActivityType.BUY : ActivityType.SELL);
+			result.UnitPrice.ShouldBe(100m);
+			result.ReferenceCode.ShouldBe(buyActivity.TransactionId);
+			result.AccountId.ShouldBe(account.Id);
 		}
 
 		[Fact]
@@ -83,16 +83,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Should().Be(symbolProfile);
-			result.Comment.Should().NotBeNull();
-			result.Date.Should().Be(sendAndReceiveActivity.Date);
-			result.Fee.Should().Be(300m); // Assuming fees are converted to 100
-			result.FeeCurrency.Should().Be(symbolProfile.Currency);
-			result.Quantity.Should().Be(Math.Abs(sendAndReceiveActivity.AdjustedQuantity));
-			result.Type.Should().Be(sendAndReceiveActivity.AdjustedQuantity > 0 ? ActivityType.BUY : ActivityType.SELL);
-			result.UnitPrice.Should().Be(100m);
-			result.ReferenceCode.Should().Be(sendAndReceiveActivity.TransactionId);
-			result.AccountId.Should().Be(account.Id);
+			result!.SymbolProfile.ShouldBe(symbolProfile);
+			result.Comment.ShouldNotBeNull();
+			result.Date.ShouldBe(sendAndReceiveActivity.Date);
+			result.Fee.ShouldBe(300m); // Assuming fees are converted to 100
+			result.FeeCurrency.ShouldBe(symbolProfile.Currency);
+			result.Quantity.ShouldBe(Math.Abs(sendAndReceiveActivity.AdjustedQuantity));
+			result.Type.ShouldBe(sendAndReceiveActivity.AdjustedQuantity > 0 ? ActivityType.BUY : ActivityType.SELL);
+			result.UnitPrice.ShouldBe(100m);
+			result.ReferenceCode.ShouldBe(sendAndReceiveActivity.TransactionId);
+			result.AccountId.ShouldBe(account.Id);
 		}
 
 		[Fact]
@@ -112,16 +112,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Should().Be(symbolProfile);
-			result.Comment.Should().NotBeNull();
-			result.Date.Should().Be(dividendActivity.Date);
-			result.Fee.Should().Be(600m); // Assuming fees and taxes are converted to 100 each
-			result.FeeCurrency.Should().Be(symbolProfile.Currency);
-			result.Quantity.Should().Be(1);
-			result.Type.Should().Be(ActivityType.DIVIDEND);
-			result.UnitPrice.Should().Be(100m);
-			result.ReferenceCode.Should().Be(dividendActivity.TransactionId);
-			result.AccountId.Should().Be(account.Id);
+			result!.SymbolProfile.ShouldBe(symbolProfile);
+			result.Comment.ShouldNotBeNull();
+			result.Date.ShouldBe(dividendActivity.Date);
+			result.Fee.ShouldBe(600m); // Assuming fees and taxes are converted to 100 each
+			result.FeeCurrency.ShouldBe(symbolProfile.Currency);
+			result.Quantity.ShouldBe(1);
+			result.Type.ShouldBe(ActivityType.DIVIDEND);
+			result.UnitPrice.ShouldBe(100m);
+			result.ReferenceCode.ShouldBe(dividendActivity.TransactionId);
+			result.AccountId.ShouldBe(account.Id);
 		}
 
 		[Fact]
@@ -136,15 +136,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Currency.Should().Be(interestActivity.Amount.Currency.Symbol);
-			result.SymbolProfile.Name.Should().Be(interestActivity.Description);
-			result.Comment.Should().NotBeNull();
-			result.Date.Should().Be(interestActivity.Date);
-			result.Quantity.Should().Be(1);
-			result.Type.Should().Be(ActivityType.INTEREST);
-			result.UnitPrice.Should().Be(interestActivity.Amount.Amount);
-			result.ReferenceCode.Should().Be(interestActivity.TransactionId);
-			result.AccountId.Should().Be(account.Id);
+			result!.SymbolProfile.Currency.ShouldBe(interestActivity.Amount.Currency.Symbol);
+			result.SymbolProfile.Name.ShouldBe(interestActivity.Description);
+			result.Comment.ShouldNotBeNull();
+			result.Date.ShouldBe(interestActivity.Date);
+			result.Quantity.ShouldBe(1);
+			result.Type.ShouldBe(ActivityType.INTEREST);
+			result.UnitPrice.ShouldBe(interestActivity.Amount.Amount);
+			result.ReferenceCode.ShouldBe(interestActivity.TransactionId);
+			result.AccountId.ShouldBe(account.Id);
 		}
 
 		[Fact]
@@ -159,15 +159,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Currency.Should().Be(feeActivity.Amount.Currency.Symbol);
-			result.SymbolProfile.Name.Should().Be(feeActivity.Description);
-			result.Comment.Should().NotBeNull();
-			result.Date.Should().Be(feeActivity.Date);
-			result.Quantity.Should().Be(1);
-			result.Type.Should().Be(ActivityType.FEE);
-			result.UnitPrice.Should().Be(feeActivity.Amount.Amount);
-			result.ReferenceCode.Should().Be(feeActivity.TransactionId);
-			result.AccountId.Should().Be(account.Id);
+			result!.SymbolProfile.Currency.ShouldBe(feeActivity.Amount.Currency.Symbol);
+			result.SymbolProfile.Name.ShouldBe(feeActivity.Description);
+			result.Comment.ShouldNotBeNull();
+			result.Date.ShouldBe(feeActivity.Date);
+			result.Quantity.ShouldBe(1);
+			result.Type.ShouldBe(ActivityType.FEE);
+			result.UnitPrice.ShouldBe(feeActivity.Amount.Amount);
+			result.ReferenceCode.ShouldBe(feeActivity.TransactionId);
+			result.AccountId.ShouldBe(account.Id);
 		}
 
 		[Fact]
@@ -182,15 +182,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Currency.Should().Be(valuableActivity.Price.Currency.Symbol);
-			result.SymbolProfile.Name.Should().Be(valuableActivity.Description);
-			result.Comment.Should().NotBeNull();
-			result.Date.Should().Be(valuableActivity.Date);
-			result.Quantity.Should().Be(1);
-			result.Type.Should().Be(ActivityType.ITEM);
-			result.UnitPrice.Should().Be(valuableActivity.Price.Amount);
-			result.ReferenceCode.Should().Be(valuableActivity.TransactionId);
-			result.AccountId.Should().Be(account.Id);
+			result!.SymbolProfile.Currency.ShouldBe(valuableActivity.Price.Currency.Symbol);
+			result.SymbolProfile.Name.ShouldBe(valuableActivity.Description);
+			result.Comment.ShouldNotBeNull();
+			result.Date.ShouldBe(valuableActivity.Date);
+			result.Quantity.ShouldBe(1);
+			result.Type.ShouldBe(ActivityType.ITEM);
+			result.UnitPrice.ShouldBe(valuableActivity.Price.Amount);
+			result.ReferenceCode.ShouldBe(valuableActivity.TransactionId);
+			result.AccountId.ShouldBe(account.Id);
 		}
 
 		[Fact]
@@ -205,15 +205,15 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Currency.Should().Be(liabilityActivity.Price.Currency.Symbol);
-			result.SymbolProfile.Name.Should().Be(liabilityActivity.Description);
-			result.Comment.Should().NotBeNull();
-			result.Date.Should().Be(liabilityActivity.Date);
-			result.Quantity.Should().Be(1);
-			result.Type.Should().Be(ActivityType.LIABILITY);
-			result.UnitPrice.Should().Be(liabilityActivity.Price.Amount);
-			result.ReferenceCode.Should().Be(liabilityActivity.TransactionId);
-			result.AccountId.Should().Be(account.Id);
+			result!.SymbolProfile.Currency.ShouldBe(liabilityActivity.Price.Currency.Symbol);
+			result.SymbolProfile.Name.ShouldBe(liabilityActivity.Description);
+			result.Comment.ShouldNotBeNull();
+			result.Date.ShouldBe(liabilityActivity.Date);
+			result.Quantity.ShouldBe(1);
+			result.Type.ShouldBe(ActivityType.LIABILITY);
+			result.UnitPrice.ShouldBe(liabilityActivity.Price.Amount);
+			result.ReferenceCode.ShouldBe(liabilityActivity.TransactionId);
+			result.AccountId.ShouldBe(account.Id);
 		}
 
 		[Fact]

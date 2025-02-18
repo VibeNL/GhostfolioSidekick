@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.Model.Activities;
 
@@ -21,8 +21,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = ContractToModelMapper.MapPlatform(rawPlatform);
 
 			// Assert
-			result.Name.Should().Be("Test Platform");
-			result.Url.Should().Be("http://testplatform.com");
+			result.Name.ShouldBe("Test Platform");
+			result.Url.ShouldBe("http://testplatform.com");
 		}
 
 		[Fact]
@@ -48,12 +48,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = ContractToModelMapper.MapAccount(rawAccount, rawPlatform);
 
 			// Assert
-			result.Name.Should().Be("Test Account");
-			result.Comment.Should().Be("Test Comment");
-			result.Platform.Should().NotBeNull();
-			result.Platform!.Name.Should().Be("Test Platform");
-			result.Balance.Should().HaveCount(1);
-			result.Balance.First().Money.Amount.Should().Be(1000m);
+			result.Name.ShouldBe("Test Account");
+			result.Comment.ShouldBe("Test Comment");
+			result.Platform.ShouldNotBeNull();
+			result.Platform!.Name.ShouldBe("Test Platform");
+			result.Balance.ShouldHaveSingleItem();
+			result.Balance.First().Money.Amount.ShouldBe(1000m);
 		}
 
 		[Fact]
@@ -84,16 +84,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var result = ContractToModelMapper.MapSymbolProfile(rawSymbolProfile);
 
 			// Assert
-			result.Symbol.Should().Be("AAPL");
-			result.Name.Should().Be("Apple Inc.");
-			result.Currency.Symbol.Should().Be("USD");
-			result.DataSource.Should().Be("GHOSTFOLIO_Yahoo");
-			result.AssetClass.Should().Be(AssetClass.Equity);
-			result.AssetSubClass.Should().Be(AssetSubClass.Stock);
-			result.ISIN.Should().Be("US0378331005");
-			result.Comment.Should().Be("Test Comment");
-			result.CountryWeight.Should().HaveCount(1);
-			result.SectorWeights.Should().HaveCount(1);
+			result.Symbol.ShouldBe("AAPL");
+			result.Name.ShouldBe("Apple Inc.");
+			result.Currency.Symbol.ShouldBe("USD");
+			result.DataSource.ShouldBe("GHOSTFOLIO_Yahoo");
+			result.AssetClass.ShouldBe(AssetClass.Equity);
+			result.AssetSubClass.ShouldBe(AssetSubClass.Stock);
+			result.ISIN.ShouldBe("US0378331005");
+			result.Comment.ShouldBe("Test Comment");
+			result.CountryWeight.ShouldHaveSingleItem();
+			result.SectorWeights.ShouldHaveSingleItem();
 		}
 	}
 }

@@ -5,7 +5,7 @@ using GhostfolioSidekick.Model.Accounts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
+using Shouldly;
 using GhostfolioSidekick.Model;
 using Moq.EntityFrameworkCore;
 
@@ -33,13 +33,13 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		[Fact]
 		public void Priority_ShouldReturnAccountMaintainer()
 		{
-			accountMaintainerTask.Priority.Should().Be(TaskPriority.AccountMaintainer);
+			accountMaintainerTask.Priority.ShouldBe(TaskPriority.AccountMaintainer);
 		}
 
 		[Fact]
 		public void ExecutionFrequency_ShouldReturnOneHour()
 		{
-			accountMaintainerTask.ExecutionFrequency.Should().Be(TimeSpan.FromHours(1));
+			accountMaintainerTask.ExecutionFrequency.ShouldBe(TimeSpan.FromHours(1));
 		}
 
 		[Fact]
