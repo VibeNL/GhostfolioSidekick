@@ -158,6 +158,13 @@ namespace GhostfolioSidekick.UnitTests
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
+			loggerMock.Verify(logger => logger.Log(
+				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Information),
+				0,
+				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.StartsWith("Service TimedHostedService has stopped.")),
+				It.IsAny<Exception>(),
+				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+			Times.Once);
 		}
 	}
 }

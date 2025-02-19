@@ -81,6 +81,50 @@ namespace GhostfolioSidekick.UnitTests
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
 		}
 
+		[Fact]
+		public void DoWork_ShouldPrintUsedSettings_Correctly()
+		{
+			// Arrange
+			var settings = new ConfigurationInstance
+			{
+				Settings = new Settings
+				{
+					DataProviderPreference = "provider1",
+					DeleteUnusedSymbols = true
+				},
+				Mappings = [new Mapping { MappingType = MappingType.Symbol, Source = "source1", Target = "target1" }]
+			};
 
+			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(settings);
+			applicationSettingsMock.Setup(x => x.GhostfolioUrl).Returns("http://example.com");
+			applicationSettingsMock.Setup(x => x.FileImporterPath).Returns("some_path");
+			applicationSettingsMock.Setup(x => x.TrottleTimeout).Returns(TimeSpan.FromSeconds(30));
+
+			// Act
+			displayInformationTask.DoWork();
+
+			// Assert
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Information,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("GhostfolioUrl : http://example.com")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Information,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("FileImporterPath : some_path")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+			loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Information,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("TrottleTimeout : 00:00:30")),
+					It.IsAny<Exception>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+		}
 	}
 }
