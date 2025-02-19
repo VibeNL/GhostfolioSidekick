@@ -36,15 +36,6 @@ namespace ScraperUtilities.ScalableCapital
 			{ // ignore
 			}
 
-			// Select Portfolio
-			var menuItem = page
-					.GetByTestId("sidebar-drawer-desktop")
-					.GetByText(arguments.Portfolio);
-			await menuItem.HighlightAsync();
-
-			await menuItem.GetByText("Broker")
-				.ClickAsync();
-
 			return new MainPage(page);
 		}
 	}

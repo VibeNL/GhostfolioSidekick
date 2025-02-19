@@ -48,7 +48,7 @@ namespace ScraperUtilities.ScalableCapital
 		private static async Task NavigateToTransaction(IPage page, int counter, ILocator transaction)
 		{
 			// Every XX transactions, reload the page to avoid memory leaks
-			if (counter % 25 == 0)
+			if (false) //counter % 25 == 0)
 			{
 				await page.ReloadAsync();
 				await SetExecutedOnly(page);
@@ -174,42 +174,7 @@ namespace ScraperUtilities.ScalableCapital
 				isBuy ||
 				isSell)
 			{
-				DateTime date = DateTime.MinValue;
-				var dateConfirmedTask = GetHistoryDate("Execution confirmed");
-				var dateRejectedTask = GetHistoryDate("Order rejected");
-				var dateCancelledTask = GetHistoryDate("Order cancelled");
-
-				var hasDate = false;
-				while (!hasDate)
-				{
-					if (dateConfirmedTask.IsCompletedSuccessfully)
-					{
-						date = dateConfirmedTask.Result;
-						hasDate = true;
-					}
-					else if (dateRejectedTask.IsCompletedSuccessfully)
-					{
-						// Order rejected
-						return null;
-					}
-					else if (dateCancelledTask.IsCompletedSuccessfully)
-					{
-						// Order cancelled
-						return null;
-					}
-					else if (
-						dateConfirmedTask.IsCompleted &&
-						dateRejectedTask.IsCompleted &&
-						dateCancelledTask.IsCompleted)
-					{
-						throw new FieldNotFoundException("Field \"Execution confirmed\" not found");
-					}
-					else
-					{
-						Thread.Sleep(100);
-					}
-				}
-
+				var date = await GetHistoryDate("Execution confirmed");
 				Money? fee = null;
 				if (!isSaving)
 				{
@@ -300,6 +265,11 @@ namespace ScraperUtilities.ScalableCapital
 			}
 
 			return (T)Convert.ChangeType(text, typeof(T));
+		}
+
+		internal async Task GoToMainPage()
+		{
+			await page.GetByText("Home").ClickAsync();
 		}
 	}
 }

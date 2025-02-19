@@ -18,22 +18,34 @@ namespace ScraperUtilities
 			var browser = await playWright.Chromium.LaunchAsync(
 				   new BrowserTypeLaunchOptions
 				   {
-					   Headless = false
+					   Headless = false,
 				   });
-			var page = await browser.NewPageAsync();
-
-			IEnumerable<ActivityWithSymbol> transactions = [];
-			switch (arguments.Broker)
+			var context = await browser.NewContextAsync(new BrowserNewContextOptions
 			{
-				case "ScalableCapital":
-					var scraper = new Scraper(page, arguments);
-					transactions = await scraper.ScrapeTransactions();
-					break;
-				default:
-					throw new ArgumentException("Invalid broker entered.");
-			}
+				RecordVideoDir = "C:\\Temp\\Videos"
+			});
+			try
+			{
+				var page = await context.NewPageAsync();
 
-			SaveToCSV(arguments.OutputFile, transactions);
+				IEnumerable<ActivityWithSymbol> transactions;
+				switch (arguments.Broker)
+				{
+					case "ScalableCapital":
+						var scraper = new Scraper(page, arguments);
+						transactions = await scraper.ScrapeTransactions();
+						break;
+					default:
+						throw new ArgumentException("Invalid broker entered.");
+				}
+
+				SaveToCSV(arguments.OutputFile, transactions);
+			}
+			finally
+			{
+				await context.CloseAsync();
+				await browser.CloseAsync();
+			}
 		}
 
 		private static void SaveToCSV(string outputFile, IEnumerable<ActivityWithSymbol> transactions)
