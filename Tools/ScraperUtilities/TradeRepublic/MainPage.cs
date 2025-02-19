@@ -1,6 +1,6 @@
 ﻿using Microsoft.Playwright;
 
-namespace ScraperUtilities.ScalableCapital
+namespace ScraperUtilities.TradeRepublic
 {
 	public class MainPage
 	{
@@ -13,10 +13,10 @@ namespace ScraperUtilities.ScalableCapital
 		
 		internal async Task<TransactionPage> GoToTransactions()
 		{
-			await page.GotoAsync("https://de.scalable.capital/broker/transactions");
+			await page.GotoAsync("https://app.traderepublic.com/profile/transactions");
 
 			// Wait for transactions to load
-			await page.WaitForSelectorAsync("button:text('Export CSV')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+			await page.WaitForSelectorAsync("button:text('Withdraw')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
 			return new TransactionPage(page);
 		}

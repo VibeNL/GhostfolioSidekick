@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers.Generic;
 using Microsoft.Playwright;
-using ScraperUtilities.ScalableCapital;
 using System.Globalization;
 
 namespace ScraperUtilities
@@ -13,7 +12,7 @@ namespace ScraperUtilities
 	{
 		static async Task Main(string[] args)
 		{
-			var arguments = CommandLineArguments.Parse(args);
+			var arguments = new CommandLineArguments(args);
 			var playWright = await Playwright.CreateAsync();
 			var browser = await playWright.Chromium.LaunchAsync(
 				   new BrowserTypeLaunchOptions
@@ -32,8 +31,16 @@ namespace ScraperUtilities
 				switch (arguments.Broker)
 				{
 					case "ScalableCapital":
-						var scraper = new Scraper(page, arguments);
-						transactions = await scraper.ScrapeTransactions();
+						{
+							var scraper = new ScalableCapital.Scraper(page, new ScalableCapital.CommandLineArguments(args));
+							transactions = await scraper.ScrapeTransactions();
+						}
+						break;
+					case "TradeRepublic":
+						{
+							var scraper = new TradeRepublic.Scraper(page, new TradeRepublic.CommandLineArguments(args));
+							transactions = await scraper.ScrapeTransactions();
+						}
 						break;
 					default:
 						throw new ArgumentException("Invalid broker entered.");
