@@ -19,10 +19,15 @@ namespace ScraperUtilities.TradeRepublic
 
 			try
 			{
+				// Select phone number
 				await page.GetByRole(AriaRole.Button, new() { Name = "+" }).ClickAsync();
 				await page.Locator($"#areaCode-\\{arguments.CountryCode}").ClickAsync();
 				await page.Locator("#loginPhoneNumber__input").FillAsync(arguments.PhoneNumber);
 				await page.ClickAsync("button[type='submit']");
+
+				// Set pin
+				await page.Keyboard.TypeAsync(arguments.PinCode);
+
 
 				// Wait for MFA
 				while (!await page.GetByTestId("greeting-text").IsVisibleAsync())
