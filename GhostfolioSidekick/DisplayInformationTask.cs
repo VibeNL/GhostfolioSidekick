@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
 using System.Text;
 
 namespace GhostfolioSidekick

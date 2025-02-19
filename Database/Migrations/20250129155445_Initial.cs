@@ -1,12 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace GhostfolioSidekick.Database.Migrations
 {
-    /// <inheritdoc />
-    public partial class Initial : Migration
+	/// <inheritdoc />
+	public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -27,6 +27,15 @@ namespace ScraperUtilities.ScalableCapital
 			{ // ignore
 			}
 
+			// Remove new Scalable banner
+			try
+			{
+				await page.ClickAsync("button:text('Start now')");
+			}
+			catch (Exception)
+			{ // ignore
+			}
+
 			return new MainPage(page);
 		}
 	}

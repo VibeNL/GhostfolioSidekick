@@ -1,7 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Activities.Strategies
 {

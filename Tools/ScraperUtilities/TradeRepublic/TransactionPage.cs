@@ -5,13 +5,12 @@ using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.Playwright;
 using System.Globalization;
 
-namespace ScraperUtilities.ScalableCapital
+namespace ScraperUtilities.TradeRepublic
 {
 	internal partial class TransactionPage(IPage page)
 	{
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
-			await SetExecutedOnly(page);
 			await ScrollDown(page);
 
 			var list = new List<ActivityWithSymbol>();
@@ -64,16 +63,6 @@ namespace ScraperUtilities.ScalableCapital
 			}
 		}
 
-		private static async Task SetExecutedOnly(IPage page)
-		{
-			// Select Executed Status only
-			await page.GetByRole(AriaRole.Button).GetByText("Status").ClickAsync();
-			await page.GetByTestId("EXECUTED").Locator("div").First.ClickAsync();
-
-			Thread.Sleep(1000);
-			await page.Mouse.ClickAsync(2, 2);
-		}
-
 		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
 		{
 			if (generatedTransaction is null)
@@ -110,7 +99,7 @@ namespace ScraperUtilities.ScalableCapital
 
 		private Task<IReadOnlyList<ILocator>> GetTransactions()
 		{
-			return page.Locator("div[role='list']").AllAsync();
+			return page.Locator("div[class='clickable timelineEventAction']").AllAsync();
 		}
 
 		private Task<int> GetTransacionsCount()
