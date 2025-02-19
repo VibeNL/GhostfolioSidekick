@@ -17,11 +17,19 @@ namespace ScraperUtilities
 			var browser = await playWright.Chromium.LaunchAsync(
 				   new BrowserTypeLaunchOptions
 				   {
-					   Headless = false,
+					   Headless = false,	
+					   Channel = "chrome"
 				   });
 			var context = await browser.NewContextAsync(new BrowserNewContextOptions
 			{
-				RecordVideoDir = "C:\\Temp\\Videos"
+				//RecordVideoDir = "C:\\Temp\\Videos",
+				ViewportSize = new ViewportSize
+				{
+					Width = 1920,
+					Height = 1080
+				},
+				Locale = "en-US",
+				TimezoneId = "Europe/Amsterdam"
 			});
 			try
 			{
