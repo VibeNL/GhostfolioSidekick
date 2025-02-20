@@ -3,7 +3,8 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers.Generic;
-using Microsoft.Playwright;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using ScraperUtilities.ScalableCapital;
 using System.Globalization;
 
@@ -14,26 +15,26 @@ namespace ScraperUtilities
 		static async Task Main(string[] args)
 		{
 			var arguments = CommandLineArguments.Parse(args);
-			var playWright = await Playwright.CreateAsync();
-			var browser = await playWright.Chromium.LaunchAsync(
-				   new BrowserTypeLaunchOptions
-				   {
-					   Headless = false
-				   });
-			var page = await browser.NewPageAsync();
+			var options = new ChromeOptions();
+			options.AddArgument("--headless");
+			options.AddArgument("--disable-gpu");
+			options.AddArgument("--no-sandbox");
 
-			IEnumerable<ActivityWithSymbol> transactions = [];
-			switch (arguments.Broker)
+			using (var driver = new ChromeDriver(options))
 			{
-				case "ScalableCapital":
-					var scraper = new Scraper(page, arguments);
-					transactions = await scraper.ScrapeTransactions();
-					break;
-				default:
-					throw new ArgumentException("Invalid broker entered.");
-			}
+				IEnumerable<ActivityWithSymbol> transactions = [];
+				switch (arguments.Broker)
+				{
+					case "ScalableCapital":
+						var scraper = new Scraper(driver, arguments);
+						transactions = await scraper.ScrapeTransactions();
+						break;
+					default:
+						throw new ArgumentException("Invalid broker entered.");
+				}
 
-			SaveToCSV(arguments.OutputFile, transactions);
+				SaveToCSV(arguments.OutputFile, transactions);
+			}
 		}
 
 		private static void SaveToCSV(string outputFile, IEnumerable<ActivityWithSymbol> transactions)
