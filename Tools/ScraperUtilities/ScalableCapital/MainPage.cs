@@ -1,24 +1,27 @@
-﻿using Microsoft.Playwright;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+using SeleniumExtras.WaitHelpers;
 
 namespace ScraperUtilities.ScalableCapital
 {
 	public class MainPage
 	{
-		private IPage page;
+		private IWebDriver driver;
 
-		public MainPage(IPage page)
+		public MainPage(IWebDriver driver)
 		{
-			this.page = page;
+			this.driver = driver;
 		}
 
 		internal async Task<TransactionPage> GoToTransactions()
 		{
-			await page.GotoAsync("https://de.scalable.capital/broker/transactions");
+			driver.Navigate().GoToUrl("https://de.scalable.capital/broker/transactions");
 
 			// Wait for transactions to load
-			await page.WaitForSelectorAsync("button:text('Export CSV')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+			var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+			wait.Until(ExpectedConditions.ElementIsVisible(By.CssSelector("button:text('Export CSV')")));
 
-			return new TransactionPage(page);
+			return new TransactionPage(driver);
 		}
 	}
 }

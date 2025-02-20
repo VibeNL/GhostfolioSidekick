@@ -2,30 +2,39 @@
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
-using Microsoft.Playwright;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 using System.Globalization;
 
 namespace ScraperUtilities.ScalableCapital
 {
-	internal partial class TransactionPage(IPage page)
+	internal partial class TransactionPage
 	{
+		private readonly IWebDriver driver;
+
+		public TransactionPage(IWebDriver driver)
+		{
+			this.driver = driver;
+		}
+
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
-			await SetExecutedOnly(page);
-			await ScrollDown(page);
+			await SetExecutedOnly();
+			await ScrollDown();
 
 			var list = new List<ActivityWithSymbol>();
 			int counter = 0;
-			foreach (var transaction in await GetTransactions())
+			foreach (var transaction in GetTransactions())
 			{
-				await NavigateToTransaction(page, counter, transaction);
+				await NavigateToTransaction(counter, transaction);
 
 				// Click on the transaction to open the details
-				await transaction.ScrollIntoViewIfNeededAsync();
-				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
+				((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", transaction);
+				transaction.Click();
 
 				// Wait for the transaction to load
-				await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+				var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+				wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//div[contains(text(), 'Overview')]")));
 
 				// Process transaction details
 				var generatedTransaction = await ProcessDetails();
@@ -37,7 +46,7 @@ namespace ScraperUtilities.ScalableCapital
 				}
 
 				// Press Close button to close the details
-				await page.GetByRole(AriaRole.Button).ClickAsync();
+				driver.FindElement(By.CssSelector("button[aria-label='Close']")).Click();
 
 				counter++;
 			}
@@ -45,36 +54,36 @@ namespace ScraperUtilities.ScalableCapital
 			return list;
 		}
 
-		private static async Task NavigateToTransaction(IPage page, int counter, ILocator transaction)
+		private async Task NavigateToTransaction(int counter, IWebElement transaction)
 		{
 			// Every XX transactions, reload the page to avoid memory leaks
 			if (counter % 25 == 0)
 			{
-				await page.ReloadAsync();
-				await SetExecutedOnly(page);
+				driver.Navigate().Refresh();
+				await SetExecutedOnly();
 
 				// if transaction is not visible, scroll down
 				// We need to do this manually due to lazy loading
-				while (!await transaction.IsVisibleAsync())
+				while (!transaction.Displayed)
 				{
-					await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
+					((IJavaScriptExecutor)driver).ExecuteScript("window.scrollTo(0, document.body.scrollHeight);");
 					Thread.Sleep(1000);
 				}
 			}
 		}
 
-		private async Task ScrollDown(IPage page)
+		private async Task ScrollDown()
 		{
 			// Scroll down the page to load all transactions
 			var isScrolling = true;
 			var lastUpdate = DateTime.Now;
 			while (isScrolling)
 			{
-				var cnt = await GetTransacionsCount();
-				await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
+				var cnt = GetTransacionsCount();
+				((IJavaScriptExecutor)driver).ExecuteScript("window.scrollTo(0, document.body.scrollHeight);");
 				Thread.Sleep(1000);
 
-				var newCnt = await GetTransacionsCount();
+				var newCnt = GetTransacionsCount();
 				if (newCnt != cnt)
 				{
 					lastUpdate = DateTime.Now;
@@ -84,14 +93,14 @@ namespace ScraperUtilities.ScalableCapital
 			}
 		}
 
-		private static async Task SetExecutedOnly(IPage page)
+		private async Task SetExecutedOnly()
 		{
 			// Select Executed Status only
-			await page.GetByRole(AriaRole.Button).GetByText("Status").ClickAsync();
-			await page.GetByTestId("EXECUTED").Locator("div").First.ClickAsync();
+			driver.FindElement(By.XPath("//button[contains(text(), 'Status')]")).Click();
+			driver.FindElement(By.CssSelector("[data-testid='EXECUTED'] div")).Click();
 
 			Thread.Sleep(1000);
-			await page.Mouse.ClickAsync(2, 2);
+			driver.FindElement(By.CssSelector("body")).Click();
 		}
 
 		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
@@ -109,9 +118,9 @@ namespace ScraperUtilities.ScalableCapital
 				};
 			}
 
-			var link = page.Locator("[href*=\"/broker/security?\"]").First;
-			var name = await link.InnerTextAsync();
-			var url = await link.GetAttributeAsync("href");
+			var link = driver.FindElement(By.CssSelector("[href*=\"/broker/security?\"]"));
+			var name = link.Text;
+			var url = link.GetAttribute("href");
 			if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(name))
 			{
 				return null;
@@ -128,21 +137,21 @@ namespace ScraperUtilities.ScalableCapital
 			};
 		}
 
-		private Task<IReadOnlyList<ILocator>> GetTransactions()
+		private IReadOnlyList<IWebElement> GetTransactions()
 		{
-			return page.Locator("div[role='list']").AllAsync();
+			return driver.FindElements(By.CssSelector("div[role='list']"));
 		}
 
-		private Task<int> GetTransacionsCount()
+		private int GetTransacionsCount()
 		{
 			// Count number of divs with role list
-			return page.Locator("div[role='list']").CountAsync();
+			return driver.FindElements(By.CssSelector("div[role='list']")).Count;
 		}
 
 		private async Task<Activity?> ProcessDetails()
 		{
 			// If is Deposit or Withdrawal
-			if (await page.GetByTestId("icon-DEPOSIT").IsVisibleAsync())
+			if (driver.FindElement(By.CssSelector("[data-testid='icon-DEPOSIT']")).Displayed)
 			{
 				var dateDeposit = await GetHistoryDate("Deposit settled");
 
@@ -154,7 +163,7 @@ namespace ScraperUtilities.ScalableCapital
 				};
 			}
 
-			if (await page.GetByTestId("icon-WITHDRAWAL").IsVisibleAsync())
+			if (driver.FindElement(By.CssSelector("[data-testid='icon-WITHDRAWAL']")).Displayed)
 			{
 				var dateWithdrawal = await GetHistoryDate("Withdrawal settled");
 
@@ -167,9 +176,9 @@ namespace ScraperUtilities.ScalableCapital
 			}
 
 			// If is Buy or Sell
-			var isSaving = await page.GetByTestId("icon-SAVINGS_PLAN").IsVisibleAsync();
-			bool isBuy = await page.GetByTestId("icon-BUY").IsVisibleAsync();
-			bool isSell = await page.GetByTestId("icon-SELL").IsVisibleAsync();
+			var isSaving = driver.FindElement(By.CssSelector("[data-testid='icon-SAVINGS_PLAN']")).Displayed;
+			bool isBuy = driver.FindElement(By.CssSelector("[data-testid='icon-BUY']")).Displayed;
+			bool isSell = driver.FindElement(By.CssSelector("[data-testid='icon-SELL']")).Displayed;
 			if (isSaving ||
 				isBuy ||
 				isSell)
@@ -228,7 +237,7 @@ namespace ScraperUtilities.ScalableCapital
 			}
 
 			// If is Distribution
-			if (await page.GetByTestId("icon-DIVIDEND").IsVisibleAsync())
+			if (driver.FindElement(By.CssSelector("[data-testid='icon-DIVIDEND']")).Displayed)
 			{
 				return new DividendActivity
 				{
@@ -246,17 +255,12 @@ namespace ScraperUtilities.ScalableCapital
 			try
 			{
 				// find the div with the first child containing the text History
-				var historyNode = page.Locator("div").GetByText("History").First;
-				//await historyNode.HoverAsync();
-				var parentHistoryNode = historyNode.Locator("..");
-				//await parentHistoryNode.HoverAsync();
-				var nodeFromDescription = parentHistoryNode.Locator("div").GetByText(description).First;
-				//await nodeFromDescription.HoverAsync();
-				var parent = nodeFromDescription.Locator("..");
-				//await parent.HoverAsync();
-				var dateNode = parent.Locator("div").Nth(1);
-				//await dateNode.HoverAsync();
-				var text = await dateNode.InnerTextAsync();
+				var historyNode = driver.FindElement(By.XPath("//div[contains(text(), 'History')]"));
+				var parentHistoryNode = historyNode.FindElement(By.XPath(".."));
+				var nodeFromDescription = parentHistoryNode.FindElement(By.XPath($"//div[contains(text(), '{description}')]"));
+				var parent = nodeFromDescription.FindElement(By.XPath(".."));
+				var dateNode = parent.FindElement(By.XPath("div[2]"));
+				var text = dateNode.Text;
 
 				if (DateTime.TryParseExact(text!, "dd MMM yyyy, HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime dateTime))
 				{
@@ -283,16 +287,10 @@ namespace ScraperUtilities.ScalableCapital
 
 		private async Task<T> GetField<T>(string description)
 		{
-			var container = page
-					.GetByTestId("container")
-					.Locator("div")
-					.GetByText(description)
-					.Locator("..")
-					.First;
+			var container = driver.FindElement(By.XPath($"//div[contains(text(), '{description}')]/.."));
+			var divs = container.FindElements(By.TagName("div"));
 
-			var divs = await container.Locator("div").AllAsync();
-
-			var text = await divs[1].InnerTextAsync();
+			var text = divs[1].Text;
 			if (typeof(T) == typeof(decimal))
 			{
 				text = text.Replace("€", "").Trim();

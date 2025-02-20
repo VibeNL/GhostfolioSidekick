@@ -1,33 +1,45 @@
-﻿using Microsoft.Playwright;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+using SeleniumExtras.WaitHelpers;
 
 namespace ScraperUtilities.ScalableCapital
 {
-	public class Login(IPage page, CommandLineArguments arguments)
+	public class Login
 	{
+		private readonly IWebDriver driver;
+		private readonly CommandLineArguments arguments;
+
+		public Login(IWebDriver driver, CommandLineArguments arguments)
+		{
+			this.driver = driver;
+			this.arguments = arguments;
+		}
+
 		public async Task<MainPage> LoginAsync()
 		{
-			await page.GotoAsync("https://de.scalable.capital/en/secure-login");
-			await page.Locator("#username").FillAsync(arguments.Username);
-			await page.Locator("#password").FillAsync(arguments.Password);
+			driver.Navigate().GoToUrl("https://de.scalable.capital/en/secure-login");
 
-			await page.ClickAsync("button[type='submit']");
+			var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+			wait.Until(ExpectedConditions.ElementIsVisible(By.Id("username"))).SendKeys(arguments.Username);
+			driver.FindElement(By.Id("password")).SendKeys(arguments.Password);
+			driver.FindElement(By.CssSelector("button[type='submit']")).Click();
 
 			// Wait for MFA
-			while (!await page.GetByTestId("greeting-text").IsVisibleAsync())
+			while (!driver.FindElement(By.CssSelector("[data-testid='greeting-text']")).Displayed)
 			{
-				Thread.Sleep(1000);
+				await Task.Delay(1000);
 			}
 
 			// Remove cookie banner
 			try
 			{
-				await page.GetByTestId("uc-accept-all-button").ClickAsync();
+				driver.FindElement(By.CssSelector("[data-testid='uc-accept-all-button']")).Click();
 			}
-			catch (Exception)
+			catch (NoSuchElementException)
 			{ // ignore
 			}
 
-			return new MainPage(page);
+			return new MainPage(driver);
 		}
 	}
 }
