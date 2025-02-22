@@ -6,6 +6,7 @@ namespace ScraperUtilities.TradeRepublic
 	{
 		public async Task<MainPage> LoginAsync()
 		{
+			await page.GotoAsync("https://traderepublic.com/nl-nl");
 			await page.GotoAsync("https://app.traderepublic.com/login");
 
 			// Remove cookie banner
