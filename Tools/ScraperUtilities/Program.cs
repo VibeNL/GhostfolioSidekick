@@ -18,8 +18,8 @@ namespace ScraperUtilities
 				   new BrowserTypeLaunchOptions
 				   {
 					   Headless = false,	
-					   Channel = "chrome",
-					   ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
+					   //Channel = "chrome",
+					   //ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
 				   });
 			var context = await browser.NewContextAsync(new BrowserNewContextOptions
 			{
@@ -67,11 +67,9 @@ namespace ScraperUtilities
 
 		private static void SaveToCSV(string outputFile, IEnumerable<ActivityWithSymbol> transactions)
 		{
-			using (var writer = new StreamWriter(outputFile))
-			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-			{
-				csv.WriteRecords(transactions.Select(Transform));
-			}
+			using var writer = new StreamWriter(outputFile);
+			using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+			csv.WriteRecords(transactions.Select(Transform).OrderBy(x => x.Date));
 		}
 
 		private static GenericRecord Transform(ActivityWithSymbol activity)
