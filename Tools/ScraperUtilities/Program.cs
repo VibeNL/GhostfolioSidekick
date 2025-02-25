@@ -14,28 +14,33 @@ namespace ScraperUtilities
 		{
 			var arguments = new CommandLineArguments(args);
 			var playWright = await Playwright.CreateAsync();
-			var browser = await playWright.Chromium.LaunchAsync(
-				   new BrowserTypeLaunchOptions
-				   {
-					   Headless = false,	
-					   //Channel = "chrome",
-					   //ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
-				   });
-			var context = await browser.NewContextAsync(new BrowserNewContextOptions
-			{
-				RecordVideoDir = "C:\\Temp\\Videos",
-				ViewportSize = new ViewportSize
-				{
-					Width = 1920,
-					Height = 1080
-				},
-				Locale = "en-US",
-				TimezoneId = "Europe/Amsterdam",
-				
-			});
+			//var browser = await playWright.Chromium.LaunchAsync(
+			//	   new BrowserTypeLaunchOptions
+			//	   {
+			//		   Headless = false,	
+			//		   //Channel = "chrome",
+			//		   //ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
+			//	   });
+			//var context = await browser.NewContextAsync(new BrowserNewContextOptions
+			//{
+			//	RecordVideoDir = "C:\\Temp\\Videos",
+			//	ViewportSize = new ViewportSize
+			//	{
+			//		Width = 1920,
+			//		Height = 1080
+			//	},
+			//	Locale = "en-US",
+			//	TimezoneId = "Europe/Amsterdam",
+
+			//});
+
+			var browser = await playWright.Chromium.ConnectOverCDPAsync("http://localhost:9222");
+			var defaultContext = browser.Contexts[0];
+
 			try
 			{
-				var page = await context.NewPageAsync();
+				//var page = await context.NewPageAsync();
+				var page = defaultContext.Pages[0];
 
 				IEnumerable<ActivityWithSymbol> transactions;
 				switch (arguments.Broker)
@@ -60,7 +65,7 @@ namespace ScraperUtilities
 			}
 			finally
 			{
-				await context.CloseAsync();
+				await defaultContext.CloseAsync();
 				await browser.CloseAsync();
 			}
 		}

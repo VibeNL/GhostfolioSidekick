@@ -16,7 +16,7 @@ namespace ScraperUtilities.TradeRepublic
 			await page.GotoAsync("https://app.traderepublic.com/profile/transactions");
 
 			// Wait for transactions to load
-			await page.WaitForSelectorAsync("button:text('Withdraw')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+            await page.WaitForSelectorAsync("span:text('Withdraw')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
 			return new TransactionPage(page);
 		}
