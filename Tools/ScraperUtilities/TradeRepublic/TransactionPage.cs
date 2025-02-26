@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Playwright;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -10,7 +9,7 @@ namespace ScraperUtilities.TradeRepublic
 {
 	internal partial class TransactionPage(IPage page)
 	{
-		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
+		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles)
 		{
 			await ScrollDown(page);
 
@@ -28,12 +27,10 @@ namespace ScraperUtilities.TradeRepublic
 				await page.WaitForSelectorAsync("h3:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
 				// Process transaction details
-				var generatedTransaction = await ProcessDetails();
-				var symbol = await AddSymbol(generatedTransaction);
-
-				if (symbol != null)
+				var generatedTransaction = await ProcessDetails(knownProfiles);
+				if (generatedTransaction != null)
 				{
-					list.Add(symbol);
+					list.Add(generatedTransaction);
 				}
 
 				// Press Close button to close the details
@@ -67,40 +64,6 @@ namespace ScraperUtilities.TradeRepublic
 			}
 		}
 
-		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
-		{
-			if (generatedTransaction is null)
-			{
-				return null;
-			}
-
-			if (generatedTransaction is CashDepositWithdrawalActivity)
-			{
-				return new ActivityWithSymbol
-				{
-					Activity = generatedTransaction,
-				};
-			}
-
-			var link = page.Locator("[href*=\"/broker/security?\"]").First;
-			var name = await link.InnerTextAsync();
-			var url = await link.GetAttributeAsync("href");
-			if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(name))
-			{
-				return null;
-			}
-
-			var isin = url.Split(
-				["isin=", "&"],
-				StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
-			return new ActivityWithSymbol
-			{
-				Activity = generatedTransaction,
-				Symbol = isin,
-				symbolName = name
-			};
-		}
-
 		private Task<IReadOnlyList<ILocator>> GetTransactions()
 		{
 			return page.Locator("li[class='timeline__entry']").AllAsync();
@@ -112,7 +75,7 @@ namespace ScraperUtilities.TradeRepublic
 			return page.Locator("li[class='timeline__entry']").CountAsync();
 		}
 
-		private async Task<Activity?> ProcessDetails()
+		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles)
 		{
 			var table = await ParseTable(0);
 			var status = table.FirstOrDefault(x => x.Item1 == "Status").Item2;
@@ -130,48 +93,86 @@ namespace ScraperUtilities.TradeRepublic
 
 			// Find the p with clas detailHeader__subheading -time
 			var time = await page.Locator("p[class='detailHeader__subheading -time']").First.InnerHTMLAsync();
-			var parsedTime = DateTime.ParseExact(time.Replace(" at", string.Empty), "dd MMMM HH:mm", CultureInfo.InvariantCulture);
+			string dateString = time.Replace(" at", string.Empty);
+
+			if (!DateTime.TryParseExact(dateString, "dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedTime) && 
+				!DateTime.TryParseExact(dateString, "dd MMMM HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime))
+			{
+				// TODO logging
+				return null;
+			}
 
 			// Depending on the text in the header, we can determine the type of transaction
-			if (headerText.Contains("You received"))
+			if (headerText.Contains("You received") || headerText.Contains("You added"))
 			{
+				var @event = table.FirstOrDefault(x => x.Item1 == "Event").Item2;
+
+				if (@event == "Dividend")
+				{
+					return new ActivityWithSymbol
+					{
+						Activity = new DividendActivity
+						{
+							Amount = await ParseMoneyFromHeader(headerText),
+							Date = parsedTime,
+							TransactionId = GenerateTransactionId(time, table),
+							Description = headerText,
+						}
+					};
+				}
+
 				var annualRate = table.FirstOrDefault(x => x.Item1 == "Annual rate").Item2;
 				if (annualRate != null)
 				{
-					return new InterestActivity
+					return new ActivityWithSymbol
+					{
+						Activity = new InterestActivity
+						{
+							Amount = await ParseMoneyFromHeader(headerText),
+							Date = parsedTime,
+							TransactionId = GenerateTransactionId(time, table),
+							Description = headerText,
+						}
+					};
+				}
+
+				return new ActivityWithSymbol
+				{
+					Activity = new CashDepositWithdrawalActivity
 					{
 						Amount = await ParseMoneyFromHeader(headerText),
 						Date = parsedTime,
 						TransactionId = GenerateTransactionId(time, table),
-					};
-				}
-
-				return new CashDepositWithdrawalActivity
-				{
-					Amount = await ParseMoneyFromHeader(headerText),
-					Date = parsedTime,
-					TransactionId = GenerateTransactionId(time, table),
+						Description = headerText,
+					}
 				};
 			}
 
 			if (headerText.Contains("You sent") || headerText.Contains("You spent"))
 			{
-				return new CashDepositWithdrawalActivity
+				return new ActivityWithSymbol
 				{
-					Amount = (await ParseMoneyFromHeader(headerText)).Times(-1),
-					Date = parsedTime,
-					TransactionId = GenerateTransactionId(time, table),
+					Activity = new CashDepositWithdrawalActivity
+					{
+						Amount = (await ParseMoneyFromHeader(headerText)).Times(-1),
+						Date = parsedTime,
+						TransactionId = GenerateTransactionId(time, table),
+						Description = headerText,
+					}
 				};
 			}
 
-			if (headerText.Contains("You invested"))
+			var rewards = headerText.Contains("Your reward of");
+			var saving = headerText.Contains("You saved");
+			if (headerText.Contains("You invested") || saving || rewards)
 			{
-				var transactionTable = await ParseTable(1);
+				var transactionTable = await ParseTable(saving ? 2 : 1);
 				var quantity = transactionTable.FirstOrDefault(x => x.Item1 == "Shares").Item2;
 				var unitPrice = transactionTable.FirstOrDefault(x => x.Item1 == "Share price").Item2;
 				var fee = transactionTable.FirstOrDefault(x => x.Item1 == "Fee").Item2;
 				var total = transactionTable.FirstOrDefault(x => x.Item1 == "Total").Item2;
 				var orderType = table.FirstOrDefault(x => x.Item1 == "Order Type").Item2;
+				var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
 
 				var fees = new List<Money>();
 				if (fee != "Free")
@@ -179,15 +180,47 @@ namespace ScraperUtilities.TradeRepublic
 					fees.Add(new Money(Currency.EUR, ParseMoney(fee)));
 				}
 
-				return new BuySellActivity
+				var symbol = knownProfiles
+					.FirstOrDefault(x => x.ISIN == asset || x.Name == asset);
+
+				if (symbol == null)
 				{
-					Quantity = ParseMoney(quantity),
-					UnitPrice = new Money(Currency.EUR, ParseMoney(unitPrice)),
-					Date = parsedTime,
-					TransactionId = GenerateTransactionId(time, table),
+					// TODO logging
+					return null;
+				}
+
+				if (rewards)
+				{
+					return new ActivityWithSymbol
+					{
+						Activity = new GiftAssetActivity
+						{
+							Quantity = ParseMoney(quantity),
+							UnitPrice = new Money(Currency.EUR, ParseMoney(unitPrice)),
+							Date = parsedTime,
+							TransactionId = GenerateTransactionId(time, table),
+							Description = headerText,
+						},
+						Symbol = symbol.ISIN,
+						symbolName = symbol.Name,
+					};
+				}
+
+				return new ActivityWithSymbol
+				{
+					Activity = new BuySellActivity
+					{
+						Quantity = ParseMoney(quantity),
+						UnitPrice = new Money(Currency.EUR, ParseMoney(unitPrice)),
+						Date = parsedTime,
+						TransactionId = GenerateTransactionId(time, table),
+						TotalTransactionAmount = new Money(Currency.EUR, ParseMoney(total)),
+						Description = headerText,
+					},
+					Symbol = symbol.ISIN,
+					symbolName = symbol.Name,
 				};
 			}
-
 
 			return null;
 		}
@@ -195,16 +228,37 @@ namespace ScraperUtilities.TradeRepublic
 		private decimal ParseMoney(string money)
 		{
 			// Parse the value from strings like '€1,105.00'
-			return decimal.Parse(money.Replace("€",string.Empty), NumberStyles.Currency, CultureInfo.InvariantCulture);
+			return decimal.Parse(money.Replace("€", string.Empty), NumberStyles.Currency, CultureInfo.InvariantCulture);
 		}
 
-		private async Task<Money> ParseMoneyFromHeader(string headerText)
+		private static async Task<Money> ParseMoneyFromHeader(string headerText)
 		{
 			// Parse the value from strings like 'You received €1,105.00'
-			var amount = headerText.Split("€")[1].Trim();
-			return new Money(
-				Currency.EUR,
-				decimal.Parse(amount, NumberStyles.Currency, CultureInfo.InvariantCulture));
+			// Or 'You added €5.00 via Direct Debit'
+			var euroPattern = new Regex(@"€\s?([\d,\.]+)");
+			
+			// Parse the value from strings like 'You received 74.17 EUR'
+			var eurPattern = new Regex(@"([\d,\.]+)\s*EUR");
+
+			var euroMatch = euroPattern.Match(headerText);
+			if (euroMatch.Success)
+			{
+				var amount = euroMatch.Groups[1].Value;
+				return new Money(
+					Currency.EUR,
+					decimal.Parse(amount, NumberStyles.Currency, CultureInfo.InvariantCulture));
+			}
+
+			var eurMatch = eurPattern.Match(headerText);
+			if (eurMatch.Success)
+			{
+				var amount = eurMatch.Groups[1].Value;
+				return new Money(
+					Currency.EUR,
+					decimal.Parse(amount, NumberStyles.Currency, CultureInfo.InvariantCulture));
+			}
+
+			return new Money();
 		}
 		private string GenerateTransactionId(string time, List<(string, string)> table)
 		{

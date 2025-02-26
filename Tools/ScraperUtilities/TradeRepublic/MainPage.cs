@@ -1,4 +1,5 @@
-﻿using Microsoft.Playwright;
+﻿using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Playwright;
 
 namespace ScraperUtilities.TradeRepublic
 {
@@ -30,6 +31,29 @@ namespace ScraperUtilities.TradeRepublic
 		internal async Task SwitchToAccount(ILocator account)
 		{
 			await account.ClickAsync();
+		}
+
+		internal async Task<ICollection<SymbolProfile>> ScrapeSymbols()
+		{
+			await page.GotoAsync("https://app.traderepublic.com/portfolio");
+			var returnList = new List<SymbolProfile>();
+
+			while (returnList.Count == 0)
+			{
+				var symbolList = page.Locator("ul[class='portfolioInstrumentList']").First;
+
+				var symbols = await symbolList.Locator("li").AllAsync();
+
+
+				foreach (var symbol in symbols)
+				{
+					var isin = await symbol.GetAttributeAsync("id");
+					var name = await symbol.Locator("span[class='instrumentListItem__name']").TextContentAsync();
+					returnList.Add(new SymbolProfile { ISIN = isin, Name = name });
+				}
+			}
+
+			return returnList;
 		}
 	}
 }

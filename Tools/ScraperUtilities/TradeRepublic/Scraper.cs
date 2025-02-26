@@ -19,8 +19,9 @@ namespace ScraperUtilities.TradeRepublic
 			var mainPage = await loginPage.LoginAsync();
 
 			var lst = new List<ActivityWithSymbol>();
+			var symbols = await mainPage.ScrapeSymbols();
 			var transactionPage = await mainPage.GoToTransactions();
-			var transactions = await transactionPage.ScrapeTransactions();
+			var transactions = await transactionPage.ScrapeTransactions(symbols);
 			lst.AddRange(transactions);
 			return lst;
 		}

@@ -14,7 +14,7 @@ namespace ScraperUtilities.TradeRepublic
                 await page.GetByRole(AriaRole.Button, new() { Name = "Accept All" }).ClickAsync();
             }
             catch (Exception)
-            { // ignore
+            { // ignore3129
             }
 
             try
