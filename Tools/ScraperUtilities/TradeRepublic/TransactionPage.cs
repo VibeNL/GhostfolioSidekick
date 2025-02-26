@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.Playwright;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace ScraperUtilities.TradeRepublic
 {
@@ -19,6 +20,8 @@ namespace ScraperUtilities.TradeRepublic
 			{
 				// Click on the transaction to open the details
 				await transaction.ScrollIntoViewIfNeededAsync();
+
+				var location = await transaction.BoundingBoxAsync();
 				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
 
 				// Wait for the transaction to load
@@ -34,11 +37,9 @@ namespace ScraperUtilities.TradeRepublic
 				}
 
 				// Press Close button to close the details
-                await page
-					.Locator("div[class='focusManager__content']")
-					.Locator("button[class='closeButton sideModal__close']")
-					.ClickAsync();
-
+				var closeButtons = await page.Locator("svg[class='closeIcon']").AllAsync();
+				await closeButtons.Skip(1).First().ClickAsync();
+				
 				counter++;
 			}
 
@@ -116,7 +117,9 @@ namespace ScraperUtilities.TradeRepublic
 			var table = await ParseTable();
 			var status = table.FirstOrDefault(x => x.Item1 == "Status").Item2;
 
-			if (table.Count == 0 || status != "Completed")
+			var completedStatus = new string[] { "Completed",  "Executed", };
+
+			if (table.Count == 0 || !completedStatus.Contains(status))
 			{
 				return null;
 			}
@@ -156,6 +159,7 @@ namespace ScraperUtilities.TradeRepublic
 				var unitPrice = table.FirstOrDefault(x => x.Item1 == "Share pricee").Item2;
 				var fee = table.FirstOrDefault(x => x.Item1 == "Fee").Item2;
 				var total = table.FirstOrDefault(x => x.Item1 == "Total").Item2;
+				var orderType = table.FirstOrDefault(x => x.Item1 == "Order Type").Item2;
 
 				var fees = new List<Money>();
 				if (fee != "Free")
