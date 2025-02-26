@@ -39,7 +39,7 @@ namespace ScraperUtilities.TradeRepublic
 				// Press Close button to close the details
 				var closeButtons = await page.Locator("svg[class='closeIcon']").AllAsync();
 				await closeButtons.Skip(1).First().ClickAsync();
-				
+
 				counter++;
 			}
 
@@ -114,10 +114,10 @@ namespace ScraperUtilities.TradeRepublic
 
 		private async Task<Activity?> ProcessDetails()
 		{
-			var table = await ParseTable();
+			var table = await ParseTable(0);
 			var status = table.FirstOrDefault(x => x.Item1 == "Status").Item2;
 
-			var completedStatus = new string[] { "Completed",  "Executed", };
+			var completedStatus = new string[] { "Completed", "Executed", };
 
 			if (table.Count == 0 || !completedStatus.Contains(status))
 			{
@@ -135,6 +135,17 @@ namespace ScraperUtilities.TradeRepublic
 			// Depending on the text in the header, we can determine the type of transaction
 			if (headerText.Contains("You received"))
 			{
+				var annualRate = table.FirstOrDefault(x => x.Item1 == "Annual rate").Item2;
+				if (annualRate != null)
+				{
+					return new InterestActivity
+					{
+						Amount = await ParseMoneyFromHeader(headerText),
+						Date = parsedTime,
+						TransactionId = GenerateTransactionId(time, table),
+					};
+				}
+
 				return new CashDepositWithdrawalActivity
 				{
 					Amount = await ParseMoneyFromHeader(headerText),
@@ -155,10 +166,11 @@ namespace ScraperUtilities.TradeRepublic
 
 			if (headerText.Contains("You invested"))
 			{
-				var quantity = table.FirstOrDefault(x => x.Item1 == "Shares").Item2;
-				var unitPrice = table.FirstOrDefault(x => x.Item1 == "Share pricee").Item2;
-				var fee = table.FirstOrDefault(x => x.Item1 == "Fee").Item2;
-				var total = table.FirstOrDefault(x => x.Item1 == "Total").Item2;
+				var transactionTable = await ParseTable(1);
+				var quantity = transactionTable.FirstOrDefault(x => x.Item1 == "Shares").Item2;
+				var unitPrice = transactionTable.FirstOrDefault(x => x.Item1 == "Share price").Item2;
+				var fee = transactionTable.FirstOrDefault(x => x.Item1 == "Fee").Item2;
+				var total = transactionTable.FirstOrDefault(x => x.Item1 == "Total").Item2;
 				var orderType = table.FirstOrDefault(x => x.Item1 == "Order Type").Item2;
 
 				var fees = new List<Money>();
@@ -182,7 +194,8 @@ namespace ScraperUtilities.TradeRepublic
 
 		private decimal ParseMoney(string money)
 		{
-			return decimal.Parse(money, NumberStyles.Currency, CultureInfo.InvariantCulture);
+			// Parse the value from strings like '€1,105.00'
+			return decimal.Parse(money.Replace("€",string.Empty), NumberStyles.Currency, CultureInfo.InvariantCulture);
 		}
 
 		private async Task<Money> ParseMoneyFromHeader(string headerText)
@@ -198,22 +211,24 @@ namespace ScraperUtilities.TradeRepublic
 			return time + string.Join("|", table.Select(x => x.Item2));
 		}
 
-		private async Task<List<(string, string)>> ParseTable()
+		private async Task<List<(string, string)>> ParseTable(int number)
 		{
 			// Find div with class detailTable
-			var detailTable = page.Locator("div[class='detailTable']").First;
+			var detailTables = await page.Locator("div[class='detailTable']").AllAsync();
+			var detailTable = detailTables[number];
 
+			var list = new List<(string, string)>();
 			// Find all rows in the table
 			var rows = await detailTable.Locator("div[class='detailTable__row']").AllAsync();
 
 			// Each row contains a dt and dd element
-			var list = new List<(string, string)>();
 			foreach (var row in rows)
 			{
 				var dt = await row.Locator("dt").First.InnerTextAsync();
 				var dd = await row.Locator("dd").First.InnerTextAsync();
 				list.Add((dt, dd));
 			}
+
 
 			return list;
 		}
