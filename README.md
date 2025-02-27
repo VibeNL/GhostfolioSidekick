@@ -230,6 +230,18 @@ ghostfoliosidekick:
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
 |**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
 
+## Co-Pilot Reviews
+
+We have introduced a new workflow to enable co-pilot reviews for pull requests. This workflow is triggered on pull request events and requests reviews from the co-pilot team.
+
+### How it works
+
+1. When a pull request is opened or synchronized, the workflow is triggered.
+2. The workflow runs a job to request reviews from the co-pilot team.
+3. The co-pilot team reviews the pull request and provides feedback.
+
+This ensures that all pull requests are reviewed by the co-pilot team, maintaining the quality and consistency of the codebase.
+
 ## Contributing
 
 * Feel free to submit any issue or PR's you think necessary

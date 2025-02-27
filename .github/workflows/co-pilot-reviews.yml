@@ -1,0 +1,27 @@
+name: Co-Pilot Reviews
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  request-reviews:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Request reviews from co-pilot team
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const reviewers = ['co-pilot-team'];
+            const { data: pullRequest } = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            await github.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullRequest.number,
+              reviewers,
+            });
