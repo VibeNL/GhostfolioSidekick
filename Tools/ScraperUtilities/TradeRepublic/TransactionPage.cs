@@ -167,59 +167,69 @@ namespace ScraperUtilities.TradeRepublic
 			if (headerText.Contains("You invested") || saving || rewards)
 			{
 				var transactionTable = await ParseTable(saving ? 2 : 1);
-				var quantity = transactionTable.FirstOrDefault(x => x.Item1 == "Shares").Item2;
-				var unitPrice = transactionTable.FirstOrDefault(x => x.Item1 == "Share price").Item2;
+				var isBond = transactionTable.Any(x => x.Item1 == "Nominal");
+
 				var fee = transactionTable.FirstOrDefault(x => x.Item1 == "Fee").Item2;
 				var total = transactionTable.FirstOrDefault(x => x.Item1 == "Total").Item2;
 				var orderType = table.FirstOrDefault(x => x.Item1 == "Order Type").Item2;
-				var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
-
 				var fees = new List<Money>();
 				if (fee != "Free")
 				{
 					fees.Add(new Money(Currency.EUR, ParseMoney(fee)));
 				}
 
-				var symbol = knownProfiles
-					.FirstOrDefault(x => x.ISIN == asset || x.Name == asset);
-
-				if (symbol == null)
+				if (isBond)
 				{
-					// TODO logging
+					//	 TODO logging
 					return null;
 				}
-
-				if (rewards)
+				else
 				{
+					var quantity = transactionTable.FirstOrDefault(x => x.Item1 == "Shares").Item2;
+					var unitPrice = transactionTable.FirstOrDefault(x => x.Item1 == "Share price").Item2;
+					var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
+
+					var symbol = knownProfiles
+					.FirstOrDefault(x => x.ISIN == asset || x.Name == asset);
+
+					if (symbol == null)
+					{
+						// TODO logging
+						return null;
+					}
+
+					if (rewards)
+					{
+						return new ActivityWithSymbol
+						{
+							Activity = new GiftAssetActivity
+							{
+								Quantity = ParseMoney(quantity),
+								UnitPrice = new Money(Currency.EUR, ParseMoney(unitPrice)),
+								Date = parsedTime,
+								TransactionId = GenerateTransactionId(time, table),
+								Description = headerText,
+							},
+							Symbol = symbol.ISIN,
+							symbolName = symbol.Name,
+						};
+					}
+
 					return new ActivityWithSymbol
 					{
-						Activity = new GiftAssetActivity
+						Activity = new BuySellActivity
 						{
 							Quantity = ParseMoney(quantity),
 							UnitPrice = new Money(Currency.EUR, ParseMoney(unitPrice)),
 							Date = parsedTime,
 							TransactionId = GenerateTransactionId(time, table),
+							TotalTransactionAmount = new Money(Currency.EUR, ParseMoney(total)),
 							Description = headerText,
 						},
 						Symbol = symbol.ISIN,
 						symbolName = symbol.Name,
 					};
 				}
-
-				return new ActivityWithSymbol
-				{
-					Activity = new BuySellActivity
-					{
-						Quantity = ParseMoney(quantity),
-						UnitPrice = new Money(Currency.EUR, ParseMoney(unitPrice)),
-						Date = parsedTime,
-						TransactionId = GenerateTransactionId(time, table),
-						TotalTransactionAmount = new Money(Currency.EUR, ParseMoney(total)),
-						Description = headerText,
-					},
-					Symbol = symbol.ISIN,
-					symbolName = symbol.Name,
-				};
 			}
 
 			return null;

@@ -154,6 +154,51 @@ namespace ScraperUtilities
 				};
 			}
 
+			if (activity.Activity is GiftAssetActivity giftAsset)
+			{
+				return new GenericRecord
+				{
+					ActivityType = PartialActivityType.GiftAsset,
+					Symbol = activity.Symbol,
+					Date = giftAsset.Date,
+					Currency = giftAsset.UnitPrice.Currency.Symbol,
+					Quantity = giftAsset.Quantity,
+					UnitPrice = giftAsset.UnitPrice.Amount,
+					Fee = 0,
+					Tax = 0,
+				};
+			}
+
+			if (activity.Activity is GiftFiatActivity giftFiat)
+			{
+				return new GenericRecord
+				{
+					ActivityType = PartialActivityType.GiftAsset,
+					Symbol = activity.Symbol,
+					Date = giftFiat.Date,
+					Currency = giftFiat.Amount.Currency.Symbol,
+					Quantity = 1,
+					UnitPrice = giftFiat.Amount.Amount,
+					Fee = 0,
+					Tax = 0,
+				};
+			}
+
+			if (activity.Activity is InterestActivity interestActivity)
+			{
+				return new GenericRecord
+				{
+					ActivityType = PartialActivityType.Interest,
+					Symbol = activity.Symbol,
+					Date = interestActivity.Date,
+					Currency = interestActivity.Amount.Currency.Symbol,
+					Quantity = 1,
+					UnitPrice = interestActivity.Amount.Amount,
+					Fee = 0,
+					Tax = 0,
+				};
+			}
+
 			throw new ArgumentException("Invalid activity type.");
 		}
 
