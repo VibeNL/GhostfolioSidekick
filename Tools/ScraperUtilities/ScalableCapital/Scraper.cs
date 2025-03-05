@@ -17,9 +17,18 @@ namespace ScraperUtilities.ScalableCapital
         {
             var loginPage = new Login(page, arguments);
             var mainPage = await loginPage.LoginAsync();
-			var transactionPage = await mainPage.GoToTransactions();
-			var transactions = await transactionPage.ScrapeTransactions();
-			return transactions;
+
+			var lst = new List<ActivityWithSymbol>();
+			foreach (var account in (await mainPage.GetPortfolios()).Skip(1)) // BUG in SCALABLE IF NO TRANSACTIONS YET IN THE NEW PORTFOLIO
+			{
+				await mainPage.SwitchToAccount(account);
+				var transactionPage = await mainPage.GoToTransactions();
+				var transactions = await transactionPage.ScrapeTransactions();
+				await transactionPage.GoToMainPage();
+				lst.AddRange(transactions);
+			}
+
+			return lst;
 		}
     }
 }

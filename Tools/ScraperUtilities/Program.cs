@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers.Generic;
 using Microsoft.Playwright;
-using ScraperUtilities.ScalableCapital;
 using System.Globalization;
 
 namespace ScraperUtilities
@@ -13,36 +12,69 @@ namespace ScraperUtilities
 	{
 		static async Task Main(string[] args)
 		{
-			var arguments = CommandLineArguments.Parse(args);
+			var arguments = new CommandLineArguments(args);
 			var playWright = await Playwright.CreateAsync();
-			var browser = await playWright.Chromium.LaunchAsync(
-				   new BrowserTypeLaunchOptions
-				   {
-					   Headless = false
-				   });
-			var page = await browser.NewPageAsync();
+			//var browser = await playWright.Chromium.LaunchAsync(
+			//	   new BrowserTypeLaunchOptions
+			//	   {
+			//		   Headless = false,	
+			//		   //Channel = "chrome",
+			//		   //ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
+			//	   });
+			//var context = await browser.NewContextAsync(new BrowserNewContextOptions
+			//{
+			//	RecordVideoDir = "C:\\Temp\\Videos",
+			//	ViewportSize = new ViewportSize
+			//	{
+			//		Width = 1920,
+			//		Height = 1080
+			//	},
+			//	Locale = "en-US",
+			//	TimezoneId = "Europe/Amsterdam",
 
-			IEnumerable<ActivityWithSymbol> transactions = [];
-			switch (arguments.Broker)
+			//});
+
+			var browser = await playWright.Chromium.ConnectOverCDPAsync("http://localhost:9222");
+			var defaultContext = browser.Contexts[0];
+
+			try
 			{
-				case "ScalableCapital":
-					var scraper = new Scraper(page, arguments);
-					transactions = await scraper.ScrapeTransactions();
-					break;
-				default:
-					throw new ArgumentException("Invalid broker entered.");
-			}
+				//var page = await context.NewPageAsync();
+				var page = defaultContext.Pages[0];
 
-			SaveToCSV(arguments.OutputFile, transactions);
+				IEnumerable<ActivityWithSymbol> transactions;
+				switch (arguments.Broker)
+				{
+					case "ScalableCapital":
+						{
+							var scraper = new ScalableCapital.Scraper(page, new ScalableCapital.CommandLineArguments(args));
+							transactions = await scraper.ScrapeTransactions();
+						}
+						break;
+					case "TradeRepublic":
+						{
+							var scraper = new TradeRepublic.Scraper(page, new TradeRepublic.CommandLineArguments(args));
+							transactions = await scraper.ScrapeTransactions();
+						}
+						break;
+					default:
+						throw new ArgumentException("Invalid broker entered.");
+				}
+
+				SaveToCSV(arguments.OutputFile, transactions);
+			}
+			finally
+			{
+				await defaultContext.CloseAsync();
+				await browser.CloseAsync();
+			}
 		}
 
 		private static void SaveToCSV(string outputFile, IEnumerable<ActivityWithSymbol> transactions)
 		{
-			using (var writer = new StreamWriter(outputFile))
-			using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-			{
-				csv.WriteRecords(transactions.Select(Transform));
-			}
+			using var writer = new StreamWriter(outputFile);
+			using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+			csv.WriteRecords(transactions.Select(Transform).OrderBy(x => x.Date));
 		}
 
 		private static GenericRecord Transform(ActivityWithSymbol activity)
@@ -117,6 +149,51 @@ namespace ScraperUtilities
 					Currency = withdrawal.Amount.Currency.Symbol,
 					Quantity = 0,
 					UnitPrice = withdrawal.Amount.Amount,
+					Fee = 0,
+					Tax = 0,
+				};
+			}
+
+			if (activity.Activity is GiftAssetActivity giftAsset)
+			{
+				return new GenericRecord
+				{
+					ActivityType = PartialActivityType.GiftAsset,
+					Symbol = activity.Symbol,
+					Date = giftAsset.Date,
+					Currency = giftAsset.UnitPrice.Currency.Symbol,
+					Quantity = giftAsset.Quantity,
+					UnitPrice = giftAsset.UnitPrice.Amount,
+					Fee = 0,
+					Tax = 0,
+				};
+			}
+
+			if (activity.Activity is GiftFiatActivity giftFiat)
+			{
+				return new GenericRecord
+				{
+					ActivityType = PartialActivityType.GiftAsset,
+					Symbol = activity.Symbol,
+					Date = giftFiat.Date,
+					Currency = giftFiat.Amount.Currency.Symbol,
+					Quantity = 1,
+					UnitPrice = giftFiat.Amount.Amount,
+					Fee = 0,
+					Tax = 0,
+				};
+			}
+
+			if (activity.Activity is InterestActivity interestActivity)
+			{
+				return new GenericRecord
+				{
+					ActivityType = PartialActivityType.Interest,
+					Symbol = activity.Symbol,
+					Date = interestActivity.Date,
+					Currency = interestActivity.Amount.Currency.Symbol,
+					Quantity = 1,
+					UnitPrice = interestActivity.Amount.Amount,
 					Fee = 0,
 					Tax = 0,
 				};

@@ -1,5 +1,4 @@
 using AutoFixture;
-using AutoFixture.Kernel;
 using FluentAssertions;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
