@@ -109,6 +109,9 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			context.Activities.Should().Contain(newActivities[1]);
 			context.Activities.Should().Contain(existingActivities[1]);
 			context.Activities.Should().NotContain(existingActivities[0]);
+			context.Activities.Should().ContainEquivalentOf(newActivities[1]);
+			context.Activities.Should().ContainEquivalentOf(existingActivities[1]);
+			context.Activities.Should().NotContainEquivalentOf(existingActivities[0]);
 		}
 	}
 
