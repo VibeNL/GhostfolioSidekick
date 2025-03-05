@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database.UnitTests", "Datab
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScraperUtilities", "Tools\ScraperUtilities\ScraperUtilities.csproj", "{29331A9E-A888-423F-9589-4A53307A83BA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnonymisePDF.UnitTests", "Tools\AnonymisePDF.UnitTests\AnonymisePDF.UnitTests.csproj", "{AA1A1224-3E01-F044-894C-56A5D5440BA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,10 @@ Global
 		{29331A9E-A888-423F-9589-4A53307A83BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29331A9E-A888-423F-9589-4A53307A83BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29331A9E-A888-423F-9589-4A53307A83BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA1A1224-3E01-F044-894C-56A5D5440BA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA1A1224-3E01-F044-894C-56A5D5440BA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA1A1224-3E01-F044-894C-56A5D5440BA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA1A1224-3E01-F044-894C-56A5D5440BA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -132,6 +138,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED} = {CB44F65D-99C0-4C38-B22C-78CA601159FA}
 		{29331A9E-A888-423F-9589-4A53307A83BA} = {CB44F65D-99C0-4C38-B22C-78CA601159FA}
+		{AA1A1224-3E01-F044-894C-56A5D5440BA3} = {CB44F65D-99C0-4C38-B22C-78CA601159FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {919DDC85-9EE1-4F61-9504-CACAB4B3315C}

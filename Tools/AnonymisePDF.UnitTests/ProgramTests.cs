@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Tools.AnonymisePDF.UnitTests
 {
 	public class ProgramTests
 	{
-		[Fact(Skip ="TODO, Fix")]
+		[Fact]
 		public void Main_WhenCalledWithValidArguments_CallsPdfCleanerAutoSweepCleanUp()
 		{
 			// Arrange
