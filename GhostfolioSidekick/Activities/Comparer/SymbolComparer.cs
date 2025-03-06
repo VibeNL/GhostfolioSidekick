@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Activities.Comparer
 
 		private static string GetSymbolString(SymbolProfile x)
 		{
-			return string.Join("|", $"{x.Symbol}|{x.DataSource}|{x.AssetClass}|{x.AssetSubClass}|{x.Currency.Symbol}");
+			return string.Join("|", $"{x.Symbol}|{x.DataSource}|{x.AssetClass}|{x.AssetSubClass}|{x.Currency?.Symbol}");
 		}
 	}
 }

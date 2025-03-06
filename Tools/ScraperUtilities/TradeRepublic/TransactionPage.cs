@@ -245,10 +245,10 @@ namespace ScraperUtilities.TradeRepublic
 		{
 			// Parse the value from strings like 'You received €1,105.00'
 			// Or 'You added €5.00 via Direct Debit'
-			var euroPattern = new Regex(@"€\s?([\d,\.]+)");
+			var euroPattern = new Regex(@"€\s?([\d,\.]+)", RegexOptions.None, TimeSpan.FromSeconds(1));
 			
 			// Parse the value from strings like 'You received 74.17 EUR'
-			var eurPattern = new Regex(@"([\d,\.]+)\s*EUR");
+			var eurPattern = new Regex(@"([\d,\.]+)\s*EUR", RegexOptions.None, TimeSpan.FromSeconds(1));
 
 			var euroMatch = euroPattern.Match(headerText);
 			if (euroMatch.Success)
