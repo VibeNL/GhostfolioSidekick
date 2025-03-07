@@ -1,0 +1,63 @@
+@page "/assetpercentages"
+
+@using GhostfolioSidekick.Model.Symbols
+@using GhostfolioSidekick.Database
+@inject IDbContextFactory<DatabaseContext> DbContextFactory
+
+<h3>Asset Percentages</h3>
+
+@if (assetPercentages == null)
+{
+    <p>Loading...</p>
+}
+else if (!assetPercentages.Any())
+{
+    <p>No asset percentages found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var assetPercentage in assetPercentages)
+            {
+                <tr>
+                    <td>@assetPercentage.Symbol</td>
+                    <td>@assetPercentage.Name</td>
+                    <td>@assetPercentage.Percentage.ToString("P2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<AssetPercentage>? assetPercentages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var dbContext = await DbContextFactory.CreateDbContextAsync();
+        var totalValue = await dbContext.SymbolProfiles.SumAsync(x => x.Value);
+        assetPercentages = await dbContext.SymbolProfiles
+            .Select(x => new AssetPercentage
+            {
+                Symbol = x.Symbol,
+                Name = x.Name,
+                Percentage = x.Value / totalValue
+            })
+            .ToListAsync();
+    }
+
+    private class AssetPercentage
+    {
+        public string Symbol { get; set; } = default!;
+        public string Name { get; set; } = default!;
+        public decimal Percentage { get; set; }
+    }
+}

@@ -1,0 +1,50 @@
+@page "/transactions"
+
+@using GhostfolioSidekick.Model.Activities
+@using GhostfolioSidekick.Database
+@inject IDbContextFactory<DatabaseContext> DbContextFactory
+
+<h3>Transactions</h3>
+
+@if (transactions == null)
+{
+    <p>Loading...</p>
+}
+else if (!transactions.Any())
+{
+    <p>No transactions found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in transactions)
+            {
+                <tr>
+                    <td>@transaction.Date.ToShortDateString()</td>
+                    <td>@transaction.GetType().Name</td>
+                    <td>@transaction.Amount</td>
+                    <td>@transaction.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Activity>? transactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var dbContext = await DbContextFactory.CreateDbContextAsync();
+        transactions = await dbContext.Activities.ToListAsync();
+    }
+}

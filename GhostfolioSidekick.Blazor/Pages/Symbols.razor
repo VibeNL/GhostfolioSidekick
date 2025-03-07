@@ -1,0 +1,50 @@
+@page "/symbols"
+
+@using GhostfolioSidekick.Model.Symbols
+@using GhostfolioSidekick.Database
+@inject IDbContextFactory<DatabaseContext> DbContextFactory
+
+<h3>Symbols</h3>
+
+@if (symbols == null)
+{
+    <p>Loading...</p>
+}
+else if (!symbols.Any())
+{
+    <p>No symbols found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Asset Class</th>
+                <th>Currency</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var symbol in symbols)
+            {
+                <tr>
+                    <td>@symbol.Symbol</td>
+                    <td>@symbol.Name</td>
+                    <td>@symbol.AssetClass</td>
+                    <td>@symbol.Currency.Symbol</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<SymbolProfile>? symbols;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var dbContext = await DbContextFactory.CreateDbContextAsync();
+        symbols = await dbContext.SymbolProfiles.ToListAsync();
+    }
+}

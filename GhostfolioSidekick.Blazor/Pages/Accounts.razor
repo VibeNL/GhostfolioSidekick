@@ -1,0 +1,48 @@
+@page "/accounts"
+
+@using GhostfolioSidekick.Model.Accounts
+@using GhostfolioSidekick.Database
+@inject IDbContextFactory<DatabaseContext> DbContextFactory
+
+<h3>Accounts</h3>
+
+@if (accounts == null)
+{
+    <p>Loading...</p>
+}
+else if (!accounts.Any())
+{
+    <p>No accounts found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Comment</th>
+                <th>Platform</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in accounts)
+            {
+                <tr>
+                    <td>@account.Name</td>
+                    <td>@account.Comment</td>
+                    <td>@account.Platform?.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Account>? accounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var dbContext = await DbContextFactory.CreateDbContextAsync();
+        accounts = await dbContext.Accounts.Include(a => a.Platform).ToListAsync();
+    }
+}
