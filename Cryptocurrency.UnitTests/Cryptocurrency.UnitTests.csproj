@@ -29,7 +29,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.1" />
-		<PackageReference Include="AwesomeAssertions" Version="8.0.1" />
+		<PackageReference Include="AwesomeAssertions" Version="8.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.2" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
