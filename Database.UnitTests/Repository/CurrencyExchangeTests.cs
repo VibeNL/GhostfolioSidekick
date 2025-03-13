@@ -7,20 +7,35 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.EntityFrameworkCore;
+using Testcontainers.MsSql;
+using Testcontainers.Container.Abstractions.Hosting;
 
 namespace Database.UnitTests.Repository
 {
-	public class CurrencyExchangeTests
+	public class CurrencyExchangeTests : IAsyncLifetime
 	{
-		private readonly Mock<IDbContextFactory<DatabaseContext>> _dbContextFactoryMock;
-		private readonly Mock<ILogger<CurrencyExchange>> _loggerMock;
+		private readonly MsSqlContainer _msSqlContainer;
 		private readonly CurrencyExchange _currencyExchange;
 
 		public CurrencyExchangeTests()
 		{
-			_dbContextFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-			_loggerMock = new Mock<ILogger<CurrencyExchange>>();
-			_currencyExchange = new CurrencyExchange(_dbContextFactoryMock.Object, _loggerMock.Object);
+			_msSqlContainer = new ContainerBuilder<MsSqlContainer>()
+				.ConfigureDatabaseConfiguration("sa", "yourStrong(!)Password", "TestDb")
+				.Build();
+
+			var dbContextFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+			var loggerMock = new Mock<ILogger<CurrencyExchange>>();
+			_currencyExchange = new CurrencyExchange(dbContextFactoryMock.Object, loggerMock.Object);
+		}
+
+		public async Task InitializeAsync()
+		{
+			await _msSqlContainer.StartAsync();
+		}
+
+		public async Task DisposeAsync()
+		{
+			await _msSqlContainer.StopAsync();
 		}
 
 		[Fact]
