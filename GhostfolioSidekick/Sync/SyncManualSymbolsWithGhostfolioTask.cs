@@ -30,7 +30,8 @@ namespace GhostfolioSidekick.Sync
 
 			foreach (var profile in manualSymbolProfiles)
 			{
-				var list = CalculatePricesBasedOnActivityUnitPrice(databaseContext, profile);
+				var list = await CalculatePricesBasedOnActivityUnitPrice(databaseContext, profile);
+				await ghostfolioSync.SyncMarketData(profile, list);
 			}
 		}
 
@@ -43,6 +44,11 @@ namespace GhostfolioSidekick.Sync
 				.Where(x => x.Holding != null && x.Holding.SymbolProfiles.Contains(profile))
 				.OrderBy(x => x.Date)
 				.ToListAsync();
+
+			if (activities.Count == 0)
+			{
+				return new List<MarketData>();
+			}
 
 			var minDate = activities.Min(x => x.Date).Date;
 			var list = new List<MarketData>();

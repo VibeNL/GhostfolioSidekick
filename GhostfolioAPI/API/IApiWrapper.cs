@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
@@ -20,5 +21,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		Task SyncAllActivities(List<Activity> allActivities);
 
 		Task SyncSymbolProfiles(IEnumerable<SymbolProfile> manualSymbolProfiles);
+
+		Task SyncMarketData(SymbolProfile profile, ICollection<MarketData> list);
 	}
 }
