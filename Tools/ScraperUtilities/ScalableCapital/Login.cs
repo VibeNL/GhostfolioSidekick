@@ -1,14 +1,26 @@
 ﻿using Microsoft.Playwright;
+using Microsoft.Extensions.Logging;
 
 namespace ScraperUtilities.ScalableCapital
 {
-	public class Login(IPage page, CommandLineArguments arguments)
+	public class Login
 	{
+		private readonly IPage page;
+		private readonly CommandLineArguments arguments;
+		private readonly ILogger<Login> _logger;
+
+		public Login(IPage page, CommandLineArguments arguments, ILogger<Login> logger)
+		{
+			this.page = page;
+			this.arguments = arguments;
+			_logger = logger;
+		}
+
 		public async Task<MainPage> LoginAsync()
 		{
 			try
 			{
-				Console.WriteLine("Starting login process...");
+				_logger.LogInformation("Starting login process...");
 
 				await page.GotoAsync("https://de.scalable.capital/en/secure-login");
 				await page.Locator("#username").FillAsync(arguments.Username);
@@ -27,8 +39,9 @@ namespace ScraperUtilities.ScalableCapital
 				{
 					await page.GetByTestId("uc-accept-all-button").ClickAsync();
 				}
-				catch (Exception)
-				{ // ignore
+				catch (Exception ex)
+				{
+					_logger.LogWarning($"Cookie banner not found: {ex.Message}");
 				}
 
 				// Remove new Scalable banner
@@ -36,16 +49,17 @@ namespace ScraperUtilities.ScalableCapital
 				{
 					await page.ClickAsync("button:text('Start now')");
 				}
-				catch (Exception)
-				{ // ignore
+				catch (Exception ex)
+				{
+					_logger.LogWarning($"Scalable banner not found: {ex.Message}");
 				}
 
-				Console.WriteLine("Login process completed successfully.");
+				_logger.LogInformation("Login process completed successfully.");
 				return new MainPage(page);
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"An error occurred during the login process: {ex.Message}");
+				_logger.LogError($"An error occurred during the login process: {ex.Message}");
 				throw;
 			}
 		}

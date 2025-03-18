@@ -6,16 +6,18 @@ namespace ScraperUtilities.ScalableCapital
     {
         private readonly IPage page;
 		private readonly CommandLineArguments arguments;
+		private readonly ILogger<Scraper> _logger;
 
-		public Scraper(IPage page, CommandLineArguments arguments)
+		public Scraper(IPage page, CommandLineArguments arguments, ILogger<Scraper> logger)
         {
             this.page = page;
 			this.arguments = arguments;
+			_logger = logger;
 		}
 
         internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
         {
-            Console.WriteLine("Starting ScalableCapital scraping process...");
+            _logger.LogInformation("Starting ScalableCapital scraping process...");
 
             var loginPage = new Login(page, arguments);
             var mainPage = await loginPage.LoginAsync();
@@ -29,10 +31,10 @@ namespace ScraperUtilities.ScalableCapital
 				await transactionPage.GoToMainPage();
 				lst.AddRange(transactions);
 
-                Console.WriteLine($"Scraped {transactions.Count()} transactions for account.");
+                _logger.LogInformation($"Scraped {transactions.Count()} transactions for account.");
 			}
 
-            Console.WriteLine("ScalableCapital scraping process completed.");
+            _logger.LogInformation("ScalableCapital scraping process completed.");
 
 			return lst;
 		}

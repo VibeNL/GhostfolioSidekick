@@ -1,14 +1,26 @@
 ﻿using Microsoft.Playwright;
+using Microsoft.Extensions.Logging;
 
 namespace ScraperUtilities.TradeRepublic
 {
-    public class Login(IPage page, CommandLineArguments arguments)
+    public class Login
     {
+        private readonly IPage page;
+        private readonly CommandLineArguments arguments;
+        private readonly ILogger<Login> _logger;
+
+        public Login(IPage page, CommandLineArguments arguments, ILogger<Login> logger)
+        {
+            this.page = page;
+            this.arguments = arguments;
+            _logger = logger;
+        }
+
         public async Task<MainPage> LoginAsync()
         {
             try
             {
-                Console.WriteLine("Starting login process...");
+                _logger.LogInformation("Starting login process...");
 
                 await page.GotoAsync("https://app.traderepublic.com/login");
 
@@ -41,16 +53,16 @@ namespace ScraperUtilities.TradeRepublic
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"An error occurred during the login process: {ex.Message}");
+                    _logger.LogError($"An error occurred during the login process: {ex.Message}");
                     throw;
                 }
 
-                Console.WriteLine("Login process completed successfully.");
+                _logger.LogInformation("Login process completed successfully.");
                 return new MainPage(page);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred during the login process: {ex.Message}");
+                _logger.LogError($"An error occurred during the login process: {ex.Message}");
                 throw;
             }
         }

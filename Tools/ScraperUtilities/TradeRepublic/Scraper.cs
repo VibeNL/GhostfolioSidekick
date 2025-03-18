@@ -1,4 +1,5 @@
 ﻿using Microsoft.Playwright;
+using Microsoft.Extensions.Logging;
 
 namespace ScraperUtilities.TradeRepublic
 {
@@ -6,16 +7,18 @@ namespace ScraperUtilities.TradeRepublic
 	{
 		private readonly IPage page;
 		private readonly CommandLineArguments arguments;
+		private readonly ILogger<Scraper> _logger;
 
-		public Scraper(IPage page, CommandLineArguments arguments)
+		public Scraper(IPage page, CommandLineArguments arguments, ILogger<Scraper> logger)
 		{
 			this.page = page;
 			this.arguments = arguments;
+			_logger = logger;
 		}
 
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
-			Console.WriteLine("Starting TradeRepublic scraping process...");
+			_logger.LogInformation("Starting TradeRepublic scraping process...");
 
 			var loginPage = new Login(page, arguments);
 			var mainPage = await loginPage.LoginAsync();
@@ -26,9 +29,9 @@ namespace ScraperUtilities.TradeRepublic
 			var transactions = await transactionPage.ScrapeTransactions(symbols);
 			lst.AddRange(transactions);
 
-			Console.WriteLine($"Scraped {transactions.Count()} transactions for TradeRepublic.");
+			_logger.LogInformation($"Scraped {transactions.Count()} transactions for TradeRepublic.");
 
-			Console.WriteLine("TradeRepublic scraping process completed.");
+			_logger.LogInformation("TradeRepublic scraping process completed.");
 
 			return lst;
 		}

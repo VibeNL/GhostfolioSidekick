@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers.Generic;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using System.Globalization;
 
@@ -10,6 +11,13 @@ namespace ScraperUtilities
 {
 	public class Program
 	{
+		private readonly ILogger<Program> _logger;
+
+		public Program(ILogger<Program> logger)
+		{
+			_logger = logger;
+		}
+
 		static async Task Main(string[] args)
 		{
 			var arguments = new CommandLineArguments(args);
@@ -42,9 +50,9 @@ namespace ScraperUtilities
 				//var page = await context.NewPageAsync();
 				var page = defaultContext.Pages[0];
 
-				Console.WriteLine("Starting the scraping process...");
-				Console.WriteLine($"Broker: {arguments.Broker}");
-				Console.WriteLine($"Output file: {arguments.OutputFile}");
+				_logger.LogInformation("Starting the scraping process...");
+				_logger.LogInformation($"Broker: {arguments.Broker}");
+				_logger.LogInformation($"Output file: {arguments.OutputFile}");
 
 				IEnumerable<ActivityWithSymbol> transactions;
 				switch (arguments.Broker)
@@ -66,7 +74,7 @@ namespace ScraperUtilities
 				}
 
 				SaveToCSV(arguments.OutputFile, transactions);
-				Console.WriteLine("Scraping process completed.");
+				_logger.LogInformation("Scraping process completed.");
 			}
 			finally
 			{
