@@ -42,6 +42,10 @@ namespace ScraperUtilities
 				//var page = await context.NewPageAsync();
 				var page = defaultContext.Pages[0];
 
+				Console.WriteLine("Starting the scraping process...");
+				Console.WriteLine($"Broker: {arguments.Broker}");
+				Console.WriteLine($"Output file: {arguments.OutputFile}");
+
 				IEnumerable<ActivityWithSymbol> transactions;
 				switch (arguments.Broker)
 				{
@@ -62,6 +66,7 @@ namespace ScraperUtilities
 				}
 
 				SaveToCSV(arguments.OutputFile, transactions);
+				Console.WriteLine("Scraping process completed.");
 			}
 			finally
 			{

@@ -230,6 +230,28 @@ ghostfoliosidekick:
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
 |**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
 
+## Scraper Utilities
+
+The Scraper Utilities are tools designed to automate the process of scraping transaction data from various brokers. These utilities can be used to extract transaction data and save it in a CSV format for further processing.
+
+### Supported Brokers
+- Scalable Capital
+- Trade Republic
+
+### Usage
+
+To use the scraper utilities, run the following command:
+
+```
+dotnet run --project Tools/ScraperUtilities/ScraperUtilities.csproj [Broker] [OutputFile] [AdditionalArguments]
+```
+
+- `[Broker]`: The name of the broker (e.g., `ScalableCapital`, `TradeRepublic`).
+- `[OutputFile]`: The path to the output CSV file.
+- `[AdditionalArguments]`: Additional arguments required for the specific broker (e.g., username, password, etc.).
+
+For detailed instructions and examples, refer to the [Scraper Utilities Documentation](Documentation/ScraperUtilities.md).
+
 ## Contributing
 
 * Feel free to submit any issue or PR's you think necessary

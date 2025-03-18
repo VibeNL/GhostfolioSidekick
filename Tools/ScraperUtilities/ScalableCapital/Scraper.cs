@@ -15,6 +15,8 @@ namespace ScraperUtilities.ScalableCapital
 
         internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
         {
+            Console.WriteLine("Starting ScalableCapital scraping process...");
+
             var loginPage = new Login(page, arguments);
             var mainPage = await loginPage.LoginAsync();
 
@@ -26,7 +28,11 @@ namespace ScraperUtilities.ScalableCapital
 				var transactions = await transactionPage.ScrapeTransactions();
 				await transactionPage.GoToMainPage();
 				lst.AddRange(transactions);
+
+                Console.WriteLine($"Scraped {transactions.Count()} transactions for account.");
 			}
+
+            Console.WriteLine("ScalableCapital scraping process completed.");
 
 			return lst;
 		}

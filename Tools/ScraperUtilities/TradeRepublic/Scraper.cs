@@ -15,6 +15,8 @@ namespace ScraperUtilities.TradeRepublic
 
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
+			Console.WriteLine("Starting TradeRepublic scraping process...");
+
 			var loginPage = new Login(page, arguments);
 			var mainPage = await loginPage.LoginAsync();
 
@@ -23,6 +25,11 @@ namespace ScraperUtilities.TradeRepublic
 			var transactionPage = await mainPage.GoToTransactions();
 			var transactions = await transactionPage.ScrapeTransactions(symbols);
 			lst.AddRange(transactions);
+
+			Console.WriteLine($"Scraped {transactions.Count()} transactions for TradeRepublic.");
+
+			Console.WriteLine("TradeRepublic scraping process completed.");
+
 			return lst;
 		}
 	}
