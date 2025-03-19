@@ -20,10 +20,5 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			string? description) : base(account, holding, partialSymbolIdentifiers, dateTime, amount, new Money(), transactionId, sortingPriority, description)
 		{
 		}
-
-		public override string ToString()
-		{
-			return $"{Account}_{Date}";
-		}
 	}
 }

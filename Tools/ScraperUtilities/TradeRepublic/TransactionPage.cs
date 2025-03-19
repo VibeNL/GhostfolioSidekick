@@ -1,22 +1,27 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace ScraperUtilities.TradeRepublic
 {
-	internal partial class TransactionPage(IPage page)
+	internal partial class TransactionPage(IPage page, Microsoft.Extensions.Logging.ILogger logger)
 	{
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles)
 		{
+			logger.LogInformation("Scraping transactions...");
+
 			await ScrollDown(page);
 
 			var list = new List<ActivityWithSymbol>();
 			int counter = 0;
 			foreach (var transaction in await GetTransactions())
 			{
+				logger.LogInformation($"Processing transaction {counter}...");
+
 				// Click on the transaction to open the details
 				await transaction.ScrollIntoViewIfNeededAsync();
 
@@ -31,6 +36,7 @@ namespace ScraperUtilities.TradeRepublic
 				if (generatedTransaction != null)
 				{
 					list.Add(generatedTransaction);
+					logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.Activity.ToString());
 				}
 
 				// Press Close button to close the details
@@ -45,6 +51,8 @@ namespace ScraperUtilities.TradeRepublic
 
 		private async Task ScrollDown(IPage page)
 		{
+			logger.LogInformation("Scrolling down to load all transactions...");
+
 			// Scroll down the page to load all transactions
 			var isScrolling = true;
 			var lastUpdate = DateTime.Now;
@@ -62,6 +70,8 @@ namespace ScraperUtilities.TradeRepublic
 
 				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
 			}
+
+			logger.LogInformation("All transactions loaded.");
 		}
 
 		private Task<IReadOnlyList<ILocator>> GetTransactions()

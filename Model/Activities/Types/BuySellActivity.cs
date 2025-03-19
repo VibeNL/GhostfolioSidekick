@@ -28,10 +28,5 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public virtual ICollection<BuySellActivityTax> Taxes { get; set; } = [];
 
 		public Money TotalTransactionAmount { get; set; } = new Money();
-
-		public override string ToString()
-		{
-			return $"{Account}_{Date}";
-		}
 	}
 }

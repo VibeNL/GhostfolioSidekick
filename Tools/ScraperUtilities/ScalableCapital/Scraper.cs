@@ -1,21 +1,22 @@
-﻿using Microsoft.Playwright;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Playwright;
 
 namespace ScraperUtilities.ScalableCapital
 {
 	internal class Scraper
     {
         private readonly IPage page;
-		private readonly CommandLineArguments arguments;
+		private readonly ILogger logger;
 
-		public Scraper(IPage page, CommandLineArguments arguments)
+		public Scraper(IPage page, ILogger logger)
         {
             this.page = page;
-			this.arguments = arguments;
+			this.logger = logger;
 		}
 
         internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
         {
-            var loginPage = new Login(page, arguments);
+            var loginPage = new Login(page, logger);
             var mainPage = await loginPage.LoginAsync();
 
 			var lst = new List<ActivityWithSymbol>();

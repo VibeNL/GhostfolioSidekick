@@ -2,15 +2,18 @@
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using System.Globalization;
 
 namespace ScraperUtilities.ScalableCapital
 {
-	internal partial class TransactionPage(IPage page)
+	internal partial class TransactionPage(IPage page, Microsoft.Extensions.Logging.ILogger logger)
 	{
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
+			logger.LogInformation("Scraping transactions...");
+
 			await SetExecutedOnly(page);
 			await ScrollDown(page);
 
@@ -18,6 +21,8 @@ namespace ScraperUtilities.ScalableCapital
 			int counter = 0;
 			foreach (var transaction in await GetTransactions())
 			{
+				logger.LogInformation($"Processing transaction {counter}...");
+
 				// Click on the transaction to open the details
 				await transaction.ScrollIntoViewIfNeededAsync();
 				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
@@ -27,12 +32,18 @@ namespace ScraperUtilities.ScalableCapital
 
 				// Process transaction details
 				var generatedTransaction = await ProcessDetails();
+				if (generatedTransaction == null)
+				{
+					continue;
+				}
+                				                
 				var symbol = await AddSymbol(generatedTransaction);
-
 				if (symbol != null)
 				{
 					list.Add(symbol);
 				}
+
+				logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
 
 				// Press Close button to close the details
 				await page.GetByRole(AriaRole.Button).ClickAsync();
@@ -45,6 +56,8 @@ namespace ScraperUtilities.ScalableCapital
 
 		private async Task ScrollDown(IPage page)
 		{
+			logger.LogInformation("Scrolling down to load all transactions...");
+
 			// Scroll down the page to load all transactions
 			var isScrolling = true;
 			var lastUpdate = DateTime.Now;
@@ -62,16 +75,20 @@ namespace ScraperUtilities.ScalableCapital
 
 				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
 			}
+
+			logger.LogInformation("All transactions loaded.");
 		}
 
-		private static async Task SetExecutedOnly(IPage page)
+		private async Task SetExecutedOnly(IPage page)
 		{
 			// Select Executed Status only
+			logger.LogInformation("Setting status to Executed only...");
 			await page.GetByRole(AriaRole.Button).GetByText("Status").ClickAsync();
 			await page.GetByTestId("EXECUTED").Locator("div").First.ClickAsync();
 
 			Thread.Sleep(1000);
 			await page.Mouse.ClickAsync(2, 2);
+			logger.LogInformation("Status set to Executed only.");
 		}
 
 		private async Task<ActivityWithSymbol?> AddSymbol(Activity? generatedTransaction)
@@ -249,7 +266,7 @@ namespace ScraperUtilities.ScalableCapital
 
 		internal async Task GoToMainPage()
 		{
-			await page.GetByText("Home").ClickAsync();
+			await page.GotoAsync("https://de.scalable.capital/cockpit/");
 		}
 	}
 }
