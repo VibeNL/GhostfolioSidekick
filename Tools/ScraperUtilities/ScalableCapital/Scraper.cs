@@ -3,18 +3,9 @@ using Microsoft.Playwright;
 
 namespace ScraperUtilities.ScalableCapital
 {
-	internal class Scraper
-    {
-        private readonly IPage page;
-		private readonly ILogger logger;
-
-		public Scraper(IPage page, ILogger logger)
-        {
-            this.page = page;
-			this.logger = logger;
-		}
-
-        internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
+	internal class Scraper(IPage page, ILogger logger)
+	{
+		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
         {
             var loginPage = new Login(page, logger);
             var mainPage = await loginPage.LoginAsync();

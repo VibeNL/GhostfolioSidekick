@@ -39,7 +39,7 @@ namespace ScraperUtilities
 				_playwright = playwright;
 			}
 
-			public async Task RunAsync(string broker, string outputDirectory)
+			public async Task RunAsync(SupportedBrokers broker, string outputDirectory)
 			{
 				var browser = await _playwright.Chromium.ConnectOverCDPAsync("http://localhost:9222");
 				var defaultContext = browser.Contexts[0];
@@ -55,15 +55,21 @@ namespace ScraperUtilities
 					IEnumerable<ActivityWithSymbol> transactions;
 					switch (broker)
 					{
-						case "ScalableCapital":
+						case SupportedBrokers.ScalableCapital:
 							{
 								var scraper = new ScalableCapital.Scraper(page, _logger);
 								transactions = await scraper.ScrapeTransactions();
 							}
 							break;
-						case "TradeRepublic":
+						case SupportedBrokers.TradeRepublic:
 							{
 								var scraper = new TradeRepublic.Scraper(page, _logger);
+								transactions = await scraper.ScrapeTransactions();
+							}
+							break;
+						case SupportedBrokers.CentraalBeheer:
+							{
+								var scraper = new CentraalBeheer.Scraper(page, _logger);
 								transactions = await scraper.ScrapeTransactions();
 							}
 							break;
@@ -244,23 +250,29 @@ namespace ScraperUtilities
 					Console.WriteLine("Select your scraper");
 					Console.WriteLine("1. Scalable Capital");
 					Console.WriteLine("2. Trade Republic");
-					Console.WriteLine("3. Exit");
+					Console.WriteLine("3. Centraal Beheer");
+					Console.WriteLine("0. Exit");
 					var input = Console.ReadLine();
-					if (input == null) {
+					if (input == null)
+					{
 						continue;
 					}
 
-					string broker;
+					SupportedBrokers? broker;
 					switch (input)
 					{
 						case "1":
-							broker = "ScalableCapital";
+							broker = SupportedBrokers.ScalableCapital;
 							break;
 						case "2":
-							broker = "TradeRepublic";
+							broker = SupportedBrokers.TradeRepublic;
 							break;
 						case "3":
-							return;
+							broker = SupportedBrokers.CentraalBeheer;
+							break;
+						case "0":
+							Console.WriteLine("Press the close button please");
+							continue;
 						default:
 							Console.WriteLine("Invalid input.");
 							continue;
@@ -271,7 +283,7 @@ namespace ScraperUtilities
 						continue;
 					}
 
-					await RunAsync(broker, outputDirectory);
+					await RunAsync(broker.Value, outputDirectory);
 				}
 			}
 
