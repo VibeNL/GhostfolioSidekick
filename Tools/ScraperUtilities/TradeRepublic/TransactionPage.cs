@@ -108,7 +108,7 @@ namespace ScraperUtilities.TradeRepublic
 			if (!DateTime.TryParseExact(dateString, "dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedTime) && 
 				!DateTime.TryParseExact(dateString, "dd MMMM HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime))
 			{
-				// TODO logging
+				logger.LogWarning("Failed to parse date: {DateString}", dateString);
 				return null;
 			}
 
@@ -190,7 +190,7 @@ namespace ScraperUtilities.TradeRepublic
 
 				if (isBond)
 				{
-					//	 TODO logging
+					logger.LogWarning("Bonds are not supported yet.");
 					return null;
 				}
 				else
@@ -204,7 +204,7 @@ namespace ScraperUtilities.TradeRepublic
 
 					if (symbol == null)
 					{
-						// TODO logging
+						logger.LogWarning("Symbol not found: {Asset}", asset);
 						return null;
 					}
 
