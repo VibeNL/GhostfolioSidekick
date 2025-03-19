@@ -19,8 +19,6 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
 		private readonly Mock<IGhostfolioSync> _mockGhostfolioSync;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
-		private readonly DatabaseContext context;
-		private readonly SyncManualSymbolsWithGhostfolioTask _task;
 		private readonly string _databaseFilePath;
 
 		public SyncManualSymbolsWithGhostfolioTaskTests()
@@ -32,20 +30,26 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			.Options;
 			_mockGhostfolioSync = new Mock<IGhostfolioSync>();
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
+		}
 
-			context = new DatabaseContext(_dbContextOptions);
+		private DatabaseContext CreateTask(out SyncManualSymbolsWithGhostfolioTask task)
+		{
+			var context = new DatabaseContext(_dbContextOptions);
 			context.Database.EnsureCreated();
 
-			_task = new SyncManualSymbolsWithGhostfolioTask(
+			task = new SyncManualSymbolsWithGhostfolioTask(
 				new DbContextFactory(context),
 				_mockGhostfolioSync.Object,
 				_mockCurrencyExchange.Object);
+
+			return context;
 		}
 
 		[Fact]
 		public async Task DoWork_ShouldSyncSymbolProfilesAndMarketData()
 		{
 			// Arrange
+			using var context = CreateTask(out SyncManualSymbolsWithGhostfolioTask task);
 			var symbol = new SymbolProfile
 			{
 				Symbol = "W",
@@ -71,7 +75,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 				.ReturnsAsync((Money money, Currency curr, DateOnly date) => money);
 
 			// Act
-			await _task.DoWork();
+			await task.DoWork();
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
@@ -82,9 +86,10 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		public async Task DoWork_ShouldHandleEmptySymbolProfiles()
 		{
 			// Arrange
+			using var context = CreateTask(out SyncManualSymbolsWithGhostfolioTask task);
 
 			// Act
-			await _task.DoWork();
+			await task.DoWork();
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
@@ -95,6 +100,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		public async Task DoWork_ShouldHandleEmptyActivities()
 		{
 			// Arrange
+			using var context = CreateTask(out SyncManualSymbolsWithGhostfolioTask task);
 			var symbol = new SymbolProfile
 			{
 				Symbol = "W",
@@ -107,7 +113,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			await context.SaveChangesAsync();
 
 			// Act
-			await _task.DoWork();
+			await task.DoWork();
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
@@ -116,8 +122,6 @@ namespace GhostfolioSidekick.UnitTests.Sync
 
 		public void Dispose()
 		{
-			context.Dispose();
-
 			try
 			{
 				if (File.Exists(_databaseFilePath))
