@@ -17,16 +17,24 @@ namespace IntegrationTests
 		private PostgreSqlContainer postgresContainer = default!;
 		private IContainer redisContainer = default!;
 		private IContainer ghostfolioContainer = default!;
+		private INetwork customNetwork = default!;
 		private HttpClient httpClient = default!;
 
 		public async Task InitializeAsync()
 		{
+			// Create and start the custom network.
+			customNetwork = new NetworkBuilder()
+				.WithName("custom-network")
+				.Build();
+			await customNetwork.CreateAsync().ConfigureAwait(false);
+
 			await StartPostgreSql().ConfigureAwait(false);
 
 			// Create and start the Redis container.
 			redisContainer = new ContainerBuilder()
 				.WithImage("redis:latest")
 				.WithPortBinding(6379, true)
+				.WithNetwork(customNetwork)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6379))
 				.Build();
 			await redisContainer.StartAsync().ConfigureAwait(false);
@@ -35,6 +43,7 @@ namespace IntegrationTests
 			ghostfolioContainer = new ContainerBuilder()
 				.WithImage("ghostfolio/ghostfolio:latest")
 				.WithPortBinding(3000, true)
+				.WithNetwork(customNetwork)
 				.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
 				.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
 				.WithEnvironment("REDIS_HOST", redisContainer.Hostname)
@@ -58,6 +67,7 @@ namespace IntegrationTests
 				.WithPassword(Password)
 				.WithDatabase(Database)
 				.WithPortBinding(5432, true)
+				.WithNetwork(customNetwork)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
 				.Build();
 			await postgresContainer.StartAsync().ConfigureAwait(false);
@@ -90,6 +100,9 @@ namespace IntegrationTests
 			// Stop and dispose the Ghostfolio container.
 			await ghostfolioContainer.StopAsync();
 			await ghostfolioContainer.DisposeAsync();
+
+			// Remove the custom network.
+			await customNetwork.DeleteAsync();
 		}
 
 		[Fact]
@@ -103,6 +116,9 @@ namespace IntegrationTests
 
 			// Ensure the Ghostfolio container is running.
 			ghostfolioContainer.State.Should().Be(TestcontainersStates.Running, "the Ghostfolio container should be running.");
+
+			// Ensure the custom network is created.
+			customNetwork.State.Should().Be(TestcontainersStates.Created, "the custom network should be created.");
 
 			// Example test logic for PostgreSQL, Redis, and Ghostfolio containers.
 			// You can add your specific test logic here.
