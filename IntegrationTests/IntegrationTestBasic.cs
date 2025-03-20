@@ -3,29 +3,25 @@ using DotNet.Testcontainers.Containers;
 using FluentAssertions;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Testcontainers.PostgreSql;
 using Xunit;
 
 namespace IntegrationTests
 {
 	public class IntegrationTestBasic : IAsyncLifetime
 	{
-		private IContainer postgresContainer = default!;
+		private const string Username = "testuser";
+		private const string Password = "testpassword";
+		private const string Database = "testdb";
+
+		private PostgreSqlContainer postgresContainer = default!;
 		private IContainer redisContainer = default!;
 		private IContainer ghostfolioContainer = default!;
 		private HttpClient httpClient = default!;
 
 		public async Task InitializeAsync()
 		{
-			// Create and start the PostgreSQL container.
-			postgresContainer = new ContainerBuilder()
-				.WithImage("postgres:16")
-				.WithPortBinding(5432, true)
-				.WithEnvironment("POSTGRES_USER", "testuser")
-				.WithEnvironment("POSTGRES_PASSWORD", "testpassword")
-				.WithEnvironment("POSTGRES_DB", "testdb")
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
-				.Build();
-			await postgresContainer.StartAsync().ConfigureAwait(false);
+			await StartPostgreSql().ConfigureAwait(false);
 
 			// Create and start the Redis container.
 			redisContainer = new ContainerBuilder()
@@ -39,8 +35,13 @@ namespace IntegrationTests
 			ghostfolioContainer = new ContainerBuilder()
 				.WithImage("ghostfolio/ghostfolio:latest")
 				.WithPortBinding(3000, true)
-				.WithEnvironment("DATABASE_URL", $"postgres://testuser:testpassword@{postgresContainer.Hostname}:{postgresContainer.GetMappedPublicPort(5432)}/testdb")
-				.WithEnvironment("REDIS_URL", $"redis://{redisContainer.Hostname}:{redisContainer.GetMappedPublicPort(6379)}")
+				.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
+				.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
+				.WithEnvironment("REDIS_HOST", redisContainer.Hostname)
+				.WithEnvironment("REDIS_PASSWORD", string.Empty)
+				.WithEnvironment("REDIS_PORT", redisContainer.GetMappedPublicPort(6379).ToString())
+				.WithEnvironment("DATABASE_URL", "postgresql://" + postgresContainer.GetConnectionString())
+				// $"postgresql://{postgresContainer.get}:testpassword@{postgresContainer.Hostname}:{postgresContainer.GetMappedPublicPort(5432)}/testdb"
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(3000))
 				.Build();
 			await ghostfolioContainer.StartAsync().ConfigureAwait(false);
@@ -49,6 +50,29 @@ namespace IntegrationTests
 			httpClient = new HttpClient();
 		}
 
+		private async Task StartPostgreSql()
+		{
+			// Create and start the PostgreSQL container.
+			postgresContainer = new PostgreSqlBuilder()
+				.WithUsername(Username)
+				.WithPassword(Password)
+				.WithDatabase(Database)
+				.WithPortBinding(5432, true)
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
+				.Build();
+			await postgresContainer.StartAsync().ConfigureAwait(false);
+
+			// Given
+			const string scriptContent = "SELECT 1;";
+
+			// When
+			var execResult = await postgresContainer.ExecScriptAsync(scriptContent)
+				.ConfigureAwait(true);
+
+			// Then
+            execResult.ExitCode.Should().Be(0L, execResult.Stderr);
+            execResult.Stderr.Should().BeEmpty();
+		}
 
 		public async Task DisposeAsync()
 		{
