@@ -49,6 +49,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScraperUtilities", "Tools\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnonymisePDF.UnitTests", "Tools\AnonymisePDF.UnitTests\AnonymisePDF.UnitTests.csproj", "{AA1A1224-3E01-F044-894C-56A5D5440BA3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{858F4528-DD2E-483D-9DBA-5FA5B243BC79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -131,6 +133,10 @@ Global
 		{AA1A1224-3E01-F044-894C-56A5D5440BA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA1A1224-3E01-F044-894C-56A5D5440BA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA1A1224-3E01-F044-894C-56A5D5440BA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{858F4528-DD2E-483D-9DBA-5FA5B243BC79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{858F4528-DD2E-483D-9DBA-5FA5B243BC79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{858F4528-DD2E-483D-9DBA-5FA5B243BC79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{858F4528-DD2E-483D-9DBA-5FA5B243BC79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
