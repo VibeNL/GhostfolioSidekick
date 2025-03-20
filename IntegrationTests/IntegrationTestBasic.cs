@@ -1,5 +1,6 @@
 ﻿using Docker.DotNet.Models;
 using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
 using FluentAssertions;
@@ -24,6 +25,7 @@ namespace IntegrationTests
 			// Create and start the custom network.
 			customNetwork = new NetworkBuilder()
 				.WithName("custom-network")
+				.WithDriver(NetworkDriver.Bridge)
 				.Build();
 			await customNetwork.CreateAsync().ConfigureAwait(false);
 
@@ -39,6 +41,10 @@ namespace IntegrationTests
 			await redisContainer.StartAsync().ConfigureAwait(false);
 
 			// Create and start the Ghostfolio container.
+			await TestcontainersSettings
+				.ExposeHostPortsAsync(postgresContainer.GetMappedPublicPort(5432))
+				.ConfigureAwait(false);
+
 			ghostfolioContainer = new ContainerBuilder()
 				.WithImage("ghostfolio/ghostfolio:latest")
 				.WithPortBinding(3000, true)
@@ -48,8 +54,7 @@ namespace IntegrationTests
 				.WithEnvironment("REDIS_HOST", redisContainer.Hostname)
 				.WithEnvironment("REDIS_PASSWORD", string.Empty)
 				.WithEnvironment("REDIS_PORT", redisContainer.GetMappedPublicPort(6379).ToString())
-				.WithEnvironment("DATABASE_URL", "postgresql://" + postgresContainer.GetConnectionString())
-				// $"postgresql://{postgresContainer.get}:testpassword@{postgresContainer.Hostname}:{postgresContainer.GetMappedPublicPort(5432)}/testdb"
+				.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@{postgresContainer.Hostname}:{postgresContainer.GetMappedPublicPort(5432)}/{Database}")
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(3000))
 				.Build();
 			await ghostfolioContainer.StartAsync().ConfigureAwait(false);
