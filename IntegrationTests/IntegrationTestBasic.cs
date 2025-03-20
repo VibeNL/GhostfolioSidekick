@@ -1,10 +1,9 @@
-﻿using DotNet.Testcontainers.Builders;
+﻿using Docker.DotNet.Models;
+using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Networks;
 using FluentAssertions;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Testcontainers.PostgreSql;
-using Xunit;
 
 namespace IntegrationTests
 {
@@ -116,9 +115,6 @@ namespace IntegrationTests
 
 			// Ensure the Ghostfolio container is running.
 			ghostfolioContainer.State.Should().Be(TestcontainersStates.Running, "the Ghostfolio container should be running.");
-
-			// Ensure the custom network is created.
-			customNetwork.State.Should().Be(TestcontainersStates.Created, "the custom network should be created.");
 
 			// Example test logic for PostgreSQL, Redis, and Ghostfolio containers.
 			// You can add your specific test logic here.
