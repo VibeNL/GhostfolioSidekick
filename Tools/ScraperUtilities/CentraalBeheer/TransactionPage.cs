@@ -19,15 +19,14 @@ namespace ScraperUtilities.CentraalBeheer
 			logger.LogInformation("Scraping transactions...");
 
 			await SetDateSelection(page);
-			await ScrollDown(page);
-
+			
 			var list = new List<ActivityWithSymbol>();
-			int counter = 0;
-			foreach (var transaction in await GetTransactions())
+			for (int counter = 0; counter < await GetMaxTransactions(); counter++)
 			{
 				logger.LogInformation($"Processing transaction {counter}...");
 
 				// Click on the transaction to open the details
+				var transaction = page.Locator($"#transactie-collapsable-{counter}").First;
 				await transaction.ScrollIntoViewIfNeededAsync();
 
 				// Process transaction details
@@ -50,31 +49,6 @@ namespace ScraperUtilities.CentraalBeheer
 			}
 
 			return list;
-		}
-
-		private async Task ScrollDown(IPage page)
-		{
-			logger.LogInformation("Scrolling down to load all transactions...");
-
-			// Scroll down the page to load all transactions
-			var isScrolling = true;
-			var lastUpdate = DateTime.Now;
-			while (isScrolling)
-			{
-				var cnt = await GetTransacionsCount();
-				await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
-				Thread.Sleep(1000);
-
-				var newCnt = await GetTransacionsCount();
-				if (newCnt != cnt)
-				{
-					lastUpdate = DateTime.Now;
-				}
-
-				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
-			}
-
-			logger.LogInformation("All transactions loaded.");
 		}
 
 		private async Task SetDateSelection(IPage page)
@@ -112,9 +86,12 @@ namespace ScraperUtilities.CentraalBeheer
 			};
 		}
 
-		private Task<IReadOnlyList<ILocator>> GetTransactions()
+		private async Task<int> GetMaxTransactions()
 		{
-			return page.Locator("div[id^='transactie-collapsable-']").AllAsync();
+			var locators = await page.Locator("div[id^='transactie-collapsable-']").AllAsync();
+			var content = await locators.Last().GetAttributeAsync("id");
+
+			return int.Parse(content.Split("-").Last());
 		}
 
 		private Task<int> GetTransacionsCount()
