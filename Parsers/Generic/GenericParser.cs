@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)],
 						record.Quantity,
 						unitPrice,
-						new Money(currency, Math.abs(record.Quantity * record.UnitPrice)),
+						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
 						record.Id));
 					break;
 				case PartialActivityType.Send:
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						[PartialSymbolIdentifier.CreateGeneric(record.Symbol!)],
 						record.Quantity,
 						unitPrice,
-						new Money(currency, Math.abs(record.Quantity * record.UnitPrice)),
+						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
 						record.Id));
 					break;
 				case PartialActivityType.Dividend:
