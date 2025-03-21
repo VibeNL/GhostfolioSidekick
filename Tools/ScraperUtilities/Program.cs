@@ -133,7 +133,7 @@ namespace ScraperUtilities
 					Date = deposit.Date,
 					Currency = deposit.Amount.Currency.Symbol,
 					Quantity = 1,
-					UnitPrice = deposit.Amount.Amount,
+					UnitPrice = deposit.Amount.Amount * 1,
 					Fee = 0,
 					Tax = 0,
 				};
