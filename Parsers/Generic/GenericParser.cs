@@ -34,6 +34,12 @@ namespace GhostfolioSidekick.Parsers.Generic
 				lst.Add(PartialActivity.CreateFee(currency, record.Date, record.Fee.Value, new Money(currency, record.Fee.Value), record.Id));
 			}
 
+			// Check if the quantity is 0 for withdrawal and deposit activities and assign a default value of 1 if it is
+			if ((record.ActivityType == PartialActivityType.CashWithdrawal || record.ActivityType == PartialActivityType.CashDeposit) && record.Quantity == 0)
+			{
+				record.Quantity = 1;
+			}
+
 			switch (record.ActivityType)
 			{
 				case PartialActivityType.Receive:
