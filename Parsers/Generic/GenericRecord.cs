@@ -14,7 +14,12 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		public required string Currency { get; set; }
 
-		public decimal Quantity { get; set; }
+		private decimal quantity;
+		public decimal Quantity
+		{
+			get => quantity;
+			set => quantity = (ActivityType == PartialActivityType.CashDeposit || ActivityType == PartialActivityType.CashWithdrawal) && value == 0 ? 1 : value;
+		}
 
 		public decimal UnitPrice { get; set; }
 

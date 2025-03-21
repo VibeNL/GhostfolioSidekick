@@ -417,6 +417,46 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();
+			}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDepositWithZeroQuantity_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_deposit_zero_quantity.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashDeposit(
+						Currency.USD,
+						new DateTime(2023, 08, 6, 0, 0, 0, 0, DateTimeKind.Utc),
+						1000,
+						new Money(Currency.USD, 1000),
+						"CashDeposit_EUR_2023-08-06_0_USD_0")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleWithdrawalWithZeroQuantity_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Generic/CashTransactions/single_withdrawal_zero_quantity.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashWithdrawal(
+						Currency.USD,
+						new DateTime(2023, 08, 8, 0, 0, 0, DateTimeKind.Utc),
+						10,
+						new Money(Currency.USD, 10),
+						"CashWithdrawal_EUR_2023-08-08_0_USD_0")
+				]);
 		}
 	}
 }
