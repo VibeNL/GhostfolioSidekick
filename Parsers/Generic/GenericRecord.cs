@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		public required string Currency { get; set; }
 
-		public decimal Quantity { get; set; } = 1;
+		public decimal Quantity { get; set; }
 
 		public decimal UnitPrice { get; set; }
 
@@ -26,7 +26,5 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		[Optional]
 		public string? Id { get; set; }
-
-		// TODO: Temporary comment to indicate Quantity is set to 1 for CashDeposit and CashWithdrawal activities
 	}
 }
