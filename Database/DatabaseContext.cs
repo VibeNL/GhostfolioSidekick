@@ -32,13 +32,22 @@ namespace GhostfolioSidekick.Database
 		// special "local" folder for your platform.
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			////optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
-			////optionsBuilder.ConfigureWarnings(w => w.Ignore(CoreEventId.DuplicateDependentEntityTypeInstanceWarning)); // We do not duplicate Currency instances
-			
 			optionsBuilder.UseLazyLoadingProxies();
 			if (!optionsBuilder.IsConfigured)
 			{
-				optionsBuilder.UseSqlite($"Data Source=ghostfoliosidekick.db");
+				var databaseProvider = Environment.GetEnvironmentVariable("DATABASE_PROVIDER");
+				var connectionString = Environment.GetEnvironmentVariable("CONNECTION_STRING");
+
+				switch (databaseProvider)
+				{
+					case "SQLServer":
+						optionsBuilder.UseSqlServer(connectionString);
+						break;
+					case "SQLite":
+					default:
+						optionsBuilder.UseSqlite(connectionString ?? "Data Source=ghostfoliosidekick.db");
+						break;
+				}
 			}
 		}
 

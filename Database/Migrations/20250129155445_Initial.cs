@@ -445,6 +445,27 @@ namespace GhostfolioSidekick.Database.Migrations
                 name: "IX_SymbolProfiles_HoldingId",
                 table: "SymbolProfiles",
                 column: "HoldingId");
+
+            // Add indexes for frequently queried columns
+            migrationBuilder.CreateIndex(
+                name: "IX_Activities_Date",
+                table: "Activities",
+                column: "Date");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Activities_TransactionId",
+                table: "Activities",
+                column: "TransactionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SymbolProfiles_AssetClass",
+                table: "SymbolProfiles",
+                column: "AssetClass");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SymbolProfiles_AssetSubClass",
+                table: "SymbolProfiles",
+                column: "AssetSubClass");
         }
 
         /// <inheritdoc />
