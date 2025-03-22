@@ -153,7 +153,7 @@ namespace ScraperUtilities
 						Date = deposit.Date,
 						Currency = deposit.Amount.Currency.Symbol,
 						Quantity = 1,
-						UnitPrice = deposit.Amount.Amount * -1,
+						UnitPrice = deposit.Amount.Amount,
 						Fee = 0,
 						Tax = 0,
 					};
@@ -168,7 +168,7 @@ namespace ScraperUtilities
 						Date = withdrawal.Date,
 						Currency = withdrawal.Amount.Currency.Symbol,
 						Quantity = 1,
-						UnitPrice = withdrawal.Amount.Amount,
+						UnitPrice = withdrawal.Amount.Amount * -1,
 						Fee = 0,
 						Tax = 0,
 					};
