@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
-namespace ScraperUtilities.TradeRepublic
+namespace ScraperUtilities.CentraalBeheer
 {
 	internal class Scraper(IPage page, ILogger logger)
 	{
@@ -11,9 +11,8 @@ namespace ScraperUtilities.TradeRepublic
 			var mainPage = await loginPage.LoginAsync();
 
 			var lst = new List<ActivityWithSymbol>();
-			var symbols = await mainPage.ScrapeSymbols();
 			var transactionPage = await mainPage.GoToTransactions();
-			var transactions = await transactionPage.ScrapeTransactions(symbols);
+			var transactions = await transactionPage.ScrapeTransactions();
 			lst.AddRange(transactions);
 			return lst;
 		}
