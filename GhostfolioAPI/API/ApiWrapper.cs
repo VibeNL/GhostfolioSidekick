@@ -353,7 +353,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			foreach (var marketData in list)
 			{
 				var amount = (await currencyExchange.ConvertMoney(marketData.Close, symbolProfile.Currency, marketData.Date)).Amount;
-				if (existingData != null && existingData.Any(x => x.Date == marketData.Date.ToDateTime(TimeOnly.MinValue) && x.MarketPrice == marketData.Close.Amount))
+				var value = existingData?.FirstOrDefault(x => x.Date == marketData.Date.ToDateTime(TimeOnly.MinValue))?.MarketPrice ?? 0;
+				if (Math.Abs(value - amount) < 0.000001m)
 				{
 					continue;
 				}

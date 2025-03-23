@@ -7,6 +7,7 @@ namespace ScraperUtilities.CentraalBeheer
 	{
 		internal async Task<TransactionPage> GoToTransactions()
 		{
+			// 
 			await page.GotoAsync("https://www.centraalbeheer.nl/mijncb/mijn-producten/beleggen/transacties");
 
 			// Wait for transactions to load
