@@ -34,12 +34,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public Task ParseActivities(string filename, IActivityManager activityManager, string accountName)
 		{
-			var csvConfig = GetConfig();
-			using var streamReader = GetStreamReader(filename);
-			using var csvReader = new CsvReader(streamReader, csvConfig);
-			csvReader.Read();
-			csvReader.ReadHeader();
-
 			var dictionary = new Dictionary<Type, List<PartialActivity>>();
 			foreach (var typeOfRecord in typeOfRecords)
 			{
@@ -47,6 +41,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 				try
 				{
+					var csvConfig = GetConfig();
+					using var streamReader = GetStreamReader(filename);
+					using var csvReader = new CsvReader(streamReader, csvConfig);
+					csvReader.Read();
+					csvReader.ReadHeader();
 					var records = csvReader.GetRecords(typeOfRecord).ToList();
 
 					for (int i = 0; i < records.Count; i++)
