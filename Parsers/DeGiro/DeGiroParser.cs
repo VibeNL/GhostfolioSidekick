@@ -1,20 +1,81 @@
-﻿using CsvHelper.Configuration;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
-	public abstract class DeGiroParserBase<T> : RecordBaseImporter<T> where T : DeGiroRecordBase
+	public class DeGiroParser : IActivityFileImporter
 	{
+		private readonly Dictionary<string, bool> KnownHeaderCache = [];
 		private readonly ICurrencyMapper currencyMapper;
 
-		protected DeGiroParserBase(ICurrencyMapper currencyMapper)
+		private static Type[] typeOfRecords = new[]{
+			typeof(DeGiroRecordEN),
+			typeof(DeGiroRecordNL),
+			typeof(DeGiroRecordPT),
+		};
+
+		public DeGiroParser(ICurrencyMapper currencyMapper)
 		{
 			this.currencyMapper = currencyMapper;
 		}
 
-		protected override IEnumerable<PartialActivity> ParseRow(T record, int rowNumber)
+		public virtual Task<bool> CanParse(string filename)
+		{
+			if (!filename.EndsWith(".csv", StringComparison.InvariantCultureIgnoreCase))
+			{
+				return Task.FromResult(false);
+			}
+
+			return Task.FromResult(GetTypeOfRecord(filename));
+		}
+
+		public Task ParseActivities(string filename, IActivityManager activityManager, string accountName)
+		{
+			var csvConfig = GetConfig();
+			using var streamReader = GetStreamReader(filename);
+			using var csvReader = new CsvReader(streamReader, csvConfig);
+			csvReader.Read();
+			csvReader.ReadHeader();
+
+			var dictionary = new Dictionary<Type, List<PartialActivity>>();
+			foreach (var typeOfRecord in typeOfRecords)
+			{
+				dictionary.Add(typeOfRecord, new List<PartialActivity>());
+
+				try
+				{
+					var records = csvReader.GetRecords(typeOfRecord).ToList();
+
+					for (int i = 0; i < records.Count; i++)
+					{
+						var partialActivity = ParseRow((DeGiroRecordBase)records[i], i + 1);
+						dictionary[typeOfRecord].AddRange(partialActivity.Where(x => x != null));
+					}
+				}
+				catch
+				{
+					continue;
+				}
+			}
+
+			// get most activities
+			var mostActivities = dictionary.OrderByDescending(x => x.Value.Count).First().Value;
+
+			// add activities to activity manager
+			activityManager.AddPartialActivity(accountName, mostActivities);
+
+			return Task.CompletedTask;
+		}
+
+		protected virtual StreamReader GetStreamReader(string file)
+		{
+			return File.OpenText(file);
+		}
+
+		private IEnumerable<PartialActivity> ParseRow(DeGiroRecordBase record, int rowNumber)
 		{
 			var recordDate = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 
@@ -29,7 +90,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			var currencyRecord = !string.IsNullOrWhiteSpace(record.Mutation) ? currencyMapper.Map(record.Mutation) : record.GetCurrency(currencyMapper);
 			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
-			
+
 			record.SetGenerateTransactionIdIfEmpty(recordDate);
 
 			switch (activityType)
@@ -44,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
 						record.GetUnitPrice(),
-						new Money(currencyRecord, GetRecordTotal(recordTotal, record)),
+						new Money(currencyRecord, GetRecordTotal(recordTotal, record.GetQuantity(), record.GetUnitPrice())),
 						record.TransactionId!);
 					break;
 				case PartialActivityType.CashDeposit:
@@ -73,7 +134,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
 						record.GetQuantity(),
 						record.GetUnitPrice(),
-						new Money(currencyRecord, GetRecordTotal(recordTotal, record)),
+						new Money(currencyRecord, GetRecordTotal(recordTotal, record.GetQuantity(), record.GetUnitPrice())),
 						record.TransactionId!);
 					break;
 				default:
@@ -83,17 +144,49 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return [knownBalance, partialActivity];
 		}
 
-		private static decimal GetRecordTotal(decimal recordTotal, T record)
+		private static decimal GetRecordTotal(decimal recordTotal, decimal quantity, decimal unitPrice)
 		{
 			if (recordTotal == 0)
 			{
-				recordTotal = Math.Abs(record.GetQuantity() * record.GetUnitPrice());
+				recordTotal = Math.Abs(quantity * unitPrice);
 			}
 
 			return recordTotal;
 		}
 
-		protected override CsvConfiguration GetConfig()
+		private bool GetTypeOfRecord(string filename)
+		{
+			CsvConfiguration csvConfig = GetConfig();
+
+			using var streamReader = GetStreamReader(filename);
+			using var csvReader = new CsvReader(streamReader, csvConfig);
+			csvReader.Read();
+			csvReader.ReadHeader();
+
+			string? record = string.Join("|", csvReader.HeaderRecord!);
+			if (KnownHeaderCache.TryGetValue(record, out var canParse))
+			{
+				return canParse;
+			}
+
+			foreach (var typeOfRecord in typeOfRecords)
+			{
+				try
+				{
+					csvReader.ValidateHeader(typeOfRecord);
+					KnownHeaderCache.Add(record, true);
+					return true;
+				}
+				catch
+				{
+					continue;
+				}
+			}
+
+			return false;
+		}
+
+		protected CsvConfiguration GetConfig()
 		{
 			return new CsvConfiguration(CultureInfo.InvariantCulture)
 			{
