@@ -4,6 +4,8 @@ using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
 using FluentAssertions;
+using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
@@ -11,12 +13,13 @@ namespace IntegrationTests
 {
 	public class IntegrationTestBasic : IAsyncLifetime
 	{
+		private const bool ReuseContainers = true;
 		private const string TestContainerHostName = "host.testcontainers.internal";
-		
+
 		private const string Username = "testuser";
 		private const string Password = "testpassword";
 		private const string Database = "testdb";
-				
+
 		private const int ReditPort = 6379;
 		private const int PostgresPort = 5432;
 		private const int GhostfolioPort = 3333;
@@ -26,12 +29,27 @@ namespace IntegrationTests
 		private IContainer ghostfolioContainer = default!;
 		private HttpClient httpClient = default!;
 
+
+		[Fact]
+		public async Task CanSetupGhostfolioDependencies()
+		{
+			// Can access the Ghostfolio container.
+			var ghostfolioUri = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri;
+			var response = await httpClient.GetAsync(ghostfolioUri);
+			response.EnsureSuccessStatusCode();
+
+			// Create a new user.
+			response = await httpClient.PostAsync($"{ghostfolioUri}/api/users", new StringContent("{}"));
+			response.EnsureSuccessStatusCode();
+		}
+
 		public async Task InitializeAsync()
 		{
 			await StartPostgreSql().ConfigureAwait(false);
 
 			// Create and start the Redis container.
 			redisContainer = new RedisBuilder()
+				.WithReuse(ReuseContainers)
 				.WithPortBinding(ReditPort, true)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(ReditPort))
 				.Build();
@@ -53,6 +71,7 @@ namespace IntegrationTests
 				.WithEnvironment("POSTGRES_DB", Database)
 				.WithEnvironment("POSTGRES_PASSWORD", Password)
 				.WithEnvironment("POSTGRES_USER", Username)
+				.WithEnvironment("REQUEST_TIMEOUT", "60000")
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(GhostfolioPort))
 				.Build();
 
@@ -68,30 +87,15 @@ namespace IntegrationTests
 
 			// Initialize HttpClient.
 			httpClient = new HttpClient();
-		}
 
-		private async Task StartPostgreSql()
-		{
-			// Create and start the PostgreSQL container.
-			postgresContainer = new PostgreSqlBuilder()
-				.WithUsername(Username)
-				.WithPassword(Password)
-				.WithDatabase(Database)
-				.WithPortBinding(PostgresPort, true)
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(PostgresPort))
-				.Build();
-			await postgresContainer.StartAsync().ConfigureAwait(false);
+			// Ensure the PostgreSQL container is running.
+			postgresContainer.State.Should().Be(TestcontainersStates.Running, "the PostgreSQL container should be running.");
 
-			// Given
-			const string scriptContent = "SELECT 1;";
+			// Ensure the Redis container is running.
+			redisContainer.State.Should().Be(TestcontainersStates.Running, "the Redis container should be running.");
 
-			// When
-			var execResult = await postgresContainer.ExecScriptAsync(scriptContent)
-				.ConfigureAwait(true);
-
-			// Then
-			execResult.ExitCode.Should().Be(0L, execResult.Stderr);
-			execResult.Stderr.Should().BeEmpty();
+			// Ensure the Ghostfolio container is running.
+			ghostfolioContainer.State.Should().Be(TestcontainersStates.Running, "the Ghostfolio container should be running.");
 		}
 
 		public async Task DisposeAsync()
@@ -112,33 +116,30 @@ namespace IntegrationTests
 			await ghostfolioContainer.DisposeAsync();
 		}
 
-		[Fact]
-		public async Task CanSetupGhostfolioDependencies()
+		private async Task StartPostgreSql()
 		{
-			// Ensure the PostgreSQL container is running.
-			postgresContainer.State.Should().Be(TestcontainersStates.Running, "the PostgreSQL container should be running.");
+			// Create and start the PostgreSQL container.
+			postgresContainer = new PostgreSqlBuilder()
+				.WithReuse(ReuseContainers)
+				.WithUsername(Username)
+				.WithPassword(Password)
+				.WithDatabase(Database)
+				.WithPortBinding(PostgresPort, true)
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(PostgresPort))
+				.Build();
+			await postgresContainer.StartAsync().ConfigureAwait(false);
 
-			// Ensure the Redis container is running.
-			redisContainer.State.Should().Be(TestcontainersStates.Running, "the Redis container should be running.");
+			// Given
+			const string scriptContent = "SELECT 1;";
 
-			// Ensure the Ghostfolio container is running.
-			ghostfolioContainer.State.Should().Be(TestcontainersStates.Running, "the Ghostfolio container should be running.");
+			// When
+			var execResult = await postgresContainer.ExecScriptAsync(scriptContent)
+				.ConfigureAwait(true);
 
-			// Example test logic for PostgreSQL, Redis, and Ghostfolio containers.
-			// You can add your specific test logic here.
-
-			// Example: Check PostgreSQL connection.
-			var postgresConnectionString = $"Host={postgresContainer.Hostname};Port={postgresContainer.GetMappedPublicPort(PostgresPort)};Username=testuser;Password=testpassword;Database=testdb";
-			// Add your PostgreSQL connection test logic here.
-
-			// Example: Check Redis connection.
-			var redisConnectionString = $"{redisContainer.Hostname}:{redisContainer.GetMappedPublicPort(ReditPort)}";
-			// Add your Redis connection test logic here.
-
-			// Example: Check Ghostfolio connection.
-			var ghostfolioUri = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri;
-			var response = await httpClient.GetAsync(ghostfolioUri);
-			response.EnsureSuccessStatusCode();
+			// Then
+			execResult.ExitCode.Should().Be(0L, execResult.Stderr);
+			execResult.Stderr.Should().BeEmpty();
 		}
+
 	}
 }
