@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		public void GetActivityType_ShouldReturnCorrectActivityType(string description, PartialActivityType expectedActivityType)
 		{
 			// Arrange
-			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroRecordNL>().With(x => x.Description, description).Create();
+			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroDutchStrategy>().With(x => x.Description, description).Create();
 
 			// Act
 			var activityType = deGiroRecordNL.GetActivityType();
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		public void GetActivityType_ShouldReturnNull_WhenDescriptionIsEmpty()
 		{
 			// Arrange
-			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroRecordNL>().With(x => x.Description, string.Empty).Create();
+			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroDutchStrategy>().With(x => x.Description, string.Empty).Create();
 
 			// Act
 			var activityType = deGiroRecordNL.GetActivityType();
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		public void GetActivityType_ShouldReturnNull_WhenDescriptionDoesNotMatchAnyActivityType()
 		{
 			// Arrange
-			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroRecordNL>().With(x => x.Description, "Some random description").Create();
+			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroDutchStrategy>().With(x => x.Description, "Some random description").Create();
 
 			// Act
 			var activityType = deGiroRecordNL.GetActivityType();
