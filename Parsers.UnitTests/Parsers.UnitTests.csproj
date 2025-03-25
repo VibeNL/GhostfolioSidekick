@@ -175,6 +175,9 @@
 		<None Update="TestFiles\DeGiro\EN\SellOrders\single_sell_marketfund.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_euro_en_headers.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\DeGiro\NL\BuyOrders\single_buy_euro.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

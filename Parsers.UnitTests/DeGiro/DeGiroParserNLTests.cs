@@ -126,6 +126,44 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
+		
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyEuroenHeaders_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/DeGiro/NL/BuyOrders/single_buy_euro_en_headers.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
+						21.70M,
+						1),
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
+						21.70M,
+						2),
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")],
+						1,
+						77.30M,
+						new Money(Currency.EUR, 77.3M),
+						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
+					PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
+						1M,
+						new Money(Currency.EUR, 1),
+						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
+				]);
+		}
 
 		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleBuyEuroWholeNumber_Converted()
