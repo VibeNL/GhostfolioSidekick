@@ -2,7 +2,7 @@
 
 namespace ScraperUtilities
 {
-	internal class ActivityWithSymbol
+	public class ActivityWithSymbol
 	{
 		public Activity Activity { get; set; }
 

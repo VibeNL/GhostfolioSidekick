@@ -5,7 +5,7 @@ using AutoFixture;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {
-	public class DeGiroRecordNLTests
+	public class DeGiroDutchStrategyTests
 	{
 		[Theory]
 		[InlineData("DEGIRO Transactiekosten en/of kosten van derden", PartialActivityType.Fee)]
@@ -19,10 +19,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		public void GetActivityType_ShouldReturnCorrectActivityType(string description, PartialActivityType expectedActivityType)
 		{
 			// Arrange
-			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroRecordNL>().With(x => x.Description, description).Create();
+			var record = DefaultFixture.Create().Build<DeGiroRecord>().With(x => x.Description, description).Create();
+			var strategy = new DeGiroDutchStrategy();
 
 			// Act
-			var activityType = deGiroRecordNL.GetActivityType();
+			var activityType = strategy.GetActivityType(record);
 
 			// Assert
 			activityType.Should().Be(expectedActivityType);
@@ -32,10 +33,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		public void GetActivityType_ShouldReturnNull_WhenDescriptionIsEmpty()
 		{
 			// Arrange
-			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroRecordNL>().With(x => x.Description, string.Empty).Create();
+			var record = DefaultFixture.Create().Build<DeGiroRecord>().With(x => x.Description, string.Empty).Create();
+			var strategy = new DeGiroDutchStrategy();
 
 			// Act
-			var activityType = deGiroRecordNL.GetActivityType();
+			var activityType = strategy.GetActivityType(record);
 
 			// Assert
 			activityType.Should().BeNull();
@@ -45,10 +47,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 		public void GetActivityType_ShouldReturnNull_WhenDescriptionDoesNotMatchAnyActivityType()
 		{
 			// Arrange
-			var deGiroRecordNL = DefaultFixture.Create().Build<DeGiroRecordNL>().With(x => x.Description, "Some random description").Create();
+			var record = DefaultFixture.Create().Build<DeGiroRecord>().With(x => x.Description, "Some random description").Create();
+			var strategy = new DeGiroDutchStrategy();
 
 			// Act
-			var activityType = deGiroRecordNL.GetActivityType();
+			var activityType = strategy.GetActivityType(record);
 
 			// Assert
 			activityType.Should().BeNull();

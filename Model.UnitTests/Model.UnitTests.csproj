@@ -44,4 +44,8 @@
 		<ProjectReference Include="..\Model\Model.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Activities\Types\" />
+	</ItemGroup>
+
 </Project>

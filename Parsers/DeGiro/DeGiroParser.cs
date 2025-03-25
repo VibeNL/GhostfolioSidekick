@@ -1,20 +1,28 @@
-﻿using CsvHelper.Configuration;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
-	public abstract class DeGiroParserBase<T> : RecordBaseImporter<T> where T : DeGiroRecordBase
+	public class DeGiroParser : RecordBaseImporter<DeGiroRecord>
 	{
+		private readonly Dictionary<string, bool> KnownHeaderCache = [];
 		private readonly ICurrencyMapper currencyMapper;
 
-		protected DeGiroParserBase(ICurrencyMapper currencyMapper)
+		private static IDeGiroStrategy strategy = new DeGiroMultiStrategy(
+				new DeGiroEnglishStrategy(),
+				new DeGiroDutchStrategy(),
+				new DeGiroPortugueseStrategy()
+		);
+
+		public DeGiroParser(ICurrencyMapper currencyMapper)
 		{
 			this.currencyMapper = currencyMapper;
 		}
 
-		protected override IEnumerable<PartialActivity> ParseRow(T record, int rowNumber)
+		protected override IEnumerable<PartialActivity> ParseRow(DeGiroRecord record, int rowNumber)
 		{
 			var recordDate = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
 
@@ -25,12 +33,12 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				rowNumber);
 			PartialActivity? partialActivity;
 
-			var activityType = record.GetActivityType();
+			var activityType = strategy.GetActivityType(record);
 
-			var currencyRecord = !string.IsNullOrWhiteSpace(record.Mutation) ? currencyMapper.Map(record.Mutation) : record.GetCurrency(currencyMapper);
+			var currencyRecord = !string.IsNullOrWhiteSpace(record.Mutation) ? currencyMapper.Map(record.Mutation) : strategy.GetCurrency(record, currencyMapper);
 			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
-			
-			record.SetGenerateTransactionIdIfEmpty(recordDate);
+
+			strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
 
 			switch (activityType)
 			{
@@ -39,12 +47,12 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					return [knownBalance];
 				case PartialActivityType.Buy:
 					partialActivity = PartialActivity.CreateBuy(
-						record.GetCurrency(currencyMapper),
+						strategy.GetCurrency(record, currencyMapper),
 						recordDate,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
-						record.GetQuantity(),
-						record.GetUnitPrice(),
-						new Money(currencyRecord, GetRecordTotal(recordTotal, record)),
+						strategy.GetQuantity(record),
+						strategy.GetUnitPrice(record),
+						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
 						record.TransactionId!);
 					break;
 				case PartialActivityType.CashDeposit:
@@ -68,12 +76,12 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					break;
 				case PartialActivityType.Sell:
 					partialActivity = PartialActivity.CreateSell(
-						record.GetCurrency(currencyMapper),
+						strategy.GetCurrency(record, currencyMapper),
 						recordDate,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
-						record.GetQuantity(),
-						record.GetUnitPrice(),
-						new Money(currencyRecord, GetRecordTotal(recordTotal, record)),
+						strategy.GetQuantity(record),
+						strategy.GetUnitPrice(record),
+						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
 						record.TransactionId!);
 					break;
 				default:
@@ -83,16 +91,16 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return [knownBalance, partialActivity];
 		}
 
-		private static decimal GetRecordTotal(decimal recordTotal, T record)
+		private static decimal GetRecordTotal(decimal recordTotal, decimal quantity, decimal unitPrice)
 		{
 			if (recordTotal == 0)
 			{
-				recordTotal = Math.Abs(record.GetQuantity() * record.GetUnitPrice());
+				recordTotal = Math.Abs(quantity * unitPrice);
 			}
 
 			return recordTotal;
 		}
-
+				
 		protected override CsvConfiguration GetConfig()
 		{
 			return new CsvConfiguration(CultureInfo.InvariantCulture)

@@ -32,10 +32,5 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public Money Amount { get; set; }
 
 		public virtual ICollection<DividendActivityTax> Taxes { get; set; } = [];
-
-		public override string ToString()
-		{
-			return $"{Account}_{Date}";
-		}
 	}
 }

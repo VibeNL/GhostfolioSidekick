@@ -1,24 +1,19 @@
-﻿using Microsoft.Playwright;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Playwright;
 
 namespace ScraperUtilities.ScalableCapital
 {
-	public class MainPage
+	public class MainPage(IPage page, Microsoft.Extensions.Logging.ILogger logger)
 	{
-		private IPage page;
-
-		public MainPage(IPage page)
-		{
-			this.page = page;
-		}
-		
 		internal async Task<TransactionPage> GoToTransactions()
 		{
 			await page.GotoAsync("https://de.scalable.capital/broker/transactions");
 
 			// Wait for transactions to load
+			logger.LogInformation("Waiting for transactions to load...");
 			await page.WaitForSelectorAsync("button:text('Export CSV')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
-			return new TransactionPage(page);
+			return new TransactionPage(page, logger);
 		}
 
 		internal async Task<IReadOnlyCollection<ILocator>> GetPortfolios()

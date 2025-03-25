@@ -1,25 +1,20 @@
 ﻿using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
 namespace ScraperUtilities.TradeRepublic
 {
-	public class MainPage
+	public class MainPage(IPage page, Microsoft.Extensions.Logging.ILogger logger)
 	{
-		private IPage page;
-
-		public MainPage(IPage page)
-		{
-			this.page = page;
-		}
-		
 		internal async Task<TransactionPage> GoToTransactions()
 		{
 			await page.GotoAsync("https://app.traderepublic.com/profile/transactions");
 
 			// Wait for transactions to load
-            await page.WaitForSelectorAsync("span:text('Withdraw')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+			logger.LogInformation("Waiting for transactions to load...");
+			await page.WaitForSelectorAsync("span:text('Withdraw')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
-			return new TransactionPage(page);
+			return new TransactionPage(page, logger);
 		}
 
 		internal async Task<IReadOnlyCollection<ILocator>> GetPortfolios()
@@ -35,6 +30,7 @@ namespace ScraperUtilities.TradeRepublic
 
 		internal async Task<ICollection<SymbolProfile>> ScrapeSymbols()
 		{
+			logger.LogInformation("Scraping symbols...");
 			await page.GotoAsync("https://app.traderepublic.com/portfolio");
 			var returnList = new List<SymbolProfile>();
 
@@ -50,9 +46,11 @@ namespace ScraperUtilities.TradeRepublic
 					var isin = await symbol.GetAttributeAsync("id");
 					var name = await symbol.Locator("span[class='instrumentListItem__name']").TextContentAsync();
 					returnList.Add(new SymbolProfile { ISIN = isin, Name = name });
+					logger.LogInformation($"Scraped {name} ({isin}).");
 				}
 			}
 
+			logger.LogInformation($"Scraped {returnList.Count} symbols.");
 			return returnList;
 		}
 	}
