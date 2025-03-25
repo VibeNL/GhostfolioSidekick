@@ -133,7 +133,7 @@ namespace IntegrationTests
 			// Add your Redis connection test logic here.
 
 			// Example: Check Ghostfolio connection.
-			var ghostfolioUri = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(3000)).Uri;
+			var ghostfolioUri = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri;
 			var response = await httpClient.GetAsync(ghostfolioUri);
 			response.EnsureSuccessStatusCode();
 		}
