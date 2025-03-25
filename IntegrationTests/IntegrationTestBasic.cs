@@ -43,13 +43,16 @@ namespace IntegrationTests
 
 			ghostfolioContainer = new ContainerBuilder()
 				.WithImage("ghostfolio/ghostfolio:latest")
-				.WithPortBinding(3000, true)
+				.WithPortBinding(GhostfolioPort, true)
 				.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
 				.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
 				.WithEnvironment("REDIS_HOST", TestContainerHostName)
 				.WithEnvironment("REDIS_PASSWORD", string.Empty)
 				.WithEnvironment("REDIS_PORT", redisContainer.GetMappedPublicPort(ReditPort).ToString())
 				.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@{TestContainerHostName}:{postgresContainer.GetMappedPublicPort(PostgresPort)}/{Database}")
+				.WithEnvironment("POSTGRES_DB", Database)
+				.WithEnvironment("POSTGRES_PASSWORD", Password)
+				.WithEnvironment("POSTGRES_USER", Username)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(GhostfolioPort))
 				.Build();
 
@@ -60,7 +63,7 @@ namespace IntegrationTests
 			catch (Exception ex)
 			{
 				var logs = await ghostfolioContainer.GetLogsAsync();
-				throw new Exception(logs.Stderr);
+				throw new Exception(logs.Stderr + logs.Stdout);
 			}
 
 			// Initialize HttpClient.
