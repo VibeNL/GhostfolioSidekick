@@ -16,13 +16,18 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				}
 			}
 
-			throw new NotSupportedException();
+			return null;
 		}
 
 		public Currency GetCurrency(DeGiroRecord record, ICurrencyMapper currencyMapper)
 		{
 			foreach (var strategy in strategies)
 			{
+				if (strategy.GetActivityType(record) == null)
+				{
+					continue;
+				}
+
 				var currency = strategy.GetCurrency(record, currencyMapper);
 				if (currency != null)
 				{
@@ -37,6 +42,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		{
 			foreach (var strategy in strategies)
 			{
+				if (strategy.GetActivityType(record) == null)
+				{
+					continue;
+				}
+
 				var quantity = strategy.GetQuantity(record);
 				if (quantity != 0)
 				{
@@ -51,6 +61,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		{
 			foreach (var strategy in strategies)
 			{
+				if (strategy.GetActivityType(record) == null)
+				{
+					continue;
+				}
+
 				var unitPrice = strategy.GetUnitPrice(record);
 				if (unitPrice != 0)
 				{
@@ -65,8 +80,14 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		{
 			foreach (var strategy in strategies)
 			{
-				strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
+				if (strategy.GetActivityType(record) != null)
+				{
+					strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
+					return;
+				}
 			}
+
+			strategies.FirstOrDefault()?.SetGenerateTransactionIdIfEmpty(record, recordDate);
 		}
 	}
 }
