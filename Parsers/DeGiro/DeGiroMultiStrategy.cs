@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				}
 			}
 
-			throw new NotSupportedException();
+			return Currency.EUR;
 		}
 
 		public decimal GetQuantity(DeGiroRecord record)
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				}
 			}
 
-			throw new NotSupportedException();
+			return 0;
 		}
 
 		public decimal GetUnitPrice(DeGiroRecord record)
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				}
 			}
 
-			throw new NotSupportedException();
+			return 0;
 		}
 
 		public void SetGenerateTransactionIdIfEmpty(DeGiroRecord record, DateTime recordDate)
