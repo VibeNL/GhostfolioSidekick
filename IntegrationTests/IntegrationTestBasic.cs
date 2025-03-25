@@ -5,59 +5,63 @@ using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
 using FluentAssertions;
 using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 
 namespace IntegrationTests
 {
 	public class IntegrationTestBasic : IAsyncLifetime
 	{
+		private const string TestContainerHostName = "host.testcontainers.internal";
+		
 		private const string Username = "testuser";
 		private const string Password = "testpassword";
 		private const string Database = "testdb";
+				
+		private const int ReditPort = 6379;
+		private const int PostgresPort = 5432;
+		private const int GhostfolioPort = 3333;
 
 		private PostgreSqlContainer postgresContainer = default!;
-		private IContainer redisContainer = default!;
+		private RedisContainer redisContainer = default!;
 		private IContainer ghostfolioContainer = default!;
-		private INetwork customNetwork = default!;
 		private HttpClient httpClient = default!;
 
 		public async Task InitializeAsync()
 		{
-			// Create and start the custom network.
-			customNetwork = new NetworkBuilder()
-				.WithName("custom-network")
-				.WithDriver(NetworkDriver.Bridge)
-				.Build();
-			await customNetwork.CreateAsync().ConfigureAwait(false);
-
 			await StartPostgreSql().ConfigureAwait(false);
 
 			// Create and start the Redis container.
-			redisContainer = new ContainerBuilder()
-				.WithImage("redis:latest")
-				.WithPortBinding(6379, true)
-				.WithNetwork(customNetwork)
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6379))
+			redisContainer = new RedisBuilder()
+				.WithPortBinding(ReditPort, true)
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(ReditPort))
 				.Build();
 			await redisContainer.StartAsync().ConfigureAwait(false);
 
 			// Create and start the Ghostfolio container.
-			await TestcontainersSettings
-				.ExposeHostPortsAsync(postgresContainer.GetMappedPublicPort(5432))
-				.ConfigureAwait(false);
+			await TestcontainersSettings.ExposeHostPortsAsync(postgresContainer.GetMappedPublicPort(PostgresPort)).ConfigureAwait(false);
+			await TestcontainersSettings.ExposeHostPortsAsync(redisContainer.GetMappedPublicPort(ReditPort)).ConfigureAwait(false);
 
 			ghostfolioContainer = new ContainerBuilder()
 				.WithImage("ghostfolio/ghostfolio:latest")
 				.WithPortBinding(3000, true)
-				.WithNetwork(customNetwork)
 				.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
 				.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
-				.WithEnvironment("REDIS_HOST", redisContainer.Hostname)
+				.WithEnvironment("REDIS_HOST", TestContainerHostName)
 				.WithEnvironment("REDIS_PASSWORD", string.Empty)
-				.WithEnvironment("REDIS_PORT", redisContainer.GetMappedPublicPort(6379).ToString())
-				.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@{postgresContainer.Hostname}:{postgresContainer.GetMappedPublicPort(5432)}/{Database}")
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(3000))
+				.WithEnvironment("REDIS_PORT", redisContainer.GetMappedPublicPort(ReditPort).ToString())
+				.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@{TestContainerHostName}:{postgresContainer.GetMappedPublicPort(PostgresPort)}/{Database}")
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(GhostfolioPort))
 				.Build();
-			await ghostfolioContainer.StartAsync().ConfigureAwait(false);
+
+			try
+			{
+				await ghostfolioContainer.StartAsync().ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				var logs = await ghostfolioContainer.GetLogsAsync();
+				throw new Exception(logs.Stderr);
+			}
 
 			// Initialize HttpClient.
 			httpClient = new HttpClient();
@@ -70,9 +74,8 @@ namespace IntegrationTests
 				.WithUsername(Username)
 				.WithPassword(Password)
 				.WithDatabase(Database)
-				.WithPortBinding(5432, true)
-				.WithNetwork(customNetwork)
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
+				.WithPortBinding(PostgresPort, true)
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(PostgresPort))
 				.Build();
 			await postgresContainer.StartAsync().ConfigureAwait(false);
 
@@ -84,8 +87,8 @@ namespace IntegrationTests
 				.ConfigureAwait(true);
 
 			// Then
-            execResult.ExitCode.Should().Be(0L, execResult.Stderr);
-            execResult.Stderr.Should().BeEmpty();
+			execResult.ExitCode.Should().Be(0L, execResult.Stderr);
+			execResult.Stderr.Should().BeEmpty();
 		}
 
 		public async Task DisposeAsync()
@@ -104,9 +107,6 @@ namespace IntegrationTests
 			// Stop and dispose the Ghostfolio container.
 			await ghostfolioContainer.StopAsync();
 			await ghostfolioContainer.DisposeAsync();
-
-			// Remove the custom network.
-			await customNetwork.DeleteAsync();
 		}
 
 		[Fact]
@@ -125,11 +125,11 @@ namespace IntegrationTests
 			// You can add your specific test logic here.
 
 			// Example: Check PostgreSQL connection.
-			var postgresConnectionString = $"Host={postgresContainer.Hostname};Port={postgresContainer.GetMappedPublicPort(5432)};Username=testuser;Password=testpassword;Database=testdb";
+			var postgresConnectionString = $"Host={postgresContainer.Hostname};Port={postgresContainer.GetMappedPublicPort(PostgresPort)};Username=testuser;Password=testpassword;Database=testdb";
 			// Add your PostgreSQL connection test logic here.
 
 			// Example: Check Redis connection.
-			var redisConnectionString = $"{redisContainer.Hostname}:{redisContainer.GetMappedPublicPort(6379)}";
+			var redisConnectionString = $"{redisContainer.Hostname}:{redisContainer.GetMappedPublicPort(ReditPort)}";
 			// Add your Redis connection test logic here.
 
 			// Example: Check Ghostfolio connection.
