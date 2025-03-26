@@ -39,8 +39,9 @@ namespace IntegrationTests
 			response.EnsureSuccessStatusCode();
 
 			// Create a new user.
-			response = await httpClient.PostAsync($"{ghostfolioUri}/api/users", new StringContent("{}"));
+			response = await httpClient.PostAsync($"{ghostfolioUri}api/v1/user", new StringContent("{}"));
 			response.EnsureSuccessStatusCode();
+			var content = await response.Content.ReadAsStringAsync();
 		}
 
 		public async Task InitializeAsync()
