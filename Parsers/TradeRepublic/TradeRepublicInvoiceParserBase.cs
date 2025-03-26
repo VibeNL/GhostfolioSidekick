@@ -161,7 +161,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					}
 				}
 
-				if (Keyword_Amount.Contains(word.Text) || CheckEndOfRecord(headers)) // end of header
+				if (Keyword_Amount.Contains(word.Text) || 
+					(headers.Count != 0 && CheckEndOfRecord(headers, word.Text))) // end of header
 				{
 					inHeader = false;
 				}
@@ -173,7 +174,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return activities;
 		}
 
-		protected virtual bool CheckEndOfRecord(List<MultiWordToken> headers)
+		protected virtual bool CheckEndOfRecord(List<MultiWordToken> headers, string currentWord)
 		{
 			return false;
 		}
