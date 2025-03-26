@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string Keyword_Coupon => "COUPON";
 		protected override string Keyword_Total => "TOTAL";
 		protected override string Keyword_AverageRate => "AVERAGE RATE";
-		protected override string Keyword_Booking => "BOOKING";
+		protected override string[] Keyword_Booking => ["BOOKING"];
 		protected override string Keyword_Security => "SECURITY";
 		protected override string Keyword_Number => "NO.";
 		protected override string SECURITIES_SETTLEMENT => "SECURITIES SETTLEMENT";
@@ -28,10 +28,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string DATE => "DATE";
 		protected override CultureInfo CULTURE => CultureInfo.InvariantCulture;
 
-
-
 		public TradeRepublicInvoiceParserEN(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
 		}
+
 	}
 }

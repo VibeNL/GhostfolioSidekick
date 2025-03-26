@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected abstract string Keyword_Coupon { get; }
 		protected abstract string Keyword_Total { get; }
 		protected abstract string Keyword_AverageRate { get; }
-		protected abstract string Keyword_Booking { get; }
+		protected abstract string[] Keyword_Booking { get; }
 		protected abstract string Keyword_Security { get; }
 		protected abstract string Keyword_Number { get; }
 		protected abstract string SECURITIES_SETTLEMENT { get; }
@@ -35,19 +35,18 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			get
 			{
-				return [
+				return [.. Keyword_Booking.Union([
 					Keyword_Position,
 					Keyword_Quantity,
 					Keyword_Nominal,
 					Keyword_Price,
 					Keyword_AverageRate,
 					Keyword_Income,
-					Keyword_Coupon,
 					Keyword_Amount,
-					Keyword_Booking,
+					Keyword_Coupon,
 					Keyword_Security,
 					Keyword_Number
-				];
+				])];
 			}
 		}
 
@@ -162,7 +161,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					}
 				}
 
-				if (Keyword_Amount == word.Text) // end of header
+				if (Keyword_Amount.Contains(word.Text) || CheckEndOfRecord(headers)) // end of header
 				{
 					inHeader = false;
 				}
@@ -172,6 +171,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			activities.ToList().ForEach(x => x.TransactionId = mainActivity.TransactionId);
 
 			return activities;
+		}
+
+		protected virtual bool CheckEndOfRecord(List<MultiWordToken> headers)
+		{
+			return false;
 		}
 
 		private int ParseFeeRecords(List<SingleWordToken> words, int i, DateTime dateTime, List<PartialActivity> activities)
@@ -193,7 +197,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			{
 				return i;
 			}
-			
+
 			var price = Math.Abs(decimal.Parse(words[i + skip].Text, CULTURE));
 			var currencySymbol = words[i + skip + 1].Text;
 			var currency = Currency.GetCurrency(currencySymbol);
@@ -261,7 +265,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i + 6;
 			}
 
-			if (headerStrings.Contains(Keyword_Security) && headerStrings.Contains(Keyword_Booking)) // Repay of bonds
+			if (headerStrings.Contains(Keyword_Security) && Keyword_Booking.Any(x => headerStrings.Contains(x))) // Repay of bonds
 			{
 				i = i + 2; // skip column "Number" and "Booking"
 				var isin = GetIsin(words, ref i);

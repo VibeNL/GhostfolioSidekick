@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string Keyword_Coupon => string.Empty;
 		protected override string Keyword_Total => "TOTAAL";
 		protected override string Keyword_AverageRate => string.Empty;
-		protected override string Keyword_Booking => string.Empty;
+		protected override string[] Keyword_Booking => [string.Empty];
 		protected override string Keyword_Security => string.Empty;
 		protected override string Keyword_Number => string.Empty;
 		protected override string SECURITIES_SETTLEMENT => "SECURITIES SETTLEMENT";
