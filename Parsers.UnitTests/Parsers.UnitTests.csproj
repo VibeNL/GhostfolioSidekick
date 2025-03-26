@@ -50,6 +50,8 @@
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
 		<Folder Include="TestFiles\DeGiro\EN\SellOrders\" />
+		<Folder Include="TestFiles\TradeRepublic\ES\BuyOrders\" />
+		<Folder Include="TestFiles\TradeRepublic\ES\CashTransactions\" />
 		<Folder Include="TestFiles\TradeRepublic\NL\BuyOrders\" />
 	</ItemGroup>
 
