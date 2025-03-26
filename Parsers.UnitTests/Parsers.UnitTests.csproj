@@ -420,6 +420,24 @@
 		<None Update="TestFiles\TradeRepublic\EN\CashTransactions\single_dividend.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_bond.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_savingsplan_etf.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_stock.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\ES\CashTransactions\single_dividend_stock.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\ES\CashTransactions\single_interest_bond.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\ES\CashTransactions\single_repayment_bond.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\TradeRepublic\NL\CashTransactions\single_dividend.pdf">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
