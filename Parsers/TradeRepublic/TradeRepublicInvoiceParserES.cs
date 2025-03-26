@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string Keyword_Quantity => "CANTIDAD";
 		protected override string Keyword_Price => "COTIZACIÓN";
 		protected override string Keyword_Amount => "IMPORTE";
-		protected override string Keyword_Nominal => "NOMINAL";
+		protected override string[] Keyword_Nominal => ["NOMINAL", "NOMINALES"];
 		protected override string Keyword_Income => "RENDIMIENTO";
 		protected override string Keyword_Coupon => "CUPÓN";
 		protected override string Keyword_Total => "TOTAL";
@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string[] Keyword_Booking => ["RESERVA",   // For "buy" operations
 														"REGISTRO"]; // For dividends/repayments/interests
 		protected override string Keyword_Security => "INSTRUMENTO";
-		protected override string Keyword_Number => "NÚM";
+		protected override string Keyword_Number => "NÚM.";
 		protected override string SECURITIES_SETTLEMENT => "LIQUIDACIÓN DE VALORES";
 		protected override string DIVIDEND => "DIVIDENDO";
 		protected override string INTEREST_PAYMENT => "PAGO DE INTERESES";
@@ -37,10 +37,17 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			// Special case for dividends
 			// Headers: POSICIÓN, CANTIDAD, RENDIMIENTO, CANTIDAD
-			return headers.Count == 4 && headers
+			var dividendHeader = headers.Count == 4 && headers
 					.Select(x => x.KeyWord).SequenceEqual(
 					["POSICIÓN", "CANTIDAD", "RENDIMIENTO", "CANTIDAD"]
 				);
+
+			var repayBond = headers.Count == 4 && headers
+					.Select(x => x.KeyWord).SequenceEqual(
+					["NÚM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD"]
+				);
+
+			return dividendHeader || repayBond;
 		}
 	}
 }

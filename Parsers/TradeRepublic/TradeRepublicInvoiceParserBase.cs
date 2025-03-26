@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected abstract string Keyword_Quantity { get; }
 		protected abstract string Keyword_Price { get; }
 		protected abstract string Keyword_Amount { get; }
-		protected abstract string Keyword_Nominal { get; }
+		protected abstract string[] Keyword_Nominal { get; }
 		protected abstract string Keyword_Income { get; }
 		protected abstract string Keyword_Coupon { get; }
 		protected abstract string Keyword_Total { get; }
@@ -35,10 +35,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			get
 			{
-				return [.. Keyword_Booking.Union([
+				return [.. Keyword_Booking.Union(Keyword_Nominal).Union([
 					Keyword_Position,
 					Keyword_Quantity,
-					Keyword_Nominal,
 					Keyword_Price,
 					Keyword_AverageRate,
 					Keyword_Income,
@@ -232,7 +231,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i + 6;
 			}
 
-			if (headerStrings.Contains(Keyword_Nominal) && headerStrings.Contains(Keyword_Price)) // Bonds
+			if (Keyword_Nominal.Any(x => headerStrings.Contains(x)) && headerStrings.Contains(Keyword_Price)) // Bonds
 			{
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
@@ -249,7 +248,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i + 6;
 			}
 
-			if (headerStrings.Contains(Keyword_Income) || headerStrings.Contains(Keyword_Nominal)) // Dividends
+			if (headerStrings.Contains(Keyword_Income) || Keyword_Nominal.Any(x => headerStrings.Contains(x))) // Dividends
 			{
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);

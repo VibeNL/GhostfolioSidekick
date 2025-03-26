@@ -157,11 +157,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateDividend(
 						Currency.EUR,
-						new DateTime(2024, 02, 15, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
-						1.74m,
-						new Money(Currency.EUR, 1.74m),
-						"Trade_Republic_DE0001102333_2024-02-15")
+						new DateTime(2024, 12, 12, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
+						2.19m,
+						new Money(Currency.EUR, 2.19m),
+						"Trade_Republic_DE0001104909_2024-12-12")
 				]);
 		}
 
@@ -172,17 +172,17 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			var parser = new TradeRepublicInvoiceParserES(new PdfToWordsParser());
 
 			// Act
-			await parser.ParseActivities("./TestFiles/TradeRepublic/ES/CashTransactions/single_repay_bond.pdf", activityManager, account.Name);
+			await parser.ParseActivities("./TestFiles/TradeRepublic/ES/CashTransactions/single_repayment_bond.pdf", activityManager, account.Name);
 
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBondRepay(
 						Currency.EUR,
 						new DateTime(2024, 02, 14, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
-						99.47m,
-						new Money(Currency.EUR, 99.47m),
-						"Trade_Republic_DE0001102333_2024-02-14")
+						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
+						99.6m,
+						new Money(Currency.EUR, 99.6m),
+						"Trade_Republic_DE0001104909_2024-12-12")
 				]);
 		}
 	}
