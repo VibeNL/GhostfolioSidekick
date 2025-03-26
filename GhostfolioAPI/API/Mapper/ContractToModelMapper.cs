@@ -1,5 +1,7 @@
-﻿using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
@@ -61,6 +63,39 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		private static CountryWeight[] MapCountries(Contract.Country[] countries)
 		{
 			return (countries ?? []).Select(x => new CountryWeight(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
+		}
+
+		internal static Model.Activities.Activity MapActivity(Account account, ICurrencyExchange currencyExchange, List<Contract.SymbolProfile> symbols, Contract.Activity rawActivity)
+		{
+			var symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol);
+			if (symbol == null)
+			{
+				throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
+			}
+
+			// TODO implement the mapping when needed
+			switch (rawActivity.Type)
+			{
+				case Contract.ActivityType.BUY:
+					return new BuySellActivity();
+				case Contract.ActivityType.SELL:
+					return new BuySellActivity();
+				case Contract.ActivityType.DIVIDEND:
+					return new DividendActivity();
+				case Contract.ActivityType.INTEREST:
+					return new InterestActivity();
+				case Contract.ActivityType.FEE:
+					return new FeeActivity();
+				case Contract.ActivityType.ITEM:
+					return new ValuableActivity();
+				case Contract.ActivityType.LIABILITY:
+					return new LiabilityActivity();
+				case Contract.ActivityType.IGNORE:
+				default:
+					throw new NotSupportedException();
+			}
+
+			throw new NotSupportedException();
 		}
 	}
 }

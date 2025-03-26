@@ -107,6 +107,29 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return assets;
 		}
 
+		public async Task<List<Model.Activities.Activity>> GetActivitiesByAccount(Model.Accounts.Account account)
+		{
+			var rawAccounts = await GetAllAccounts();
+			var rawAccount = rawAccounts.SingleOrDefault(x => string.Equals(x.Name, account.Name, StringComparison.InvariantCultureIgnoreCase));
+			if (rawAccount == null)
+			{
+				throw new NotSupportedException("Account not found");
+			}
+
+			var content = await restCall.DoRestGet($"api/v1/order");
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
+
+			existingActivities = existingActivities.Where(x => x.AccountId == rawAccount.Id).ToList();
+
+			if (existingActivities == null)
+			{
+				return [];
+			}
+
+			var symbols = await GetAllSymbolProfiles();
+			return [.. existingActivities.Select(x => ContractToModelMapper.MapActivity(account, currencyExchange, symbols, x))];
+		}
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)
 		{
