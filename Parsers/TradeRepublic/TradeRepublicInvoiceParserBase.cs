@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				if (inHeader) // add column headers
 				{
 					var matched = false;
-					foreach (var kw in TableKeyWords)
+					foreach (var kw in TableKeyWords.OrderByDescending(x => x.Length))
 					{
 						var keywordMatch = true;
 						string[] keywordSplitted = kw.Split(" ");

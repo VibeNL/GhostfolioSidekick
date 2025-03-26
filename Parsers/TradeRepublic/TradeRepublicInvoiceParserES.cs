@@ -27,11 +27,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string EXTERNAL_COST_SURCHARGE => "Tarifa plana por costes del servicio de ejecución de terceros";
 		protected override string WITHHOLDING_TAX => "Retención Fiscal para Emisores de Estados Unidos";
 		protected override string DATE => "FECHA";
-		protected override CultureInfo CULTURE => CultureInfo.InvariantCulture;
+		protected override CultureInfo CULTURE => new CultureInfo("es");
 		
 		public TradeRepublicInvoiceParserES(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
 		}
+
 		protected override bool CheckEndOfRecord(List<MultiWordToken> headers)
 		{
 			// Special case for dividends
