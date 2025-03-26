@@ -36,6 +36,8 @@ namespace IntegrationTests
 			// url ghostfolio for debugging:
 			var url = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri.ToString();
 			authToken.Should().NotBeNull();
+
+
 		}
 
 		public async Task InitializeAsync()
