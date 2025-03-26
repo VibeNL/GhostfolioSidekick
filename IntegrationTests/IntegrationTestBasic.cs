@@ -48,7 +48,6 @@ namespace IntegrationTests
 			INetwork network = new NetworkBuilder()
 				.WithCleanUp(true)
 				.WithName("ghostfolio-network")
-				.WithDriver(NetworkDriver.Bridge)
 				.Build();
 
 			// Create and start the PostgreSQL container.
@@ -60,6 +59,7 @@ namespace IntegrationTests
 				.WithPortBinding(PostgresPort, true)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(PostgresPort))
 				.WithNetwork(network)
+				.WithNetworkAliases("postgrescontainer")
 				.Build();
 			await postgresContainer.StartAsync().ConfigureAwait(false);
 
@@ -95,7 +95,7 @@ namespace IntegrationTests
 				.WithEnvironment("REDIS_HOST", TestContainerHostName)
 				.WithEnvironment("REDIS_PASSWORD", string.Empty)
 				.WithEnvironment("REDIS_PORT", redisContainer.GetMappedPublicPort(ReditPort).ToString())
-				.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@{TestContainerHostName}:{postgresContainer.GetMappedPublicPort(PostgresPort)}/{Database}")
+				.WithEnvironment("DATABASE_URL", $"postgresql://{Username}:{Password}@postgrescontainer/{Database}")
 				.WithEnvironment("POSTGRES_DB", Database)
 				.WithEnvironment("POSTGRES_PASSWORD", Password)
 				.WithEnvironment("POSTGRES_USER", Username)
