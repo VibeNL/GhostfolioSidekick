@@ -27,8 +27,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicInvoiceParserES(new PdfToWordsParser());
-			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/ES/CashTransactions", "*.pdf", SearchOption.AllDirectories))
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/ES/BuyOrders", "*.pdf", SearchOption.AllDirectories)
+						  .Union(Directory.GetFiles("./TestFiles/TradeRepublic/ES/CashTransactions", "*.pdf", SearchOption.AllDirectories)))
 			{
 				// Act
 				var canParse = await parser.CanParse(file);
