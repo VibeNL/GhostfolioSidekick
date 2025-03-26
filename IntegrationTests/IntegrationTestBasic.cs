@@ -13,7 +13,7 @@ namespace IntegrationTests
 {
 	public class IntegrationTestBasic : IAsyncLifetime
 	{
-		private const bool ReuseContainers = true;
+		private const bool ReuseContainers = false;
 		private const string TestContainerHostName = "host.testcontainers.internal";
 
 		private const string Username = "testuser";
@@ -45,13 +45,41 @@ namespace IntegrationTests
 
 		public async Task InitializeAsync()
 		{
-			await StartPostgreSql().ConfigureAwait(false);
+			INetwork network = new NetworkBuilder()
+				.WithCleanUp(true)
+				.WithName("ghostfolio-network")
+				.WithDriver(NetworkDriver.Bridge)
+				.Build();
+
+			// Create and start the PostgreSQL container.
+			postgresContainer = new PostgreSqlBuilder()
+				.WithReuse(ReuseContainers)
+				.WithUsername(Username)
+				.WithPassword(Password)
+				.WithDatabase(Database)
+				.WithPortBinding(PostgresPort, true)
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(PostgresPort))
+				.WithNetwork(network)
+				.Build();
+			await postgresContainer.StartAsync().ConfigureAwait(false);
+
+			// Given
+			const string scriptContent = "SELECT 1;";
+
+			// When
+			var execResult = await postgresContainer.ExecScriptAsync(scriptContent)
+				.ConfigureAwait(true);
+
+			// Then
+			execResult.ExitCode.Should().Be(0L, execResult.Stderr);
+			execResult.Stderr.Should().BeEmpty();
 
 			// Create and start the Redis container.
 			redisContainer = new RedisBuilder()
 				.WithReuse(ReuseContainers)
 				.WithPortBinding(ReditPort, true)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(ReditPort))
+				.WithNetwork(network)
 				.Build();
 			await redisContainer.StartAsync().ConfigureAwait(false);
 
@@ -73,6 +101,7 @@ namespace IntegrationTests
 				.WithEnvironment("POSTGRES_USER", Username)
 				.WithEnvironment("REQUEST_TIMEOUT", "60000")
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(GhostfolioPort))
+				.WithNetwork(network)
 				.Build();
 
 			try
@@ -115,31 +144,5 @@ namespace IntegrationTests
 			await ghostfolioContainer.StopAsync();
 			await ghostfolioContainer.DisposeAsync();
 		}
-
-		private async Task StartPostgreSql()
-		{
-			// Create and start the PostgreSQL container.
-			postgresContainer = new PostgreSqlBuilder()
-				.WithReuse(ReuseContainers)
-				.WithUsername(Username)
-				.WithPassword(Password)
-				.WithDatabase(Database)
-				.WithPortBinding(PostgresPort, true)
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(PostgresPort))
-				.Build();
-			await postgresContainer.StartAsync().ConfigureAwait(false);
-
-			// Given
-			const string scriptContent = "SELECT 1;";
-
-			// When
-			var execResult = await postgresContainer.ExecScriptAsync(scriptContent)
-				.ConfigureAwait(true);
-
-			// Then
-			execResult.ExitCode.Should().Be(0L, execResult.Stderr);
-			execResult.Stderr.Should().BeEmpty();
-		}
-
 	}
 }
