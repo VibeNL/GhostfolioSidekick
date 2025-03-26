@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string EXTERNAL_COST_SURCHARGE => "External cost surcharge";
 		protected override string WITHHOLDING_TAX => "Withholding tax for US issuer";
 		protected override string DATE => "DATE";
-		protected override CultureInfo CULTURE => CultureInfo.InvariantCulture;
+		protected override CultureInfo Culture => CultureInfo.InvariantCulture;
 
 		public TradeRepublicInvoiceParserEN(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{

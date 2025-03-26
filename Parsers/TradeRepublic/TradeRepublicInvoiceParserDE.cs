@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string EXTERNAL_COST_SURCHARGE => "Fremdkostenzuschlag";
 		protected override string WITHHOLDING_TAX => "Kapitalertragssteuer";
 		protected override string DATE => "DATUM";
-		protected override CultureInfo CULTURE => new CultureInfo("de");
+		protected override CultureInfo Culture => new CultureInfo("de");
 
 		public TradeRepublicInvoiceParserDE(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
