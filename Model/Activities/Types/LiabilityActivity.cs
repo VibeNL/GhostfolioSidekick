@@ -27,10 +27,5 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
 
 		public Money Price { get; set; }
-
-		public override string ToString()
-		{
-			return $"{Account}_{Date}";
-		}
 	}
 }

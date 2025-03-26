@@ -43,4 +43,8 @@
 		<ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Sync\" />
+	</ItemGroup>
+
 </Project>

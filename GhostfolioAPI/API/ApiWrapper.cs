@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Database.Repository;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
@@ -7,6 +8,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -103,6 +105,29 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var symbolProfileList = JsonConvert.DeserializeObject<Contract.SymbolProfileList>(content);
 			var assets = symbolProfileList!.Items.Select(ContractToModelMapper.MapSymbolProfile).ToList();
 			return assets;
+		}
+
+		public async Task<List<Model.Activities.Activity>> GetActivitiesByAccount(Model.Accounts.Account account)
+		{
+			var rawAccounts = await GetAllAccounts();
+			var rawAccount = rawAccounts.SingleOrDefault(x => string.Equals(x.Name, account.Name, StringComparison.InvariantCultureIgnoreCase));
+			if (rawAccount == null)
+			{
+				throw new NotSupportedException("Account not found");
+			}
+
+			var content = await restCall.DoRestGet($"api/v1/order");
+			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
+
+			existingActivities = existingActivities.Where(x => x.AccountId == rawAccount.Id).ToList();
+
+			if (existingActivities == null)
+			{
+				return [];
+			}
+
+			var symbols = await GetAllSymbolProfiles();
+			return [.. existingActivities.Select(x => ContractToModelMapper.MapActivity(account, currencyExchange, symbols, x))];
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
@@ -343,6 +368,37 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
+		public async Task SyncMarketData(Model.Symbols.SymbolProfile symbolProfile, ICollection<Model.Market.MarketData> list)
+		{
+			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}");
+			var existingData = JsonConvert.DeserializeObject<MarketDataList>(content!)?.MarketData;
+
+			foreach (var marketData in list)
+			{
+				var amount = (await currencyExchange.ConvertMoney(marketData.Close, symbolProfile.Currency, marketData.Date)).Amount;
+				var value = existingData?.FirstOrDefault(x => x.Date == marketData.Date.ToDateTime(TimeOnly.MinValue))?.MarketPrice ?? 0;
+				if (Math.Abs(value - amount) < 0.000001m)
+				{
+					continue;
+				}
+
+				var o = new JObject
+				{
+					["marketPrice"] = amount
+				};
+
+				var res = o.ToString();
+
+				var r = await restCall.DoRestPut($"api/v1/admin/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}/{marketData.Date:yyyy-MM-dd}", res);
+				if (!r.IsSuccessStatusCode)
+				{
+					throw new NotSupportedException($"SetMarketPrice failed {symbolProfile.Symbol} {marketData.Date}");
+				}
+
+				logger.LogDebug("SetMarketPrice symbol {Symbol} {Date} @ {Amount}", symbolProfile.Symbol, marketData.Date, marketData.Close.Amount);
+			}
+		}
+
 		private async Task<Contract.Account[]> GetAllAccounts()
 		{
 			var content = await restCall.DoRestGet($"api/v1/account");
@@ -452,5 +508,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var res = o.ToString();
 			return Task.FromResult(res);
 		}
+
 	}
 }
