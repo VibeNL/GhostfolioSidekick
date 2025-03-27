@@ -1,10 +1,9 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var apiService = builder.AddProject<Projects.PortfolioViewer_ApiService>("apiservice");
+// https://github.com/BenjaminCharlton/Aspire4Wasm
 
-builder.AddProject<Projects.PortfolioViewer_Web>("webfrontend")
-	.WithExternalHttpEndpoints()
-	.WithReference(apiService)
-	.WaitFor(apiService);
+var apiService = builder
+		.AddProject<Projects.PortfolioViewer_ApiService>("apiservice")
+		.AddWebAssemblyClient<Projects.PortfolioViewer_WASM>("webfrontend");
 
 builder.Build().Run();

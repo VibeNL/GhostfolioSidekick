@@ -12,12 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
     <ProjectReference Include="..\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
-    <ProjectReference Include="..\PortfolioViewer.Web\PortfolioViewer.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" />
+    <PackageReference Include="Aspire4Wasm" Version="3.0.0" />
   </ItemGroup>
 
 </Project>
