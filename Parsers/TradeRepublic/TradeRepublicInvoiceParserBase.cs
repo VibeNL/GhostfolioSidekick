@@ -91,6 +91,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			var activities = new List<PartialActivity>();
 
+			var hasMainActivityParsed = false;
+
 			// detect headers
 			var headers = new List<MultiWordToken>();
 			DateTime? dateTime = null;
@@ -115,7 +117,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				if (!inHeader && headers.Count == 4) // parsing rows buys and sells
 				{
-					i = ParseSecurityRecord(words, i, dateTime.GetValueOrDefault(), headers, activities);
+					if (!hasMainActivityParsed)
+					{
+						i = ParseSecurityRecord(words, i, dateTime.GetValueOrDefault(), headers, activities);
+						hasMainActivityParsed = true;
+					}
 				}
 
 				if (!inHeader && headers.Count == 2) // parsing fees

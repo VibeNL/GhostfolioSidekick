@@ -178,7 +178,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBondRepay(
 						Currency.EUR,
-						new DateTime(2024, 02, 14, 0, 0, 0, DateTimeKind.Utc),
+						new DateTime(2024, 12, 12, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
 						99.6m,
 						new Money(Currency.EUR, 99.6m),
