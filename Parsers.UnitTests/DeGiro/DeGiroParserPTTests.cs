@@ -9,13 +9,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {
 	public class DeGiroParserPTTests
 	{
-		private readonly DeGiroParserPT parser;
+		private readonly DeGiroParser parser;
 		private readonly Account account;
 		private readonly TestActivityManager activityManager;
 
 		public DeGiroParserPTTests()
 		{
-			parser = new DeGiroParserPT(DummyCurrencyMapper.Instance);
+			parser = new DeGiroParser(DummyCurrencyMapper.Instance);
 
 			var fixture = new Fixture();
 			account = fixture
