@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
     <ProjectReference Include="..\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
+    <ProjectReference Include="..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
   </ItemGroup>
 
   <ItemGroup>
