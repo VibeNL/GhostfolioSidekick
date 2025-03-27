@@ -35,19 +35,19 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected override bool CheckEndOfRecord(List<MultiWordToken> headers, string currentWord)
 		{
-			// Special case for dividends
-			// Headers: POSICIÓN, CANTIDAD, RENDIMIENTO, CANTIDAD
-			string[] dividendHeader = ["POSICIÓN", "CANTIDAD", "RENDIMIENTO", "CANTIDAD"];
-			string[] repayBond = ["NÚM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD"];
-
-			if (headers.Select(x => x.KeyWord).SequenceEqual(dividendHeader) && dividendHeader.Last() == currentWord)
+			var headerMappings = new List<string[]>
 			{
-				return true;
-			}
+				{ [ "POSICIÓN", "CANTIDAD", "RENDIMIENTO", "CANTIDAD" ] }, // dividend
+				{ [ "NÚM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD" ] }, // repay bond
+				{ [ "POSICIÓN", "NOMINALES", "CUPÓN", "CANTIDAD" ] } // interest bond
+			};
 
-			if (headers.Select(x => x.KeyWord).SequenceEqual(repayBond) && repayBond.Last() == currentWord)
+			foreach (var mapping in headerMappings)
 			{
-				return true;
+				if (headers.Select(x => x.KeyWord).SequenceEqual(mapping) && mapping.Last() == currentWord)
+				{
+					return true;
+				}
 			}
 
 			return false;
