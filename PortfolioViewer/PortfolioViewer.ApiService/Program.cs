@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model.Accounts;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,11 @@ app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+	app.MapScalarApiReference(options =>
+	{
+		options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+	}
+	);
 }
 
 string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
