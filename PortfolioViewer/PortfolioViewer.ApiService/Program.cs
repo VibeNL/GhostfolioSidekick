@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model.Accounts;
+using Microsoft.AspNetCore.Authorization;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,9 +28,7 @@ if (app.Environment.IsDevelopment())
 	);
 }
 
-string[] summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
-
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/weatherforecast", [AllowAnonymous] () =>
 {
     var forecast = Enumerable.Range(1, 5).Select(index =>
         new Platform

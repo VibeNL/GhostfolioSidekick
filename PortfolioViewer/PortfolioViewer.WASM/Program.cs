@@ -21,7 +21,7 @@ public class Program
 		builder.Services.AddHttpClient<TransactionsClient>(
 			client =>
 			{
-				client.BaseAddress = new Uri("https+http://apiservice");
+				client.BaseAddress = new Uri("https://localhost:7565"); //new Uri("https+http://apiservice");
 			});
 
 		//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
