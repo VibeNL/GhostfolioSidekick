@@ -18,9 +18,9 @@ namespace PortfolioViewer.WASM.Clients
 				var a = httpClient.Timeout;
 
 
-				var r = await httpClient.GetAsync("/weatherforecast");
+				//var r = await httpClient.GetAsync("/weatherforecast");
 
-				return [new Platform { Name = await r.Content.ReadAsStringAsync() }];
+				//return [new Platform { Name = await r.Content.ReadAsStringAsync() }];
 
 				await foreach (var forecast in
 					httpClient.GetFromJsonAsAsyncEnumerable<Platform>(
