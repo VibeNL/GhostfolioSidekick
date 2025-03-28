@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using PortfolioViewer.WASM.Clients;
 
 namespace PortfolioViewer.WASM;
 
@@ -17,15 +18,15 @@ public class Program
 			http.AddServiceDiscovery();
 		});
 
-		//builder.Services.AddHttpClient<IInventoryService, InventoryService>(
-		//	client =>
-		//	{
-		//		client.BaseAddress = new Uri("https+http://inventoryapi");
-		//	});
-				
+		builder.Services.AddHttpClient<TransactionsClient>(
+			client =>
+			{
+				client.BaseAddress = new Uri("https+http://apiservice");
+			});
+
 		//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-        builder.Services.AddOidcAuthentication(options =>
+		builder.Services.AddOidcAuthentication(options =>
         {
             // Configure your authentication provider options here.
             // For more information, see https://aka.ms/blazor-standalone-auth
