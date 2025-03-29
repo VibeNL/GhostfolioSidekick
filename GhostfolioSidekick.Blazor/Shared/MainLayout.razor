@@ -1,0 +1,31 @@
+@inherits LayoutComponentBase
+
+<PageTitle>Ghostfolio Sidekick</PageTitle>
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="content px-4">
+            @Body
+        </div>
+    </main>
+</div>
+
+<style>
+    .page {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        background-color: #f8f9fa;
+    }
+
+    .content {
+        flex: 1;
+    }
+</style>

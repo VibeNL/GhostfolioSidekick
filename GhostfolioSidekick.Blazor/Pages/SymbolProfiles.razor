@@ -1,0 +1,51 @@
+@page "/symbolprofiles"
+
+@using GhostfolioSidekick.Blazor.Models
+@using GhostfolioSidekick.Blazor.Services
+@inject DatabaseService DatabaseService
+
+<PageTitle>Symbol Profiles</PageTitle>
+
+<h3>Symbol Profiles</h3>
+
+@if (symbolProfiles == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!symbolProfiles.Any())
+{
+    <p>No symbol profiles available.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>DataSource</th>
+                <th>Currency</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var symbolProfile in symbolProfiles)
+            {
+                <tr>
+                    <td>@symbolProfile.Symbol</td>
+                    <td>@symbolProfile.Name</td>
+                    <td>@symbolProfile.DataSource</td>
+                    <td>@symbolProfile.Currency</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<SymbolProfile> symbolProfiles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        symbolProfiles = await DatabaseService.GetSymbolProfilesAsync();
+    }
+}

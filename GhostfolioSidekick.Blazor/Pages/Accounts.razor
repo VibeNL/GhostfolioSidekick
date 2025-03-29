@@ -1,0 +1,49 @@
+@page "/accounts"
+
+@using GhostfolioSidekick.Blazor.Models
+@using GhostfolioSidekick.Blazor.Services
+@inject DatabaseService DatabaseService
+
+<PageTitle>Accounts</PageTitle>
+
+<h3>Accounts</h3>
+
+@if (accounts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!accounts.Any())
+{
+    <p>No accounts available.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Platform</th>
+                <th>Currency</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in accounts)
+            {
+                <tr>
+                    <td>@account.Name</td>
+                    <td>@account.Platform.Name</td>
+                    <td>@account.Currency</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Account> accounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        accounts = await DatabaseService.GetAccountsAsync();
+    }
+}

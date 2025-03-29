@@ -1,0 +1,37 @@
+@inherits LayoutComponentBase
+
+<nav class="nav-menu">
+    <ul>
+        <li><NavLink href="">Home</NavLink></li>
+        <li><NavLink href="platforms">Platforms</NavLink></li>
+        <li><NavLink href="accounts">Accounts</NavLink></li>
+        <li><NavLink href="symbolprofiles">Symbol Profiles</NavLink></li>
+        <li><NavLink href="activities">Activities</NavLink></li>
+    </ul>
+</nav>
+
+<style>
+    .nav-menu {
+        padding: 10px;
+        background-color: #343a40;
+        color: white;
+    }
+
+    .nav-menu ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .nav-menu li {
+        margin: 5px 0;
+    }
+
+    .nav-menu a {
+        color: white;
+        text-decoration: none;
+    }
+
+    .nav-menu a.active {
+        font-weight: bold;
+    }
+</style>

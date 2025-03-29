@@ -1,0 +1,47 @@
+@page "/platforms"
+
+@using GhostfolioSidekick.Blazor.Models
+@using GhostfolioSidekick.Blazor.Services
+@inject DatabaseService DatabaseService
+
+<PageTitle>Platforms</PageTitle>
+
+<h3>Platforms</h3>
+
+@if (platforms == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!platforms.Any())
+{
+    <p>No platforms available.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var platform in platforms)
+            {
+                <tr>
+                    <td>@platform.Name</td>
+                    <td>@platform.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Platform> platforms;
+
+    protected override async Task OnInitializedAsync()
+    {
+        platforms = await DatabaseService.GetPlatformsAsync();
+    }
+}
