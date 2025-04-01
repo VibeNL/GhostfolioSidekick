@@ -18,7 +18,7 @@ public class Program
 			http.AddServiceDiscovery();
 		});
 
-		builder.Services.AddHttpClient<TransactionsClient>(
+		builder.Services.AddHttpClient<PortfolioClient>(
 			client =>
 			{
 				client.BaseAddress = new Uri("https://localhost:7565"); //new Uri("https+http://apiservice");

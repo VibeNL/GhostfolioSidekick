@@ -1,5 +1,9 @@
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using PortfolioViewer.ApiService;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +27,10 @@ builder.Services.AddCors(options =>
 	});
 });
 
+// Configure SQLite connection
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlite(connectionString));
+
 var app = builder.Build();
 
 app.UseCors();
@@ -32,7 +40,7 @@ app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+	app.MapOpenApi();
 	app.MapScalarApiReference(options =>
 	{
 		options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
@@ -40,19 +48,11 @@ if (app.Environment.IsDevelopment())
 	);
 }
 
-app.MapGet("/weatherforecast", [AllowAnonymous] () =>
+app.MapGet("/profolio", [AllowAnonymous] (DatabaseContext databaseContext) =>
 {
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new Platform
-		{
-			Name = DateTime.Now.AddDays(index).ToString("yyyy-MM-dd"),
-			Url = $"https://www.example.com/{index}",
-		}
-        )
-        .ToArray();
-    return forecast;
+	return PortfolioManager.LoadPorfolio(databaseContext);
 })
-.WithName("GetWeatherForecast");
+.WithName("GetPortfolio");
 
 app.MapDefaultEndpoints();
 

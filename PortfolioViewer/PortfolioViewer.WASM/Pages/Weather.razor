@@ -1,4 +1,5 @@
 ﻿@page "/weather"
+@using GhostfolioSidekick.Model
 @using GhostfolioSidekick.Model.Accounts
 @using PortfolioViewer.WASM.Clients
 @inject HttpClient Http
@@ -9,40 +10,24 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
-@if (forecasts == null)
+@if (portfolio == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th aria-label="Temperature in Farenheit">Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Url</td>
-                    <td>@forecast.Name</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    
 }
 
 @code {
 
     [Inject]
-    private TransactionsClient TransactionClient { get; set; }
+    private PortfolioClient PortfolioClient { get; set; }
 
-    private Platform[]? forecasts;
+    private Portfolio? portfolio;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await TransactionClient.GetWeatherAsync();
+        portfolio = await PortfolioClient.GetPortfolio();
     }
 }
