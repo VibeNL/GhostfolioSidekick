@@ -30,7 +30,7 @@ namespace ScraperUtilities.CentraalBeheer
 				await transaction.ScrollIntoViewIfNeededAsync();
 
 				// Process transaction details
-				var generatedTransaction = await ProcessDetails(counter);
+				var generatedTransaction = await ProcessDetailsCommon(counter);
 				if (generatedTransaction == null)
 				{
 					continue;
@@ -38,9 +38,9 @@ namespace ScraperUtilities.CentraalBeheer
 
 				var symbol = await AddSymbol(counter, generatedTransaction);
 				if (symbol != null)
-				{
-					list.Add(symbol);
-				}
+					{
+						list.Add(symbol);
+					}
 
 				logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
 			}
@@ -97,7 +97,7 @@ namespace ScraperUtilities.CentraalBeheer
 			return page.Locator("div[id^='transactie-collapsable-']").CountAsync();
 		}
 
-		private async Task<Activity?> ProcessDetails(int counter)
+		private async Task<Activity?> ProcessDetailsCommon(int counter)
 		{
 			var header = page.Locator($"div[qa-id='transactie-title-{counter}']");
 			var type = await header.Locator("strong").InnerTextAsync();

@@ -12,9 +12,14 @@ namespace ScraperUtilities.CentraalBeheer
 
 			var lst = new List<ActivityWithSymbol>();
 			var transactionPage = await mainPage.GoToTransactions();
-			var transactions = await transactionPage.ScrapeTransactions();
+			var transactions = await ScrapeTransactionsCommon(transactionPage);
 			lst.AddRange(transactions);
 			return lst;
+		}
+
+		private async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactionsCommon(TransactionPage transactionPage)
+		{
+			return await transactionPage.ScrapeTransactions();
 		}
 	}
 }

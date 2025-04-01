@@ -15,12 +15,17 @@ namespace ScraperUtilities.ScalableCapital
 			{
 				await mainPage.SwitchToAccount(account);
 				var transactionPage = await mainPage.GoToTransactions();
-				var transactions = await transactionPage.ScrapeTransactions();
+				var transactions = await ScrapeTransactionsCommon(transactionPage);
 				await transactionPage.GoToMainPage();
 				lst.AddRange(transactions);
 			}
 
 			return lst;
+		}
+
+		private async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactionsCommon(TransactionPage transactionPage)
+		{
+			return await transactionPage.ScrapeTransactions();
 		}
     }
 }

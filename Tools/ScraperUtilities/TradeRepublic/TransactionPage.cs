@@ -32,7 +32,7 @@ namespace ScraperUtilities.TradeRepublic
 				await page.WaitForSelectorAsync("h3:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
 				// Process transaction details
-				var generatedTransaction = await ProcessDetails(knownProfiles);
+				var generatedTransaction = await ProcessDetailsCommon(knownProfiles);
 				if (generatedTransaction != null)
 				{
 					list.Add(generatedTransaction);
@@ -85,7 +85,7 @@ namespace ScraperUtilities.TradeRepublic
 			return page.Locator("li[class='timeline__entry']").CountAsync();
 		}
 
-		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles)
+		private async Task<ActivityWithSymbol?> ProcessDetailsCommon(ICollection<SymbolProfile> knownProfiles)
 		{
 			var table = await ParseTable(0);
 			var status = table.FirstOrDefault(x => x.Item1 == "Status").Item2;
