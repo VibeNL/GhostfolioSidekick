@@ -70,7 +70,7 @@ namespace PortfolioViewer.ApiService
 			};
 		}
 
-		private static SymbolProfileId MapId(SymbolProfile profile)
+		private static SymbolProfileId MapId(GhostfolioSidekick.Model.Symbols.SymbolProfile profile)
 		{
 			return new SymbolProfileId
 			{
