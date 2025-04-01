@@ -109,6 +109,31 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			context.Activities.Should().Contain(newActivities[1]);
 			context.Activities.Should().Contain(existingActivities[1]);
 			context.Activities.Should().NotContain(existingActivities[0]);
+			context.Activities.Should().ContainSingle(a => a.TransactionId == "T2");
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldLogError_WhenSettingsThrowsException()
+		{
+			// Arrange
+			_mockSettings.Setup(x => x.FileImporterPath).Throws(new Exception("Test exception"));
+
+			// Act
+			await _fileImporterTask.DoWork();
+
+			// Assert
+			_mockLogger.VerifyLog(logger => logger.LogError(It.IsAny<Exception>(), "Error {Message}", "Test exception"), Times.Once);
+		}
+
+		[Fact]
+		public async Task StoreAll_ShouldThrowArgumentNullException_WhenDbContextIsNull()
+		{
+			// Arrange
+			DatabaseContext dbContext = null;
+			var activities = new List<Activity>();
+
+			// Act & Assert
+			await Assert.ThrowsAsync<ArgumentNullException>(() => _fileImporterTask.StoreAll(dbContext, activities));
 		}
 	}
 

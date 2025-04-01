@@ -119,6 +119,47 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
 		}
 
+		[Fact]
+		public async Task DoWork_ShouldLogError_WhenDbContextFactoryThrowsException()
+		{
+			// Arrange
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Throws(new Exception("Test exception"));
+
+			// Act
+			await _determineHoldings.DoWork();
+
+			// Assert
+			_loggerMock.Verify(logger => logger.Log(
+				LogLevel.Error,
+				It.IsAny<EventId>(),
+				It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Test exception")),
+				It.IsAny<Exception>(),
+				It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)), Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldNotRemoveHoldings_WhenSymbolProfilesAreNotEmpty()
+		{
+			// Arrange
+			var dbContextMock = new Mock<DatabaseContext>();
+			var activities = new List<Activity>();
+			var holdings = new List<Holding>
+			{
+				new Holding { Id = 1, SymbolProfiles = new List<SymbolProfile> { new SymbolProfile() } }
+			};
+
+			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
+			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+
+			// Act
+			await _determineHoldings.DoWork();
+
+			// Assert
+			dbContextMock.Verify(db => db.Holdings.Remove(It.IsAny<Holding>()), Times.Never);
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+		}
+
 		private record TestActivity : ActivityWithQuantityAndUnitPrice
 		{
 			public TestActivity()

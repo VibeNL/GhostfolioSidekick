@@ -25,25 +25,25 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 		[Fact]
 		public void Parse_OnlyManualSymbol_ParsedCorrectly()
 		{
-			// Arrange
+				// Arrange
 
-			// Act
-			var config = ConfigurationInstance.Parse(ManualSymbol);
+				// Act
+				var config = ConfigurationInstance.Parse(ManualSymbol);
 
-			// Assert
-			config!.Symbols.Should().BeEquivalentTo(new[] {
-				new SymbolConfiguration{
-					Symbol="Manual1",
-					ManualSymbolConfiguration = new ManualSymbolConfiguration{
-					 AssetClass = "Equity",
-					 AssetSubClass = "Stock",
-					 Currency = "EUR",
-					 ISIN = "QWERTY",
-					 Name = "TESTSymbol",
-					 Countries = [new Country{ Code = "NL", Continent = "Europe", Name = "Netherlands", Weight = 1 }],
-					 Sectors = [new Sector { Name = "Technology", Weight = 1 }]
-					} }
-			});
+				// Assert
+				config!.Symbols.Should().BeEquivalentTo(new[] {
+					new SymbolConfiguration{
+						Symbol="Manual1",
+						ManualSymbolConfiguration = new ManualSymbolConfiguration{
+						 AssetClass = "Equity",
+						 AssetSubClass = "Stock",
+						 Currency = "EUR",
+						 ISIN = "QWERTY",
+						 Name = "TESTSymbol",
+						 Countries = [new Country{ Code = "NL", Continent = "Europe", Name = "Netherlands", Weight = 1 }],
+						 Sectors = [new Sector { Name = "Technology", Weight = 1 }]
+						} }
+				});
 		}
 
 		[Fact]
@@ -103,6 +103,38 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 					Platform = null
 				}
 			});
+		}
+
+		[Fact]
+		public void Parse_EmptyConfiguration_ReturnsEmptyConfigurationInstance()
+		{
+			// Arrange
+			var emptyConfig = "{}";
+
+			// Act
+			var config = ConfigurationInstance.Parse(emptyConfig);
+
+			// Assert
+			config.Should().NotBeNull();
+			config!.Platforms.Should().BeNull();
+			config.Accounts.Should().BeNull();
+			config.Mappings.Should().BeNull();
+			config.Symbols.Should().BeNull();
+			config.Settings.Should().NotBeNull();
+			config.Benchmarks.Should().BeNull();
+		}
+
+		[Fact]
+		public void Parse_InvalidConfiguration_ThrowsException()
+		{
+			// Arrange
+			var invalidConfig = "{ invalid json }";
+
+			// Act
+			Action act = () => ConfigurationInstance.Parse(invalidConfig);
+
+			// Assert
+			act.Should().Throw<JsonException>();
 		}
 
 		private readonly string MappingsAndSymbols =

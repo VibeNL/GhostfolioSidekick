@@ -119,6 +119,40 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			Assert.NotNull(result);
 		}
 
+		[Fact]
+		public void AllowAdminCalls_EnvironmentVariableValueIsFalse()
+		{
+			// Arrange
+			Environment.SetEnvironmentVariable("ALLOW_ADMIN_CALLS", "false");
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
+
+			// Act
+			var result = settings.AllowAdminCalls;
+
+			// Assert
+			Assert.False(result);
+
+			// Clean up
+			Environment.SetEnvironmentVariable("ALLOW_ADMIN_CALLS", null);
+		}
+
+		[Fact]
+		public void AllowAdminCalls_EnvironmentVariableValueIsTrue()
+		{
+			// Arrange
+			Environment.SetEnvironmentVariable("ALLOW_ADMIN_CALLS", "true");
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
+
+			// Act
+			var result = settings.AllowAdminCalls;
+
+			// Assert
+			Assert.True(result);
+
+			// Clean up
+			Environment.SetEnvironmentVariable("ALLOW_ADMIN_CALLS", null);
+		}
+
 		protected virtual void Dispose(bool disposing)
 		{
 			// Clean up

@@ -95,5 +95,31 @@ namespace GhostfolioSidekick.UnitTests.Activities
             var activities = await _activityManager.GenerateActivities();
             activities.Should().BeEmpty();
         }
+
+        [Fact]
+        public void AddPartialActivity_ShouldThrowException_WhenAccountNameIsNull()
+        {
+            // Arrange
+            var partialActivities = new List<PartialActivity>
+            {
+                new PartialActivity(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1")
+            };
+
+            // Act
+            Action act = () => _activityManager.AddPartialActivity(null, partialActivities);
+
+            // Assert
+            act.Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task GenerateActivities_ShouldReturnEmptyList_WhenNoPartialActivities()
+        {
+            // Act
+            var activities = await _activityManager.GenerateActivities();
+
+            // Assert
+            activities.Should().BeEmpty();
+        }
     }
 }

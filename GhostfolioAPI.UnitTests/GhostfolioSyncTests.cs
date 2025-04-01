@@ -85,6 +85,32 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			_apiWrapperMock.Verify(x => x.SyncMarketData(It.IsAny<SymbolProfile>(), It.IsAny<ICollection<MarketData>>()), Times.Once);
+			}
+
+		[Fact]
+		public async Task SyncAccount_ShouldThrowException_WhenAccountIsNull()
+		{
+			// Arrange
+			Account? account = null;
+
+			// Act
+			Func<Task> act = async () => await _ghostfolioSync.SyncAccount(account!);
+
+			// Assert
+			await act.Should().ThrowAsync<ArgumentNullException>();
+		}
+
+		[Fact]
+		public async Task SyncAllActivities_ShouldThrowException_WhenActivitiesListIsNull()
+		{
+			// Arrange
+			List<Activity>? activities = null;
+
+			// Act
+			Func<Task> act = async () => await _ghostfolioSync.SyncAllActivities(activities!);
+
+			// Assert
+			await act.Should().ThrowAsync<ArgumentNullException>();
 		}
 	}
 }

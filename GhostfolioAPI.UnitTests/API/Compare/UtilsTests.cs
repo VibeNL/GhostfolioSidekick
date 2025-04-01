@@ -93,5 +93,49 @@ namespace GhostfolioSidekick.Model.UnitTests
 			// Assert
 			Assert.False(result);
 		}
+
+		[Fact]
+		public void IsGeneratedSymbol_ShouldReturnFalse_WhenSymbolIsEmpty()
+		{
+			// Arrange
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = string.Empty,
+				DataSource = Symbols.Datasource.MANUAL,
+				AssetClass = "Stock",
+				Countries = [new() { Code = "US", Name = "US", Continent = "US", Weight = 1 }],
+				Currency = "USD",
+				Name = "Apple Inc.",
+				Sectors = [new() { Name = "Technology", Weight = 1 }]
+			};
+
+			// Act
+			var result = Utils.IsGeneratedSymbol(symbolProfile);
+
+			// Assert
+			Assert.False(result);
+		}
+
+		[Fact]
+		public void IsGeneratedSymbol_ShouldReturnFalse_WhenSymbolIsNull()
+		{
+			// Arrange
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = null,
+				DataSource = Symbols.Datasource.MANUAL,
+				AssetClass = "Stock",
+				Countries = [new() { Code = "US", Name = "US", Continent = "US", Weight = 1 }],
+				Currency = "USD",
+				Name = "Apple Inc.",
+				Sectors = [new() { Name = "Technology", Weight = 1 }]
+			};
+
+			// Act
+			var result = Utils.IsGeneratedSymbol(symbolProfile);
+
+			// Assert
+			Assert.False(result);
+		}
 	}
 }

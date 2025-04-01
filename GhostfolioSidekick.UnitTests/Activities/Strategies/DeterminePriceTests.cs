@@ -124,5 +124,49 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             activity.AdjustedUnitPrice.Amount.Should().Be(0);
             activity.AdjustedUnitPriceSource.Should().BeEmpty();
         }
+
+        [Fact]
+        public async Task Execute_ShouldThrowArgumentNullException_WhenHoldingIsNull()
+        {
+            // Arrange
+            Holding holding = null;
+
+            // Act
+            Func<Task> act = async () => await _determinePrice.Execute(holding);
+
+            // Assert
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task Execute_ShouldNotSetUnitPrice_WhenMarketDataIsEmpty()
+        {
+            // Arrange
+            var activityDate = DateTime.Now;
+
+            var symbolProfile = new SymbolProfile
+            {
+                MarketData = new List<MarketData>()
+            };
+
+            var activity = new SendAndReceiveActivity
+            {
+                Date = activityDate,
+                AdjustedQuantity = 10
+            };
+
+            var holding = new Holding
+            {
+                SymbolProfiles = [symbolProfile],
+                Activities = [activity]
+            };
+
+            // Act
+            await _determinePrice.Execute(holding);
+
+            // Assert
+            activity.AdjustedUnitPrice.Amount.Should().Be(0);
+            activity.AdjustedUnitPriceSource.Should().BeEmpty();
+        }
     }
 }

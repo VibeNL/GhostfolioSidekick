@@ -90,6 +90,35 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 				.WithMessage("Activity type UnknownActivity is not implemented.");
 		}
 
+		[Fact]
+		public async Task Calculate_ShouldReturnEmptyList_WhenActivitiesListIsEmpty()
+		{
+			// Arrange
+			var baseCurrency = Currency.USD;
+			var activities = new List<Activity>();
+
+			// Act
+			var result = await balanceCalculator.Calculate(baseCurrency, activities);
+
+			// Assert
+			result.Should().BeEmpty();
+		}
+
+		[Fact]
+		public async Task Calculate_ShouldThrowArgumentNullException_ForNullBaseCurrency()
+		{
+			// Arrange
+			Currency baseCurrency = null;
+			var activities = new List<Activity>();
+
+			// Act
+			Func<Task> act = async () => await balanceCalculator.Calculate(baseCurrency, activities);
+
+			// Assert
+			await act.Should().ThrowAsync<ArgumentNullException>()
+				.WithMessage("Value cannot be null. (Parameter 'baseCurrency')");
+		}
+
 		private record UnknownActivity : Activity
 		{
 			public UnknownActivity()

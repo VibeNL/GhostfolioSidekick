@@ -84,5 +84,33 @@ namespace GhostfolioSidekick.Tests.ExternalDataProvider.Yahoo
             Assert.NotNull(result);
             Assert.IsAssignableFrom<IEnumerable<StockSplit>>(result);
         }
+
+        [Fact]
+        public async Task GetCurrencyHistory_ShouldReturn_Empty_WhenCurrencyFromIsNull()
+        {
+            // Arrange
+            Currency currencyFrom = null;
+            var currencyTo = Currency.EUR;
+            var fromDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
+
+            // Act
+            var result = await _repository.GetCurrencyHistory(currencyFrom, currencyTo, fromDate);
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task MatchSymbol_ShouldReturn_Null_WhenIdentifiersAreEmpty()
+        {
+            // Arrange
+            var identifiers = Array.Empty<PartialSymbolIdentifier>();
+
+            // Act
+            var result = await _repository.MatchSymbol(identifiers);
+
+            // Assert
+            Assert.Null(result);
+        }
     }
 }

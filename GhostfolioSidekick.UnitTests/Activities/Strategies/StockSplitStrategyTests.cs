@@ -120,5 +120,52 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             activity.Object.AdjustedQuantity.Should().Be(activity.Object.Quantity);
             activity.Object.AdjustedUnitPriceSource.Should().BeEmpty();
         }
+
+        [Fact]
+        public async Task Execute_ShouldThrowArgumentNullException_WhenHoldingIsNull()
+        {
+            // Arrange
+            Holding holding = null;
+
+            // Act
+            Func<Task> act = async () => await _stockSplitStrategy.Execute(holding);
+
+            // Assert
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task Execute_ShouldNotAdjustFields_WhenStockSplitsAreEmpty()
+        {
+            // Arrange
+            var symbolProfile = new SymbolProfile
+            {
+                StockSplits = new List<StockSplit>()
+            };
+
+            var activityDate = DateTime.Now;
+            var activity = new Mock<ActivityWithQuantityAndUnitPrice>();
+            activity.SetupAllProperties();
+            activity.Object.Date = activityDate;
+            activity.Object.Quantity = 10;
+            activity.Object.UnitPrice = new Money(Currency.USD, 100);
+            activity.Object.AdjustedQuantity = 10;
+            activity.Object.AdjustedUnitPrice = new Money(Currency.USD, 100);
+            activity.Object.AdjustedUnitPriceSource = [];
+
+            var holding = new Holding
+            {
+                SymbolProfiles = new List<SymbolProfile> { symbolProfile },
+                Activities = [activity.Object]
+            };
+
+            // Act
+            await _stockSplitStrategy.Execute(holding);
+
+            // Assert
+            activity.Object.AdjustedUnitPrice.Should().Be(activity.Object.UnitPrice);
+            activity.Object.AdjustedQuantity.Should().Be(activity.Object.Quantity);
+            activity.Object.AdjustedUnitPriceSource.Should().BeEmpty();
+        }
     }
 }

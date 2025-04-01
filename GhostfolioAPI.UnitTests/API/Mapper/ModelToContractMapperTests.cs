@@ -228,5 +228,32 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			// Assert
 			result.Should().BeNull();
 		}
+
+		[Fact]
+		public async Task ConvertToGhostfolioActivity_ShouldReturnNull_ForNullActivity()
+		{
+			// Arrange
+			Model.Activities.Activity? nullActivity = null;
+			var symbolProfile = _fixture.Create<SymbolProfile>();
+			var account = _fixture.Create<Account>();
+
+			// Act
+			var result = await ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, symbolProfile, nullActivity, account);
+
+			// Assert
+			result.Should().BeNull();
+		}
+
+		[Fact]
+		public async Task ConvertToGhostfolioActivity_ShouldThrowException_ForUnsupportedActivityType()
+		{
+			// Arrange
+			var unsupportedActivity = _fixture.Build<CashDepositWithdrawalActivity>().Without(x => x.Holding).Create();
+			var symbolProfile = _fixture.Create<SymbolProfile>();
+			var account = _fixture.Create<Account>();
+
+			// Act & Assert
+			await Assert.ThrowsAsync<NotSupportedException>(() => ModelToContractMapper.ConvertToGhostfolioActivity(_exchangeRateServiceMock.Object, symbolProfile, unsupportedActivity, account));
+		}
 	}
 }

@@ -77,5 +77,45 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			mockDbContext.Verify(x => x.Accounts.AddAsync(It.IsAny<Account>(), default), Times.Once);
 			mockDbContext.Verify(x => x.SaveChangesAsync(default), Times.Once);
 		}
+
+		[Fact]
+		public async Task DoWork_ShouldLogWarning_WhenConfigurationInstanceIsNull()
+		{
+			// Arrange
+			mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns((ConfigurationInstance)null);
+
+			// Act
+			await accountMaintainerTask.DoWork();
+
+			// Assert
+			mockLogger.VerifyLog(logger => logger.LogWarning("{Name} ConfigurationInstance is null", nameof(AccountMaintainerTask)), Times.Once);
+		}
+
+		[Fact]
+		public async Task AddOrUpdateAccountsAndPlatforms_ShouldUpdateAccountIfExists()
+		{
+			// Arrange
+			var accountConfig = new AccountConfiguration { Name = "TestAccount", Platform = "TestPlatform", Currency = Currency.USD.ToString() };
+			var platformConfig = new PlatformConfiguration { Name = "TestPlatform" };
+			var configurationInstance = new ConfigurationInstance
+			{
+				Accounts = [accountConfig],
+				Platforms = [platformConfig]
+			};
+
+			mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
+
+			var existingAccount = new Account("TestAccount");
+			var mockDbContext = new Mock<DatabaseContext>();
+			mockDbContext.Setup(x => x.Accounts).ReturnsDbSet([existingAccount]);
+			mockDbContextFactory.Setup(x => x.CreateDbContext()).Returns(mockDbContext.Object);
+
+			// Act
+			await accountMaintainerTask.DoWork();
+
+			// Assert
+			mockDbContext.Verify(x => x.Accounts.Update(It.IsAny<Account>()), Times.Once);
+			mockDbContext.Verify(x => x.SaveChangesAsync(default), Times.Once);
+		}
 	}
 }

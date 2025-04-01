@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using FluentAssertions;
 using Moq.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.UnitTests.Activities
 {
@@ -14,6 +15,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
         private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
         private readonly List<IHoldingStrategy> _holdingStrategies;
         private readonly CalculatePriceTask _calculatePriceTask;
+        private readonly Mock<ILogger<CalculatePriceTask>> _mockLogger;
 
         public CalculatePriceTaskTests()
         {
@@ -23,7 +25,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
                 new Mock<IHoldingStrategy>().Object,
                 new Mock<IHoldingStrategy>().Object
             };
-            _calculatePriceTask = new CalculatePriceTask(_holdingStrategies, _mockDbContextFactory.Object);
+            _mockLogger = new Mock<ILogger<CalculatePriceTask>>();
+            _calculatePriceTask = new CalculatePriceTask(_holdingStrategies, _mockDbContextFactory.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -83,6 +86,41 @@ namespace GhostfolioSidekick.UnitTests.Activities
             // Assert
             mockStrategy.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Never);
             mockDbContext.Verify(db => db.SaveChangesAsync(default), Times.Once);
+        }
+
+        [Fact]
+        public async Task DoWork_ShouldLogError_WhenDbContextFactoryThrowsException()
+        {
+            // Arrange
+            _mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Throws(new Exception("Test exception"));
+
+            // Act
+            await _calculatePriceTask.DoWork();
+
+            // Assert
+            _mockLogger.Verify(logger => logger.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Test exception")),
+                It.IsAny<Exception>(),
+                It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)));
+        }
+
+        [Fact]
+        public async Task DoWork_ShouldNotExecuteHoldingStrategies_WhenDbContextIsNull()
+        {
+            // Arrange
+            _mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns((DatabaseContext)null);
+
+            var mockStrategy = new Mock<IHoldingStrategy>();
+            _holdingStrategies.Clear();
+            _holdingStrategies.Add(mockStrategy.Object);
+
+            // Act
+            await _calculatePriceTask.DoWork();
+
+            // Assert
+            mockStrategy.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Never);
         }
     }
 }

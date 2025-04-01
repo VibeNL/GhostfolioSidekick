@@ -110,39 +110,30 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 			result.Should().BeEmpty();
 		}
 
-		//[Fact]
-		//public async Task GetCoinGeckoAsset_ShouldReturn_Asset_WhenIdentifierMatches()
-		//{
-		//	// Arrange
-		//	var identifier = "btc";
-		//	var coinGeckoAsset = new CoinGeckoAsset { Id = "bitcoin", Name = "Bitcoin", Symbol = "btc" };
-		//	var restClientMock = new Mock<ICoinGeckoRestClient>();
-  //          restClientMock.Setup(c => c.Api.GetAssetsAsync(default, default)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoAsset>>(
-  //              null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, new List<CoinGeckoAsset> { coinGeckoAsset }, null));
+		 [Fact]
+        public async Task GetStockMarketData_ShouldReturn_Empty_WhenSymbolIsNull()
+        {
+            // Arrange
+            SymbolProfile symbolProfile = null;
 
-		//	// Act
-		//	var result = await _repository.GetCoinGeckoAsset(identifier);
+            // Act
+            var result = await repository.GetStockMarketData(symbolProfile, DateOnly.FromDateTime(DateTime.Today.AddDays(-365)));
 
-		//	// Assert
-		//	Assert.NotNull(result);
-		//	Assert.Equal("btc", result.Symbol);
-		//	Assert.Equal("Bitcoin", result.Name);
-		//}
+            // Assert
+            result.Should().BeEmpty();
+        }
 
-		//[Fact]
-		//public async Task GetCoinGeckoAsset_ShouldReturn_Null_WhenIdentifierDoesNotMatch()
-		//{
-		//	// Arrange
-		//	var identifier = "unknown";
-		//	var restClientMock = new Mock<ICoinGeckoRestClient>();
-  //          restClientMock.Setup(c => c.Api.GetAssetsAsync(default, default)).ReturnsAsync(new WebCallResult<IEnumerable<CoinGeckoAsset>>(
-  //              null, null, null, null, null, null, null, null, null, null, ResultDataSource.Cache, new List<CoinGeckoAsset>(), null));
+        [Fact]
+        public async Task MatchSymbol_ShouldReturn_Null_WhenIdentifierIsNull()
+        {
+            // Arrange
+            var identifiers = new[] { new PartialSymbolIdentifier { Identifier = null, AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency] } };
 
-		//	// Act
-		//	var result = await _repository.GetCoinGeckoAsset(identifier);
+            // Act
+            var result = await repository.MatchSymbol(identifiers);
 
-		//	// Assert
-		//	Assert.Null(result);
-		//}
+            // Assert
+            result.Should().BeNull();
+        }
 	}
 }

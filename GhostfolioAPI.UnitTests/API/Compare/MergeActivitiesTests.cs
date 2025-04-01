@@ -64,6 +64,41 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 			Assert.Equal(Operation.Updated, result.First().Operation);
 		}
 
+		[Fact]
+		public async Task Merge_ShouldReturnEmptyList_WhenBothActivityListsAreEmpty()
+		{
+			// Arrange
+			var existingActivities = new List<Activity>();
+			var newActivities = new List<Activity>();
+
+			// Act
+			var result = await MergeActivities.Merge(existingActivities, newActivities);
+
+			// Assert
+			Assert.Empty(result);
+		}
+
+		[Fact]
+		public async Task Merge_ShouldReturnUpdatedMergeOrders_WhenActivityDatesAreDifferent()
+		{
+			// Arrange
+			var existingActivities = new List<Activity>
+			{
+				new Activity { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now.AddDays(-1), Fee = 10 }
+			};
+			var newActivities = new List<Activity>
+			{
+				new Activity { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 10 }
+			};
+
+			// Act
+			var result = await MergeActivities.Merge(existingActivities, newActivities);
+
+			// Assert
+			Assert.Single(result);
+			Assert.Equal(Operation.Updated, result.First().Operation);
+		}
+
 		private static SymbolProfile GenerateSymbol()
 		{
 			return new Fixture().Build<SymbolProfile>().With(x => x.Symbol, "AAPL").Create();

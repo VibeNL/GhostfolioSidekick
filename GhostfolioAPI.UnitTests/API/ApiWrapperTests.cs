@@ -179,6 +179,32 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			_mockRestCall.Verify(x => x.ExecuteAsync(It.Is<RestRequest>(y => y.Resource.Contains("api/v1/account-balance/")), default), Times.Once);
 		}
 
+		[Fact]
+		public async Task CreateAccount_ShouldThrowException_WhenAccountIsNull()
+		{
+			// Arrange
+			Model.Accounts.Account? account = null;
+
+			// Act
+			Func<Task> act = async () => await _apiWrapper.CreateAccount(account!);
+
+			// Assert
+			await act.Should().ThrowAsync<ArgumentNullException>();
+		}
+
+		[Fact]
+		public async Task GetAccountByName_ShouldReturn_Null_WhenAccountNameIsEmpty()
+		{
+			// Arrange
+			var accountName = string.Empty;
+
+			// Act
+			var result = await _apiWrapper.GetAccountByName(accountName);
+
+			// Assert
+			result.Should().BeNull();
+		}
+
 		private void SetupRestCall(string suffix, string content)
 		{
 			_mockRestCall

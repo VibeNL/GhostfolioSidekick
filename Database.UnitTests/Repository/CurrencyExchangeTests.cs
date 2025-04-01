@@ -138,6 +138,31 @@ namespace Database.UnitTests.Repository
 
 			// Assert
 			Assert.Equal(new Money(currency, money.Amount), result);
+			_loggerMock.Verify(x => x.LogWarning(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+		}
+
+		[Fact]
+		public async Task ConvertMoney_UnknownCurrencyPair_ThrowsException()
+		{
+			// Arrange
+			var money = new Money(Currency.USD, 100);
+			var currency = new Currency("XYZ");
+			var date = DateOnly.FromDateTime(DateTime.Now);
+
+			// Act & Assert
+			await Assert.ThrowsAsync<InvalidOperationException>(() => _currencyExchange.ConvertMoney(money, currency, date));
+		}
+
+		[Fact]
+		public async Task ConvertMoney_NullMoney_ThrowsArgumentNullException()
+		{
+			// Arrange
+			Money money = null;
+			var currency = Currency.EUR;
+			var date = DateOnly.FromDateTime(DateTime.Now);
+
+			// Act & Assert
+			await Assert.ThrowsAsync<ArgumentNullException>(() => _currencyExchange.ConvertMoney(money, currency, date));
 		}
 	}
 }
