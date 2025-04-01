@@ -33,7 +33,6 @@ namespace ScraperUtilities.CentraalBeheer
 				var generatedTransaction = await ProcessDetails(counter);
 				if (generatedTransaction == null)
 				{
-					counter++;
 					continue;
 				}
 
@@ -44,8 +43,6 @@ namespace ScraperUtilities.CentraalBeheer
 				}
 
 				logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
-
-				counter++;
 			}
 
 			return list;

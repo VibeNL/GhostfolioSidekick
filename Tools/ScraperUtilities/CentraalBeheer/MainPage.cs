@@ -15,7 +15,7 @@ namespace ScraperUtilities.CentraalBeheer
             // find button "Bekijken" and press it
             await PressButton("Bekijken");
 
-			// Find button "Äfgeronde opdrachten"
+			// Find button "Afgeronde opdrachten"
 			await PressButton("Afgeronde opdrachten");
 
             // Wait for transactions to load
