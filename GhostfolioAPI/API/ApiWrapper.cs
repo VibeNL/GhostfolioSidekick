@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database.Repository;
+﻿using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
@@ -8,7 +7,6 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {

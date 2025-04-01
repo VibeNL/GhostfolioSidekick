@@ -1,6 +1,4 @@
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using PortfolioViewer.ApiService;

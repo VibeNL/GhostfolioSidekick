@@ -1,5 +1,4 @@
-﻿using static PortfolioViewer.WASM.Pages.Weather;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using PortfolioViewer.Model;
 
 namespace PortfolioViewer.WASM.Clients

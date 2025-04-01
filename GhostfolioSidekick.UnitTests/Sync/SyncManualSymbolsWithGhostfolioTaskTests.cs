@@ -8,9 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model;
-using Xunit;
-using CryptoExchange.Net.CommonObjects;
-using GhostfolioSidekick.Configuration;
 
 namespace GhostfolioSidekick.UnitTests.Sync
 {

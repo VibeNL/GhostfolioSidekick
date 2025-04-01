@@ -6,5 +6,6 @@
 		public string? Comment { get; set; }
 		public Platform? Platform { get; set; }
 		public ICollection<Balance> Balance { get; set; }
+		public int Id { get; set; }
 	}
 }
