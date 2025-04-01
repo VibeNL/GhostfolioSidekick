@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Database\Database.csproj" />
     <ProjectReference Include="..\..\Model\Model.csproj" />
+    <ProjectReference Include="..\..\PortfolioViewer.Model\PortfolioViewer.Model.csproj" />
     <ProjectReference Include="..\PortfolioViewer.ServiceDefaults\PortfolioViewer.ServiceDefaults.csproj" />
   </ItemGroup>
 

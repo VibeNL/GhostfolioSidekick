@@ -1,6 +1,5 @@
 ﻿@page "/weather"
-@using GhostfolioSidekick.Model
-@using GhostfolioSidekick.Model.Accounts
+@using PortfolioViewer.Model
 @using PortfolioViewer.WASM.Clients
 @inject HttpClient Http
 
@@ -16,7 +15,18 @@
 }
 else
 {
-    
+    <ul>
+        @foreach (var account in portfolio.Accounts)
+        {
+            <li>
+                <strong>@account.Name</strong> (@account.Platform?.Name)
+                @if (!string.IsNullOrEmpty(account.Comment))
+                {
+                    <p>@account.Comment</p>
+                }
+            </li>
+        }
+    </ul>
 }
 
 @code {

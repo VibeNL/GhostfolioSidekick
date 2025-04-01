@@ -1,7 +1,6 @@
 ﻿using static PortfolioViewer.WASM.Pages.Weather;
 using System.Net.Http.Json;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model;
+using PortfolioViewer.Model;
 
 namespace PortfolioViewer.WASM.Clients
 {
