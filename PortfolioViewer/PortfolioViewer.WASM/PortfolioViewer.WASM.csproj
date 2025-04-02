@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\PortfolioViewer.Model\PortfolioViewer.Model.csproj" />
     <ProjectReference Include="..\PortfolioViewer.Model\PortfolioViewer.Model.csproj" />
   </ItemGroup>
 

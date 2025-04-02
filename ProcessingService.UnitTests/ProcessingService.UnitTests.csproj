@@ -2,18 +2,11 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-
-		<IsPackable>false</IsPackable>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
-	</ItemGroup>
-
-	<PropertyGroup>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -40,7 +33,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
+	  <ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
+	  <ProjectReference Include="..\ProcessingService\ProcessingService.csproj" />
 	</ItemGroup>
 
 </Project>
