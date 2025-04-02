@@ -13,50 +13,13 @@ namespace GhostfolioSidekick
 	internal static class Program
 	{
 		[ExcludeFromCodeCoverage]
-		static async Task Main(string[] args)
+		static Task Main(string[] args)
 		{
-			IHostBuilder hostBuilder = CreateHostBuilder();
+			//var task1 = ProcessingService.Program.Main(args);
+			var task2 = PortfolioViewer.ApiService.Program.Main(args);
+			//var task3 = PortfolioViewer.WASM.Program.Main(args);
 
-			await hostBuilder.RunConsoleAsync();
-		}
-
-		internal static IHostBuilder CreateHostBuilder()
-		{
-			return new HostBuilder()
-				.ConfigureAppConfiguration(ConfigureApp)
-				.ConfigureLogging(ConfigureLogging)
-				.ConfigureServices(ConfigureServices);
-		}
-
-		private static void ConfigureApp(HostBuilderContext hostContext, IConfigurationBuilder configBuilder)
-		{
-			configBuilder.SetBasePath(Directory.GetCurrentDirectory());
-			configBuilder.AddJsonFile("appsettings.json", optional: true);
-			configBuilder.AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true);
-			configBuilder.AddEnvironmentVariables();
-		}
-
-		private static void ConfigureLogging(HostBuilderContext hostContext, ILoggingBuilder configLogging)
-		{
-			configLogging.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
-			configLogging.AddConsole();
-		}
-
-		private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
-		{
-			services.AddSingleton<MemoryCache, MemoryCache>();
-			services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
-			services.AddSingleton<IApplicationSettings, ApplicationSettings>();
-
-			services.AddDbContextFactory<DatabaseContext>(options =>
-			{
-				var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
-				options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
-			});
-
-			ProcessingService.Program.ConfigureForDocker(services);
-			//PortfolioViewer.ApiService.Program.ConfigureForDocker(context, services);
-			//PortfolioViewer.WASM.Program.ConfigureForDocker(services);
+			return Task.WhenAll(/*task1,*/ task2/*, task3*/);
 		}
 	}
 }

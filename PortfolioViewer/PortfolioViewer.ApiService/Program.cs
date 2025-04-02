@@ -8,12 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 {
 	public class Program
 	{
-		public static void ConfigureForDocker(HostBuilderContext context, IServiceCollection collection)
-		{
-			throw new NotImplementedException();
-		}
-
-		private static void Main(string[] args)
+		public static Task Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
@@ -65,7 +60,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 
 			app.MapDefaultEndpoints();
 
-			app.Run();
+			return app.RunAsync();
 		}
 	}
 }

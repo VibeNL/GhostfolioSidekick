@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.ProcessingService
 	public static class Program
 	{
 		[ExcludeFromCodeCoverage]
-		static async Task Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			IHostBuilder hostBuilder = CreateHostBuilder();
 			await hostBuilder.RunConsoleAsync();
@@ -166,17 +166,6 @@ namespace GhostfolioSidekick.ProcessingService
 			{
 				services.AddScoped(typeof(T), type);
 			}
-		}
-
-		public static void ConfigureForDocker(IServiceCollection services)
-		{
-			RegisterRestClient(services);
-			registerApplicationSettings(services);
-
-			RegisterServices(services);
-			RegisterRepositories(services);
-			RegisterHostedServices(services);
-			RegisterParsers(services);
 		}
 	}
 }
