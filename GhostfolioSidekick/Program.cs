@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -38,11 +42,21 @@ namespace GhostfolioSidekick
 			configLogging.AddConsole();
 		}
 
-		private static void ConfigureServices(HostBuilderContext context, IServiceCollection collection)
+		private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
 		{
-			ProcessingService.Program.ConfigureForDocker(context, collection);
-			PortfolioViewer.ApiService.Program.ConfigureForDocker(context, collection);
-			PortfolioViewer.WASM.Program.ConfigureForDocker(collection);
-					}
+			services.AddSingleton<MemoryCache, MemoryCache>();
+			services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+			services.AddSingleton<IApplicationSettings, ApplicationSettings>();
+
+			services.AddDbContextFactory<DatabaseContext>(options =>
+			{
+				var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+				options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+			});
+
+			ProcessingService.Program.ConfigureForDocker(services);
+			//PortfolioViewer.ApiService.Program.ConfigureForDocker(context, services);
+			//PortfolioViewer.WASM.Program.ConfigureForDocker(services);
+		}
 	}
 }

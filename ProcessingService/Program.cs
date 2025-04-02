@@ -59,7 +59,32 @@ namespace GhostfolioSidekick.ProcessingService
 			services.AddSingleton<MemoryCache, MemoryCache>();
 			services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 			services.AddSingleton<IApplicationSettings, ApplicationSettings>();
+			RegisterRestClient(services);
+			registerApplicationSettings(services);
 
+			services.AddDbContextFactory<DatabaseContext>(options =>
+			{
+				var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+				options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+			});
+
+			RegisterServices(services);
+			RegisterRepositories(services);
+			RegisterHostedServices(services);
+			RegisterParsers(services);
+		}
+
+		private static void registerApplicationSettings(IServiceCollection services)
+		{
+			services.AddSingleton(x =>
+			{
+				var settings = x.GetService<IApplicationSettings>();
+				return settings!.ConfigurationInstance.Settings;
+			});
+		}
+
+		private static void RegisterRestClient(IServiceCollection services)
+		{
 			services.AddSingleton<IRestClient, RestClient>(x =>
 			{
 				var settings = x.GetService<IApplicationSettings>();
@@ -82,23 +107,6 @@ namespace GhostfolioSidekick.ProcessingService
 									settings!.GhostfolioAccessToken,
 									new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
 			});
-
-			services.AddSingleton(x =>
-			{
-				var settings = x.GetService<IApplicationSettings>();
-				return settings!.ConfigurationInstance.Settings;
-			});
-
-			services.AddDbContextFactory<DatabaseContext>(options =>
-			{
-				var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
-				options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
-			});
-
-			RegisterServices(services);
-			RegisterRepositories(services);
-			RegisterHostedServices(services);
-			RegisterParsers(services);
 		}
 
 		private static void RegisterServices(IServiceCollection services)
@@ -160,9 +168,15 @@ namespace GhostfolioSidekick.ProcessingService
 			}
 		}
 
-		public static void ConfigureForDocker(HostBuilderContext context, IServiceCollection collection)
+		public static void ConfigureForDocker(IServiceCollection services)
 		{
-			throw new NotImplementedException();
+			RegisterRestClient(services);
+			registerApplicationSettings(services);
+
+			RegisterServices(services);
+			RegisterRepositories(services);
+			RegisterHostedServices(services);
+			RegisterParsers(services);
 		}
 	}
 }
