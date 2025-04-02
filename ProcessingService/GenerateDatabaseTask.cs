@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick
+namespace GhostfolioSidekick.ProcessingService
 {
 	public class GenerateDatabaseTask(
 		ILogger<GenerateDatabaseTask> logger,

@@ -1,12 +1,12 @@
-using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.ProcessingService.AccountMaintainer;
 
-namespace GhostfolioSidekick.UnitTests.AccountMaintainer
+namespace GhostfolioSidekick.ProcessingService.UnitTests.AccountMaintainer
 {
 	public class BalanceCalculatorTests
 	{

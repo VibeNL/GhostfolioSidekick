@@ -4,9 +4,8 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Parsers;
 
-namespace GhostfolioSidekick.Tests.Parsers.PDFParser
+namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 {
 	public class PdfBaseParserTests
     {

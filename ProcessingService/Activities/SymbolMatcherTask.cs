@@ -7,7 +7,7 @@ using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.Activities
+namespace GhostfolioSidekick.ProcessingService.Activities
 {
 	public class SymbolMatcherTask(
 			ILogger<SymbolMatcherTask> logger,

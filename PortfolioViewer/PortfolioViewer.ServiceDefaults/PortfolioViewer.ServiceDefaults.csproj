@@ -5,6 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAspireSharedProject>true</IsAspireSharedProject>
+	  <AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
+	  <RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

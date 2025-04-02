@@ -1,4 +1,4 @@
-namespace PortfolioViewer.Tests;
+namespace GhostfolioSidekick.PortfolioViewer.Tests;
 
 public class WebTests
 {

@@ -1,12 +1,17 @@
+using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using PortfolioViewer.WASM.Clients;
 
-namespace PortfolioViewer.WASM;
+namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
 public class Program
 {
-    public static async Task Main(string[] args)
+	public static void ConfigureForDocker(IServiceCollection collection)
+	{
+		throw new NotImplementedException();
+	}
+
+	public static async Task Main(string[] args)
     {
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.RootComponents.Add<App>("#app");

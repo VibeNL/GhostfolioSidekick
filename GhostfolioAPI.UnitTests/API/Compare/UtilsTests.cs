@@ -1,7 +1,7 @@
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
 
-namespace GhostfolioSidekick.Model.UnitTests
+namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 {
 	public class UtilsTests
 	{
@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Model.UnitTests
 			var symbolProfile = new SymbolProfile
 			{
 				Symbol = "123e4567-e89b-12d3-a456-426614174000",
-				DataSource = Symbols.Datasource.MANUAL,
+				DataSource = Model.Symbols.Datasource.MANUAL,
 				AssetClass = "Stock",
 				Countries = [new() { Code = "US", Name = "US", Continent = "US", Weight = 1 }],
 				Currency = "USD",
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Model.UnitTests
 			var symbolProfile = new SymbolProfile
 			{
 				Symbol = "AAPL",
-				DataSource = Symbols.Datasource.MANUAL,
+				DataSource = Model.Symbols.Datasource.MANUAL,
 				AssetClass = "Stock",
 				Countries = [new() { Code = "US", Name = "US", Continent = "US", Weight = 1 }],
 				Currency = "USD",

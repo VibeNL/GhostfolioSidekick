@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick
+namespace GhostfolioSidekick.ProcessingService
 {
 	public class TimedHostedService : IHostedService
 	{

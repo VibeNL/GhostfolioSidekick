@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace GhostfolioSidekick.Activities
+namespace GhostfolioSidekick.ProcessingService.Activities
 {
 	[Serializable]
 	[ExcludeFromCodeCoverage]

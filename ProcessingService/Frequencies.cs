@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick
+﻿namespace GhostfolioSidekick.ProcessingService
 {
 	internal static class Frequencies
 	{

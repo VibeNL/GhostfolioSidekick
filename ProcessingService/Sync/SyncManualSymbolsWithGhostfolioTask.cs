@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.Sync
+namespace GhostfolioSidekick.ProcessingService.Sync
 {
 	internal class SyncManualSymbolsWithGhostfolioTask(
 			IDbContextFactory<DatabaseContext> databaseContextFactory,

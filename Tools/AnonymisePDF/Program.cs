@@ -4,7 +4,7 @@ using iText.PdfCleanup;
 using iText.PdfCleanup.Autosweep;
 using System.Text.RegularExpressions;
 
-namespace AnonymisePDF
+namespace GhostfolioSidekick.Tools.AnonymisePDF
 {
 	public class Program
 	{

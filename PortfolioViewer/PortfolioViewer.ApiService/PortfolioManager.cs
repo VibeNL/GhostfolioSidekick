@@ -1,7 +1,7 @@
 ﻿using GhostfolioSidekick.Database;
-using PortfolioViewer.Model;
+using GhostfolioSidekick.PortfolioViewer.Model;
 
-namespace PortfolioViewer.ApiService
+namespace GhostfolioSidekick.PortfolioViewer.ApiService
 {
 	public class PortfolioManager
 	{
@@ -115,7 +115,7 @@ namespace PortfolioViewer.ApiService
 			};
 		}
 
-		private static Model.Money Map(GhostfolioSidekick.Model.Money money)
+		private static Money Map(GhostfolioSidekick.Model.Money money)
 		{
 			return new Money { Currency = Map(money.Currency) };
 		}

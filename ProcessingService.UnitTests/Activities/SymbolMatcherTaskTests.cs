@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
@@ -11,8 +10,9 @@ using FluentAssertions;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities.Types;
 using Moq.EntityFrameworkCore;
+using GhostfolioSidekick.ProcessingService.Activities;
 
-namespace GhostfolioSidekick.UnitTests.Activities
+namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities
 {
 	public class SymbolMatcherTaskTests
     {

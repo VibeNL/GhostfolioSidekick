@@ -5,7 +5,7 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Parsers;
 
-namespace GhostfolioSidekick.Activities
+namespace GhostfolioSidekick.ProcessingService.Activities
 {
 	internal class ActivityManager(IList<Account> accounts) : IActivityManager
 	{

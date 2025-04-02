@@ -7,8 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.ProcessingService.Activities.Comparer;
 
-namespace GhostfolioSidekick.Activities.Comparer
+namespace GhostfolioSidekick.ProcessingService.Activities
 {
 	public class DetermineHoldings(
 			ILogger<DetermineHoldings> logger,

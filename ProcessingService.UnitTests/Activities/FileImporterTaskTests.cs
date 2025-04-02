@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Activities;
@@ -10,8 +9,9 @@ using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.ProcessingService.Activities;
 
-namespace GhostfolioSidekick.UnitTests.Activities
+namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities
 {
 	public class FileImporterTaskTests
 	{

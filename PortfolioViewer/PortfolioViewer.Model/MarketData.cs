@@ -1,4 +1,4 @@
-﻿namespace PortfolioViewer.Model
+﻿namespace GhostfolioSidekick.PortfolioViewer.Model
 {
 	public class MarketData
 	{

@@ -1,7 +1,7 @@
 ﻿using CsvHelper.Configuration.Attributes;
 using System.Globalization;
 
-namespace GhostfolioSidekick.Parsers.Coinbase
+namespace GhostfolioSidekick.Parsers.MacroTrends
 {
 	[Delimiter(",")]
 	public class MacroTrendsRecord

@@ -4,6 +4,7 @@ using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
 using FluentAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.ProcessingService;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

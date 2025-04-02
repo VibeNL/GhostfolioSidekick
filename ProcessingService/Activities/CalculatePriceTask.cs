@@ -1,8 +1,8 @@
-﻿using GhostfolioSidekick.Activities.Strategies;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.ProcessingService.Activities.Strategies;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.Activities
+namespace GhostfolioSidekick.ProcessingService.Activities
 {
 	internal class CalculatePriceTask(IEnumerable<IHoldingStrategy> holdingStrategies, IDbContextFactory<DatabaseContext> databaseContextFactory) : IScheduledWork
 	{

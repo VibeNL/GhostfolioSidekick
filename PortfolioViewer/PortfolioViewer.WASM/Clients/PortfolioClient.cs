@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Json;
-using PortfolioViewer.Model;
+using GhostfolioSidekick.PortfolioViewer.Model;
 
-namespace PortfolioViewer.WASM.Clients
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
 	public class PortfolioClient(HttpClient httpClient)
 	{

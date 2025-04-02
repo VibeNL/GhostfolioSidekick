@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using GhostfolioSidekick.ProcessingService;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.IntegrationTests
 {

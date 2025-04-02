@@ -1,4 +1,3 @@
-using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Accounts;
@@ -8,8 +7,9 @@ using Moq;
 using FluentAssertions;
 using GhostfolioSidekick.Model;
 using Moq.EntityFrameworkCore;
+using GhostfolioSidekick.ProcessingService.AccountMaintainer;
 
-namespace GhostfolioSidekick.UnitTests.AccountMaintainer
+namespace GhostfolioSidekick.ProcessingService.UnitTests.AccountMaintainer
 {
 	public class AccountMaintainerTaskTests
 	{

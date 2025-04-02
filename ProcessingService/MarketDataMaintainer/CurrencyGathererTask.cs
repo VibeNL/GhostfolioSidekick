@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.MarketDataMaintainer
+namespace GhostfolioSidekick.ProcessingService.MarketDataMaintainer
 {
 	internal class CurrencyGathererTask(IDbContextFactory<DatabaseContext> databaseContextFactory, ICurrencyRepository currencyRepository) : IScheduledWork
 	{
@@ -26,47 +26,47 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.Select(x => new { x.UnitPrice!.Currency, x.Date })
 				.Distinct()
 				.ToListAsync()).Union(
-					(await databaseContext.Activities
+					await databaseContext.Activities
 					.OfType<CashDepositWithdrawalActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync())
+					.ToListAsync()
 				).Union(
-					(await databaseContext.Activities
+					await databaseContext.Activities
 					.OfType<DividendActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync())
+					.ToListAsync()
 				).Union(
-					(await databaseContext.Activities
+					await databaseContext.Activities
 					.OfType<FeeActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync())
+					.ToListAsync()
 				).Union(
-					(await databaseContext.Activities
+					await databaseContext.Activities
 					.OfType<InterestActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync())
+					.ToListAsync()
 				).Union(
-					(await databaseContext.Activities
+					await databaseContext.Activities
 					.OfType<KnownBalanceActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync())
+					.ToListAsync()
 				).Union(
-					(await databaseContext.Activities
+					await databaseContext.Activities
 					.OfType<RepayBondActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.TotalRepayAmount!.Currency, x.Date })
 					.Distinct()
-					.ToListAsync())
+					.ToListAsync()
 				) // TODO Refactor and include all activity types and fees and taxes
 				.Where(x => x.Currency != null)
 				.GroupBy(x => x.Currency)

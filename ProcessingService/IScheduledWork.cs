@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick
+﻿namespace GhostfolioSidekick.ProcessingService
 {
 	public interface IScheduledWork
 	{

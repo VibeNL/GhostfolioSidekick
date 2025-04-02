@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Sync;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI;
@@ -8,8 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.ProcessingService.Sync;
 
-namespace GhostfolioSidekick.UnitTests.Sync
+namespace GhostfolioSidekick.ProcessingService.UnitTests.Sync
 {
 	public class SyncManualSymbolsWithGhostfolioTaskTests : IDisposable
 	{
