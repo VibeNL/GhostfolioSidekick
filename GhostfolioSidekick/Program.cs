@@ -16,10 +16,10 @@ namespace GhostfolioSidekick
 		static Task Main(string[] args)
 		{
 			//var task1 = ProcessingService.Program.Main(args);
-			var task2 = PortfolioViewer.ApiService.Program.Main(args);
-			//var task3 = PortfolioViewer.WASM.Program.Main(args);
+			//var task2 = PortfolioViewer.ApiService.Program.Main(args);
+			var task3 = PortfolioViewer.WASM.Program.Main(args);
 
-			return Task.WhenAll(/*task1,*/ task2/*, task3*/);
+			return Task.WhenAll(/*task1, task2,*/ task3);
 		}
 	}
 }
