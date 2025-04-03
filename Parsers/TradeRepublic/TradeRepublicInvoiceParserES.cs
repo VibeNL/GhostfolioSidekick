@@ -8,7 +8,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		// ES
 		protected override string Keyword_Position => "POSICIÓN";
 		protected override string Keyword_Quantity => "CANTIDAD";
-		protected override string Keyword_Price => "COTIZACIÓN";
+		protected override string Keyword_Quantity_PiecesText => "tít.";
+		protected override string[] Keyword_Price => ["COTIZACIÓN", "PRECIO"];
 		protected override string Keyword_Amount => "IMPORTE";
 		protected override string[] Keyword_Nominal => ["NOMINAL", "NOMINALES"];
 		protected override string Keyword_Income => "RENDIMIENTO";
@@ -24,7 +25,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string INTEREST_PAYMENT => "PAGO DE INTERESES";
 		protected override string REPAYMENT => "VENCIMIENTO FINAL";
 		protected override string ACCRUED_INTEREST => "Interés acumulado";
-		protected override string EXTERNAL_COST_SURCHARGE => "Tarifa plana por costes del servicio de ejecución de terceros";
+		protected override string EXTERNAL_COST_SURCHARGE => "del servicio de ejecución de terceros";
 		protected override string WITHHOLDING_TAX => "Retención Fiscal para Emisores de Estados Unidos";
 		protected override string DATE => "FECHA";
 		protected override CultureInfo Culture => new CultureInfo("es");

@@ -8,7 +8,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		// DE
 		protected override string Keyword_Position => "POSITION";
 		protected override string Keyword_Quantity => "ANZAHL";
-		protected override string Keyword_Price => "PREIS";
+		protected override string Keyword_Quantity_PiecesText => "Stk.";
+		protected override string[] Keyword_Price => ["PREIS"];
 		protected override string Keyword_Amount => "BETRAG";
 		protected override string[] Keyword_Nominal => [string.Empty];
 		protected override string Keyword_Income => "ERTRAG";

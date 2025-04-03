@@ -11,7 +11,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 	{
 		protected abstract string Keyword_Position { get; }
 		protected abstract string Keyword_Quantity { get; }
-		protected abstract string Keyword_Price { get; }
+		protected abstract string Keyword_Quantity_PiecesText { get; }
+		protected abstract string[] Keyword_Price { get; }
 		protected abstract string Keyword_Amount { get; }
 		protected abstract string[] Keyword_Nominal { get; }
 		protected abstract string Keyword_Income { get; }
@@ -36,10 +37,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			get
 			{
-				return [.. Keyword_Booking.Union(Keyword_Nominal).Union([
+				return [.. Keyword_Booking.Union(Keyword_Nominal)
+				.Union(Keyword_Price)	
+				.Union([
 					Keyword_Position,
 					Keyword_Quantity,
-					Keyword_Price,
 					Keyword_AverageRate,
 					Keyword_Income,
 					Keyword_Amount,
@@ -222,24 +224,28 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private int ParseSecurityRecord(List<SingleWordToken> words, int i, DateTime dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
 		{
 			var headerStrings = headers.Select(h => h.KeyWord).ToList();
-			if (headerStrings.Contains(Keyword_Quantity) && (headerStrings.Contains(Keyword_Price) || headerStrings.Contains(Keyword_AverageRate))) // Stocks
+			if (headerStrings.Contains(Keyword_Quantity) && (Keyword_Price.Any(x => headerStrings.Contains(x)) || headerStrings.Contains(Keyword_AverageRate))) // Stocks
 			{
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
 
+				var incrementDueToPiecesText = words[i + 2].Text == Keyword_Quantity_PiecesText ? 1 : 0;
+
 				activities.Add(PartialActivity.CreateBuy(
-					Currency.GetCurrency(words[i + 4].Text),
+					Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text),
 					dateTime,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					Parse(words[i + 1].Text),
-					Parse(words[i + 3].Text),
-					new Money(Currency.GetCurrency(words[i + 4].Text), Parse(words[i + 5].Text)),
+					Parse(words[i + 2 + incrementDueToPiecesText].Text),
+					new Money(
+						Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text), 
+						Parse(words[i + 4 + incrementDueToPiecesText].Text)),
 					id));
 
-				return i + 6;
+				return i + 5 + incrementDueToPiecesText;
 			}
 
-			if (Keyword_Nominal.Any(x => headerStrings.Contains(x)) && headerStrings.Contains(Keyword_Price)) // Bonds
+			if (Keyword_Nominal.Any(x => headerStrings.Contains(x)) && Keyword_Price.Any(x => headerStrings.Contains(x))) // Bonds
 			{
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);

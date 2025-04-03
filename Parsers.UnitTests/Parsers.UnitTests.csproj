@@ -50,7 +50,6 @@
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
 		<Folder Include="TestFiles\DeGiro\EN\SellOrders\" />
-		<Folder Include="TestFiles\TradeRepublic\ES\BuyOrders\" />
 		<Folder Include="TestFiles\TradeRepublic\ES\CashTransactions\" />
 		<Folder Include="TestFiles\TradeRepublic\NL\BuyOrders\" />
 	</ItemGroup>
@@ -427,6 +426,9 @@
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_stock.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\TradeRepublic\ES\BuyOrders\single_buy_stock_alt.pdf">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\TradeRepublic\ES\CashTransactions\single_dividend_stock.pdf">

@@ -102,6 +102,34 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleBuyStock_Alternative_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserES(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/ES/BuyOrders/single_buy_stock_alt.pdf", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2025, 03, 12, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US02079K3059")],
+						3,
+						152.44M,
+						new Money(Currency.EUR, 457.32M),
+						"Trade_Republic_US02079K3059_2025-03-12"),
+				PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2025, 03, 12, 0, 0, 0, DateTimeKind.Utc),
+						1m,
+						new Money(Currency.EUR, 1m),
+						"Trade_Republic_US02079K3059_2025-03-12"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuySavingsplan_Converted()
 		{
 			// Arrange
