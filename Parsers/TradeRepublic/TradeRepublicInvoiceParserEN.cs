@@ -8,14 +8,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		// EN
 		protected override string Keyword_Position => "POSITION";
 		protected override string Keyword_Quantity => "QUANTITY";
-		protected override string Keyword_Price => "PRICE";
+		protected override string Keyword_Quantity_PiecesText => "Pcs.";
+		protected override string[] Keyword_Price => ["PRICE"];
 		protected override string Keyword_Amount => "AMOUNT";
-		protected override string Keyword_Nominal => "NOMINAL";
+		protected override string[] Keyword_Nominal => ["NOMINAL"];
 		protected override string Keyword_Income => "INCOME";
 		protected override string Keyword_Coupon => "COUPON";
 		protected override string Keyword_Total => "TOTAL";
 		protected override string Keyword_AverageRate => "AVERAGE RATE";
-		protected override string Keyword_Booking => "BOOKING";
+		protected override string[] Keyword_Booking => ["BOOKING"];
 		protected override string Keyword_Security => "SECURITY";
 		protected override string Keyword_Number => "NO.";
 		protected override string SECURITIES_SETTLEMENT => "SECURITIES SETTLEMENT";
@@ -26,12 +27,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string EXTERNAL_COST_SURCHARGE => "External cost surcharge";
 		protected override string WITHHOLDING_TAX => "Withholding tax for US issuer";
 		protected override string DATE => "DATE";
-		protected override CultureInfo CULTURE => CultureInfo.InvariantCulture;
-
-
+		protected override CultureInfo Culture => CultureInfo.InvariantCulture;
 
 		public TradeRepublicInvoiceParserEN(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
 		{
 		}
+
 	}
 }
