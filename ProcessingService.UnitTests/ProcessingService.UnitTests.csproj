@@ -34,7 +34,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
-	  <ProjectReference Include="..\ProcessingService\ProcessingService.csproj" />
 	</ItemGroup>
 
 </Project>

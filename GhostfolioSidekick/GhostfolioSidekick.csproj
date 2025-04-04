@@ -20,9 +20,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\PortfolioViewer\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
-	  <ProjectReference Include="..\PortfolioViewer\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
-	  <ProjectReference Include="..\ProcessingService\ProcessingService.csproj" />
+	  <ProjectReference Include="..\Configuration\Configuration.csproj" />
+	  <ProjectReference Include="..\Database\Database.csproj" />
+	  <ProjectReference Include="..\ExternalDataProvider\ExternalDataProvider.csproj" />
+	  <ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
+	  <ProjectReference Include="..\Parsers\Parsers.csproj" />
 	</ItemGroup>
 
 	
