@@ -6,9 +6,9 @@ using Microsoft.Playwright;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace ScraperUtilities.TradeRepublic
+namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
-	internal partial class TransactionPage(IPage page, Microsoft.Extensions.Logging.ILogger logger)
+	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles)
 		{

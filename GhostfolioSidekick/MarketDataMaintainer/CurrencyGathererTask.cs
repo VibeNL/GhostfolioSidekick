@@ -1,13 +1,12 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.ProcessingService.MarketDataMaintainer
+namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class CurrencyGathererTask(IDbContextFactory<DatabaseContext> databaseContextFactory, ICurrencyRepository currencyRepository) : IScheduledWork
 	{
@@ -104,7 +103,7 @@ namespace GhostfolioSidekick.ProcessingService.MarketDataMaintainer
 
 					var symbolProfile = await writeDatabaseContext.SymbolProfiles
 						.Where(x => x.Symbol == symbolString)
-						.FirstOrDefaultAsync() ?? new Model.Symbols.SymbolProfile(symbolString, symbolString, [], match.Item1.Currency with { }, Datasource.YAHOO, AssetClass.Undefined, null, [], []);
+						.FirstOrDefaultAsync() ?? new SymbolProfile(symbolString, symbolString, [], match.Item1.Currency with { }, Datasource.YAHOO, AssetClass.Undefined, null, [], []);
 					
 					foreach (var item in currencyHistory)
 					{

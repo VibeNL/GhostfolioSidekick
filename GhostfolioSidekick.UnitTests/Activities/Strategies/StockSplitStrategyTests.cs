@@ -1,12 +1,12 @@
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using Moq;
 using FluentAssertions;
-using GhostfolioSidekick.ProcessingService.Activities.Strategies;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Activities.Strategies;
 
-namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities.Strategies
+namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 {
 	public class StockSplitStrategyTests
     {

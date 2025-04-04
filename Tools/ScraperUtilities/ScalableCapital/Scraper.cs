@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
-namespace ScraperUtilities.ScalableCapital
+namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 {
 	internal class Scraper(IPage page, ILogger logger)
 	{

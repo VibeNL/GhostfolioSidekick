@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using System.Globalization;
 
-namespace ScraperUtilities
+namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
 	public class Program
 	{
@@ -24,7 +24,7 @@ namespace ScraperUtilities
 				.ConfigureServices((context, services) =>
 				{
 					services.AddLogging(configure => configure.AddConsole());
-					services.AddSingleton<IPlaywright>(Playwright.CreateAsync().Result);
+					services.AddSingleton(Playwright.CreateAsync().Result);
 					services.AddHostedService<ScraperService>();
 				});
 

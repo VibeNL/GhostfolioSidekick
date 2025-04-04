@@ -4,7 +4,7 @@ using GhostfolioSidekick.Model.Accounts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick.ProcessingService.AccountMaintainer
+namespace GhostfolioSidekick.AccountMaintainer
 {
 	public class AccountMaintainerTask : IScheduledWork
 	{

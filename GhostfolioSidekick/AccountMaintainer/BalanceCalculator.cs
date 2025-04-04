@@ -4,7 +4,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 
-namespace GhostfolioSidekick.ProcessingService.AccountMaintainer
+namespace GhostfolioSidekick.AccountMaintainer
 {
 	public class BalanceCalculator
 	{

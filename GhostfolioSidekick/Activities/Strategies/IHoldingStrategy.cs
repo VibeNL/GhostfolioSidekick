@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.ProcessingService.Activities.Strategies
+namespace GhostfolioSidekick.Activities.Strategies
 {
 	public interface IHoldingStrategy
 	{

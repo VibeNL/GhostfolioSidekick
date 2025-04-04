@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.EntityFrameworkCore;
 
-namespace Database.UnitTests.Repository
+namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 {
 	public class CurrencyExchangeTests
 	{
