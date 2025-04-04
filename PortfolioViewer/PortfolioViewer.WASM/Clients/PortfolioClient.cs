@@ -1,15 +1,19 @@
 ﻿using System.Net.Http.Json;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.Model;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient)
+	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext)
 	{
 		public async Task<Portfolio?> GetPortfolio(CancellationToken cancellationToken = default)
 		{
 			try
 			{
+				var a = databaseContext.Platforms.Any();
+
 				var portfolio = await httpClient.GetFromJsonAsync<Portfolio>("/profolio", cancellationToken);
+
 				return portfolio;
 			}
 			catch (Exception ex)
