@@ -1,8 +1,7 @@
-using GhostfolioSidekick.Parsers;
 using FluentAssertions;
 using GhostfolioSidekick.Configuration;
 
-namespace GhostfolioSidekick.Tests.Parsers
+namespace GhostfolioSidekick.Parsers.UnitTests
 {
 	public class SymbolMapperTests
     {

@@ -2,7 +2,7 @@ using GhostfolioSidekick.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace GhostfolioSidekick.UnitTests
+namespace GhostfolioSidekick.ProcessingService.UnitTests
 {
 	public class DisplayInformationTaskTests
 	{

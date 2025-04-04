@@ -1,5 +1,4 @@
-﻿using AnonymisePDF;
-using FluentAssertions;
+﻿using FluentAssertions;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 

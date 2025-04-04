@@ -1,11 +1,11 @@
-using GhostfolioSidekick.Activities;
+using FluentAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using FluentAssertions;
+using GhostfolioSidekick.ProcessingService.Activities;
 
-namespace GhostfolioSidekick.UnitTests.Activities
+namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities
 {
 	public class ActivityManagerTests
     {

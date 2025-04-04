@@ -1,18 +1,18 @@
-using GhostfolioSidekick.Activities;
-using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
-using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.Model.Activities.Types;
 using Moq.EntityFrameworkCore;
+using GhostfolioSidekick.ProcessingService.Activities;
+using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.UnitTests.Activities
+namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities
 {
 	public class SymbolMatcherTaskTests
     {

@@ -1,18 +1,15 @@
-using GhostfolioSidekick.Sync;
-using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.ProcessingService.Sync;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model;
-using Xunit;
-using CryptoExchange.Net.CommonObjects;
-using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Market;
 
-namespace GhostfolioSidekick.UnitTests.Sync
+namespace GhostfolioSidekick.ProcessingService.UnitTests.Sync
 {
 	public class SyncManualSymbolsWithGhostfolioTaskTests : IDisposable
 	{

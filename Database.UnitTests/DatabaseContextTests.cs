@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Database;
 using FluentAssertions;
 
-namespace GhostfolioSidekick.Tests
+namespace Database.UnitTests
 {
 	public class DatabaseContextTests
 	{

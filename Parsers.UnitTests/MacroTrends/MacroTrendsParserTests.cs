@@ -1,7 +1,7 @@
 using FluentAssertions;
 using GhostfolioSidekick.Parsers.MacroTrends;
 
-namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
+namespace GhostfolioSidekick.Parsers.UnitTests.MacroTrends
 {
 	public class MacroTrendsParserTests
 	{

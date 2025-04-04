@@ -3,7 +3,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.Activities.Strategies
+namespace GhostfolioSidekick.ProcessingService.Activities.Strategies
 {
 	public class DeterminePrice : IHoldingStrategy
 	{

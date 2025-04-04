@@ -1,6 +1,5 @@
 ﻿using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
-using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
@@ -12,6 +11,7 @@ using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using GhostfolioSidekick.ProcessingService.Activities.Strategies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -21,103 +21,141 @@ using Microsoft.Extensions.Logging;
 using RestSharp;
 using System.Diagnostics.CodeAnalysis;
 
-namespace GhostfolioSidekick
+namespace GhostfolioSidekick.ProcessingService
 {
-	internal static class Program
+	public static class Program
 	{
 		[ExcludeFromCodeCoverage]
-		static async Task Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			IHostBuilder hostBuilder = CreateHostBuilder();
-
 			await hostBuilder.RunConsoleAsync();
 		}
 
 		internal static IHostBuilder CreateHostBuilder()
 		{
 			return new HostBuilder()
-						.ConfigureAppConfiguration((hostContext, configBuilder) =>
-						{
-							configBuilder.SetBasePath(Directory.GetCurrentDirectory());
-							configBuilder.AddJsonFile("appsettings.json", optional: true);
-							configBuilder.AddJsonFile(
-								$"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json",
-								optional: true);
-							configBuilder.AddEnvironmentVariables();
-						})
-						.ConfigureLogging((hostContext, configLogging) =>
-						{
-							configLogging.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
-							configLogging.AddConsole();
-						})
-						.ConfigureServices((hostContext, services) =>
-						{
-							services.AddSingleton<MemoryCache, MemoryCache>();
-							services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
-							services.AddSingleton<IApplicationSettings, ApplicationSettings>();
+				.ConfigureAppConfiguration(ConfigureApp)
+				.ConfigureLogging(ConfigureLogging)
+				.ConfigureServices(ConfigureServices);
+		}
 
-							services.AddSingleton<IRestClient, RestClient>(x =>
-							{
-								var settings = x.GetService<IApplicationSettings>();
-								var options = new RestClientOptions(settings!.GhostfolioUrl)
-								{
-									ThrowOnAnyError = false,
-									ThrowOnDeserializationError = false,
-								};
+		private static void ConfigureApp(HostBuilderContext hostContext, IConfigurationBuilder configBuilder)
+		{
+			configBuilder.SetBasePath(Directory.GetCurrentDirectory());
+			configBuilder.AddJsonFile("appsettings.json", optional: true);
+			configBuilder.AddJsonFile($"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json", optional: true);
+			configBuilder.AddEnvironmentVariables();
+		}
 
-								return new RestClient(options);
-							});
+		private static void ConfigureLogging(HostBuilderContext hostContext, ILoggingBuilder configLogging)
+		{
+			configLogging.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
+			configLogging.AddConsole();
+		}
 
-							services.AddSingleton(x =>
-							{
-								var settings = x.GetService<IApplicationSettings>();
-								return new RestCall(x.GetService<IRestClient>()!,
-													x.GetService<MemoryCache>()!,
-													x.GetService<ILogger<RestCall>>()!,
-													settings!.GhostfolioUrl,
-													settings!.GhostfolioAccessToken,
-													new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
-							});
-							services.AddSingleton(x =>
-							{
-								var settings = x.GetService<IApplicationSettings>();
-								return settings!.ConfigurationInstance.Settings;
-							});
-							services.AddDbContextFactory<DatabaseContext>(options =>
-							{
-								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
-								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
-							});
+		private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
+		{
+			services.AddSingleton<MemoryCache, MemoryCache>();
+			services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+			services.AddSingleton<IApplicationSettings, ApplicationSettings>();
+			RegisterRestClient(services);
+			registerApplicationSettings(services);
 
-							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
-							services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
-							services.AddSingleton<IApiWrapper, ApiWrapper>();
+			services.AddDbContextFactory<DatabaseContext>(options =>
+			{
+				var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
+				options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+			});
 
-							services.AddSingleton<YahooRepository>();
-							services.AddSingleton<CoinGeckoRepository>();
-							services.AddSingleton<GhostfolioSymbolMatcher>();
-							services.AddSingleton<ManualSymbolMatcher>();
-							services.AddTransient<ICoinGeckoRestClient, CoinGeckoRestClient>();
+			RegisterServices(services);
+			RegisterRepositories(services);
+			RegisterHostedServices(services);
+			RegisterParsers(services);
+		}
 
-							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
-							services.AddSingleton<ISymbolMatcher[]>(sp => [
-									sp.GetRequiredService<YahooRepository>(), 
-									sp.GetRequiredService<CoinGeckoRepository>(),
-									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
-									sp.GetRequiredService<ManualSymbolMatcher>()
-								]);
-							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>()]);
-							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
-							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
-							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
+		private static void registerApplicationSettings(IServiceCollection services)
+		{
+			services.AddSingleton(x =>
+			{
+				var settings = x.GetService<IApplicationSettings>();
+				return settings!.ConfigurationInstance.Settings;
+			});
+		}
 
-							services.AddScoped<IHostedService, TimedHostedService>();
-							RegisterAllWithInterface<IScheduledWork>(services);
-							RegisterAllWithInterface<IHoldingStrategy>(services);
-							RegisterAllWithInterface<IFileImporter>(services);
+		private static void RegisterRestClient(IServiceCollection services)
+		{
+			services.AddSingleton<IRestClient, RestClient>(x =>
+			{
+				var settings = x.GetService<IApplicationSettings>();
+				var options = new RestClientOptions(settings!.GhostfolioUrl)
+				{
+					ThrowOnAnyError = false,
+					ThrowOnDeserializationError = false,
+				};
 
-							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
-						});
+				return new RestClient(options);
+			});
+
+			services.AddSingleton(x =>
+			{
+				var settings = x.GetService<IApplicationSettings>();
+				return new RestCall(x.GetService<IRestClient>()!,
+									x.GetService<MemoryCache>()!,
+									x.GetService<ILogger<RestCall>>()!,
+									settings!.GhostfolioUrl,
+									settings!.GhostfolioAccessToken,
+									new RestCallOptions() { TrottleTimeout = TimeSpan.FromSeconds(settings!.TrottleTimeout) });
+			});
+		}
+
+		private static void RegisterServices(IServiceCollection services)
+		{
+			services.AddSingleton<ICurrencyMapper, SymbolMapper>();
+			services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
+			services.AddSingleton<IApiWrapper, ApiWrapper>();
+			services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
+			services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
+		}
+
+		private static void RegisterRepositories(IServiceCollection services)
+		{
+			services.AddSingleton<YahooRepository>();
+			services.AddSingleton<CoinGeckoRepository>();
+			services.AddSingleton<GhostfolioSymbolMatcher>();
+			services.AddSingleton<ManualSymbolMatcher>();
+			services.AddTransient<ICoinGeckoRestClient, CoinGeckoRestClient>();
+
+			services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
+			services.AddSingleton<ISymbolMatcher[]>(sp =>
+			[
+				sp.GetRequiredService<YahooRepository>(),
+				sp.GetRequiredService<CoinGeckoRepository>(),
+				sp.GetRequiredService<GhostfolioSymbolMatcher>(),
+				sp.GetRequiredService<ManualSymbolMatcher>()
+			]);
+			services.AddSingleton<IStockPriceRepository[]>(sp =>
+			[
+				sp.GetRequiredService<YahooRepository>(),
+				sp.GetRequiredService<CoinGeckoRepository>()
+			]);
+			services.AddSingleton<IStockSplitRepository[]>(sp =>
+			[
+				sp.GetRequiredService<YahooRepository>()
+			]);
+		}
+
+		private static void RegisterHostedServices(IServiceCollection services)
+		{
+			services.AddScoped<IHostedService, TimedHostedService>();
+			RegisterAllWithInterface<IScheduledWork>(services);
+			RegisterAllWithInterface<IHoldingStrategy>(services);
+			RegisterAllWithInterface<IFileImporter>(services);
+		}
+
+		private static void RegisterParsers(IServiceCollection services)
+		{
+			services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 		}
 
 		private static void RegisterAllWithInterface<T>(IServiceCollection services)

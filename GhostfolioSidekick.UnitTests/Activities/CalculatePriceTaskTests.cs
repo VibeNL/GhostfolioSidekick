@@ -1,13 +1,13 @@
-using GhostfolioSidekick.Activities;
-using GhostfolioSidekick.Activities.Strategies;
-using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using FluentAssertions;
 using Moq.EntityFrameworkCore;
+using GhostfolioSidekick.ProcessingService.Activities;
+using GhostfolioSidekick.ProcessingService.Activities.Strategies;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.UnitTests.Activities
+namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities
 {
 	public class CalculatePriceTaskTests
     {

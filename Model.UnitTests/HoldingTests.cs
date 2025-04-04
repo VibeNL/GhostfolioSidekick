@@ -1,10 +1,9 @@
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model.Activities;
 using FluentAssertions;
 using GhostfolioSidekick.Model.Activities.Types;
 
-namespace GhostfolioSidekick.Tests
+namespace GhostfolioSidekick.Model.UnitTests
 {
 	public class HoldingTests
 	{

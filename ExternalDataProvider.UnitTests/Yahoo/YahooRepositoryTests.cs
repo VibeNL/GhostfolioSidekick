@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace GhostfolioSidekick.Tests.ExternalDataProvider.Yahoo
+namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 {
 	/// <summary>
 	/// Warning: Uses the real Yahoo Finance API.

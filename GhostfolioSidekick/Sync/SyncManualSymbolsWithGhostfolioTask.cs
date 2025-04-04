@@ -1,15 +1,12 @@
-﻿using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Parsers;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
-namespace GhostfolioSidekick.Sync
+namespace GhostfolioSidekick.ProcessingService.Sync
 {
 	internal class SyncManualSymbolsWithGhostfolioTask(
 			IDbContextFactory<DatabaseContext> databaseContextFactory,

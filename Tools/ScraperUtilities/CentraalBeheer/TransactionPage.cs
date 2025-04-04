@@ -4,7 +4,6 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
-using System.Diagnostics.Metrics;
 using System.Globalization;
 
 namespace ScraperUtilities.CentraalBeheer

@@ -2,7 +2,7 @@
 using GhostfolioSidekick.GhostfolioAPI;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.Sync
+namespace GhostfolioSidekick.ProcessingService.Sync
 {
 	internal class SyncActivitiesWithGhostfolioTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IGhostfolioSync ghostfolioSync) : IScheduledWork
 	{

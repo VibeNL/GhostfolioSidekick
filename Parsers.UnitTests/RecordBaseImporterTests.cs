@@ -1,12 +1,11 @@
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Parsers;
 using Moq;
 using System.Globalization;
 using FluentAssertions;
 using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.Tests.Parsers
+namespace GhostfolioSidekick.Parsers.UnitTests
 {
 	public class RecordBaseImporterTests
 	{

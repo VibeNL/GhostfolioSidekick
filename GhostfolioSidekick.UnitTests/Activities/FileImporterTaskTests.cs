@@ -1,17 +1,17 @@
-using GhostfolioSidekick.Activities;
-using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Parsers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
-using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.ProcessingService.Activities;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Parsers;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Accounts;
 
-namespace GhostfolioSidekick.UnitTests.Activities
+namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities
 {
 	public class FileImporterTaskTests
 	{

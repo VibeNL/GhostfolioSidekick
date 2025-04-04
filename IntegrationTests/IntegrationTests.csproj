@@ -27,6 +27,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
 		<ProjectReference Include="..\GhostfolioSidekick\GhostfolioSidekick.csproj" />
 	</ItemGroup>
 

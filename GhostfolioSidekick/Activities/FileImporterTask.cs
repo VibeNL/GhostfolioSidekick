@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace GhostfolioSidekick.Activities
+namespace GhostfolioSidekick.ProcessingService.Activities
 {
 	public class FileImporterTask(
 		ILogger<FileImporterTask> logger,

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text;
 
-namespace GhostfolioSidekick
+namespace GhostfolioSidekick.ProcessingService
 {
 	public class DisplayInformationTask : IScheduledWork
 	{
