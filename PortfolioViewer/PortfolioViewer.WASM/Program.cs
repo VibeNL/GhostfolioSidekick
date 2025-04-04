@@ -1,6 +1,8 @@
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -38,6 +40,10 @@ public class Program
             builder.Configuration.Bind("Local", options.ProviderOptions);
         });
 
-        await builder.Build().RunAsync();
+		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options => 
+			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
+			);
+
+		await builder.Build().RunAsync();
     }
 }
