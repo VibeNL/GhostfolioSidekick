@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.ProcessingService
+﻿namespace GhostfolioSidekick
 {
 	public enum TaskPriority
 	{

@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using System.Globalization;
 
-namespace ScraperUtilities.ScalableCapital
+namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 {
-	internal partial class TransactionPage(IPage page, Microsoft.Extensions.Logging.ILogger logger)
+	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{

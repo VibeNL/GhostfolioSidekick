@@ -1,12 +1,12 @@
+using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.ProcessingService.AccountMaintainer;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.ProcessingService.UnitTests.AccountMaintainer
+namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 {
 	public class BalanceMaintainerTaskTests
 	{

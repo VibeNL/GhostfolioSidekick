@@ -2,7 +2,7 @@
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 
-namespace GhostfolioSidekick.ProcessingService.Sync
+namespace GhostfolioSidekick.Sync
 {
 	internal class CleanupGhostfolioTask(
 			IGhostfolioMarketData ghostfolioMarketData,

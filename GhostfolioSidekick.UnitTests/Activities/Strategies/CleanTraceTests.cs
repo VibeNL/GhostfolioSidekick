@@ -1,10 +1,10 @@
 using FluentAssertions;
+using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.ProcessingService.Activities.Strategies;
 using Moq;
 
-namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities.Strategies
+namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 {
     public class CleanTraceTests
     {

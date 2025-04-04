@@ -6,7 +6,7 @@ using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick.ProcessingService.MarketDataMaintainer
+namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class MarketDataStockSplitTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockSplitRepository[] stockPriceRepositories, ILogger<MarketDataGathererTask> logger) : IScheduledWork
 	{

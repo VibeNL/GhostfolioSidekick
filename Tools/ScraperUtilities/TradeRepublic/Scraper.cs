@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
-namespace ScraperUtilities.TradeRepublic
+namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
 	internal class Scraper(IPage page, ILogger logger)
 	{

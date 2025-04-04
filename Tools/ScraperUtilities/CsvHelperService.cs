@@ -5,7 +5,7 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers.Generic;
 using System.Globalization;
 
-namespace ScraperUtilities
+namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
     public class CsvHelperService
     {

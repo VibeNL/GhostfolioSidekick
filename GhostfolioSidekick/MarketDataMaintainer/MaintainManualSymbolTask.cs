@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick.ProcessingService.MarketDataMaintainer
+namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class MaintainManualSymbolTask(
 		ILogger<MaintainManualSymbolTask> logger,
