@@ -68,7 +68,7 @@ COPY --from=publish-sidekick /app/publish-sidekick .
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose port
-EXPOSE 80
+EXPOSE 8080
 
 # Start supervisord
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
