@@ -1,15 +1,15 @@
-﻿using Microsoft.Extensions.Logging;
-using GhostfolioSidekick.ProcessingService.Activities.Comparer;
-using Microsoft.EntityFrameworkCore;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
-using Microsoft.Extensions.Caching.Memory;
-using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Caching.Memory;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.Activities.Comparer;
 
-namespace GhostfolioSidekick.ProcessingService.Activities
+namespace GhostfolioSidekick.Activities
 {
 	public class DetermineHoldings(
 			ILogger<DetermineHoldings> logger,

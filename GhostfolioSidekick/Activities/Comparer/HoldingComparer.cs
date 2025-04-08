@@ -1,7 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
+using System.Diagnostics.CodeAnalysis;
 
-namespace GhostfolioSidekick.ProcessingService.Activities.Comparer
+namespace GhostfolioSidekick.Activities.Comparer
 {
 	internal class HoldingComparer : IEqualityComparer<Holding>
 	{

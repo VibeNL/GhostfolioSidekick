@@ -4,7 +4,7 @@ using GhostfolioSidekick.Model;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.ProcessingService.AccountMaintainer
+namespace GhostfolioSidekick.AccountMaintainer
 {
 	internal class BalanceMaintainerTask(IDbContextFactory<DatabaseContext> databaseContextFactory, ICurrencyExchange exchangeRateService) : IScheduledWork
 	{

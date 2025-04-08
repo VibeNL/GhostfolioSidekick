@@ -4,7 +4,7 @@ using GhostfolioSidekick.Model.Activities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace GhostfolioSidekick.ProcessingService.MarketDataMaintainer
+namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class MarketDataGathererTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockPriceRepository[] stockPriceRepositories, ILogger<MarketDataGathererTask> logger) : IScheduledWork
 	{

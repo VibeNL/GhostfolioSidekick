@@ -1,17 +1,17 @@
 using FluentAssertions;
+using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.ProcessingService.Activities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities
+namespace GhostfolioSidekick.UnitTests.Activities
 {
 	public class DetermineHoldingsTests
 	{

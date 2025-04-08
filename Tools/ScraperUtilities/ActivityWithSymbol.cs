@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 
-namespace ScraperUtilities
+namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
 	public class ActivityWithSymbol
 	{

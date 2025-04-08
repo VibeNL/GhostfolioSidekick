@@ -1,7 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using GhostfolioSidekick.Model.Symbols;
+﻿using GhostfolioSidekick.Model.Symbols;
+using System.Diagnostics.CodeAnalysis;
 
-namespace GhostfolioSidekick.ProcessingService.Activities.Comparer
+namespace GhostfolioSidekick.Activities.Comparer
 {
 	internal class SymbolComparer : IEqualityComparer<SymbolProfile>
 	{

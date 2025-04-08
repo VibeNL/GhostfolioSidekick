@@ -1,11 +1,11 @@
-using FluentAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.ProcessingService.Activities.Strategies;
+using FluentAssertions;
+using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Activities.Strategies;
 
-namespace GhostfolioSidekick.ProcessingService.UnitTests.Activities.Strategies
+namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 {
 	public class DeterminePriceTests
     {

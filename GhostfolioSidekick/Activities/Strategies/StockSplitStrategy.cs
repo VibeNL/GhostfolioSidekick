@@ -1,7 +1,7 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 
-namespace GhostfolioSidekick.ProcessingService.Activities.Strategies
+namespace GhostfolioSidekick.Activities.Strategies
 {
 	public class StockSplitStrategy : IHoldingStrategy
 	{

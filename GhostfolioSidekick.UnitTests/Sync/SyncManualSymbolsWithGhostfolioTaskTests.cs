@@ -1,15 +1,15 @@
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using GhostfolioSidekick.ProcessingService.Sync;
-using GhostfolioSidekick.Database;
-using GhostfolioSidekick.GhostfolioAPI;
-using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Sync;
 
-namespace GhostfolioSidekick.ProcessingService.UnitTests.Sync
+namespace GhostfolioSidekick.UnitTests.Sync
 {
 	public class SyncManualSymbolsWithGhostfolioTaskTests : IDisposable
 	{
