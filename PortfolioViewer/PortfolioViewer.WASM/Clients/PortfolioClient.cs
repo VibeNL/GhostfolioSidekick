@@ -10,6 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		{
 			try
 			{
+				await databaseContext.Database.EnsureCreatedAsync(cancellationToken).ConfigureAwait(false);
 				var a = databaseContext.Platforms.Any();
 
 				var portfolio = await httpClient.GetFromJsonAsync<Portfolio>("/profolio", cancellationToken);
