@@ -6,6 +6,10 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+# Install Python and wasm-tools workload
+RUN apt-get update && apt-get install -y python3 python3-pip && \
+    dotnet workload install wasm-tools
+
 # Copy and restore GhostfolioAPI
 COPY ["GhostfolioAPI/GhostfolioAPI.csproj", "GhostfolioAPI/"]
 RUN dotnet restore "GhostfolioAPI/GhostfolioAPI.csproj"
