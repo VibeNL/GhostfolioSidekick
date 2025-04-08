@@ -77,6 +77,10 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      - name: Install WASM tools
+        run: |
+          dotnet workload install wasm-tools
+
       - name: Install SonarCloud scanners
         run: |
           dotnet tool install --global dotnet-sonarscanner
