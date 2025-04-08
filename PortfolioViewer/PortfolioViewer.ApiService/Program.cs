@@ -60,6 +60,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 
 			app.MapDefaultEndpoints();
 
+			app.UseStaticFiles();
+			app.MapFallbackToFile("index.html");
+
 			return app.RunAsync();
 		}
 	}
