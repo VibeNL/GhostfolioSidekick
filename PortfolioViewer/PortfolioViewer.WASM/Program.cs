@@ -26,8 +26,23 @@ public class Program
 		});
 
 		builder.Services.AddHttpClient<PortfolioClient>(
-			client =>
+			async client =>
 			{
+				try
+				{
+					using var testClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
+					var response = await testClient.GetAsync("/health"); // Assuming a health endpoint exists
+					if (response.IsSuccessStatusCode)
+					{
+						client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+						return;
+					}
+				}
+				catch
+				{
+					// Not inside Docker
+				}
+
 				client.BaseAddress = new Uri("http://apiservice");
 			});
 
