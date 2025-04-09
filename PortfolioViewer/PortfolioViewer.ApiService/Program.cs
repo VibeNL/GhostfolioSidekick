@@ -2,6 +2,7 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService
@@ -60,7 +61,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 
 			app.MapDefaultEndpoints();
 
-			app.UseStaticFiles();
+			app.UseStaticFiles(new StaticFileOptions
+			{
+				FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+				ServeUnknownFileTypes = true, // Allow serving files with unknown MIME types
+				DefaultContentType = "application/octet-stream" // Default MIME type for unknown files
+			});
 			app.MapFallbackToFile("index.html");
 
 			return app.RunAsync();
