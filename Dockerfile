@@ -6,44 +6,36 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Install Python, wasm-tools workload, and supervisord
+# Install Python, wasm-tools workload, and supervisord in a single layer
 RUN apt-get update && apt-get install -y python3 python3-pip supervisor && \
-    dotnet workload install wasm-tools
+    dotnet workload install wasm-tools && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy and restore GhostfolioAPI
-COPY ["GhostfolioAPI/GhostfolioAPI.csproj", "GhostfolioAPI/"]
-RUN dotnet restore "GhostfolioAPI/GhostfolioAPI.csproj"
-
-# Copy and restore PortfolioViewer.WASM
+# Copy and restore all projects in a single step to maximize caching
+COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer.ApiService/"]
 COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer.WASM/"]
-RUN dotnet restore "PortfolioViewer.WASM/PortfolioViewer.WASM.csproj"
-
-# Copy and restore GhostfolioSidekick
 COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
-RUN dotnet restore "GhostfolioSidekick/GhostfolioSidekick.csproj"
+RUN dotnet restore "PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
+    dotnet restore "PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
+    dotnet restore "GhostfolioSidekick/GhostfolioSidekick.csproj"
 
 # Copy the entire source code
 COPY . .
 
-# Build GhostfolioAPI
-WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
-RUN dotnet build "PortfolioViewer.ApiService.csproj" -c Release -o /app/build
+# Build all projects in a single step to reduce layers
+RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/build && \
+    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -c Release -o /app/build && \
+    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/build
 
-# Build PortfolioViewer.WASM
-WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
-RUN dotnet build "PortfolioViewer.WASM.csproj" -c Release -o /app/build
-
-# Publish GhostfolioAPI
+# Publish all projects in parallel stages
 FROM build AS publish-api
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
 RUN dotnet publish "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish
 
-# Publish PortfolioViewer.WASM (static files)
 FROM build AS publish-wasm
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
 RUN dotnet publish "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
 
-# Publish GhostfolioSidekick
 FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
 RUN dotnet publish "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
@@ -52,8 +44,9 @@ RUN dotnet publish "GhostfolioSidekick.csproj" -c Release -o /app/publish-sideki
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
-# Install supervisord
-RUN apt-get update && apt-get install -y supervisor
+# Install supervisord in a single layer
+RUN apt-get update && apt-get install -y supervisor && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy API publish output
 COPY --from=publish-api /app/publish ./
