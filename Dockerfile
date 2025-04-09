@@ -36,7 +36,7 @@ RUN dotnet build "PortfolioViewer.WASM.csproj" -c Release -o /app/build
 # Publish GhostfolioAPI
 FROM build AS publish-api
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
-RUN dotnet publish "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish --self-contained true --runtime linux-x64
+RUN dotnet publish "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish
 
 # Publish PortfolioViewer.WASM (static files)
 FROM build AS publish-wasm
@@ -46,7 +46,7 @@ RUN dotnet publish "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
 # Publish GhostfolioSidekick
 FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
-RUN dotnet publish "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick --self-contained true --runtime linux-x64
+RUN dotnet publish "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
 
 # Final stage: Combine API, WASM, and Sidekick
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
