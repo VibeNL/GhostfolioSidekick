@@ -26,8 +26,8 @@ RUN dotnet restore "GhostfolioSidekick/GhostfolioSidekick.csproj"
 COPY . .
 
 # Build GhostfolioAPI
-WORKDIR "/src/GhostfolioAPI"
-RUN dotnet build "GhostfolioAPI.csproj" -c Release -o /app/build
+WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
+RUN dotnet build "PortfolioViewer.ApiService.csproj" -c Release -o /app/build
 
 # Build PortfolioViewer.WASM
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
@@ -35,8 +35,8 @@ RUN dotnet build "PortfolioViewer.WASM.csproj" -c Release -o /app/build
 
 # Publish GhostfolioAPI
 FROM build AS publish-api
-WORKDIR "/src/GhostfolioAPI"
-RUN dotnet publish "GhostfolioAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
+RUN dotnet publish "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish --self-contained true --runtime linux-x64
 
 # Publish PortfolioViewer.WASM (static files)
 FROM build AS publish-wasm
@@ -46,7 +46,7 @@ RUN dotnet publish "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
 # Publish GhostfolioSidekick
 FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
-RUN dotnet publish "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
+RUN dotnet publish "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick --self-contained true --runtime linux-x64
 
 # Final stage: Combine API, WASM, and Sidekick
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
@@ -56,18 +56,19 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y supervisor
 
 # Copy API publish output
-COPY --from=publish-api /app/publish .
+COPY --from=publish-api /app/publish ./
 
 # Copy WASM static files
 COPY --from=publish-wasm /app/publish-wasm/wwwroot ./wwwroot
 
 # Copy Sidekick publish output
-COPY --from=publish-sidekick /app/publish-sidekick .
+COPY --from=publish-sidekick /app/publish-sidekick ./
 
 # Copy supervisord configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose port
+ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
 
 # Start supervisord
