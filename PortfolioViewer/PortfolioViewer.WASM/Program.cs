@@ -3,6 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.Extensions.ServiceDiscovery;
 using System.Diagnostics;
 
@@ -28,9 +29,9 @@ public class Program
 		});
 
 		builder.Services.AddHttpClient<PortfolioClient>(
-			client  =>
+			(sp, client ) =>
 		{
-				client.BaseAddress = new Uri("https+http://apiservice");
+			client.BaseAddress = new Uri("https+http://apiservice");
 		});
 
 		builder.Services.AddOidcAuthentication(options =>
@@ -43,6 +44,8 @@ public class Program
 		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options =>
 			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
 			);
+
+
 
 		await builder.Build().RunAsync();
 	}
