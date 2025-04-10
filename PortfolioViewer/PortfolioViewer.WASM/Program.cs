@@ -31,7 +31,17 @@ public class Program
 		builder.Services.AddHttpClient<PortfolioClient>(
 			(sp, client ) =>
 		{
-			client.BaseAddress = new Uri("https+http://apiservice");
+			var config = sp.GetRequiredService<IConfiguration>();
+			// Read the "Services.apiservice.http" value from the configuration
+			var apiServiceHttp = config.GetSection("Services:apiservice:http").Get<string[]>()?.SingleOrDefault();
+			if (!string.IsNullOrWhiteSpace(apiServiceHttp))
+			{
+				client.BaseAddress = new Uri("https+http://apiservice");
+			}
+			else
+			{
+				client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+			}
 		});
 
 		builder.Services.AddOidcAuthentication(options =>
