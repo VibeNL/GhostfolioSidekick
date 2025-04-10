@@ -1,23 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	  <AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
-	  <RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Database\Database.csproj" />
-    <ProjectReference Include="..\..\Model\Model.csproj" />
-    <ProjectReference Include="..\PortfolioViewer.Model\PortfolioViewer.Model.csproj" />
-    <ProjectReference Include="..\PortfolioViewer.ServiceDefaults\PortfolioViewer.ServiceDefaults.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Database\Database.csproj" />
+		<ProjectReference Include="..\..\Model\Model.csproj" />
+		<ProjectReference Include="..\PortfolioViewer.Model\PortfolioViewer.Model.csproj" />
+		<ProjectReference Include="..\PortfolioViewer.ServiceDefaults\PortfolioViewer.ServiceDefaults.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.1.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
+		<PackageReference Include="Scalar.AspNetCore" Version="2.1.8" />
+	</ItemGroup>
 
 </Project>

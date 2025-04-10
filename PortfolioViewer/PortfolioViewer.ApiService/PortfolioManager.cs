@@ -7,7 +7,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 	{
 		internal static Portfolio LoadPorfolio(DatabaseContext databaseContext) => new()
 		{
-			Accounts = [.. databaseContext.Accounts.Select(Map)],
+			Accounts = [  new Account() { Name = "Dummy" } ]
+			//Accounts = [.. databaseContext.Accounts.Select(Map)],
 			/*Activities = [.. databaseContext.Activities.Select(Map)],
 			Holdings = [.. databaseContext.Holdings.Select(Map)],
 			SymbolProfiles = [.. databaseContext.SymbolProfiles.Select(Map)],*/

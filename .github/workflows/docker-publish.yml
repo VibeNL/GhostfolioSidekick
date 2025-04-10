@@ -77,6 +77,10 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      - name: Install WASM tools
+        run: |
+          dotnet workload install wasm-tools
+
       - name: Install SonarCloud scanners
         run: |
           dotnet tool install --global dotnet-sonarscanner
@@ -156,7 +160,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          file: ./GhostfolioSidekick/Dockerfile
+          file: ./Dockerfile
 
       - name: Create a PR comment with the published version
         uses: thollander/actions-comment-pull-request@v2

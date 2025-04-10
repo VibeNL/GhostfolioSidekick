@@ -1,6 +1,11 @@
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Extensions.ServiceDiscovery;
+using System.Diagnostics;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -12,10 +17,10 @@ public class Program
 	}
 
 	public static async Task Main(string[] args)
-    {
-        var builder = WebAssemblyHostBuilder.CreateDefault(args);
-        builder.RootComponents.Add<App>("#app");
-        builder.RootComponents.Add<HeadOutlet>("head::after");
+	{
+		var builder = WebAssemblyHostBuilder.CreateDefault(args);
+		builder.RootComponents.Add<App>("#app");
+		builder.RootComponents.Add<HeadOutlet>("head::after");
 
 		builder.Services.AddServiceDiscovery();
 		builder.Services.ConfigureHttpClientDefaults(static http =>
@@ -24,20 +29,34 @@ public class Program
 		});
 
 		builder.Services.AddHttpClient<PortfolioClient>(
-			client =>
+			(sp, client ) =>
+		{
+			var config = sp.GetRequiredService<IConfiguration>();
+			// Read the "Services.apiservice.http" value from the configuration
+			var apiServiceHttp = config.GetSection("Services:apiservice:http").Get<string[]>()?.SingleOrDefault();
+			if (!string.IsNullOrWhiteSpace(apiServiceHttp))
 			{
-				client.BaseAddress = new Uri("https://localhost:7565"); //new Uri("https+http://apiservice");
-			});
-
-		//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+				client.BaseAddress = new Uri("https+http://apiservice");
+			}
+			else
+			{
+				client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+			}
+		});
 
 		builder.Services.AddOidcAuthentication(options =>
-        {
-            // Configure your authentication provider options here.
-            // For more information, see https://aka.ms/blazor-standalone-auth
-            builder.Configuration.Bind("Local", options.ProviderOptions);
-        });
+		{
+			// Configure your authentication provider options here.
+			// For more information, see https://aka.ms/blazor-standalone-auth
+			builder.Configuration.Bind("Local", options.ProviderOptions);
+		});
 
-        await builder.Build().RunAsync();
-    }
+		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options =>
+			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
+			);
+
+
+
+		await builder.Build().RunAsync();
+	}
 }
