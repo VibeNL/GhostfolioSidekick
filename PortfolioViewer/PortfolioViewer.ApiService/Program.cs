@@ -36,6 +36,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 			builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlite(connectionString));
 
+			// Register SyncController
+			builder.Services.AddControllers().AddApplicationPart(typeof(SyncController).Assembly);
+
 			var app = builder.Build();
 
 			app.UseCors();
