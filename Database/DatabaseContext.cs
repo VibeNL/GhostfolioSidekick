@@ -61,5 +61,16 @@ namespace GhostfolioSidekick.Database
 			command.CommandText = pragmaCommand;
 			return command.ExecuteNonQueryAsync();
 		}
+
+		public DbSet<object>? GetSyncableSet(string name)
+		{
+			var property = GetType().GetProperty(name);
+			if (property == null || !typeof(DbSet<>).IsAssignableFrom(property.PropertyType))
+			{
+				return null;
+			}
+
+			return property.GetValue(this) as DbSet<object>;
+		}
 	}
 }

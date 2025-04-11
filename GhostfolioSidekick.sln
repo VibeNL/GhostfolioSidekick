@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33815.320
@@ -34,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptocurrency", "Cryptocur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptocurrency.UnitTests", "Cryptocurrency.UnitTests\Cryptocurrency.UnitTests.csproj", "{F460E465-CB28-4496-9E71-C89EFD78E621}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model.UnitTests", "Model.UnitTests\Model.UnitTests.csproj", "{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model.UnitTests", "Model.UnitTests\Model.Unit.Tests.csproj", "{BCE82B19-69DD-48B1-BF7D-99C8F5FB6241}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnonymisePDF", "Tools\AnonymisePDF\AnonymisePDF.csproj", "{F94F49BD-2A43-4ECC-8ED8-178D71AB7EED}"
 EndProject
