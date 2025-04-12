@@ -36,6 +36,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 			builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlite(connectionString));
 
+			builder.Services.AddControllers(options =>
+			{
+				options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+				options.SuppressAsyncSuffixInActionNames = false;
+			});
+
 			var app = builder.Build();
 
 			app.UseCors();
@@ -53,12 +59,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				);
 			}
 
-			app.MapGet("/profolio", [AllowAnonymous] (DatabaseContext databaseContext) =>
-			{
-				return PortfolioManager.LoadPorfolio(databaseContext);
-			})
-			.WithName("GetPortfolio");
-
+			app.MapControllers();
 			app.MapDefaultEndpoints();
 
 			app.UseStaticFiles(new StaticFileOptions
