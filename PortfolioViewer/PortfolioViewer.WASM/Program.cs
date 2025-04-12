@@ -36,7 +36,7 @@ public class Program
 			var apiServiceHttp = config.GetSection("Services:apiservice:http").Get<string[]>()?.SingleOrDefault();
 			if (!string.IsNullOrWhiteSpace(apiServiceHttp))
 			{
-				client.BaseAddress = new Uri("https+http://apiservice");
+				client.BaseAddress = new Uri("http://apiservice");
 			}
 			else
 			{

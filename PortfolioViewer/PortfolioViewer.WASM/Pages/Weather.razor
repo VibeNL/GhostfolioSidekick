@@ -1,6 +1,8 @@
 ﻿@page "/weather"
-@using GhostfolioSidekick.PortfolioViewer.Model
+@using GhostfolioSidekick.Database
+@using GhostfolioSidekick.Model.Accounts
 @using GhostfolioSidekick.PortfolioViewer.WASM.Clients
+@using Microsoft.EntityFrameworkCore
 @inject HttpClient Http
 
 <PageTitle>Weather</PageTitle>
@@ -9,14 +11,14 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
-@if (portfolio == null)
+@if (Accounts == null || Accounts.Count == 0)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
     <ul>
-        @foreach (var account in portfolio.Accounts)
+        @foreach (var account in Accounts)
         {
             <li>
                 <strong>@account.Name</strong> (@account.Platform?.Name)
@@ -34,10 +36,17 @@ else
     [Inject]
     private PortfolioClient PortfolioClient { get; set; }
 
-    private Portfolio? portfolio;
+    [Inject]
+    private DatabaseContext DatabaseContext { get; set; }
+
+    private List<Account> Accounts = [];
 
     protected override async Task OnInitializedAsync()
     {
-        portfolio = await PortfolioClient.GetPortfolio();
+        await PortfolioClient.SyncPortfolio();
+
+        Accounts = await DatabaseContext.Accounts
+            .Include(a => a.Platform)
+            .ToListAsync();
     }
 }
