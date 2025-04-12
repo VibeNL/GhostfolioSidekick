@@ -85,7 +85,32 @@ namespace GhostfolioSidekick.AccountMaintainer
 				balances.Add(new Balance(moneyPerDate.Key, new Money(baseCurrency with { }, totalAmount)));
 			}
 
+			// Calculate TWR and add it to the balances
+			var twr = CalculateTWR(moneyTrail);
+			foreach (var balance in balances)
+			{
+				balance.TWR = twr;
+			}
+
 			return balances;
+		}
+
+		private decimal CalculateTWR(List<Tuple<DateTime, Money>> moneyTrail)
+		{
+			decimal twr = 1m;
+			decimal previousBalance = 0m;
+
+			foreach (var money in moneyTrail.OrderBy(x => x.Item1))
+			{
+				decimal currentBalance = previousBalance + money.Item2.Amount;
+				if (previousBalance != 0)
+				{
+					twr *= (1 + (currentBalance - previousBalance) / previousBalance);
+				}
+				previousBalance = currentBalance;
+			}
+
+			return twr - 1;
 		}
 	}
 }

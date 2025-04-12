@@ -90,6 +90,24 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 				.WithMessage("Activity type UnknownActivity is not implemented.");
 		}
 
+		[Fact]
+		public void CalculateTWR_ShouldReturnCorrectTWR()
+		{
+			// Arrange
+			var moneyTrail = new List<Tuple<DateTime, Money>>
+			{
+				new Tuple<DateTime, Money>(DateTime.UtcNow.AddDays(-3), new Money(Currency.USD, 100)),
+				new Tuple<DateTime, Money>(DateTime.UtcNow.AddDays(-2), new Money(Currency.USD, 50)),
+				new Tuple<DateTime, Money>(DateTime.UtcNow.AddDays(-1), new Money(Currency.USD, -30))
+			};
+
+			// Act
+			var result = balanceCalculator.CalculateTWR(moneyTrail);
+
+			// Assert
+			result.Should().BeApproximately(0.2m, 0.01m); // Expected TWR is 20%
+		}
+
 		private record UnknownActivity : Activity
 		{
 			public UnknownActivity()

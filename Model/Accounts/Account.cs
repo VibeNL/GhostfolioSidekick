@@ -24,6 +24,16 @@
 
 		public virtual Platform? Platform { get; set; }
 
+		public decimal GetTWR()
+		{
+			if (Balance == null || Balance.Count == 0)
+			{
+				return 0;
+			}
+
+			return Balance.Last().TWR;
+		}
+
 		public override string ToString()
 		{
 			return Name;
