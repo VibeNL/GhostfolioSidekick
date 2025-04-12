@@ -122,6 +122,27 @@ namespace GhostfolioSidekick.Activities
 				holdings.Add(holding);
 				databaseContext.Holdings.Add(holding);
 			}
+			CalculateBirthForEachDay(holding);
+		}
+
+		private void CalculateBirthForEachDay(Holding holding)
+		{
+			var activities = holding.Activities.OrderBy(a => a.Date).ToList();
+			var birthPerDay = new Dictionary<DateOnly, decimal>();
+
+			foreach (var activity in activities)
+			{
+				var date = DateOnly.FromDateTime(activity.Date);
+				if (!birthPerDay.ContainsKey(date))
+				{
+					birthPerDay[date] = 0;
+				}
+
+				birthPerDay[date] += activity.Amount;
+			}
+
+			// Store the birth per day in the holding
+			holding.BirthPerDay = birthPerDay;
 		}
 	}
 }

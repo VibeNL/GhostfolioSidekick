@@ -45,6 +45,14 @@ namespace GhostfolioSidekick.Database
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+			modelBuilder.Entity<Holding>()
+				.Property(h => h.TWR)
+				.HasPrecision(18, 8);
+
+			modelBuilder.Entity<Holding>()
+				.Property(h => h.AverageBuyPrice)
+				.HasPrecision(18, 8);
 		}
 
 		protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
