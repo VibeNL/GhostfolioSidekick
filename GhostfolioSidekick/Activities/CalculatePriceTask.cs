@@ -25,7 +25,52 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
+			// Calculate and store TWR and AverageBuyPrice for each holding
+			foreach (var holding in holdings)
+			{
+				holding.TWR = CalculateTWR(holding.Activities);
+				holding.AverageBuyPrice = CalculateAverageBuyPrice(holding.Activities);
+			}
+
 			await databaseContext.SaveChangesAsync();
+		}
+
+		private decimal CalculateTWR(IEnumerable<Activity> activities)
+		{
+			decimal twr = 1m;
+			decimal previousBalance = 0m;
+
+			foreach (var activity in activities.OrderBy(x => x.Date))
+			{
+				decimal currentBalance = previousBalance + activity.Amount;
+				if (previousBalance != 0)
+				{
+					twr *= (1 + (currentBalance - previousBalance) / previousBalance);
+				}
+				previousBalance = currentBalance;
+			}
+
+			return twr - 1;
+		}
+
+		private decimal CalculateAverageBuyPrice(IEnumerable<Activity> activities)
+		{
+			var buySellActivities = activities.OfType<BuySellActivity>().Where(x => x.Quantity > 0);
+			if (!buySellActivities.Any())
+			{
+				return 0;
+			}
+
+			decimal totalAmount = 0;
+			decimal totalQuantity = 0;
+
+			foreach (var activity in buySellActivities)
+			{
+				totalAmount += activity.TotalTransactionAmount.Amount;
+				totalQuantity += activity.Quantity;
+			}
+
+			return totalAmount / totalQuantity;
 		}
 	}
 }

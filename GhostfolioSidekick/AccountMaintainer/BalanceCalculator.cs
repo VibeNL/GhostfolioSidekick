@@ -92,6 +92,13 @@ namespace GhostfolioSidekick.AccountMaintainer
 				balance.TWR = twr;
 			}
 
+			// Calculate and store the average buy price
+			var averageBuyPrice = CalculateAverageBuyPrice(activities);
+			foreach (var balance in balances)
+			{
+				balance.AverageBuyPrice = averageBuyPrice;
+			}
+
 			return balances;
 		}
 
@@ -111,6 +118,26 @@ namespace GhostfolioSidekick.AccountMaintainer
 			}
 
 			return twr - 1;
+		}
+
+		private decimal CalculateAverageBuyPrice(IEnumerable<Activity> activities)
+		{
+			var buySellActivities = activities.OfType<BuySellActivity>().Where(x => x.Quantity > 0);
+			if (!buySellActivities.Any())
+			{
+				return 0;
+			}
+
+			decimal totalAmount = 0;
+			decimal totalQuantity = 0;
+
+			foreach (var activity in buySellActivities)
+			{
+				totalAmount += activity.TotalTransactionAmount.Amount;
+				totalQuantity += activity.Quantity;
+			}
+
+			return totalAmount / totalQuantity;
 		}
 	}
 }

@@ -108,6 +108,31 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			result.Should().BeApproximately(0.2m, 0.01m); // Expected TWR is 20%
 		}
 
+		[Fact]
+		public void CalculateAverageBuyPrice_ShouldReturnCorrectAverageBuyPrice()
+		{
+			// Arrange
+			var activities = new List<Activity>
+			{
+				new BuySellActivity
+				{
+					Quantity = 10,
+					TotalTransactionAmount = new Money(Currency.USD, 100)
+				},
+				new BuySellActivity
+				{
+					Quantity = 5,
+					TotalTransactionAmount = new Money(Currency.USD, 75)
+				}
+			};
+
+			// Act
+			var result = balanceCalculator.CalculateAverageBuyPrice(activities);
+
+			// Assert
+			result.Should().Be(11.67m); // Expected average buy price is 11.67
+		}
+
 		private record UnknownActivity : Activity
 		{
 			public UnknownActivity()
