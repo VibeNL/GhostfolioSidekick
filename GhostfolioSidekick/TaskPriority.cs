@@ -36,14 +36,6 @@
 
 		CleanupGhostfolio,
 
-		//SetManualPrices,
-
-		//DeleteUnusedSymbols,
-
-		//SetTrackingInsightOnSymbols,
-
-		//SetBenchmarks,
-
-		//GatherAllData,
+		TrackAverageUnitPriceAndProfitLoss
 	}
 }
