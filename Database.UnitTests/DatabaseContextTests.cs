@@ -34,5 +34,44 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 				var tableExists = await context.Database.ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Holdings';");
 			}
 		}
+
+		[Fact]
+		public async Task ExecutePragma_ShouldPreventSqlInjection()
+		{
+			// Arrange
+			var options = new DbContextOptionsBuilder<DatabaseContext>()
+				.UseSqlite("Data Source=:memory:")
+				.Options;
+
+			using (var context = new DatabaseContext(options))
+			{
+				context.Database.OpenConnection();
+				await context.Database.MigrateAsync().ConfigureAwait(false);
+
+				// Act & Assert
+				await Assert.ThrowsAsync<ArgumentException>(() => context.ExecutePragma("PRAGMA integrity_check; DROP TABLE Holdings;"));
+			}
+		}
+
+		[Fact]
+		public async Task ExecutePragma_ShouldExecuteValidCommand()
+		{
+			// Arrange
+			var options = new DbContextOptionsBuilder<DatabaseContext>()
+				.UseSqlite("Data Source=:memory:")
+				.Options;
+
+			using (var context = new DatabaseContext(options))
+			{
+				context.Database.OpenConnection();
+				await context.Database.MigrateAsync().ConfigureAwait(false);
+
+				// Act
+				var result = await context.ExecutePragma("PRAGMA integrity_check;");
+
+				// Assert
+				result.Should().Be(0);
+			}
+		}
 	}
 }

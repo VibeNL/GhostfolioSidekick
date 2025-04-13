@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				var offset = (page - 1) * pageSize;
 
 				// Construct the raw SQL query with pagination
-				var sqlQuery = $"SELECT * FROM {entity} ORDER BY ID LIMIT {pageSize} OFFSET {offset}";
+				var sqlQuery = $"SELECT * FROM @entity ORDER BY ID LIMIT @pageSize OFFSET @offset";
 
 				// Execute the raw SQL query and fetch the data into a DataTable
 				using (var connection = _context.Database.GetDbConnection())
@@ -41,6 +41,21 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 					using (var command = connection.CreateCommand())
 					{
 						command.CommandText = sqlQuery;
+						var entityParam = command.CreateParameter();
+						entityParam.ParameterName = "@entity";
+						entityParam.Value = entity;
+						command.Parameters.Add(entityParam);
+
+						var pageSizeParam = command.CreateParameter();
+						pageSizeParam.ParameterName = "@pageSize";
+						pageSizeParam.Value = pageSize;
+						command.Parameters.Add(pageSizeParam);
+
+						var offsetParam = command.CreateParameter();
+						offsetParam.ParameterName = "@offset";
+						offsetParam.Value = offset;
+						command.Parameters.Add(offsetParam);
+
 						using (var reader = await command.ExecuteReaderAsync())
 						{
 							var dataTable = new DataTable();
@@ -70,7 +85,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			try
 			{
 				// Construct the raw SQL query to fetch all data from the specified table
-				var sqlQuery = $"SELECT * FROM {entity} ORDER BY ID";
+				var sqlQuery = $"SELECT * FROM @entity ORDER BY ID";
 
 				// Execute the raw SQL query and calculate the hash incrementally
 				using (var connection = _context.Database.GetDbConnection())
@@ -79,6 +94,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 					using (var command = connection.CreateCommand())
 					{
 						command.CommandText = sqlQuery;
+						var entityParam = command.CreateParameter();
+						entityParam.ParameterName = "@entity";
+						entityParam.Value = entity;
+						command.Parameters.Add(entityParam);
+
 						using (var reader = await command.ExecuteReaderAsync())
 						{
 							using (var sha256 = SHA256.Create())

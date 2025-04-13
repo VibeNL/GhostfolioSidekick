@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Database
 {
@@ -55,11 +56,29 @@ namespace GhostfolioSidekick.Database
 
 		public Task ExecutePragma(string pragmaCommand)
 		{
+			if (!IsValidPragmaCommand(pragmaCommand))
+			{
+				throw new ArgumentException("Invalid pragma command.");
+			}
+
 			var connection = Database.GetDbConnection();
 			connection.Open();
 			using var command = connection.CreateCommand();
 			command.CommandText = pragmaCommand;
 			return command.ExecuteNonQueryAsync();
+		}
+
+		private bool IsValidPragmaCommand(string pragmaCommand)
+		{
+			var validPragmas = new[]
+			{
+				"PRAGMA integrity_check;",
+				"PRAGMA synchronous=FULL;",
+				"PRAGMA fullfsync=ON;",
+				"PRAGMA journal_mode=DELETE;"
+			};
+
+			return validPragmas.Contains(pragmaCommand);
 		}
 	}
 }
