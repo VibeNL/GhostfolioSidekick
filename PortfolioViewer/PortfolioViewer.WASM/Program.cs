@@ -55,7 +55,8 @@ public class Program
 			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
 			);
 
-
+		// Add a service for the chat functionality
+		builder.Services.AddSingleton<IChatService, ChatService>();
 
 		await builder.Build().RunAsync();
 	}

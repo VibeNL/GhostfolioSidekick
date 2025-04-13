@@ -1,0 +1,83 @@
+@code {
+    private string userInput = string.Empty;
+    private List<string> messages = new List<string>();
+
+    private void SendMessage()
+    {
+        if (!string.IsNullOrEmpty(userInput))
+        {
+            messages.Add(userInput);
+            userInput = string.Empty;
+        }
+    }
+}
+
+<div class="chat-window">
+    <div class="chat-header">
+        <h3>Chat with AI</h3>
+    </div>
+    <div class="chat-messages">
+        @foreach (var message in messages)
+        {
+            <div class="chat-message">@message</div>
+        }
+    </div>
+    <div class="chat-input">
+        <input type="text" @bind="userInput" placeholder="Type your message..." />
+        <button @onclick="SendMessage">Send</button>
+    </div>
+</div>
+
+<style>
+    .chat-window {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .chat-header {
+        background-color: #f1f1f1;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    .chat-message {
+        margin-bottom: 10px;
+        padding: 5px;
+        background-color: #e1e1e1;
+        border-radius: 5px;
+    }
+
+    .chat-input {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #ccc;
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .chat-input button {
+        margin-left: 10px;
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .chat-input button:hover {
+        background-color: #0056b3;
+    }
+</style>

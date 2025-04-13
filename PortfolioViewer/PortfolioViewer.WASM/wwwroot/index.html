@@ -13,6 +13,34 @@
     <link href="manifest.webmanifest" rel="manifest" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <style>
+        .clippy-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-image: url('/images/clippy.png');
+            background-size: cover;
+            cursor: pointer;
+        }
+
+        .chat-window {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 300px;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .chat-window.open {
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
@@ -33,6 +61,16 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
     <script src="_content/Bit.Besql/bit-besql.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const clippyButton = document.querySelector('.clippy-button');
+            const chatWindow = document.querySelector('.chat-window');
+
+            clippyButton.addEventListener('click', function () {
+                chatWindow.classList.toggle('open');
+            });
+        });
+    </script>
 </body>
 
 </html>
