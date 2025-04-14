@@ -118,6 +118,13 @@ jobs:
       - name: Setup Docker buildx
         if: (steps.checksecrets.outputs.secretspresent == 'YES')
         uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --platform linux/amd64,linux/arm64
+
+      - name: Create a new builder instance
+        run: |
+          docker buildx create --name mybuilder --use --platform linux/amd64,linux/arm64
+          docker buildx use mybuilder
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -161,6 +168,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
 
       - name: Create a PR comment with the published version
         uses: thollander/actions-comment-pull-request@v2
