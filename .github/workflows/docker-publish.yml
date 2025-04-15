@@ -144,6 +144,11 @@ jobs:
               # set latest tag for default branch
               type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Install QEMU
+        if: (steps.checksecrets.outputs.secretspresent == 'YES')
+        run: |
+          docker run --privileged --rm tonistiigi/binfmt --install all
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       #
