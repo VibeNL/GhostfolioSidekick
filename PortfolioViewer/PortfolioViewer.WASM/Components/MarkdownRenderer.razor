@@ -1,0 +1,11 @@
+@using Markdig
+@using Markdig.Renderers
+@using Markdig.Syntax
+@using Markdig.Syntax.Inlines
+
+@code {
+    [Parameter]
+    public string Content { get; set; }
+
+    private MarkupString RenderedContent => (MarkupString)Markdown.ToHtml(Content);
+}
