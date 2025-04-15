@@ -1,0 +1,66 @@
+@using PortfolioViewer.WASM.Services
+@inject ChatService ChatService
+
+<button class="chat-button" @onclick="ToggleChat">Chat</button>
+
+@if (isChatOpen)
+{
+    <div class="chat-overlay">
+        <div class="chat-header">
+            <button class="close-button" @onclick="ToggleChat">X</button>
+        </div>
+        <div class="chat-messages" @ref="chatMessages">
+            @foreach (var message in messages)
+            {
+                <div class="@(message.IsUser ? "user-message" : "bot-message")">
+                    <MarkdownRenderer Content="message.Content" />
+                </div>
+            }
+        </div>
+        <div class="chat-input">
+            <input @bind="userInput" @onkeypress="HandleKeyPress" placeholder="Type a message..." />
+            <button @onclick="SendMessage">Send</button>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isChatOpen = false;
+    private string userInput = string.Empty;
+    private List<ChatMessage> messages = new();
+
+    private void ToggleChat()
+    {
+        isChatOpen = !isChatOpen;
+    }
+
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrWhiteSpace(userInput))
+        {
+            var userMessage = new ChatMessage { Content = userInput, IsUser = true };
+            messages.Add(userMessage);
+            userInput = string.Empty;
+
+            var botResponse = await ChatService.SendMessage(userMessage.Content);
+            messages.Add(new ChatMessage { Content = botResponse, IsUser = false });
+
+            await ScrollToBottom();
+        }
+    }
+
+    private async Task ScrollToBottom()
+    {
+        await chatMessages.ScrollToEndAsync();
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            SendMessage();
+        }
+    }
+
+    private ElementReference chatMessages;
+}
