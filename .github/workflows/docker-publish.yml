@@ -144,6 +144,11 @@ jobs:
               # set latest tag for default branch
               type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Install QEMU
+        if: (steps.checksecrets.outputs.secretspresent == 'YES')
+        run: |
+          docker run --privileged --rm tonistiigi/binfmt --install all
+
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       #
@@ -161,6 +166,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
 
       - name: Create a PR comment with the published version
         uses: thollander/actions-comment-pull-request@v2
