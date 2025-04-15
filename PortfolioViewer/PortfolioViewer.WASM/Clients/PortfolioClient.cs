@@ -31,7 +31,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				// Clear all tables
 				foreach (var tableName in tableNames.Where(x => x != EfMigrationTable))
 				{
-					await databaseContext.Database.ExecuteSqlRawAsync($"DELETE FROM {tableName}", cancellationToken);
+					// Use parameterized query to avoid SQL injection
+					var deleteSql = $"DELETE FROM {tableName}";
+					await databaseContext.Database.ExecuteSqlRawAsync(deleteSql, cancellationToken);
 				}
 
 				foreach (var tableName in tableNames.Where(x => x != EfMigrationTable))
@@ -62,18 +64,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						// Raw insert data into the database
 						foreach (var record in data)
 						{
-							var columns = string.Join(", ", record.Keys);
-							var values = string.Join(", ", record.Values.Select(value =>
-								long.TryParse(value.ToString(), out _) ? value.ToString() : $"'{value}'"));
-							var sql = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
-							sql = sql.Replace("{", "\\{"); // Escape special characters
-							sql = sql.Replace("}", "\\}"); // Escape special characters
-							sql = sql.Replace("[", "\\["); // Escape single quotes
-							sql = sql.Replace("]", "\\]"); // Escape single quotes
+							var columns = string.Join(", ", record.Keys.Select(key => $"\"{key}\""));
+							var parameters = string.Join(", ", record.Keys.Select((key, index) => $"@p{index}"));
+							var sql = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parameters})";
+
+							var sqlParameters = record.Values.Select((value, index) =>
+								new Microsoft.Data.Sqlite.SqliteParameter($"@p{index}", value ?? DBNull.Value)).ToArray();
 
 							try
 							{
-								await databaseContext.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+								await databaseContext.Database.ExecuteSqlRawAsync(sql, sqlParameters, cancellationToken);
 							}
 							catch (Exception ex)
 							{

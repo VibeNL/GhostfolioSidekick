@@ -32,30 +32,36 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				var offset = (page - 1) * pageSize;
 
 				// Construct the raw SQL query with pagination
-				var sqlQuery = $"SELECT * FROM {entity} ORDER BY ID LIMIT {pageSize} OFFSET {offset}";
+				ValidateTableName(_context, entity);
+				var sqlQuery = $"SELECT * FROM {entity} ORDER BY ID LIMIT @pageSize OFFSET @offset";
 
 				// Execute the raw SQL query and fetch the data into a DataTable
-				using (var connection = _context.Database.GetDbConnection())
-				{
-					await connection.OpenAsync();
-					using (var command = connection.CreateCommand())
-					{
-						command.CommandText = sqlQuery;
-						using (var reader = await command.ExecuteReaderAsync())
-						{
-							var dataTable = new DataTable();
-							dataTable.Load(reader);
+				using var connection = _context.Database.GetDbConnection();
+				await connection.OpenAsync();
+				using var command = connection.CreateCommand();
+				command.CommandText = sqlQuery;
 
-							// Convert DataTable to a list of dictionaries for JSON serialization
-							var result = dataTable.AsEnumerable()
-								.Select(row => dataTable.Columns.Cast<DataColumn>()
-								.ToDictionary(column => column.ColumnName, column => row[column]));
+				var pageSizeParam = command.CreateParameter();
+				pageSizeParam.ParameterName = "@pageSize";
+				pageSizeParam.Value = pageSize;
+				command.Parameters.Add(pageSizeParam);
 
-							// Return the result as JSON
-							return Ok(result);
-						}
-					}
-				}
+				var offsetParam = command.CreateParameter();
+				offsetParam.ParameterName = "@offset";
+				offsetParam.Value = offset;
+				command.Parameters.Add(offsetParam);
+
+				using var reader = await command.ExecuteReaderAsync();
+				var dataTable = new DataTable();
+				dataTable.Load(reader);
+
+				// Convert DataTable to a list of dictionaries for JSON serialization
+				var result = dataTable.AsEnumerable()
+					.Select(row => dataTable.Columns.Cast<DataColumn>()
+					.ToDictionary(column => column.ColumnName, column => row[column]));
+
+				// Return the result as JSON
+				return Ok(result);
 			}
 			catch (Exception ex)
 			{
@@ -64,51 +70,21 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		[HttpGet("{entity}/hash")]
-		public async Task<IActionResult> GetEntityHash(string entity)
+		private void ValidateTableName(DatabaseContext context, string entity)
 		{
-			try
+			// Ensure the table name is valid and does not contain invalid characters
+			if (string.IsNullOrWhiteSpace(entity) || entity.Any(c => !char.IsLetterOrDigit(c) && c != '_'))
 			{
-				// Construct the raw SQL query to fetch all data from the specified table
-				var sqlQuery = $"SELECT * FROM {entity} ORDER BY ID";
-
-				// Execute the raw SQL query and calculate the hash incrementally
-				using (var connection = _context.Database.GetDbConnection())
-				{
-					await connection.OpenAsync();
-					using (var command = connection.CreateCommand())
-					{
-						command.CommandText = sqlQuery;
-						using (var reader = await command.ExecuteReaderAsync())
-						{
-							using (var sha256 = SHA256.Create())
-							{
-								// Use a StringBuilder to construct the hash input incrementally
-								var stringBuilder = new StringBuilder();
-
-								while (await reader.ReadAsync())
-								{
-									for (int i = 0; i < reader.FieldCount; i++)
-									{
-										stringBuilder.Append(reader.GetValue(i)?.ToString() ?? string.Empty);
-									}
-								}
-
-								// Compute the hash from the accumulated string
-								var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(stringBuilder.ToString()));
-								var hashString = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-
-								// Return the hash as JSON
-								return Ok(new { Hash = hashString });
-							}
-						}
-					}
-				}
+				throw new ArgumentException("Invalid table name.");
 			}
-			catch (Exception ex)
+
+			// Check if the table exists in the database
+			var query = $"SELECT COUNT(*) as VALUE FROM sqlite_master WHERE type='table' AND name='{entity}'";
+			var tableExists = context.Database.SqlQueryRaw<int>(query).FirstOrDefault() > 0;
+
+			if (!tableExists)
 			{
-				// Handle exceptions (e.g., invalid table name)
-				return BadRequest(new { Error = ex.Message });
+				throw new ArgumentException($"Table '{entity}' does not exist in the database.");
 			}
 		}
 	}
