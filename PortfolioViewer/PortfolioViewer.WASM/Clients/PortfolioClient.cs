@@ -7,69 +7,76 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
 	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext)
 	{
-		private const string EfMigrationTable = "__EFMigrationsHistory";
+		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 
-		public async Task SyncPortfolio(CancellationToken cancellationToken = default)
+		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
 			{
-				// Check if any pending migrations
-				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync(cancellationToken);
-				if (pendingMigrations.Any())
-				{
-					await databaseContext.Database.MigrateAsync(cancellationToken);
-				}
-
-				// Get all tables from the database
+				// Step 1: Retrieve Table Names
+				progress?.Report(("Retrieving table names...", 0));
 				var tables = databaseContext.Database.SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'");
 				var tableNames = await tables.ToListAsync(cancellationToken);
 				if (!tableNames.Any())
 				{
+					progress?.Report(("No tables found in the database.", 100));
 					return;
 				}
 
-				// Clear all tables
-				foreach (var tableName in tableNames.Where(x => x != EfMigrationTable))
+				int totalSteps = tableNames.Count * 2; // Clearing + Syncing
+				int currentStep = 0;
+
+				// Step 2: Clear Tables
+				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
 				{
-					// Use parameterized query to avoid SQL injection
+					progress?.Report(($"Clearing table: {tableName}...", (currentStep * 100) / totalSteps));
 					var deleteSql = $"DELETE FROM {tableName}";
 					await databaseContext.Database.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+					currentStep++;
 				}
 
-				foreach (var tableName in tableNames.Where(x => x != EfMigrationTable))
+				// Step 3: Sync Data for Each Table
+				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
 				{
+					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
 					int page = 1;
 					const int pageSize = 100;
 					bool hasMoreData = true;
 
 					do
 					{
+						progress?.Report(($"Fetching page {page} for table: {tableName}...", (currentStep * 100) / totalSteps));
 						var response = await httpClient.GetAsync($"/api/sync/{tableName}?page={page}&pageSize={pageSize}", cancellationToken);
 						if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
 						{
+							progress?.Report(($"Failed to fetch data for table: {tableName}, page: {page}.", (currentStep * 100) / totalSteps));
 							break;
 						}
 
 						var rawData = await response.Content.ReadAsStringAsync(cancellationToken);
-						// Check if the data is empty
 						if (string.IsNullOrEmpty(rawData))
 						{
+							progress?.Report(($"No more data for table: {tableName}.", (currentStep * 100) / totalSteps));
 							hasMoreData = false;
 							break;
 						}
 
-						// Data
 						var data = DeserializeData(rawData);
 
-						// Raw insert data into the database
+						if (data == null || !data.Any())
+						{
+							progress?.Report(($"No data found for table: {tableName}, page: {page}.", (currentStep * 100) / totalSteps));
+							hasMoreData = false;
+							break;
+						}
+
 						foreach (var record in data)
 						{
 							var columns = string.Join(", ", record.Keys.Select(key => $"\"{key}\""));
 							var parameters = string.Join(", ", record.Keys.Select((key, index) => $"@p{index}"));
 							var sql = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parameters})";
 
-                            // Modify the SqliteParameter creation to handle System.Text.Json.JsonElement properly
-                            var sqlParameters = record.Values.Select((value, index) =>
+							var sqlParameters = record.Values.Select((value, index) =>
 							{
 								object? parameterValue = value switch
 								{
@@ -80,7 +87,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 										JsonValueKind.True => true,
 										JsonValueKind.False => false,
 										JsonValueKind.Null => DBNull.Value,
-										_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind}")
+										JsonValueKind.Object => JsonSerializer.Serialize(value),
+										_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind} on table {tableName} for index {index}. SQL was {sql}")
 									},
 									null => DBNull.Value,
 									_ => value
@@ -95,17 +103,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 							}
 							catch (Exception ex)
 							{
-								// Handle the exception as needed
-								Console.WriteLine($"Error inserting data into {tableName}: {ex.Message}");
+								progress?.Report(($"Error inserting data into {tableName}: {ex.Message}", (currentStep * 100) / totalSteps));
 							}
 						}
 
 						page++;
 					} while (hasMoreData);
+
+					currentStep++;
 				}
+
+				progress?.Report(("Sync completed successfully.", 100));
 			}
 			catch (Exception ex)
 			{
+				progress?.Report(($"Error: {ex.Message}", 100));
 				throw;
 			}
 		}
