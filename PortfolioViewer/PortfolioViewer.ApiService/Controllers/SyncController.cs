@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				command.Parameters.Add(offsetParam);
 
 				using var reader = await command.ExecuteReaderAsync();
-				var dataTable = new DataTable();
+				using var dataTable = new DataTable();
 				dataTable.Load(reader);
 
 				// Convert DataTable to a list of dictionaries for JSON serialization
