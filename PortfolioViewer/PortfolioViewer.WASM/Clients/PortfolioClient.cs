@@ -68,8 +68,26 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 							var parameters = string.Join(", ", record.Keys.Select((key, index) => $"@p{index}"));
 							var sql = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parameters})";
 
-							var sqlParameters = record.Values.Select((value, index) =>
-								new Microsoft.Data.Sqlite.SqliteParameter($"@p{index}", value ?? DBNull.Value)).ToArray();
+                            // Modify the SqliteParameter creation to handle System.Text.Json.JsonElement properly
+                            var sqlParameters = record.Values.Select((value, index) =>
+							{
+								object? parameterValue = value switch
+								{
+									JsonElement jsonElement => jsonElement.ValueKind switch
+									{
+										JsonValueKind.String => jsonElement.GetString(),
+										JsonValueKind.Number => jsonElement.TryGetInt64(out var longValue) ? longValue : jsonElement.GetDouble(),
+										JsonValueKind.True => true,
+										JsonValueKind.False => false,
+										JsonValueKind.Null => DBNull.Value,
+										_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind}")
+									},
+									null => DBNull.Value,
+									_ => value
+								};
+
+								return new Microsoft.Data.Sqlite.SqliteParameter($"@p{index}", parameterValue ?? DBNull.Value);
+							}).ToArray();
 
 							try
 							{
