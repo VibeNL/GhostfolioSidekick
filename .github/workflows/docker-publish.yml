@@ -161,6 +161,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64,windows/amd64,windows/arm64
 
       - name: Create a PR comment with the published version
         uses: thollander/actions-comment-pull-request@v2
