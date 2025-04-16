@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			{
 				// Step 1: Retrieve Table Names
 				progress?.Report(("Retrieving table names...", 0));
-				var tables = databaseContext.Database.SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'");
+				var tables = databaseContext.SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'");
 				var tableNames = await tables.ToListAsync(cancellationToken);
 				if (!tableNames.Any())
 				{
@@ -31,9 +31,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				// Step 2: Clear Tables
 				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
 				{
-					progress?.Report(($"Clearing table: {tableName}...",0));
+					progress?.Report(($"Clearing table: {tableName}...", 0));
 					var deleteSql = $"DELETE FROM {tableName}";
-					await databaseContext.Database.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
 				}
 
 				// Disable contraints on DB
@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				{
 					var totalWritten = 0;
 					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
-					var semaphore = new SemaphoreSlim(5); // Limit to 5 concurrent task
+					var semaphore = new SemaphoreSlim(1); // Limit to 1 concurrent task since Webassembly is single threaded
 					var tasks = new List<Task>();
 
 					await foreach (var dataChunk in FetchDataAsync(tableName, cancellationToken))
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			await transaction.CommitAsync(cancellationToken);
 		}
 
-		private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+		private static readonly JsonSerializerOptions JsonOptions = new()
 		{
 			PropertyNameCaseInsensitive = false, // Avoid case-insensitive matching
 			DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
@@ -181,8 +181,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				return [];
 			}
 
-			return JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonData, JsonOptions)
-				   ?? [];
+			return JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonData, JsonOptions) ?? [];
 		}
 	}
 }

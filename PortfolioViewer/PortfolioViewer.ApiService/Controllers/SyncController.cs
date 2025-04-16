@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 
 			// Check if the table exists in the database
 			var query = $"SELECT COUNT(*) as VALUE FROM sqlite_master WHERE type='table' AND name='{entity}'";
-			var tableExists = context.Database.SqlQueryRaw<int>(query).FirstOrDefault() > 0;
+			var tableExists = context.SqlQueryRaw<int>(query).FirstOrDefault() > 0;
 
 			if (!tableExists)
 			{
