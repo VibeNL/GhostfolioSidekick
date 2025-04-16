@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 
 				// Construct the raw SQL query with pagination
 				ValidateTableName(_context, entity);
-				var sqlQuery = $"SELECT * FROM {entity} ORDER BY ID LIMIT @pageSize OFFSET @offset";
+				var sqlQuery = $"SELECT * FROM {entity} ORDER BY 1 LIMIT @pageSize OFFSET @offset";
 
 				// Execute the raw SQL query and fetch the data into a DataTable
 				using var connection = _context.Database.GetDbConnection();
