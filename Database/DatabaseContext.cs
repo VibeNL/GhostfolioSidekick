@@ -74,7 +74,11 @@ namespace GhostfolioSidekick.Database
 				"PRAGMA integrity_check;",
 				"PRAGMA synchronous=FULL;",
 				"PRAGMA fullfsync=ON;",
-				"PRAGMA journal_mode=DELETE;"
+				"PRAGMA journal_mode=DELETE;",
+				"PRAGMA foreign_keys=ON;",
+				"PRAGMA foreign_keys=OFF;",
+				"PRAGMA auto_vacuum=0;",
+				"PRAGMA auto_vacuum=FULL;",
 			};
 
 			return validPragmas.Contains(pragmaCommand);

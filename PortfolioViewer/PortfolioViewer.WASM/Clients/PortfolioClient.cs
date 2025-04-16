@@ -36,6 +36,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					await databaseContext.Database.ExecuteSqlRawAsync(deleteSql, cancellationToken);
 				}
 
+				// Disable contraints on DB
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
+
 				// Step 3: Sync Data for Each Table
 				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
 				{
@@ -51,6 +55,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						{
 							try
 							{
+								progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
 								await InsertDataAsync(tableName, dataChunk, cancellationToken);
 								Interlocked.Add(ref totalWritten, dataChunk.Count);
 								progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
@@ -65,6 +70,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					await Task.WhenAll(tasks);
 					currentStep++;
 				}
+
+				// Step 4: Enable constraints on DB
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
+				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
 
 				progress?.Report(("Sync completed successfully.", 100));
 			}
