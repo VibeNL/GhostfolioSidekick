@@ -52,13 +52,18 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				command.Parameters.Add(offsetParam);
 
 				using var reader = await command.ExecuteReaderAsync();
-				using var dataTable = new DataTable();
-				dataTable.Load(reader);
 
-				// Convert DataTable to a list of dictionaries for JSON serialization
-				var result = dataTable.AsEnumerable()
-					.Select(row => dataTable.Columns.Cast<DataColumn>()
-					.ToDictionary(column => column.ColumnName, column => row[column]));
+				// Read data directly from the reader into a list of dictionaries
+				var result = new List<Dictionary<string, object>>();
+				while (await reader.ReadAsync())
+				{
+					var row = new Dictionary<string, object>();
+					for (var i = 0; i < reader.FieldCount; i++)
+					{
+						row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+					}
+					result.Add(row);
+				}
 
 				// Return the result as JSON
 				return Ok(result);

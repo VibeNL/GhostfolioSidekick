@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				{
 					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
 					int page = 1;
-					const int pageSize = 100;
+					const int pageSize = 1000;
 					bool hasMoreData = true;
 
 					do
