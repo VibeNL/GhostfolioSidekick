@@ -40,7 +40,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
 				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
 				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
+				await databaseContext.ExecutePragma("PRAGMA cache_size =1000000;");
+				await databaseContext.ExecutePragma("PRAGMA locking_mode=EXCLUSIVE;");
+				await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
+
 
 				// Step 3: Sync Data for Each Table
 				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
@@ -78,6 +82,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
 				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
+
 
 				progress?.Report(("Sync completed successfully.", 100));
 			}
@@ -176,12 +181,43 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 		public static List<Dictionary<string, object>> DeserializeData(string jsonData)
 		{
-			if (string.IsNullOrEmpty(jsonData))
+			if (string.IsNullOrWhiteSpace(jsonData))
 			{
-				return [];
+				return new List<Dictionary<string, object>>();
 			}
 
-			return JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonData, JsonOptions) ?? [];
+			try
+			{
+				// Use JsonDocument for efficient parsing
+				using var document = JsonDocument.Parse(jsonData);
+				var result = new List<Dictionary<string, object>>();
+
+				foreach (var element in document.RootElement.EnumerateArray())
+				{
+					var dictionary = new Dictionary<string, object>();
+					foreach (var property in element.EnumerateObject())
+					{
+						dictionary[property.Name] = property.Value.ValueKind switch
+						{
+							JsonValueKind.String => property.Value.GetString(),
+							JsonValueKind.Number => property.Value.TryGetInt64(out var longValue) ? longValue : property.Value.GetDouble(),
+							JsonValueKind.True => true,
+							JsonValueKind.False => false,
+							JsonValueKind.Null => null!,
+							JsonValueKind.Object => property.Value.GetRawText(), // Serialize nested objects as JSON
+							_ => property.Value.GetRawText() // Fallback for arrays or unsupported types
+						};
+					}
+					result.Add(dictionary);
+				}
+
+				return result;
+			}
+			catch (JsonException ex)
+			{
+				// Log or handle JSON parsing errors if necessary
+				throw new InvalidOperationException("Failed to deserialize JSON data.", ex);
+			}
 		}
 	}
 }

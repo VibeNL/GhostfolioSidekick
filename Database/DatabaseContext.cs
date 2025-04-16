@@ -55,46 +55,21 @@ namespace GhostfolioSidekick.Database
 
 		public Task ExecutePragma(string pragmaCommand)
 		{
-			if (!IsValidPragmaCommand(pragmaCommand))
-			{
-				throw new ArgumentException("Invalid pragma command.");
-			}
-
 			var connection = Database.GetDbConnection();
 			connection.Open();
 			using var command = connection.CreateCommand();
 			command.CommandText = pragmaCommand;
 			return command.ExecuteNonQueryAsync();
 		}
-
-		private static bool IsValidPragmaCommand(string pragmaCommand)
-		{
-			var validPragmas = new[]
-			{
-				"PRAGMA integrity_check;",
-				"PRAGMA synchronous=FULL;",
-				"PRAGMA fullfsync=ON;",
-				"PRAGMA journal_mode=DELETE;",
-				"PRAGMA journal_mode=MEMORY;",
-				"PRAGMA foreign_keys=ON;",
-				"PRAGMA foreign_keys=OFF;",
-				"PRAGMA auto_vacuum=0;",
-				"PRAGMA auto_vacuum=FULL;",
-				"PRAGMA synchronous=OFF;",
-				"PRAGMA synchronous=FULL;",
-			};
-
-			return validPragmas.Contains(pragmaCommand);
-		}
-
+		
 		public virtual IQueryable<T> SqlQueryRaw<T>(string sql)
 		{
 			return Database.SqlQueryRaw<T>(sql);
 		}
 
-		public virtual Task<int> ExecuteSqlRawAsync(string sql, params object[] parameters)
+		public virtual Task<int> ExecuteSqlRawAsync(string sql, CancellationToken cancellationToken)
 		{
-			return Database.ExecuteSqlRawAsync(sql, parameters);
+			return Database.ExecuteSqlRawAsync(sql, cancellationToken);
 		}
 	}
 }
