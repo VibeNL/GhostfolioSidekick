@@ -51,29 +51,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				{
 					var totalWritten = 0;
 					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
-					var semaphore = new SemaphoreSlim(1); // Limit to 1 concurrent task since Webassembly is single threaded
-					var tasks = new List<Task>();
 
 					await foreach (var dataChunk in FetchDataAsync(tableName, cancellationToken))
 					{
-						await semaphore.WaitAsync(cancellationToken);
-						tasks.Add(Task.Run(async () =>
-						{
-							try
-							{
-								progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
-								await InsertDataAsync(tableName, dataChunk, cancellationToken);
-								Interlocked.Add(ref totalWritten, dataChunk.Count);
-								progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
-							}
-							finally
-							{
-								semaphore.Release();
-							}
-						}, cancellationToken));
+						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
+						await InsertDataAsync(tableName, dataChunk, cancellationToken);
+						Interlocked.Add(ref totalWritten, dataChunk.Count);
+						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
 					}
 
-					await Task.WhenAll(tasks);
 					currentStep++;
 				}
 
@@ -125,6 +111,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 		private async Task InsertDataAsync(string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)
 		{
+			Console.WriteLine($"InsertDataAsync executing");
+
 			var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start timing
 
 			using var transaction = await databaseContext.Database.BeginTransactionAsync(cancellationToken);
@@ -178,6 +166,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 		public static List<Dictionary<string, object>> DeserializeData(string jsonData)
 		{
+			Console.WriteLine($"DeserializeData executing");
 			var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start timing
 
 			if (string.IsNullOrWhiteSpace(jsonData))
