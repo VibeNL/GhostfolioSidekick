@@ -2,6 +2,7 @@
 using System.Text.Json;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
@@ -43,6 +44,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					const int pageSize = 1000;
 					bool hasMoreData = true;
 
+					var internalList = new List<Dictionary<string, object>>();
+
 					do
 					{
 						progress?.Report(($"Fetching page {page} for table: {tableName}...", (currentStep * 100) / totalSteps));
@@ -70,47 +73,64 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 							break;
 						}
 
-						foreach (var record in data)
-						{
-							var columns = string.Join(", ", record.Keys.Select(key => $"\"{key}\""));
-							var parameters = string.Join(", ", record.Keys.Select((key, index) => $"@p{index}"));
-							var sql = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parameters})";
-
-							var sqlParameters = record.Values.Select((value, index) =>
-							{
-								object? parameterValue = value switch
-								{
-									JsonElement jsonElement => jsonElement.ValueKind switch
-									{
-										JsonValueKind.String => jsonElement.GetString(),
-										JsonValueKind.Number => jsonElement.TryGetInt64(out var longValue) ? longValue : jsonElement.GetDouble(),
-										JsonValueKind.True => true,
-										JsonValueKind.False => false,
-										JsonValueKind.Null => DBNull.Value,
-										JsonValueKind.Object => JsonSerializer.Serialize(value),
-										_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind} on table {tableName} for index {index}. SQL was {sql}")
-									},
-									null => DBNull.Value,
-									_ => value
-								};
-
-								return new Microsoft.Data.Sqlite.SqliteParameter($"@p{index}", parameterValue ?? DBNull.Value);
-							}).ToArray();
-
-							try
-							{
-								await databaseContext.Database.ExecuteSqlRawAsync(sql, sqlParameters, cancellationToken);
-							}
-							catch (Exception ex)
-							{
-								progress?.Report(($"Error inserting data into {tableName}: {ex.Message}", (currentStep * 100) / totalSteps));
-							}
-						}
+						internalList.AddRange(data);
 
 						page++;
 					} while (hasMoreData);
 
 					currentStep++;
+
+					// Insert the data into the database
+					using (var transaction = await databaseContext.Database.BeginTransactionAsync())
+					{
+						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
+
+						var columns = string.Join(", ", internalList.First().Keys.Select(key => $"\"{key}\""));
+						using var connection = databaseContext.Database.GetDbConnection();
+						using var command = connection.CreateCommand();
+						var parametersString = string.Join(", ", internalList.First().Keys.Select((key, index) => $"${key}"));
+						command.CommandText =$"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parametersString})";
+						
+						var parameters = internalList.First().Keys.Select((key, index) =>
+						{
+							return new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0);
+						}).ToArray();
+						command.Parameters.AddRange(parameters);
+
+						foreach (var record in internalList)
+						{
+							foreach (var key in record.Keys)
+							{
+								// Set the parameter value for each record
+								var parameter = parameters.FirstOrDefault(p => p.ParameterName == $"${key}");
+								if (parameter != null)
+								{
+									object? parameterValue = record[key] switch
+									{
+										JsonElement jsonElement => jsonElement.ValueKind switch
+										{
+											JsonValueKind.String => jsonElement.GetString(),
+											JsonValueKind.Number => jsonElement.TryGetInt64(out var longValue) ? longValue : jsonElement.GetDouble(),
+											JsonValueKind.True => true,
+											JsonValueKind.False => false,
+											JsonValueKind.Null => DBNull.Value,
+											JsonValueKind.Object => JsonSerializer.Serialize(record[key]),
+											_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind} on table {tableName}. SQL was {command.CommandText}")
+										},
+										null => DBNull.Value,
+										_ => record[key]
+									};
+									parameter.Value = parameterValue ?? DBNull.Value;
+								}
+							}
+														
+							await command.ExecuteNonQueryAsync(cancellationToken);
+						}
+
+						await transaction.CommitAsync(cancellationToken);
+
+						progress?.Report(($"Data inserted successfully into table: {tableName}.", (currentStep * 100) / totalSteps));
+					}
 				}
 
 				progress?.Report(("Sync completed successfully.", 100));
