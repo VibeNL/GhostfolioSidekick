@@ -38,6 +38,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				// Disable contraints on DB
 				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
 
 				// Step 3: Sync Data for Each Table
@@ -45,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				{
 					var totalWritten = 0;
 					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
-					var semaphore = new SemaphoreSlim(1); // Limit to 1 concurrent task
+					var semaphore = new SemaphoreSlim(5); // Limit to 5 concurrent task
 					var tasks = new List<Task>();
 
 					await foreach (var dataChunk in FetchDataAsync(tableName, cancellationToken))
@@ -73,6 +75,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				// Step 4: Enable constraints on DB
 				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
+				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
 
 				progress?.Report(("Sync completed successfully.", 100));
@@ -87,7 +91,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
-			const int pageSize = 10000;
+			const int pageSize = 1000;
 			bool hasMoreData = true;
 
 			while (hasMoreData)
@@ -162,16 +166,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			await transaction.CommitAsync(cancellationToken);
 		}
 
+		private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+		{
+			PropertyNameCaseInsensitive = false, // Avoid case-insensitive matching
+			DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+			WriteIndented = false, // Avoid unnecessary formatting
+			AllowTrailingCommas = true
+		};
 
 		public static List<Dictionary<string, object>> DeserializeData(string jsonData)
 		{
 			if (string.IsNullOrEmpty(jsonData))
 			{
-				return new List<Dictionary<string, object>>();
+				return [];
 			}
 
-			return JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonData)
-				   ?? new List<Dictionary<string, object>>();
+			return JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonData, JsonOptions)
+				   ?? [];
 		}
 	}
 }
