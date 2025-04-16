@@ -125,6 +125,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 		private async Task InsertDataAsync(string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)
 		{
+			var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start timing
+
 			using var transaction = await databaseContext.Database.BeginTransactionAsync(cancellationToken);
 			var columns = string.Join(", ", dataChunk.First().Keys.Select(key => $"\"{key}\""));
 			using var connection = databaseContext.Database.GetDbConnection();
@@ -168,18 +170,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 
 			await transaction.CommitAsync(cancellationToken);
+
+			stopwatch.Stop(); // Stop timing
+			Console.WriteLine($"InsertDataAsync executed in {stopwatch.ElapsedMilliseconds} ms");
 		}
 
-		private static readonly JsonSerializerOptions JsonOptions = new()
-		{
-			PropertyNameCaseInsensitive = false, // Avoid case-insensitive matching
-			DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-			WriteIndented = false, // Avoid unnecessary formatting
-			AllowTrailingCommas = true
-		};
 
 		public static List<Dictionary<string, object>> DeserializeData(string jsonData)
 		{
+			var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start timing
+
 			if (string.IsNullOrWhiteSpace(jsonData))
 			{
 				return new List<Dictionary<string, object>>();
@@ -210,6 +210,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					result.Add(dictionary);
 				}
 
+				stopwatch.Stop(); // Stop timing
+				Console.WriteLine($"DeserializeData executed in {stopwatch.ElapsedMilliseconds} ms");
+
 				return result;
 			}
 			catch (JsonException ex)
@@ -218,5 +221,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				throw new InvalidOperationException("Failed to deserialize JSON data.", ex);
 			}
 		}
+
 	}
 }
