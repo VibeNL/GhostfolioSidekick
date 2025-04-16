@@ -25,6 +25,7 @@
 		<ProjectReference Include="..\..\Database\Database.csproj" />
 		<ProjectReference Include="..\..\Model\Model.csproj" />
 		<ProjectReference Include="..\PortfolioViewer.Model\PortfolioViewer.Model.csproj" />
+		<ProjectReference Include="Pages\Table.razor" />
 	</ItemGroup>
 
 	<ItemGroup>
