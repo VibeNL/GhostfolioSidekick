@@ -1,0 +1,70 @@
+@page "/Table"
+@inject DatabaseContext DatabaseContext
+
+<PageTitle>Table</PageTitle>
+
+<h3>Table Viewer</h3>
+
+<select @onchange="OnTableSelected">
+    <option value="">Select a table</option>
+    @foreach (var table in tables)
+    {
+        <option value="@table">@table</option>
+    }
+</select>
+
+@if (!string.IsNullOrEmpty(selectedTable))
+{
+    <h4>@selectedTable</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                @foreach (var column in columns)
+                {
+                    <th>@column</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in rows)
+            {
+                <tr>
+                    @foreach (var cell in row)
+                    {
+                        <td>@cell</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<string> tables = new();
+    private List<string> columns = new();
+    private List<List<object>> rows = new();
+    private string? selectedTable;
+
+    protected override async Task OnInitializedAsync()
+    {
+        tables = await DatabaseContext.Model.GetEntityTypes()
+            .Select(t => t.Name)
+            .OrderBy(t => t)
+            .ToListAsync();
+    }
+
+    private async Task OnTableSelected(ChangeEventArgs e)
+    {
+        selectedTable = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(selectedTable))
+        {
+            var entityType = DatabaseContext.Model.FindEntityType(selectedTable);
+            if (entityType != null)
+            {
+                columns = entityType.GetProperties().Select(p => p.Name).ToList();
+                var query = DatabaseContext.Set(entityType.ClrType).AsQueryable();
+                rows = await query.Select(e => e.GetType().GetProperties().Select(p => p.GetValue(e)).ToList()).ToListAsync();
+            }
+        }
+    }
+}
