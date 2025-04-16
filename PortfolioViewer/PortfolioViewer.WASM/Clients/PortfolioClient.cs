@@ -83,7 +83,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
 
-
 				progress?.Report(("Sync completed successfully.", 100));
 			}
 			catch (Exception ex)
