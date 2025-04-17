@@ -28,22 +28,19 @@
 			{
 				<!-- Loading Indicator -->
 				<div style="flex: 1; display: flex; justify-content: center; align-items: center; background-color: #f9f9f9;">
-					<span style="font-size: 16px; color: #555;">Loading assistant...</span>
-					<br />
+					<span style="font-size: 16px; color: #555;">
+						Loading assistant...
 
-					<!-- Display progress details -->
-					@if (progress != null)
-					{
-						<span style="font-size: 16px; color: #555;">
+						@if (progress != null)
+						{
 							@($"{progress.Progress * 100}% completed")
-						</span>
-						<span style="font-size: 16px; color: #555;">
-							@progress.Text
-						</span>
-						<span style="font-size: 16px; color: #555;">
-							@progress.TimeElapsed
-						</span>
-					}
+						}
+					</span>
+
+					<br />
+					<span style="font-size: 8px; color: #555;">
+						@($"({progress?.Text})")
+					</span>
 				</div>
 			}
 			else
