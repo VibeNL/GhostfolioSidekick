@@ -1,0 +1,206 @@
+﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Services
+@using Markdig
+@inject IJSRuntime JS
+@inject WebLLMService llm
+
+<!-- Floating Chat Button -->
+<div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
+	<button @onclick="ToggleChat"
+	style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
+		💬
+	</button>
+</div>
+
+@if (IsOpen)
+{
+	<!-- Overlay Background -->
+	<div style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+		<!-- Chat Window -->
+		<div style="background-color: white; width: 100%; max-width: 400px; height: 80vh; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden;">
+
+			<!-- Header -->
+			<div style="background-color: #2563eb; color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+				<span style="font-size: 18px; font-weight: bold;">Sidekick Assistant</span>
+				<button @onclick="ToggleChat" style="background: none; border: none; font-size: 24px; color: white; cursor: pointer;">×</button>
+			</div>
+
+			@if (progress?.Progress != 1)
+			{
+				<!-- Loading Indicator -->
+				<div style="flex: 1; display: flex; justify-content: center; align-items: center; background-color: #f9f9f9;">
+					<!-- Format the items below eachother -->
+					<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; text-align: center;">
+						<span style="font-size: 16px; color: #555;">
+							Loading assistant...
+
+							@if (progress != null)
+							{
+								@($"{progress.Progress * 100}% completed")
+							}
+						</span>
+
+
+						<span style="font-size: 8px; color: #555;">
+							@($"({progress?.Text})")
+						</span>
+					</div>
+				</div>
+			}
+			else
+			{
+				<!-- Messages -->
+				<div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
+					@foreach (var msg in Messages.Skip(1))
+					{
+						<div style="@GetBubbleStyle(msg.Role == "User")">
+							@((MarkupString)Markdown.ToHtml(msg.Content))
+						</div>
+					}
+
+					@if (IsBotTyping && string.IsNullOrWhiteSpace(streamingText))
+					{
+						<div class="typing-bubble">
+							<span class="typing-dots">
+								<span>.</span><span>.</span><span>.</span>
+							</span>
+						</div>
+					}
+					@if (IsBotTyping && !string.IsNullOrWhiteSpace(streamingText))
+					{
+						<div style="@GetBubbleStyle(false)">
+							@((MarkupString)Markdown.ToHtml(streamingText))
+						</div>
+					}
+				</div>
+
+				<!-- Input -->
+				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+					<input @bind="CurrentMessage"
+					placeholder="Ask something..."
+					style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
+				</div>
+
+				<!-- Submit button -->
+				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+					<button @onclick="StreamPromptRequest"
+					style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
+						Send
+					</button>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+@code {
+	private bool IsOpen = false;
+	private string CurrentMessage = "";
+	private bool IsBotTyping = false;
+
+	private List<Message> Messages = [
+		new Message("system", systemPrompt),
+		
+	];
+
+	private void ToggleChat()
+	{
+		IsOpen = !IsOpen;
+
+		if (IsOpen)
+		{
+			InitializeLLMAsync();
+		}
+	}
+
+	private async Task InitializeLLMAsync()
+	{
+		try
+		{
+			await llm.InitializeAsync();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+			throw;
+		}
+	}
+
+	private InitProgress? progress;
+
+	private string streamingText = "";
+
+	protected override Task OnInitializedAsync()
+	{
+		llm.OnInitializingChanged += OnWebLLMInitialization;
+		llm.OnChunkCompletion += OnChunkCompletion;
+		return base.OnInitializedAsync();
+	}
+
+	private void OnWebLLMInitialization(InitProgress p)
+	{
+		progress = p;
+		StateHasChanged();
+	}
+
+	private string GetBubbleStyle(bool isUser) =>
+		$"max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); " +
+		(isUser
+			? "background-color: #dbeafe; align-self: flex-end;"
+			: "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
+
+	private async Task OnChunkCompletion(WebLLMCompletion response)
+	{
+		if (response.IsStreamComplete)
+		{
+			IsBotTyping = false;
+			Messages.Add(new Message("assistant", streamingText));
+			StateHasChanged();
+		}
+		else
+		{
+			streamingText += response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? "";
+		}
+
+		StateHasChanged();
+		await Task.CompletedTask;
+	}
+
+	private async Task StreamPromptRequest()
+	{
+		var input = CurrentMessage;
+		Messages.Add(new Message("user", input));
+		CurrentMessage = "";
+		IsBotTyping = true;
+		StateHasChanged();
+
+		await llm.CompleteStreamAsync(Messages);
+	}
+
+	private static string systemPrompt = 
+		@"You are a helpful assistant for the Ghostfolio Sidekick. 
+		  You can answer questions about the portfolio, stocks, and crypto.
+		  Be concise and to the point. 
+		  Do not provide any financial or investment advice
+
+		  # Available tools
+		  The JSON below lists the functions available to you.
+
+```json
+[{""type"":""function"",""function"":{""name"":""FUNC_STOCKS"",""description"":""Get a list of stocks in the portfolio.""}}}]
+```
+
+		# Instructions on tool use
+		If you choose to call one of the functions available to you, ONLY reply in the following format:
+		<function>{""name"": function name, ""parameters"": dictionary of argument name and its value}</function>
+		Here is an example,
+		<function>{""name"": ""example_function_name"", ""parameters"": {""example_name"": ""example_value""}}</function>
+		Reminder:
+		- Function calls MUST follow the specified format and use BOTH <function> and </function>.
+		- Required parameters MUST be specified.
+		- Only call one function at a time.
+		- When calling a function, do NOT say anything else. ONLY display the function call in the specified format.
+		- Do not ask for the user's permission to make the function call. Use your judgement and make the call when appropriate.
+		- Put the entire function call reply on one line. 
+";
+
+}

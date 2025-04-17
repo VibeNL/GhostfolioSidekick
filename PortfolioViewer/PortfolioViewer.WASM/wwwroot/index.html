@@ -8,6 +8,7 @@
     <base href="/" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/chat.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="GhostfolioSidekick.PortfolioViewer.WASM.styles.css" rel="stylesheet" />
     <link href="manifest.webmanifest" rel="manifest" />
@@ -24,6 +25,8 @@
         <div class="loading-progress-text"></div>
     </div>
 
+    <div id="chat-root"></div>
+
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="." class="reload">Reload</a>
@@ -33,6 +36,8 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
     <script src="_content/Bit.Besql/bit-besql.js"></script>
+
+    <script type="module" src="js/webllm-interop.js"></script>
 </body>
 
 </html>

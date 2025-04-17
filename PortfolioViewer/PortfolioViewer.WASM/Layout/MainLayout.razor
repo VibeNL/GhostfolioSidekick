@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
+@inherits LayoutComponentBase
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -14,4 +15,6 @@
             @Body
         </article>
     </main>
+
+    <ChatOverlay />
 </div>

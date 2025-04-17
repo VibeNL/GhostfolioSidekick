@@ -77,9 +77,16 @@ COPY --from=publish-sidekick /app/publish-sidekick ./
 # Copy supervisord config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Set environment and expose
-ENV ASPNETCORE_URLS=http://+:80
+# Copy SSL certificate and key (ensure these files are available in your build context)
+COPY certs/aspnetapp.pfx /https/aspnetapp.pfx
+
+# Set environment and expose ports
+ENV ASPNETCORE_URLS="http://+:80;https://+:443"
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
+
 EXPOSE 80
+EXPOSE 443
 
 # Start app via supervisord
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
