@@ -1,0 +1,93 @@
+﻿@using Markdig
+@inject IJSRuntime JS
+
+<!-- Floating Chat Button -->
+<div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
+    <button @onclick="ToggleChat"
+            style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
+        💬
+    </button>
+</div>
+
+@if (IsOpen)
+{
+    <!-- Overlay Background -->
+    <div style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+        <!-- Chat Window -->
+        <div style="background-color: white; width: 100%; max-width: 400px; height: 80vh; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden;">
+
+            <!-- Header -->
+            <div style="background-color: #2563eb; color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 18px; font-weight: bold;">Sidekick Assistant</span>
+                <button @onclick="ToggleChat" style="background: none; border: none; font-size: 24px; color: white; cursor: pointer;">×</button>
+            </div>
+
+            <!-- Messages -->
+            <div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
+                @foreach (var msg in Messages)
+                {
+                    <div style="@GetBubbleStyle(msg.IsUser)">
+                        @((MarkupString)Markdown.ToHtml(msg.Text))
+                    </div>
+                }
+
+                @if (IsBotTyping)
+                {
+                    <div class="typing-bubble">
+                        <span class="typing-dots">
+                            <span>.</span><span>.</span><span>.</span>
+                        </span>
+                    </div>
+                }
+            </div>
+
+            <!-- Input -->
+            <div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+                <input @bind="CurrentMessage"
+                       @onkeydown="HandleKey"
+                       placeholder="Ask something..."
+                       style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool IsOpen = false;
+    private string CurrentMessage = "";
+    private bool IsBotTyping = false;
+
+    private List<ChatMessage> Messages = new();
+
+    private void ToggleChat() => IsOpen = !IsOpen;
+
+    private async Task HandleKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(CurrentMessage))
+        {
+            var input = CurrentMessage;
+            Messages.Add(new ChatMessage { Text = input, IsUser = true });
+            CurrentMessage = "";
+            IsBotTyping = true;
+            StateHasChanged();
+
+            var response = await JS.InvokeAsync<string>("webllmChat", input);
+
+            IsBotTyping = false;
+            Messages.Add(new ChatMessage { Text = response, IsUser = false });
+            StateHasChanged();
+        }
+    }
+
+    private string GetBubbleStyle(bool isUser) =>
+        $"max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); " +
+        (isUser
+            ? "background-color: #dbeafe; align-self: flex-end;"
+            : "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
+
+    class ChatMessage
+    {
+        public string Text { get; set; }
+        public bool IsUser { get; set; }
+    }
+}
