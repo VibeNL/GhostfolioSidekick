@@ -28,19 +28,22 @@
 			{
 				<!-- Loading Indicator -->
 				<div style="flex: 1; display: flex; justify-content: center; align-items: center; background-color: #f9f9f9;">
-					<span style="font-size: 16px; color: #555;">
-						Loading assistant...
+					<!-- Format the items below eachother -->
+					<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; text-align: center;">
+						<span style="font-size: 16px; color: #555;">
+							Loading assistant...
 
-						@if (progress != null)
-						{
-							@($"{progress.Progress * 100}% completed")
-						}
-					</span>
+							@if (progress != null)
+							{
+								@($"{progress.Progress * 100}% completed")
+							}
+						</span>
 
-					<br />
-					<span style="font-size: 8px; color: #555;">
-						@($"({progress?.Text})")
-					</span>
+
+						<span style="font-size: 8px; color: #555;">
+							@($"({progress?.Text})")
+						</span>
+					</div>
 				</div>
 			}
 			else
