@@ -33,7 +33,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			OnInitializingChanged?.Invoke(status);
 			return Task.CompletedTask;
 		}
-	}
 
-	public record InitProgress(float Progress, string Text, double TimeElapsed);
+		public async Task CompleteStreamAsync(IList<Message> messages)
+		{
+			var module = await moduleTask.Value;
+			await module.InvokeVoidAsync("completeStream", messages);
+		}
+
+		public event Func<WebLLMCompletion, Task>? OnChunkCompletion;
+
+		[JSInvokable]
+		public Task ReceiveChunkCompletion(WebLLMCompletion response)
+		{
+			OnChunkCompletion?.Invoke(response);
+			return Task.CompletedTask;
+		}
+
+	}
 }

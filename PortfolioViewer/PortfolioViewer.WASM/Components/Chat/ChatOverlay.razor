@@ -28,8 +28,8 @@
             <div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
                 @foreach (var msg in Messages)
                 {
-                    <div style="@GetBubbleStyle(msg.IsUser)">
-                        @((MarkupString)Markdown.ToHtml(msg.Text))
+                    <div style="@GetBubbleStyle(msg.Role == "User")">
+                        @((MarkupString)Markdown.ToHtml(msg.Content))
                     </div>
                 }
 
@@ -46,9 +46,16 @@
             <!-- Input -->
             <div style="padding: 12px; border-top: 1px solid #e5e7eb;">
                 <input @bind="CurrentMessage"
-                       @onkeydown="HandleKey"
                        placeholder="Ask something..."
                        style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
+            </div>
+
+            <!-- Submit button -->
+            <div style="padding: 12px; border-top: 1px solid #e5e7eb;">
+                <button @onclick="StreamPromptRequest" 
+                        style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
+                    Send
+                </button>
             </div>
         </div>
     </div>
@@ -59,11 +66,13 @@
     private string CurrentMessage = "";
     private bool IsBotTyping = false;
 
-    private List<ChatMessage> Messages = new();
+    private List<Message> Messages = new();
 
     private void ToggleChat() => IsOpen = !IsOpen;
 
     private InitProgress? progress;
+
+    private string streamingText = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,33 +95,37 @@
         StateHasChanged();
     }
 
-    private async Task HandleKey(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(CurrentMessage))
-        {
-            var input = CurrentMessage;
-            Messages.Add(new ChatMessage { Text = input, IsUser = true });
-            CurrentMessage = "";
-            IsBotTyping = true;
-            StateHasChanged();
-
-            var response = await JS.InvokeAsync<string>("webllmChat", input);
-
-            IsBotTyping = false;
-            Messages.Add(new ChatMessage { Text = response, IsUser = false });
-            StateHasChanged();
-        }
-    }
-
     private string GetBubbleStyle(bool isUser) =>
         $"max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); " +
         (isUser
             ? "background-color: #dbeafe; align-self: flex-end;"
             : "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
 
-    class ChatMessage
+    private async Task OnChunkCompletion(WebLLMCompletion response)
     {
-        public string Text { get; set; }
-        public bool IsUser { get; set; }
+        if (response.IsStreamComplete)
+        {
+            IsBotTyping = false;
+            Messages.Add(new Message("Assistant", streamingText));
+            StateHasChanged();
+        }
+        else
+        {
+            streamingText += response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? "";
+        }
+
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+
+    private async Task StreamPromptRequest()
+    {
+        var input = CurrentMessage;
+        Messages.Add(new Message("User", input));
+        CurrentMessage = "";
+        IsBotTyping = true;
+        StateHasChanged();
+
+        await llm.CompleteStreamAsync(Messages);
     }
 }

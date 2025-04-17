@@ -17,3 +17,18 @@ export async function initialize(selectedModel, dotnet) {
             { initProgressCallback: initProgressCallback }, // engineConfig
         );
 }
+
+ export async function completeStream(messages) {
+     	// Chunks is an AsyncGenerator object
+         	const chunks = await engine.chat.completions.create({
+                    messages,
+             		temperature: 1,
+             		stream: true, // <-- Enable streaming
+             		stream_options: { include_usage: true },
+             	});
+
+     	for await (const chunk of chunks) {
+         		//console.log(chunk);
+             		await dotnetInstance.invokeMethodAsync("ReceiveChunkCompletion", chunk);
+         	}
+}
