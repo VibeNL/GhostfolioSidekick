@@ -1,5 +1,7 @@
-﻿@using Markdig
+﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Services
+@using Markdig
 @inject IJSRuntime JS
+@inject WebLLMService llm
 
 <!-- Floating Chat Button -->
 <div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
@@ -60,6 +62,29 @@
     private List<ChatMessage> Messages = new();
 
     private void ToggleChat() => IsOpen = !IsOpen;
+
+    private InitProgress? progress;
+
+    protected override async Task OnInitializedAsync()
+    {
+        llm.OnInitializingChanged += OnWebLLMInitialization;
+        try
+        {
+            await llm.InitializeAsync();
+        }
+        catch (Exception e)
+        {
+            // Potential errors: No browser support for WebGPU
+            Console.WriteLine(e.Message);
+            throw;
+        }
+    }
+
+    private void OnWebLLMInitialization(InitProgress p)
+    {
+        progress = p;
+        StateHasChanged();
+    }
 
     private async Task HandleKey(KeyboardEventArgs e)
     {

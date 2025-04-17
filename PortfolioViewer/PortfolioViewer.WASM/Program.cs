@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,7 @@ public class Program
 			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
 			);
 
+		builder.Services.AddScoped<WebLLMService>();
 		var app =builder.Build();
 
 		var context = app.Services.GetRequiredService<DatabaseContext>();
