@@ -105,6 +105,36 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			});
 		}
 
+		[Fact]
+		public void Parse_InvalidJson_ThrowsJsonException()
+		{
+			// Arrange
+			var invalidJson = "{ invalid json }";
+
+			// Act
+			Action act = () => ConfigurationInstance.Parse(invalidJson);
+
+			// Assert
+			act.Should().Throw<System.Text.Json.JsonException>();
+		}
+
+		[Fact]
+		public void Parse_EmptyJson_ReturnsNull()
+		{
+			// Arrange
+			var emptyJson = "{}";
+
+			// Act
+			var config = ConfigurationInstance.Parse(emptyJson);
+
+			// Assert
+			config.Should().NotBeNull();
+			config!.Mappings.Should().BeNull();
+			config.Symbols.Should().BeNull();
+			config.Platforms.Should().BeNull();
+			config.Accounts.Should().BeNull();
+		}
+
 		private readonly string MappingsAndSymbols =
 		@"
 			{

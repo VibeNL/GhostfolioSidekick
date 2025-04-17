@@ -84,5 +84,67 @@ namespace GhostfolioSidekick.UnitTests.Activities
             mockStrategy.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Never);
             mockDbContext.Verify(db => db.SaveChangesAsync(default), Times.Once);
         }
+
+        [Fact]
+        public async Task DoWork_ShouldExecuteHoldingStrategiesWithDifferentStrategies()
+        {
+            // Arrange
+            var mockDbContext = new Mock<DatabaseContext>();
+            var holdings = new List<Holding>
+            {
+                new Holding { Id = 1 },
+                new Holding { Id = 2 }
+            };
+
+            mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+            _mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+
+            var mockStrategy1 = new Mock<IHoldingStrategy>();
+            var mockStrategy2 = new Mock<IHoldingStrategy>();
+            var mockStrategy3 = new Mock<IHoldingStrategy>();
+            _holdingStrategies.Clear();
+            _holdingStrategies.Add(mockStrategy1.Object);
+            _holdingStrategies.Add(mockStrategy2.Object);
+            _holdingStrategies.Add(mockStrategy3.Object);
+
+            // Act
+            await _calculatePriceTask.DoWork();
+
+            // Assert
+            mockStrategy1.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Exactly(holdings.Count));
+            mockStrategy2.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Exactly(holdings.Count));
+            mockStrategy3.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Exactly(holdings.Count));
+            mockDbContext.Verify(db => db.SaveChangesAsync(default), Times.Once);
+        }
+
+        [Fact]
+        public async Task DoWork_ShouldExecuteHoldingStrategiesWithDifferentHoldings()
+        {
+            // Arrange
+            var mockDbContext = new Mock<DatabaseContext>();
+            var holdings = new List<Holding>
+            {
+                new Holding { Id = 1 },
+                new Holding { Id = 2 },
+                new Holding { Id = 3 }
+            };
+
+            mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+            _mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+
+            var mockStrategy1 = new Mock<IHoldingStrategy>();
+            var mockStrategy2 = new Mock<IHoldingStrategy>();
+            _holdingStrategies.Clear();
+            _holdingStrategies.Add(mockStrategy1.Object);
+            _holdingStrategies.Add(mockStrategy2.Object);
+
+            // Act
+            await _calculatePriceTask.DoWork();
+
+            // Assert
+            mockStrategy1.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Exactly(holdings.Count));
+            mockStrategy2.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Exactly(holdings.Count));
+            mockDbContext.Verify(db => db.SaveChangesAsync(default), Times.Once);
+        }
     }
 }

@@ -119,6 +119,57 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 			Assert.NotNull(result);
 		}
 
+		[Fact]
+		public void GetFileImporterPath_ReturnsCorrectPath()
+		{
+			// Arrange
+			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", "test_path");
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
+
+			// Act
+			var result = settings.FileImporterPath;
+
+			// Assert
+			result.Should().Be("test_path");
+
+			// Clean up
+			Environment.SetEnvironmentVariable("FILEIMPORTER_PATH", null);
+		}
+
+		[Fact]
+		public void GetGhostfolioAccessToken_ReturnsCorrectToken()
+		{
+			// Arrange
+			Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", "test_token");
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
+
+			// Act
+			var result = settings.GhostfolioAccessToken;
+
+			// Assert
+			result.Should().Be("test_token");
+
+			// Clean up
+			Environment.SetEnvironmentVariable("GHOSTFOLIO_ACCESTOKEN", null);
+		}
+
+		[Fact]
+		public void GetGhostfolioUrl_ReturnsCorrectUrl()
+		{
+			// Arrange
+			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", "http://test.com/");
+			var settings = new ApplicationSettings(new Mock<ILogger<ApplicationSettings>>().Object);
+
+			// Act
+			var result = settings.GhostfolioUrl;
+
+			// Assert
+			result.Should().Be("http://test.com");
+
+			// Clean up
+			Environment.SetEnvironmentVariable("GHOSTFOLIO_URL", null);
+		}
+
 		protected virtual void Dispose(bool disposing)
 		{
 			// Clean up

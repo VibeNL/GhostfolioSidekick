@@ -158,6 +158,53 @@ namespace GhostfolioSidekick.UnitTests
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);
+			scheduledWorkMock.Verify(x => x.DoWork(), Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldExecuteWorkItemsWithDifferentScheduledWorkItems()
+		{
+			// Arrange
+			var loggerMock = new Mock<ILogger<TimedHostedService>>();
+			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMilliseconds(1));
+			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(100));
+			var scheduledWorkMock3 = new Mock<IScheduledWork>();
+			scheduledWorkMock3.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMinutes(1));
+			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object, scheduledWorkMock3.Object });
+
+			// Act
+			await service.StartAsync(CancellationToken.None);
+			await Task.Delay(10000);
+
+			// Assert
+			scheduledWorkMock1.Verify(x => x.DoWork(), Times.AtLeast(5));
+			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
+			scheduledWorkMock3.Verify(x => x.DoWork(), Times.AtLeast(1));
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldExecuteWorkItemsWithDifferentExecutionFrequencies()
+		{
+			// Arrange
+			var loggerMock = new Mock<ILogger<TimedHostedService>>();
+			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMilliseconds(1));
+			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(100));
+			var scheduledWorkMock3 = new Mock<IScheduledWork>();
+			scheduledWorkMock3.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMinutes(1));
+			var service = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object, scheduledWorkMock3.Object });
+
+			// Act
+			await service.StartAsync(CancellationToken.None);
+			await Task.Delay(10000);
+
+			// Assert
+			scheduledWorkMock1.Verify(x => x.DoWork(), Times.AtLeast(5));
+			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
+			scheduledWorkMock3.Verify(x => x.DoWork(), Times.AtLeast(1));
 		}
 	}
 }

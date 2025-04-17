@@ -146,6 +146,66 @@ namespace GhostfolioSidekick.UnitTests.Activities
             mockSymbolMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Never);
             mockDbContext.Verify(db => db.SaveChangesAsync(default), Times.Once);
         }
+
+        [Fact]
+        public async Task DoWork_ShouldHandleDifferentSymbolMatchers()
+        {
+            // Arrange
+            var activities = new List<Activity>
+            {
+                new BuySellActivity { Date = DateTime.Now, PartialSymbolIdentifiers = new List<PartialSymbolIdentifier> { new PartialSymbolIdentifier { Identifier = "SYM1" } } }
+            };
+
+            var holdings = new List<Holding>();
+
+            var mockDbContext = new Mock<DatabaseContext>();
+            mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities);
+            mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+            _mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+
+            var mockSymbolMatcher1 = new Mock<ISymbolMatcher>();
+            var mockSymbolMatcher2 = new Mock<ISymbolMatcher>();
+            _symbolMatchers.Clear();
+            _symbolMatchers.Add(mockSymbolMatcher1.Object);
+            _symbolMatchers.Add(mockSymbolMatcher2.Object);
+
+            mockSymbolMatcher1.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "SYM1", DataSource = "TestSource1" });
+            mockSymbolMatcher2.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "SYM2", DataSource = "TestSource2" });
+
+            // Act
+            await _symbolMatcherTask.DoWork();
+
+            // Assert
+            mockSymbolMatcher1.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Once);
+            mockSymbolMatcher2.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Once);
+            mockDbContext.Verify(db => db.SaveChangesAsync(default), Times.Once);
+        }
+
+        [Fact]
+        public async Task DoWork_ShouldHandleDifferentActivities()
+        {
+            // Arrange
+            var activities = new List<Activity>
+            {
+                new BuySellActivity { Date = DateTime.Now, PartialSymbolIdentifiers = new List<PartialSymbolIdentifier> { new PartialSymbolIdentifier { Identifier = "SYM1" } } },
+                new BuySellActivity { Date = DateTime.Now, PartialSymbolIdentifiers = new List<PartialSymbolIdentifier> { new PartialSymbolIdentifier { Identifier = "SYM2" } } }
+            };
+
+            var holdings = new List<Holding>();
+
+            var mockDbContext = new Mock<DatabaseContext>();
+            mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities);
+            mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+            _mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+
+            _symbolMatcher.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "SYM1", DataSource = "TestSource" });
+
+            // Act
+            await _symbolMatcherTask.DoWork();
+
+            // Assert
+            _symbolMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Exactly(2));
+            mockDbContext.Verify(db => db.SaveChangesAsync(default), Times.Once);
+        }
     }
 }
-

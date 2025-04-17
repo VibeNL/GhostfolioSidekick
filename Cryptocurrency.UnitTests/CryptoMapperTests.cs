@@ -54,5 +54,32 @@
 			// Assert
 			Assert.Equal(string.Empty, result);
 		}
+
+		[Fact]
+		public void GetFullname_SpecialCharacters_ReturnsOriginalSymbol()
+		{
+			// Arrange
+			string symbol = "@#$%^&*";
+
+			// Act
+			string result = CryptoMapper.Instance.GetFullname(symbol);
+
+			// Assert
+			Assert.Equal(symbol, result);
+		}
+
+		[Fact]
+		public void GetFullname_MixedCaseSymbol_ReturnsFullname()
+		{
+			// Arrange
+			string symbol = "bTc";
+			string expectedFullname = "Bitcoin";
+
+			// Act
+			string result = CryptoMapper.Instance.GetFullname(symbol);
+
+			// Assert
+			Assert.Equal(expectedFullname, result, true);
+		}
 	}
 }

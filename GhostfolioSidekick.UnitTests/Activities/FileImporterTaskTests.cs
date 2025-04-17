@@ -110,6 +110,77 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			context.Activities.Should().Contain(existingActivities[1]);
 			context.Activities.Should().NotContain(existingActivities[0]);
 		}
+
+		[Fact]
+		public async Task DoWork_ShouldHandleDifferentFileImporters()
+		{
+			// Arrange
+			var mockImporter1 = new Mock<IFileImporter>();
+			var mockImporter2 = new Mock<IFileImporter>();
+			_importers.Clear();
+			_importers.Add(mockImporter1.Object);
+			_importers.Add(mockImporter2.Object);
+
+			mockImporter1.Setup(x => x.CanParse(It.IsAny<string>())).ReturnsAsync(true);
+			mockImporter2.Setup(x => x.CanParse(It.IsAny<string>())).ReturnsAsync(false);
+
+			var directories = new[] { "test/path/dir1" };
+			Directory.CreateDirectory(directories[0]);
+
+			var options = new DbContextOptionsBuilder<DatabaseContext>()
+				.UseInMemoryDatabase(databaseName: "TestDatabase")
+				.Options;
+
+			using var context = new DatabaseContext(options);
+			context.Accounts.Add(new Account { Name = "TestAccount" });
+			await context.SaveChangesAsync();
+
+			var knownHash = "knownHash";
+			_memoryCache.Set(nameof(FileImporterTask), knownHash);
+
+			// Act
+			await _fileImporterTask.DoWork();
+
+			// Assert
+			mockImporter1.Verify(x => x.ParseActivities(It.IsAny<string>(), It.IsAny<IActivityManager>(), It.IsAny<string>()), Times.Once);
+			mockImporter2.Verify(x => x.ParseActivities(It.IsAny<string>(), It.IsAny<IActivityManager>(), It.IsAny<string>()), Times.Never);
+		}
+
+		[Fact]
+		public async Task StoreAll_ShouldHandleDifferentActivities()
+		{
+			// Arrange
+			var existingActivities = new List<Activity>
+			{
+				new BuySellActivity { TransactionId = "T1" },
+				new BuySellActivity { TransactionId = "T2" }
+			};
+
+			var newActivities = new List<Activity>
+			{
+				new BuySellActivity { TransactionId = "T2" },
+				new BuySellActivity { TransactionId = "T3" },
+				new DividendActivity { TransactionId = "T4" }
+			};
+
+			var options = new DbContextOptionsBuilder<DatabaseContext>()
+				.UseInMemoryDatabase(databaseName: "TestDatabase")
+				.Options;
+
+			using var context = new DatabaseContext(options);
+			context.Activities.AddRange(existingActivities);
+			await context.SaveChangesAsync();
+
+			// Act
+			await _fileImporterTask.StoreAll(context, newActivities);
+
+			// Assert
+			(await context.Activities.CountAsync()).Should().Be(3);
+			context.Activities.Should().Contain(newActivities[1]);
+			context.Activities.Should().Contain(newActivities[2]);
+			context.Activities.Should().Contain(existingActivities[1]);
+			context.Activities.Should().NotContain(existingActivities[0]);
+		}
 	}
 
 	public class DbContextFactory : IDbContextFactory<DatabaseContext>

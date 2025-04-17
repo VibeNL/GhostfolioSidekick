@@ -117,6 +117,68 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
 		}
 
+		[Fact]
+		public async Task DoWork_ShouldHandleDifferentSymbolMatchers()
+		{
+			// Arrange
+			var dbContextMock = new Mock<DatabaseContext>();
+			var activities = new List<Activity>
+			{
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST1")] },
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST2")] }
+			};
+			var holdings = new List<Holding>();
+
+			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
+			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+
+			var symbolMatcherMock1 = new Mock<ISymbolMatcher>();
+			var symbolMatcherMock2 = new Mock<ISymbolMatcher>();
+			_symbolMatchers.Clear();
+			_symbolMatchers.Add(symbolMatcherMock1.Object);
+			_symbolMatchers.Add(symbolMatcherMock2.Object);
+
+			symbolMatcherMock1.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "TEST1", DataSource = "TestSource1" });
+			symbolMatcherMock2.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "TEST2", DataSource = "TestSource2" });
+
+			// Act
+			await _determineHoldings.DoWork();
+
+			// Assert
+			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Exactly(2));
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldHandleDifferentActivities()
+		{
+			// Arrange
+			var dbContextMock = new Mock<DatabaseContext>();
+			var activities = new List<Activity>
+			{
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST1")] },
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST2")] },
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST3")] }
+			};
+			var holdings = new List<Holding>();
+
+			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
+			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+
+			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "TEST", DataSource = "TestSource" });
+
+			// Act
+			await _determineHoldings.DoWork();
+
+			// Assert
+			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Exactly(3));
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+		}
+
 		private record TestActivity : ActivityWithQuantityAndUnitPrice
 		{
 			public TestActivity()
