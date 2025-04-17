@@ -61,5 +61,15 @@ namespace GhostfolioSidekick.Database
 			command.CommandText = pragmaCommand;
 			return command.ExecuteNonQueryAsync();
 		}
+		
+		public virtual IQueryable<T> SqlQueryRaw<T>(string sql)
+		{
+			return Database.SqlQueryRaw<T>(sql);
+		}
+
+		public virtual Task<int> ExecuteSqlRawAsync(string sql, CancellationToken cancellationToken)
+		{
+			return Database.ExecuteSqlRawAsync(sql, cancellationToken);
+		}
 	}
 }

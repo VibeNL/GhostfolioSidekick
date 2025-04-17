@@ -11,11 +11,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
 public class Program
 {
-	public static void ConfigureForDocker(IServiceCollection collection)
-	{
-		throw new NotImplementedException();
-	}
-
 	public static async Task Main(string[] args)
 	{
 		var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -36,7 +31,7 @@ public class Program
 			var apiServiceHttp = config.GetSection("Services:apiservice:http").Get<string[]>()?.SingleOrDefault();
 			if (!string.IsNullOrWhiteSpace(apiServiceHttp))
 			{
-				client.BaseAddress = new Uri("https+http://apiservice");
+				client.BaseAddress = new Uri("http://apiservice");
 			}
 			else
 			{
@@ -55,8 +50,15 @@ public class Program
 			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
 			);
 
+		var app =builder.Build();
 
+		var context = app.Services.GetRequiredService<DatabaseContext>();
+		var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+		if (pendingMigrations.Any())
+		{
+			await context.Database.MigrateAsync();
+		}
 
-		await builder.Build().RunAsync();
+		await app.RunAsync();
 	}
 }

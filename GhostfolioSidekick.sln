@@ -65,7 +65,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortfolioViewer.Tests", "Po
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortfolioViewer.WASM", "PortfolioViewer\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj", "{5D235E57-A2CF-FEA4-0D86-87923C4BD981}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortfolioViewer.Model", "PortfolioViewer\PortfolioViewer.Model\PortfolioViewer.Model.csproj", "{F7291354-590D-86DE-D5D2-DEE3A12BF5EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortfolioViewer.WASM.UnitTests", "PortfolioViewer\PortfolioViewer.WASM.UnitTests\PortfolioViewer.WASM.UnitTests.csproj", "{A7EFCBE4-E434-423C-A2FD-77F320B17D6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -173,10 +173,10 @@ Global
 		{5D235E57-A2CF-FEA4-0D86-87923C4BD981}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D235E57-A2CF-FEA4-0D86-87923C4BD981}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D235E57-A2CF-FEA4-0D86-87923C4BD981}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F7291354-590D-86DE-D5D2-DEE3A12BF5EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7291354-590D-86DE-D5D2-DEE3A12BF5EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F7291354-590D-86DE-D5D2-DEE3A12BF5EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F7291354-590D-86DE-D5D2-DEE3A12BF5EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7EFCBE4-E434-423C-A2FD-77F320B17D6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7EFCBE4-E434-423C-A2FD-77F320B17D6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7EFCBE4-E434-423C-A2FD-77F320B17D6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7EFCBE4-E434-423C-A2FD-77F320B17D6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -190,7 +190,7 @@ Global
 		{A9E5D288-F78A-A6CC-AA3A-BA1CAB5FE9C8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{16BD6FA9-B481-A626-A8F6-C863311B1E9E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{5D235E57-A2CF-FEA4-0D86-87923C4BD981} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{F7291354-590D-86DE-D5D2-DEE3A12BF5EF} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{A7EFCBE4-E434-423C-A2FD-77F320B17D6C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {919DDC85-9EE1-4F61-9504-CACAB4B3315C}
