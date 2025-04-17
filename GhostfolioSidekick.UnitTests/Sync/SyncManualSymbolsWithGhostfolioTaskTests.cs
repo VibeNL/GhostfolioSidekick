@@ -117,6 +117,84 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			_mockGhostfolioSync.Verify(sync => sync.SyncMarketData(It.IsAny<SymbolProfile>(), It.IsAny<ICollection<MarketData>>()), Times.Once);
 		}
 
+		[Fact]
+		public async Task DoWork_ShouldHandleDifferentSymbolProfiles()
+		{
+			// Arrange
+			using var context = CreateTask(out SyncManualSymbolsWithGhostfolioTask task);
+			var symbol1 = new SymbolProfile
+			{
+				Symbol = "W",
+				DataSource = Datasource.MANUAL,
+				Currency = Currency.USD,
+				SectorWeights = new List<SectorWeight>(),
+				CountryWeight = new List<CountryWeight>()
+			};
+			var symbol2 = new SymbolProfile
+			{
+				Symbol = "X",
+				DataSource = Datasource.MANUAL,
+				Currency = Currency.EUR,
+				SectorWeights = new List<SectorWeight>(),
+				CountryWeight = new List<CountryWeight>()
+			};
+			context.SymbolProfiles.AddRange(symbol1, symbol2);
+			await context.SaveChangesAsync();
+
+			// Act
+			await task.DoWork();
+
+			// Assert
+			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
+			_mockGhostfolioSync.Verify(sync => sync.SyncMarketData(It.IsAny<SymbolProfile>(), It.IsAny<ICollection<MarketData>>()), Times.Exactly(2));
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldHandleDifferentActivities()
+		{
+			// Arrange
+			using var context = CreateTask(out SyncManualSymbolsWithGhostfolioTask task);
+			var symbol = new SymbolProfile
+			{
+				Symbol = "W",
+				DataSource = Datasource.MANUAL,
+				Currency = Currency.USD,
+				SectorWeights = new List<SectorWeight>(),
+				CountryWeight = new List<CountryWeight>()
+			};
+			var holding = new Holding
+			{
+				SymbolProfiles = [symbol],
+				Activities = [
+					new BuySellActivity {
+						Date = DateTime.Today.AddDays(-100),
+						UnitPrice = new Money(Currency.USD, 100),
+						TransactionId = "A",
+						Account = new Model.Accounts.Account{ Name = "DS" }
+					},
+					new BuySellActivity {
+						Date = DateTime.Today.AddDays(-50),
+						UnitPrice = new Money(Currency.USD, 150),
+						TransactionId = "B",
+						Account = new Model.Accounts.Account{ Name = "DS" }
+					}
+				]
+			};
+
+			context.Holdings.Add(holding);
+			await context.SaveChangesAsync();
+
+			_mockCurrencyExchange.Setup(exchange => exchange.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
+				.ReturnsAsync((Money money, Currency curr, DateOnly date) => money);
+
+			// Act
+			await task.DoWork();
+
+			// Assert
+			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
+			_mockGhostfolioSync.Verify(sync => sync.SyncMarketData(It.IsAny<SymbolProfile>(), It.IsAny<ICollection<MarketData>>()), Times.Once);
+		}
+
 		public void Dispose()
 		{
 			try

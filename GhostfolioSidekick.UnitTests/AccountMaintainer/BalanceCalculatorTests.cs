@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 		[Fact]
 		public async Task Calculate_ShouldReturnCalculatedBalances_WhenNoKnownBalanceActivitiesExist()
-		{
+			{
 			// Arrange
 			var baseCurrency = Currency.USD;
 			var buySellActivity = new BuySellActivity
@@ -88,6 +88,91 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			// Assert
 			await act.Should().ThrowAsync<NotImplementedException>()
 				.WithMessage("Activity type UnknownActivity is not implemented.");
+		}
+
+		[Fact]
+		public async Task Calculate_ShouldHandleDifferentActivityTypes()
+		{
+			// Arrange
+			var baseCurrency = Currency.USD;
+			var buySellActivity = new BuySellActivity
+			{
+				Date = DateTime.UtcNow,
+				TotalTransactionAmount = new Money(baseCurrency, 50),
+				Quantity = 1
+			};
+			var cashDepositActivity = new CashDepositWithdrawalActivity
+			{
+				Date = DateTime.UtcNow.AddDays(-1),
+				Amount = new Money(baseCurrency, 100)
+			};
+			var dividendActivity = new DividendActivity
+			{
+				Date = DateTime.UtcNow.AddDays(-2),
+				Amount = new Money(baseCurrency, 10)
+			};
+			var feeActivity = new FeeActivity
+			{
+				Date = DateTime.UtcNow.AddDays(-3),
+				Amount = new Money(baseCurrency, 5)
+			};
+			var interestActivity = new InterestActivity
+			{
+				Date = DateTime.UtcNow.AddDays(-4),
+				Amount = new Money(baseCurrency, 2)
+			};
+			var repayBondActivity = new RepayBondActivity
+			{
+				Date = DateTime.UtcNow.AddDays(-5),
+				TotalRepayAmount = new Money(baseCurrency, 20)
+			};
+			var giftFiatActivity = new GiftFiatActivity
+			{
+				Date = DateTime.UtcNow.AddDays(-6),
+				Amount = new Money(baseCurrency, 15)
+			};
+			var activities = new List<Activity> { buySellActivity, cashDepositActivity, dividendActivity, feeActivity, interestActivity, repayBondActivity, giftFiatActivity };
+
+			mockExchangeRateService
+				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
+				.ReturnsAsync((Money money, Currency currency, DateOnly date) => money);
+
+			// Act
+			var result = await balanceCalculator.Calculate(baseCurrency, activities);
+
+			// Assert
+			result.Should().HaveCount(7);
+		}
+
+		[Fact]
+		public async Task Calculate_ShouldHandleDifferentCurrencies()
+		{
+			// Arrange
+			var baseCurrency = Currency.USD;
+			var buySellActivity = new BuySellActivity
+			{
+				Date = DateTime.UtcNow,
+				TotalTransactionAmount = new Money(Currency.EUR, 50),
+				Quantity = 1
+			};
+			var cashDepositActivity = new CashDepositWithdrawalActivity
+			{
+				Date = DateTime.UtcNow.AddDays(-1),
+				Amount = new Money(Currency.GBP, 100)
+			};
+			var activities = new List<Activity> { buySellActivity, cashDepositActivity };
+
+			mockExchangeRateService
+				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), baseCurrency, It.IsAny<DateOnly>()))
+				.ReturnsAsync((Money money, Currency currency, DateOnly date) => new Money(baseCurrency, money.Amount * 1.2m));
+
+			// Act
+			var result = await balanceCalculator.Calculate(baseCurrency, activities);
+
+			// Assert
+			result.Should().HaveCount(2);
+			result.First().Money.Amount.Should().Be(120);
+			result.Last().Money.Amount.Should().Be(60);
 		}
 
 		private record UnknownActivity : Activity

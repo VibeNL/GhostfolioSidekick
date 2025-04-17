@@ -120,5 +120,106 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             activity.Object.AdjustedQuantity.Should().Be(activity.Object.Quantity);
             activity.Object.AdjustedUnitPriceSource.Should().BeEmpty();
         }
+
+        [Fact]
+        public async Task Execute_ShouldAdjustFields_ForDifferentStockSplits()
+        {
+            // Arrange
+            var splitDate1 = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
+            var stockSplit1 = new StockSplit(splitDate1, 2, 1);
+
+            var splitDate2 = DateOnly.FromDateTime(DateTime.Now.AddDays(2));
+            var stockSplit2 = new StockSplit(splitDate2, 3, 1);
+
+            var symbolProfile = new SymbolProfile
+            {
+                StockSplits = new List<StockSplit> { stockSplit1, stockSplit2 }
+            };
+
+            var activityDate = DateTime.Now;
+            var activity = new Mock<ActivityWithQuantityAndUnitPrice>();
+            activity.SetupAllProperties();
+            activity.Object.Date = activityDate;
+            activity.Object.Quantity = 10;
+            activity.Object.UnitPrice = new Money(Currency.USD, 100);
+            activity.Object.AdjustedQuantity = 10;
+            activity.Object.AdjustedUnitPrice = new Money(Currency.USD, 100);
+            activity.Object.AdjustedUnitPriceSource = [];
+
+            var holding = new Holding
+            {
+                SymbolProfiles = new List<SymbolProfile> { symbolProfile },
+                Activities = [activity.Object]
+            };
+
+            // Act
+            await _stockSplitStrategy.Execute(holding);
+
+            // Assert
+            var expectedAdjustedUnitPrice = activity.Object.UnitPrice.Times(2).Times(3);
+            var expectedAdjustedQuantity = activity.Object.Quantity / 2 / 3;
+
+            activity.Object.AdjustedUnitPrice.Should().Be(expectedAdjustedUnitPrice);
+            activity.Object.AdjustedQuantity.Should().Be(expectedAdjustedQuantity);
+            activity.Object.AdjustedUnitPriceSource.Should().Contain(trace => trace.Reason == stockSplit1.ToString() && trace.NewQuantity == activity.Object.Quantity / 2 && trace.NewPrice == activity.Object.UnitPrice.Times(2));
+            activity.Object.AdjustedUnitPriceSource.Should().Contain(trace => trace.Reason == stockSplit2.ToString() && trace.NewQuantity == expectedAdjustedQuantity && trace.NewPrice == expectedAdjustedUnitPrice);
+        }
+
+        [Fact]
+        public async Task Execute_ShouldAdjustFields_ForDifferentActivities()
+        {
+            // Arrange
+            var splitDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
+            var stockSplit = new StockSplit(splitDate, 2, 1);
+
+            var symbolProfile = new SymbolProfile
+            {
+                StockSplits = new List<StockSplit> { stockSplit }
+            };
+
+            var activityDate1 = DateTime.Now;
+            var activity1 = new Mock<ActivityWithQuantityAndUnitPrice>();
+            activity1.SetupAllProperties();
+            activity1.Object.Date = activityDate1;
+            activity1.Object.Quantity = 10;
+            activity1.Object.UnitPrice = new Money(Currency.USD, 100);
+            activity1.Object.AdjustedQuantity = 10;
+            activity1.Object.AdjustedUnitPrice = new Money(Currency.USD, 100);
+            activity1.Object.AdjustedUnitPriceSource = [];
+
+            var activityDate2 = DateTime.Now.AddDays(-2);
+            var activity2 = new Mock<ActivityWithQuantityAndUnitPrice>();
+            activity2.SetupAllProperties();
+            activity2.Object.Date = activityDate2;
+            activity2.Object.Quantity = 5;
+            activity2.Object.UnitPrice = new Money(Currency.USD, 50);
+            activity2.Object.AdjustedQuantity = 5;
+            activity2.Object.AdjustedUnitPrice = new Money(Currency.USD, 50);
+            activity2.Object.AdjustedUnitPriceSource = [];
+
+            var holding = new Holding
+            {
+                SymbolProfiles = new List<SymbolProfile> { symbolProfile },
+                Activities = [activity1.Object, activity2.Object]
+            };
+
+            // Act
+            await _stockSplitStrategy.Execute(holding);
+
+            // Assert
+            var expectedAdjustedUnitPrice1 = activity1.Object.UnitPrice.Times(2);
+            var expectedAdjustedQuantity1 = activity1.Object.Quantity / 2;
+
+            var expectedAdjustedUnitPrice2 = activity2.Object.UnitPrice.Times(2);
+            var expectedAdjustedQuantity2 = activity2.Object.Quantity / 2;
+
+            activity1.Object.AdjustedUnitPrice.Should().Be(expectedAdjustedUnitPrice1);
+            activity1.Object.AdjustedQuantity.Should().Be(expectedAdjustedQuantity1);
+            activity1.Object.AdjustedUnitPriceSource.Should().ContainSingle(trace => trace.Reason == stockSplit.ToString() && trace.NewQuantity == expectedAdjustedQuantity1 && trace.NewPrice == expectedAdjustedUnitPrice1);
+
+            activity2.Object.AdjustedUnitPrice.Should().Be(expectedAdjustedUnitPrice2);
+            activity2.Object.AdjustedQuantity.Should().Be(expectedAdjustedQuantity2);
+            activity2.Object.AdjustedUnitPriceSource.Should().ContainSingle(trace => trace.Reason == stockSplit.ToString() && trace.NewQuantity == expectedAdjustedQuantity2 && trace.NewPrice == expectedAdjustedUnitPrice2);
+        }
     }
 }
