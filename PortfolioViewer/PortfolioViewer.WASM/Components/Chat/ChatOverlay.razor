@@ -33,7 +33,7 @@
                     </div>
                 }
 
-                @if (IsBotTyping)
+                @if (IsBotTyping && string.IsNullOrWhiteSpace(streamingText))
                 {
                     <div class="typing-bubble">
                         <span class="typing-dots">
@@ -41,6 +41,12 @@
                         </span>
                     </div>
                 }
+				@if (IsBotTyping && !string.IsNullOrWhiteSpace(streamingText))
+				{
+					<div style="@GetBubbleStyle(false)">
+						@((MarkupString)Markdown.ToHtml(streamingText))
+					</div>
+				}
             </div>
 
             <!-- Input -->
@@ -77,6 +83,8 @@
     protected override async Task OnInitializedAsync()
     {
         llm.OnInitializingChanged += OnWebLLMInitialization;
+		llm.OnChunkCompletion += OnChunkCompletion;
+
         try
         {
             await llm.InitializeAsync();
@@ -106,7 +114,7 @@
         if (response.IsStreamComplete)
         {
             IsBotTyping = false;
-            Messages.Add(new Message("Assistant", streamingText));
+            Messages.Add(new Message("assistant", streamingText));
             StateHasChanged();
         }
         else
@@ -121,7 +129,7 @@
     private async Task StreamPromptRequest()
     {
         var input = CurrentMessage;
-        Messages.Add(new Message("User", input));
+        Messages.Add(new Message("user", input));
         CurrentMessage = "";
         IsBotTyping = true;
         StateHasChanged();
