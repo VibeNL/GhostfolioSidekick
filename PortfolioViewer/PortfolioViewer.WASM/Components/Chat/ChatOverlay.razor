@@ -179,28 +179,7 @@
 	private static string systemPrompt = 
 		@"You are a helpful assistant for the Ghostfolio Sidekick. 
 		  You can answer questions about the portfolio, stocks, and crypto.
-		  Be concise and to the point. 
-		  Do not provide any financial or investment advice
-
-		  # Available tools
-		  The JSON below lists the functions available to you.
-
-```json
-[{""type"":""function"",""function"":{""name"":""FUNC_STOCKS"",""description"":""Get a list of stocks in the portfolio.""}}}]
-```
-
-		# Instructions on tool use
-		If you choose to call one of the functions available to you, ONLY reply in the following format:
-		<function>{""name"": function name, ""parameters"": dictionary of argument name and its value}</function>
-		Here is an example,
-		<function>{""name"": ""example_function_name"", ""parameters"": {""example_name"": ""example_value""}}</function>
-		Reminder:
-		- Function calls MUST follow the specified format and use BOTH <function> and </function>.
-		- Required parameters MUST be specified.
-		- Only call one function at a time.
-		- When calling a function, do NOT say anything else. ONLY display the function call in the specified format.
-		- Do not ask for the user's permission to make the function call. Use your judgement and make the call when appropriate.
-		- Put the entire function call reply on one line. 
+		  Be concise and to the point.
 ";
 
 }
