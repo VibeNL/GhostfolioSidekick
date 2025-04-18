@@ -1,4 +1,4 @@
-﻿import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
 var engine; // <-- hold a reference to MLCEngine in the module
 var dotnetInstance; // <-- hold a reference to the WebLLMService instance in the module
@@ -30,5 +30,12 @@ export async function completeStream(messages) {
     for await (const chunk of chunks) {
         //console.log(chunk);
         await dotnetInstance.invokeMethodAsync("ReceiveChunkCompletion", chunk);
+    }
+}
+
+export function scrollToBottom(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.scrollTop = element.scrollHeight;
     }
 }
