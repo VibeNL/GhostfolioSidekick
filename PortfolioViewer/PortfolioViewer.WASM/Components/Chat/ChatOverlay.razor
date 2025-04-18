@@ -49,7 +49,8 @@
 			else
 			{
 				<!-- Messages -->
-				<div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
+				<div  style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
+<div id="chat-messages">
 					@foreach (var msg in Messages.Skip(1))
 					{
 						<div style="@GetBubbleStyle(msg.Role == "user")">
@@ -71,7 +72,7 @@
 							@((MarkupString)Markdown.ToHtml(streamingText))
 						</div>
 					}
-				</div>
+				</div><div>
 
 				<!-- Input -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
