@@ -164,6 +164,7 @@
 		}
 
 		StateHasChanged();
+		await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 		await Task.CompletedTask;
 	}
 
