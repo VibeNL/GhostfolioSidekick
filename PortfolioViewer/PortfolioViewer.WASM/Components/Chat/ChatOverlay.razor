@@ -158,7 +158,7 @@
 			Messages.Add(new Message("assistant", streamingText));
 			StateHasChanged();
 			streamingText = string.Empty;
-			await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
+			await ScrollToBottom();
 		}
 		else
 		{
@@ -166,7 +166,7 @@
 		}
 
 		StateHasChanged();
-		await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
+		await ScrollToBottom();
 		await Task.CompletedTask;
 	}
 
@@ -179,6 +179,12 @@
 		StateHasChanged();
 
 		await llm.CompleteStreamAsync(Messages);
+	}
+
+	private async Task ScrollToBottom()
+	{
+		await Task.Delay(100); // Add a delay to ensure the DOM is updated before scrolling
+		await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 	}
 
 	private static string systemPrompt =

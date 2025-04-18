@@ -34,8 +34,10 @@ export async function completeStream(messages) {
 }
 
 export function scrollToBottom(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.scrollTop = element.scrollHeight;
-    }
+    setTimeout(() => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.scrollTop = element.scrollHeight;
+        }
+    }, 100); // Add a delay to ensure the DOM is updated before scrolling
 }
