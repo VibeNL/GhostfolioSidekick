@@ -54,7 +54,7 @@
 						@foreach (var msg in Messages.Skip(1))
 						{
 							<div style="@GetBubbleStyle(msg.Role == "user")">
-								@((MarkupString)Markdown.ToHtml(msg.Content))
+								@((MarkupString)Markdown.ToHtml(msg.Content, pipeline))
 							</div>
 						}
 
@@ -69,7 +69,7 @@
 						@if (IsBotTyping && !string.IsNullOrWhiteSpace(streamingText))
 						{
 							<div style="@GetBubbleStyle(false)">
-								@((MarkupString)Markdown.ToHtml(streamingText))
+								@((MarkupString)Markdown.ToHtml(streamingText, pipeline))
 							</div>
 						}
 					</div>
@@ -187,4 +187,5 @@
 		  Be concise and to the point.
 ";
 
+	private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 }
