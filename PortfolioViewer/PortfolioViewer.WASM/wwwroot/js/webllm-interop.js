@@ -32,10 +32,3 @@ export async function completeStream(messages) {
         await dotnetInstance.invokeMethodAsync("ReceiveChunkCompletion", chunk);
     }
 }
-
-export function scrollToBottom(elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.scrollTop = element.scrollHeight;
-    }
-}

@@ -49,30 +49,28 @@
 			else
 			{
 				<!-- Messages -->
-				<div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
-					<div id="chat-messages">
-						@foreach (var msg in Messages.Skip(1))
-						{
-							<div style="@GetBubbleStyle(msg.Role == "user")">
-								@((MarkupString)Markdown.ToHtml(msg.Content))
-							</div>
-						}
+				<div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
+					@foreach (var msg in Messages.Skip(1))
+					{
+						<div style="@GetBubbleStyle(msg.Role == "user")">
+							@((MarkupString)Markdown.ToHtml(msg.Content, pipeline))
+						</div>
+					}
 
-						@if (IsBotTyping && string.IsNullOrWhiteSpace(streamingText))
-						{
-							<div class="typing-bubble">
-								<span class="typing-dots">
-									<span>.</span><span>.</span><span>.</span>
-								</span>
-							</div>
-						}
-						@if (IsBotTyping && !string.IsNullOrWhiteSpace(streamingText))
-						{
-							<div style="@GetBubbleStyle(false)">
-								@((MarkupString)Markdown.ToHtml(streamingText))
-							</div>
-						}
-					</div>
+					@if (IsBotTyping && string.IsNullOrWhiteSpace(streamingText))
+					{
+						<div class="typing-bubble">
+							<span class="typing-dots">
+								<span>.</span><span>.</span><span>.</span>
+							</span>
+						</div>
+					}
+					@if (IsBotTyping && !string.IsNullOrWhiteSpace(streamingText))
+					{
+						<div style="@GetBubbleStyle(false)">
+							@((MarkupString)Markdown.ToHtml(streamingText, pipeline))
+						</div>
+					}
 				</div>
 
 				<!-- Input -->
@@ -158,6 +156,7 @@
 			Messages.Add(new Message("assistant", streamingText));
 			StateHasChanged();
 			streamingText = string.Empty;
+			// Scroll to the bottom
 			await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 		}
 		else
@@ -166,6 +165,7 @@
 		}
 
 		StateHasChanged();
+		// Scroll to the bottom
 		await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 		await Task.CompletedTask;
 	}
@@ -187,4 +187,5 @@ Respond clearly, avoid financial advice disclaimers, and answer in markdown with
 Use financial terminology and suggest insights like trends or anomalies if data is present.
 ";
 
+	private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 }
