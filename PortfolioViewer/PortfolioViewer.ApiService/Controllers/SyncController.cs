@@ -4,9 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using System.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {
+	[Authorize]
 	[Route("api/[controller]")]
 	[ApiController]
 	public class SyncController : ControllerBase

@@ -42,6 +42,23 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				options.SuppressAsyncSuffixInActionNames = false;
 			});
 
+			// Add authentication and authorization services
+			builder.Services.AddAuthentication("Bearer")
+				.AddJwtBearer("Bearer", options =>
+				{
+					options.Authority = builder.Configuration["Authority"];
+					options.Audience = builder.Configuration["Audience"];
+				});
+
+			builder.Services.AddAuthorization(options =>
+			{
+				options.AddPolicy("ApiScope", policy =>
+				{
+					policy.RequireAuthenticatedUser();
+					policy.RequireClaim("scope", "api1");
+				});
+			});
+
 			var app = builder.Build();
 
 			app.UseCors();
@@ -58,6 +75,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				}
 				);
 			}
+
+			app.UseAuthentication();
+			app.UseAuthorization();
 
 			app.MapControllers();
 			app.MapDefaultEndpoints();

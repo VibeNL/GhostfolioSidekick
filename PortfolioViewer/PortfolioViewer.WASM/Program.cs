@@ -47,6 +47,8 @@ public class Program
 			builder.Configuration.Bind("Local", options.ProviderOptions);
 		});
 
+		builder.Services.AddAuthorizationCore();
+
 		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options =>
 			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
 			);
