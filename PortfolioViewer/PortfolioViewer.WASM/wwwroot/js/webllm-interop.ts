@@ -1,16 +1,16 @@
 import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
-var engine; // <-- hold a reference to MLCEngine in the module
-var dotnetInstance; // <-- hold a reference to the WebLLMService instance in the module
+var engine: any; // <-- hold a reference to MLCEngine in the module
+var dotnetInstance: any; // <-- hold a reference to the WebLLMService instance in the module
 
 //const selectedModel = "Llama-3.2-1B-Instruct-q4f16_1-MLC";
-const initProgressCallback = (initProgress) => {
+const initProgressCallback = (initProgress: any) => {
     console.log(initProgress);
     dotnetInstance.invokeMethodAsync("OnInitializing", initProgress);
 }
 
-export async function initialize(selectedModel, dotnet) {
-    dotnetInstance = dotnet; // <-- WebLLMService innstance
+export async function initialize(selectedModel: string, dotnet: any) {
+    dotnetInstance = dotnet; // <-- WebLLMService instance
     // const engine = await webllm.CreateMLCEngine(
     engine = await webllm.CreateMLCEngine(
         selectedModel,
@@ -18,7 +18,7 @@ export async function initialize(selectedModel, dotnet) {
     );
 }
 
-export async function completeStream(messages) {
+export async function completeStream(messages: any[]) {
     // Chunks is an AsyncGenerator object
     const chunks = await engine.chat.completions.create({
         messages,
