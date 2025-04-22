@@ -1,32 +1,46 @@
 ﻿declare module "https://esm.run/@mlc-ai/web-llm" {
-    export interface MLCEngine
-{
-	chat: {
+    export interface MLCEngine {
+        chat: {
             completions: {
-                create(options: {
-	messages: Message[];
-	temperature: number;
-	stream: boolean;
-	stream_options: { include_usage: boolean }
-		;
-	}): AsyncGenerator<Chunk>;
+                create(options: ChatCompletionRequest): AsyncGenerator<ChatCompletionChunk>;
             };
         };
     }
 
     export function CreateMLCEngine(
         model: string,
-		config: { initProgressCallback: (progress: any) => void }
+        config: { initProgressCallback: (progress: any) => void }
     ): Promise<MLCEngine>;
 
-interface Message
-{
-	role: string;
+    interface Message {
+        role: string;
         content: string;
     }
 
-interface Chunk
-{
-	// Define the structure of a chunk if known
-}
+    interface ChatCompletionChunk {
+        choices: any;
+        usage?: any;
+    }
+
+    interface ChatCompletionRequest {
+        messages: Message[];
+        temperature: number;
+        stream: boolean;
+        stream_options: { include_usage: boolean };
+        tool_choice?: string;
+        tools?: Array<ChatCompletionTool>;
+    }
+
+    interface ChatCompletionTool {
+        function: FunctionDefinition;
+        type: "function";
+    }
+
+    interface FunctionDefinition {
+        name: string;
+        description?: string;
+        parameters?: FunctionParameters;
+    }
+
+    type FunctionParameters = Record<string, unknown>;
 }
