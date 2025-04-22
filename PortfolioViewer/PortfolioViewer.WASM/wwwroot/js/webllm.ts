@@ -9,7 +9,14 @@
 
     export function CreateMLCEngine(
         model: string,
-        config: { initProgressCallback: (progress: any) => void }
+        engineConfig: {
+            initProgressCallback: (progress: any) => void,
+        },
+        modelConfig: {
+            sliding_window_size?: number;
+            attention_sink_size?: number;
+            context_window_size?: number;
+        }
     ): Promise<MLCEngine>;
 
     interface Message {

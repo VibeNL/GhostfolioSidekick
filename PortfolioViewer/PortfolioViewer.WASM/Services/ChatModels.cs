@@ -3,7 +3,7 @@
 	public record InitProgress(float Progress, string Text, double TimeElapsed);
 
 	// A chat message
-	public record Message(string Role, string Content);
+	public record Message(string Role, string Content, bool Display = true);
 	// A partial chat message
 	public record Delta(string Role, string Content);
 	// Chat message "cost"

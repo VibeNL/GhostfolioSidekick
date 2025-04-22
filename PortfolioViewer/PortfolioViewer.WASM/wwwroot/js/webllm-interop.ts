@@ -23,7 +23,8 @@ export async function initialize(selectedModel: string, dotnet: DotNetInstance):
     dotnetInstance = dotnet; // Store the .NET instance
     engine = await webllm.CreateMLCEngine(
         selectedModel,
-        { initProgressCallback: initProgressCallback } // engineConfig
+        { initProgressCallback: initProgressCallback }, // engineConfig
+        { context_window_size: 8096 } // modelConfig
     );
 }
 

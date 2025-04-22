@@ -27,7 +27,8 @@ const initProgressCallback = (initProgress) => {
 export function initialize(selectedModel, dotnet) {
     return __awaiter(this, void 0, void 0, function* () {
         dotnetInstance = dotnet; // Store the .NET instance
-        engine = yield webllm.CreateMLCEngine(selectedModel, { initProgressCallback: initProgressCallback } // engineConfig
+        engine = yield webllm.CreateMLCEngine(selectedModel, { initProgressCallback: initProgressCallback }, // engineConfig
+        { context_window_size: 8096 } // modelConfig
         );
     });
 }

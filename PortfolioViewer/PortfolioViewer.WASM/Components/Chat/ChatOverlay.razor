@@ -1,4 +1,5 @@
 @using GhostfolioSidekick.Database
+@using GhostfolioSidekick.Model.Activities
 @using GhostfolioSidekick.PortfolioViewer.WASM.Services
 @using Markdig
 @inject IJSRuntime JS
@@ -52,7 +53,7 @@
 			{
 				<!-- Messages -->
 				<div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
-					@foreach (var msg in Messages.Skip(1))
+					@foreach (var msg in Messages.Skip(1).Where(x => x.Display))
 					{
 						<div style="@GetBubbleStyle(msg.Role == "user")">
 							@((MarkupString)Markdown.ToHtml(msg.Content, pipeline))
@@ -157,9 +158,19 @@
 		if (response.IsStreamComplete)
 		{
 			IsBotTyping = false;
+
+			var content = streamingText;
 			Messages.Add(new Message("assistant", streamingText));
-			StateHasChanged();
 			streamingText = string.Empty;
+
+			// Check if the response includes a function call
+			if (content?.StartsWith("<function_call>") == true)
+			{
+				await HandleFunctionCall(content);
+			}
+
+			StateHasChanged();
+
 			// Scroll to the bottom
 			await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 		}
@@ -288,4 +299,96 @@ Stay in character as GhostfolioSidekick — intelligent, concise, focused on dat
 ";
 
 	private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+
+	private async Task HandleFunctionCall(string functionCallContent)
+	{
+		try
+		{
+			// Parse the function call
+			var functionCall = ParseFunctionCall(functionCallContent);
+
+			// Execute the appropriate function
+			string result = functionCall.Name switch
+			{
+				"CurrentHoldings" => await HandleCurrentHoldings(),
+				"GetMarketData" => await HandleGetMarketData(functionCall.Arguments),
+				"GetActivities" => await HandleGetActivities(functionCall.Arguments),
+				_ => throw new InvalidOperationException("Unknown function call")
+			};
+
+			// Send the result back to the LLM
+			Messages.Add(new Message("tool", result, false));
+
+			// Restart the conversation
+			Messages.Add(new Message("user", "", false));
+			IsBotTyping = true;
+			StateHasChanged();
+			await llm.CompleteStreamAsync(Messages);
+		}
+		catch (Exception ex)
+		{
+			Messages.Add(new Message("tool", $"Error handling function call: {ex.Message}"));
+		}
+	}
+
+	private (string Name, Dictionary<string, string> Arguments) ParseFunctionCall(string functionCallContent)
+	{
+		// Parse the function call content to extract the name and arguments
+		// Example: <function_call>\nname: CurrentHoldings\narguments: {}\n</function_call>
+		var lines = functionCallContent.Split('\n');
+		var name = lines.FirstOrDefault(line => line.StartsWith("name:"))?.Split(':')[1].Trim();
+		var argumentsLine = lines.FirstOrDefault(line => line.StartsWith("arguments:"))?.Split(':')[1].Trim();
+		var arguments = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(argumentsLine ?? "{}");
+		return (name, arguments);
+	}
+
+	private async Task<string> HandleCurrentHoldings()
+	{
+		// Call the CurrentHoldings function and format the result
+		var holdings = dbContext.Holdings.Select(x => new
+		{
+			Symbol = x.SymbolProfiles.First().Symbol,
+			Quantity = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Sum(a => a.Quantity),
+			AveragePrice = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Average(a => a.UnitPrice.Amount),
+			MarketValue = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Sum(a => a.Quantity * a.UnitPrice.Amount)
+		});
+		// Format holdings as a Markdown table
+		var table = "| Symbol | Quantity | Avg Price | Market Value |\n|--------|----------|-----------|--------------|\n";
+		foreach (var holding in holdings)
+		{
+			table += $"| {holding.Symbol} | {holding.Quantity} | {holding.AveragePrice:C} | {holding.MarketValue:C} |\n";
+		}
+
+		return table;
+	}
+
+	private async Task<string> HandleGetMarketData(Dictionary<string, string> arguments)
+	{
+		// Extract arguments
+		var symbol = arguments["symbol"];
+		var datetime = DateTime.Parse(arguments["datetime"]);
+
+		// Call the GetMarketData function and format the result
+		// Format market data as a Markdown summary
+		return $"### Market Data for {symbol}\n\n" +
+						$"- **Date**: {datetime}\n" +
+						$"- **Price**: {42:C}\n";
+	}
+
+	private async Task<string> HandleGetActivities(Dictionary<string, string> arguments)
+	{
+		// Extract arguments
+		var symbol = arguments["symbol"];
+
+		// Call the GetActivities function and format the result
+		var activities = dbContext.Holdings.FirstOrDefault(x => x.SymbolProfiles.Any(y => y.Symbol == symbol)).Activities;
+
+		// Format activities as a Markdown list
+		var list = "### Activity History\n\n";
+		foreach (var activity in activities.OfType<ActivityWithQuantityAndUnitPrice>())
+		{
+			list += $"- **{activity.GetType()}**: {activity.Quantity} shares at {activity.UnitPrice.Amount:C} on {activity.Date}\n";
+		}
+		return list;
+	}
 }
