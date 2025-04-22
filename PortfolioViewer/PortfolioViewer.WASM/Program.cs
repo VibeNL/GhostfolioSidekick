@@ -4,9 +4,6 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.Extensions.ServiceDiscovery;
-using System.Diagnostics;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 

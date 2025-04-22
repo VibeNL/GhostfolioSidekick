@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.ComplexProperty(b => b.Money).Property(x => x.Amount).HasColumnName("Amount");
 			builder.ComplexProperty(b => b.Money).ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency");
 			
-			builder.HasIndex("AccountId", "Date").IsUnique();
+			builder.HasIndex(x => new { x.AccountId, x.Date }).IsUnique();
 		}
 	}
 }

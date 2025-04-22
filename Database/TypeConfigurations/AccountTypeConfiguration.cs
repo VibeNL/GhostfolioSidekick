@@ -10,6 +10,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			builder.ToTable("Accounts");
 			builder.HasKey(a => a.Id);
+
+			builder.HasMany(a => a.Balance)
+				.WithOne()
+				.HasForeignKey(b => b.AccountId)
+				.OnDelete(DeleteBehavior.Cascade);
 		}
 	}
 }

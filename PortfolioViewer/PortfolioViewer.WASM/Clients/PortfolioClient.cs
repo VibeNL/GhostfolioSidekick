@@ -1,15 +1,15 @@
-﻿using System.Net.Http.Json;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
 	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext)
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
+
+		const int pageSize = 10000;
 
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 
 				// Step 3: Sync Data for Each Table
-				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
+				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)).OrderBy(x => x))
 				{
 					var totalWritten = 0;
 					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
@@ -56,10 +56,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					{
 						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
 						await InsertDataAsync(tableName, dataChunk, cancellationToken);
-						Interlocked.Add(ref totalWritten, dataChunk.Count);
+						totalWritten += dataChunk.Count;
 						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
 					}
-
+								
 					currentStep++;
 				}
 
@@ -81,7 +81,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
-			const int pageSize = 1000;
 			bool hasMoreData = true;
 
 			while (hasMoreData)
@@ -125,14 +124,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			var parameters = dataChunk.First().Keys.Select((key, index) =>
 			{
 				return new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0);
-			}).ToArray();
-			command.Parameters.AddRange(parameters);
+			}).ToDictionary(x => x.ParameterName.Trim('$'), x => x);
+			command.Parameters.AddRange(parameters.Values.ToArray());
 
 			foreach (var record in dataChunk)
 			{
 				foreach (var key in record.Keys)
 				{
-					var parameter = parameters.FirstOrDefault(p => p.ParameterName == $"${key}");
+					var parameter = parameters[key];
 					if (parameter != null)
 					{
 						object? parameterValue = record[key] switch

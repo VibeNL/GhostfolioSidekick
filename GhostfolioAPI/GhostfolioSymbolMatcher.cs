@@ -4,17 +4,20 @@ using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
 	public class GhostfolioSymbolMatcher : ISymbolMatcher
 	{
 		private readonly IApiWrapper apiWrapper;
+		private readonly MemoryCache memoryCache;
 
-		public GhostfolioSymbolMatcher(IApplicationSettings settings, IApiWrapper apiWrapper)
+		public GhostfolioSymbolMatcher(IApplicationSettings settings, IApiWrapper apiWrapper, MemoryCache memoryCache)
 		{
 			ArgumentNullException.ThrowIfNull(settings);
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
+			this.memoryCache = memoryCache;
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 		}
 
@@ -29,6 +32,13 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				return null;
 			}
 
+			// Check if we have a cached version
+			var cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier));
+			if (memoryCache.TryGetValue(cacheKey, out SymbolProfile? cachedSymbol))
+			{
+				return cachedSymbol;
+			}
+
 			foreach (var identifier in symbolIdentifiers)
 			{
 				var symbol = await FindByDataProvider(
@@ -40,10 +50,14 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 				if (symbol != null)
 				{
+					// Cache the symbol
+					memoryCache.Set(cacheKey, symbol, CacheDuration.Short());
 					return symbol;
 				}
 			}
 
+			// Cache the null result to avoid flooding the API with requests
+			memoryCache.Set(cacheKey, (SymbolProfile?)null, CacheDuration.Short());
 			return null;
 		}
 
