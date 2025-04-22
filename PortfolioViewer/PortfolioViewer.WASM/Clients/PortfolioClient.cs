@@ -11,6 +11,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 
+		const int pageSize = 10000;
+
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
@@ -81,7 +83,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
-			const int pageSize = 1000;
 			bool hasMoreData = true;
 
 			while (hasMoreData)
