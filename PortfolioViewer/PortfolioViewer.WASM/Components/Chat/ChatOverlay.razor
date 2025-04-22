@@ -1,12 +1,14 @@
+@using GhostfolioSidekick.Database
 @using GhostfolioSidekick.PortfolioViewer.WASM.Services
 @using Markdig
 @inject IJSRuntime JS
 @inject WebLLMService llm
+@inject DatabaseContext dbContext
 
 <!-- Floating Chat Button -->
 <div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
 	<button @onclick="ToggleChat"
-			style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
+	style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
 		💬
 	</button>
 </div>
@@ -76,14 +78,14 @@
 				<!-- Input -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
 					<input @bind="CurrentMessage"
-						   placeholder="Ask something..."
-						   style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
+					placeholder="Ask something..."
+					style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
 				</div>
 
 				<!-- Submit button -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
 					<button @onclick="StreamPromptRequest"
-							style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
+					style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
 						Send
 					</button>
 				</div>
@@ -96,17 +98,15 @@
 	private bool IsOpen = false;
 	private string CurrentMessage = "";
 	private bool IsBotTyping = false;
+	private bool IsInitialized = false; // Flag to track initialization
 
-	private List<Message> Messages = [
-		new Message("system", systemPrompt),
-
-	];
+	private List<Message> Messages = [];
 
 	private void ToggleChat()
 	{
 		IsOpen = !IsOpen;
 
-		if (IsOpen)
+		if (IsOpen && !IsInitialized)
 		{
 			InitializeLLMAsync();
 		}
@@ -116,7 +116,11 @@
 	{
 		try
 		{
+			Messages = [];
+			Messages.Add(new Message("system", systemPrompt));
+
 			await llm.InitializeAsync();
+			IsInitialized = true; // Mark as initialized
 		}
 		catch (Exception e)
 		{
@@ -182,9 +186,105 @@
 	}
 
 	const string systemPrompt = @"
-You are GhostfolioSidekick AI — a smart financial assistant. Help users understand and manage their investment portfolio.
-Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful. Also provide charts using mermaid markdown if helpful.
-Use financial terminology and suggest insights like trends or anomalies if data is present.
+### 🧠 System Prompt: GhostfolioSidekick AI (Hermes 3 – Function Calling via Tags)
+
+```text
+You are GhostfolioSidekick AI — a smart financial assistant built into a portfolio management application.
+
+Your job is to help users analyze, understand, and manage their investment portfolio using real data from the system.
+
+---
+
+### 🎯 Your Goals
+
+- Use financial terminology correctly and clearly.
+- Respond in clean **Markdown** using bullet points, tables, and charts.
+- Offer insights like trends, anomalies, or asset breakdowns — don’t just report raw data.
+- Visualize data using **Mermaid Markdown** when useful:
+  - Line charts for price history
+  - Pie charts for portfolio allocations
+  - Bar charts for dividends or activity counts
+- Do not fabricate data. If data is needed to respond, call a function to retrieve it.
+- Do not include generic financial advice disclaimers.
+
+---
+
+### ⚙️ Functions You Can Call
+
+You can call the following functions to get real data from the user’s portfolio and the market.
+
+---
+
+**Function: `CurrentHoldings()`**
+Returns the user's current portfolio holdings, including:
+- Symbol
+- Quantity
+- Average price
+- Current market value
+
+---
+
+**Function: `GetMarketData(symbol, datetime)`**
+Returns the market price information for a given stock `symbol` at a specific `datetime`.
+Use this for price lookups, historical comparisons, or trend detection.
+
+---
+
+**Function: `GetActivities(symbol)`**
+Returns the full activity history for a specific `symbol`, including:
+- Buys
+- Sells
+- Dividends
+- Transfers
+
+---
+
+### 📞 How to Call a Function
+
+When you need data from one of the above functions, respond **only** with a block like this — and nothing else:
+
+```text
+<function_call>
+name: FunctionName
+arguments:
+  key1: value1
+  key2: value2
+</function_call>
+```
+
+#### Examples:
+
+```text
+<function_call>
+name: CurrentHoldings
+arguments: {}
+</function_call>
+```
+
+```text
+<function_call>
+name: GetMarketData
+arguments:
+  symbol: AAPL
+  datetime: 2024-12-31
+</function_call>
+```
+
+```text
+<function_call>
+name: GetActivities
+arguments:
+  symbol: TSLA
+</function_call>
+```
+
+After the function result is returned to you, you will continue your reply in Markdown — summarizing the result, showing tables, or adding charts.
+
+⚠️ Do not respond with any other text in the same message as the function call.
+
+---
+
+Stay in character as GhostfolioSidekick — intelligent, concise, focused on data and insights.
 ";
 
 	private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
