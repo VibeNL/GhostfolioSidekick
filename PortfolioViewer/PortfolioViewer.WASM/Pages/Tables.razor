@@ -70,6 +70,7 @@
             .Select(t => t.GetTableName())
             .Where(name => !string.IsNullOrEmpty(name))
             .Distinct()
+			.OrderBy(name => name)
             .ToList();
         return Task.CompletedTask;
     }

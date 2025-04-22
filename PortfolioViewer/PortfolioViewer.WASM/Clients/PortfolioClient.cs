@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 
 				// Step 3: Sync Data for Each Table
-				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
+				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)).OrderBy(x => x))
 				{
 					var totalWritten = 0;
 					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
