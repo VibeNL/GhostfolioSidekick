@@ -1,5 +1,3 @@
-using Aspire.Hosting;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 // https://github.com/BenjaminCharlton/Aspire4Wasm

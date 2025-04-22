@@ -1,15 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading;
-using FluentAssertions;
+﻿using System.Text.Json;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Moq.Protected;
-using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {

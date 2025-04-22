@@ -12,6 +12,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\Database\Database.csproj" />
 		<ProjectReference Include="..\..\Model\Model.csproj" />
+		<ProjectReference Include="..\PortfolioViewer.Common\PortfolioViewer.Common.csproj" />
 		<ProjectReference Include="..\PortfolioViewer.ServiceDefaults\PortfolioViewer.ServiceDefaults.csproj" />
 	</ItemGroup>
 
