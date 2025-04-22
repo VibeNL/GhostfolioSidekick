@@ -1,11 +1,13 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
+using Grpc.Net.Client;
+using Grpc.Core;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext)
+	public class PortfolioClient(GrpcChannel grpcChannel, DatabaseContext databaseContext)
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 
@@ -85,19 +87,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			while (hasMoreData)
 			{
-				var response = await httpClient.GetAsync($"/api/sync/{tableName}?page={page}&pageSize={pageSize}", cancellationToken);
-				if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+				var client = new MyGrpcService.MyGrpcServiceClient(grpcChannel);
+				var request = new GrpcRequest { MethodName = $"api/sync/{tableName}", JsonPayload = JsonSerializer.Serialize(new { page, pageSize }) };
+				var response = await client.GetAsync(request, cancellationToken: cancellationToken);
+				if (response == null || string.IsNullOrEmpty(response.JsonPayload))
 				{
 					yield break;
 				}
 
-				var rawData = await response.Content.ReadAsStringAsync(cancellationToken);
-				if (string.IsNullOrEmpty(rawData))
-				{
-					yield break;
-				}
-
-				var data = DeserializeData(rawData);
+				var data = DeserializeData(response.JsonPayload);
 				if (data == null || !data.Any())
 				{
 					yield break;

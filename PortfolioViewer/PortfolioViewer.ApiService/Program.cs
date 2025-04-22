@@ -3,6 +3,8 @@ using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
+using Grpc.Net.Client;
+using Grpc.Net.ClientFactory;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService
 {
@@ -39,6 +41,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			{
 				options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
 				options.SuppressAsyncSuffixInActionNames = false;
+			});
+
+			// Configure gRPC client
+			builder.Services.AddGrpcClient<GrpcCall>(options =>
+			{
+				options.Address = new Uri(builder.Configuration["GrpcService:BaseUrl"]);
 			});
 
 			var app = builder.Build();
