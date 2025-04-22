@@ -16,7 +16,7 @@
 	<!-- Overlay Background -->
 	<div style="position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center;">
 		<!-- Chat Window -->
-		<div style="background-color: white; width: 100%; max-width: 400px; height: 80vh; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden;">
+		<div style="background-color: white; width: 100%; max-width: 2000px; height: 80vh; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden;">
 
 			<!-- Header -->
 			<div style="background-color: #2563eb; color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
@@ -181,10 +181,10 @@
 		await llm.CompleteStreamAsync(Messages);
 	}
 
-	private static string systemPrompt =
-				@"You are a helpful assistant for the Ghostfolio Sidekick.
-		  You can answer questions about the portfolio, stocks, and crypto.
-		  Be concise and to the point.
+	const string systemPrompt = @"
+You are GhostfolioSidekick AI — a smart financial assistant. Help users understand and manage their investment portfolio.
+Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful. Also provide charts using mermaid markdown if helpful.
+Use financial terminology and suggest insights like trends or anomalies if data is present.
 ";
 
 	private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();

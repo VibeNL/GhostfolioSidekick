@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "typeRoots": [ "./types", "node_modules/@types" ],
+        "target": "ES2015", // Or "ES6", "ES2017", etc.
+        "module": "ESNext", // Optional, depending on your module system
+        "lib": [ "DOM", "ES2018" ], // Include ES2015 for Promise support
+        "strict": true,
+        "esModuleInterop": true
+    }
+}
