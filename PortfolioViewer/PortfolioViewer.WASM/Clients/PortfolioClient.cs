@@ -58,10 +58,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					{
 						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
 						await InsertDataAsync(tableName, dataChunk, cancellationToken);
-						Interlocked.Add(ref totalWritten, dataChunk.Count);
+						totalWritten += dataChunk.Count;
 						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
 					}
-
+								
 					currentStep++;
 				}
 
@@ -126,14 +126,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			var parameters = dataChunk.First().Keys.Select((key, index) =>
 			{
 				return new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0);
-			}).ToArray();
-			command.Parameters.AddRange(parameters);
+			}).ToDictionary(x => x.ParameterName.Trim('$'), x => x);
+			command.Parameters.AddRange(parameters.Values.ToArray());
 
 			foreach (var record in dataChunk)
 			{
 				foreach (var key in record.Keys)
 				{
-					var parameter = parameters.FirstOrDefault(p => p.ParameterName == $"${key}");
+					var parameter = parameters[key];
 					if (parameter != null)
 					{
 						object? parameterValue = record[key] switch

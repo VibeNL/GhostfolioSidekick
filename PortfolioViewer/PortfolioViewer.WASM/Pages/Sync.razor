@@ -12,79 +12,44 @@
 <p>Update the data with a copy of the server</p>
 
 <div>
-    <p>@CurrentAction</p>
-    <div class="progress">
-        <div class="progress-bar" role="progressbar" style="width: @Progress%;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100">
-            @Progress%
-        </div>
-    </div>
+	<p>@CurrentAction</p>
+	<div class="progress">
+		<div class="progress-bar" role="progressbar" style="width: @Progress%;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100">
+			@Progress%
+		</div>
+	</div>
 </div>
 
 <button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">Start Sync</button>
 
-@if (Accounts == null || Accounts.Count == 0)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <ul>
-        @foreach (var account in Accounts)
-        {
-            <li>
-                <strong>@account.Name</strong> (@account.Platform?.Name)
-                @if (!string.IsNullOrEmpty(account.Comment))
-                {
-                    <p>@account.Comment</p>
-                }
-            </li>
-        }
-    </ul>
-}
-
 @code {
-    [Inject]
-    private PortfolioClient PortfolioClient { get; set; }
+	[Inject]
+	private PortfolioClient PortfolioClient { get; set; }
 
-    [Inject]
-    private DatabaseContext DatabaseContext { get; set; }
+	private string CurrentAction = "Idle";
+	private int Progress = 0;
+	private bool IsSyncing = false;
 
-    private List<Account> Accounts = [];
-    private string CurrentAction = "Idle";
-    private int Progress = 0;
-    private bool IsSyncing = false;
+	private async Task StartSync()
+	{
+		IsSyncing = true;
+		CurrentAction = "Starting sync...";
+		Progress = 0;
 
-    private async Task StartSync()
-    {
-        IsSyncing = true;
-        CurrentAction = "Starting sync...";
-        Progress = 0;
+		var progress = new Progress<(string action, int progress)>(update =>
+		{
+			CurrentAction = update.action;
+			Progress = update.progress;
+			StateHasChanged(); // Update the UI
+		});
 
-        var progress = new Progress<(string action, int progress)>(update =>
-        {
-            CurrentAction = update.action;
-            Progress = update.progress;
-            StateHasChanged(); // Update the UI
-        });
-
-        try
-        {
-            await PortfolioClient.SyncPortfolio(progress);
-            Accounts = await DatabaseContext.Accounts
-                .Include(a => a.Platform)
-                .ToListAsync();
-        }
-        finally
-        {
-            IsSyncing = false;
-        }
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Load accounts initially
-        Accounts = await DatabaseContext.Accounts
-            .Include(a => a.Platform)
-            .ToListAsync();
-    }
+		try
+		{
+			await PortfolioClient.SyncPortfolio(progress);
+		}
+		finally
+		{
+			IsSyncing = false;
+		}
+	}
 }
