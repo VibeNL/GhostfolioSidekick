@@ -1,0 +1,104 @@
+﻿@page "/tables"
+@using GhostfolioSidekick.Database
+@using GhostfolioSidekick.PortfolioViewer.Common.SQL
+@using Microsoft.EntityFrameworkCore
+@using System.Data
+@using System.Reflection
+@inject DatabaseContext DbContext
+
+<PageTitle>Table Viewer</PageTitle>
+
+<h1>Table Viewer</h1>
+
+<select @bind="SelectedTable">
+    <option value="">-- Select a Table --</option>
+    @foreach (var tableName in TableNames)
+    {
+        <option value="@tableName">@tableName</option>
+    }
+</select>
+<input type="number" @bind="page" min="1" max="100" />
+<button @onclick="LoadSelectedTableData">Load Data</button>
+
+@if (!string.IsNullOrEmpty(SelectedTable))
+{
+    <h3>Data for @SelectedTable</h3>
+    @if (TableData != null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    @foreach (var column in TableData.Columns)
+                    {
+                        <th>@column</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in TableData.Rows)
+                {
+                    <tr>
+                        @foreach (var cell in row)
+                        {
+                            <td>@cell</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Loading data...</p>
+    }
+}
+
+@code {
+    private List<string?> TableNames = new();
+    private string? SelectedTable;
+    private TableDataRecord TableData = new();
+	private int page = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTableNamesAsync();
+    }
+
+    private Task LoadTableNamesAsync()
+    {
+        TableNames = DbContext.Model.GetEntityTypes()
+            .Select(t => t.GetTableName())
+            .Where(name => !string.IsNullOrEmpty(name))
+            .Distinct()
+            .ToList();
+        return Task.CompletedTask;
+    }
+
+    private async Task LoadSelectedTableData()
+    {
+        if (!string.IsNullOrEmpty(SelectedTable))
+        {
+            await LoadTableDataAsync(SelectedTable);
+        }
+    }
+
+    private async Task LoadTableDataAsync(string tableName)
+    {
+		var result = await RawQuery.ReadTable(DbContext, tableName, page, 250);
+
+		if (result == null || result.Count == 0)
+		{
+			return;
+		}
+
+		TableData.Columns = result.First().Keys.ToArray();
+		TableData.Rows = result.Select(x => x.Values.ToArray()).ToList();
+       
+    }
+
+    private class TableDataRecord
+    {
+        public string[] Columns { get; set; } = Array.Empty<string>();
+        public List<object[]> Rows { get; set; } = new();
+    }
+}
