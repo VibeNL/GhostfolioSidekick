@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			builder.HasMany(x => x.AdjustedUnitPriceSource)
 				.WithOne()
-				.HasForeignKey("ActivityId")
+				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
 		}
 
@@ -72,11 +72,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.TotalTransactionAmount, nameof(BuySellActivity.TotalTransactionAmount));
 			builder.HasMany(x => x.Fees)
 				.WithOne()
-				.HasForeignKey("ActivityId")
+				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
 			builder.HasMany(x => x.Taxes)
 				.WithOne()
-				.HasForeignKey("ActivityId")
+				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
 		}
 
@@ -91,11 +91,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 			builder.HasMany(x => x.Fees)
 				.WithOne()
-				.HasForeignKey("ActivityId")
+				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
 			builder.HasMany(x => x.Taxes)
 				.WithOne()
-				.HasForeignKey("ActivityId")
+				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
 		}
 
@@ -139,7 +139,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			builder.HasMany(x => x.Fees)
 				.WithOne()
-				.HasForeignKey("ActivityId")
+				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
 		}
 

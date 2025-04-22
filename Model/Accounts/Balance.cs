@@ -21,6 +21,8 @@
 
 		public Money Money { get; set; }
 
+		public int AccountId { get; set; }
+
 		public override string ToString()
 		{
 			return Date.ToShortDateString() + " " + Money.ToString();

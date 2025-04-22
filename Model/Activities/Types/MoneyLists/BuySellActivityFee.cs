@@ -15,5 +15,7 @@
 		public int? Id { get; set; }
 
 		public Money Money { get; }
+
+		public long ActivityId { get; set; }
 	}
 }
