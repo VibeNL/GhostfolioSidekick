@@ -1,9 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using GhostfolioSidekick.Database;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
-using System.Data;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers

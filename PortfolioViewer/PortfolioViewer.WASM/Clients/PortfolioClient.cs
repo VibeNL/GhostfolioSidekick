@@ -1,9 +1,7 @@
-﻿using System.Net.Http.Json;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {

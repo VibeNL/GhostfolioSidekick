@@ -1,5 +1,4 @@
-﻿using System.Drawing.Printing;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
@@ -12,7 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			var offset = (page - 1) * pageSize;
 
 			// Construct the raw SQL query with pagination
-			ValidateTableName(databaseContext, entity);
+			entity = ValidateTableName(databaseContext, entity);
 			var sqlQuery = $"SELECT * FROM {entity} ORDER BY 1 LIMIT @pageSize OFFSET @offset";
 
 			// Execute the raw SQL query and fetch the data into a DataTable
@@ -48,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			return result;
 		}
 
-		private static void ValidateTableName(DatabaseContext context, string entity)
+		private static string ValidateTableName(DatabaseContext context, string entity)
 		{
 			// Ensure the table name is valid and does not contain invalid characters
 			if (string.IsNullOrWhiteSpace(entity) || entity.Any(c => !char.IsLetterOrDigit(c) && c != '_'))
@@ -64,6 +63,8 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			{
 				throw new ArgumentException($"Table '{entity}' does not exist in the database.");
 			}
+
+			return entity;
 		}
 
 	}
