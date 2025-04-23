@@ -3,6 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService
 {
@@ -41,6 +42,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				options.SuppressAsyncSuffixInActionNames = false;
 			});
 
+			// Add gRPC service
+			builder.Services.AddGrpc();
+
 			var app = builder.Build();
 
 			app.UseCors();
@@ -60,6 +64,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 
 			app.MapControllers();
 			app.MapDefaultEndpoints();
+
+			// Configure gRPC endpoints
+			app.MapGrpcService<PortfolioService>();
 
 			app.UseStaticFiles(new StaticFileOptions
 			{

@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option csharp_namespace = "GhostfolioSidekick.PortfolioViewer.ApiService";
+
+package portfolio;
+
+service PortfolioService {
+  rpc SyncPortfolio (SyncRequest) returns (SyncResponse);
+  rpc GetPortfolioData (PortfolioDataRequest) returns (PortfolioDataResponse);
+}
+
+message SyncRequest {
+  string entity = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+}
+
+message SyncResponse {
+  string status = 1;
+  string message = 2;
+}
+
+message PortfolioDataRequest {
+  string entity = 1;
+  int32 page = 2;
+  int32 pageSize = 3;
+}
+
+message PortfolioDataResponse {
+  repeated PortfolioData data = 1;
+}
+
+message PortfolioData {
+  string key = 1;
+  string value = 2;
+}
