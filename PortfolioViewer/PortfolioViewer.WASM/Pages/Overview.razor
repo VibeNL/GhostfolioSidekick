@@ -1,0 +1,38 @@
+@page "/overview"
+@using GhostfolioSidekick.PortfolioViewer.WASM.Clients
+@using GhostfolioSidekick.PortfolioViewer.Model
+@inject PortfolioClient PortfolioClient
+
+<PageTitle>Overview</PageTitle>
+
+<h1>Portfolio Overview</h1>
+
+<div>
+    <h2>Value Over Time</h2>
+    <canvas id="valueOverTimeChart"></canvas>
+</div>
+
+<div>
+    <h2>Profit Over Time</h2>
+    <canvas id="profitOverTimeChart"></canvas>
+</div>
+
+<div>
+    <h2>Dividends Per Month</h2>
+    <canvas id="dividendsPerMonthChart"></canvas>
+</div>
+
+@code {
+    private List<MarketData> valueOverTimeData = new();
+    private List<MarketData> profitOverTimeData = new();
+    private List<MarketData> dividendsPerMonthData = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        valueOverTimeData = await PortfolioClient.GetValueOverTimeData();
+        profitOverTimeData = await PortfolioClient.GetProfitOverTimeData();
+        dividendsPerMonthData = await PortfolioClient.GetDividendsPerMonthData();
+
+        await JS.InvokeVoidAsync("renderCharts", valueOverTimeData, profitOverTimeData, dividendsPerMonthData);
+    }
+}
