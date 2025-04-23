@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.PortfolioViewer.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
@@ -210,5 +211,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
+		public async Task<List<MarketData>> GetValueOverTimeData()
+		{
+			var response = await httpClient.GetAsync("/api/overview/valueovertime");
+			response.EnsureSuccessStatusCode();
+			var jsonData = await response.Content.ReadAsStringAsync();
+			return JsonSerializer.Deserialize<List<MarketData>>(jsonData) ?? new List<MarketData>();
+		}
+
+		public async Task<List<MarketData>> GetProfitOverTimeData()
+		{
+			var response = await httpClient.GetAsync("/api/overview/profitovertime");
+			response.EnsureSuccessStatusCode();
+			var jsonData = await response.Content.ReadAsStringAsync();
+			return JsonSerializer.Deserialize<List<MarketData>>(jsonData) ?? new List<MarketData>();
+		}
+
+		public async Task<List<MarketData>> GetDividendsPerMonthData()
+		{
+			var response = await httpClient.GetAsync("/api/overview/dividendspermonth");
+			response.EnsureSuccessStatusCode();
+			var jsonData = await response.Content.ReadAsStringAsync();
+			return JsonSerializer.Deserialize<List<MarketData>>(jsonData) ?? new List<MarketData>();
+		}
 	}
 }

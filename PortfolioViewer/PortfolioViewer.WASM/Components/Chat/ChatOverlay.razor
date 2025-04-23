@@ -92,6 +92,13 @@
 	</div>
 }
 
+<!-- Link to Overview Page -->
+<div style="position: fixed; bottom: 80px; right: 24px; z-index: 1000;">
+	<a href="/overview" style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px; text-decoration: none;">
+		📊 Overview
+	</a>
+</div>
+
 @code {
 	private bool IsOpen = false;
 	private string CurrentMessage = "";
@@ -115,14 +122,14 @@
 	private async Task InitializeLLMAsync()
 	{
 		try
-		{
-			await llm.InitializeAsync();
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-			throw;
-		}
+	{
+		await llm.InitializeAsync();
+	}
+	catch (Exception e)
+	{
+		Console.WriteLine(e.Message);
+		throw;
+	}
 	}
 
 	private InitProgress? progress;
