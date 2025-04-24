@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
 	public class WebLLMService
 	{
-		private string selectedModel =/* "Hermes-3-Llama-3.1-8B-q4f16_1-MLC";*/"Llama-3.2-1B-Instruct-q4f16_1-MLC";
+		private string selectedModel = "Phi-3-mini-4k-instruct-q4f16_1-MLC";//"Llama-3.2-1B-Instruct-q4f16_1-MLC";
 
 		private readonly Lazy<Task<IJSObjectReference>> moduleTask;
 

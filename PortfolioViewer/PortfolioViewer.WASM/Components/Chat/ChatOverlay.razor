@@ -197,105 +197,49 @@
 	}
 
 	const string systemPrompt = @"
-### 🧠 System Prompt: GhostfolioSidekick AI (Hermes 3 – Function Calling via Tags)
+You are GhostfolioSidekick AI — a smart assistant that helps users manage and analyze their investment portfolio.
 
-```text
-You are GhostfolioSidekick AI — a smart financial assistant built into a portfolio management application.
-
-Your job is to help users analyze, understand, and manage their investment portfolio using real data from the system.
+You use real data from the system to answer questions. When needed, call one of the available functions.
 
 ---
 
-### 🎯 Your Goals
+Functions you can use:
 
-- Use financial terminology correctly and clearly.
-- Respond in clean **Markdown** using bullet points, tables, and charts.
-- Offer insights like trends, anomalies, or asset breakdowns — don’t just report raw data.
-- Visualize data using **Mermaid Markdown** when useful:
-  - Line charts for price history
-  - Pie charts for portfolio allocations
-  - Bar charts for dividends or activity counts
-- Do not fabricate data. If data is needed to respond, call a function to retrieve it.
-- Do not include generic financial advice disclaimers.
+1. CurrentHoldings()
+→ Returns the user’s current portfolio: symbol, quantity, market value, average price.
 
----
+2. GetMarketData(symbol, datetime)
+→ Returns price info for a stock at a given time.
 
-### ⚙️ Functions You Can Call
-
-You can call the following functions to get real data from the user’s portfolio and the market.
+3. GetActivities(symbol)
+→ Returns all trades, dividends, and transfers for a stock.
 
 ---
 
-**Function: `CurrentHoldings()`**
-Returns the user's current portfolio holdings, including:
-- Symbol
-- Quantity
-- Average price
-- Current market value
+When you need data, respond only with this format on a single line:
 
----
-
-**Function: `GetMarketData(symbol, datetime)`**
-Returns the market price information for a given stock `symbol` at a specific `datetime`.
-Use this for price lookups, historical comparisons, or trend detection.
-
----
-
-**Function: `GetActivities(symbol)`**
-Returns the full activity history for a specific `symbol`, including:
-- Buys
-- Sells
-- Dividends
-- Transfers
-
----
-
-### 📞 How to Call a Function
-
-When you need data from one of the above functions, respond **only** with a block like this — and nothing else:
-
-```text
 <function_call>
 name: FunctionName
 arguments:
   key1: value1
   key2: value2
 </function_call>
-```
 
-#### Examples:
+Examples:
 
-```text
 <function_call>
 name: CurrentHoldings
 arguments: {}
 </function_call>
-```
 
-```text
 <function_call>
 name: GetMarketData
 arguments:
   symbol: AAPL
   datetime: 2024-12-31
 </function_call>
-```
 
-```text
-<function_call>
-name: GetActivities
-arguments:
-  symbol: TSLA
-</function_call>
-```
-
-After the function result is returned to you, you will continue your reply in Markdown — summarizing the result, showing tables, or adding charts.
-
-⚠️ Do not respond with any other text in the same message as the function call.
-
----
-
-Stay in character as GhostfolioSidekick — intelligent, concise, focused on data and insights.
+Do not include any other text when calling a function and wait for the user to respond.
 ";
 
 	private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
@@ -317,17 +261,17 @@ Stay in character as GhostfolioSidekick — intelligent, concise, focused on dat
 			};
 
 			// Send the result back to the LLM
-			Messages.Add(new Message("tool", result, false));
+			Messages.Add(new Message("user", result, true));
 
 			// Restart the conversation
-			Messages.Add(new Message("user", "", false));
+			//Messages.Add(new Message("user", "", false));
 			IsBotTyping = true;
 			StateHasChanged();
 			await llm.CompleteStreamAsync(Messages);
 		}
 		catch (Exception ex)
 		{
-			Messages.Add(new Message("tool", $"Error handling function call: {ex.Message}"));
+			Messages.Add(new Message("user", $"Error handling function call: {ex.Message}"));
 		}
 	}
 
@@ -351,10 +295,10 @@ Stay in character as GhostfolioSidekick — intelligent, concise, focused on dat
 			Quantity = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Sum(a => a.Quantity),
 			AveragePrice = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Average(a => a.UnitPrice.Amount),
 			MarketValue = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Sum(a => a.Quantity * a.UnitPrice.Amount)
-		});
+		}).ToList();
 		// Format holdings as a Markdown table
 		var table = "| Symbol | Quantity | Avg Price | Market Value |\n|--------|----------|-----------|--------------|\n";
-		foreach (var holding in holdings)
+		foreach (var holding in holdings.OrderBy(x => x.MarketValue).Take(20))
 		{
 			table += $"| {holding.Symbol} | {holding.Quantity} | {holding.AveragePrice:C} | {holding.MarketValue:C} |\n";
 		}

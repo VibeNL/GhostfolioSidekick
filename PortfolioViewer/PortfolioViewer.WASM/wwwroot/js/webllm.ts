@@ -12,7 +12,7 @@
         engineConfig: {
             initProgressCallback: (progress: any) => void,
         },
-        modelConfig: {
+        modelConfig?: {
             sliding_window_size?: number;
             attention_sink_size?: number;
             context_window_size?: number;
