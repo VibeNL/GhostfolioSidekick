@@ -68,10 +68,16 @@ export class WebLLMInterop {
         });
     }
 }
-// Export a function to initialize WebLLMInterop
+// Singleton instance of WebLLMInterop
+const webLLMInteropInstance = new WebLLMInterop();
+// Export the functions
 export function initializeWebLLM(selectedModel, dotnet) {
     return __awaiter(this, void 0, void 0, function* () {
-        const interop = new WebLLMInterop();
-        yield interop.initialize(selectedModel, dotnet);
+        yield webLLMInteropInstance.initialize(selectedModel, dotnet);
+    });
+}
+export function completeStreamWebLLM(messages) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield webLLMInteropInstance.completeStream(messages);
     });
 }

@@ -60,8 +60,14 @@ export class WebLLMInterop {
     }
 }
 
-// Export a function to initialize WebLLMInterop
+// Singleton instance of WebLLMInterop
+const webLLMInteropInstance = new WebLLMInterop();
+
+// Export the functions
 export async function initializeWebLLM(selectedModel: string, dotnet: DotNetInstance): Promise<void> {
-    const interop = new WebLLMInterop();
-    await interop.initialize(selectedModel, dotnet);
+    await webLLMInteropInstance.initialize(selectedModel, dotnet);
+}
+
+export async function completeStreamWebLLM(messages: Message[]): Promise<void> {
+    await webLLMInteropInstance.completeStream(messages);
 }

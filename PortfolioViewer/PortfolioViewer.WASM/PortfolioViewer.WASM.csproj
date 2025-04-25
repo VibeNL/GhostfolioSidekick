@@ -17,22 +17,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <TypeScriptCompile Remove="wwwroot\js\dist\webllm.interop.ts" />
-	  <TypeScriptCompile Remove="wwwroot\js\dist\webllm.types.ts" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="wwwroot\js\dist\webllm.interop.ts">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </Content>
-	  <Content Include="wwwroot\js\dist\webllm.types.ts">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Bit.Besql" Version="9.7.0" />
 		<PackageReference Include="Markdig" Version="0.41.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.4" />
@@ -64,6 +48,17 @@
 	  <Content Update="wwwroot\js\dist\webllm.types.js">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <TypeScriptCompile Update="wwwroot\js\dist\webllm.interop.ts">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </TypeScriptCompile>
+	  <TypeScriptCompile Update="wwwroot\js\dist\webllm.types.ts">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </TypeScriptCompile>
 	</ItemGroup>
 
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">
