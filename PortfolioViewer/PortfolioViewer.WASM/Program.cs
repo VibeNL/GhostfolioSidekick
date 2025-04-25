@@ -4,10 +4,11 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
-public class Program
+public static class Program
 {
 	public static async Task Main(string[] args)
 	{

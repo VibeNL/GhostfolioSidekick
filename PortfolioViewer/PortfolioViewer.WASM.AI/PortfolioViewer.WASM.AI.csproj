@@ -15,5 +15,27 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Content Update="wwwroot\js\dist\webllm-interop.js">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="wwwroot\js\dist\webllm.types.js">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
 
+	<Import Project="$(MSBuildExtensionsPath)\Microsoft\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\TypeScript\Microsoft.TypeScript.targets')" />
+
+	<PropertyGroup>
+		<TypeScriptCompileBlocked>false</TypeScriptCompileBlocked>
+		<TypeScriptToolsVersion>5.0</TypeScriptToolsVersion>
+		<TypeScriptOutDir>wwwroot/js/dist</TypeScriptOutDir>
+		<TypeScriptSourceMap>true</TypeScriptSourceMap>
+		<TypeScriptNoEmitOnError>true</TypeScriptNoEmitOnError>
+	</PropertyGroup>
+
+	<Target Name="CompileTypeScript" BeforeTargets="Build">
+		<Exec Command="tsc -p $(ProjectDir)tsconfig.json" ContinueOnError="false" />
+	</Target>
+	
 </Project>

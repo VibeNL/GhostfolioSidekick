@@ -41,6 +41,20 @@
 		<ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="wwwroot\js\dist\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\PortfolioViewer.WASM.AI\wwwroot\js\dist\webllm-interop.js" Link="wwwroot\js\dist\webllm-interop.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <TypeScriptCompile Include="..\PortfolioViewer.WASM.AI\wwwroot\js\dist\webllm-interop.ts">
+	    <Link>wwwroot\js\dist\webllm-interop.ts</Link>
+	  </TypeScriptCompile>
+	</ItemGroup>
+
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">
 		<ItemGroup>
 			<UnavailableRuntimePack Remove="Microsoft.AspNetCore.App" />

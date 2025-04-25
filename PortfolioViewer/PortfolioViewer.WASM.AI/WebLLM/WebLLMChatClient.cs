@@ -58,10 +58,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
-			var module = await LoadJsModuleAsync(jsRuntime, "./WebLLM/Typescript/webllm-interop.js");
+			var module = await LoadJsModuleAsync(jsRuntime, "./js/dist/webllm-interop.js");
 			await module.InvokeVoidAsync("initializeLLM");
-
-
 
 			OnProgress?.Report(new InitializeProgress(1));
 		}
