@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			}
 
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", interopInstance.ConvertMessage(chatMessages));
+			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", interopInstance.ConvertMessage(chatMessages)));
 
 			while (true)
 			{
@@ -72,6 +72,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 						ChatRole.Assistant,
 						response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty
 						);
+				}
+				else
+				{
+					await Task.Delay(100); // Wait for 100ms before checking again
 				}
 			}
 		}
