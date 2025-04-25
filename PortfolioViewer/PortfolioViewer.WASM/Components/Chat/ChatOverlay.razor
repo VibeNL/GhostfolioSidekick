@@ -8,7 +8,7 @@
 
 <!-- Floating Chat Button -->
 <div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
-	<button @onclick="ToggleChat"
+	<button id="chat-button" @onclick="ToggleChat"
 	style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
 		💬
 	</button>
@@ -78,14 +78,14 @@
 
 				<!-- Input -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
-					<input @bind="CurrentMessage"
+					<input id="chat-input" @bind="CurrentMessage"
 					placeholder="Ask something..."
 					style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
 				</div>
 
 				<!-- Submit button -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
-					<button @onclick="StreamPromptRequest"
+					<button id="send-button" @onclick="StreamPromptRequest"
 					style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
 						Send
 					</button>
