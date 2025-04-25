@@ -2,10 +2,21 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Start page</h1>
 
-<div class="alert alert-warning" role="alert">
+@* <div class="alert alert-warning" role="alert">
     Before authentication will function correctly, you must configure your provider details in <code>Program.cs</code>
+</div> *@
+
+<p>Before use, please sync the data with a copy of the server</p>
+
+<div>
+	<p>@CurrentAction</p>
+	<div class="progress">
+		<div class="progress-bar" role="progressbar" style="width: @Progress%;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100">
+			@Progress%
+		</div>
+	</div>
 </div>
 
-Welcome to your new app.
+<button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">Start Sync</button>

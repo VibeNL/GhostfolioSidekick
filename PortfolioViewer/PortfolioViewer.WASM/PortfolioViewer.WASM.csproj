@@ -14,11 +14,6 @@
 
 	<ItemGroup>
 	  <Content Remove="wwwroot\js\site.ts" />
-	  <Content Remove="wwwroot\js\webllm-interop.ts" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <TypeScriptCompile Include="wwwroot\js\site.ts" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -39,6 +34,7 @@
 		<ProjectReference Include="..\..\Database\Database.csproj" />
 		<ProjectReference Include="..\..\Model\Model.csproj" />
 		<ProjectReference Include="..\PortfolioViewer.Common\PortfolioViewer.Common.csproj" />
+		<ProjectReference Include="..\PortfolioViewer.WASM.AI\PortfolioViewer.WASM.AI.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -46,7 +42,23 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <TypeScriptCompile Include="wwwroot\js\webllm-interop.ts" />
+	  <Content Update="wwwroot\js\dist\webllm.interop.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="wwwroot\js\dist\webllm.types.js">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <TypeScriptCompile Update="wwwroot\js\dist\webllm.interop.ts">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </TypeScriptCompile>
+	  <TypeScriptCompile Update="wwwroot\js\dist\webllm.types.ts">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </TypeScriptCompile>
 	</ItemGroup>
 
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">

@@ -1,11 +1,7 @@
-@using GhostfolioSidekick.PortfolioViewer.WASM.Services
 @using Markdig
-@inject IJSRuntime JS
-@inject WebLLMService llm
-
 <!-- Floating Chat Button -->
 <div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
-	<button @onclick="ToggleChat"
+	<button id="chat-button" @onclick="ToggleChat"
 			style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
 		💬
 	</button>
@@ -24,7 +20,7 @@
 				<button @onclick="ToggleChat" style="background: none; border: none; font-size: 24px; color: white; cursor: pointer;">×</button>
 			</div>
 
-			@if (progress?.Progress != 1)
+			@if (lastProgress?.Progress != 1)
 			{
 				<!-- Loading Indicator -->
 				<div style="flex: 1; display: flex; justify-content: center; align-items: center; background-color: #f9f9f9;">
@@ -35,13 +31,13 @@
 
 							@if (progress != null)
 							{
-								@($"{progress.Progress * 100}% completed")
+								@($"{lastProgress?.Progress * 100}% completed")
 							}
 						</span>
 
 
 						<span style="font-size: 8px; color: #555;">
-							@($"({progress?.Text})")
+							@($"({lastProgress?.Message})")
 						</span>
 					</div>
 				</div>
@@ -50,10 +46,10 @@
 			{
 				<!-- Messages -->
 				<div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
-					@foreach (var msg in Messages.Skip(1))
+					@foreach (var msg in Messages)
 					{
-						<div style="@GetBubbleStyle(msg.Role == "user")">
-							@((MarkupString)Markdown.ToHtml(msg.Content, pipeline))
+						<div style="@GetBubbleStyle(msg.Role == Microsoft.Extensions.AI.ChatRole.User)">
+							@((MarkupString)Markdown.ToHtml(msg.Text, pipeline))
 						</div>
 					}
 
@@ -75,14 +71,14 @@
 
 				<!-- Input -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
-					<input @bind="CurrentMessage"
+					<input id="chat-input" @bind="CurrentMessage"
 						   placeholder="Ask something..."
 						   style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
 				</div>
 
 				<!-- Submit button -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
-					<button @onclick="StreamPromptRequest"
+					<button id="send-button" @onclick="StreamPromptRequest"
 							style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
 						Send
 					</button>
@@ -92,100 +88,12 @@
 	</div>
 }
 
-@code {
-	private bool IsOpen = false;
-	private string CurrentMessage = "";
-	private bool IsBotTyping = false;
 
-	private List<Message> Messages = [
-		new Message("system", systemPrompt),
-
-	];
-
-	private void ToggleChat()
-	{
-		IsOpen = !IsOpen;
-
-		if (IsOpen)
-		{
-			InitializeLLMAsync();
-		}
-	}
-
-	private async Task InitializeLLMAsync()
-	{
-		try
-		{
-			await llm.InitializeAsync();
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-			throw;
-		}
-	}
-
-	private InitProgress? progress;
-
-	private string streamingText = "";
-
-	protected override Task OnInitializedAsync()
-	{
-		llm.OnInitializingChanged += OnWebLLMInitialization;
-		llm.OnChunkCompletion += OnChunkCompletion;
-		return base.OnInitializedAsync();
-	}
-
-	private void OnWebLLMInitialization(InitProgress p)
-	{
-		progress = p;
-		StateHasChanged();
-	}
-
+@code
+{
 	private string GetBubbleStyle(bool isUser) =>
-		$"max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); " +
-		(isUser
-			? "background-color: #dbeafe; align-self: flex-end;"
-			: "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
-
-	private async Task OnChunkCompletion(WebLLMCompletion response)
-	{
-		if (response.IsStreamComplete)
-		{
-			IsBotTyping = false;
-			Messages.Add(new Message("assistant", streamingText));
-			StateHasChanged();
-			streamingText = string.Empty;
-			// Scroll to the bottom
-			await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
-		}
-		else
-		{
-			streamingText += response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? "";
-		}
-
-		StateHasChanged();
-		// Scroll to the bottom
-		await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
-		await Task.CompletedTask;
-	}
-
-	private async Task StreamPromptRequest()
-	{
-		var input = CurrentMessage;
-		Messages.Add(new Message("user", input));
-		CurrentMessage = "";
-		IsBotTyping = true;
-		StateHasChanged();
-
-		await llm.CompleteStreamAsync(Messages);
-	}
-
-	const string systemPrompt = @"
-You are GhostfolioSidekick AI — a smart financial assistant. Help users understand and manage their investment portfolio.
-Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful. Also provide charts using mermaid markdown if helpful.
-Use financial terminology and suggest insights like trends or anomalies if data is present.
-";
-
-	private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+	$"max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); " +
+	(isUser
+	? "background-color: #dbeafe; align-self: flex-end;"
+	: "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
 }
