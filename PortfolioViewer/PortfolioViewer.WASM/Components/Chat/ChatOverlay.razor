@@ -1,15 +1,11 @@
 @using GhostfolioSidekick.Database
 @using GhostfolioSidekick.Model.Activities
-@using GhostfolioSidekick.PortfolioViewer.WASM.Services
 @using Markdig
-@inject IJSRuntime JS
-@inject WebLLMService llm
-@inject DatabaseContext dbContext
 
 <!-- Floating Chat Button -->
 <div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
 	<button id="chat-button" @onclick="ToggleChat"
-	style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
+			style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
 		💬
 	</button>
 </div>
@@ -27,7 +23,7 @@
 				<button @onclick="ToggleChat" style="background: none; border: none; font-size: 24px; color: white; cursor: pointer;">×</button>
 			</div>
 
-			@if (progress?.Progress != 1)
+			@if (lastProgress?.Progress != 1)
 			{
 				<!-- Loading Indicator -->
 				<div style="flex: 1; display: flex; justify-content: center; align-items: center; background-color: #f9f9f9;">
@@ -38,13 +34,13 @@
 
 							@if (progress != null)
 							{
-								@($"{progress.Progress * 100}% completed")
+								@($"{lastProgress?.Progress * 100}% completed")
 							}
 						</span>
 
 
 						<span style="font-size: 8px; color: #555;">
-							@($"({progress?.Text})")
+							@($"({lastProgress?.Message})")
 						</span>
 					</div>
 				</div>
@@ -53,10 +49,10 @@
 			{
 				<!-- Messages -->
 				<div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
-					@foreach (var msg in Messages.Skip(1).Where(x => x.Display))
+					@foreach (var msg in Messages)
 					{
-						<div style="@GetBubbleStyle(msg.Role == "user")">
-							@((MarkupString)Markdown.ToHtml(msg.Content, pipeline))
+						<div style="@GetBubbleStyle(msg.Role == Microsoft.Extensions.AI.ChatRole.User)">
+							@((MarkupString)Markdown.ToHtml(msg.Text, pipeline))
 						</div>
 					}
 
@@ -79,14 +75,14 @@
 				<!-- Input -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
 					<input id="chat-input" @bind="CurrentMessage"
-					placeholder="Ask something..."
-					style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
+						   placeholder="Ask something..."
+						   style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
 				</div>
 
 				<!-- Submit button -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
 					<button id="send-button" @onclick="StreamPromptRequest"
-					style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
+							style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
 						Send
 					</button>
 				</div>
@@ -95,244 +91,12 @@
 	</div>
 }
 
-@code {
-	private bool IsOpen = false;
-	private string CurrentMessage = "";
-	private bool IsBotTyping = false;
-	private bool IsInitialized = false; // Flag to track initialization
 
-	private List<Message> Messages = [];
-
-	private void ToggleChat()
-	{
-		IsOpen = !IsOpen;
-
-		if (IsOpen && !IsInitialized)
-		{
-			InitializeLLMAsync();
-		}
-	}
-
-	private async Task InitializeLLMAsync()
-	{
-		try
-		{
-			Messages = [];
-			Messages.Add(new Message("system", systemPrompt));
-
-			await llm.InitializeAsync();
-			IsInitialized = true; // Mark as initialized
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-			throw;
-		}
-	}
-
-	private InitProgress? progress;
-
-	private string streamingText = "";
-
-	protected override Task OnInitializedAsync()
-	{
-		llm.OnInitializingChanged += OnWebLLMInitialization;
-		llm.OnChunkCompletion += OnChunkCompletion;
-		return base.OnInitializedAsync();
-	}
-
-	private void OnWebLLMInitialization(InitProgress p)
-	{
-		progress = p;
-		StateHasChanged();
-	}
-
+@code
+{
 	private string GetBubbleStyle(bool isUser) =>
-		$"max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); " +
-		(isUser
-			? "background-color: #dbeafe; align-self: flex-end;"
-			: "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
-
-	private async Task OnChunkCompletion(WebLLMCompletion response)
-	{
-		if (response.IsStreamComplete)
-		{
-			IsBotTyping = false;
-
-			var content = streamingText;
-			Messages.Add(new Message("assistant", streamingText));
-			streamingText = string.Empty;
-
-			// Check if the response includes a function call
-			if (content?.StartsWith("<function_call>") == true)
-			{
-				await HandleFunctionCall(content);
-			}
-
-			StateHasChanged();
-
-			// Scroll to the bottom
-			await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
-		}
-		else
-		{
-			streamingText += response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? "";
-		}
-
-		StateHasChanged();
-		// Scroll to the bottom
-		await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
-		await Task.CompletedTask;
-	}
-
-	private async Task StreamPromptRequest()
-	{
-		var input = CurrentMessage;
-		Messages.Add(new Message("user", input));
-		CurrentMessage = "";
-		IsBotTyping = true;
-		StateHasChanged();
-
-		await llm.CompleteStreamAsync(Messages);
-	}
-
-	const string systemPrompt = @"
-You are GhostfolioSidekick AI — a smart assistant that helps users manage and analyze their investment portfolio.
-
-You use real data from the system to answer questions. When needed, call one of the available functions.
-
----
-
-Functions you can use:
-
-1. CurrentHoldings()
-→ Returns the user’s current portfolio: symbol, quantity, market value, average price.
-
-2. GetMarketData(symbol, datetime)
-→ Returns price info for a stock at a given time.
-
-3. GetActivities(symbol)
-→ Returns all trades, dividends, and transfers for a stock.
-
----
-
-When you need data, respond only with this format on a single line:
-
-<function_call>
-name: FunctionName
-arguments:
-  key1: value1
-  key2: value2
-</function_call>
-
-Examples:
-
-<function_call>
-name: CurrentHoldings
-arguments: {}
-</function_call>
-
-<function_call>
-name: GetMarketData
-arguments:
-  symbol: AAPL
-  datetime: 2024-12-31
-</function_call>
-
-Do not include any other text when calling a function and wait for the user to respond.
-";
-
-	private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-
-	private async Task HandleFunctionCall(string functionCallContent)
-	{
-		try
-		{
-			// Parse the function call
-			var functionCall = ParseFunctionCall(functionCallContent);
-
-			// Execute the appropriate function
-			string result = functionCall.Name switch
-			{
-				"CurrentHoldings" => await HandleCurrentHoldings(),
-				"GetMarketData" => await HandleGetMarketData(functionCall.Arguments),
-				"GetActivities" => await HandleGetActivities(functionCall.Arguments),
-				_ => throw new InvalidOperationException("Unknown function call")
-			};
-
-			// Send the result back to the LLM
-			Messages.Add(new Message("user", result, true));
-
-			// Restart the conversation
-			//Messages.Add(new Message("user", "", false));
-			IsBotTyping = true;
-			StateHasChanged();
-			await llm.CompleteStreamAsync(Messages);
-		}
-		catch (Exception ex)
-		{
-			Messages.Add(new Message("user", $"Error handling function call: {ex.Message}"));
-		}
-	}
-
-	private (string Name, Dictionary<string, string> Arguments) ParseFunctionCall(string functionCallContent)
-	{
-		// Parse the function call content to extract the name and arguments
-		// Example: <function_call>\nname: CurrentHoldings\narguments: {}\n</function_call>
-		var lines = functionCallContent.Split('\n');
-		var name = lines.FirstOrDefault(line => line.StartsWith("name:"))?.Split(':')[1].Trim();
-		var argumentsLine = lines.FirstOrDefault(line => line.StartsWith("arguments:"))?.Split(':')[1].Trim();
-		var arguments = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(argumentsLine ?? "{}");
-		return (name, arguments);
-	}
-
-	private async Task<string> HandleCurrentHoldings()
-	{
-		// Call the CurrentHoldings function and format the result
-		var holdings = dbContext.Holdings.Select(x => new
-		{
-			Symbol = x.SymbolProfiles.First().Symbol,
-			Quantity = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Sum(a => a.Quantity),
-			AveragePrice = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Average(a => a.UnitPrice.Amount),
-			MarketValue = x.Activities.OfType<ActivityWithQuantityAndUnitPrice>().Sum(a => a.Quantity * a.UnitPrice.Amount)
-		}).ToList();
-		// Format holdings as a Markdown table
-		var table = "| Symbol | Quantity | Avg Price | Market Value |\n|--------|----------|-----------|--------------|\n";
-		foreach (var holding in holdings.OrderBy(x => x.MarketValue).Take(20))
-		{
-			table += $"| {holding.Symbol} | {holding.Quantity} | {holding.AveragePrice:C} | {holding.MarketValue:C} |\n";
-		}
-
-		return table;
-	}
-
-	private async Task<string> HandleGetMarketData(Dictionary<string, string> arguments)
-	{
-		// Extract arguments
-		var symbol = arguments["symbol"];
-		var datetime = DateTime.Parse(arguments["datetime"]);
-
-		// Call the GetMarketData function and format the result
-		// Format market data as a Markdown summary
-		return $"### Market Data for {symbol}\n\n" +
-						$"- **Date**: {datetime}\n" +
-						$"- **Price**: {42:C}\n";
-	}
-
-	private async Task<string> HandleGetActivities(Dictionary<string, string> arguments)
-	{
-		// Extract arguments
-		var symbol = arguments["symbol"];
-
-		// Call the GetActivities function and format the result
-		var activities = dbContext.Holdings.FirstOrDefault(x => x.SymbolProfiles.Any(y => y.Symbol == symbol)).Activities;
-
-		// Format activities as a Markdown list
-		var list = "### Activity History\n\n";
-		foreach (var activity in activities.OfType<ActivityWithQuantityAndUnitPrice>())
-		{
-			list += $"- **{activity.GetType()}**: {activity.Quantity} shares at {activity.UnitPrice.Amount:C} on {activity.Date}\n";
-		}
-		return list;
-	}
+	$"max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); " +
+	(isUser
+	? "background-color: #dbeafe; align-self: flex-end;"
+	: "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
 }
