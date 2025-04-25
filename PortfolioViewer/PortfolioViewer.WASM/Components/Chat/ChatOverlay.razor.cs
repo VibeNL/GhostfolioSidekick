@@ -23,11 +23,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private string streamingText = "";
 		private InitializeProgress lastProgress = new(0);
 
-		[Inject] private IJSRuntime JS { get; set; } = default!;
+		private IJSRuntime JS { get; set; } = default!;
 
-		public ChatOverlay(IWebChatClient chatClient)
+		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS)
 		{
 			this.chatClient = chatClient;
+			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
 		}
 
@@ -55,51 +56,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 		}
 
-		
+		private void OnWebLlmInitialization(object? sender, InitializeProgress progress)
+		{
+			if (progress == null)
+			{
+				return;
+			}
 
-        private void OnWebLlmInitialization(object? sender, InitializeProgress progress)
-        {
-            if (progress == null)
-            {
-                return;
-            }
-
-            lastProgress = progress;
-            StateHasChanged();
-        }
-
-
-		//private async Task OnChunkCompletion(WebLLMCompletion response)
-		//{
-		//	if (response.IsStreamComplete)
-		//	{
-		//		IsBotTyping = false;
-
-		//		var content = streamingText;
-		//		Messages.Add(new Message("assistant", streamingText));
-		//		streamingText = string.Empty;
-
-		//		// Check if the response includes a function call
-		//		if (content?.StartsWith("<function_call>") == true)
-		//		{
-		//			await HandleFunctionCall(content);
-		//		}
-
-		//		StateHasChanged();
-
-		//		// Scroll to the bottom
-		//		await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
-		//	}
-		//	else
-		//	{
-		//		streamingText += response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? "";
-		//	}
-
-		//	StateHasChanged();
-		//	// Scroll to the bottom
-		//	await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
-		//	await Task.CompletedTask;
-		//}
+			lastProgress = progress;
+			StateHasChanged();
+		}
 
 		private async Task StreamPromptRequest()
 		{
