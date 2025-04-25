@@ -14,7 +14,6 @@
 
 	<ItemGroup>
 	  <Content Remove="wwwroot\js\site.ts" />
-	  <Content Remove="wwwroot\js\webllm-interop.ts" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -44,10 +43,6 @@
 
 	<ItemGroup>
 		<ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <TypeScriptCompile Include="wwwroot\js\webllm-interop.ts" />
 	</ItemGroup>
 
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">
