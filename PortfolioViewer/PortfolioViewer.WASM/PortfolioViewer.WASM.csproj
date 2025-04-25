@@ -17,10 +17,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <TypeScriptCompile Include="wwwroot\js\site.ts" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Bit.Besql" Version="9.7.0" />
 		<PackageReference Include="Markdig" Version="0.41.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.4" />

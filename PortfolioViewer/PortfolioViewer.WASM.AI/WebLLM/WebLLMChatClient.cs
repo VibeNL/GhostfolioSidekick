@@ -1,12 +1,14 @@
-﻿using System.Net;
+﻿using System.IO;
+using System.Net;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.AI;
+using Microsoft.JSInterop;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
+namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
-	public class SimpleWebLLMChatClient(string modelId) : IWebChatClient
+	public class WebLLMChatClient(IJSRuntime jsRuntime, string modelId) : IWebChatClient
 	{
-		public ChatClientMetadata Metadata { get; } = new(nameof(SimpleWebLLMChatClient), defaultModelId: modelId);
+		public ChatClientMetadata Metadata { get; } = new(nameof(WebLLMChatClient), defaultModelId: modelId);
 
 		public async Task<ChatResponse> GetResponseAsync(
 			IEnumerable<ChatMessage> chatMessages,
@@ -54,11 +56,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 
 		public void Dispose() { }
 
-		public Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
+		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
-			OnProgress?.Report(new InitializeProgress(1));
-			return Task.CompletedTask;
+			var module = await LoadJsModuleAsync(jsRuntime, "./WebLLM/Typescript/webllm-interop.js");
+			await module.InvokeVoidAsync("initializeLLM");
 
+
+
+			OnProgress?.Report(new InitializeProgress(1));
+		}
+
+		public static async Task<IJSObjectReference> LoadJsModuleAsync(
+	IJSRuntime jsRuntime, string path)
+		{
+			return await jsRuntime.InvokeAsync<IJSObjectReference>(
+				"import", path);
 		}
 	}
 }
