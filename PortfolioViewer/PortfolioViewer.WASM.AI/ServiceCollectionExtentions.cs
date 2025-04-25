@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 		{
 			services.AddTransient<IWebChatClient>((s) => new WebLLMChatClient(
 				s.GetRequiredService<IJSRuntime>(),
-				"phi-3-mini-4k-instruct-q4f16_1-MLC"));
+				"Phi-3-mini-4k-instruct-q4f16_1-MLC"));
 		}
 	}
 }

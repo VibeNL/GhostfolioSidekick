@@ -16,15 +16,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Update="wwwroot\js\dist\webllm-interop.js">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Update="wwwroot\js\dist\webllm.types.js">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
+	  <Folder Include="wwwroot\js\" />
 	</ItemGroup>
 
-	<Import Project="$(MSBuildExtensionsPath)\Microsoft\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\TypeScript\Microsoft.TypeScript.targets')" />
+	<!--<Import Project="$(MSBuildExtensionsPath)\Microsoft\TypeScript\Microsoft.TypeScript.targets" Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\TypeScript\Microsoft.TypeScript.targets')" />
 
 	<PropertyGroup>
 		<TypeScriptCompileBlocked>false</TypeScriptCompileBlocked>
@@ -36,6 +31,6 @@
 
 	<Target Name="CompileTypeScript" BeforeTargets="Build">
 		<Exec Command="tsc -p $(ProjectDir)tsconfig.json" ContinueOnError="false" />
-	</Target>
+	</Target>-->
 	
 </Project>

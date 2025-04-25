@@ -56,13 +56,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		public void Dispose() { }
 
-		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
-		{
-			var module = await LoadJsModuleAsync(jsRuntime, "./js/dist/webllm-interop.js");
-			await module.InvokeVoidAsync("initializeLLM");
-
-			OnProgress?.Report(new InitializeProgress(1));
-		}
+        public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
+        {
+            var module = await LoadJsModuleAsync(jsRuntime, "./js/dist/webllm.interop.js");
+            // Call the `initialize` function in the JavaScript module
+            await module.InvokeVoidAsync("initializeWebLLM", modelId, DotNetObjectReference.Create(new InteropInstance(OnProgress)));
+        }
 
 		public static async Task<IJSObjectReference> LoadJsModuleAsync(
 	IJSRuntime jsRuntime, string path)
@@ -70,5 +69,35 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			return await jsRuntime.InvokeAsync<IJSObjectReference>(
 				"import", path);
 		}
+
+		public class InteropInstance
+		{
+			private readonly IProgress<InitializeProgress> _progress;
+
+			public InteropInstance(IProgress<InitializeProgress> progress)
+			{
+				_progress = progress;
+			}
+
+			[JSInvokable]
+			public void ReportProgress(InitProgressReport progress)
+			{
+				if (progress is null)
+				{
+					throw new ArgumentNullException(nameof(progress));
+				}
+
+				var progressPercent = Math.Min(progress.Progress, 0.99);
+				// only report done when text: Finish loading on WebGPU
+				if (progress.Text.StartsWith("Finish loading on WebGPU"))
+				{
+					progressPercent = 1.0;
+				}
+
+				_progress.Report(new InitializeProgress(progressPercent, progress.Text));
+			}
+		}
+
+		public record InitProgressReport(double Progress, string Text, double timeElapsed);		
 	}
 }
