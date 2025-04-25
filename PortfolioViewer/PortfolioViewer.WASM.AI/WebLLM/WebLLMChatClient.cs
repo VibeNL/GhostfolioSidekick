@@ -163,6 +163,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 					{
 						return new Message("assistant", chatMessage.Text);
 					}
+					else if (chatMessage.Role == ChatRole.System)
+					{
+						return new Message("system", chatMessage.Text);
+					}
 					else
 					{
 						throw new NotSupportedException($"Chat role {chatMessage.Role} is not supported.");
