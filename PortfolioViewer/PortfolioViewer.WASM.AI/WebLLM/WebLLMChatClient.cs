@@ -31,7 +31,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			ChatOptions? options = null,
 			CancellationToken cancellationToken = default)
 		{
-			throw new NotSupportedException("Use GetStreamingResponseAsync instead.");
+			// Call GetStreamingResponseAsync
+			var response = await GetStreamingResponseAsync(chatMessages, options, cancellationToken).ToListAsync(cancellationToken);
+			if (response.Count == 0)
+			{
+				return new ChatResponse(new ChatMessage(ChatRole.Assistant, string.Empty));
+			}
+
+			// Combine the responses into a single string
+			var combinedResponse = string.Join(string.Empty, response.Select(r => r.Text));
+			return new ChatResponse(new ChatMessage(ChatRole.Assistant, combinedResponse!));
 		}
 
 		public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(

@@ -5,6 +5,7 @@ using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
+using PortfolioViewer.WASM.AI.Agents;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
@@ -17,7 +18,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private List<ChatMessage> Messages = [];
 
-		private IWebChatClient chatClient;
+		private IWebChatClient webChatClient;
+		private IAgentCoordinator coordinator;
 
 		private Progress<InitializeProgress> progress = new();
 		private string streamingText = "";
@@ -25,9 +27,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private IJSRuntime JS { get; set; } = default!;
 
-		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS)
+		public ChatOverlay(IAgentCoordinator coordinator, IWebChatClient webChatClient, IJSRuntime JS)
 		{
-			this.chatClient = chatClient;
+			this.webChatClient = webChatClient;
+			this.coordinator = coordinator;
+
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
 
@@ -49,7 +53,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		{
 			try
 			{
-				await chatClient.InitializeAsync(progress);
+				await webChatClient.InitializeAsync(progress);
 			}
 			catch (Exception e)
 			{
@@ -82,9 +86,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 			try
 			{
+				var responses = new List<ChatResponseUpdate>();
 				// Send the messages to the chat client and process the response
-				await foreach (var response in chatClient.GetStreamingResponseAsync(Messages))
+				await foreach (var response in coordinator.RunAgentsAsync(Messages)) /*webChatClient.GetStreamingResponseAsync(Messages)*/
 				{
+					responses.Add(response);
+
 					// Append the bot's streaming response
 					streamingText += response.Text ?? "";
 					StateHasChanged();
@@ -96,7 +103,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 				IsBotTyping = false;
 
 				// Add the bot's final response to the chat
-				Messages.Add(new ChatMessage(ChatRole.Assistant, streamingText));
+				Messages.Add(new ChatMessage(ChatRole.Assistant, string.Join("", responses.Select(x => x.Text))));
 				streamingText = string.Empty;
 
 				StateHasChanged();

@@ -54,6 +54,9 @@ export class WebLLMInterop {
         });
 
         for await (const chunk of chunks) {
+            // Log the chunk for debugging
+            console.log(chunk);
+
             // Assuming chunk is of type Chunk (define below if needed)
             await this.dotnetInstance?.invokeMethodAsync("ReceiveChunkCompletion", chunk);
         }

@@ -34,6 +34,7 @@
 		<ProjectReference Include="..\..\Database\Database.csproj" />
 		<ProjectReference Include="..\..\Model\Model.csproj" />
 		<ProjectReference Include="..\PortfolioViewer.Common\PortfolioViewer.Common.csproj" />
+		<ProjectReference Include="..\PortfolioViewer.WASM.AI.Agents\PortfolioViewer.WASM.AI.Agents.csproj" />
 		<ProjectReference Include="..\PortfolioViewer.WASM.AI\PortfolioViewer.WASM.AI.csproj" />
 	</ItemGroup>
 

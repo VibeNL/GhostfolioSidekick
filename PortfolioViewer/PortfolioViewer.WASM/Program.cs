@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using PortfolioViewer.WASM.AI.Agents;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -50,6 +51,7 @@ public static class Program
 			);
 
 		builder.Services.AddWebChatClient();
+		builder.Services.AddMultiAgent();
 		var app =builder.Build();
 
 		var context = app.Services.GetRequiredService<DatabaseContext>();
