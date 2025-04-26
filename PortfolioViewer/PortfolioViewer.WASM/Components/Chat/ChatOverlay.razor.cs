@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.AI;
@@ -18,6 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private List<ChatMessage> Messages = [];
 
 		private IWebChatClient chatClient;
+		private AgentManager agentManager;
 
 		private Progress<InitializeProgress> progress = new();
 		private string streamingText = "";
@@ -25,10 +27,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private IJSRuntime JS { get; set; } = default!;
 
-		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS)
+		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentManager agentManager)
 		{
 			this.chatClient = chatClient;
 			this.JS = JS;
+			this.agentManager = agentManager;
 			progress.ProgressChanged += OnWebLlmInitialization;
 
 			Messages.Add(new ChatMessage(ChatRole.System, SystemPrompt)); // Add system prompt to the chat
@@ -50,6 +53,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			try
 			{
 				await chatClient.InitializeAsync(progress);
+				// Initialize AgentManager
+				agentManager = new AgentManager(new IAgent[]
+				{
+					new DatabaseQueryAgent(),
+					new PortfolioOptimizationAgent(),
+					new BingQueryAgent(),
+					new ResultAggregatorAgent(),
+					new RequestParserAgent()
+				});
 			}
 			catch (Exception e)
 			{
@@ -82,23 +94,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 			try
 			{
-				// Send the messages to the chat client and process the response
-				await foreach (var response in chatClient.GetStreamingResponseAsync(Messages))
-				{
-					// Append the bot's streaming response
-					streamingText += response.Text ?? "";
-					StateHasChanged();
+				// Use AgentManager to handle the request
+				var agentResponse = await agentManager.HandleRequestAsync(input);
 
-					// Scroll to the bottom of the chat
-					await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
-				}
-
+				// Add the agent's response to the chat
+				Messages.Add(new ChatMessage(ChatRole.Assistant, agentResponse));
 				IsBotTyping = false;
-
-				// Add the bot's final response to the chat
-				Messages.Add(new ChatMessage(ChatRole.Assistant, streamingText));
-				streamingText = string.Empty;
-
 				StateHasChanged();
 
 				// Scroll to the bottom of the chat

@@ -202,4 +202,131 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			public bool IsStreamComplete => Usage is not null;
 		}
 	}
+
+	public class AgentManager
+	{
+		private readonly List<IAgent> agents;
+
+		public AgentManager(IEnumerable<IAgent> agents)
+		{
+			this.agents = agents.ToList();
+		}
+
+		public async Task<string> HandleRequestAsync(string request)
+		{
+			var requestParserAgent = agents.OfType<RequestParserAgent>().FirstOrDefault();
+			if (requestParserAgent == null)
+			{
+				throw new InvalidOperationException("RequestParserAgent not found.");
+			}
+
+			var tasks = await requestParserAgent.ParseRequestAsync(request);
+			var results = new List<string>();
+
+			foreach (var task in tasks)
+			{
+				var agent = agents.FirstOrDefault(a => a.CanHandleTask(task));
+				if (agent != null)
+				{
+					results.Add(await agent.HandleTaskAsync(task));
+				}
+			}
+
+			var resultAggregatorAgent = agents.OfType<ResultAggregatorAgent>().FirstOrDefault();
+			if (resultAggregatorAgent == null)
+			{
+				throw new InvalidOperationException("ResultAggregatorAgent not found.");
+			}
+
+			return await resultAggregatorAgent.AggregateResultsAsync(results);
+		}
+	}
+
+	public interface IAgent
+	{
+		bool CanHandleTask(string task);
+		Task<string> HandleTaskAsync(string task);
+	}
+
+	public class DatabaseQueryAgent : IAgent
+	{
+		public bool CanHandleTask(string task)
+		{
+			return task.StartsWith("query database");
+		}
+
+		public async Task<string> HandleTaskAsync(string task)
+		{
+			// Implement database query logic here
+			return "Database query result";
+		}
+	}
+
+	public class PortfolioOptimizationAgent : IAgent
+	{
+		public bool CanHandleTask(string task)
+		{
+			return task.StartsWith("optimize portfolio");
+		}
+
+		public async Task<string> HandleTaskAsync(string task)
+		{
+			// Implement portfolio optimization logic here
+			return "Portfolio optimization result";
+		}
+	}
+
+	public class BingQueryAgent : IAgent
+	{
+		public bool CanHandleTask(string task)
+		{
+			return task.StartsWith("query bing");
+		}
+
+		public async Task<string> HandleTaskAsync(string task)
+		{
+			// Implement Bing API query logic here
+			return "Bing query result";
+		}
+	}
+
+	public class ResultAggregatorAgent : IAgent
+	{
+		public bool CanHandleTask(string task)
+		{
+			return task.StartsWith("aggregate results");
+		}
+
+		public async Task<string> HandleTaskAsync(string task)
+		{
+			// Implement result aggregation logic here
+			return "Aggregated results";
+		}
+
+		public async Task<string> AggregateResultsAsync(IEnumerable<string> results)
+		{
+			// Implement result aggregation logic here
+			return string.Join(", ", results);
+		}
+	}
+
+	public class RequestParserAgent : IAgent
+	{
+		public bool CanHandleTask(string task)
+		{
+			return task.StartsWith("parse request");
+		}
+
+		public async Task<string> HandleTaskAsync(string task)
+		{
+			// Implement request parsing logic here
+			return "Parsed request";
+		}
+
+		public async Task<IEnumerable<string>> ParseRequestAsync(string request)
+		{
+			// Implement request parsing logic here
+			return new List<string> { "task1", "task2" };
+		}
+	}
 }
