@@ -26,7 +26,7 @@ internal class Program
 		var parameters = new ModelParams(modelPath)
 		{
 			ContextSize = 4096,
-			GpuLayerCount = 5 // How many layers to offload to GPU. Please adjust it according to your GPU memory.
+			GpuLayerCount = 30 // How many layers to offload to GPU. Please adjust it according to your GPU memory.
 		};
 		using var model = LLamaWeights.LoadFromFile(parameters);
 		using var context = model.CreateContext(parameters);
