@@ -10,6 +10,6 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 		bool InitialAgent { get; }
 		object? Description { get; }
 
-		public Task<ChatCompletionAgent> Initialize(Kernel kernel);
+		public Task<Agent> Initialize(Kernel kernel);
 	}
 }

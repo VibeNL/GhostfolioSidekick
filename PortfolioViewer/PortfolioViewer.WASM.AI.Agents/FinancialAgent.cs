@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 
 		public object? Description => "the financial expert";
 
-		public async Task<ChatCompletionAgent> Initialize(Kernel kernel)
+		public async Task<Agent> Initialize(Kernel kernel)
 		{
 			var chatCompletionAgent = new ChatCompletionAgent
 			{

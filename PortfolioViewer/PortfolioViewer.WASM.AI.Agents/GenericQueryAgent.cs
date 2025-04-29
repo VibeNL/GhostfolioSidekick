@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
@@ -18,12 +19,10 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 
 		public object? Description => "Can query the portfolio and market data";
 
-		public async Task<ChatCompletionAgent> Initialize(Kernel kernel)
+		public async Task<Agent> Initialize(Kernel kernel)
 		{
 			var schemaInfo = await GetSchemaSummaryAsync().ConfigureAwait(false);
 
-			var copyKernel = kernel.Clone();
-			
 			var chatCompletionAgent = new ChatCompletionAgent
 			{
 				Instructions = $"""
@@ -36,10 +35,44 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 								- Format the SQL query as a single statement per line.
 								""",
 				Name = name,
-				Kernel = copyKernel
+				Kernel = kernel
 			};
 
+			var wrapperAgent = new WrapperAgent(chatCompletionAgent);
+
 			return chatCompletionAgent;
+		}
+
+		private async Task<string> ExeuteQuery(string sqlStatement)
+		{
+			// Split per line
+			var sqlLines = sqlStatement.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
+				.Select(line => line.Trim())
+				.Where(line => !string.IsNullOrWhiteSpace(line))
+				.ToList();
+
+			try
+			{
+				StringBuilder stringBuilder = new StringBuilder();
+				foreach (var line in sqlLines)
+				{
+					var result = await db.SqlQueryRaw<string>(line).ToListAsync();
+					if (result == null || !result.Any())
+					{
+						logger.LogWarning("SQL query returned no results.");
+						return "No results found.";
+					}
+
+					stringBuilder.AppendLine(JsonSerializer.Serialize(result));
+				}
+
+				return stringBuilder.ToString();
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "SQL query execution failed.");
+				return $"Query failed: {ex.Message}";
+			}
 		}
 
 		private async Task<string> GetSchemaSummaryAsync()
@@ -90,6 +123,37 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 		{
 			public string Name { get; set; }
 			public string Type { get; set; }
+		}
+
+		private class WrapperAgent(Agent inner) : Agent
+		{
+			public override IAsyncEnumerable<AgentResponseItem<ChatMessageContent>> InvokeAsync(ICollection<ChatMessageContent> messages, AgentThread? thread = null, AgentInvokeOptions? options = null, CancellationToken cancellationToken = default)
+			{
+				return inner.InvokeAsync(messages, thread, options, cancellationToken);
+			}
+
+			public override IAsyncEnumerable<AgentResponseItem<StreamingChatMessageContent>> InvokeStreamingAsync(ICollection<ChatMessageContent> messages, AgentThread? thread = null, AgentInvokeOptions? options = null, CancellationToken cancellationToken = default)
+			{
+				return inner.InvokeStreamingAsync(messages, thread, options, cancellationToken);
+			}
+
+#pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+			protected override async Task<AgentChannel> CreateChannelAsync(CancellationToken cancellationToken)
+
+			{
+				throw new NotImplementedException();
+			}
+
+			protected override IEnumerable<string> GetChannelKeys()
+			{
+				throw new NotImplementedException();
+			}
+
+			protected override Task<AgentChannel> RestoreChannelAsync(string channelState, CancellationToken cancellationToken)
+			{
+				throw new NotImplementedException();
+			}
+#pragma warning restore SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 		}
 	}
 }
