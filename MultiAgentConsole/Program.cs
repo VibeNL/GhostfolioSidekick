@@ -10,6 +10,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.Chat;
 using AuthorRole = Microsoft.SemanticKernel.ChatCompletion.AuthorRole;
+using LLama.Native;
 
 
 internal class Program
@@ -25,16 +26,22 @@ internal class Program
 		// Set up LLamaSharp parameters
 		var parameters = new ModelParams(modelPath)
 		{
-			ContextSize = 8192,
-			GpuLayerCount = 30 // How many layers to offload to GPU. Please adjust it according to your GPU memory.
+			ContextSize = 4096,
+			GpuLayerCount = 30, // How many layers to offload to GPU. Please adjust it according to your GPU memory.
 		};
+
+		NativeLogConfig.llama_log_set((level, message) =>
+		{
+			
+		});
+
 		using var model = LLamaWeights.LoadFromFile(parameters);
 		using var context = model.CreateContext(parameters);
-		//var executor = new InteractiveExecutor(context);
+		var executor = new InteractiveExecutor(context);
 		//var executor = new StatelessExecutor(model, parameters);
 
 		// Register the LLamaSharpTextCompletion manually
-		builder.Services.AddTransient<IChatCompletionService>(_ => new LLamaSharpChatCompletion(new InteractiveExecutor(context)));
+		builder.Services.AddTransient<IChatCompletionService>(_ => new LLamaSharpChatCompletion(new StatelessExecutor(model, parameters)));
 
 		var kernel = builder.Build();
 
