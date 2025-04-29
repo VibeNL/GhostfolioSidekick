@@ -25,15 +25,16 @@ internal class Program
 		// Set up LLamaSharp parameters
 		var parameters = new ModelParams(modelPath)
 		{
-			ContextSize = 4096,
+			ContextSize = 8192,
 			GpuLayerCount = 30 // How many layers to offload to GPU. Please adjust it according to your GPU memory.
 		};
 		using var model = LLamaWeights.LoadFromFile(parameters);
 		using var context = model.CreateContext(parameters);
-		var executor = new InteractiveExecutor(context);
+		//var executor = new InteractiveExecutor(context);
+		//var executor = new StatelessExecutor(model, parameters);
 
 		// Register the LLamaSharpTextCompletion manually
-		builder.Services.AddSingleton<IChatCompletionService>(new LLamaSharpChatCompletion(executor));
+		builder.Services.AddTransient<IChatCompletionService>(_ => new LLamaSharpChatCompletion(new InteractiveExecutor(context)));
 
 		var kernel = builder.Build();
 
@@ -59,7 +60,7 @@ internal class Program
 				   new()
 				   {
 					   Instructions = ProgamManager,
-					   Name = "ProgaramManagerAgent",
+					   Name = "ProgramManagerAgent",
 					   Kernel = kernel
 				   };
 
@@ -90,13 +91,13 @@ internal class Program
 							new ApprovalTerminationStrategy()
 							{
 								Agents = [ProjectManagerAgent],
-								MaximumIterations = 6,
+								MaximumIterations = 20,
 							}
 					}
 			};
 
 		// === INTERACTIVE LOOP ===
-		Console.WriteLine("👋 Welcome to the Multi-Agent Chat! Type 'exit' to quit.");
+		/*Console.WriteLine("👋 Welcome to the Multi-Agent Chat! Type 'exit' to quit.");
 
 		while (true)
 		{
@@ -110,6 +111,41 @@ internal class Program
 			{
 				Console.WriteLine($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
 			}
+		}*/
+
+		string input = """
+        
+        I want to develop calculator app.
+        Keep it very simple. And get final approval from ProjectManagerAgent on the code.
+        Do not ask the user for any input.
+        """;
+
+		chat.AddChatMessage(new ChatMessageContent(AuthorRole.User, input));
+		Console.WriteLine($"# {AuthorRole.User}: '{input}'");
+
+		await foreach (var content in chat.InvokeAsync())
+		{ 
+			// Set color based on the author name
+			switch (content.AuthorName)
+			{
+				case "ProgramManagerAgent":
+					Console.ForegroundColor = ConsoleColor.Cyan;
+					break;
+				case "SoftwareEngineerAgent":
+					Console.ForegroundColor = ConsoleColor.Green;
+					break;
+				case "ProjectManagerAgent":
+					Console.ForegroundColor = ConsoleColor.Yellow;
+					break;
+				default:
+					Console.ForegroundColor = ConsoleColor.White; // Default color for unknown authors
+					break;
+			}
+
+			Console.WriteLine($"# {content.Role} - {content.AuthorName ?? "*"}: '{content.Content}'");
+
+			// Reset the console color to default
+			Console.ResetColor();
 		}
 	}
 
