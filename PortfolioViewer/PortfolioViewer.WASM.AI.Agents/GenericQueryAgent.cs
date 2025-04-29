@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 {
@@ -17,7 +18,7 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 
 		public bool InitialAgent => false;
 
-		public object? Description => "Can query the portfolio and market data";
+		public string Description => "Can query the portfolio and market data";
 
 		public async Task<Agent> Initialize(Kernel kernel)
 		{
@@ -29,21 +30,70 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 								Schema:
 								{schemaInfo}
 								
-								Generate a SQL query to answer the question. Ensure the following:
-								- Provide only the SQL query as the output.
-								- Do not include any explanations, comments, or additional text.
-								- Format the SQL query as a single statement per line.
+								You are a SQL generator. Given a question, your task is to output **only one valid SQL statement**, and nothing else.
+								You will be provided with a schema of the database, and you must use it to generate the SQL statement.
+
+								You must follow these rules exactly:
+								- Output a single SQL statement only.
+								- Do not include comments, explanations, or any natural language.
+								- Do not prepend or append labels like 'Answer:' or 'Explanation:'.
+								- Do not use code blocks, markdown, or quotes.
+								- Do not repeat the query.
 								""",
 				Name = name,
 				Kernel = kernel
 			};
 
-			var wrapperAgent = new WrapperAgent(chatCompletionAgent);
-
 			return chatCompletionAgent;
 		}
 
-		private async Task<string> ExeuteQuery(string sqlStatement)
+		public async Task<bool> PostProcess(ChatHistory history)
+		{
+			if (history.Count == 0)
+			{
+				return false;
+			}
+
+			var lastMessage = history[history.Count - 1];
+#pragma warning disable SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+			if (lastMessage is not ChatMessageContent chatMessage || chatMessage.AuthorName != this.Name)
+			{
+				return false;
+			}
+#pragma warning restore SKEXP0001 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+			var sqlStatement = chatMessage.Content;
+			if (string.IsNullOrWhiteSpace(sqlStatement))
+			{
+				return false;
+			}
+
+			// Execute the SQL statement
+			var result = await ExecuteQuery(CleanModelOutput(sqlStatement));
+
+			if (!string.IsNullOrWhiteSpace(result))
+			{
+				history.AddAssistantMessage($"Results from {Name}: {result}");
+			}
+			else
+			{
+				history.AddAssistantMessage($"Results from {Name}: No results found.");
+			}
+
+			return false;
+		}
+
+		string CleanModelOutput(string raw)
+		{
+			var firstLine = raw
+				.Split('\n')
+				.FirstOrDefault(l => l.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase) ||
+									 l.TrimStart().StartsWith("WITH", StringComparison.OrdinalIgnoreCase));
+
+			return firstLine?.TrimEnd(';') + ";";
+		}
+
+		private async Task<string> ExecuteQuery(string sqlStatement)
 		{
 			// Split per line
 			var sqlLines = sqlStatement.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
@@ -56,14 +106,14 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 				StringBuilder stringBuilder = new StringBuilder();
 				foreach (var line in sqlLines)
 				{
-					var result = await db.SqlQueryRaw<string>(line).ToListAsync();
+					var result = await ExecuteQueryInternal(line);
 					if (result == null || !result.Any())
 					{
 						logger.LogWarning("SQL query returned no results.");
 						return "No results found.";
 					}
 
-					stringBuilder.AppendLine(JsonSerializer.Serialize(result));
+					stringBuilder.AppendLine(result);
 				}
 
 				return stringBuilder.ToString();
@@ -75,11 +125,70 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 			}
 		}
 
+		private async Task<string> ExecuteQueryInternal(string sqlStatement)
+		{
+			// Split per line and clean up the SQL statement
+			var sqlLines = sqlStatement.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
+				.Select(line => line.Trim())
+				.Where(line => !string.IsNullOrWhiteSpace(line))
+				.ToList();
+
+			try
+			{
+				StringBuilder stringBuilder = new StringBuilder();
+
+				foreach (var line in sqlLines)
+				{
+					var dynamicResults = await db.ExecuteDynamicQuery(line);
+
+					if (dynamicResults == null || !dynamicResults.Any())
+					{
+						logger.LogWarning("SQL query returned no results.");
+						stringBuilder.AppendLine("No results found.");
+					}
+					else
+					{
+						// Convert the dynamic result to a more readable format (e.g., JSON or CSV)
+						stringBuilder.AppendLine($"Results from the query:");
+						stringBuilder.AppendLine(FormatResultsAsTable(dynamicResults));
+					}
+				}
+
+				return stringBuilder.ToString();
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "SQL query execution failed.");
+				return $"Query failed: {ex.Message}";
+			}
+		}
+
+		private string FormatResultsAsTable(List<Dictionary<string, object>> results)
+		{
+			StringBuilder tableBuilder = new StringBuilder();
+
+			// Print headers
+			var headers = results.FirstOrDefault()?.Keys.ToList();
+			if (headers != null && headers.Any())
+			{
+				tableBuilder.AppendLine(string.Join(" | ", headers));
+				tableBuilder.AppendLine(new string('-', headers.Count * 12)); // Simple separator line
+			}
+
+			// Print each row
+			foreach (var row in results)
+			{
+				var rowValues = row.Values.Select(val => val?.ToString() ?? "NULL").ToList();
+				tableBuilder.AppendLine(string.Join(" | ", rowValues));
+			}
+
+			return tableBuilder.ToString();
+		}
+
 		private async Task<string> GetSchemaSummaryAsync()
 		{
 			try
 			{
-				// Retrieve all table names
 				var tableNames = await db.SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'").ToListAsync();
 				if (tableNames == null || !tableNames.Any())
 				{
@@ -90,26 +199,24 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 
 				foreach (var tableName in tableNames)
 				{
-					schemaBuilder.AppendLine($"Table: {tableName}");
-
-					// Retrieve column information for the current table
 					var columns = await db.SqlQueryRaw<ColumnInfo>($"PRAGMA table_info({tableName})").ToListAsync();
 					if (columns != null && columns.Any())
 					{
-						foreach (var column in columns)
-						{
-							schemaBuilder.AppendLine($"  Column: {column.Name}, Type: {column.Type}");
-						}
+						schemaBuilder.AppendLine($"CREATE TABLE {tableName} (");
+
+						var columnDefinitions = columns.Select(col => $"    {col.Name} {col.Type}");
+						schemaBuilder.AppendLine(string.Join(",\n", columnDefinitions));
+
+						schemaBuilder.AppendLine(");");
+						schemaBuilder.AppendLine(); // Extra newline for readability
 					}
 					else
 					{
-						schemaBuilder.AppendLine("  No columns found.");
+						schemaBuilder.AppendLine($"-- No columns found for table {tableName}");
 					}
-
-					schemaBuilder.AppendLine(); // Add a blank line between tables
 				}
 
-				return schemaBuilder.ToString();
+				return schemaBuilder.ToString() + "\n" + await GetDiscriminatorSummaryAsync();
 			}
 			catch (Exception ex)
 			{
@@ -118,42 +225,51 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 			}
 		}
 
+		private async Task<string> GetDiscriminatorSummaryAsync()
+		{
+			try
+			{
+				var tableNames = await db.SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'").ToListAsync();
+				if (tableNames == null)
+				{
+					return string.Empty;
+				}
+
+				var summaryBuilder = new StringBuilder();
+
+				foreach (var tableName in tableNames)
+				{
+					var columns = await db.SqlQueryRaw<ColumnInfo>($"PRAGMA table_info({tableName})").ToListAsync();
+					if (columns.Any(c => c.Name.Equals("Discriminator", StringComparison.OrdinalIgnoreCase)))
+					{
+						var values = await db.SqlQueryRaw<string>($"SELECT DISTINCT Discriminator FROM {tableName}").ToListAsync();
+
+						if (values != null && values.Any())
+						{
+							summaryBuilder.AppendLine($"Note: The `{tableName}` table uses a discriminator column `Discriminator` with the following values:");
+							foreach (var value in values)
+							{
+								summaryBuilder.AppendLine($"- \"{value}\"");
+							}
+							summaryBuilder.AppendLine();
+						}
+					}
+				}
+
+				return summaryBuilder.ToString();
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to retrieve discriminator summary.");
+				return string.Empty;
+			}
+		}
+
 		// Helper class to map PRAGMA table_info results
 		public class ColumnInfo
 		{
 			public string Name { get; set; }
 			public string Type { get; set; }
-		}
-
-		private class WrapperAgent(Agent inner) : Agent
-		{
-			public override IAsyncEnumerable<AgentResponseItem<ChatMessageContent>> InvokeAsync(ICollection<ChatMessageContent> messages, AgentThread? thread = null, AgentInvokeOptions? options = null, CancellationToken cancellationToken = default)
-			{
-				return inner.InvokeAsync(messages, thread, options, cancellationToken);
-			}
-
-			public override IAsyncEnumerable<AgentResponseItem<StreamingChatMessageContent>> InvokeStreamingAsync(ICollection<ChatMessageContent> messages, AgentThread? thread = null, AgentInvokeOptions? options = null, CancellationToken cancellationToken = default)
-			{
-				return inner.InvokeStreamingAsync(messages, thread, options, cancellationToken);
-			}
-
-#pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-			protected override async Task<AgentChannel> CreateChannelAsync(CancellationToken cancellationToken)
-
-			{
-				throw new NotImplementedException();
-			}
-
-			protected override IEnumerable<string> GetChannelKeys()
-			{
-				throw new NotImplementedException();
-			}
-
-			protected override Task<AgentChannel> RestoreChannelAsync(string channelState, CancellationToken cancellationToken)
-			{
-				throw new NotImplementedException();
-			}
-#pragma warning restore SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 		}
 	}
 }

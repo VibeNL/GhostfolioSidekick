@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 	public class PortfolioAgentGroupChat(string name, IAgent[] agents, ILogger<PortfolioAgentGroupChat> logger)
 	{
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-		public async Task<AgentGroupChat> Initialize(Kernel kernel)
+		public async Task<CustomAgentGroupChat> Initialize(Kernel kernel)
 		{
 			// Use a List instead of an array to avoid unsafe array conversions
 			var chatAgents = new Dictionary<IAgent, Agent>();
@@ -34,7 +35,6 @@ string.Join(Environment.NewLine, agents.Select(x => $"- name: '{x.Name}' descrip
 $@"
 
 Rules:
-- Is an agent request to call another agent, Select the requested agent and ignore other rules.
 - Use the **description** to decide which agent is most suitable.
 - If a question relates to personal financial data, choose the portfolio query agent.
 - If it's about general finance or investments, choose the financial expert.
@@ -88,7 +88,7 @@ Conversation history:
 				  HistoryReducer = new ChatHistoryTruncationReducer(3),
 			  };
 
-			var chat = new AgentGroupChat(chatAgents.Values.ToArray())
+			var chat = new CustomAgentGroupChat(chatAgents) //new AgentGroupChat(chatAgents.Values.ToArray())
 			{
 				ExecutionSettings =
 					new()
@@ -100,7 +100,7 @@ Conversation history:
 								MaximumIterations = 20,
 							},
 						SelectionStrategy = selectionStrategy
-						
+
 					}
 			};
 
@@ -109,9 +109,98 @@ Conversation history:
 
 		private sealed class ApprovalTerminationStrategy : TerminationStrategy
 		{
+			private static readonly string[] sourceArray = new[] { "Done", "Finished" };
+
 			// Terminate when the final message contains the term "approve"
 			protected override Task<bool> ShouldAgentTerminateAsync(Agent agent, IReadOnlyList<ChatMessageContent> history, CancellationToken cancellationToken)
-				=> Task.FromResult(history[history.Count - 1].Content?.Contains("approve", StringComparison.OrdinalIgnoreCase) ?? false);
+			{
+				var lastMessage = history[history.Count - 1];
+				if (lastMessage == null) {
+					return Task.FromResult(false);
+				}
+
+				if (lastMessage.Content == null)
+				{
+					return Task.FromResult(false);
+				}
+
+                if (sourceArray.Any(term => lastMessage.Content.Contains(term, StringComparison.OrdinalIgnoreCase)))
+				{
+					return Task.FromResult(true);
+				}
+
+				return Task.FromResult(false);
+			}
+		}
+	}
+
+	public class CustomAgentGroupChat : AgentChat
+	{
+		public bool IsComplete { get; set; }
+
+		private Dictionary<IAgent, Agent> chatAgents;
+
+		public CustomAgentGroupChat(Dictionary<IAgent, Agent> chatAgents)
+		{
+			this.chatAgents = chatAgents;
+		}
+
+		public AgentGroupChatSettings ExecutionSettings { get; set; } = new AgentGroupChatSettings();
+
+		public override IReadOnlyList<Agent> Agents => chatAgents.Values.ToList();
+
+		public override async IAsyncEnumerable<ChatMessageContent> InvokeAsync(CancellationToken cancellationToken = default)
+		{
+			for (int index = 0; index < this.ExecutionSettings.TerminationStrategy.MaximumIterations; index++)
+			{
+				// Identify next agent using strategy
+				Agent agent = await this.SelectAgentAsync(cancellationToken).ConfigureAwait(false);
+
+				// Invoke agent and process messages along with termination
+				await foreach (var message in this.InvokeAsync(agent, cancellationToken).ConfigureAwait(false))
+				{
+					yield return message;
+				}
+
+				if (this.IsComplete)
+				{
+					break;
+				}
+			}
+		}
+
+		public async IAsyncEnumerable<ChatMessageContent> InvokeAsync(
+			Agent agent,
+			[EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			await foreach (ChatMessageContent message in base.InvokeAgentAsync(agent, cancellationToken).ConfigureAwait(false))
+			{
+				yield return message;
+			}
+
+			var iagent = this.chatAgents.FirstOrDefault(x => x.Value == agent).Key ?? throw new InvalidOperationException($"Agent {agent.Name} not found in the chat agents.");
+			await iagent.PostProcess(this.History);
+			this.IsComplete = await this.ExecutionSettings.TerminationStrategy.ShouldTerminateAsync(agent, this.History, cancellationToken).ConfigureAwait(false);
+		}
+
+		public override IAsyncEnumerable<StreamingChatMessageContent> InvokeStreamingAsync(CancellationToken cancellationToken = default)
+		{
+			throw new NotImplementedException();
+		}
+
+		private async Task<Agent> SelectAgentAsync(CancellationToken cancellationToken)
+		{
+			Agent agent;
+			try
+			{
+				agent = await this.ExecutionSettings.SelectionStrategy.NextAsync(this.Agents, this.History, cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception exception)
+			{
+				throw;
+			}
+
+			return agent;
 		}
 	}
 

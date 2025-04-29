@@ -1,5 +1,6 @@
 ﻿using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 {
@@ -8,8 +9,10 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 		bool CanTerminate { get; }
 		string Name { get; }
 		bool InitialAgent { get; }
-		object? Description { get; }
+		string Description { get; }
 
-		public Task<Agent> Initialize(Kernel kernel);
+		Task<Agent> Initialize(Kernel kernel);
+
+		Task<bool> PostProcess(ChatHistory history);
 	}
 }

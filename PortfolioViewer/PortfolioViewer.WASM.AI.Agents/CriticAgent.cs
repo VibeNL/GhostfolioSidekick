@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 {
@@ -17,7 +18,7 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 
 		public bool InitialAgent => false;
 
-		public object? Description => "Reviews and critiques other agent responses";
+		public string Description => "Reviews and critiques other agent responses";
 
 		public async Task<Agent> Initialize(Kernel kernel)
 		{
@@ -31,6 +32,11 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 			};
 
 			return chatCompletionAgent;
+		}
+
+		public Task<bool> PostProcess(ChatHistory history)
+		{
+			return Task.FromResult(false);
 		}
 	}
 }

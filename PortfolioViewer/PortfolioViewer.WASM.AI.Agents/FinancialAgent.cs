@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 {
@@ -16,27 +17,37 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 
 		public bool InitialAgent => true;
 
-		public object? Description => "the financial expert";
+		public string Description => "The financial expert who can summarize and explain results, and delegate data questions.";
 
 		public async Task<Agent> Initialize(Kernel kernel)
 		{
 			var chatCompletionAgent = new ChatCompletionAgent
 			{
 				Instructions = $"""
-								You are a financial expert specializing in stocks, bonds, and other financial instruments. 
-								You provide accurate, concise answers about financial markets, investment strategies, and personal finance.
+								You are a financial expert with deep knowledge in markets, personal finance, and investments.
 
-								If a question involves portfolio-specific data that you cannot answer directly, delegate the query to 
-								the agent named {nameof(GenericQueryAgent)} and wait for its response before continuing.
-								You must respond with only the exact name of the next agent to speak (e.g., {nameof(GenericQueryAgent)}), and nothing else. Do not include explanations, advice, or formatting.
-								
-								Only include the relevant answer or query—do not include any explanations, reasoning steps, or additional commentary.
-								""",
+				Behavior rules:
+				- You NEVER attempt to generate SQL.
+				- If a user question requires portfolio-specific or market data from the database, you MUST delegate to the agent "{nameof(GenericQueryAgent)}" by replying with only:
+				  {nameof(GenericQueryAgent)}
+
+				- Once you receive a result from {nameof(GenericQueryAgent)}, read the results and summarize the answer clearly in natural language.
+				- Use concise explanations with no repetition or SQL code.
+				- Do NOT include markdown formatting like code blocks or backticks.
+				- Do NOT include your thought process or justification unless explicitly asked.
+				- If you are done, you can say "Done" or "Finished" to indicate completion.
+				- Do not hallucinate or make up information. If you don't know the answer, say "I don't know" or "I can't help with that."
+				""",
 				Name = name,
 				Kernel = kernel
 			};
 
 			return chatCompletionAgent;
+		}
+
+		public Task<bool> PostProcess(ChatHistory history)
+		{
+			return Task.FromResult(false);
 		}
 	}
 }
