@@ -32,6 +32,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\PortfolioViewer\PortfolioViewer.WASM.AI.Agents\PortfolioViewer.WASM.AI.Agents.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Database\ghostfoliosidekick.db">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Models\Meta-Llama-3.1-8B-Instruct-Q5_K_M.gguf">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>

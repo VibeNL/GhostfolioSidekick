@@ -76,6 +76,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortfolioViewer.WASM.AI", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiAgentConsole", "MultiAgentConsole\MultiAgentConsole.csproj", "{5539EB75-BCC6-4B8F-AD3A-75394E94FE88}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortfolioViewer.WASM.AI.Agents", "PortfolioViewer\PortfolioViewer.WASM.AI.Agents\PortfolioViewer.WASM.AI.Agents.csproj", "{BC7A10DB-227F-4B85-AB7C-82C4B8E3F23A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -202,6 +204,10 @@ Global
 		{5539EB75-BCC6-4B8F-AD3A-75394E94FE88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5539EB75-BCC6-4B8F-AD3A-75394E94FE88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5539EB75-BCC6-4B8F-AD3A-75394E94FE88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC7A10DB-227F-4B85-AB7C-82C4B8E3F23A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC7A10DB-227F-4B85-AB7C-82C4B8E3F23A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC7A10DB-227F-4B85-AB7C-82C4B8E3F23A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC7A10DB-227F-4B85-AB7C-82C4B8E3F23A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -220,6 +226,7 @@ Global
 		{742FFC89-88B0-4C8E-A327-DCB1B646E534} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{E9AC436F-ED11-4057-BD64-1423E9850D43} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{5539EB75-BCC6-4B8F-AD3A-75394E94FE88} = {CB44F65D-99C0-4C38-B22C-78CA601159FA}
+		{BC7A10DB-227F-4B85-AB7C-82C4B8E3F23A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {919DDC85-9EE1-4F61-9504-CACAB4B3315C}
