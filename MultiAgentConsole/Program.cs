@@ -53,17 +53,17 @@ internal class Program
 
 		string SoftwareEngineer = """
    You are Software Engieer, and your goal is develop web app using HTML and JavaScript (JS) by taking into consideration all
-   the requirements given by Program Manager. 
+   the requirements given by Program Manager. Make sure the code is complete when answering
 """;
 
 		string Manager = """
     You are manager which will review software engineer code, and make sure all client requirements are completed.
-     Once all client requirements are completed, you can approve the request by just responding "approve"
+     Once all client requirements are completed, you can approve the request by just responding "approve".
 """;
 
 #pragma warning disable SKEXP0110, SKEXP0001 // Rethrow to preserve stack details
 
-		ChatCompletionAgent ProgaramManagerAgent =
+		ChatCompletionAgent ProgramManagerAgent =
 				   new()
 				   {
 					   Instructions = ProgamManager,
@@ -88,8 +88,62 @@ internal class Program
 				   };
 
 		// 4. Create the AgentGroupChat
+		
+		// Define a kernel function for the selection strategy
+		KernelFunction selectionFunction =
+			AgentGroupChat.CreatePromptFunctionForStrategy(
+				$$$"""
+        Determine which participant takes the next turn in a conversation based on the the most recent participant.
+        State only the name of the participant to take the next turn. Do not include any other text.
+        
+        Choose only from these participants:
+        - {{{ProjectManagerAgent.Name}}}
+        - {{{SoftwareEngineerAgent.Name}}}
+        - {{{ProgramManagerAgent.Name}}}
+
+        History:
+        {{$history}}
+        """,
+				safeParameterNames: "history");
+
+		// Define the selection strategy
+		KernelFunctionSelectionStrategy selectionStrategy =
+		  new(selectionFunction, kernel)
+		  {
+			  // Always start with the writer agent.
+			  InitialAgent = ProjectManagerAgent,
+			  // Parse the function response.
+			  ResultParser = (result) =>
+			  {
+				  var parsedResult = result.GetValue<string>();
+				  Console.WriteLine($"Selection Function Result: {parsedResult}");
+				  if (string.IsNullOrWhiteSpace(parsedResult))
+				  {
+					  Console.WriteLine("Selection function returned an invalid result. Falling back to ProgramManagerAgent.");
+					  return ProgramManagerAgent.Name;
+				  }
+
+				  // Check for the name of an agent. Take the first hit
+				  // and ignore the rest.
+				  foreach (var agent in new[] { ProjectManagerAgent, SoftwareEngineerAgent, ProgramManagerAgent })
+				  {
+					  if (parsedResult.Contains(agent.Name, StringComparison.OrdinalIgnoreCase))
+					  {
+						  Console.WriteLine($"Selection function returned: {agent.Name}");
+						  return agent.Name;
+					  }
+				  }
+
+				  return parsedResult;
+			  },
+			  // The prompt variable name for the history argument.
+			  HistoryVariableName = "history",
+			  // Save tokens by not including the entire history in the prompt
+			  HistoryReducer = new ChatHistoryTruncationReducer(3)
+		  };
+
 		AgentGroupChat chat =
-			new(ProgaramManagerAgent, SoftwareEngineerAgent, ProjectManagerAgent)
+			new(ProgramManagerAgent, SoftwareEngineerAgent, ProjectManagerAgent)
 			{
 				ExecutionSettings =
 					new()
@@ -99,9 +153,11 @@ internal class Program
 							{
 								Agents = [ProjectManagerAgent],
 								MaximumIterations = 20,
-							}
+							},
+						SelectionStrategy = selectionStrategy
 					}
 			};
+
 
 		// === INTERACTIVE LOOP ===
 		/*Console.WriteLine("👋 Welcome to the Multi-Agent Chat! Type 'exit' to quit.");
