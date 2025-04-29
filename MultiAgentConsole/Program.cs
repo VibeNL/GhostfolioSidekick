@@ -33,7 +33,12 @@ internal class Program
 
 		// Create the Kernel builder
 		var builder = Kernel.CreateBuilder();
-		
+		builder.Services.AddLogging(configure => configure.AddConsole());
+		builder.Services.AddDbContext<DatabaseContext>(options =>
+		{
+			options.UseSqlite("Data Source=database/ghostfoliosidekick.db;Pooling=true;Cache=Shared");
+		});
+
 		// Load the model
 		string modelPath = Path.Combine("Models", "Meta-Llama-3.1-8B-Instruct-Q5_K_M.gguf");
 
@@ -46,17 +51,15 @@ internal class Program
 
 		NativeLogConfig.llama_log_set((level, message) =>
 		{
-			
+			// Do not log
 		});
 
 		using var model = await LLamaWeights.LoadFromFileAsync(parameters);
 		using var context = model.CreateContext(parameters);
-		var executor = new InteractiveExecutor(context);
-		//var executor = new StatelessExecutor(model, parameters);
 
 		// Register the LLamaSharpTextCompletion manually
 		builder.Services.AddTransient<IChatCompletionService>(_ => new LLamaSharpChatCompletion(new StatelessExecutor(model, parameters)));
-
+		
 		var kernel = builder.Build();
 
 		var agent1 = new FinancialAgent("FinancialAgent", app.Services.GetRequiredService<ILogger<FinancialAgent>>());

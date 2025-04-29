@@ -21,6 +21,9 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 		public async Task<ChatCompletionAgent> Initialize(Kernel kernel)
 		{
 			var schemaInfo = await GetSchemaSummaryAsync().ConfigureAwait(false);
+
+			var copyKernel = kernel.Clone();
+			
 			var chatCompletionAgent = new ChatCompletionAgent
 			{
 				Instructions = $"""
@@ -33,7 +36,7 @@ namespace GhostfolioSidekick.Tools.PortfolioViewer.WASM.AI.Agents
 								- Format the SQL query as a single statement per line.
 								""",
 				Name = name,
-				Kernel = kernel
+				Kernel = copyKernel
 			};
 
 			return chatCompletionAgent;
