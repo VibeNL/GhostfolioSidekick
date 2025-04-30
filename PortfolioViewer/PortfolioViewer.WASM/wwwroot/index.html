@@ -14,6 +14,9 @@
     <link href="manifest.webmanifest" rel="manifest" />
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    </script>
 </head>
 
 <body>
@@ -37,12 +40,6 @@
     <script>navigator.serviceWorker.register('service-worker.js');</script>
     <script src="_content/Bit.Besql/bit-besql.js"></script>
     <script src="js/site.js"></script>
-
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-
-        mermaid.initialize({ startOnLoad: true });
-    </script>
 
 </body>
 
