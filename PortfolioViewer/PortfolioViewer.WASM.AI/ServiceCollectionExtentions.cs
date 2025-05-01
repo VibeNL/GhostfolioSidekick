@@ -13,11 +13,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 	{
 		public static void AddWebChatClient(this IServiceCollection services)
 		{
-			//services.AddTransient<IWebChatClient>((s) => new DummyChatClient());
-			
+			// Register multiple WebLLMChatClient instances with different agent identifiers
 			services.AddTransient<IWebChatClient>((s) => new WebLLMChatClient(
 				s.GetRequiredService<IJSRuntime>(),
-				"Phi-3-mini-4k-instruct-q4f16_1-MLC"));
+				"Phi-3-mini-4k-instruct-q4f16_1-MLC",
+				"agent1"));
+
+			services.AddTransient<IWebChatClient>((s) => new WebLLMChatClient(
+				s.GetRequiredService<IJSRuntime>(),
+				"Phi-3-mini-4k-instruct-q4f16_1-MLC",
+				"agent2"));
+
+			services.AddTransient<IWebChatClient>((s) => new WebLLMChatClient(
+				s.GetRequiredService<IJSRuntime>(),
+				"Phi-3-mini-4k-instruct-q4f16_1-MLC",
+				"agent3"));
 		}
 	}
 }

@@ -18,6 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private List<ChatMessage> Messages = [];
 
 		private IWebChatClient chatClient;
+		private string selectedAgent = "agent1"; // Default agent
 
 		private Progress<InitializeProgress> progress = new();
 		private string streamingText = "";
@@ -75,7 +76,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			var input = CurrentMessage;
 
 			// Add the user's message to the chat
-			Messages.Add(new ChatMessage(ChatRole.User, input));
+			Messages.Add(new ChatMessage(ChatRole.User, input, selectedAgent));
 			CurrentMessage = ""; // Clear the input field
 			IsBotTyping = true; // Indicate that the bot is typing
 			StateHasChanged(); // Update the UI
@@ -96,7 +97,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 				IsBotTyping = false;
 
 				// Add the bot's final response to the chat
-				Messages.Add(new ChatMessage(ChatRole.Assistant, streamingText));
+				Messages.Add(new ChatMessage(ChatRole.Assistant, streamingText, selectedAgent));
 				streamingText = string.Empty;
 
 				StateHasChanged();
@@ -108,6 +109,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			{
 				Console.WriteLine($"Error during streaming: {ex.Message}");
 			}
+		}
+
+		private void SwitchAgent(ChangeEventArgs e)
+		{
+			selectedAgent = e.Value?.ToString() ?? "agent1";
+			// Logic to switch the agent
+			// This could involve updating the chat client or other relevant logic
 		}
 
 		private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();

@@ -24,7 +24,10 @@
 				"ms-dotnettools.csdevkit"
 			]
 		}
-	}
+  },
+  "tasks": {
+    "build": "dotnet build"
+  }
 
 	// Configure tool-specific properties.
 	// "customizations": {},

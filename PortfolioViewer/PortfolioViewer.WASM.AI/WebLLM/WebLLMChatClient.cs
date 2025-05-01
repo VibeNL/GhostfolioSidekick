@@ -12,6 +12,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 	{
 		private readonly IJSRuntime jsRuntime;
 		private readonly string modelId;
+		private readonly string agentId;
 		private InteropInstance? interopInstance = null;
 
 		public ChatClientMetadata Metadata { get; }
@@ -19,10 +20,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private IJSObjectReference? module = null;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
-		public WebLLMChatClient(IJSRuntime jsRuntime, string modelId)
+		public WebLLMChatClient(IJSRuntime jsRuntime, string modelId, string agentId)
 		{
 			this.jsRuntime = jsRuntime;
 			this.modelId = modelId;
+			this.agentId = agentId;
 			Metadata = new(nameof(WebLLMChatClient), defaultModelId: modelId);
 		}
 
@@ -91,7 +93,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		{
 			// Call the `initialize` function in the JavaScript module
 			interopInstance = new(OnProgress);
-			await (await GetModule()).InvokeVoidAsync("initializeWebLLM", modelId, DotNetObjectReference.Create(interopInstance));
+			await (await GetModule()).InvokeVoidAsync("initializeWebLLM", modelId, agentId, DotNetObjectReference.Create(interopInstance));
 		}
 
 		public static async Task<IJSObjectReference> LoadJsModuleAsync(IJSRuntime jsRuntime, string path)

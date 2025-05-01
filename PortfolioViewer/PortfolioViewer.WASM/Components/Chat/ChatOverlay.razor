@@ -20,6 +20,15 @@
 				<button @onclick="ToggleChat" style="background: none; border: none; font-size: 24px; color: white; cursor: pointer;">×</button>
 			</div>
 
+			<!-- Agent Selection -->
+			<div style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+				<select @onchange="SwitchAgent" style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;">
+					<option value="agent1">Agent 1</option>
+					<option value="agent2">Agent 2</option>
+					<option value="agent3">Agent 3</option>
+				</select>
+			</div>
+
 			@if (lastProgress?.Progress != 1)
 			{
 				<!-- Loading Indicator -->
@@ -50,6 +59,10 @@
 					{
 						<div style="@GetBubbleStyle(msg.Role == Microsoft.Extensions.AI.ChatRole.User)">
 							@((MarkupString)Markdown.ToHtml(msg.Text, pipeline))
+							@if (msg.Role == Microsoft.Extensions.AI.ChatRole.Assistant)
+							{
+								<span style="font-size: 12px; color: #888;">(Agent: @msg.AgentId)</span>
+							}
 						</div>
 					}
 
@@ -96,4 +109,14 @@
 	(isUser
 	? "background-color: #dbeafe; align-self: flex-end;"
 	: "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
+
+	private void SwitchAgent(ChangeEventArgs e)
+	{
+		var selectedAgent = e.Value?.ToString();
+		if (!string.IsNullOrEmpty(selectedAgent))
+		{
+			// Logic to switch the agent
+			// This could involve updating the chat client or other relevant logic
+		}
+	}
 }
