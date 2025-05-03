@@ -18,6 +18,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		private IJSObjectReference? module = null;
 
+		private List<ChatMessage> chatHistory = new();
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 		public WebLLMChatClient(IJSRuntime jsRuntime, string modelId)
 		{
@@ -44,8 +46,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				throw new NotSupportedException();
 			}
 
+			// Add the new messages to the chat history
+			chatHistory.AddRange(chatMessages);
+
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", interopInstance.ConvertMessage(chatMessages)));
+			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", interopInstance.ConvertMessage(chatHistory)));
 
 			while (true)
 			{

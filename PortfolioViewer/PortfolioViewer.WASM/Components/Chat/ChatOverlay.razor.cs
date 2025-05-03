@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private bool IsBotTyping = false;
 		private bool IsInitialized = false; // Flag to track initialization
 
-		private List<ChatMessage> Messages = [];
+		private List<ChatMessage> Messages = new();
 
 		private IWebChatClient chatClient;
 
