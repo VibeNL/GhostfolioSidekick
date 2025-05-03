@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Home</PageTitle>
 
@@ -20,3 +21,41 @@
 </div>
 
 <button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">Start Sync</button>
+
+<div>
+	<pre class="mermaid">
+		graph LR
+		A --- B
+		B-->C[fa:fa-ban forbidden]
+		B-->D(fa:fa-spinner);
+	</pre>
+</div>
+
+<div class="mermaid">
+	journey
+	title My working day
+	section Go to work
+	Make tea: 5: Me
+	Go upstairs: 3: Me
+	Do work: 1: Me, Cat
+	section Go home
+	Go downstairs: 5: Me
+	Sit down: 5: Me
+</div>
+
+@code {
+	IJSObjectReference mermaidmodule;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			mermaidmodule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/mermaidmodule.js");
+			await mermaidmodule.InvokeVoidAsync("Initialize");
+			await mermaidmodule.InvokeVoidAsync("Render", "mermaid");
+		}
+		else
+		{
+			await mermaidmodule.InvokeVoidAsync("Render", "mermaid");
+		}
+	}
+}
