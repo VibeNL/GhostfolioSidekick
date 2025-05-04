@@ -41,26 +41,6 @@
 		<ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Content Update="wwwroot\js\dist\webllm.interop.js">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Update="wwwroot\js\dist\webllm.types.js">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <TypeScriptCompile Update="wwwroot\js\dist\webllm.interop.ts">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </TypeScriptCompile>
-	  <TypeScriptCompile Update="wwwroot\js\dist\webllm.types.ts">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </TypeScriptCompile>
-	</ItemGroup>
-
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">
 		<ItemGroup>
 			<UnavailableRuntimePack Remove="Microsoft.AspNetCore.App" />

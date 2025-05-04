@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@mlc-ai/web-llm": "^0.2.78",
+    "multi-agent-orchestrator": "^0.1.6"
+  }
+}

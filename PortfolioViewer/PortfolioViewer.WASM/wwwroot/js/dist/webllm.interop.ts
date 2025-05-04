@@ -1,4 +1,5 @@
-import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+import * as webllm from "@mlc-ai/web-llm";
+import { Agent, AgentResponse } from 'multi-agent-orchestrator';
 
 // Define types for the module
 export interface DotNetInstance {
