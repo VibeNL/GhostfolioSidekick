@@ -1,4 +1,5 @@
 @using Markdig
+@using Microsoft.Extensions.AI
 <!-- Floating Chat Button -->
 <div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
 	<button id="chat-button" @onclick="ToggleChat"
@@ -46,10 +47,10 @@
 			{
 				<!-- Messages -->
 				<div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
-					@foreach (var msg in Messages)
+					@foreach (var msg in context.Memory)
 					{
-						<div style="@GetBubbleStyle(msg.Role == Microsoft.Extensions.AI.ChatRole.User)">
-							@((MarkupString)Markdown.ToHtml(msg.Text, pipeline))
+						<div style="@GetBubbleStyle(msg)">
+							@(msg.AuthorName): @((MarkupString)Markdown.ToHtml(msg.Text, pipeline))
 						</div>
 					}
 
@@ -63,7 +64,7 @@
 					}
 					@if (IsBotTyping && !string.IsNullOrWhiteSpace(streamingText))
 					{
-						<div style="@GetBubbleStyle(false)">
+						<div style="@GetBubbleStyle(null)">
 							@((MarkupString)Markdown.ToHtml(streamingText, pipeline))
 						</div>
 					}
@@ -91,9 +92,27 @@
 
 @code
 {
-	private string GetBubbleStyle(bool isUser) =>
-	$"max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); " +
-	(isUser
-	? "background-color: #dbeafe; align-self: flex-end;"
-	: "background-color: white; border: 1px solid #e5e7eb; align-self: flex-start;");
+	private string GetBubbleStyle(ChatMessage? message)
+	{
+		const string baseStyle = "max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); ";
+
+		if (message?.Role == ChatRole.User)
+		{
+			return baseStyle + "background-color: #dbeafe; align-self: flex-end;";
+		}
+		else if (message?.Role == ChatRole.Assistant)
+		{
+			return baseStyle + "background-color: #e0f7fa; align-self: flex-start; border: 1px solid #b2ebf2;";
+		}
+		else if (message?.Role == ChatRole.System)
+		{
+			return baseStyle + "background-color: #f3e5f5; align-self: center; font-style: italic;";
+		}
+		else
+		{
+			return baseStyle + "background-color: #ffffff; border: 1px solid #e5e7eb; align-self: flex-start;";
+		}
+	}
+
+
 }
