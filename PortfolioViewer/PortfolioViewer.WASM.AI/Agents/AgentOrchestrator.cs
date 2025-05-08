@@ -23,7 +23,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 						User message: ""Can you give me a quick summary of my portfolio and tell me if the market is going up or down?""
 
-						Respond with a JSON list of agent names that should be activated.
+						Respond with a JSON list of agent names that should be activated. e.g. [""{_agents[0].Name}""]
+						Only respond with the JSON list of agent names, nothing else. Do not include any other text or explanation.
 						";
 
 			var llmResponse = await chatClient.GetResponseAsync(prompt + input.Last());
