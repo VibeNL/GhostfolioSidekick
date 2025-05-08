@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
 using static System.Net.Mime.MediaTypeNames;
@@ -31,7 +32,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			ChatOptions? options = null,
 			CancellationToken cancellationToken = default)
 		{
-			throw new NotSupportedException("Use GetStreamingResponseAsync instead.");
+			// Call GetStreamingResponseAsync
+			var msg = new StringBuilder();
+			await foreach (var response in GetStreamingResponseAsync(chatMessages, options, cancellationToken))
+			{
+				msg.Append(response.Text);
+			}
+
+			// If no response was received, return an empty response
+			return new ChatResponse(new ChatMessage(ChatRole.Assistant, msg.ToString()));
 		}
 
 		public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(

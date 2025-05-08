@@ -10,6 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 	public interface IAgent
 	{
 		string Name { get; }
+		object Description { get; }
 
 		IAsyncEnumerable<ChatResponseUpdate> RespondAsync(IEnumerable<ChatMessage> messages, AgentContext context);
 	}
