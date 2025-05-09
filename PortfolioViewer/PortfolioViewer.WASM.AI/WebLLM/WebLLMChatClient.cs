@@ -18,6 +18,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		private IJSObjectReference? module = null;
 
+		public double Temperature { get; set; } = 0;
+		public int Seed { get; set; } = 42;
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 		public WebLLMChatClient(IJSRuntime jsRuntime, string modelId)
 		{
@@ -45,7 +48,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			}
 
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", interopInstance.ConvertMessage(chatMessages)));
+			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", interopInstance.ConvertMessage(chatMessages), Temperature, Seed));
 
 			while (true)
 			{
