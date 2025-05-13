@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 				@"<think>.*?</think>",
 				string.Empty,
 				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase
-			);
+			, TimeSpan.FromMinutes(1));
 
 			return text;
 		}
