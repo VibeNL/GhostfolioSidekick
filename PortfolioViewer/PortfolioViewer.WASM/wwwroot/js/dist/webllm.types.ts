@@ -32,6 +32,7 @@
     interface ChatCompletionRequest {
         messages: Message[];
         temperature: number;
+        seed: number;
         stream: boolean;
         stream_options: { include_usage: boolean };
         tool_choice?: string;

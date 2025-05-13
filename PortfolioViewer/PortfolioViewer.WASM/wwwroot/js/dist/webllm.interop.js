@@ -45,7 +45,8 @@ export class WebLLMInterop {
             // Chunks is an AsyncGenerator object
             const chunks = yield this.engine.chat.completions.create({
                 messages,
-                temperature: 1,
+                temperature: 0,
+                seed: 42,
                 stream: true, // Enable streaming
                 stream_options: { include_usage: true },
             });
