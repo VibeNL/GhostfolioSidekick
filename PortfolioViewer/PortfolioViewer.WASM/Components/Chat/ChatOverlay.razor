@@ -1,5 +1,6 @@
 @using Markdig
 @using Microsoft.Extensions.AI
+@using PortfolioViewer.WASM.AI
 <!-- Floating Chat Button -->
 <div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
 	<button id="chat-button" @onclick="ToggleChat"
@@ -50,22 +51,16 @@
 					@foreach (var msg in context.Memory)
 					{
 						<div style="@GetBubbleStyle(msg)">
-							@(msg.AuthorName): @((MarkupString)Markdown.ToHtml(msg.Text, pipeline))
+							@(msg.AuthorName): @((MarkupString)Markdown.ToHtml(msg.ToDisplayText(), pipeline))
 						</div>
 					}
 
-					@if (IsBotTyping && string.IsNullOrWhiteSpace(streamingText))
+					@if (IsBotTyping || !string.IsNullOrWhiteSpace(streamingText))
 					{
 						<div class="typing-bubble">
 							<span class="typing-dots">
 								<span>.</span><span>.</span><span>.</span>
 							</span>
-						</div>
-					}
-					@if (IsBotTyping && !string.IsNullOrWhiteSpace(streamingText))
-					{
-						<div style="@GetBubbleStyle(null)">
-							@((MarkupString)Markdown.ToHtml(streamingText, pipeline))
 						</div>
 					}
 				</div>
