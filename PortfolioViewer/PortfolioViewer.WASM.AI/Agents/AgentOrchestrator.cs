@@ -36,7 +36,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			}
 
 			context.Memory.Add(new ChatMessage(ChatRole.Assistant, llmResponse.Text) { AuthorName = nameof(AgentOrchestrator) });
-			var selectedAgentNames = JsonSerializer.Deserialize<List<string>>(llmResponse.Text);
+
+			// Some LLM return <think>...</think> text, remove that and the content between
+			var responseWithoutThink = System.Text.RegularExpressions.Regex.Replace(
+				llmResponse.Text,
+				@"<think>.*?</think>",
+				string.Empty,
+				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase
+			);
+			var selectedAgentNames = JsonSerializer.Deserialize<List<string>>(responseWithoutThink);
 
 			var selectedAgents = _agents
 				.Where(a => selectedAgentNames?.Contains(a.Name, StringComparer.OrdinalIgnoreCase) ?? false)
