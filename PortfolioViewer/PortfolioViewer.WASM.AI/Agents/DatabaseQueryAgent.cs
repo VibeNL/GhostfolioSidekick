@@ -41,17 +41,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				yield break;
 			}
 
-			context.Memory.Add(new ChatMessage(ChatRole.Tool, llmResponse.Text) { AuthorName = Name });
+			// Get the SQL statement from the LLM response
+			var result = await ExecuteQuery(llmResponse.Text);
+
+			context.Memory.Add(new ChatMessage(ChatRole.Tool, result) { AuthorName = Name });
 
 			// yield the response
-			yield return new ChatResponseUpdate(ChatRole.Assistant, llmResponse.Text);
+			yield return new ChatResponseUpdate(ChatRole.Assistant, result);
 
 		}
 
 		private async Task<string> ExecuteQuery(string sqlStatement)
 		{
 			// Split per line
-			var sqlLines = sqlStatement.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
+			var sqlLines = sqlStatement.Split(['\n', ';'], StringSplitOptions.RemoveEmptyEntries)
 				.Select(line => line.Trim())
 				.Where(line => !string.IsNullOrWhiteSpace(line))
 				.ToList();

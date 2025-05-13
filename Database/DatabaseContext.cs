@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Database
 		{
 			////optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
 			////optionsBuilder.ConfigureWarnings(w => w.Ignore(CoreEventId.DuplicateDependentEntityTypeInstanceWarning)); // We do not duplicate Currency instances
-			
+
 			optionsBuilder.UseLazyLoadingProxies();
 			if (!optionsBuilder.IsConfigured)
 			{
@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.Database
 			command.CommandText = pragmaCommand;
 			return command.ExecuteNonQueryAsync();
 		}
-		
+
 		public virtual IQueryable<T> SqlQueryRaw<T>(string sql)
 		{
 			return Database.SqlQueryRaw<T>(sql);
@@ -71,5 +71,32 @@ namespace GhostfolioSidekick.Database
 		{
 			return Database.ExecuteSqlRawAsync(sql, cancellationToken);
 		}
+
+        public async Task<List<Dictionary<string, object?>>> ExecuteDynamicQuery(string sql)
+        {
+            await using var command = Database.GetDbConnection().CreateCommand();
+            command.CommandText = sql;
+
+            await Database.OpenConnectionAsync();
+
+            var result = new List<Dictionary<string, object?>>();
+
+            await using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var row = new Dictionary<string, object?>();
+
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    var columnName = reader.GetName(i);
+                    row[columnName] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
+                }
+
+                result.Add(row);
+            }
+
+            await Database.CloseConnectionAsync();
+            return result;
+        }
 	}
 }
