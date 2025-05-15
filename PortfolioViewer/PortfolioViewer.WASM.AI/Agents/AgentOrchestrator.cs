@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.AI;
+using static GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM.WebLLMChatClient;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
@@ -23,9 +24,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 						Respond with a JSON list of agent names that should be activated. e.g. [""{_agents[0].Name}""]
 						Only respond with the JSON list of agent names, nothing else. Do not include any other text or explanation.
+						
+						User's latest message:
+						""{input.LastOrDefault(m => m.Role == ChatRole.User)?.Text}""
 						";
 
-			var llmResponse = await chatClient.GetResponseAsync(prompt + input.Last());
+			var llmResponse = await chatClient.GetResponseAsync(prompt);
 
 			if (llmResponse.Text == null)
 			{

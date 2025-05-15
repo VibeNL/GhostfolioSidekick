@@ -52,6 +52,21 @@
 					{
 						<div style="@GetBubbleStyle(msg)">
 							@(msg.AuthorName): @((MarkupString)Markdown.ToHtml(msg.ToDisplayText(), pipeline))
+							@if (!string.IsNullOrWhiteSpace(msg.ToThinkText()))
+							{
+								<span style="margin-left: 8px; vertical-align: middle; display: inline-flex; align-items: center; color: #fbbf24;">
+									<!-- Lightbulb SVG icon with hover tooltip -->
+									<svg xmlns="http://www.w3.org/2000/svg"
+										 width="18" height="18"
+										 fill="currentColor"
+										 viewBox="0 0 20 20"
+										 style="margin-right: 4px; cursor: pointer;"
+										 title="@msg.ToThinkText()">
+										<title>@msg.ToThinkText()</title>
+										<path d="M10 2a6 6 0 0 0-3.6 10.8c.2.2.3.5.3.8v1.4c0 .6.4 1 1 1h4.6c.6 0 1-.4 1-1v-1.4c0-.3.1-.6.3-.8A6 6 0 0 0 10 2zm-2 15a1 1 0 1 0 2 0h-2zm4 0a1 1 0 1 0 2 0h-2z" />
+									</svg>
+								</span>
+							}
 						</div>
 					}
 
@@ -69,13 +84,15 @@
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
 					<input id="chat-input" @bind="CurrentMessage"
 						   placeholder="Ask something..."
-						   style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;" />
+						   style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;"
+						   disabled="@IsBotTyping" />
 				</div>
 
 				<!-- Submit button -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
 					<button id="send-button" @onclick="StreamPromptRequest"
-							style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;">
+							style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;"
+							disabled="@IsBotTyping">
 						Send
 					</button>
 				</div>

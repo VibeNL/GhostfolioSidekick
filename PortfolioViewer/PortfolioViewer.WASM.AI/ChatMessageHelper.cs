@@ -25,5 +25,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 
 			return text;
 		}
+
+		public static string ToThinkText(this ChatMessage message)
+		{
+			if (message == null)
+			{
+				return string.Empty;
+			}
+
+			var match = System.Text.RegularExpressions.Regex.Match(
+				message.Text,
+				@"<think>(.*?)</think>",
+				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase,
+				TimeSpan.FromMinutes(1));
+
+			if (!match.Success)
+			{
+				return string.Empty;
+			}
+
+			return match.Groups[1].Value;
+		}
+
 	}
 }
