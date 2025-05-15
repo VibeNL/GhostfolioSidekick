@@ -21,8 +21,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 						Agents:
 						{string.Join(Environment.NewLine, _agents.Select(x => $"{x.Name}: {x.Description}"))}
 
-						User message: ""Can you give me a quick summary of my portfolio and tell me if the market is going up or down?""
-
 						Respond with a JSON list of agent names that should be activated. e.g. [""{_agents[0].Name}""]
 						Only respond with the JSON list of agent names, nothing else. Do not include any other text or explanation.
 						";
@@ -34,10 +32,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				yield return new ChatResponseUpdate(ChatRole.Assistant, "No response from LLM.");
 				yield break;
 			}
-
+			
 			ChatMessage item = new(ChatRole.Assistant, llmResponse.Text)
 			{ AuthorName = nameof(AgentOrchestrator) };
 			context.Memory.Add(item);
+
+			yield return new ChatResponseUpdate(ChatRole.Assistant, "Thinking");
 
 			// Some LLM return <think>...</think> text, remove that and the content between
 			var selectedAgentNames = JsonSerializer.Deserialize<List<string>>(item.ToDisplayText());
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				.Where(a => selectedAgentNames?.Contains(a.Name, StringComparer.OrdinalIgnoreCase) ?? false)
 				.ToList();
 
-			if (!selectedAgents.Any())
+			if (selectedAgents.Count == 0)
 			{
 				yield return new ChatResponseUpdate(ChatRole.Assistant, "No matching agents found.");
 				yield break;
