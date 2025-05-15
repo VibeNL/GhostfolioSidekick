@@ -11,7 +11,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
     {
         public string Name => nameof(DatabaseQueryAgent);
 
-        public object Description => "Executes queries against the portfolio database and returns results.";
+        public string Description => "Executes queries against the portfolio database and returns results.";
+
+		public bool IsDefault => false;
 
 		public async IAsyncEnumerable<ChatResponseUpdate> RespondAsync(IEnumerable<ChatMessage> messages, AgentContext context)
         {

@@ -25,6 +25,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 						Respond with a JSON list of agent names that should be activated. e.g. [""{_agents[0].Name}""]
 						Only respond with the JSON list of agent names, nothing else. Do not include any other text or explanation.
 						
+						If no suitable agents are found, select the default agent ""{_agents.Where(x => x.IsDefault).Select(x => $"{x.Name}: {x.Description}").Single()}""
+
 						User's latest message:
 						""{input.LastOrDefault(m => m.Role == ChatRole.User)?.Text}""
 						";

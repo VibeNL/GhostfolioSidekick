@@ -8,7 +8,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		public string Name => nameof(PortfolioSummaryAgent);
 
-		public object Description => "Summarizes and analyzed portfolio performance";
+		public string Description => "Summarizes and analyzed portfolio performance";
+
+		public bool IsDefault => true;
 
 		public PortfolioSummaryAgent(IWebChatClient webChatClient)
 		{
