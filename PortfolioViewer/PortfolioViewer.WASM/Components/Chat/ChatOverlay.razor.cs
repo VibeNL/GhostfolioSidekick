@@ -1,6 +1,8 @@
 ﻿using System.Data;
+using System.Xml.Linq;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.AI;
@@ -15,23 +17,24 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private bool IsBotTyping = false;
 		private bool IsInitialized = false; // Flag to track initialization
 
-		private List<ChatMessage> Messages = [];
-
 		private IWebChatClient chatClient;
 
 		private Progress<InitializeProgress> progress = new();
 		private string streamingText = "";
 		private InitializeProgress lastProgress = new(0);
 
-		private IJSRuntime JS { get; set; } = default!;
+		private IJSRuntime JS { get; set; }
 
-		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS)
+		private readonly AgentContext context = new();
+		private readonly AgentOrchestrator orchestrator;
+
+		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator)
 		{
+			orchestrator = agentOrchestrator;
 			this.chatClient = chatClient;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
-
-			Messages.Add(new ChatMessage(ChatRole.System, SystemPrompt)); // Add system prompt to the chat
+			context.Memory.Add(new ChatMessage(ChatRole.System, SystemPrompt) { AuthorName = ChatRole.System.Value }); // Add system prompt to the chat
 		}
 
 		private void ToggleChat()
@@ -75,7 +78,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			var input = CurrentMessage;
 
 			// Add the user's message to the chat
-			Messages.Add(new ChatMessage(ChatRole.User, input));
+			context.Memory.Add(new ChatMessage(ChatRole.User, input) { AuthorName = ChatRole.User.Value });
 			CurrentMessage = ""; // Clear the input field
 			IsBotTyping = true; // Indicate that the bot is typing
 			StateHasChanged(); // Update the UI
@@ -83,7 +86,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			try
 			{
 				// Send the messages to the chat client and process the response
-				await foreach (var response in chatClient.GetStreamingResponseAsync(Messages))
+				await foreach (var response in orchestrator.GetCombinedResponseAsync(context.Memory, context))
 				{
 					// Append the bot's streaming response
 					streamingText += response.Text ?? "";
@@ -94,9 +97,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 				}
 
 				IsBotTyping = false;
-
-				// Add the bot's final response to the chat
-				Messages.Add(new ChatMessage(ChatRole.Assistant, streamingText));
 				streamingText = string.Empty;
 
 				StateHasChanged();
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private const string SystemPrompt = @"
 		You are GhostfolioSidekick AI — a smart financial assistant. Help users understand and manage their investment portfolio.
-		Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful. Also provide charts using mermaid markdown if helpful.
+		Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful.
 		Use financial terminology and suggest insights like trends or anomalies if data is present.";
 	}
 }

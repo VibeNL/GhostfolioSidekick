@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
@@ -15,9 +16,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 		{
 			//services.AddTransient<IWebChatClient>((s) => new DummyChatClient());
 			
-			services.AddTransient<IWebChatClient>((s) => new WebLLMChatClient(
+			services.AddSingleton<IWebChatClient>((s) => new WebLLMChatClient(
 				s.GetRequiredService<IJSRuntime>(),
-				"Phi-3-mini-4k-instruct-q4f16_1-MLC"));
+				"Qwen3-4B-q4f16_1-MLC"));
+
+			services.AddTransient<IAgent, PortfolioSummaryAgent>();
+			services.AddSingleton<AgentOrchestrator>((s) =>
+			{
+				var chatClient = s.GetRequiredService<IWebChatClient>();
+				var agents = s.GetServices<IAgent>().ToList();
+				return new AgentOrchestrator(chatClient, agents);
+			});
 		}
 	}
 }
