@@ -1,4 +1,4 @@
-﻿using CoinGecko.Net.Interfaces;
+using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
 using GhostfolioSidekick.Cryptocurrency;
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			}
 
 			var longRange = await RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger)
+							.GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
 							.WrapAsync(RetryPolicyHelper
 								.GetRetryPolicy(logger))
 								.ExecuteAsync(async () =>
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 								});
 
 			var shortRange = await RetryPolicyHelper
-							.GetFallbackPolicy<WebCallResult<IEnumerable<CoinGeckoOhlc>>>(logger)
+							.GetFallbackPolicy<WebCallResult<CoinGeckoOhlc[]>>(logger)
 							.WrapAsync(RetryPolicyHelper
 								.GetRetryPolicy(logger))
 								.ExecuteAsync(async () =>
