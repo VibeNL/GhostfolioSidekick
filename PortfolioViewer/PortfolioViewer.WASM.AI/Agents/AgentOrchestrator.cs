@@ -50,8 +50,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 						Determine which participant takes the next turn in a conversation based on the the most recent participant.
 						State only the name of the participant to take the next turn.
 						No participant should take more than one turn in a row.
+						When the input from the User is required, please select User
 
 						Choose only from these participants:
+						- User
 						- {{{defaultAgent.Name}}}
 
 						History:
@@ -73,12 +75,40 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  HistoryReducer = new ChatHistoryTruncationReducer(3),
 			  };
 
+			KernelFunction terminationFunction =
+				AgentGroupChat.CreatePromptFunctionForStrategy(
+					$$$"""
+					Determine if the conversation has ended. Then respond with 'User' 
+
+					History:
+					{{$history}}
+					""",
+					safeParameterNames: "history");
+
+			// Define the termination strategy
+			KernelFunctionTerminationStrategy terminationStrategy =
+			  new(terminationFunction, kernel)
+			  {
+				  // Only the reviewer may give approval.
+				  Agents = [defaultAgent],
+				  // Parse the function response.
+				  ResultParser = (result) =>
+					result.GetValue<string>()?.Contains("User", StringComparison.OrdinalIgnoreCase) ?? false,
+				  // The prompt variable name for the history argument.
+				  HistoryVariableName = "history",
+				  // Save tokens by not including the entire history in the prompt
+				  HistoryReducer = new ChatHistoryTruncationReducer(1),
+				  // Limit total number of turns no matter what
+				  MaximumIterations = 10,
+				  AutomaticReset = true,
+			  };
+
 			AgentGroupChat groupChat = new([.. agents])
 			{
 				ExecutionSettings = new AgentGroupChatSettings
 				{
-					TerminationStrategy = { AutomaticReset = true, MaximumIterations = 10 },
-					SelectionStrategy = selectionStrategy
+					TerminationStrategy = terminationStrategy,
+					SelectionStrategy = selectionStrategy					
 				}
 			};
 			groupChat.AddChatMessages(input.ToList());
