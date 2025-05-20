@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			var input = CurrentMessage;
 
 			// Add the user's message to the chat
-			memory.Add(new ChatMessageContent(AuthorRole.User, input));
+			memory.Add(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 			CurrentMessage = ""; // Clear the input field
 			IsBotTyping = true; // Indicate that the bot is typing
 			StateHasChanged(); // Update the UI

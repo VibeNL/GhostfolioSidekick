@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 												Use financial terminology and suggest insights like trends or anomalies if data is present.";
 		private readonly Kernel kernel;
 		private readonly Agent defaultAgent;
-		private readonly IEnumerable<Agent> agents;
+		private readonly List<Agent> agents;
 
 		public AgentOrchestrator(IWebChatClient webChatClient)
 		{
@@ -27,11 +27,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			builder.Services.AddSingleton<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
 			kernel = builder.Build();
 
-			defaultAgent = new ChatCompletionAgent()
+			defaultAgent = new ChatCompletionAgent
 			{
 				Name = "GhostfolioSidekick",
 				Instructions = mainAgentPromp,
-				Kernel = kernel
+				Kernel = kernel,
+				Description = "A smart financial assistant that helps users understand and manage their investment portfolio.",
+				InstructionsRole = AuthorRole.Assistant,
 			};
 
 			this.agents = [
@@ -64,14 +66,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  // Always start with the writer agent.
 				  InitialAgent = defaultAgent,
 				  // Parse the function response.
-				  ResultParser = (result) => result.GetValue<string>() ?? defaultAgent.Name ?? throw new NotSupportedException(),
+				  ResultParser = (result) => GetNextAgent(result),
 				  // The prompt variable name for the history argument.
 				  HistoryVariableName = "history",
 				  // Save tokens by not including the entire history in the prompt
 				  HistoryReducer = new ChatHistoryTruncationReducer(3),
 			  };
 
-			AgentGroupChat groupChat = new AgentGroupChat([.. agents])
+			AgentGroupChat groupChat = new([.. agents])
 			{
 				ExecutionSettings = new AgentGroupChatSettings
 				{
@@ -92,6 +94,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 					yield return update;
 				}
 			}
+		}
+
+		private string GetNextAgent(FunctionResult result)
+		{
+			var lastWord = result.GetValue<string>()?.Split(' ').LastOrDefault();
+
+			if (lastWord != null && agents.Exists(x => x.Name == lastWord))
+			{
+				return lastWord;
+			}
+
+			return defaultAgent.Name ?? throw new NotSupportedException();
 		}
 	}
 }

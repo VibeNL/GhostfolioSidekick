@@ -3,7 +3,9 @@ using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Castle.Core.Logging;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -12,6 +14,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 	public class WebLLMChatClient : IWebChatClient
 	{
 		private readonly IJSRuntime jsRuntime;
+		private readonly ILogger<WebLLMChatClient> logger;
 		private readonly string modelId;
 		private InteropInstance? interopInstance = null;
 
@@ -20,9 +23,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private IJSObjectReference? module = null;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
-		public WebLLMChatClient(IJSRuntime jsRuntime, string modelId)
+		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, string modelId)
 		{
 			this.jsRuntime = jsRuntime;
+			this.logger = logger;
 			this.modelId = modelId;
 			Metadata = new(nameof(WebLLMChatClient), defaultModelId: modelId);
 		}
@@ -77,14 +81,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 						continue;
 					}
 
+					logger.LogDebug("ChatRole.Assistant: {Message}", response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty);
 					yield return new ChatResponseUpdate(
 						ChatRole.Assistant,
 						response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty
 						);
-				}
-				else
+				}else
 				{
-					await Task.Delay(100); // Wait for 100ms before checking again
+					await Task.Delay(1, cancellationToken);
 				}
 			}
 		}
