@@ -1,73 +1,52 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.AI;
-using static GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM.WebLLMChatClient;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.Agents.Extensions;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
-	public class AgentOrchestrator
-	{
-		private readonly IWebChatClient chatClient;
-		private readonly IList<IAgent> _agents;
+    public class AgentOrchestrator
+    {
+        private readonly Kernel _kernel;
+		private readonly AgentGroupChat _groupChat;
+		private readonly Dictionary<string, KernelAgent> _agentMap;
 
-		public AgentOrchestrator(IWebChatClient chatClient, IList<IAgent> agents)
-		{
-			this.chatClient = chatClient;
-			_agents = agents;
-		}
+        public AgentOrchestrator(Kernel kernel, IEnumerable<KernelAgent> agents)
+        {
+            _kernel = kernel;
+            _groupChat = new AgentGroupChat();
+            _agentMap = agents.ToDictionary(a => a.Name, a => a);
+            foreach (var agent in agents)
+            {
+                _groupChat.AddAgent(agent);
+            }
+        }
 
-		public async IAsyncEnumerable<ChatResponseUpdate> GetCombinedResponseAsync(IEnumerable<ChatMessage> input, AgentContext context)
-		{
-			var prompt = $@"You are a task routing assistant. Based on the user's message, decide which of the following specialized agents should respond:
+        public async IAsyncEnumerable<ChatResponseUpdate> GetCombinedResponseAsync(IEnumerable<ChatMessage> input, AgentContext context)
+        {
+            // Convert input to SK ChatHistory
+            var chatHistory = new ChatHistory();
+            foreach (var msg in input)
+            {
+                chatHistory.AddMessage(msg.Role.ToString(), msg.Text);
+            }
 
-						Agents:
-						{string.Join(Environment.NewLine, _agents.Select(x => $"{x.Name}: {x.Description}"))}
+            // Run the group chat
+            var result = _groupChat.InvokeAsync(_kernel, chatHistory);
 
-						Respond with a JSON list of agent names that should be activated. e.g. [""{_agents[0].Name}""]
-						Only respond with the JSON list of agent names, nothing else. Do not include any other text or explanation.
-						
-						If no suitable agents are found, select the default agent ""{_agents.Where(x => x.IsDefault).Select(x => $"{x.Name}: {x.Description}").Single()}""
-
-						User's latest message:
-						""{input.LastOrDefault(m => m.Role == ChatRole.User)?.Text}""
-						";
-
-			var llmResponse = await chatClient.GetResponseAsync(prompt);
-
-			if (llmResponse.Text == null)
-			{
-				yield return new ChatResponseUpdate(ChatRole.Assistant, "No response from LLM.");
-				yield break;
-			}
-			
-			ChatMessage item = new(ChatRole.Assistant, llmResponse.Text)
-			{ AuthorName = nameof(AgentOrchestrator) };
-			context.Memory.Add(item);
-
-			yield return new ChatResponseUpdate(ChatRole.Assistant, "Thinking");
-
-			// Some LLM return <think>...</think> text, remove that and the content between
-			var selectedAgentNames = JsonSerializer.Deserialize<List<string>>(item.ToDisplayText());
-
-			var selectedAgents = _agents
-				.Where(a => selectedAgentNames?.Contains(a.Name, StringComparer.OrdinalIgnoreCase) ?? false)
-				.ToList();
-
-			if (selectedAgents.Count == 0)
-			{
-				yield return new ChatResponseUpdate(ChatRole.Assistant, "No matching agents found.");
-				yield break;
-			}
-
-			foreach (var agent in selectedAgents) // TODO, make this smart
-			{
-				await foreach (var response in agent.RespondAsync(input, context))
-				{
-					if (!string.IsNullOrWhiteSpace(response.Text))
-					{
-						yield return response;
-					}
-				}
-			}
-		}
-	}
+            await foreach (var update in result)
+            {
+                // Map SK chat update to your ChatResponseUpdate
+                if (!string.IsNullOrWhiteSpace(update.Content))
+                {
+                    yield return new ChatResponseUpdate(ChatRole.Assistant, update.Content);
+                }
+            }
+        }
+    }
 }
