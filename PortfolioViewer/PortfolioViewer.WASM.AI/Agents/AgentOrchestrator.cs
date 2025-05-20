@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			];
 		}
 
-		public async IAsyncEnumerable<ChatMessageContent> GetCombinedResponseAsync(IEnumerable<ChatMessageContent> input)
+		public async IAsyncEnumerable<ChatMessageContent> GetCombinedResponseAsync(List<ChatMessageContent> input)
 		{
 			// Define a kernel function for the selection strategy
 			KernelFunction selectionFunction =
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  // Always start with the writer agent.
 				  InitialAgent = defaultAgent,
 				  // Parse the function response.
-				  ResultParser = (result) => GetNextAgent(result),
+				  ResultParser = (result) => DetermineNextAgent(result),
 				  // The prompt variable name for the history argument.
 				  HistoryVariableName = "history",
 				  // Save tokens by not including the entire history in the prompt
@@ -93,14 +93,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  Agents = [defaultAgent],
 				  // Parse the function response.
 				  ResultParser = (result) =>
-					result.GetValue<string>()?.Contains("User", StringComparison.OrdinalIgnoreCase) ?? false,
+					DetermineTermination(result),
 				  // The prompt variable name for the history argument.
 				  HistoryVariableName = "history",
 				  // Save tokens by not including the entire history in the prompt
 				  HistoryReducer = new ChatHistoryTruncationReducer(1),
 				  // Limit total number of turns no matter what
 				  MaximumIterations = 10,
-				  AutomaticReset = true,
+				  AutomaticReset = false,
 			  };
 
 			AgentGroupChat groupChat = new([.. agents])
@@ -108,7 +108,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				ExecutionSettings = new AgentGroupChatSettings
 				{
 					TerminationStrategy = terminationStrategy,
-					SelectionStrategy = selectionStrategy					
+					SelectionStrategy = selectionStrategy
 				}
 			};
 			groupChat.AddChatMessages(input.ToList());
@@ -121,12 +121,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				// Map SK chat update to your ChatResponseUpdate
 				if (!string.IsNullOrWhiteSpace(update.Content))
 				{
+					input.Add(update);
 					yield return update;
 				}
 			}
 		}
 
-		private string GetNextAgent(FunctionResult result)
+		private static bool DetermineTermination(FunctionResult result)
+		{
+			return result.GetValue<string>()?.Contains("User", StringComparison.OrdinalIgnoreCase) ?? false;
+		}
+
+		private string DetermineNextAgent(FunctionResult result)
 		{
 			var lastWord = result.GetValue<string>()?.Split(' ').LastOrDefault();
 
