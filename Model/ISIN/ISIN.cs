@@ -4,7 +4,7 @@
 	public static class Isin
 	{
 		private const Int32 _expectedLength = 12;
-		private static readonly Int32[] _doubledValues = new Int32[] { 0, 2, 4, 6, 8, 1, 3, 5, 7, 9 };
+		private static readonly Int32[] _doubledValues = [0, 2, 4, 6, 8, 1, 3, 5, 7, 9];
 		private static readonly Int32[,] _lettersTable = BuildLetterLookupTable();
 
 		public static bool ValidateCheckDigit(string str)

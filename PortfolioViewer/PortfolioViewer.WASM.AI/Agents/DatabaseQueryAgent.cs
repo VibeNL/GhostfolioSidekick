@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private async Task<string> ExecuteQueryInternal(string sqlStatement)
 		{
 			// Split per line and clean up the SQL statement
-			var sqlLines = sqlStatement.Split(new[] { '\n', ';' }, StringSplitOptions.RemoveEmptyEntries)
+			var sqlLines = sqlStatement.Split(['\n', ';'], StringSplitOptions.RemoveEmptyEntries)
 				.Select(line => line.Trim())
 				.Where(line => !string.IsNullOrWhiteSpace(line))
 				.ToList();

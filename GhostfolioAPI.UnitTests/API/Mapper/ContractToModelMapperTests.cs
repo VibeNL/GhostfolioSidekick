@@ -70,14 +70,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 				AssetSubClass = "STOCK",
 				ISIN = "US0378331005",
 				Comment = "Test Comment",
-				Countries = new[]
-				{
+				Countries =
+				[
 					new Contract.Country { Name = "United States", Code = "US", Continent = "North America", Weight = 100m }
-				},
-				Sectors = new[]
-				{
+				],
+				Sectors =
+				[
 					new Contract.Sector { Name = "Technology", Weight = 100m }
-				}
+				]
 			};
 
 			// Act

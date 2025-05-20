@@ -125,7 +125,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         name: "FK_MarketData_SymbolProfiles_SymbolProfileSymbol_SymbolProfileDataSource",
                         columns: x => new { x.SymbolProfileSymbol, x.SymbolProfileDataSource },
                         principalTable: "SymbolProfiles",
-                        principalColumns: new[] { "Symbol", "DataSource" },
+                        principalColumns: ["Symbol", "DataSource"],
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.Database.Migrations
                         name: "FK_StockSplits_SymbolProfiles_SymbolProfileSymbol_SymbolProfileDataSource",
                         columns: x => new { x.SymbolProfileSymbol, x.SymbolProfileDataSource },
                         principalTable: "SymbolProfiles",
-                        principalColumns: new[] { "Symbol", "DataSource" },
+                        principalColumns: ["Symbol", "DataSource"],
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -388,7 +388,7 @@ namespace GhostfolioSidekick.Database.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Balances_AccountId_Date",
                 table: "Balances",
-                columns: new[] { "AccountId", "Date" },
+                columns: ["AccountId", "Date"],
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -419,7 +419,7 @@ namespace GhostfolioSidekick.Database.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_MarketData_SymbolProfileSymbol_SymbolProfileDataSource",
                 table: "MarketData",
-                columns: new[] { "SymbolProfileSymbol", "SymbolProfileDataSource" });
+                columns: ["SymbolProfileSymbol", "SymbolProfileDataSource"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PartialSymbolIdentifierActivity_ActivityId",
@@ -439,7 +439,7 @@ namespace GhostfolioSidekick.Database.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_StockSplits_SymbolProfileSymbol_SymbolProfileDataSource",
                 table: "StockSplits",
-                columns: new[] { "SymbolProfileSymbol", "SymbolProfileDataSource" });
+                columns: ["SymbolProfileSymbol", "SymbolProfileDataSource"]);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SymbolProfiles_HoldingId",
