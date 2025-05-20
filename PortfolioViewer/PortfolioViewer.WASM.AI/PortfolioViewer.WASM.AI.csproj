@@ -8,12 +8,8 @@
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <NoWarn>1701;1702;SKEXP0110</NoWarn>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <NoWarn>1701;1702;SKEXP0110</NoWarn>
+	<PropertyGroup>
+	  <NoWarn>1701;1702;SKEXP0110;SKEXP0001</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

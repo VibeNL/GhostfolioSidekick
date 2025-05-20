@@ -7,6 +7,8 @@ using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
@@ -25,7 +27,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private IJSRuntime JS { get; set; }
 
-		private readonly AgentContext context = new();
+		private readonly List<ChatMessageContent> memory = new();
 		private readonly AgentOrchestrator orchestrator;
 
 		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator)
@@ -34,7 +36,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			this.chatClient = chatClient;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
-			context.Memory.Add(new ChatMessage(ChatRole.System, SystemPrompt) { AuthorName = ChatRole.System.Value }); // Add system prompt to the chat
 		}
 
 		private void ToggleChat()
@@ -78,7 +79,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			var input = CurrentMessage;
 
 			// Add the user's message to the chat
-			context.Memory.Add(new ChatMessage(ChatRole.User, input) { AuthorName = ChatRole.User.Value });
+			memory.Add(new ChatMessageContent(AuthorRole.User, input));
 			CurrentMessage = ""; // Clear the input field
 			IsBotTyping = true; // Indicate that the bot is typing
 			StateHasChanged(); // Update the UI
@@ -86,10 +87,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			try
 			{
 				// Send the messages to the chat client and process the response
-				await foreach (var response in orchestrator.GetCombinedResponseAsync(context.Memory, context))
+				await foreach (var response in orchestrator.GetCombinedResponseAsync(memory))
 				{
 					// Append the bot's streaming response
-					streamingText += response.Text ?? "";
+					streamingText += response.Content ?? "";
 					StateHasChanged();
 
 					// Scroll to the bottom of the chat

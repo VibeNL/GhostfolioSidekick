@@ -1,52 +1,97 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.AI;
+﻿using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.Agents.Chat;
 using Microsoft.SemanticKernel.Agents.Extensions;
+using Microsoft.SemanticKernel.ChatCompletion;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
-    public class AgentOrchestrator
-    {
-        private readonly Kernel _kernel;
-		private readonly AgentGroupChat _groupChat;
-		private readonly Dictionary<string, KernelAgent> _agentMap;
+	public class AgentOrchestrator
+	{
+		private const string mainAgentPromp = @"You are GhostfolioSidekick AI — a smart financial assistant. Help users understand and manage their investment portfolio.
+												Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful.
+												Use financial terminology and suggest insights like trends or anomalies if data is present.";
+		private readonly Kernel kernel;
+		private readonly Agent defaultAgent;
+		private readonly IEnumerable<Agent> agents;
 
-        public AgentOrchestrator(Kernel kernel, IEnumerable<KernelAgent> agents)
-        {
-            _kernel = kernel;
-            _groupChat = new AgentGroupChat();
-            _agentMap = agents.ToDictionary(a => a.Name, a => a);
-            foreach (var agent in agents)
-            {
-                _groupChat.AddAgent(agent);
-            }
-        }
+		public AgentOrchestrator(IWebChatClient webChatClient)
+		{
+			IKernelBuilder builder = Kernel.CreateBuilder();
+			builder.Services.AddSingleton<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
+			kernel = builder.Build();
 
-        public async IAsyncEnumerable<ChatResponseUpdate> GetCombinedResponseAsync(IEnumerable<ChatMessage> input, AgentContext context)
-        {
-            // Convert input to SK ChatHistory
-            var chatHistory = new ChatHistory();
-            foreach (var msg in input)
-            {
-                chatHistory.AddMessage(msg.Role.ToString(), msg.Text);
-            }
+			defaultAgent = new ChatCompletionAgent()
+			{
+				Name = "GhostfolioSidekick",
+				Instructions = mainAgentPromp,
+				Kernel = kernel
+			};
 
-            // Run the group chat
-            var result = _groupChat.InvokeAsync(_kernel, chatHistory);
+			this.agents = [
+				defaultAgent
+			];
+		}
 
-            await foreach (var update in result)
-            {
-                // Map SK chat update to your ChatResponseUpdate
-                if (!string.IsNullOrWhiteSpace(update.Content))
-                {
-                    yield return new ChatResponseUpdate(ChatRole.Assistant, update.Content);
-                }
-            }
-        }
-    }
+		public async IAsyncEnumerable<ChatMessageContent> GetCombinedResponseAsync(IEnumerable<ChatMessageContent> input)
+		{
+			// Define a kernel function for the selection strategy
+			KernelFunction selectionFunction =
+				AgentGroupChat.CreatePromptFunctionForStrategy(
+					$$$"""
+						Determine which participant takes the next turn in a conversation based on the the most recent participant.
+						State only the name of the participant to take the next turn.
+						No participant should take more than one turn in a row.
+
+						Choose only from these participants:
+						- {{{defaultAgent.Name}}}
+
+						History:
+						{{$history}}
+						""",
+					safeParameterNames: "history");
+
+			// Define the selection strategy
+			KernelFunctionSelectionStrategy selectionStrategy =
+			  new(selectionFunction, kernel)
+			  {
+				  // Always start with the writer agent.
+				  InitialAgent = defaultAgent,
+				  // Parse the function response.
+				  ResultParser = (result) => result.GetValue<string>() ?? defaultAgent.Name ?? throw new NotSupportedException(),
+				  // The prompt variable name for the history argument.
+				  HistoryVariableName = "history",
+				  // Save tokens by not including the entire history in the prompt
+				  HistoryReducer = new ChatHistoryTruncationReducer(3),
+			  };
+
+			AgentGroupChat groupChat = new AgentGroupChat([.. agents])
+			{
+				ExecutionSettings = new AgentGroupChatSettings
+				{
+					TerminationStrategy = { AutomaticReset = true, MaximumIterations = 10 },
+					SelectionStrategy = selectionStrategy
+				}
+			};
+			groupChat.AddChatMessages(input.ToList());
+
+			// Run the group chat
+			var result = groupChat.InvokeAsync();
+
+			await foreach (var update in result)
+			{
+				// Map SK chat update to your ChatResponseUpdate
+				if (!string.IsNullOrWhiteSpace(update.Content))
+				{
+					yield return update;
+				}
+			}
+		}
+	}
 }
