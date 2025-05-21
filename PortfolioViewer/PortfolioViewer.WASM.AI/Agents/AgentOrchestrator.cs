@@ -1,15 +1,8 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.Chat;
-using Microsoft.SemanticKernel.Agents.Extensions;
 using Microsoft.SemanticKernel.ChatCompletion;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
@@ -55,7 +48,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 						Choose only from these participants:
 						- User
-						- {{{defaultAgent.Name}}}
+						{{{string.Join(Environment.NewLine, agents.Select(x => $"{x.Name}:{x.Description}"))}}}
 
 						History:
 						{{$history}}
@@ -80,6 +73,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				AgentGroupChat.CreatePromptFunctionForStrategy(
 					$$$"""
 					Determine if the conversation has ended. Then respond with 'User' 
+					In case another agent should take the next turn, respond with the name of that agent.
 
 					History:
 					{{$history}}
