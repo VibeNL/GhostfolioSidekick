@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.AI;
+﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
@@ -25,16 +26,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		public AgentOrchestrator(IWebChatClient webChatClient)
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
-			builder.Services.AddSingleton<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
+			builder.Services.AddScoped<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
 			kernel = builder.Build();
+
+			IKernelBuilder thinkBuilder = Kernel.CreateBuilder();
+			thinkBuilder.Services.AddScoped<IChatCompletionService>((s) =>
+			{
+				var client = webChatClient.Clone();
+				client.EnableThinking = true;
+				return client.AsChatCompletionService();
+			});
+			var thinkingKernel = thinkBuilder.Build();
 
 			defaultAgent = new ChatCompletionAgent
 			{
 				Name = "GhostfolioSidekick",
 				Instructions = mainAgentPromp,
-				Kernel = kernel,
+				Kernel = thinkingKernel,
 				Description = "A smart financial assistant that helps users understand and manage their investment portfolio.",
-				InstructionsRole = AuthorRole.Assistant,
+				InstructionsRole = AuthorRole.Assistant
 			};
 
 			this.agents = [
@@ -99,6 +109,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  // Limit total number of turns no matter what
 				  MaximumIterations = 10,
 				  AutomaticReset = true,
+				  
 			  };
 
 			groupChat = new AgentGroupChat([.. agents])

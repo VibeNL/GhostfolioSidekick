@@ -18,9 +18,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private readonly string modelId;
 		private InteropInstance? interopInstance = null;
 
-		public ChatClientMetadata Metadata { get; }
-
 		private IJSObjectReference? module = null;
+
+		public bool EnableThinking { get; set;  }
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, string modelId)
@@ -28,17 +28,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			this.jsRuntime = jsRuntime;
 			this.logger = logger;
 			this.modelId = modelId;
-			Metadata = new(nameof(WebLLMChatClient), defaultModelId: modelId);
 		}
 
 		public async Task<ChatResponse> GetResponseAsync(
-			IEnumerable<ChatMessage> chatMessages,
+			IEnumerable<ChatMessage> messages,
 			ChatOptions? options = null,
 			CancellationToken cancellationToken = default)
 		{
 			// Call GetStreamingResponseAsync
 			var msg = new StringBuilder();
-			await foreach (var response in GetStreamingResponseAsync(chatMessages, options, cancellationToken))
+			await foreach (var response in GetStreamingResponseAsync(messages, options, cancellationToken))
 			{
 				msg.Append(response.Text);
 			}
@@ -48,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		}
 
 		public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
-			IEnumerable<ChatMessage> chatMessages,
+			IEnumerable<ChatMessage> messages,
 			ChatOptions? options = null,
 			[EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
@@ -57,11 +56,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				throw new NotSupportedException();
 			}
 
-			var enableThinking = true;
-
-
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", enableThinking, interopInstance.ConvertMessage(chatMessages)));
+			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", EnableThinking, interopInstance.ConvertMessage(messages)));
 
 			while (true)
 			{
@@ -130,6 +126,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			}
 
 			return module;
+		}
+
+		public IWebChatClient Clone()
+		{
+			return new WebLLMChatClient(jsRuntime, logger, modelId)
+			{
+				interopInstance = interopInstance,
+				module = module,
+				EnableThinking = this.EnableThinking,
+			};
 		}
 
 		public class InteropInstance
