@@ -1,6 +1,4 @@
-﻿using System.Data;
-using System.Xml.Linq;
-using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using Markdig;
@@ -9,6 +7,9 @@ using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using System.Collections.Generic;
+using System.Data;
+using System.Xml.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
@@ -79,15 +80,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			var input = CurrentMessage;
 
 			// Add the user's message to the chat
-			memory.Add(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 			CurrentMessage = ""; // Clear the input field
 			IsBotTyping = true; // Indicate that the bot is typing
 			StateHasChanged(); // Update the UI
 
 			try
 			{
+				memory.AddRange(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User"});
+
 				// Send the messages to the chat client and process the response
-				await foreach (var response in orchestrator.GetCombinedResponseAsync(memory))
+				await foreach (var response in orchestrator.AskQuestion(input))
 				{
 					// Append the bot's streaming response
 					streamingText += response.Content ?? "";
@@ -96,6 +98,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 					// Scroll to the bottom of the chat
 					await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 				}
+
+				memory.Clear();
+				memory.AddRange(await orchestrator.History());
 
 				IsBotTyping = false;
 				streamingText = string.Empty;

@@ -20,6 +20,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private readonly Kernel kernel;
 		private readonly Agent defaultAgent;
 		private readonly List<Agent> agents;
+		private readonly AgentGroupChat groupChat;
 
 		public AgentOrchestrator(IWebChatClient webChatClient)
 		{
@@ -39,10 +40,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			this.agents = [
 				defaultAgent
 			];
-		}
 
-		public async IAsyncEnumerable<ChatMessageContent> GetCombinedResponseAsync(List<ChatMessageContent> input)
-		{
 			// Define a kernel function for the selection strategy
 			KernelFunction selectionFunction =
 				AgentGroupChat.CreatePromptFunctionForStrategy(
@@ -103,7 +101,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  AutomaticReset = false,
 			  };
 
-			AgentGroupChat groupChat = new([.. agents])
+			groupChat = new AgentGroupChat([.. agents])
 			{
 				ExecutionSettings = new AgentGroupChatSettings
 				{
@@ -111,19 +109,24 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 					SelectionStrategy = selectionStrategy
 				}
 			};
-			groupChat.AddChatMessages(input.ToList());
+		}
+
+		public async Task<IReadOnlyCollection<ChatMessageContent>> History()
+		{
+			// History is stored in reverse order, so we need to reverse it to display it correctly.
+			return await groupChat.GetChatMessagesAsync().Reverse().ToListAsync();
+		}
+
+		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)
+		{
+			groupChat.AddChatMessage(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 
 			// Run the group chat
-			var result = groupChat.InvokeAsync();
+			var result = groupChat.InvokeStreamingAsync();
 
 			await foreach (var update in result)
 			{
-				// Map SK chat update to your ChatResponseUpdate
-				if (!string.IsNullOrWhiteSpace(update.Content))
-				{
-					input.Add(update);
-					yield return update;
-				}
+				yield return update;
 			}
 		}
 
