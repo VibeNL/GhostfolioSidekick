@@ -57,8 +57,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				throw new NotSupportedException();
 			}
 
+			var enableThinking = true;
+
+
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", interopInstance.ConvertMessage(chatMessages)));
+			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", enableThinking, interopInstance.ConvertMessage(chatMessages)));
 
 			while (true)
 			{

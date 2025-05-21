@@ -40,7 +40,7 @@ export class WebLLMInterop {
     }
 
     // Stream completion
-    public async completeStream(messages: Message[]): Promise<void> {
+    public async completeStream(enableThinking: boolean, messages: Message[]): Promise<void> {
         if (!this.engine) {
             throw new Error("Engine is not initialized.");
         }
@@ -52,6 +52,9 @@ export class WebLLMInterop {
             seed: 42,
             stream: true, // Enable streaming
             stream_options: { include_usage: true },
+            extra_body: {
+                enable_thinking: enableThinking,
+            },
         });
 
         for await (const chunk of chunks) {
@@ -69,6 +72,6 @@ export async function initializeWebLLM(selectedModel: string, dotnet: DotNetInst
     await webLLMInteropInstance.initialize(selectedModel, dotnet);
 }
 
-export async function completeStreamWebLLM(messages: Message[]): Promise<void> {
-    await webLLMInteropInstance.completeStream(messages);
+export async function completeStreamWebLLM(enableThinking: boolean,  messages: Message[]): Promise<void> {
+    await webLLMInteropInstance.completeStream(enableThinking, messages);
 }

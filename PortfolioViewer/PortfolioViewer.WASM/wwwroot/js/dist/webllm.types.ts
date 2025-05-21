@@ -37,6 +37,9 @@
         stream_options: { include_usage: boolean };
         tool_choice?: string;
         tools?: Array<ChatCompletionTool>;
+        extra_body?: {
+            enable_thinking?: boolean;
+        };
     }
 
     interface ChatCompletionTool {
