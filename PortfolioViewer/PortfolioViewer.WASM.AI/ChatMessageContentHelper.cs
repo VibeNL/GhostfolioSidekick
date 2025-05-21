@@ -12,13 +12,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 	{
 		public static string ToDisplayText(this ChatMessageContent message)
 		{
+			return ToDisplayText(message?.Content) ?? string.Empty;
+		}
+
+		public static string ToDisplayText(this string? message)
+		{
 			if (message == null)
 			{
 				return string.Empty;
 			}
 
 			var text = System.Text.RegularExpressions.Regex.Replace(
-				message.Content ?? string.Empty,
+				message,
 				@"<think>.*?</think>",
 				string.Empty,
 				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase

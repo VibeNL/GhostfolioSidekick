@@ -56,8 +56,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				throw new NotSupportedException();
 			}
 
-			// If the last message is assistant, fake it to be a tool
-			var list = messages.ToList();
+			// If the last message is assistant, fake it to be a user call
+			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
 			var convertedMessages = list.Select((x,i) => i == list.Count-1 ? Fix(x) : x).ToList();
 
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete

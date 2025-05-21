@@ -130,14 +130,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		private static bool DetermineTermination(FunctionResult result)
 		{
+			var value = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
 			return result.GetValue<string>()?.Contains("User", StringComparison.OrdinalIgnoreCase) ?? false;
 		}
 
 		private string DetermineNextAgent(FunctionResult result)
 		{
-			var lastWord = result.GetValue<string>()?.Split(' ').LastOrDefault();
+			var value = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
+			var splitted = value?.Split(' ');
+			var lastWord = splitted?.LastOrDefault()?.Trim();
 
-			if (lastWord != null && agents.Exists(x => x.Name == lastWord))
+			if (lastWord != null && agents.Exists(x => string.Equals(x.Name, lastWord, StringComparison.InvariantCultureIgnoreCase)))
 			{
 				return lastWord;
 			}
