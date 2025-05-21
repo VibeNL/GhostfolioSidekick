@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			sb.AppendLine("Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful.");
 			sb.AppendLine("Use financial terminology and suggest insights like trends or anomalies if data is present.");
 			sb.AppendLine();
-			sb.AppendLine("You have access to a set of specialized companions (other agents) for specific tasks.");
+			sb.AppendLine("You have access to a set of specialized companions (other agents) for specific tasks. When calling one, only repond with the name of the agent and the query to that agent");
 			sb.AppendLine("If a user request is better handled by a companion, only call or refer to the appropriate companion agent by name at the moment of delegation.");
 			sb.AppendLine("Clearly indicate when you are delegating a task to a companion agent and do not provide any other data when doing so.");
 			sb.AppendLine();
