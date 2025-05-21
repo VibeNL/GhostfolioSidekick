@@ -23,7 +23,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private IWebChatClient chatClient;
 
 		private Progress<InitializeProgress> progress = new();
-		private string streamingText = "";
+		private string streamingAuthor = string.Empty;
+		private string streamingText = string.Empty;
 		private InitializeProgress lastProgress = new(0);
 
 		private IJSRuntime JS { get; set; }
@@ -92,7 +93,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 				await foreach (var response in orchestrator.AskQuestion(input))
 				{
 					// Append the bot's streaming response
-					streamingText += response.Content ?? "";
+					streamingAuthor = response.AuthorName ?? string.Empty;
+					streamingText += response.Content ?? string.Empty;
 					StateHasChanged();
 
 					// Scroll to the bottom of the chat
@@ -104,6 +106,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 				IsBotTyping = false;
 				streamingText = string.Empty;
+				streamingAuthor = string.Empty;
 
 				StateHasChanged();
 

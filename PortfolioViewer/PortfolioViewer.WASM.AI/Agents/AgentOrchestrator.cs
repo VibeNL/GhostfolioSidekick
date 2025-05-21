@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  HistoryReducer = new ChatHistoryTruncationReducer(1),
 				  // Limit total number of turns no matter what
 				  MaximumIterations = 10,
-				  AutomaticReset = false,
+				  AutomaticReset = true,
 			  };
 
 			groupChat = new AgentGroupChat([.. agents])
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		public async Task<IReadOnlyCollection<ChatMessageContent>> History()
 		{
 			// History is stored in reverse order, so we need to reverse it to display it correctly.
-			return await groupChat.GetChatMessagesAsync().Reverse().ToListAsync();
+			return await groupChat.GetChatMessagesAsync().Reverse().Where(x => x.Content != null).ToListAsync();
 		}
 
 		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)

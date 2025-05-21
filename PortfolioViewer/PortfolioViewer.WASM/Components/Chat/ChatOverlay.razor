@@ -73,18 +73,9 @@
 						</div>
 					}
 
-					@if (IsBotTyping || string.IsNullOrWhiteSpace(streamingText))
+					@if (!string.IsNullOrWhiteSpace(streamingText))
 					{
-						<div class="typing-bubble">
-							<span class="typing-dots">
-								<span>.</span><span>.</span><span>.</span>
-							</span>
-						</div>
-					}
-
-					@if (IsBotTyping || !string.IsNullOrWhiteSpace(streamingText))
-					{
-						var messageInProgress = new ChatMessageContent(AuthorRole.Assistant, streamingText ?? string.Empty);
+						var messageInProgress = new ChatMessageContent(AuthorRole.Assistant, streamingText) { AuthorName = streamingAuthor };
 						<div style="@GetBubbleStyle(messageInProgress)">
 							@(messageInProgress.AuthorName): @((MarkupString)Markdown.ToHtml(messageInProgress.ToDisplayText(), pipeline))
 							@if (!string.IsNullOrWhiteSpace(messageInProgress.ToThinkText()))
@@ -105,6 +96,15 @@
 						</div>
 					}
 
+					<!-- AI still progressing -->
+					@if (IsBotTyping) 
+					{
+						<div class="typing-bubble">
+							<span class="typing-dots">
+								<span>.</span><span>.</span><span>.</span>
+							</span>
+						</div>
+					}
 
 				</div>
 
