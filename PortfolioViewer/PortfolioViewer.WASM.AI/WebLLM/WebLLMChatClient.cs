@@ -56,8 +56,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				throw new NotSupportedException();
 			}
 
+			// If the last message is assistant, fake it to be a tool
+			var list = messages.ToList();
+			
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", EnableThinking, interopInstance.ConvertMessage(messages)));
+			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync(
+					"completeStreamWebLLM", 
+					EnableThinking,
+					interopInstance.ConvertMessage(list)));
 
 			while (true)
 			{
