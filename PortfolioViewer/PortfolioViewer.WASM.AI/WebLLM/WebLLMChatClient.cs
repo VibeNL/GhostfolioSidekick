@@ -58,12 +58,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 			// If the last message is assistant, fake it to be a tool
 			var list = messages.ToList();
-			
+			var convertedMessages = list.Select((x,i) => i == list.Count-1 ? Fix(x) : x).ToList();
+
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
 			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync(
 					"completeStreamWebLLM", 
 					EnableThinking,
-					interopInstance.ConvertMessage(list)));
+					interopInstance.ConvertMessage(convertedMessages)));
 
 			while (true)
 			{
@@ -96,6 +97,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 					await Task.Delay(1, cancellationToken);
 				}
 			}
+		}
+
+		private ChatMessage Fix(ChatMessage x)
+		{
+			if (x.Role == ChatRole.Assistant)
+			{
+				return new ChatMessage(ChatRole.User, x.Text) { AuthorName = x.AuthorName };
+			}
+
+			return x;
 		}
 
 		public object? GetService(Type serviceType, object? serviceKey) => this;
