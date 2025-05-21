@@ -15,9 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
 	public class AgentOrchestrator
 	{
-		private const string mainAgentPromp = @"You are GhostfolioSidekick AI — a smart financial assistant. Help users understand and manage their investment portfolio.
-												Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful.
-												Use financial terminology and suggest insights like trends or anomalies if data is present.";
+		
 		private readonly Kernel kernel;
 		private readonly Agent defaultAgent;
 		private readonly List<Agent> agents;
@@ -38,17 +36,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			});
 			var thinkingKernel = thinkBuilder.Build();
 
-			defaultAgent = new ChatCompletionAgent
-			{
-				Name = "GhostfolioSidekick",
-				Instructions = mainAgentPromp,
-				Kernel = thinkingKernel,
-				Description = "A smart financial assistant that helps users understand and manage their investment portfolio.",
-				InstructionsRole = AuthorRole.Assistant
-			};
+			var researchAgent = ResearchAgent.Create(thinkingKernel);
+			defaultAgent = GhostfolioSidekick.Create(thinkingKernel, [researchAgent]);
 
 			this.agents = [
-				defaultAgent
+				defaultAgent,
+				researchAgent
 			];
 
 			// Define a kernel function for the selection strategy
