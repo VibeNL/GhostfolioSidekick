@@ -58,7 +58,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 			// If the last message is assistant, fake it to be a user call
 			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
-			var convertedMessages = list.Select((x,i) => i == list.Count-1 ? Fix(x) : x).ToList();
+			var convertedMessages = list
+				.Select((x,i) => i == list.Count-1 ? Fix(x) : x)
+				.Select(x => RemoveThink(x))
+				.ToList();
 
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
 			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync(
@@ -97,6 +100,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 					await Task.Delay(1, cancellationToken);
 				}
 			}
+		}
+
+		private ChatMessage RemoveThink(ChatMessage x)
+		{
+			return new ChatMessage(x.Role, ChatMessageContentHelper.ToDisplayText(x.Text)) { AuthorName = x.AuthorName };
 		}
 
 		private ChatMessage Fix(ChatMessage x)
