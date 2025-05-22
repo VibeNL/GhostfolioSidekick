@@ -1,11 +1,14 @@
 @using Markdig
 @using Microsoft.Extensions.AI
+@using Microsoft.SemanticKernel
+@using Microsoft.SemanticKernel.ChatCompletion
 @using PortfolioViewer.WASM.AI
+
 <!-- Floating Chat Button -->
 <div style="position: fixed; bottom: 24px; right: 24px; z-index: 1000;">
 	<button id="chat-button" @onclick="ToggleChat"
 			style="background-color: #2563eb; color: white; padding: 16px; border-radius: 9999px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px;">
-		💬
+				💬
 	</button>
 </div>
 
@@ -48,7 +51,7 @@
 			{
 				<!-- Messages -->
 				<div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background-color: #f9f9f9;">
-					@foreach (var msg in context.Memory)
+					@foreach (var msg in memory)
 					{
 						<div style="@GetBubbleStyle(msg)">
 							@(msg.AuthorName): @((MarkupString)Markdown.ToHtml(msg.ToDisplayText(), pipeline))
@@ -70,7 +73,8 @@
 						</div>
 					}
 
-					@if (IsBotTyping || !string.IsNullOrWhiteSpace(streamingText))
+					<!-- AI still progressing -->
+					@if (IsBotTyping) 
 					{
 						<div class="typing-bubble">
 							<span class="typing-dots">
@@ -78,11 +82,12 @@
 							</span>
 						</div>
 					}
+
 				</div>
 
 				<!-- Input -->
 				<div style="padding: 12px; border-top: 1px solid #e5e7eb;">
-					<input id="chat-input" @bind="CurrentMessage"
+					<input id="chat-input" @bind="CurrentMessage" @onkeyup="HandleInputKeyUp"
 						   placeholder="Ask something..."
 						   style="width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 9999px; font-size: 14px;"
 						   disabled="@IsBotTyping" />
@@ -101,22 +106,29 @@
 	</div>
 }
 
-
 @code
 {
-	private string GetBubbleStyle(ChatMessage? message)
+	private async Task HandleInputKeyUp(KeyboardEventArgs e)
+	{
+	    if (e.Key == "Enter" && !IsBotTyping)
+	    {
+			await StreamPromptRequest();
+		}
+	}
+
+	private string GetBubbleStyle(ChatMessageContent? message)
 	{
 		const string baseStyle = "max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); ";
 
-		if (message?.Role == ChatRole.User)
+		if (message?.Role == AuthorRole.User)
 		{
 			return baseStyle + "background-color: #dbeafe; align-self: flex-end;";
 		}
-		else if (message?.Role == ChatRole.Assistant)
+		else if (message?.Role == AuthorRole.Assistant)
 		{
 			return baseStyle + "background-color: #e0f7fa; align-self: flex-start; border: 1px solid #b2ebf2;";
 		}
-		else if (message?.Role == ChatRole.System)
+		else if (message?.Role == AuthorRole.System)
 		{
 			return baseStyle + "background-color: #f3e5f5; align-self: center; font-style: italic;";
 		}
@@ -125,6 +137,4 @@
 			return baseStyle + "background-color: #ffffff; border: 1px solid #e5e7eb; align-self: flex-start;";
 		}
 	}
-
-
 }

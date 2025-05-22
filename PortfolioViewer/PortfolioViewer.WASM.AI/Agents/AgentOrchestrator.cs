@@ -1,73 +1,151 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.AI;
-using static GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM.WebLLMChatClient;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.Agents.Chat;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
 	public class AgentOrchestrator
 	{
-		private readonly IWebChatClient chatClient;
-		private readonly IList<IAgent> _agents;
+		
+		private readonly Kernel kernel;
+		private readonly Agent defaultAgent;
+		private readonly List<Agent> agents;
+		private readonly AgentGroupChat groupChat;
 
-		public AgentOrchestrator(IWebChatClient chatClient, IList<IAgent> agents)
+		public AgentOrchestrator(IWebChatClient webChatClient)
 		{
-			this.chatClient = chatClient;
-			_agents = agents;
+			IKernelBuilder builder = Kernel.CreateBuilder();
+			builder.Services.AddScoped<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
+			kernel = builder.Build();
+
+			IKernelBuilder thinkBuilder = Kernel.CreateBuilder();
+			thinkBuilder.Services.AddScoped<IChatCompletionService>((s) =>
+			{
+				var client = webChatClient.Clone();
+				client.EnableThinking = true;
+				return client.AsChatCompletionService();
+			});
+			var thinkingKernel = thinkBuilder.Build();
+
+			var researchAgent = ResearchAgent.Create(thinkingKernel);
+			defaultAgent = GhostfolioSidekick.Create(thinkingKernel, [researchAgent]);
+
+			this.agents = [
+				defaultAgent,
+				researchAgent
+			];
+
+			// Define a kernel function for the selection strategy
+			KernelFunction selectionFunction =
+				AgentGroupChat.CreatePromptFunctionForStrategy(
+					$$$"""
+						Determine which participant takes the next turn in a conversation based on the the most recent participant.
+						State only the name of the participant to take the next turn.
+						No participant should take more than one turn in a row.
+						When the input from the User is required, please select User
+
+						Choose only from these participants:
+						- User
+						{{{string.Join(Environment.NewLine, agents.Select(x => $"{x.Name}:{x.Description}"))}}}
+
+						History:
+						{{$history}}
+						""",
+					safeParameterNames: "history");
+
+			// Define the selection strategy
+			KernelFunctionSelectionStrategy selectionStrategy =
+			  new(selectionFunction, kernel)
+			  {
+				  // Always start with the writer agent.
+				  InitialAgent = defaultAgent,
+				  // Parse the function response.
+				  ResultParser = (result) => DetermineNextAgent(result),
+				  // The prompt variable name for the history argument.
+				  HistoryVariableName = "history",
+				  // Save tokens by not including the entire history in the prompt
+				  HistoryReducer = new ChatHistoryTruncationReducer(3),
+			  };
+
+			KernelFunction terminationFunction =
+				AgentGroupChat.CreatePromptFunctionForStrategy(
+					$$$"""
+					Determine if the conversation has ended. Then respond with 'User' 
+					In case another agent should take the next turn, respond with the name of that agent.
+
+					History:
+					{{$history}}
+					""",
+					safeParameterNames: "history");
+
+			// Define the termination strategy
+			KernelFunctionTerminationStrategy terminationStrategy =
+			  new(terminationFunction, kernel)
+			  {
+				  // Only the reviewer may give approval.
+				  Agents = [defaultAgent],
+				  // Parse the function response.
+				  ResultParser = (result) =>
+					DetermineTermination(result),
+				  // The prompt variable name for the history argument.
+				  HistoryVariableName = "history",
+				  // Save tokens by not including the entire history in the prompt
+				  HistoryReducer = new ChatHistoryTruncationReducer(1),
+				  // Limit total number of turns no matter what
+				  MaximumIterations = 10,
+				  AutomaticReset = true,
+				  
+			  };
+
+			groupChat = new AgentGroupChat([.. agents])
+			{
+				ExecutionSettings = new AgentGroupChatSettings
+				{
+					TerminationStrategy = terminationStrategy,
+					SelectionStrategy = selectionStrategy
+				}
+			};
 		}
 
-		public async IAsyncEnumerable<ChatResponseUpdate> GetCombinedResponseAsync(IEnumerable<ChatMessage> input, AgentContext context)
+		public async Task<IReadOnlyCollection<ChatMessageContent>> History()
 		{
-			var prompt = $@"You are a task routing assistant. Based on the user's message, decide which of the following specialized agents should respond:
+			// History is stored in reverse order, so we need to reverse it to display it correctly.
+			return await groupChat.GetChatMessagesAsync().Reverse().Where(x => x.Content != null).ToListAsync();
+		}
 
-						Agents:
-						{string.Join(Environment.NewLine, _agents.Select(x => $"{x.Name}: {x.Description}"))}
+		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)
+		{
+			groupChat.AddChatMessage(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 
-						Respond with a JSON list of agent names that should be activated. e.g. [""{_agents[0].Name}""]
-						Only respond with the JSON list of agent names, nothing else. Do not include any other text or explanation.
-						
-						If no suitable agents are found, select the default agent ""{_agents.Where(x => x.IsDefault).Select(x => $"{x.Name}: {x.Description}").Single()}""
+			// Run the group chat
+			var result = groupChat.InvokeStreamingAsync();
 
-						User's latest message:
-						""{input.LastOrDefault(m => m.Role == ChatRole.User)?.Text}""
-						";
-
-			var llmResponse = await chatClient.GetResponseAsync(prompt);
-
-			if (llmResponse.Text == null)
+			await foreach (var update in result)
 			{
-				yield return new ChatResponseUpdate(ChatRole.Assistant, "No response from LLM.");
-				yield break;
+				yield return update;
 			}
-			
-			ChatMessage item = new(ChatRole.Assistant, llmResponse.Text)
-			{ AuthorName = nameof(AgentOrchestrator) };
-			context.Memory.Add(item);
+		}
 
-			yield return new ChatResponseUpdate(ChatRole.Assistant, "Thinking");
+		private static bool DetermineTermination(FunctionResult result)
+		{
+			var value = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
+			return result.GetValue<string>()?.Contains("User", StringComparison.OrdinalIgnoreCase) ?? false;
+		}
 
-			// Some LLM return <think>...</think> text, remove that and the content between
-			var selectedAgentNames = JsonSerializer.Deserialize<List<string>>(item.ToDisplayText());
+		private string DetermineNextAgent(FunctionResult result)
+		{
+			var value = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
+			var splitted = value?.Split(' ');
+			var lastWord = splitted?.LastOrDefault()?.Trim();
 
-			var selectedAgents = _agents
-				.Where(a => selectedAgentNames?.Contains(a.Name, StringComparer.OrdinalIgnoreCase) ?? false)
-				.ToList();
-
-			if (selectedAgents.Count == 0)
+			if (lastWord != null && agents.Exists(x => string.Equals(x.Name, lastWord, StringComparison.InvariantCultureIgnoreCase)))
 			{
-				yield return new ChatResponseUpdate(ChatRole.Assistant, "No matching agents found.");
-				yield break;
+				return lastWord;
 			}
 
-			foreach (var agent in selectedAgents) // TODO, make this smart
-			{
-				await foreach (var response in agent.RespondAsync(input, context))
-				{
-					if (!string.IsNullOrWhiteSpace(response.Text))
-					{
-						yield return response;
-					}
-				}
-			}
+			return defaultAgent.Name ?? throw new NotSupportedException();
 		}
 	}
 }

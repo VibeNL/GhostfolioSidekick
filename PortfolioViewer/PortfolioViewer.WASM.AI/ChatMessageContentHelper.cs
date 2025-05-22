@@ -4,12 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
+using Microsoft.SemanticKernel;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 {
-	public static class ChatMessageHelper
+	public static class ChatMessageContentHelper
 	{
-		public static string ToDisplayText(this ChatMessage message)
+		public static string ToDisplayText(this ChatMessageContent message)
+		{
+			return ToDisplayText(message?.Content) ?? string.Empty;
+		}
+
+		public static string ToDisplayText(this string? message)
 		{
 			if (message == null)
 			{
@@ -17,7 +23,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			}
 
 			var text = System.Text.RegularExpressions.Regex.Replace(
-				message.Text,
+				message,
 				@"<think>.*?</think>",
 				string.Empty,
 				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase
@@ -26,7 +32,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			return text;
 		}
 
-		public static string ToThinkText(this ChatMessage message)
+		public static string ToThinkText(this ChatMessageContent message)
 		{
 			if (message == null)
 			{
@@ -34,7 +40,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			}
 
 			var match = System.Text.RegularExpressions.Regex.Match(
-				message.Text,
+				message.Content ?? string.Empty,
 				@"<think>(.*?)</think>",
 				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase,
 				TimeSpan.FromMinutes(1));

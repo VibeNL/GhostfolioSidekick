@@ -3,7 +3,9 @@ using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Castle.Core.Logging;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -12,29 +14,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 	public class WebLLMChatClient : IWebChatClient
 	{
 		private readonly IJSRuntime jsRuntime;
+		private readonly ILogger<WebLLMChatClient> logger;
 		private readonly string modelId;
 		private InteropInstance? interopInstance = null;
 
-		public ChatClientMetadata Metadata { get; }
-
 		private IJSObjectReference? module = null;
 
+		public bool EnableThinking { get; set;  }
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
-		public WebLLMChatClient(IJSRuntime jsRuntime, string modelId)
+		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, string modelId)
 		{
 			this.jsRuntime = jsRuntime;
+			this.logger = logger;
 			this.modelId = modelId;
-			Metadata = new(nameof(WebLLMChatClient), defaultModelId: modelId);
 		}
 
 		public async Task<ChatResponse> GetResponseAsync(
-			IEnumerable<ChatMessage> chatMessages,
+			IEnumerable<ChatMessage> messages,
 			ChatOptions? options = null,
 			CancellationToken cancellationToken = default)
 		{
 			// Call GetStreamingResponseAsync
 			var msg = new StringBuilder();
-			await foreach (var response in GetStreamingResponseAsync(chatMessages, options, cancellationToken))
+			await foreach (var response in GetStreamingResponseAsync(messages, options, cancellationToken))
 			{
 				msg.Append(response.Text);
 			}
@@ -44,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		}
 
 		public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
-			IEnumerable<ChatMessage> chatMessages,
+			IEnumerable<ChatMessage> messages,
 			ChatOptions? options = null,
 			[EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
@@ -53,8 +56,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				throw new NotSupportedException();
 			}
 
+			// If the last message is assistant, fake it to be a user call
+			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
+			var convertedMessages = list.Select((x,i) => i == list.Count-1 ? Fix(x) : x).ToList();
+
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync("completeStreamWebLLM", interopInstance.ConvertMessage(chatMessages)));
+			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync(
+					"completeStreamWebLLM", 
+					EnableThinking,
+					interopInstance.ConvertMessage(convertedMessages)));
 
 			while (true)
 			{
@@ -77,16 +87,26 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 						continue;
 					}
 
+					logger.LogDebug("ChatRole.Assistant: {Message}", response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty);
 					yield return new ChatResponseUpdate(
 						ChatRole.Assistant,
 						response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty
 						);
-				}
-				else
+				}else
 				{
-					await Task.Delay(100); // Wait for 100ms before checking again
+					await Task.Delay(1, cancellationToken);
 				}
 			}
+		}
+
+		private ChatMessage Fix(ChatMessage x)
+		{
+			if (x.Role == ChatRole.Assistant)
+			{
+				return new ChatMessage(ChatRole.User, x.Text) { AuthorName = x.AuthorName };
+			}
+
+			return x;
 		}
 
 		public object? GetService(Type serviceType, object? serviceKey) => this;
@@ -123,6 +143,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			}
 
 			return module;
+		}
+
+		public IWebChatClient Clone()
+		{
+			return new WebLLMChatClient(jsRuntime, logger, modelId)
+			{
+				interopInstance = interopInstance,
+				module = module,
+				EnableThinking = this.EnableThinking,
+			};
 		}
 
 		public class InteropInstance

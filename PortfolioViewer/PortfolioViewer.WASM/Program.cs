@@ -50,6 +50,9 @@ public static class Program
 			);
 
 		builder.Services.AddWebChatClient();
+
+		builder.Logging.SetMinimumLevel(LogLevel.Trace);
+
 		var app =builder.Build();
 
 		var context = app.Services.GetRequiredService<DatabaseContext>();

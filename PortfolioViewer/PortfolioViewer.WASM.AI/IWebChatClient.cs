@@ -9,6 +9,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 {
 	public interface IWebChatClient: IChatClient
 	{
+		IWebChatClient Clone();
+
+		bool EnableThinking { get; set; }
+
 		Task InitializeAsync(IProgress<InitializeProgress> OnProgress);
 	}
 }

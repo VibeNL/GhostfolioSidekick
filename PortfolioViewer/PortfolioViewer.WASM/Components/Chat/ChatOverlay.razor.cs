@@ -1,12 +1,15 @@
-﻿using System.Data;
-using System.Xml.Linq;
-using GhostfolioSidekick.Model.Activities;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using System.Collections.Generic;
+using System.Data;
+using System.Xml.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
@@ -20,12 +23,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private IWebChatClient chatClient;
 
 		private Progress<InitializeProgress> progress = new();
-		private string streamingText = "";
+		private string streamingAuthor = string.Empty;
 		private InitializeProgress lastProgress = new(0);
 
 		private IJSRuntime JS { get; set; }
 
-		private readonly AgentContext context = new();
+		private readonly List<ChatMessageContent> memory = new();
 		private readonly AgentOrchestrator orchestrator;
 
 		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator)
@@ -34,7 +37,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			this.chatClient = chatClient;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
-			context.Memory.Add(new ChatMessage(ChatRole.System, SystemPrompt) { AuthorName = ChatRole.System.Value }); // Add system prompt to the chat
 		}
 
 		private void ToggleChat()
@@ -78,26 +80,39 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			var input = CurrentMessage;
 
 			// Add the user's message to the chat
-			context.Memory.Add(new ChatMessage(ChatRole.User, input) { AuthorName = ChatRole.User.Value });
 			CurrentMessage = ""; // Clear the input field
 			IsBotTyping = true; // Indicate that the bot is typing
 			StateHasChanged(); // Update the UI
 
 			try
 			{
+				memory.AddRange(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User"});
+
 				// Send the messages to the chat client and process the response
-				await foreach (var response in orchestrator.GetCombinedResponseAsync(context.Memory, context))
+				await foreach (var response in orchestrator.AskQuestion(input))
 				{
 					// Append the bot's streaming response
-					streamingText += response.Text ?? "";
+					streamingAuthor = response.AuthorName ?? string.Empty;
+
+					var lastMemory = memory.LastOrDefault();
+					if (lastMemory?.AuthorName != streamingAuthor)
+					{
+						lastMemory = new ChatMessageContent(AuthorRole.Assistant, response.Content ?? string.Empty) { AuthorName = streamingAuthor };
+						memory.Add(lastMemory);
+					}
+
+					lastMemory.Content += response.Content ?? string.Empty;
 					StateHasChanged();
 
 					// Scroll to the bottom of the chat
 					await JS.InvokeVoidAsync("scrollToBottom", "chat-messages");
 				}
 
+				memory.Clear();
+				memory.AddRange(await orchestrator.History());
+
 				IsBotTyping = false;
-				streamingText = string.Empty;
+				streamingAuthor = string.Empty;
 
 				StateHasChanged();
 
