@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -7,7 +8,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
 	public static class ResearchAgent
 	{
-		private const string researchAgent = @"You are ResearchAgent AI — a smart financial assistant. You may query the internet and databases. Please state the desired query and prompt";
+		private const string researchAgent = @"
+					You are ResearchAgent AI — a smart financial assistant. 
+					You may query the internet and databases. Please state the desired query and prompt";
 		public static ChatCompletionAgent Create(IWebChatClient webChatClient)
 		{
 			IKernelBuilder functionCallingBuilder = Kernel.CreateBuilder();
