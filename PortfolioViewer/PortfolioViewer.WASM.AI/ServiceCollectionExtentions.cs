@@ -13,7 +13,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			services.AddSingleton<IWebChatClient>((s) => new WebLLMChatClient(
 				s.GetRequiredService<IJSRuntime>(),
 				s.GetRequiredService<ILogger<WebLLMChatClient>>(),
-				"Qwen3-4B-q4f16_1-MLC"));
+				new Dictionary<ChatMode, string> { 
+					{ ChatMode.Chat, "Qwen3-4B-q4f16_1-MLC" },
+					{ ChatMode.ChatWithThinking, "Qwen3-4B-q4f16_1-MLC" },
+					{ ChatMode.FunctionCalling, "Hermes-3-Llama-3.1-8B-q4f16_1-MLC" },
+				}
+			));
 
 			services.AddSingleton<AgentOrchestrator>();
 		}

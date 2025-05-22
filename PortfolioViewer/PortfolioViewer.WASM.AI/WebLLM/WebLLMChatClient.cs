@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 	{
 		private readonly IJSRuntime jsRuntime;
 		private readonly ILogger<WebLLMChatClient> logger;
-		private readonly string modelId;
+		private readonly Dictionary<ChatMode, string> modelIds;
 		private InteropInstance? interopInstance = null;
 
 		private IJSObjectReference? module = null;
@@ -23,11 +23,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		public ChatMode ChatMode { get; set;  } = ChatMode.Chat;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
-		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, string modelId)
+		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds)
 		{
 			this.jsRuntime = jsRuntime;
 			this.logger = logger;
-			this.modelId = modelId;
+			this.modelIds = modelIds;
 		}
 
 		public async Task<ChatResponse> GetResponseAsync(
@@ -61,10 +61,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			var convertedMessages = list.Select((x,i) => i == list.Count-1 ? Fix(x) : x).ToList();
 
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync(
-					"completeStreamWebLLM", 
-					ChatMode == ChatMode.ChatWithThinking,
-					interopInstance.ConvertMessage(convertedMessages)));
+			var model = modelIds[ChatMode];
+			_ = Task.Run(async () =>
+			{
+				await (await GetModule()).InvokeVoidAsync(
+									"completeStreamWebLLM",
+									ChatMode == ChatMode.ChatWithThinking,
+									model,
+									interopInstance.ConvertMessage(convertedMessages));
+			});
 
 			while (true)
 			{
@@ -120,7 +125,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		{
 			// Call the `initialize` function in the JavaScript module
 			interopInstance = new(OnProgress);
-			await (await GetModule()).InvokeVoidAsync("initializeWebLLM", modelId, DotNetObjectReference.Create(interopInstance));
+			await (await GetModule()).InvokeVoidAsync(
+				"initializeWebLLM", 
+				modelIds.Select(x => x.Value).Distinct(), 
+				DotNetObjectReference.Create(interopInstance));
 		}
 
 		public static async Task<IJSObjectReference> LoadJsModuleAsync(IJSRuntime jsRuntime, string path)
@@ -147,7 +155,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		public IWebChatClient Clone()
 		{
-			return new WebLLMChatClient(jsRuntime, logger, modelId)
+			return new WebLLMChatClient(jsRuntime, logger, modelIds)
 			{
 				interopInstance = interopInstance,
 				module = module,
