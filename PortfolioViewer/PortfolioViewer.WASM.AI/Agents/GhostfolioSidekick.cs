@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				Instructions = BuildPromptWithCompanions(companions),
 				Kernel = kernel,
 				Description = "A smart financial assistant that helps users understand and manage their investment portfolio.",
-				InstructionsRole = AuthorRole.Assistant
+				InstructionsRole = AuthorRole.System
 			};
 		}
 	}

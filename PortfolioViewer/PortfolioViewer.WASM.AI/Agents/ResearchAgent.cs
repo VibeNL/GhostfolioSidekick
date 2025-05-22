@@ -1,5 +1,6 @@
 ﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
@@ -12,6 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			{
 				Name = "ResearchAgent",
 				Instructions = researchAgent,
+				InstructionsRole = AuthorRole.System,
 				Kernel = kernel,
 				Description = "A researcher that can acces real-time data on the internet. Also can query recent financial news."
 			};
