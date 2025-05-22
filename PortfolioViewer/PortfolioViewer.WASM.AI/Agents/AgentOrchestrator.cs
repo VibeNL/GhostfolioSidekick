@@ -24,12 +24,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			thinkBuilder.Services.AddScoped<IChatCompletionService>((s) =>
 			{
 				var client = webChatClient.Clone();
-				client.EnableThinking = true;
+				client.ChatMode = ChatMode.ChatWithThinking;
 				return client.AsChatCompletionService();
 			});
 			var thinkingKernel = thinkBuilder.Build();
 
-			var researchAgent = ResearchAgent.Create(thinkingKernel);
+			IKernelBuilder functionCallingBuilder = Kernel.CreateBuilder();
+			functionCallingBuilder.Services.AddScoped<IChatCompletionService>((s) =>
+			{
+				var client = webChatClient.Clone();
+				client.ChatMode = ChatMode.FunctionCalling;
+				return client.AsChatCompletionService();
+			});
+			var functionCallingkernel = functionCallingBuilder.Build();
+
+			var researchAgent = ResearchAgent.Create(functionCallingkernel);
 			defaultAgent = GhostfolioSidekick.Create(thinkingKernel, [researchAgent]);
 
 			this.agents = [

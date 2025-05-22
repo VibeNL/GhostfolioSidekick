@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		private IJSObjectReference? module = null;
 
-		public bool EnableThinking { get; set;  }
+		public ChatMode ChatMode { get; set;  } = ChatMode.Chat;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, string modelId)
@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
 			_ = Task.Run(async () => await (await GetModule()).InvokeVoidAsync(
 					"completeStreamWebLLM", 
-					EnableThinking,
+					ChatMode == ChatMode.ChatWithThinking,
 					interopInstance.ConvertMessage(convertedMessages)));
 
 			while (true)
@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			{
 				interopInstance = interopInstance,
 				module = module,
-				EnableThinking = this.EnableThinking,
+				ChatMode = this.ChatMode,
 			};
 		}
 
