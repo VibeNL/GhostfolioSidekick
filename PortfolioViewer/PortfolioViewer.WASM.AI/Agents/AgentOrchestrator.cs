@@ -19,18 +19,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			IKernelBuilder builder = Kernel.CreateBuilder();
 			builder.Services.AddScoped<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
 			kernel = builder.Build();
-
-			IKernelBuilder thinkBuilder = Kernel.CreateBuilder();
-			thinkBuilder.Services.AddScoped<IChatCompletionService>((s) =>
-			{
-				var client = webChatClient.Clone();
-				client.EnableThinking = true;
-				return client.AsChatCompletionService();
-			});
-			var thinkingKernel = thinkBuilder.Build();
-
-			var researchAgent = ResearchAgent.Create(thinkingKernel);
-			defaultAgent = GhostfolioSidekick.Create(thinkingKernel, [researchAgent]);
+			
+			var researchAgent = ResearchAgent.Create(webChatClient);
+			defaultAgent = GhostfolioSidekick.Create(webChatClient, [researchAgent]);
 
 			this.agents = [
 				defaultAgent,

@@ -30,17 +30,16 @@ export class WebLLMInterop {
     };
 
     // Initialize the engine
-    public async initialize(selectedModel: string, dotnet: DotNetInstance): Promise<void> {
+    public async initialize(selectedModels: string[], dotnet: DotNetInstance): Promise<void> {
         this.dotnetInstance = dotnet; // Store the .NET instance
         this.engine = await webllm.CreateMLCEngine(
-            selectedModel,
+            selectedModels,
             { initProgressCallback: this.initProgressCallback }, // engineConfig
-            { context_window_size: 8096 } // modelConfig
         );
     }
 
     // Stream completion
-    public async completeStream(enableThinking: boolean, messages: Message[]): Promise<void> {
+    public async completeStream(enableThinking: boolean, modelId: string, messages: Message[]): Promise<void> {
         if (!this.engine) {
             throw new Error("Engine is not initialized.");
         }
@@ -50,6 +49,7 @@ export class WebLLMInterop {
             messages,
             temperature: 0,
             seed: 42,
+            model: modelId,
             stream: true, // Enable streaming
             stream_options: { include_usage: true },
             extra_body: {
@@ -68,10 +68,10 @@ export class WebLLMInterop {
 const webLLMInteropInstance = new WebLLMInterop();
 
 // Export the functions
-export async function initializeWebLLM(selectedModel: string, dotnet: DotNetInstance): Promise<void> {
-    await webLLMInteropInstance.initialize(selectedModel, dotnet);
+export async function initializeWebLLM(selectedModels: string[], dotnet: DotNetInstance): Promise<void> {
+    await webLLMInteropInstance.initialize(selectedModels, dotnet);
 }
 
-export async function completeStreamWebLLM(enableThinking: boolean,  messages: Message[]): Promise<void> {
-    await webLLMInteropInstance.completeStream(enableThinking, messages);
+export async function completeStreamWebLLM(enableThinking: boolean, modelId: string, messages: Message[]): Promise<void> {
+    await webLLMInteropInstance.completeStream(enableThinking, modelId, messages);
 }

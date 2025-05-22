@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 			try
 			{
-				memory.AddRange(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User"});
+				memory.AddRange(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 
 				// Send the messages to the chat client and process the response
 				await foreach (var response in orchestrator.AskQuestion(input))
