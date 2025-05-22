@@ -26,16 +26,14 @@ export class WebLLMInterop {
         };
     }
     // Initialize the engine
-    initialize(selectedModel, dotnet) {
+    initialize(selectedModels, dotnet) {
         return __awaiter(this, void 0, void 0, function* () {
             this.dotnetInstance = dotnet; // Store the .NET instance
-            this.engine = yield webllm.CreateMLCEngine(selectedModel, { initProgressCallback: this.initProgressCallback }, // engineConfig
-            { context_window_size: 8096 } // modelConfig
-            );
+            this.engine = yield webllm.CreateMLCEngine(selectedModels, { initProgressCallback: this.initProgressCallback });
         });
     }
     // Stream completion
-    completeStream(enableThinking, messages) {
+    completeStream(enableThinking, modelId, messages) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, e_1, _b, _c;
             var _d;
@@ -47,6 +45,7 @@ export class WebLLMInterop {
                 messages,
                 temperature: 0,
                 seed: 42,
+                model: modelId,
                 stream: true, // Enable streaming
                 stream_options: { include_usage: true },
                 extra_body: {
@@ -75,13 +74,13 @@ export class WebLLMInterop {
 // Singleton instance of WebLLMInterop
 const webLLMInteropInstance = new WebLLMInterop();
 // Export the functions
-export function initializeWebLLM(selectedModel, dotnet) {
+export function initializeWebLLM(selectedModels, dotnet) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield webLLMInteropInstance.initialize(selectedModel, dotnet);
+        yield webLLMInteropInstance.initialize(selectedModels, dotnet);
     });
 }
-export function completeStreamWebLLM(enableThinking, messages) {
+export function completeStreamWebLLM(enableThinking, modelId, messages) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield webLLMInteropInstance.completeStream(enableThinking, messages);
+        yield webLLMInteropInstance.completeStream(enableThinking, modelId, messages);
     });
 }

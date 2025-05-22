@@ -8,7 +8,7 @@
     }
 
     export function CreateMLCEngine(
-        model: string,
+        model: string | string[],
         engineConfig: {
             initProgressCallback: (progress: any) => void,
         },
@@ -33,6 +33,7 @@
         messages: Message[];
         temperature: number;
         seed: number;
+        model: string;
         stream: boolean;
         stream_options: { include_usage: boolean };
         tool_choice?: string;
