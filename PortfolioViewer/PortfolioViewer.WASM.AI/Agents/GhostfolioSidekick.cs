@@ -1,4 +1,5 @@
-﻿using Microsoft.SemanticKernel;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text;
@@ -26,13 +27,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			return sb.ToString();
 		}
 
-		public static ChatCompletionAgent Create(Kernel kernel, IEnumerable<Agent> companions)
+		public static ChatCompletionAgent Create(IWebChatClient webChatClient, IEnumerable<Agent> companions)
 		{
+			IKernelBuilder thinkBuilder = Kernel.CreateBuilder();
+			thinkBuilder.Services.AddScoped<IChatCompletionService>((s) =>
+			{
+				var client = webChatClient.Clone();
+				client.ChatMode = ChatMode.ChatWithThinking;
+				return client.AsChatCompletionService();
+			});
+			var thinkingKernel = thinkBuilder.Build();
+
 			return new ChatCompletionAgent
 			{
 				Name = "GhostfolioSidekick",
 				Instructions = BuildPromptWithCompanions(companions),
-				Kernel = kernel,
+				Kernel = thinkingKernel,
 				Description = "A smart financial assistant that helps users understand and manage their investment portfolio.",
 				InstructionsRole = AuthorRole.System
 			};
