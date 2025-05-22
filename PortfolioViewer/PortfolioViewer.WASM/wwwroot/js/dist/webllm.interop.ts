@@ -39,7 +39,7 @@ export class WebLLMInterop {
     }
 
     // Stream completion
-    public async completeStream(messages: Message[], modelId: string, enableThinking: boolean, tools: string): Promise<void> {
+    public async completeStream(messages: Message[], modelId: string, enableThinking: boolean, tools: Array<webllm.ChatCompletionTool>): Promise<void> {
         if (!this.engine) {
             throw new Error("Engine is not initialized.");
         }
@@ -50,6 +50,8 @@ export class WebLLMInterop {
             temperature: 0,
             seed: 42,
             model: modelId,
+            tool_choice: "auto",
+            tools: tools,
             stream: true, // Enable streaming
             stream_options: { include_usage: true },
             extra_body: {
@@ -58,6 +60,10 @@ export class WebLLMInterop {
         });
 
         for await (const chunk of chunks) {
+            if (tools !== null && tools.length > 0) {
+                debugger;
+            }
+
             // Assuming chunk is of type Chunk (define below if needed)
             await this.dotnetInstance?.invokeMethodAsync("ReceiveChunkCompletion", chunk);
         }
@@ -77,6 +83,6 @@ export async function completeStreamWebLLM(
     modelId: string,
     enableThinking: boolean,
     tools: string
-    ): Promise<void> {
-    await webLLMInteropInstance.completeStream(messages, modelId, enableThinking, tools);
+): Promise<void> {
+    await webLLMInteropInstance.completeStream(messages, modelId, enableThinking, JSON.parse(tools));
 }
