@@ -39,7 +39,7 @@ export class WebLLMInterop {
     }
 
     // Stream completion
-    public async completeStream(enableThinking: boolean, modelId: string, messages: Message[]): Promise<void> {
+    public async completeStream(messages: Message[], modelId: string, enableThinking: boolean, tools: string): Promise<void> {
         if (!this.engine) {
             throw new Error("Engine is not initialized.");
         }
@@ -72,6 +72,11 @@ export async function initializeWebLLM(selectedModels: string[], dotnet: DotNetI
     await webLLMInteropInstance.initialize(selectedModels, dotnet);
 }
 
-export async function completeStreamWebLLM(enableThinking: boolean, modelId: string, messages: Message[]): Promise<void> {
-    await webLLMInteropInstance.completeStream(enableThinking, modelId, messages);
+export async function completeStreamWebLLM(
+    messages: Message[],
+    modelId: string,
+    enableThinking: boolean,
+    tools: string
+    ): Promise<void> {
+    await webLLMInteropInstance.completeStream(messages, modelId, enableThinking, tools);
 }

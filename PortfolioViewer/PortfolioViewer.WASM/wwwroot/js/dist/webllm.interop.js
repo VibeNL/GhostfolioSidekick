@@ -33,7 +33,7 @@ export class WebLLMInterop {
         });
     }
     // Stream completion
-    completeStream(enableThinking, modelId, messages) {
+    completeStream(messages, modelId, enableThinking, tools) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, e_1, _b, _c;
             var _d;
@@ -79,8 +79,8 @@ export function initializeWebLLM(selectedModels, dotnet) {
         yield webLLMInteropInstance.initialize(selectedModels, dotnet);
     });
 }
-export function completeStreamWebLLM(enableThinking, modelId, messages) {
+export function completeStreamWebLLM(messages, modelId, enableThinking, tools) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield webLLMInteropInstance.completeStream(enableThinking, modelId, messages);
+        yield webLLMInteropInstance.completeStream(messages, modelId, enableThinking, tools);
     });
 }
