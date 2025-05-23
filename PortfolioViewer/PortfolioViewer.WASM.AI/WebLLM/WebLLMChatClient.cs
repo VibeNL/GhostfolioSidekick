@@ -1,12 +1,18 @@
-﻿using System.Collections.Concurrent;
+﻿using Castle.Core.Logging;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
+using Microsoft.SemanticKernel;
+using OpenAI.Assistants;
+using System.Collections.Concurrent;
+using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Castle.Core.Logging;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
-using Microsoft.JSInterop;
+using System.Text.Json;
+using System.Text.Json;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
@@ -20,7 +26,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		private IJSObjectReference? module = null;
 
-		public ChatMode ChatMode { get; set;  } = ChatMode.Chat;
+		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds)
@@ -58,17 +64,39 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 			// If the last message is assistant, fake it to be a user call
 			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
-			var convertedMessages = list.Select((x,i) => i == list.Count-1 ? Fix(x) : x).ToList();
+			var convertedMessages = list
+				.Select((x, i) => i == list.Count - 1 ? Fix(x) : x)
+				.Select(x => RemoveThink(x))
+				.ToList();
 
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
 			var model = modelIds[ChatMode];
+			
+			var specs = new List<OpenAIFunctionWrapper>();
+			foreach (var function in options?.Tools?.OfType<AIFunction>() ?? [])
+			{
+				specs.Add(new OpenAIFunctionWrapper()
+				{
+					function = new OpenAIFunctionWrapper.Function()
+					{
+						name = function.Name,
+						description = function.Description,
+						parameters = function.JsonSchema
+					}
+				});
+			}
+
+			var toolsJson = JsonSerializer.Serialize(specs);
+
 			_ = Task.Run(async () =>
 			{
 				await (await GetModule()).InvokeVoidAsync(
 									"completeStreamWebLLM",
-									ChatMode == ChatMode.ChatWithThinking,
+									interopInstance.ConvertMessage(convertedMessages),
 									model,
-									interopInstance.ConvertMessage(convertedMessages));
+									ChatMode == ChatMode.ChatWithThinking,
+									ChatMode == ChatMode.FunctionCalling ? toolsJson : null
+									);
 			});
 
 			while (true)
@@ -97,11 +125,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 						ChatRole.Assistant,
 						response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty
 						);
-				}else
+				}
+				else
 				{
 					await Task.Delay(1, cancellationToken);
 				}
 			}
+		}
+
+		private ChatMessage RemoveThink(ChatMessage x)
+		{
+			return new ChatMessage(x.Role, ChatMessageContentHelper.ToDisplayText(x.Text)) { AuthorName = x.AuthorName };
 		}
 
 		private ChatMessage Fix(ChatMessage x)
@@ -126,8 +160,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			// Call the `initialize` function in the JavaScript module
 			interopInstance = new(OnProgress);
 			await (await GetModule()).InvokeVoidAsync(
-				"initializeWebLLM", 
-				modelIds.Select(x => x.Value).Distinct(), 
+				"initializeWebLLM",
+				modelIds.Select(x => x.Value).Distinct(),
 				DotNetObjectReference.Create(interopInstance));
 		}
 
@@ -247,6 +281,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		{
 			// The final part of a chat message stream will include Usage
 			public bool IsStreamComplete => Usage is not null;
+		}
+
+		public class OpenAIFunctionWrapper
+		{
+			public string type { get; set; } = "function";
+			public Function function { get; set; }
+
+			public class Function
+			{
+				public string name { get; set; }
+				public string description { get; set; }
+				public JsonElement parameters { get; set; }
+			}
 		}
 	}
 }
