@@ -61,7 +61,7 @@ export class WebLLMInterop {
 
         for await (const chunk of chunks) {
             if (tools !== null && tools.length > 0) {
-                debugger;
+                //debugger;
             }
 
             // Assuming chunk is of type Chunk (define below if needed)
