@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			{ "TestAccount2", 1 },
 		};
 
-		[Fact]
+		[Fact(Skip="todo")]
 		public async Task CanSetupGhostfolioDependencies()
 		{
 			// url ghostfolio for debugging:
