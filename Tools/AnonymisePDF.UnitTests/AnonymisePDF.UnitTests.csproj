@@ -18,7 +18,7 @@
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" Version="2.6.1" />
 		<PackageReference Include="coverlet.collector" Version="6.0.4" />
-		<PackageReference Include="AwesomeAssertions" Version="8.2.0" />
+		<PackageReference Include="AwesomeAssertions" Version="9.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
 		<PackageReference Include="Polly" Version="8.5.2" />

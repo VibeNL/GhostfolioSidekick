@@ -2,7 +2,7 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using FluentAssertions;
+using AwesomeAssertions;
 using Moq.EntityFrameworkCore;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Activities;

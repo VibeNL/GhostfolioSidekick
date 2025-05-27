@@ -1,5 +1,5 @@
 using Moq;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;

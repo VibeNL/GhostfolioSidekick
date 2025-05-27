@@ -1,7 +1,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Activities.Strategies;
 
 namespace GhostfolioSidekick.UnitTests.Activities.Strategies

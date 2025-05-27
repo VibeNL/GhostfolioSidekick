@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Configuration;
 
 namespace GhostfolioSidekick.Parsers.UnitTests

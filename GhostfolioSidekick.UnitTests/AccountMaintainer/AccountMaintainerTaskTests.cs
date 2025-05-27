@@ -4,7 +4,7 @@ using GhostfolioSidekick.Model.Accounts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 using Moq.EntityFrameworkCore;
 using GhostfolioSidekick.AccountMaintainer;

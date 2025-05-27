@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using GhostfolioSidekick.Model.ISIN;
 
 namespace GhostfolioSidekick.Model.UnitTests.ISIN

@@ -1,7 +1,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Activities.Strategies;
 

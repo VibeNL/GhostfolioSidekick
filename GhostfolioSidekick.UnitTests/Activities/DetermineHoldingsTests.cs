@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
