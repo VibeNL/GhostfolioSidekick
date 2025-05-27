@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.UnitTests.Symbols

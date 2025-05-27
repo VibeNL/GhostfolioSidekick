@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;

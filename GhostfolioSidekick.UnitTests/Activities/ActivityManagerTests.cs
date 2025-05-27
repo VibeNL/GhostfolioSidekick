@@ -2,7 +2,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Activities;
 
 namespace GhostfolioSidekick.UnitTests.Activities

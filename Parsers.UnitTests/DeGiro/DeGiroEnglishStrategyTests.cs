@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Parsers.DeGiro;
 using GhostfolioSidekick.Model.Activities;
 using AutoFixture;

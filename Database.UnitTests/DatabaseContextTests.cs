@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Database;
-using FluentAssertions;
+using AwesomeAssertions;
 
 namespace GhostfolioSidekick.Tools.Database.UnitTests
 {

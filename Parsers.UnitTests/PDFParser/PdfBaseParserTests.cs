@@ -2,7 +2,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using Moq;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser

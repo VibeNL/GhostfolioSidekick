@@ -1,5 +1,5 @@
 using AutoFixture;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;

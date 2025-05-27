@@ -4,7 +4,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Database.Repository;
 using RestSharp;
 using Microsoft.Extensions.Caching.Memory;

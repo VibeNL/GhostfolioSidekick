@@ -2,7 +2,7 @@
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
