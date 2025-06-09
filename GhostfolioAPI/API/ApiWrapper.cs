@@ -7,6 +7,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -368,7 +369,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		public async Task SyncMarketData(Model.Symbols.SymbolProfile symbolProfile, ICollection<Model.Market.MarketData> list)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}");
+			var content = await restCall.DoRestGet($"api/v1/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}");
 			var existingData = JsonConvert.DeserializeObject<MarketDataList>(content!)?.MarketData;
 
 			foreach (var marketData in list)
@@ -382,12 +383,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				var o = new JObject
 				{
-					["marketPrice"] = amount
+					["marketData"] = new JObject
+					{
+						["date"] = marketData.Date.ToString("yyyy-MM-dd"),
+						["marketPrice"] = amount
+					}
 				};
 
 				var res = o.ToString();
 
-				var r = await restCall.DoRestPut($"api/v1/admin/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}/{marketData.Date:yyyy-MM-dd}", res);
+				var r = await restCall.DoRestPut($"api/v1/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}", res);
 				if (!r.IsSuccessStatusCode)
 				{
 					throw new NotSupportedException($"SetMarketPrice failed {symbolProfile.Symbol} {marketData.Date}");
@@ -451,7 +456,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
 				.ToList() ?? [])
 			{
-				content = await restCall.DoRestGet($"api/v1/admin/market-data/{f.DataSource}/{f.Symbol}");
+				content = await restCall.DoRestGet($"api/v1/market-data/{f.DataSource}/{f.Symbol}");
 				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
 				profiles.Add(data!.AssetProfile);
 			}
