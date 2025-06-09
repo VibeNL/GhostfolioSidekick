@@ -392,7 +392,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				var res = o.ToString();
 
-				var r = await restCall.DoRestPut($"api/v1/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}", res);
+				var r = await restCall.DoRestPost($"api/v1/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}", res);
 				if (!r.IsSuccessStatusCode)
 				{
 					throw new NotSupportedException($"SetMarketPrice failed {symbolProfile.Symbol} {marketData.Date}");
