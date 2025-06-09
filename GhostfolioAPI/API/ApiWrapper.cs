@@ -383,10 +383,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				var o = new JObject
 				{
-					["marketData"] = new JObject
-					{
-						["date"] = marketData.Date.ToString("yyyy-MM-dd"),
-						["marketPrice"] = amount
+					["marketData"] = new JArray {
+						new JObject
+						{
+							["date"] = marketData.Date.ToString("yyyy-MM-dd"),
+							["marketPrice"] = amount
+						}
 					}
 				};
 
