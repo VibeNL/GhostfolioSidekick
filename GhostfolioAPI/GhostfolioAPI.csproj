@@ -14,11 +14,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="FuzzySharp" Version="2.0.2" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.5" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Polly" Version="8.5.2" />
+		<PackageReference Include="Polly" Version="8.6.0" />
 		<PackageReference Include="RestSharp" Version="112.1.0" />
 	</ItemGroup>
 
