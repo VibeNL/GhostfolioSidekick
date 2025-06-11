@@ -108,6 +108,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Id));
 					break;
 				case "Stock split close":
+				case "Stock split open":
 					// Ignore
 					break;
 				default:
