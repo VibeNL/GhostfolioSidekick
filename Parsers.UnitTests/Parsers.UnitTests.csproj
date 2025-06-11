@@ -23,7 +23,7 @@
 		<PackageReference Include="AutoFixture" Version="4.18.1" />
 		<PackageReference Include="AutoFixture.Xunit2" Version="4.18.1" />
 		<PackageReference Include="AwesomeAssertions" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.6" />
 
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
 
