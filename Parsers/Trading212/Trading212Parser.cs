@@ -109,6 +109,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					break;
 				case "Stock split close":
 					// Ignore
+					break;
 				default:
 					throw new NotSupportedException();
 			}
