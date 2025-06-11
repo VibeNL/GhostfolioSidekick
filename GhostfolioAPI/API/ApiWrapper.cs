@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var content = await restCall.DoRestGet($"api/v1/order");
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
 
-			existingActivities = existingActivities.Where(x => x.AccountId == rawAccount.Id).ToList();
+			existingActivities = [.. existingActivities.Where(x => x.AccountId == rawAccount.Id)];
 
 			if (existingActivities == null)
 			{
@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			// Filter out existing activities that are not in the new list
 			var accountFromActivities = allActivities.Select(x => x.Account.Name).Distinct().ToList();
 			var accountIds = accountFromActivities.Select(x => accounts.SingleOrDefault(y => y.Name == x)?.Id).Where(x => x != null).Select(x => x!).ToList();
-			existingActivities = existingActivities.Where(x => accountIds.Contains(x.AccountId!)).ToList();
+			existingActivities = [.. existingActivities.Where(x => accountIds.Contains(x.AccountId!))];
 
 			// Get new activities
 			var newActivities = allActivities.Select(activity =>
@@ -439,7 +439,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException();
 			}
 
-			return rawPlatforms.ToList();
+			return [.. rawPlatforms];
 		}
 
 		private async Task<List<Contract.SymbolProfile>> GetAllSymbolProfiles()

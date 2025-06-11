@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Activities
 
 		public void AddPartialActivity(string accountName, IEnumerable<PartialActivity> partialActivities)
 		{
-			if (!unusedPartialActivities.TryAdd(accountName, partialActivities.ToList()))
+			if (!unusedPartialActivities.TryAdd(accountName, [.. partialActivities]))
 			{
 				unusedPartialActivities[accountName].AddRange(partialActivities);
 			}
@@ -104,32 +104,32 @@ namespace GhostfolioSidekick.Activities
 				case PartialActivityType.Buy:
 					return new BuySellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 					{
-						Taxes = taxes.Select(x => new BuySellActivityTax(x)).ToList(),
-						Fees = fees.Select(x => new BuySellActivityFee(x)).ToList(),
+						Taxes = [.. taxes.Select(x => new BuySellActivityTax(x))],
+						Fees = [.. fees.Select(x => new BuySellActivityFee(x))],
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Sell:
 					return new BuySellActivity(account, null, partialSymbolIdentifiers, date, -amount, money, transactionId, sortingPriority, description)
 					{
-						Taxes = taxes.Select(x => new BuySellActivityTax(x)).ToList(),
-						Fees = fees.Select(x => new BuySellActivityFee(x)).ToList(),
+						Taxes = [.. taxes.Select(x => new BuySellActivityTax(x))],
+						Fees = [.. fees.Select(x => new BuySellActivityFee(x))],
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Receive:
 					return new SendAndReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 					{
-						Fees = fees.Select(x => new SendAndReceiveActivityFee(x)).ToList(),
+						Fees = [.. fees.Select(x => new SendAndReceiveActivityFee(x))],
 					};
 				case PartialActivityType.Send:
 					return new SendAndReceiveActivity(account, null, partialSymbolIdentifiers, date, -amount, transactionId, sortingPriority, description)
 					{
-						Fees = fees.Select(x => new SendAndReceiveActivityFee(x)).ToList(),
+						Fees = [.. fees.Select(x => new SendAndReceiveActivityFee(x))],
 					};
 				case PartialActivityType.Dividend:
 					return new DividendActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
 					{
-						Taxes = taxes.Select(x => new DividendActivityTax(x)).ToList(),
-						Fees = fees.Select(x => new DividendActivityFee(x)).ToList(),
+						Taxes = [.. taxes.Select(x => new DividendActivityTax(x))],
+						Fees = [.. fees.Select(x => new DividendActivityFee(x))],
 					};
 				case PartialActivityType.Interest:
 					return new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);

@@ -26,11 +26,10 @@ namespace GhostfolioSidekick.AccountMaintainer
 				.OfType<KnownBalanceActivity>();
 			if (knownBalances.Any())
 			{
-				return knownBalances
+				return [.. knownBalances
 					.OrderByDescending(x => x.Date)
 					.Select(x => new Balance(DateOnly.FromDateTime(x.Date), new Money(x.Amount.Currency, x.Amount.Amount)))
-					.DistinctBy(x => x.Date)
-					.ToList();
+					.DistinctBy(x => x.Date)];
 			}
 
 			List<Tuple<DateTime, Money>> moneyTrail = [];
