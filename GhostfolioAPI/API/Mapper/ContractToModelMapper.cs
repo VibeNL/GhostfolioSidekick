@@ -51,18 +51,18 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		private static List<string> MapIdentifiers(Contract.SymbolProfile symbolProfile)
 		{
 			List<string> value = [symbolProfile.ISIN, symbolProfile.Symbol];
-			value = value.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+			value = [.. value.Where(x => !string.IsNullOrWhiteSpace(x))];
 			return value;
 		}
 
 		private static SectorWeight[] MapSectors(Contract.Sector[] sectors)
 		{
-			return (sectors ?? []).Select(x => new SectorWeight(x.Name, x.Weight)).ToArray();
+			return [.. (sectors ?? []).Select(x => new SectorWeight(x.Name, x.Weight))];
 		}
 
 		private static CountryWeight[] MapCountries(Contract.Country[] countries)
 		{
-			return (countries ?? []).Select(x => new CountryWeight(x.Name, x.Code, x.Continent, x.Weight)).ToArray();
+			return [.. (countries ?? []).Select(x => new CountryWeight(x.Name, x.Code, x.Continent, x.Weight))];
 		}
 
 		internal static Model.Activities.Activity MapActivity(Account account, ICurrencyExchange currencyExchange, List<Contract.SymbolProfile> symbols, Contract.Activity rawActivity)

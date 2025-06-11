@@ -107,6 +107,9 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
+				case string d when d.Contains("Stock split"):
+					// Ignore
+					break;
 				default:
 					throw new NotSupportedException();
 			}

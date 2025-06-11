@@ -40,8 +40,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		private static IEnumerable<MergeOrder> MergeMatched(IEnumerable<Activity> existingActivityGroup, IEnumerable<Activity> newActivityGroup)
 		{
-			var existingListOfItems = Sortorder(existingActivityGroup.ToArray()).GroupBy(x => x.Date.Date);
-			var newListOfItems = Sortorder(newActivityGroup.ToArray()).GroupBy(x => x.Date.Date);
+			var existingListOfItems = Sortorder([.. existingActivityGroup]).GroupBy(x => x.Date.Date);
+			var newListOfItems = Sortorder([.. newActivityGroup]).GroupBy(x => x.Date.Date);
 			
 			foreach (var existingItem in existingListOfItems)
 			{
@@ -123,11 +123,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 
 			static List<Activity> Sortorder(Activity[] existingActivities)
 			{
-				return existingActivities
+				return [.. existingActivities
 						.OrderBy(x => x.Date)
 						.ThenBy(x => x.SymbolProfile.Symbol)
-						.ThenBy(x => x.Comment)
-						.ToList();
+						.ThenBy(x => x.Comment)];
 			}
 		}
 	}

@@ -251,13 +251,12 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 		private string[] GetToken(string keyword, List<WordToken> relevantTokens)
 		{
-			return relevantTokens
+			return [.. relevantTokens
 				.OfType<MultiWordToken>()
 				.Where(t => t.KeyWord == keyword)
 				.SelectMany(t => t.Words)
 				.OfType<SingleWordToken>()
-				.Select(t => t.Text)
-				.ToArray();
+				.Select(t => t.Text)];
 		}
 
 		private DateTime GetDate(params string[] date)

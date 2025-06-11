@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			_determineHoldings = new DetermineHoldings(
 				_loggerMock.Object,
-				_symbolMatchers.ToArray(),
+				[.. _symbolMatchers],
 				_dbContextFactoryMock.Object,
 				_memoryCacheMock);
 		}

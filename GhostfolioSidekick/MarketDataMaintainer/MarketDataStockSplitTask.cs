@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 					if (!result.AreEqual)
 					{
-						symbol.StockSplits = splits.ToList();
+						symbol.StockSplits = [.. splits];
 						symbol.MarketData.Clear();
 					}
 				}

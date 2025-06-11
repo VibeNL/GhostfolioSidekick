@@ -38,8 +38,6 @@
 
 		Liability,
 
-		StockSplit,
-
 		BondRepay
 	}
 }

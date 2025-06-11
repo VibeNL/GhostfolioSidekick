@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			}
 
 			// Add the existing market data
-			list = list.Union(symbol.MarketData).ToList();
+			list = [.. list.Union(symbol.MarketData)];
 
 			var x = list.OrderByDescending(x => x.Date).DistinctBy(x => x.Date);
 			return x;

@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.Activities
                 var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
 				if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
 				{
-					symbolProfile = await symbolMatcher.MatchSymbol(partialIdentifiers.ToArray()).ConfigureAwait(false);
+					symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
 
 					// Check if symbol profile already exists
 					if (symbolProfile != null)

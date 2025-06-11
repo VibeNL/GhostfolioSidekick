@@ -187,7 +187,7 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
-			return ids.DistinctBy(x => x.Identifier).ToList();
+			return [.. ids.DistinctBy(x => x.Identifier)];
 		}
 
 		private class CustomObject
