@@ -33,13 +33,13 @@ namespace GhostfolioSidekick.IntegrationTests
 		private HttpClient httpClient = default!;
 		private AuthData? authToken;
 
-		private Dictionary<string, int> AccountsWithExpectedNumbers = new Dictionary<string, int>
+		private readonly Dictionary<string, int> AccountsWithExpectedNumbers = new()
 		{
 			{ "TestAccount1", 2 },
 			{ "TestAccount2", 1 },
 		};
 
-		[Fact(Skip="todo")]
+		[Fact]
 		public async Task CanSetupGhostfolioDependencies()
 		{
 			// url ghostfolio for debugging:
