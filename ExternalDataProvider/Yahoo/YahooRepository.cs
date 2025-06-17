@@ -35,6 +35,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			var matches = new List<SearchResult>();
 			foreach (var id in symbolIdentifiers)
 			{
+				if (string.IsNullOrWhiteSpace(id.Identifier))
+				{
+					continue;
+				}
+
 				var identifier = id.Identifier;
 
 				if (id.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
