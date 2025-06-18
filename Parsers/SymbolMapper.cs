@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers
 
 		public SymbolMapper(IEnumerable<Mapping> mappings)
 		{
-			this.mappings = mappings.ToList();
+			this.mappings = [.. mappings];
 		}
 
 		public Currency Map(string currency)

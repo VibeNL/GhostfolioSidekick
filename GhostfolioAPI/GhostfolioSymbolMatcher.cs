@@ -34,6 +34,12 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			// Check if we have a cached version
 			var cacheKey = string.Join(";", symbolIdentifiers.Select(x => x.Identifier));
+
+			if (string.IsNullOrWhiteSpace(cacheKey))
+			{
+				return null;
+			}
+
 			if (memoryCache.TryGetValue(cacheKey, out SymbolProfile? cachedSymbol))
 			{
 				return cachedSymbol;
