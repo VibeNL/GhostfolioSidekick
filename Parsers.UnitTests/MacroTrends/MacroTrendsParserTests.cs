@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Parsers.MacroTrends;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.MacroTrends

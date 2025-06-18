@@ -3,6 +3,7 @@ using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 using CsvHelper.TypeConversion;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trading212
 {
@@ -10,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 	{
 		public required string Action { get; set; }
 
-		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
+		[DateTimeStyles(DateTimeStyles.AssumeUniversal)]
 		public DateTime Time { get; set; }
 
 		public string? ISIN { get; set; }
@@ -25,6 +26,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 		public decimal? NumberOfShares { get; set; }
 
 		[Name("Price / share")]
+		[NumberStyles(NumberStyles.Number | NumberStyles.AllowExponent)]
 		public decimal? Price { get; set; }
 
 		[Name("Currency (Price / share)")]

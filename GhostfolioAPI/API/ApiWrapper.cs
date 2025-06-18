@@ -7,6 +7,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {
@@ -117,9 +118,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var content = await restCall.DoRestGet($"api/v1/order");
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
 
-			existingActivities = existingActivities.Where(x => x.AccountId == rawAccount.Id).ToList();
+			existingActivities = [.. existingActivities.Where(x => x.AccountId == rawAccount.Id)];
 
-			if (existingActivities == null)
+			if (existingActivities.Count == 0)
 			{
 				return [];
 			}
@@ -146,7 +147,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			// Filter out existing activities that are not in the new list
 			var accountFromActivities = allActivities.Select(x => x.Account.Name).Distinct().ToList();
 			var accountIds = accountFromActivities.Select(x => accounts.SingleOrDefault(y => y.Name == x)?.Id).Where(x => x != null).Select(x => x!).ToList();
-			existingActivities = existingActivities.Where(x => accountIds.Contains(x.AccountId!)).ToList();
+			existingActivities = [.. existingActivities.Where(x => accountIds.Contains(x.AccountId!))];
 
 			// Get new activities
 			var newActivities = allActivities.Select(activity =>
@@ -366,14 +367,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		public async Task SyncMarketData(Model.Symbols.SymbolProfile symbolProfile, ICollection<Model.Market.MarketData> list)
+		public async Task SyncMarketData(Model.Symbols.SymbolProfile profile, ICollection<Model.Market.MarketData> list)
 		{
-			var content = await restCall.DoRestGet($"api/v1/admin/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}");
+			var content = await restCall.DoRestGet($"api/v1/market-data/{profile.DataSource}/{profile.Symbol}");
 			var existingData = JsonConvert.DeserializeObject<MarketDataList>(content!)?.MarketData;
 
 			foreach (var marketData in list)
 			{
-				var amount = (await currencyExchange.ConvertMoney(marketData.Close, symbolProfile.Currency, marketData.Date)).Amount;
+				var amount = (await currencyExchange.ConvertMoney(marketData.Close, profile.Currency, marketData.Date)).Amount;
 				var value = existingData?.FirstOrDefault(x => x.Date == marketData.Date.ToDateTime(TimeOnly.MinValue))?.MarketPrice ?? 0;
 				if (Math.Abs(value - amount) < 0.000001m)
 				{
@@ -382,18 +383,24 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				var o = new JObject
 				{
-					["marketPrice"] = amount
+					["marketData"] = new JArray {
+						new JObject
+						{
+							["date"] = marketData.Date.ToString("yyyy-MM-dd"),
+							["marketPrice"] = amount
+						}
+					}
 				};
 
 				var res = o.ToString();
 
-				var r = await restCall.DoRestPut($"api/v1/admin/market-data/{symbolProfile.DataSource}/{symbolProfile.Symbol}/{marketData.Date:yyyy-MM-dd}", res);
+				var r = await restCall.DoRestPost($"api/v1/market-data/{profile.DataSource}/{profile.Symbol}", res);
 				if (!r.IsSuccessStatusCode)
 				{
-					throw new NotSupportedException($"SetMarketPrice failed {symbolProfile.Symbol} {marketData.Date}");
+					throw new NotSupportedException($"SetMarketPrice failed {profile.Symbol} {marketData.Date}");
 				}
 
-				logger.LogDebug("SetMarketPrice symbol {Symbol} {Date} @ {Amount}", symbolProfile.Symbol, marketData.Date, marketData.Close.Amount);
+				logger.LogDebug("SetMarketPrice symbol {Symbol} {Date} @ {Amount}", profile.Symbol, marketData.Date, marketData.Close.Amount);
 			}
 		}
 
@@ -432,10 +439,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException();
 			}
 
-			return rawPlatforms.ToList();
+			return [.. rawPlatforms];
 		}
 
-		private async Task<List<Contract.SymbolProfile>> GetAllSymbolProfiles()
+		public async Task<List<Contract.SymbolProfile>> GetAllSymbolProfiles()
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/");
 
@@ -451,7 +458,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
 				.ToList() ?? [])
 			{
-				content = await restCall.DoRestGet($"api/v1/admin/market-data/{f.DataSource}/{f.Symbol}");
+				content = await restCall.DoRestGet($"api/v1/market-data/{f.DataSource}/{f.Symbol}");
 				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
 				profiles.Add(data!.AssetProfile);
 			}

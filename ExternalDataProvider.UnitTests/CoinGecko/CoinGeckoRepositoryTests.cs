@@ -1,7 +1,7 @@
 using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;

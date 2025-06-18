@@ -1,6 +1,6 @@
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model.Activities;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.Model.Activities.Types;
 
 namespace GhostfolioSidekick.Model.UnitTests

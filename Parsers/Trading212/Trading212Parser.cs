@@ -72,8 +72,8 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						currency,
 						record.Time,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
-						record.NumberOfShares!.Value,
-						record.Price!.Value,
+						record.NumberOfShares.GetValueOrDefault(),
+						record.Price.GetValueOrDefault(),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
@@ -83,8 +83,8 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateSell(
 						currency,
 						record.Time, [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
-						record.NumberOfShares!.Value,
-						record.Price!.Value,
+						record.NumberOfShares.GetValueOrDefault(),
+						record.Price.GetValueOrDefault(),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						currency,
 						record.Time,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
-						record.NumberOfShares!.Value,
+						record.NumberOfShares.GetValueOrDefault(),
 						0,
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
@@ -103,9 +103,12 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						currency,
 						record.Time,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
-						record.Price!.Value * record.NumberOfShares!.Value,
+						record.Price!.GetValueOrDefault() * record.NumberOfShares.GetValueOrDefault(),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
+					break;
+				case string d when d.Contains("Stock split"):
+					// Ignore
 					break;
 				default:
 					throw new NotSupportedException();

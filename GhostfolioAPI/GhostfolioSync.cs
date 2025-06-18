@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			allActivities = ConvertBondRepay(allActivities);
 
 			logger.LogDebug("Syncing activities");
-			await apiWrapper.SyncAllActivities(allActivities.ToList());
+			await apiWrapper.SyncAllActivities([.. allActivities]);
 			logger.LogDebug("activities synced");
 		}
 

@@ -6,7 +6,7 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities.Types;
 using Moq.EntityFrameworkCore;
@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
             _symbolMatcherTask = new SymbolMatcherTask(
                 _mockLogger.Object,
                 _mockApplicationSettings.Object,
-                _symbolMatchers.ToArray(),
+				[.. _symbolMatchers],
                 _mockDbContextFactory.Object);
         }
 

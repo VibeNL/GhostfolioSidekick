@@ -2,7 +2,7 @@
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
-using FluentAssertions;
+using AwesomeAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.IntegrationTests
 		private HttpClient httpClient = default!;
 		private AuthData? authToken;
 
-		private Dictionary<string, int> AccountsWithExpectedNumbers = new Dictionary<string, int>
+		private readonly Dictionary<string, int> AccountsWithExpectedNumbers = new()
 		{
 			{ "TestAccount1", 2 },
 			{ "TestAccount2", 1 },
