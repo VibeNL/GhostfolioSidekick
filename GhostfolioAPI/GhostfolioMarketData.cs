@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				.Where(x => !string.IsNullOrWhiteSpace(x.Symbol) && !string.IsNullOrWhiteSpace(x.DataSource))
 				.ToList() ?? [])
 			{
-				content = await restCall.DoRestGet($"api/v1/admin/market-data/{f.DataSource}/{f.Symbol}");
+				content = await restCall.DoRestGet($"api/v1/market-data/{f.DataSource}/{f.Symbol}");
 				var data = JsonConvert.DeserializeObject<MarketDataListNoMarketData>(content!);
 				profiles.Add(data!.AssetProfile);
 			}

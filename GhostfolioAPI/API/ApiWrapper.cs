@@ -442,7 +442,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return [.. rawPlatforms];
 		}
 
-		private async Task<List<Contract.SymbolProfile>> GetAllSymbolProfiles()
+		public async Task<List<Contract.SymbolProfile>> GetAllSymbolProfiles()
 		{
 			var content = await restCall.DoRestGet($"api/v1/admin/market-data/");
 
