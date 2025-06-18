@@ -16,9 +16,9 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.6" />
 		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.6.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
-		<PackageReference Include="Microsoft.SemanticKernel" Version="1.56.0" />
-		<PackageReference Include="Microsoft.SemanticKernel.Agents.Abstractions" Version="1.56.0" />
-		<PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.56.0" />
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.57.0" />
+		<PackageReference Include="Microsoft.SemanticKernel.Agents.Abstractions" Version="1.57.0" />
+		<PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.57.0" />
 	</ItemGroup>
 
 	<ItemGroup>
