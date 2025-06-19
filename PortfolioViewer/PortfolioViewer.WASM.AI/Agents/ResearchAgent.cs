@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		[Description("Get financial news for a given subject")]
 		public Task<string> GetFinancialNews(string subject)
 		{
-			return Task.FromResult("Its going up");
+			return Task.FromResult("Its going down");
 		}
 
 		[KernelFunction("get_stock_price")]
