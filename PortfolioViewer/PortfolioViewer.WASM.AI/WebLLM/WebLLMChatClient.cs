@@ -1,23 +1,20 @@
 ﻿using Castle.Core.Logging;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
 using OpenAI.Assistants;
-using System.Collections.Concurrent;
 using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
-	public class WebLLMChatClient : IWebChatClient
+	public partial class WebLLMChatClient : IWebChatClient
 	{
 		private readonly IJSRuntime jsRuntime;
 		private readonly ILogger<WebLLMChatClient> logger;
@@ -72,21 +69,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
 			var model = modelIds[ChatMode];
 			
-			var specs = new List<OpenAIFunctionWrapper>();
-			foreach (var function in options?.Tools?.OfType<AIFunction>() ?? [])
-			{
-				specs.Add(new OpenAIFunctionWrapper()
-				{
-					function = new OpenAIFunctionWrapper.Function()
-					{
-						name = function.Name,
-						description = function.Description,
-						parameters = function.JsonSchema
-					}
-				});
-			}
-
-			var toolsJson = JsonSerializer.Serialize(specs);
+			
 
 			_ = Task.Run(async () =>
 			{
@@ -95,7 +78,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 									interopInstance.ConvertMessage(convertedMessages),
 									model,
 									ChatMode == ChatMode.ChatWithThinking,
-									ChatMode == ChatMode.FunctionCalling ? toolsJson : null
+									/*ChatMode == ChatMode.FunctionCalling ? toolsJson :*/ null
 									);
 			});
 
@@ -195,105 +178,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				module = module,
 				ChatMode = this.ChatMode,
 			};
-		}
-
-		public class InteropInstance
-		{
-			private readonly IProgress<InitializeProgress> _progress;
-
-			public ConcurrentQueue<WebLLMCompletion> WebLLMCompletions { get; init; } = new();
-
-			public InteropInstance(IProgress<InitializeProgress> progress)
-			{
-				_progress = progress;
-			}
-
-			[JSInvokable]
-			public void ReportProgress(InitProgressReport progress)
-			{
-				ArgumentNullException.ThrowIfNull(progress);
-
-				var progressPercent = Math.Min(progress.Progress, 0.99);
-				// only report done when text: Finish loading on WebGPU
-				if (progress.Text.StartsWith("Finish loading on WebGPU"))
-				{
-					progressPercent = 1.0;
-				}
-
-				_progress.Report(new InitializeProgress(progressPercent, progress.Text));
-			}
-
-			[JSInvokable]
-			public void ReceiveChunkCompletion(WebLLMCompletion response)
-			{
-				ArgumentNullException.ThrowIfNull(response);
-
-				// Add the response to the queue
-				WebLLMCompletions.Enqueue(response);
-			}
-
-			internal IEnumerable<Message> ConvertMessage(IEnumerable<ChatMessage> chatMessages)
-			{
-				return chatMessages.Select(chatMessage =>
-				{
-					if (chatMessage.Role == ChatRole.User)
-					{
-						return new Message("user", chatMessage.Text);
-					}
-					else if (chatMessage.Role == ChatRole.Assistant)
-					{
-						return new Message("assistant", chatMessage.Text);
-					}
-					else if (chatMessage.Role == ChatRole.System)
-					{
-						return new Message("system", chatMessage.Text);
-					}
-					else
-					{
-						throw new NotSupportedException($"Chat role {chatMessage.Role} is not supported.");
-					}
-				});
-			}
-		}
-
-		// A progress report for the initialization process
-		public record InitProgressReport(double Progress, string Text, double timeElapsed);
-
-		// A chat message
-		public record Message(string Role, string Content);
-
-		// A partial chat message
-		public record Delta(string Role, string Content);
-		// Chat message "cost"
-		public record Usage(double CompletionTokens, double PromptTokens, double TotalTokens);
-		// A collection of partial chat messages
-		public record Choice(int Index, Message? Delta, string Logprobs, string FinishReason);
-
-		// A chat completion response
-		public record WebLLMCompletion(
-			string Id,
-			string Object,
-			string Model,
-			string SystemFingerprint,
-			Choice[]? Choices,
-			Usage? Usage
-		)
-		{
-			// The final part of a chat message stream will include Usage
-			public bool IsStreamComplete => Usage is not null;
-		}
-
-		public class OpenAIFunctionWrapper
-		{
-			public string type { get; set; } = "function";
-			public Function function { get; set; }
-
-			public class Function
-			{
-				public string name { get; set; }
-				public string description { get; set; }
-				public JsonElement parameters { get; set; }
-			}
 		}
 	}
 }
