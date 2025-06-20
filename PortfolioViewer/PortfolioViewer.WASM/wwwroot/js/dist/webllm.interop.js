@@ -33,7 +33,7 @@ export class WebLLMInterop {
         });
     }
     // Stream completion
-    completeStream(enableThinking, modelId, messages) {
+    completeStream(messages, modelId, enableThinking, tools) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, e_1, _b, _c;
             var _d;
@@ -46,6 +46,8 @@ export class WebLLMInterop {
                 temperature: 0,
                 seed: 42,
                 model: modelId,
+                tool_choice: "auto",
+                tools: tools,
                 stream: true, // Enable streaming
                 stream_options: { include_usage: true },
                 extra_body: {
@@ -57,6 +59,9 @@ export class WebLLMInterop {
                     _c = chunks_1_1.value;
                     _e = false;
                     const chunk = _c;
+                    if (tools !== null && tools.length > 0) {
+                        debugger;
+                    }
                     // Assuming chunk is of type Chunk (define below if needed)
                     yield ((_d = this.dotnetInstance) === null || _d === void 0 ? void 0 : _d.invokeMethodAsync("ReceiveChunkCompletion", chunk));
                 }
@@ -79,8 +84,8 @@ export function initializeWebLLM(selectedModels, dotnet) {
         yield webLLMInteropInstance.initialize(selectedModels, dotnet);
     });
 }
-export function completeStreamWebLLM(enableThinking, modelId, messages) {
+export function completeStreamWebLLM(messages, modelId, enableThinking, tools) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield webLLMInteropInstance.completeStream(enableThinking, modelId, messages);
+        yield webLLMInteropInstance.completeStream(messages, modelId, enableThinking, JSON.parse(tools));
     });
 }

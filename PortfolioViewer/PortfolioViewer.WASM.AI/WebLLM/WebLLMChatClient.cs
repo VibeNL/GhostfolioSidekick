@@ -1,17 +1,13 @@
-﻿using System.Collections.Concurrent;
-using System.IO;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Castle.Core.Logging;
-using Microsoft.Extensions.AI;
+﻿using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using static System.Net.Mime.MediaTypeNames;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
-	public class WebLLMChatClient : IWebChatClient
+	public partial class WebLLMChatClient : IWebChatClient
 	{
 		private readonly IJSRuntime jsRuntime;
 		private readonly ILogger<WebLLMChatClient> logger;
@@ -20,7 +16,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		private IJSObjectReference? module = null;
 
-		public ChatMode ChatMode { get; set;  } = ChatMode.Chat;
+		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
+
+		private const string SystemPromptWithFunctions = """
+You are an AI assistant that can answer questions or call functions to get specific information.
+
+You have access to the following functions:
+
+[FUNCTIONS]
+
+If a user asks something that can be answered with a function, use a tool_call with the function name and valid JSON arguments. If not, answer normally.
+
+Format function calls like this:
+{
+  "tool_call": {
+    "name": "function_name",
+    "arguments": {
+      "arg1": "value1",
+      "arg2": "value2"
+    }
+  }
+}
+""";
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds)
@@ -58,18 +75,42 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 			// If the last message is assistant, fake it to be a user call
 			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
-			var convertedMessages = list.Select((x,i) => i == list.Count-1 ? Fix(x) : x).ToList();
+			var convertedMessages = list
+				.Select((x, i) => i == list.Count - 1 ? Fix(x) : x)
+				.Select(x => RemoveThink(x))
+				.ToList();
 
-			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
+			if (convertedMessages.Count == 0)
+			{
+				// If no messages are provided, return an empty response
+				yield return new ChatResponseUpdate(ChatRole.Assistant, string.Empty);
+				yield break;
+			}
+
+			// Add function calling messages if the chat mode is FunctionCalling
+			if (ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true)
+			{
+				// Add prompt with function calling instructions
+				var functionCalls = string.Join(Environment.NewLine, 
+						options.Tools.Select(tool => $"- {{\"name\": \"{tool.Name}\", \"description\": \"{tool.Description}\"}}"));
+				convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionCalls)));
+			}
+
 			var model = modelIds[ChatMode];
+
+			// Call the `completeStreamWebLLM` function in the JavaScript module, but do not wait for it to complete
 			_ = Task.Run(async () =>
 			{
 				await (await GetModule()).InvokeVoidAsync(
 									"completeStreamWebLLM",
-									ChatMode == ChatMode.ChatWithThinking,
+									interopInstance.ConvertMessage(convertedMessages),
 									model,
-									interopInstance.ConvertMessage(convertedMessages));
+									ChatMode == ChatMode.ChatWithThinking,
+									null
+									);
 			});
+
+			string totalText = string.Empty;
 
 			while (true)
 			{
@@ -92,19 +133,34 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 						continue;
 					}
 
-					logger.LogDebug("ChatRole.Assistant: {Message}", response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty);
-					yield return new ChatResponseUpdate(
-						ChatRole.Assistant,
-						response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty
-						);
-				}else
+					var content = choice.Delta?.Content;
+					totalText += content ?? string.Empty;
+
+					if ((options?.Tools?.Any() ?? false) && TryParseFunctionCall(ChatMessageContentHelper.ToDisplayText(totalText), out var functionName, out var arguments))
+					{
+						// Manually call a C# method (tool) based on functionName
+						var toolResult = await CallToolAsync(options, functionName, arguments);
+						yield return new ChatResponseUpdate(ChatRole.Tool, toolResult);
+					}
+					else
+					{
+						logger.LogDebug("ChatRole.Assistant: {Message}", content);
+						yield return new ChatResponseUpdate(ChatRole.Assistant, content ?? string.Empty);
+					}
+				}
+				else
 				{
 					await Task.Delay(1, cancellationToken);
 				}
 			}
 		}
 
-		private ChatMessage Fix(ChatMessage x)
+		private static ChatMessage RemoveThink(ChatMessage x)
+		{
+			return new ChatMessage(x.Role, ChatMessageContentHelper.ToDisplayText(x.Text)) { AuthorName = x.AuthorName };
+		}
+
+		private static ChatMessage Fix(ChatMessage x)
 		{
 			if (x.Role == ChatRole.Assistant)
 			{
@@ -126,8 +182,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			// Call the `initialize` function in the JavaScript module
 			interopInstance = new(OnProgress);
 			await (await GetModule()).InvokeVoidAsync(
-				"initializeWebLLM", 
-				modelIds.Select(x => x.Value).Distinct(), 
+				"initializeWebLLM",
+				modelIds.Select(x => x.Value).Distinct(),
 				DotNetObjectReference.Create(interopInstance));
 		}
 
@@ -163,90 +219,42 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			};
 		}
 
-		public class InteropInstance
+		private bool TryParseFunctionCall(string? content, out string functionName, out JsonElement arguments)
 		{
-			private readonly IProgress<InitializeProgress> _progress;
+			functionName = string.Empty;
+			arguments = default;
 
-			public ConcurrentQueue<WebLLMCompletion> WebLLMCompletions { get; init; } = new();
+			if (string.IsNullOrWhiteSpace(content)) return false;
 
-			public InteropInstance(IProgress<InitializeProgress> progress)
+			try
 			{
-				_progress = progress;
-			}
-
-			[JSInvokable]
-			public void ReportProgress(InitProgressReport progress)
-			{
-				ArgumentNullException.ThrowIfNull(progress);
-
-				var progressPercent = Math.Min(progress.Progress, 0.99);
-				// only report done when text: Finish loading on WebGPU
-				if (progress.Text.StartsWith("Finish loading on WebGPU"))
+				using var doc = JsonDocument.Parse(content);
+				if (doc.RootElement.TryGetProperty("tool_call", out var toolCall))
 				{
-					progressPercent = 1.0;
+					functionName = toolCall.GetProperty("name").GetString() ?? "";
+					// Clone the arguments element to avoid referencing disposed memory
+					arguments = JsonDocument.Parse(toolCall.GetProperty("arguments").GetRawText()).RootElement.Clone();
+					return true;
 				}
-
-				_progress.Report(new InitializeProgress(progressPercent, progress.Text));
 			}
-
-			[JSInvokable]
-			public void ReceiveChunkCompletion(WebLLMCompletion response)
+			catch (JsonException ex)
 			{
-				ArgumentNullException.ThrowIfNull(response);
-
-				// Add the response to the queue
-				WebLLMCompletions.Enqueue(response);
+				logger.LogWarning(ex, "Failed to parse potential tool call");
 			}
 
-			internal IEnumerable<Message> ConvertMessage(IEnumerable<ChatMessage> chatMessages)
-			{
-				return chatMessages.Select(chatMessage =>
-				{
-					if (chatMessage.Role == ChatRole.User)
-					{
-						return new Message("user", chatMessage.Text);
-					}
-					else if (chatMessage.Role == ChatRole.Assistant)
-					{
-						return new Message("assistant", chatMessage.Text);
-					}
-					else if (chatMessage.Role == ChatRole.System)
-					{
-						return new Message("system", chatMessage.Text);
-					}
-					else
-					{
-						throw new NotSupportedException($"Chat role {chatMessage.Role} is not supported.");
-					}
-				});
-			}
+			return false;
 		}
 
-		// A progress report for the initialization process
-		public record InitProgressReport(double Progress, string Text, double timeElapsed);
-
-		// A chat message
-		public record Message(string Role, string Content);
-
-		// A partial chat message
-		public record Delta(string Role, string Content);
-		// Chat message "cost"
-		public record Usage(double CompletionTokens, double PromptTokens, double TotalTokens);
-		// A collection of partial chat messages
-		public record Choice(int Index, Message? Delta, string Logprobs, string FinishReason);
-
-		// A chat completion response
-		public record WebLLMCompletion(
-			string Id,
-			string Object,
-			string Model,
-			string SystemFingerprint,
-			Choice[]? Choices,
-			Usage? Usage
-		)
+		private async Task<string> CallToolAsync(ChatOptions options, string name, JsonElement arguments)
 		{
-			// The final part of a chat message stream will include Usage
-			public bool IsStreamComplete => Usage is not null;
+			var tool = options.Tools?.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+			if (tool == null)
+			{
+				logger.LogWarning("Tool with name '{ToolName}' not found.", name);
+				return $"Tool '{name}' not found.";
+			}
+
+			throw new NotImplementedException($"Tool '{name}' is not implemented yet. Arguments: {arguments.ToString()}");
 		}
 	}
 }
