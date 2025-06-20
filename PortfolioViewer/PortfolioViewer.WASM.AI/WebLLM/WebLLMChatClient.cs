@@ -1,16 +1,9 @@
-﻿using Castle.Core.Logging;
-using Microsoft.Extensions.AI;
+﻿using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
-using Microsoft.SemanticKernel;
-using OpenAI.Assistants;
-using System.Drawing;
-using System.IO;
-using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
@@ -24,6 +17,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private IJSObjectReference? module = null;
 
 		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
+
+		private const string SystemPromptWithFunctions = """
+You are an AI assistant that can answer questions or call functions to get specific information.
+
+You have access to the following functions:
+
+- getStockPrice(symbol: string): Gets the current stock price of a stock ticker (e.g., AAPL for Apple, MSFT for Microsoft).
+
+If a user asks something that can be answered with a function, use a tool_call with the function name and valid JSON arguments. If not, answer normally.
+
+Format function calls like this:
+{
+  "tool_call": {
+    "name": "function_name",
+    "arguments": {
+      "arg1": "value1",
+      "arg2": "value2"
+    }
+  }
+}
+""";
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
 		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds)
@@ -66,11 +80,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				.Select(x => RemoveThink(x))
 				.ToList();
 
-			// Call the `initialize` function in the JavaScript module, but do not wait for it to complete
-			var model = modelIds[ChatMode];
-			
-			
+			if (convertedMessages.Count == 0)
+			{
+				// If no messages are provided, return an empty response
+				yield return new ChatResponseUpdate(ChatRole.Assistant, string.Empty);
+				yield break;
+			}
 
+			// Add function calling messages if the chat mode is FunctionCalling
+			if (ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true)
+			{
+				// Add prompt with function calling instructions
+				convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions));
+			}
+
+			var model = modelIds[ChatMode];
+
+			// Call the `completeStreamWebLLM` function in the JavaScript module, but do not wait for it to complete
 			_ = Task.Run(async () =>
 			{
 				await (await GetModule()).InvokeVoidAsync(
@@ -78,9 +104,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 									interopInstance.ConvertMessage(convertedMessages),
 									model,
 									ChatMode == ChatMode.ChatWithThinking,
-									/*ChatMode == ChatMode.FunctionCalling ? toolsJson :*/ null
+									null
 									);
 			});
+
+			string totalText = string.Empty;
 
 			while (true)
 			{
@@ -103,11 +131,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 						continue;
 					}
 
-					logger.LogDebug("ChatRole.Assistant: {Message}", response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty);
-					yield return new ChatResponseUpdate(
-						ChatRole.Assistant,
-						response.Choices?.ElementAtOrDefault(0)?.Delta?.Content ?? string.Empty
-						);
+					var content = choice.Delta?.Content;
+					totalText += content ?? string.Empty;
+
+					if ((options?.Tools?.Any() ?? false) && TryParseFunctionCall(ChatMessageContentHelper.ToDisplayText(totalText), out var functionName, out var arguments))
+					{
+						// Manually call a C# method (tool) based on functionName
+						var toolResult = await CallToolAsync(options.Tools, functionName, arguments);
+						yield return new ChatResponseUpdate(ChatRole.Tool, toolResult);
+					}
+					else
+					{
+						logger.LogDebug("ChatRole.Assistant: {Message}", content);
+						yield return new ChatResponseUpdate(ChatRole.Assistant, content ?? string.Empty);
+					}
 				}
 				else
 				{
@@ -116,12 +153,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			}
 		}
 
-		private ChatMessage RemoveThink(ChatMessage x)
+		private static ChatMessage RemoveThink(ChatMessage x)
 		{
 			return new ChatMessage(x.Role, ChatMessageContentHelper.ToDisplayText(x.Text)) { AuthorName = x.AuthorName };
 		}
 
-		private ChatMessage Fix(ChatMessage x)
+		private static ChatMessage Fix(ChatMessage x)
 		{
 			if (x.Role == ChatRole.Assistant)
 			{
@@ -178,6 +215,36 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 				module = module,
 				ChatMode = this.ChatMode,
 			};
+		}
+
+		private bool TryParseFunctionCall(string? content, out string functionName, out JsonElement arguments)
+		{
+			functionName = string.Empty;
+			arguments = default;
+
+			if (string.IsNullOrWhiteSpace(content)) return false;
+
+			try
+			{
+				using var doc = JsonDocument.Parse(content);
+				if (doc.RootElement.TryGetProperty("tool_call", out var toolCall))
+				{
+					functionName = toolCall.GetProperty("name").GetString() ?? "";
+					arguments = toolCall.GetProperty("arguments");
+					return true;
+				}
+			}
+			catch (JsonException ex)
+			{
+				logger.LogWarning(ex, "Failed to parse potential tool call");
+			}
+
+			return false;
+		}
+
+		private async Task<string> CallToolAsync(IList<AITool>? tools, string name, JsonElement arguments)
+		{
+			throw new NotSupportedException();
 		}
 	}
 }
