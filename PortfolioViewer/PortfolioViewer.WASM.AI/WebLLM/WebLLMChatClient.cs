@@ -23,7 +23,7 @@ You are an AI assistant that can answer questions or call functions to get speci
 
 You have access to the following functions:
 
-- getStockPrice(symbol: string): Gets the current stock price of a stock ticker (e.g., AAPL for Apple, MSFT for Microsoft).
+[FUNCTIONS]
 
 If a user asks something that can be answered with a function, use a tool_call with the function name and valid JSON arguments. If not, answer normally.
 
@@ -91,7 +91,9 @@ Format function calls like this:
 			if (ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true)
 			{
 				// Add prompt with function calling instructions
-				convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions));
+				var functionCalls = string.Join(Environment.NewLine, 
+						options.Tools.Select(tool => $"- {{\"name\": \"{tool.Name}\", \"description\": \"{tool.Description}\"}}"));
+				convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionCalls)));
 			}
 
 			var model = modelIds[ChatMode];
@@ -230,7 +232,8 @@ Format function calls like this:
 				if (doc.RootElement.TryGetProperty("tool_call", out var toolCall))
 				{
 					functionName = toolCall.GetProperty("name").GetString() ?? "";
-					arguments = toolCall.GetProperty("arguments");
+					// Clone the arguments element to avoid referencing disposed memory
+					arguments = JsonDocument.Parse(toolCall.GetProperty("arguments").GetRawText()).RootElement.Clone();
 					return true;
 				}
 			}
