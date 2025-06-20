@@ -139,7 +139,7 @@ Format function calls like this:
 					if ((options?.Tools?.Any() ?? false) && TryParseFunctionCall(ChatMessageContentHelper.ToDisplayText(totalText), out var functionName, out var arguments))
 					{
 						// Manually call a C# method (tool) based on functionName
-						var toolResult = await CallToolAsync(options.Tools, functionName, arguments);
+						var toolResult = await CallToolAsync(options, functionName, arguments);
 						yield return new ChatResponseUpdate(ChatRole.Tool, toolResult);
 					}
 					else
@@ -245,9 +245,16 @@ Format function calls like this:
 			return false;
 		}
 
-		private async Task<string> CallToolAsync(IList<AITool>? tools, string name, JsonElement arguments)
+		private async Task<string> CallToolAsync(ChatOptions options, string name, JsonElement arguments)
 		{
-			throw new NotSupportedException();
+			var tool = options.Tools?.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+			if (tool == null)
+			{
+				logger.LogWarning("Tool with name '{ToolName}' not found.", name);
+				return $"Tool '{name}' not found.";
+			}
+
+			throw new NotImplementedException($"Tool '{name}' is not implemented yet. Arguments: {arguments.ToString()}");
 		}
 	}
 }
