@@ -25,18 +25,20 @@ You have access to the following functions:
 
 [FUNCTIONS]
 
-If a user asks something that can be answered with a function, use a tool_call with the function name and valid JSON arguments. If not, answer normally.
+If a user asks something that can be answered with a function, use a tool_calls array with per function an id, name and valid JSON arguments. If not, answer normally.
+Do not respond with any other text than the tool_calls array when answering with a function.
 
 Format function calls like this:
-{
-  "tool_call": {
-    "name": "function_name",
-    "arguments": {
-      "arg1": "value1",
-      "arg2": "value2"
+"tool_calls": [
+    {
+        "id": "call_abc123",
+        "type": "function",
+        "function": {
+            "name": "OrderPizzaPlugin-add_pizza_to_cart",
+            "arguments": "{\n\"size\": \"Medium\",\n\"toppings\": [\"Cheese\", \"Pepperoni\"]\n}"
+        }
     }
-  }
-}
+]
 """;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
@@ -119,6 +121,12 @@ Format function calls like this:
 				{
 					if (response.IsStreamComplete)
 					{
+						if ((options?.Tools?.Any() ?? false) && !string.IsNullOrWhiteSpace(totalText))
+						{
+							// Return the final response as a single update
+							yield return new ChatResponseUpdate(ChatRole.Assistant, ChatMessageContentHelper.ToDisplayText(totalText));
+						}
+
 						yield break;
 					}
 
@@ -136,11 +144,9 @@ Format function calls like this:
 					var content = choice.Delta?.Content;
 					totalText += content ?? string.Empty;
 
-					if ((options?.Tools?.Any() ?? false) && TryParseFunctionCall(ChatMessageContentHelper.ToDisplayText(totalText), out var functionName, out var arguments))
+					if ((options?.Tools?.Any() ?? false))
 					{
-						// Manually call a C# method (tool) based on functionName
-						var toolResult = await CallToolAsync(options, functionName, arguments);
-						yield return new ChatResponseUpdate(ChatRole.Tool, toolResult);
+						logger.LogDebug("ChatRole.Assistant: {Message}", content);
 					}
 					else
 					{
