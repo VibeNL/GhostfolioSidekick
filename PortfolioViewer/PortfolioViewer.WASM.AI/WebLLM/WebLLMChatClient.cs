@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
+using OpenAI.Responses;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -92,9 +93,11 @@ Format function calls like this:
 			// Add function calling messages if the chat mode is FunctionCalling
 			if (ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true)
 			{
+				var functions = options.Tools.OfType<AIFunction>();
+
 				// Add prompt with function calling instructions
-				var functionCalls = string.Join(Environment.NewLine, 
-						options.Tools.Select(tool => $"- {{\"name\": \"{tool.Name}\", \"description\": \"{tool.Description}\"}}"));
+				var functionCalls = string.Join(Environment.NewLine,
+											functions.Select(tool => tool.JsonSchema.ToString()));
 				convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionCalls)));
 			}
 
@@ -124,7 +127,8 @@ Format function calls like this:
 						if ((options?.Tools?.Any() ?? false) && !string.IsNullOrWhiteSpace(totalText))
 						{
 							// Return the final response as a single update
-							yield return new ChatResponseUpdate(ChatRole.Assistant, ChatMessageContentHelper.ToDisplayText(totalText));
+							string content1 = ChatMessageContentHelper.ToDisplayText(totalText).Trim();
+							yield return new ChatResponseUpdate(ChatRole.Assistant, content1);
 						}
 
 						yield break;
