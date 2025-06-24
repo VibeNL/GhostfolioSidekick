@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
+using Microsoft.SemanticKernel;
 using OpenAI.Responses;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -30,7 +31,7 @@ If a user asks something that can be answered with a function, use a tool_calls 
 Do not respond with any other text than the tool_calls array when answering with a function.
 
 Format function calls like this:
-"tool_calls": [
+{ "tool_calls": [
     {
         "id": "call_abc123",
         "type": "function",
@@ -39,7 +40,7 @@ Format function calls like this:
             "arguments": "{\n\"size\": \"Medium\",\n\"toppings\": [\"Cheese\", \"Pepperoni\"]\n}"
         }
     }
-]
+] }
 """;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
@@ -93,11 +94,21 @@ Format function calls like this:
 			// Add function calling messages if the chat mode is FunctionCalling
 			if (ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true)
 			{
-				var functions = options.Tools.OfType<AIFunction>();
+				var functions = options.Tools.OfType<KernelFunction>();
 
 				// Add prompt with function calling instructions
 				var functionCalls = string.Join(Environment.NewLine,
-											functions.Select(tool => tool.JsonSchema.ToString()));
+											functions.Select((tool, i) => 
+												new StringBuilder()
+													.AppendLine($"{{")
+													.AppendLine($"  \"id\": \"call{i}\",")
+													.AppendLine($"  \"type\": \"function\",")
+													.AppendLine($"  \"function\": {{")
+													.AppendLine($"    \"name\": \"{tool.Name}\",")
+													.AppendLine($"    \"arguments\": {JsonSerializer.Serialize(tool.Metadata.Parameters)}")
+													.AppendLine($"  }}")
+													.Append("}")
+											));
 				convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionCalls)));
 			}
 
@@ -126,9 +137,23 @@ Format function calls like this:
 					{
 						if ((options?.Tools?.Any() ?? false) && !string.IsNullOrWhiteSpace(totalText))
 						{
-							// Return the final response as a single update
-							string content1 = ChatMessageContentHelper.ToDisplayText(totalText).Trim();
-							yield return new ChatResponseUpdate(ChatRole.Assistant, content1);
+							// Try to parse function calls from the response
+							if (TryParseToolCalls(ChatMessageContentHelper.ToDisplayText(totalText), out var toolCalls))
+							{
+								foreach (var toolCall in toolCalls)
+								{
+									var output = await CallToolAsync(options, toolCall.Name, JsonSerializer.SerializeToElement(toolCall.Arguments));
+									yield return new ChatResponseUpdate(ChatRole.Assistant, output);
+								}
+
+								yield break;
+							}
+							else
+							{
+								// Return the final response as a single update for function calling
+								string content1 = ChatMessageContentHelper.ToDisplayText(totalText).Trim();
+								yield return new ChatResponseUpdate(ChatRole.Assistant, content1);
+							}
 						}
 
 						yield break;
@@ -163,6 +188,66 @@ Format function calls like this:
 					await Task.Delay(1, cancellationToken);
 				}
 			}
+		}
+
+		private bool TryParseToolCalls(string content, out List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
+		{
+			toolCalls = [];
+			content = content.Trim('\'');
+			if (string.IsNullOrWhiteSpace(content))
+			{
+				return false;
+			}
+
+			try
+			{
+				using var doc = JsonDocument.Parse(content);
+				if (doc.RootElement.TryGetProperty("tool_calls", out var toolCallsArray) && toolCallsArray.ValueKind == JsonValueKind.Array)
+				{
+					foreach (var toolCall in toolCallsArray.EnumerateArray())
+					{
+						var function = toolCall.GetProperty("function");
+						var id = toolCall.GetProperty("id").GetString() ?? Random.Shared.Next().ToString();
+						var name = function.GetProperty("name").GetString() ?? string.Empty;
+						var arguments = JsonDocument.Parse(function.GetProperty("arguments").GetRawText()).RootElement.Clone();
+						var argumentsProperty = function.GetProperty("arguments");
+						Dictionary<string, object?>? argumentsDict = null;
+						if (argumentsProperty.ValueKind == JsonValueKind.Object)
+						{
+							argumentsDict = new Dictionary<string, object?>();
+							foreach (var prop in argumentsProperty.EnumerateObject())
+							{
+								argumentsDict[prop.Name] = prop.Value.ValueKind switch
+								{
+									JsonValueKind.String => prop.Value.GetString(),
+									JsonValueKind.Number => prop.Value.TryGetInt64(out var l) ? l : prop.Value.GetDouble(),
+									JsonValueKind.True => true,
+									JsonValueKind.False => false,
+									JsonValueKind.Null => null,
+									_ => prop.Value.GetRawText()
+								};
+							}
+						}
+
+						toolCalls.Add(new Microsoft.Extensions.AI.FunctionCallContent(
+							id,
+							name,
+							argumentsDict
+						));
+					}
+					return toolCalls.Count > 0;
+				}
+			}
+			catch (JsonException ex)
+			{
+				logger.LogWarning(ex, "Failed to parse tool calls from content: {Content}", content);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Unexpected error while parsing tool calls from content: {Content}", content);
+			}
+
+			return false;
 		}
 
 		private static ChatMessage RemoveThink(ChatMessage x)
@@ -229,42 +314,32 @@ Format function calls like this:
 			};
 		}
 
-		private bool TryParseFunctionCall(string? content, out string functionName, out JsonElement arguments)
-		{
-			functionName = string.Empty;
-			arguments = default;
-
-			if (string.IsNullOrWhiteSpace(content)) return false;
-
-			try
-			{
-				using var doc = JsonDocument.Parse(content);
-				if (doc.RootElement.TryGetProperty("tool_call", out var toolCall))
-				{
-					functionName = toolCall.GetProperty("name").GetString() ?? "";
-					// Clone the arguments element to avoid referencing disposed memory
-					arguments = JsonDocument.Parse(toolCall.GetProperty("arguments").GetRawText()).RootElement.Clone();
-					return true;
-				}
-			}
-			catch (JsonException ex)
-			{
-				logger.LogWarning(ex, "Failed to parse potential tool call");
-			}
-
-			return false;
-		}
-
 		private async Task<string> CallToolAsync(ChatOptions options, string name, JsonElement arguments)
 		{
-			var tool = options.Tools?.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+			var tool = options.Tools?.OfType<KernelFunction>()
+				.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
 			if (tool == null)
 			{
 				logger.LogWarning("Tool with name '{ToolName}' not found.", name);
 				return $"Tool '{name}' not found.";
 			}
 
-			throw new NotImplementedException($"Tool '{name}' is not implemented yet. Arguments: {arguments.ToString()}");
+			// Convert JsonElement arguments to KernelArguments
+			var kernelArgs = new KernelArguments();
+			if (arguments.ValueKind == JsonValueKind.Object)
+			{
+				foreach (var prop in arguments.EnumerateObject())
+				{
+					kernelArgs.Add(prop.Name, prop.Value.ToString());
+				}
+			}
+
+			// Call the tool (function)
+			var result = await tool.InvokeAsync(kernelArgs);
+			var output = result?.ToString() ?? "[Function returned null]";
+			logger.LogInformation("Tool '{ToolName}' executed with output: {Output}", name, output);
+			return output;
 		}
 	}
 }

@@ -52,9 +52,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		[KernelFunction("get_stock_price")]
 		[Description("Get the stock price for a given subject")]
-		public Task<string> GetStockPrice(string subject, DateOnly date )
+		public Task<string> GetStockPrice(string subject, string date )
 		{
-			return Task.FromResult("Its going up");
+			return Task.FromResult("The price is $400");
 		}
 	}
 }
