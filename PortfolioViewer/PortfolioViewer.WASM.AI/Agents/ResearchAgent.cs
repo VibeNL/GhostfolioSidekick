@@ -22,6 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				return client.AsChatCompletionService();
 			});
 			var functionCallingkernel = functionCallingBuilder.Build();
+			functionCallingkernel.Plugins.AddFromType<ResearchAgentFunction>();
 
 			var agent = new ChatCompletionAgent
 			{
@@ -32,12 +33,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				Description = "A researcher that can acces real-time data on the internet. Also can query recent financial news.",
 				Arguments = new KernelArguments(new PromptExecutionSettings()
 				{
-					FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()					
+					FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()				
 				})
 			};
-
-			agent.Kernel.Plugins.AddFromType<ResearchAgentFunction>();
-
+			
 			return agent;
 		}
 	}
