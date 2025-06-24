@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.Chat;
 using Microsoft.SemanticKernel.ChatCompletion;
+using System.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
@@ -13,13 +15,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private readonly Agent defaultAgent;
 		private readonly List<Agent> agents;
 		private readonly AgentGroupChat groupChat;
+		private readonly AgentLogger logger;
 
-		public AgentOrchestrator(IWebChatClient webChatClient)
+		public AgentOrchestrator(IWebChatClient webChatClient, AgentLogger logger)
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
 			builder.Services.AddScoped<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
 			kernel = builder.Build();
-			
+
 			var researchAgent = ResearchAgent.Create(webChatClient);
 			defaultAgent = GhostfolioSidekick.Create(webChatClient, [researchAgent]);
 
@@ -29,7 +32,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			];
 
 			// Define a kernel function for the selection strategy
-			KernelFunction selectionFunction =
+			KernelFunction rawSelectionFunction =
 				AgentGroupChat.CreatePromptFunctionForStrategy(
 					$$$"""
 						Determine which participant takes the next turn in a conversation based on the the most recent participant.
@@ -45,6 +48,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 						{{$history}}
 						""",
 					safeParameterNames: "history");
+			var selectionFunction = WrapWithLogging(rawSelectionFunction, "SelectionStrategy");
 
 			// Define the selection strategy
 			KernelFunctionSelectionStrategy selectionStrategy =
@@ -60,7 +64,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  HistoryReducer = new ChatHistoryTruncationReducer(3),
 			  };
 
-			KernelFunction terminationFunction =
+			KernelFunction rawTerminationFunction =
 				AgentGroupChat.CreatePromptFunctionForStrategy(
 					$$$"""
 					Determine if the conversation has ended. Then respond with 'User' 
@@ -70,6 +74,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 					{{$history}}
 					""",
 					safeParameterNames: "history");
+			var terminationFunction = WrapWithLogging(rawTerminationFunction, "TerminationStrategy");
 
 			// Define the termination strategy
 			KernelFunctionTerminationStrategy terminationStrategy =
@@ -86,8 +91,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  HistoryReducer = new ChatHistoryTruncationReducer(1),
 				  // Limit total number of turns no matter what
 				  MaximumIterations = 10,
-				  AutomaticReset = true,
-				  
+				  AutomaticReset = true,				  
 			  };
 
 			groupChat = new AgentGroupChat([.. agents])
@@ -96,8 +100,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				{
 					TerminationStrategy = terminationStrategy,
 					SelectionStrategy = selectionStrategy
-				}
+				},
+				//LoggerFactory = logger,				
 			};
+			
+			this.logger = logger;
 		}
 
 		public async Task<IReadOnlyCollection<ChatMessageContent>> History()
@@ -138,5 +145,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 			return defaultAgent.Name ?? throw new NotSupportedException();
 		}
+
+		private KernelFunction WrapWithLogging(KernelFunction originalFunction, string name)
+		{
+			return KernelFunctionFactory.CreateFromMethod(async (KernelArguments args) =>
+			{
+				var history = args["history"]?.ToString() ?? "<no history>";
+				logger.StartAgent(name, "Thinking with history:\n{History}", history);
+
+				var result = await originalFunction.InvokeAsync(args);
+
+				logger.EndAgent(name, "Responded:\n{Result}", result?.ToString());
+				return result;
+			});
+		}
+
 	}
 }
