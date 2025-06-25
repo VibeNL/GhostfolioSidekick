@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.ExternalDataProvider.DuckDuckGo;
+using GhostfolioSidekick.ExternalDataProvider.Google;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			services.AddSingleton<AgentLogger>();
 			services.AddSingleton<AgentOrchestrator>();
 			services.AddSingleton<DuckDuckGoService>();
+			services.AddHttpClient<GoogleSearchService>();
+			services.AddSingleton<GoogleSearchService>((s) =>
+			{
+				var httpClient = s.GetRequiredService<HttpClient>();
+				var apiKey = "AIzaSyBKIwj5Gg5J5-JlC-_R4GTM0D43BVaFAIo";
+				var cx = "67916343ce9fd4bfe";
+				return new GoogleSearchService(httpClient, apiKey, cx);
+			});
 		}
 	}
 }
+
+

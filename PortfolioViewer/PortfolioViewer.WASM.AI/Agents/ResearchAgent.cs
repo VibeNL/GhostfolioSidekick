@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.ExternalDataProvider.DuckDuckGo;
+using GhostfolioSidekick.ExternalDataProvider.Google;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
@@ -29,10 +30,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				client.ChatMode = ChatMode.FunctionCalling;
 				return client.AsChatCompletionService();
 			});
-			var duckDuckGoService = serviceProvider.GetRequiredService<DuckDuckGoService>();
-			functionCallingBuilder.Services.AddSingleton<DuckDuckGoService>((s) => serviceProvider.GetRequiredService<DuckDuckGoService>());
+			var searchService = serviceProvider.GetRequiredService<GoogleSearchService>();
 			var functionCallingkernel = functionCallingBuilder.Build();
-			functionCallingkernel.Plugins.AddFromObject(new ResearchAgentFunction(duckDuckGoService));
+			functionCallingkernel.Plugins.AddFromObject(new ResearchAgentFunction(searchService));
 
 			var agent = new ChatCompletionAgent
 			{
@@ -51,27 +51,34 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		}
 	}
 
-	public class ResearchAgentFunction(DuckDuckGoService duckDuckGoService)
+	public class ResearchAgentFunction(GoogleSearchService searchService)
 	{
 		[KernelFunction("query_internet")]
 		[Description("Search the internet with a query")]
 		public Task<string> QueryInternet(string query)
 		{
-			return duckDuckGoService.SearchAsync(query).ContinueWith(task =>
+			return searchService.SearchAsync(query).ContinueWith(task =>
 			{
-				var result = task.Result;
-				if (result == null)
+				var results = task.Result;
+				if (results.Count == 0)
 				{
-					return "No financial news found.";
+					return "No results found.";
+				}
+				var sb = new System.Text.StringBuilder();
+				foreach (var result in results)
+				{
+					sb.AppendLine($"Title: {result.Title}");
+					sb.AppendLine($"Link: {result.Link}");
+					sb.AppendLine($"Snippet: {result.Snippet}");
+					if (!string.IsNullOrEmpty(result.Content))
+					{
+						sb.AppendLine($"Content: {result.Content.Substring(0, Math.Min(1000, result.Content.Length))}...");
+					}
+					sb.AppendLine();
 				}
 
-				var news = new System.Text.StringBuilder();
-				news.AppendLine($"**{result.Heading}**");
-				news.AppendLine(result.Abstract ?? "No abstract available.");
-				news.AppendLine($"[Read more]({result.Redirect})");
-				return news.ToString();
+				return sb.ToString();
 			});
-
 		}
 
 		[KernelFunction("get_stock_price")]
