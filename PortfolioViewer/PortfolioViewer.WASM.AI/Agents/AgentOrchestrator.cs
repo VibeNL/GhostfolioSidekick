@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.Chat;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.TextGeneration;
 using System.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
@@ -20,7 +22,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		public AgentOrchestrator(IWebChatClient webChatClient, AgentLogger logger)
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
-			builder.Services.AddScoped<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
+			builder.Services.AddSingleton<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
+			
 			kernel = builder.Build();
 
 			var researchAgent = ResearchAgent.Create(webChatClient);
@@ -52,7 +55,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 			// Define the selection strategy
 			KernelFunctionSelectionStrategy selectionStrategy =
-			  new(rawSelectionFunction, kernel)
+			  new(selectionFunction, kernel)
 			  {
 				  // Always start with the writer agent.
 				  InitialAgent = defaultAgent,
@@ -78,7 +81,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 			// Define the termination strategy
 			KernelFunctionTerminationStrategy terminationStrategy =
-			  new(rawTerminationFunction, kernel)
+			  new(terminationFunction, kernel)
 			  {
 				  // Only the reviewer may give approval.
 				  Agents = [defaultAgent],
@@ -104,7 +107,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				//LoggerFactory = logger,				
 			};
 
-			logger.StartAgent(defaultAgent?.Name);
 			this.logger = logger;
 		}
 
@@ -116,6 +118,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)
 		{
+			await logger.StartAgent(defaultAgent?.Name);
 			groupChat.AddChatMessage(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 
 			// Run the group chat
@@ -125,6 +128,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			{
 				yield return update;
 			}
+
+			await logger.StartAgent(string.Empty);
 		}
 
 		private static bool DetermineTermination(FunctionResult result)
@@ -136,7 +141,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private string DetermineNextAgentWithLogger(FunctionResult result)
 		{
 			var nextAgent = DetermineNextAgent(result);
-			logger.StartAgent(nextAgent);
+			_ = logger.StartAgent(nextAgent);
 			return nextAgent;
 		}
 
@@ -156,13 +161,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		private KernelFunction WrapWithLogging(KernelFunction originalFunction, string name)
 		{
-			return KernelFunctionFactory.CreateFromMethod(async (KernelArguments args) =>
+			return KernelFunctionFactory.CreateFromMethod(async (Kernel kernel, KernelArguments args) =>
 			{
-				logger.StartAgent(name);
-				var result = await originalFunction.InvokeAsync(args);
+				await logger.StartAgent(name);
+				var result = await originalFunction.InvokeAsync(kernel, args);
 				return result;
 			});
 		}
-
 	}
 }
