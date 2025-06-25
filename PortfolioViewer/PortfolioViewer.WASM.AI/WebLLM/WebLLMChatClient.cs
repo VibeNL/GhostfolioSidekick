@@ -109,6 +109,7 @@ Format function calls like this:
 													.AppendLine($"  }}")
 													.Append("}")
 											));
+
 				convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionCalls)));
 			}
 

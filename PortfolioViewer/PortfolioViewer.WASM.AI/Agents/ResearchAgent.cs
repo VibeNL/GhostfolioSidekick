@@ -9,11 +9,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
 	public static class ResearchAgent
 	{
-		private const string researchAgent = @"
-					You are ResearchAgent AI — a smart financial assistant. 
-					You may call functions if needed";
+		private static string GetSystemPrompt()
+		{
+			var sb = new System.Text.StringBuilder();
+			sb.AppendLine("You are ResearchAgent AI — a smart financial assistant.");
+			sb.AppendLine($"Today is {DateTime.Now:yyyy-MM-dd}.");
+			sb.AppendLine("You may call functions if needed");
+			return sb.ToString();
+		}
+
 		public static ChatCompletionAgent Create(IWebChatClient webChatClient)
 		{
+			string researchAgent = GetSystemPrompt();
 			IKernelBuilder functionCallingBuilder = Kernel.CreateBuilder();
 			functionCallingBuilder.Services.AddScoped<IChatCompletionService>((s) =>
 			{
@@ -33,10 +40,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				Description = "A researcher that can acces real-time data on the internet. Also can query recent financial news.",
 				Arguments = new KernelArguments(new PromptExecutionSettings()
 				{
-					FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()				
+					FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
 				})
 			};
-			
+
 			return agent;
 		}
 	}
@@ -52,9 +59,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		[KernelFunction("get_stock_price")]
 		[Description("Get the stock price for a given subject")]
-		public Task<string> GetStockPrice(string subject, string date )
+		public Task<string> GetStockPrice(string subject, string date)
 		{
-			return Task.FromResult("The price is $400");
+			return Task.FromResult($"The price is $400 for {date}");
 		}
 	}
 }
