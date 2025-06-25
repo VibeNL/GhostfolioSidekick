@@ -7,13 +7,14 @@ using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Xml.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
-	public partial class ChatOverlay
+	public partial class ChatOverlay : IDisposable
 	{
 		private bool IsOpen = false;
 		private string CurrentMessage = "";
@@ -30,13 +31,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private readonly List<ChatMessageContent> memory = new();
 		private readonly AgentOrchestrator orchestrator;
+		private readonly AgentLogger agentLogger;
 
-		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator)
+		internal string CurrentAgentName => GhostfolioSidekick.PortfolioViewer.WASM.AI.AgentLogger.CurrentAgentName;
+
+		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
 		{
 			orchestrator = agentOrchestrator;
+			this.agentLogger = agentLogger;
 			this.chatClient = chatClient;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
+
+			// Subscribe to AgentLogger event
+			GhostfolioSidekick.PortfolioViewer.WASM.AI.AgentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
 		}
 
 		private void ToggleChat()
@@ -123,6 +131,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			{
 				Console.WriteLine($"Error during streaming: {ex.Message}");
 			}
+		}
+
+		private void OnCurrentAgentNameChanged()
+		{
+			InvokeAsync(StateHasChanged);
+		}
+
+		public void Dispose()
+		{
+			// Unsubscribe from AgentLogger event
+			GhostfolioSidekick.PortfolioViewer.WASM.AI.AgentLogger.CurrentAgentNameChanged -= OnCurrentAgentNameChanged;
 		}
 
 		private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
