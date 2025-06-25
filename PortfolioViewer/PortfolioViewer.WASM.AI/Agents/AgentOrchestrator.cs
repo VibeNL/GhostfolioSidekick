@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 						State only the name of the participant to take the next turn.
 						No participant should take more than one turn in a row.
 						When the input from the User is required, please select User
-
+						
 						Choose only from these participants:
 						- User
 						{{{string.Join(Environment.NewLine, agents.Select(x => $"{x.Name}:{x.Description}"))}}}

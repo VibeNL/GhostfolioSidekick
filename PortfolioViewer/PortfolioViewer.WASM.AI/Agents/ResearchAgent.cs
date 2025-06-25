@@ -53,11 +53,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 	public class ResearchAgentFunction(DuckDuckGoService duckDuckGoService)
 	{
-		[KernelFunction("get_financial_news")]
-		[Description("Get financial news for a given subject")]
-		public Task<string> GetFinancialNews(string subject)
+		[KernelFunction("query_internet")]
+		[Description("Search the internet with a query")]
+		public Task<string> QueryInternet(string query)
 		{
-			return duckDuckGoService.SearchAsync(subject).ContinueWith(task =>
+			return duckDuckGoService.SearchAsync(query).ContinueWith(task =>
 			{
 				var result = task.Result;
 				if (result == null)
