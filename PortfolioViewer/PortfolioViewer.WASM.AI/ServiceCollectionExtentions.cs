@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
+﻿using GhostfolioSidekick.ExternalDataProvider.DuckDuckGo;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,6 +23,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 
 			services.AddSingleton<AgentLogger>();
 			services.AddSingleton<AgentOrchestrator>();
+			services.AddSingleton<DuckDuckGoService>();
 		}
 	}
 }

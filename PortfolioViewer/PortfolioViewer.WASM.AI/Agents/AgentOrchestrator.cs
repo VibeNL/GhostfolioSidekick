@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.AI;
+﻿using GhostfolioSidekick.ExternalDataProvider.DuckDuckGo;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -19,14 +20,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private readonly AgentGroupChat groupChat;
 		private readonly AgentLogger logger;
 
-		public AgentOrchestrator(IWebChatClient webChatClient, AgentLogger logger)
+		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
+			var webChatClient = serviceProvider.GetRequiredService<IWebChatClient>();
 			builder.Services.AddSingleton<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
 			
 			kernel = builder.Build();
 
-			var researchAgent = ResearchAgent.Create(webChatClient);
+			var researchAgent = ResearchAgent.Create(webChatClient, serviceProvider);
 			defaultAgent = GhostfolioSidekick.Create(webChatClient, [researchAgent]);
 
 			this.agents = [

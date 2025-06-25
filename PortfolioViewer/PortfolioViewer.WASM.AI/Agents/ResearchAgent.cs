@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using GhostfolioSidekick.ExternalDataProvider.DuckDuckGo;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
@@ -18,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			return sb.ToString();
 		}
 
-		public static ChatCompletionAgent Create(IWebChatClient webChatClient)
+		public static ChatCompletionAgent Create(IWebChatClient webChatClient, IServiceProvider serviceProvider)
 		{
 			string researchAgent = GetSystemPrompt();
 			IKernelBuilder functionCallingBuilder = Kernel.CreateBuilder();
@@ -28,8 +29,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				client.ChatMode = ChatMode.FunctionCalling;
 				return client.AsChatCompletionService();
 			});
+			var duckDuckGoService = serviceProvider.GetRequiredService<DuckDuckGoService>();
+			functionCallingBuilder.Services.AddSingleton<DuckDuckGoService>((s) => serviceProvider.GetRequiredService<DuckDuckGoService>());
 			var functionCallingkernel = functionCallingBuilder.Build();
-			functionCallingkernel.Plugins.AddFromType<ResearchAgentFunction>();
+			functionCallingkernel.Plugins.AddFromObject(new ResearchAgentFunction(duckDuckGoService));
 
 			var agent = new ChatCompletionAgent
 			{
@@ -48,13 +51,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		}
 	}
 
-	public class ResearchAgentFunction
+	public class ResearchAgentFunction(DuckDuckGoService duckDuckGoService)
 	{
 		[KernelFunction("get_financial_news")]
 		[Description("Get financial news for a given subject")]
 		public Task<string> GetFinancialNews(string subject)
 		{
-			return Task.FromResult("Its going down");
+			return duckDuckGoService.SearchAsync(subject).ContinueWith(task =>
+			{
+				var result = task.Result;
+				if (result == null)
+				{
+					return "No financial news found.";
+				}
+
+				var news = new System.Text.StringBuilder();
+				news.AppendLine($"**{result.Heading}**");
+				news.AppendLine(result.Abstract ?? "No abstract available.");
+				news.AppendLine($"[Read more]({result.Redirect})");
+				return news.ToString();
+			});
+
 		}
 
 		[KernelFunction("get_stock_price")]
