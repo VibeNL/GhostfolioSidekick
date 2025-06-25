@@ -1,13 +1,9 @@
-﻿using GhostfolioSidekick.ExternalDataProvider.DuckDuckGo;
-using Microsoft.Extensions.AI;
+﻿using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.Chat;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.TextGeneration;
-using System.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {

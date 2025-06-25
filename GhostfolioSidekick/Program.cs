@@ -8,7 +8,6 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.Manual;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
-using GhostfolioSidekick.ExternalDataProvider.DuckDuckGo;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
@@ -102,7 +101,7 @@ namespace GhostfolioSidekick
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
 							services.AddSingleton<ISymbolMatcher[]>(sp => [
-									sp.GetRequiredService<YahooRepository>(), 
+									sp.GetRequiredService<YahooRepository>(),
 									sp.GetRequiredService<CoinGeckoRepository>(),
 									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
 									sp.GetRequiredService<ManualSymbolMatcher>()
@@ -118,9 +117,6 @@ namespace GhostfolioSidekick
 							RegisterAllWithInterface<IFileImporter>(services);
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
-
-							// Register DuckDuckGoService with HttpClient
-							services.AddHttpClient<DuckDuckGoService>();
 						});
 		}
 

@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.ExternalDataProvider.DuckDuckGo;
-using GhostfolioSidekick.ExternalDataProvider.Google;
+﻿using GhostfolioSidekick.ExternalDataProvider.Google;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +23,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 
 			services.AddSingleton<AgentLogger>();
 			services.AddSingleton<AgentOrchestrator>();
-			services.AddSingleton<DuckDuckGoService>();
 			services.AddHttpClient<GoogleSearchService>();
 			services.AddSingleton<GoogleSearchService>((s) =>
 			{
