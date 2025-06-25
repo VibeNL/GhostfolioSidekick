@@ -52,12 +52,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 			// Define the selection strategy
 			KernelFunctionSelectionStrategy selectionStrategy =
-			  new(selectionFunction, kernel)
+			  new(rawSelectionFunction, kernel)
 			  {
 				  // Always start with the writer agent.
 				  InitialAgent = defaultAgent,
 				  // Parse the function response.
-				  ResultParser = (result) => DetermineNextAgent(result),
+				  ResultParser = (result) => DetermineNextAgentWithLogger(result),
 				  // The prompt variable name for the history argument.
 				  HistoryVariableName = "history",
 				  // Save tokens by not including the entire history in the prompt
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 			// Define the termination strategy
 			KernelFunctionTerminationStrategy terminationStrategy =
-			  new(terminationFunction, kernel)
+			  new(rawTerminationFunction, kernel)
 			  {
 				  // Only the reviewer may give approval.
 				  Agents = [defaultAgent],
@@ -103,7 +103,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				},
 				//LoggerFactory = logger,				
 			};
-			
+
+			logger.StartAgent(defaultAgent?.Name);
 			this.logger = logger;
 		}
 
@@ -132,6 +133,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			return result.GetValue<string>()?.Contains("User", StringComparison.OrdinalIgnoreCase) ?? false;
 		}
 
+		private string DetermineNextAgentWithLogger(FunctionResult result)
+		{
+			var nextAgent = DetermineNextAgent(result);
+			logger.StartAgent(nextAgent);
+			return nextAgent;
+		}
+
 		private string DetermineNextAgent(FunctionResult result)
 		{
 			var value = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
@@ -150,12 +158,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		{
 			return KernelFunctionFactory.CreateFromMethod(async (KernelArguments args) =>
 			{
-				var history = args["history"]?.ToString() ?? "<no history>";
-				logger.StartAgent(name, "Thinking with history:\n{History}", history);
-
+				logger.StartAgent(name);
 				var result = await originalFunction.InvokeAsync(args);
-
-				logger.EndAgent(name, "Responded:\n{Result}", result?.ToString());
 				return result;
 			});
 		}

@@ -5,19 +5,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 {
 	public class AgentLogger
 	{
-		internal void EndAgent(string name, string text, string v2)
-		{
-			
-		}
+		private static readonly Lock @lock = new();
+		public static string CurrentAgentName { get; private set; } = string.Empty;
 
-		internal void Respond(string name, string v, string content)
+		internal void StartAgent(string name)
 		{
-			
-		}
-
-		internal void StartAgent(string name, string text, string history = null)
-		{
-			
+			// Ensure thread safety when accessing the static property
+			lock (@lock)
+			{
+				CurrentAgentName = name;
+			}
 		}
 	}
 }

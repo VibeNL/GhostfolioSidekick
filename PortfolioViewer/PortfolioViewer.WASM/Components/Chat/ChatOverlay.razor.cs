@@ -30,10 +30,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private readonly List<ChatMessageContent> memory = new();
 		private readonly AgentOrchestrator orchestrator;
+		private readonly AgentLogger agentLogger;
 
-		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator)
+		internal string CurrentAgentName => GhostfolioSidekick.PortfolioViewer.WASM.AI.AgentLogger.CurrentAgentName;
+
+		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
 		{
 			orchestrator = agentOrchestrator;
+			this.agentLogger = agentLogger;
 			this.chatClient = chatClient;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
