@@ -1,10 +1,8 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
-using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -20,21 +18,23 @@ public static class Program
 		builder.Services.ConfigureHttpClientDefaults(static http =>
 		{
 			http.AddServiceDiscovery();
-		});
+		 });
 
-		builder.Services.AddHttpClient<PortfolioClient>(
-			(sp, client ) =>
+		// Get HostEnvironment and Configuration before registering services
+		var hostEnvironment = builder.HostEnvironment;
+		var configuration = builder.Configuration;
+
+		// Configure the default HttpClient for all consumers
+		builder.Services.AddHttpClient(string.Empty, client =>
 		{
-			var config = sp.GetRequiredService<IConfiguration>();
-			// Read the "Services.apiservice.http" value from the configuration
-			var apiServiceHttp = config.GetSection("Services:apiservice:http").Get<string[]>()?.SingleOrDefault();
+			var apiServiceHttp = configuration.GetSection("Services:apiservice:http").Get<string[]>()?.SingleOrDefault();
 			if (!string.IsNullOrWhiteSpace(apiServiceHttp))
 			{
 				client.BaseAddress = new Uri("http://apiservice");
 			}
 			else
 			{
-				client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+				client.BaseAddress = new Uri(hostEnvironment.BaseAddress);
 			}
 		});
 
@@ -51,9 +51,12 @@ public static class Program
 
 		builder.Services.AddWebChatClient();
 
+		// Register PortfolioClient for DI
+		builder.Services.AddScoped<Clients.PortfolioClient>();
+
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
-		var app =builder.Build();
+		var app = builder.Build();
 
 		var context = app.Services.GetRequiredService<DatabaseContext>();
 		var pendingMigrations = await context.Database.GetPendingMigrationsAsync();

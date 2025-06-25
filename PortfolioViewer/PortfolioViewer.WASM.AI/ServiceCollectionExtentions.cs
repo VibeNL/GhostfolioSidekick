@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			services.AddSingleton<GoogleSearchService>((s) =>
 			{
 				var httpClient = s.GetRequiredService<HttpClient>();
-				var apiKey = "AIzaSyBKIwj5Gg5J5-JlC-_R4GTM0D43BVaFAIo";
+				var apiKey = "AIzaSyCfoFMnKB4igV7eX2M9cNHB9Egi6TY3Pg0";
 				var cx = "67916343ce9fd4bfe";
 				return new GoogleSearchService(httpClient, apiKey, cx);
 			});
