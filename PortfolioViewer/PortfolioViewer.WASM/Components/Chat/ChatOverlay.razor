@@ -99,11 +99,19 @@
 							style="background-color: #2563eb; color: white; padding: 10px 16px; border-radius: 9999px; border: none; cursor: pointer; font-size: 14px;"
 							disabled="@IsBotTyping">
 						Send
-					</button>@if (!string.IsNullOrWhiteSpace(CurrentAgentName))
+					</button>
+					@if (!string.IsNullOrWhiteSpace(CurrentAgentName))
 					{
 						<!-- Current agent bubble -->
 						<span style="background-color: #e0f7fa; color: #2563eb; padding: 8px 14px; border-radius: 18px; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
 							@CurrentAgentName
+						</span>
+					}
+					@if (!string.IsNullOrWhiteSpace(CurrentAgentFunction))
+					{
+						<!-- Current agent function bubble -->
+						<span style="background-color: #e0f7fa; color: #2563eb; padding: 8px 14px; border-radius: 18px; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+							@CurrentAgentFunction
 						</span>
 					}
 				</div>

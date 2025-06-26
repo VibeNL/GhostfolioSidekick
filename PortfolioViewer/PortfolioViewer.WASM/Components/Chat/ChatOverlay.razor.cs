@@ -33,7 +33,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private readonly AgentOrchestrator orchestrator;
 		private readonly AgentLogger agentLogger;
 
-		internal string CurrentAgentName => GhostfolioSidekick.PortfolioViewer.WASM.AI.AgentLogger.CurrentAgentName;
+		internal string CurrentAgentName => agentLogger.CurrentAgentName;
+
+		internal string CurrentAgentFunction => agentLogger.CurrentAgentFunction;
 
 		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
 		{
@@ -44,7 +46,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			progress.ProgressChanged += OnWebLlmInitialization;
 
 			// Subscribe to AgentLogger event
-			GhostfolioSidekick.PortfolioViewer.WASM.AI.AgentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
+			agentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
 		}
 
 		private void ToggleChat()
@@ -141,7 +143,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		public void Dispose()
 		{
 			// Unsubscribe from AgentLogger event
-			GhostfolioSidekick.PortfolioViewer.WASM.AI.AgentLogger.CurrentAgentNameChanged -= OnCurrentAgentNameChanged;
+			agentLogger.CurrentAgentNameChanged -= OnCurrentAgentNameChanged;
 		}
 
 		private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();

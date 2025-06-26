@@ -34,8 +34,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				return client.AsChatCompletionService();
 			});
 			var searchService = serviceProvider.GetRequiredService<GoogleSearchService>();
+			var agentlogger = serviceProvider.GetRequiredService<AgentLogger>();
 			var functionCallingkernel = functionCallingBuilder.Build();
-			functionCallingkernel.Plugins.AddFromObject(new ResearchAgentFunction(searchService, webChatClient.AsChatCompletionService()));
+			functionCallingkernel.Plugins.AddFromObject(new ResearchAgentFunction(searchService, webChatClient.AsChatCompletionService(), agentlogger));
 
 			var agent = new ChatCompletionAgent
 			{
@@ -58,93 +59,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 	{
 		private readonly GoogleSearchService _searchService;
 		private readonly IChatCompletionService _chatService;
+		private readonly AgentLogger _agentLogger;
 
-		public ResearchAgentFunction(GoogleSearchService searchService, IChatCompletionService chatService)
+		public ResearchAgentFunction(GoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
 		{
 			_searchService = searchService;
 			_chatService = chatService;
+			_agentLogger = agentLogger;
 		}
 
-		[KernelFunction("query_internet")]
-		[Description("Search the internet with a query")]
-		public async Task<string> QueryInternet(string query)
-		{
-			var results = await _searchService.SearchAsync(query);
-			
-			if (results.Count == 0)
-			{
-				return "No results found.";
-			}
-			
-			var resultsForSummarization = new SearchResults
-			{
-				Query = query,
-				Items = results.Select(r => new SearchResultItem
-				{
-					Title = r.Title,
-					Link = r.Link,
-					Content = r.Content
-				}).ToList()
-			};
-			
-			// Get the raw results first
-			var sb = new StringBuilder();
-			sb.AppendLine($"Search results for query: \"{query}\"");
-			sb.AppendLine();
-			
-			foreach (var result in results)
-			{
-				sb.AppendLine($"Title: {result.Title}");
-				sb.AppendLine($"Link: {result.Link}");
-				sb.AppendLine($"Snippet: {result.Snippet}");
-				if (!string.IsNullOrEmpty(result.Content))
-				{
-					sb.AppendLine($"Content: {result.Content.Substring(0, Math.Min(1000, result.Content.Length))}...");
-				}
-				sb.AppendLine();
-			}
-
-			// Call the summarize function to get a summary of the results
-			var summary = await SummarizeSearchResults(resultsForSummarization);
-			sb.AppendLine();
-			sb.AppendLine("SUMMARY OF SEARCH RESULTS:");
-			sb.AppendLine(summary);
-			
-			return sb.ToString();
-		}
-
-		[KernelFunction("get_stock_price")]
-		[Description("Get the stock price for a given subject")]
-		public Task<string> GetStockPrice(string subject, string date)
-		{
-			return Task.FromResult($"The price is $400 for {date}");
-		}
-		
-		[KernelFunction("summarize_content")]
-		[Description("Summarize the provided content")]
-		public async Task<string> SummarizeContent(string content, string topic = "")
-		{
-			if (string.IsNullOrWhiteSpace(content))
-			{
-				return "No content to summarize.";
-			}
-
-			var prompt = new StringBuilder();
-			prompt.AppendLine("Please summarize the following content:");
-			if (!string.IsNullOrWhiteSpace(topic))
-			{
-				prompt.AppendLine($"Focus on information related to: {topic}");
-			}
-			prompt.AppendLine(content);
-
-			var chatHistory = new ChatHistory();
-			chatHistory.AddSystemMessage("You are a helpful assistant that summarizes content concisely and accurately.");
-			chatHistory.AddUserMessage(prompt.ToString());
-
-			var result = await _chatService.GetChatMessageContentAsync(chatHistory);
-			return result.Content ?? "No summary content available.";
-		}
-		
 		private async Task<string> SummarizeSearchResults(SearchResults results)
 		{
 			if (results.Items.Count == 0)
@@ -178,6 +101,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		[Description("Perform multi-step research on a topic by making multiple queries and synthesizing the results")]
 		public async Task<string> MultiStepResearch(string topic, [Description("Specific aspects of the topic to research")] string[] aspects)
 		{
+			await _agentLogger.StartFunction(nameof(MultiStepResearch));
+
 			if (string.IsNullOrWhiteSpace(topic))
 			{
 				return "No research topic provided.";
@@ -211,11 +136,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 					{
 						aspectContent = aspectContent.Substring(0, aspectContent.Length - 3);
 					}
-					aspects = JsonSerializer.Deserialize<string[]>(aspectContent) ?? new string[] { "overview", "recent developments", "analysis" };
+					aspects = JsonSerializer.Deserialize<string[]>(aspectContent) ?? ["overview", "recent developments", "analysis"];
 				}
 				catch
 				{
-					aspects = new string[] { "overview", "recent developments", "analysis" };
+					aspects = ["overview", "recent developments", "analysis"];
 				}
 			}
 			

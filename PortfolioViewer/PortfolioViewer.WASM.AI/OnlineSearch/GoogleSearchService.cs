@@ -16,36 +16,44 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 
         public async Task<ICollection<WebResult>> SearchAsync(string query)
         {
-            var url = $"{_backendGoogleSearchUrl}{Uri.EscapeDataString(query)}";
-            var response = await _httpClient.GetAsync(url);
-            
-            if (!response.IsSuccessStatusCode)
-            {
-                return [];
-            }
-            
-            var result = await response.Content.ReadFromJsonAsync<GoogleSearchResult>();
-            if (result == null || result.Items == null || result.Items.Count == 0)
-            {
-                return [];
-            }
+			try
+			{
+				var url = $"{_backendGoogleSearchUrl}{Uri.EscapeDataString(query)}";
+				var response = await _httpClient.GetAsync(url);
 
-            var webResults = new List<WebResult>();
-            foreach (var item in result.Items)
-            {
-                string? content = await GetContentWebsite(item);
+				if (!response.IsSuccessStatusCode)
+				{
+					return [];
+				}
 
-                webResults.Add(new WebResult
-                {
-                    Title = item.Title,
-                    Link = item.Link,
-                    Snippet = item.Snippet,
-                    Content = content
-                });
-            }
+				var result = await response.Content.ReadFromJsonAsync<GoogleSearchResult>();
+				if (result == null || result.Items == null || result.Items.Count == 0)
+				{
+					return [];
+				}
 
-            return webResults;
-        }
+				var webResults = new List<WebResult>();
+				foreach (var item in result.Items)
+				{
+					string? content = await GetContentWebsite(item);
+
+					webResults.Add(new WebResult
+					{
+						Title = item.Title,
+						Link = item.Link,
+						Snippet = item.Snippet,
+						Content = content
+					});
+				}
+
+				return webResults;
+			} catch (Exception ex)
+			{
+				// Log the exception or handle it as needed
+				return [];
+			}
+
+		}
 
         private async Task<string?> GetContentWebsite(GoogleSearchResult.Item item)
         {
