@@ -83,7 +83,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				{
 					Title = r.Title,
 					Link = r.Link,
-					Snippet = r.Snippet,
 					Content = r.Content
 				}).ToList()
 			};
@@ -142,8 +141,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			chatHistory.AddSystemMessage("You are a helpful assistant that summarizes content concisely and accurately.");
 			chatHistory.AddUserMessage(prompt.ToString());
 
-			var response = await _chatService.GetResponseAsync(chatHistory);
-			return response.Content;
+			var result = await _chatService.GetChatMessageContentAsync(chatHistory);
+			return result.Content ?? "No summary content available.";
 		}
 		
 		private async Task<string> SummarizeSearchResults(SearchResults results)
@@ -161,7 +160,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			foreach (var item in results.Items.Take(3))
 			{
 				prompt.AppendLine($"\nTitle: {item.Title}");
-				prompt.AppendLine($"Snippet: {item.Snippet}");
 				if (!string.IsNullOrEmpty(item.Content) && item.Content.Length > 100)
 				{
 					prompt.AppendLine($"Content: {item.Content.Substring(0, Math.Min(500, item.Content.Length))}...");
@@ -172,8 +170,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			chatHistory.AddSystemMessage("You are a helpful research assistant that can synthesize information from multiple sources.");
 			chatHistory.AddUserMessage(prompt.ToString());
 
-			var response = await _chatService.GetResponseAsync(chatHistory);
-			return response.Content;
+			var result = await _chatService.GetChatMessageContentAsync(chatHistory);
+			return result.Content ?? "No summary content available.";
 		}
 		
 		[KernelFunction("multi_step_research")]
@@ -181,7 +179,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		public async Task<string> MultiStepResearch(string topic, [Description("Specific aspects of the topic to research")] string[] aspects)
 		{
 			if (string.IsNullOrWhiteSpace(topic))
+			{
 				return "No research topic provided.";
+			}
 				
 			if (aspects == null || aspects.Length == 0)
 			{
@@ -192,7 +192,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				chatHistory.AddSystemMessage("You are a research planning assistant. Respond only with the requested JSON format.");
 				chatHistory.AddUserMessage(defaultAspectPrompt);
 				
-				var aspectResponse = await _chatService.GetResponseAsync(chatHistory);
+				var aspectResponse = await _chatService.GetChatMessageContentAsync(chatHistory);
 				var aspectContent = aspectResponse.Content ?? "[]";
 				
 				// Extract the JSON array from the response
@@ -221,19 +221,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			
 			// Now perform the research on each aspect
 			var allResults = new Dictionary<string, string>();
-			var sb = new StringBuilder();
-			sb.AppendLine($"# Multi-Step Research on: {topic}");
-			sb.AppendLine();
+			var researchBuilder = new StringBuilder();
+			researchBuilder.AppendLine($"# Multi-Step Research on: {topic}");
+			researchBuilder.AppendLine();
 			
 			foreach (var aspect in aspects)
 			{
 				var query = $"{topic} {aspect}";
-				sb.AppendLine($"## Researching: {aspect}");
+				researchBuilder.AppendLine($"## Researching: {aspect}");
 				
 				var results = await _searchService.SearchAsync(query);
 				if (results.Count == 0)
 				{
-					sb.AppendLine("No results found for this aspect.");
+					researchBuilder.AppendLine("No results found for this aspect.");
 					continue;
 				}
 				
@@ -244,40 +244,39 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 					{
 						Title = r.Title,
 						Link = r.Link,
-						Snippet = r.Snippet,
 						Content = r.Content
 					}).ToList()
 				};
 				
 				var summary = await SummarizeSearchResults(resultsForSummarization);
-				sb.AppendLine(summary);
-				sb.AppendLine();
+				researchBuilder.AppendLine(summary);
+				researchBuilder.AppendLine();
 				
 				allResults[aspect] = summary;
 			}
 			
 			// Final synthesis of all aspects
-			sb.AppendLine("# Research Synthesis");
+			researchBuilder.AppendLine("# Research Synthesis");
 			
-			var synthesisPrompt = new StringBuilder();
-			synthesisPrompt.AppendLine($"Please synthesize the following research findings on '{topic}':");
+			var synthesisPromptBuilder = new StringBuilder();
+			synthesisPromptBuilder.AppendLine($"Please synthesize the following research findings on '{topic}':");
 			
 			foreach (var kvp in allResults)
 			{
-				synthesisPrompt.AppendLine($"\n## {kvp.Key}");
-				synthesisPrompt.AppendLine(kvp.Value);
+				synthesisPromptBuilder.AppendLine($"\n## {kvp.Key}");
+				synthesisPromptBuilder.AppendLine(kvp.Value);
 			}
 			
 			var synChatHistory = new ChatHistory();
 			synChatHistory.AddSystemMessage("You are a research synthesis expert who can integrate multiple aspects of a topic into a coherent analysis.");
-			synChatHistory.AddUserMessage(synthesisPrompt.ToString());
+			synChatHistory.AddUserMessage(synthesisPromptBuilder.ToString());
 			
-			var synthesisResponse = await _chatService.GetResponseAsync(synChatHistory);
+			var synthesisResponse = await _chatService.GetChatMessageContentAsync(synChatHistory);
 			var synthesis = synthesisResponse.Content ?? "Unable to synthesize research.";
 			
-			sb.AppendLine(synthesis);
+			researchBuilder.AppendLine(synthesis);
 			
-			return sb.ToString();
+			return researchBuilder.ToString();
 		}
 	}
 	

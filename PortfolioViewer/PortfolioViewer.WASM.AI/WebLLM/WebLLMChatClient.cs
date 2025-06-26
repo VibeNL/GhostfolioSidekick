@@ -29,6 +29,7 @@ You have access to the following functions:
 
 If a user asks something that can be answered with a function, use a tool_calls array with per function an id, name and valid JSON arguments. If not, answer normally.
 Do not respond with any other text than the tool_calls array when answering with a function.
+Make sure the arguments is a JSON-encoded string 
 
 Format function calls like this:
 { "tool_calls": [
