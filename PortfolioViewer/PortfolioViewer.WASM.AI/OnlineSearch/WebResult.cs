@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.ExternalDataProvider
+﻿namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 {
 	public class WebResult
 	{

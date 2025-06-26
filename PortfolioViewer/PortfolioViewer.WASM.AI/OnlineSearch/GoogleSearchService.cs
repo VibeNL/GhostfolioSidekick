@@ -1,32 +1,37 @@
 using System.Net.Http.Json;
 
-namespace GhostfolioSidekick.ExternalDataProvider.Google
+namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 {
     public class GoogleSearchService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _backendProxyUrl = "/api/proxy/fetch?url="; // Adjust base URL as needed
-        private readonly string apiKey;
-        private readonly string cx;
+        private readonly string _backendProxyUrl = "/api/proxy/fetch?url="; // Proxy URL for content fetch
+        private readonly string _backendGoogleSearchUrl = "/api/proxy/google-search?query="; // New endpoint for Google Search API
 
-        public GoogleSearchService(HttpClient httpClient, string apiKey, string cx)
+        public GoogleSearchService(HttpClient httpClient, string apiKey = null, string cx = null)
         {
-            this._httpClient = httpClient;
-            this.apiKey = apiKey;
-            this.cx = cx;
+			_httpClient = httpClient;
+            // API key and CX are now ignored as they will be provided by the backend
         }
 
         public async Task<ICollection<WebResult>> SearchAsync(string query)
         {
-            var url = $"https://www.googleapis.com/customsearch/v1?q={Uri.EscapeDataString(query)}&key={apiKey}&cx={cx}";
-            var results = await _httpClient.GetFromJsonAsync<GoogleSearchResult>(url);
-            if (results == null || results.Items == null || results.Items.Count == 0)
+            var url = $"{_backendGoogleSearchUrl}{Uri.EscapeDataString(query)}";
+            var response = await _httpClient.GetAsync(url);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                return [];
+            }
+            
+            var result = await response.Content.ReadFromJsonAsync<GoogleSearchResult>();
+            if (result == null || result.Items == null || result.Items.Count == 0)
             {
                 return [];
             }
 
             var webResults = new List<WebResult>();
-            foreach (var item in results.Items)
+            foreach (var item in result.Items)
             {
                 string? content = await GetContentWebsite(item);
 

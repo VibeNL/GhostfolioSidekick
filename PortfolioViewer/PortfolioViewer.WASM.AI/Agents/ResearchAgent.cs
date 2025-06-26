@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.ExternalDataProvider.Google;
+﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
