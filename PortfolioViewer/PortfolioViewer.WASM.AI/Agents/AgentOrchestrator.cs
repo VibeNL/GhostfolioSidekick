@@ -1,12 +1,9 @@
 ﻿using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.Chat;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.TextGeneration;
-using System.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
@@ -19,14 +16,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private readonly AgentGroupChat groupChat;
 		private readonly AgentLogger logger;
 
-		public AgentOrchestrator(IWebChatClient webChatClient, AgentLogger logger)
+		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
+			var webChatClient = serviceProvider.GetRequiredService<IWebChatClient>();
 			builder.Services.AddSingleton<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
 			
 			kernel = builder.Build();
 
-			var researchAgent = ResearchAgent.Create(webChatClient);
+			var researchAgent = ResearchAgent.Create(webChatClient, serviceProvider);
 			defaultAgent = GhostfolioSidekick.Create(webChatClient, [researchAgent]);
 
 			this.agents = [
@@ -42,7 +40,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 						State only the name of the participant to take the next turn.
 						No participant should take more than one turn in a row.
 						When the input from the User is required, please select User
-
+						
 						Choose only from these participants:
 						- User
 						{{{string.Join(Environment.NewLine, agents.Select(x => $"{x.Name}:{x.Description}"))}}}

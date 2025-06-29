@@ -3,6 +3,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text;
+using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
@@ -11,6 +12,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private static string BuildPromptWithCompanions(IEnumerable<Agent> companions)
 		{
 			var sb = new StringBuilder();
+			sb.AppendLine($"The Currentdate is {DateTime.UtcNow:yyyy-MM-dd}.");
 			sb.AppendLine("You are GhostfolioSidekick AI — a smart financial assistant. Help users understand and manage their investment portfolio.");
 			sb.AppendLine("Respond clearly, avoid financial advice disclaimers, and answer in markdown with bullet points or tables when helpful.");
 			sb.AppendLine("Use financial terminology and suggest insights like trends or anomalies if data is present.");

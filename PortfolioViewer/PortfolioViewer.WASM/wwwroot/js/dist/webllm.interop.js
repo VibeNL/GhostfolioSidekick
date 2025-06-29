@@ -59,9 +59,6 @@ export class WebLLMInterop {
                     _c = chunks_1_1.value;
                     _e = false;
                     const chunk = _c;
-                    if (tools !== null && tools.length > 0) {
-                        debugger;
-                    }
                     // Assuming chunk is of type Chunk (define below if needed)
                     yield ((_d = this.dotnetInstance) === null || _d === void 0 ? void 0 : _d.invokeMethodAsync("ReceiveChunkCompletion", chunk));
                 }
