@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;

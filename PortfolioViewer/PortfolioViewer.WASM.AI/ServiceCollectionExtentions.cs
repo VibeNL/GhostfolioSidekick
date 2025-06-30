@@ -25,12 +25,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 
 			services.AddSingleton<AgentLogger>();
 			services.AddSingleton<AgentOrchestrator>();
+			
+			// Register Google Search service with MCP pattern
 			services.AddHttpClient<GoogleSearchService>();
+			services.AddSingleton<IGoogleSearchProtocol, GoogleSearchService>();
 			services.AddSingleton<GoogleSearchService>((s) =>
 			{
 				var httpClient = s.GetRequiredService<HttpClient>();
-				// No API key needed, using the backend proxy instead
-				return new GoogleSearchService(httpClient);
+				// Create a context for the GoogleSearchService
+				var context = new GoogleSearchContext
+				{
+					HttpClient = httpClient,
+					// Default URLs are already set in the context class
+				};
+				// Return the service with the context
+				return new GoogleSearchService(context);
 			});
 		}
 	}

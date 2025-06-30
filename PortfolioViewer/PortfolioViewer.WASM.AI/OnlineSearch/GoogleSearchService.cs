@@ -1,41 +1,85 @@
 using System.Net.Http.Json;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 {
-	public class GoogleSearchService
+	/// <summary>
+	/// Service for performing Google searches and retrieving web content
+	/// Implements the Model-Context-Protocol pattern
+	/// </summary>
+	public class GoogleSearchService : IGoogleSearchProtocol
 	{
-		private readonly HttpClient _httpClient;
-		private readonly string _backendProxyUrl = "/api/proxy/fetch?url="; // Proxy URL for content fetch
-		private readonly string _backendGoogleSearchUrl = "/api/proxy/google-search?query="; // New endpoint for Google Search API
+		private readonly GoogleSearchContext _context;
 
-		public GoogleSearchService(HttpClient httpClient, string apiKey = null, string cx = null)
+		/// <summary>
+		/// Initializes a new instance of the GoogleSearchService
+		/// </summary>
+		/// <param name="httpClient">HttpClient for making API calls</param>
+		/// <param name="apiKey">Optional Google API Key (typically provided by backend)</param>
+		/// <param name="cx">Optional Google Custom Search Engine ID (typically provided by backend)</param>
+		public GoogleSearchService(HttpClient httpClient, string? apiKey = null, string? cx = null)
 		{
-			_httpClient = httpClient;
-			// API key and CX are now ignored as they will be provided by the backend
+			_context = new GoogleSearchContext
+			{
+				HttpClient = httpClient,
+				ApiKey = apiKey,
+				CustomSearchEngineId = cx
+			};
 		}
 
-		public async Task<ICollection<WebResult>> SearchAsync(string query)
+		/// <summary>
+		/// Initializes a new instance of the GoogleSearchService with a specific context
+		/// </summary>
+		/// <param name="context">The Google Search context</param>
+		public GoogleSearchService(GoogleSearchContext context)
 		{
+			_context = context;
+		}
+
+		/// <summary>
+		/// Performs a search using the provided query
+		/// </summary>
+		/// <param name="request">The search request containing the query</param>
+		/// <returns>A response with search results</returns>
+		public async Task<GoogleSearchResponse> SearchAsync(GoogleSearchRequest request)
+		{
+			if (string.IsNullOrWhiteSpace(request.Query))
+			{
+				return new GoogleSearchResponse
+				{
+					Success = false,
+					ErrorMessage = "Search query cannot be empty"
+				};
+			}
+
 			try
 			{
-				var url = $"{_backendGoogleSearchUrl}{Uri.EscapeDataString(query.Trim())}";
-				var response = await _httpClient.GetAsync(url);
+				var url = $"{_context.BackendGoogleSearchUrl}{Uri.EscapeDataString(request.Query.Trim())}";
+				var response = await _context.HttpClient.GetAsync(url);
 
 				if (!response.IsSuccessStatusCode)
 				{
-					return [];
+					return new GoogleSearchResponse
+					{
+						Success = false,
+						ErrorMessage = $"Search request failed with status code: {response.StatusCode}"
+					};
 				}
 
-				var result = await response.Content.ReadFromJsonAsync<GoogleSearchResult>();
+				var result = await response.Content.ReadFromJsonAsync<GoogleSearchApiResult>();
 				if (result == null || result.Items == null || result.Items.Count == 0)
 				{
-					return [];
+					return new GoogleSearchResponse
+					{
+						Success = true,
+						Results = Array.Empty<WebResult>()
+					};
 				}
 
 				var webResults = new List<WebResult>();
 				foreach (var item in result.Items)
 				{
-					string? content = await GetContentWebsite(item);
+					string? content = await GetWebsiteContentAsync(item.Link);
 
 					webResults.Add(new WebResult
 					{
@@ -46,49 +90,59 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 					});
 				}
 
-				return webResults;
+				return new GoogleSearchResponse
+				{
+					Success = true,
+					Results = webResults
+				};
 			}
 			catch (Exception ex)
 			{
-				// Log the exception or handle it as needed
-				return [];
+				return new GoogleSearchResponse
+				{
+					Success = false,
+					ErrorMessage = $"Search failed: {ex.Message}"
+				};
 			}
-
 		}
 
-		private async Task<string?> GetContentWebsite(GoogleSearchResult.Item item)
+		/// <summary>
+		/// For compatibility with existing code - to be deprecated
+		/// </summary>
+		/// <param name="query">The search query</param>
+		/// <returns>Collection of WebResult objects</returns>
+		public async Task<ICollection<WebResult>> SearchAsync(string query)
 		{
-			if (string.IsNullOrEmpty(item.Link))
+			var request = new GoogleSearchRequest { Query = query };
+			var response = await SearchAsync(request);
+			return response.Success ? response.Results.ToList() : new List<WebResult>();
+		}
+
+		/// <summary>
+		/// Retrieves the content of a website
+		/// </summary>
+		/// <param name="url">The URL of the website to retrieve content from</param>
+		/// <returns>The website content as a string, or null if unsuccessful</returns>
+		public async Task<string?> GetWebsiteContentAsync(string? url)
+		{
+			if (string.IsNullOrEmpty(url))
 				return null;
 			try
 			{
 				// Call backend proxy instead of direct fetch
-				var encodedUrl = Uri.EscapeDataString(item.Link);
-				var response = await _httpClient.GetAsync(_backendProxyUrl + encodedUrl);
+				var encodedUrl = Uri.EscapeDataString(url);
+				var response = await _context.HttpClient.GetAsync(_context.BackendProxyUrl + encodedUrl);
 				if (response.IsSuccessStatusCode)
 				{
 					return await response.Content.ReadAsStringAsync();
 				}
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				// Ignore errors and leave content as null
 			}
 
 			return null;
-		}
-	}
-
-	// Simplified model for Google Custom Search JSON API
-	public class GoogleSearchResult
-	{
-		public List<Item>? Items { get; set; }
-
-		public class Item
-		{
-			public string? Title { get; set; }
-			public string? Link { get; set; }
-			public string? Snippet { get; set; }
 		}
 	}
 }

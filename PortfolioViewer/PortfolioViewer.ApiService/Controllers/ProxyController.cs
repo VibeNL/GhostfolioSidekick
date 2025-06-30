@@ -3,6 +3,7 @@ using HtmlAgilityPack;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Net.Http.Json;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {
@@ -60,7 +61,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				}
 
 				// Create a result object with additional metadata
-				var result = new
+				var result = new FetchResponse
 				{
 					Url = url,
 					StatusCode = (int)response.StatusCode,
@@ -110,6 +111,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 					return StatusCode((int)response.StatusCode, $"Failed to fetch search results: {response.StatusCode}");
 
 				var searchResult = await response.Content.ReadFromJsonAsync<object>();
+				
+				// Return the search result directly as received from Google API
 				return Ok(searchResult);
 			}
 			catch (HttpRequestException ex)
