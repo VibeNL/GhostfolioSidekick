@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Grpc.Net.Client.Web;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
@@ -13,7 +14,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; // TODO 
 
-		const int pageSize = 100_000;
+		const int pageSize = 10_000;
 
 		private GrpcChannel? _grpcChannel;
 		private SyncService.SyncServiceClient? _grpcClient;
@@ -122,7 +123,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(SyncService.SyncServiceClient grpcClient, string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
-			bool hasMoreData = true;
 
 			while (true)
 			{
@@ -141,57 +141,77 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					
 					if (response.Records.Count == 0)
 					{
-						hasMoreData = false;
 						yield break;
 					}
 
-					// Convert gRPC response to the expected format
-					var data = response.Records.Select(record =>
+					// Pre-allocate the list with known capacity for better performance
+					var data = new List<Dictionary<string, object>>(response.Records.Count);
+
+					// Convert gRPC response to the expected format with optimized loop
+					foreach (var record in response.Records)
 					{
-						var dictionary = new Dictionary<string, object>();
+						var dictionary = new Dictionary<string, object>(record.Fields.Count);
 						foreach (var field in record.Fields)
 						{
 							// Convert string back to appropriate type
 							dictionary[field.Key] = ConvertStringToValue(field.Value);
 						}
-						return dictionary;
-					}).ToList();
+						data.Add(dictionary);
+					}
 
 					yield return data;
 
-					hasMoreData = response.HasMore;
-					page++;
-
-					if (!hasMoreData)
+					if (!response.HasMore)
 					{
-						break;
+						yield break;
 					}
+					
+					page++;
 				}
 
-				if (!hasMoreData)
-				{
-					break;
-				}
+				// If we get here and there's no more data, break out
+				break;
 			}
 		}
 
+		private static readonly char[] _jsonStartChars = ['{', '['];
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static object ConvertStringToValue(string value)
 		{
 			if (string.IsNullOrEmpty(value))
 				return DBNull.Value;
 
-			// Try to parse as different types
-			if (long.TryParse(value, out var longValue))
+			// Fast path for common string values that don't need parsing
+			if (value.Length > 0 && !char.IsDigit(value[0]) && value[0] != '-' && value[0] != '+' && 
+				!_jsonStartChars.Contains(value[0]) && !value.Equals("true", StringComparison.OrdinalIgnoreCase) && 
+				!value.Equals("false", StringComparison.OrdinalIgnoreCase))
+			{
+				return value;
+			}
+
+			// Fast boolean check
+			if (value.Length <= 5)
+			{
+				if (value.Equals("true", StringComparison.OrdinalIgnoreCase))
+					return true;
+				if (value.Equals("false", StringComparison.OrdinalIgnoreCase))
+					return false;
+			}
+
+			// Try numeric parsing with culture-invariant approach for better performance
+			ReadOnlySpan<char> span = value.AsSpan();
+			
+			// Try long first (most common integer type)
+			if (long.TryParse(span, NumberStyles.Integer, CultureInfo.InvariantCulture, out var longValue))
 				return longValue;
 			
-			if (double.TryParse(value, out var doubleValue))
+			// Try double for decimal values
+			if (double.TryParse(span, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
 				return doubleValue;
 			
-			if (bool.TryParse(value, out var boolValue))
-				return boolValue;
-			
-			// Try to parse as JSON for complex objects
-			if (value.StartsWith("{") || value.StartsWith("["))
+			// Only try JSON parsing if it starts with { or [
+			if (value.Length > 1 && _jsonStartChars.Contains(value[0]))
 			{
 				try
 				{
@@ -204,6 +224,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 
 			return value;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static object? ConvertValueForParameter(object? value)
+		{
+			return value switch
+			{
+				JsonElement jsonElement => jsonElement.ValueKind switch
+				{
+					JsonValueKind.String => jsonElement.GetString(),
+					JsonValueKind.Number => jsonElement.TryGetInt64(out var longValue) ? longValue : jsonElement.GetDouble(),
+					JsonValueKind.True => true,
+					JsonValueKind.False => false,
+					JsonValueKind.Null => null,
+					JsonValueKind.Object => JsonSerializer.Serialize(jsonElement),
+					JsonValueKind.Array => JsonSerializer.Serialize(jsonElement),
+					_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind}")
+				},
+				null => null,
+				_ => value
+			};
 		}
 
 		private async Task InsertDataAsync(string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)
@@ -232,22 +273,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					var parameter = parameters[key];
 					if (parameter != null)
 					{
-						object? parameterValue = record[key] switch
-						{
-							JsonElement jsonElement => jsonElement.ValueKind switch
-							{
-								JsonValueKind.String => jsonElement.GetString(),
-								JsonValueKind.Number => jsonElement.TryGetInt64(out var longValue) ? longValue : jsonElement.GetDouble(),
-								JsonValueKind.True => true,
-								JsonValueKind.False => false,
-								JsonValueKind.Null => DBNull.Value,
-								JsonValueKind.Object => JsonSerializer.Serialize(record[key]),
-								JsonValueKind.Array => JsonSerializer.Serialize(record[key]),
-								_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind} on table {tableName}. SQL was {command.CommandText}")
-							},
-							null => DBNull.Value,
-							_ => record[key]
-						};
+						object? parameterValue = ConvertValueForParameter(record[key]);
 						parameter.Value = parameterValue ?? DBNull.Value;
 					}
 				}
