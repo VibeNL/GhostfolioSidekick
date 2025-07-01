@@ -1,7 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.EntityFrameworkCore;
+using Grpc.Net.Client.Web;
+using Grpc.Net.Client;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
@@ -15,10 +18,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		{
 			try
 			{
+				 // Create gRPC channel for web
+				var channel = GrpcChannel.ForAddress(httpClient.BaseAddress!, new GrpcChannelOptions
+				{
+					HttpHandler = new GrpcWebHandler(new HttpClientHandler())
+				});
+
+				var grpcClient = new SyncService.SyncServiceClient(channel);
+
 				// Step 1: Retrieve Table Names
 				progress?.Report(("Retrieving table names...", 0));
-				var tables = databaseContext.SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'");
-				var tableNames = await tables.ToListAsync(cancellationToken);
+				var tableNamesResponse = await grpcClient.GetTableNamesAsync(new GetTableNamesRequest(), cancellationToken: cancellationToken);
+				var tableNames = tableNamesResponse.TableNames.ToList();
+				
 				if (!tableNames.Any())
 				{
 					progress?.Report(("No tables found in the database.", 100));
@@ -52,7 +64,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					var totalWritten = 0;
 					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
 
-					await foreach (var dataChunk in FetchDataAsync(tableName, cancellationToken))
+					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
 					{
 						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
 						await InsertDataAsync(tableName, dataChunk, cancellationToken);
@@ -78,34 +90,87 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
+		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(SyncService.SyncServiceClient grpcClient, string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
 			bool hasMoreData = true;
 
 			while (hasMoreData)
 			{
-				var response = await httpClient.GetAsync($"/api/sync/{tableName}?page={page}&pageSize={pageSize}", cancellationToken);
-				if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+				var request = new GetEntityDataRequest
 				{
-					yield break;
+					Entity = tableName,
+					Page = page,
+					PageSize = pageSize
+				};
+
+				using var call = grpcClient.GetEntityData(request, cancellationToken: cancellationToken);
+
+				while (await call.ResponseStream.MoveNext(cancellationToken))
+				{
+					var response = call.ResponseStream.Current;
+					
+					if (response.Records.Count == 0)
+					{
+						hasMoreData = false;
+						yield break;
+					}
+
+					// Convert gRPC response to the expected format
+					var data = response.Records.Select(record =>
+					{
+						var dictionary = new Dictionary<string, object>();
+						foreach (var field in record.Fields)
+						{
+							// Convert string back to appropriate type
+							dictionary[field.Key] = ConvertStringToValue(field.Value);
+						}
+						return dictionary;
+					}).ToList();
+
+					yield return data;
+
+					hasMoreData = response.HasMore;
+					page++;
+
+					if (!hasMoreData)
+						break;
 				}
 
-				var rawData = await response.Content.ReadAsStringAsync(cancellationToken);
-				if (string.IsNullOrEmpty(rawData))
-				{
-					yield break;
-				}
-
-				var data = DeserializeData(rawData);
-				if (data == null || !data.Any())
-				{
-					yield break;
-				}
-
-				yield return data;
-				page++;
+				if (!hasMoreData)
+					break;
 			}
+		}
+
+		private static object ConvertStringToValue(string value)
+		{
+			if (string.IsNullOrEmpty(value))
+				return DBNull.Value;
+
+			// Try to parse as different types
+			if (long.TryParse(value, out var longValue))
+				return longValue;
+			
+			if (double.TryParse(value, out var doubleValue))
+				return doubleValue;
+			
+			if (bool.TryParse(value, out var boolValue))
+				return boolValue;
+			
+			// Try to parse as JSON for complex objects
+			if (value.StartsWith("{") || value.StartsWith("["))
+			{
+				try
+				{
+					return JsonDocument.Parse(value).RootElement;
+				}
+				catch
+				{
+					// If it fails, just return as string
+				}
+			}
+
+			return value;
 		}
 
 		private async Task InsertDataAsync(string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)

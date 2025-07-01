@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
@@ -21,13 +22,17 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 			builder.Services.AddOpenApi();
 
+			// Add gRPC services
+			builder.Services.AddGrpc();
+
 			builder.Services.AddCors(options =>
 			{
 				options.AddDefaultPolicy(builder =>
 				{
 					builder.AllowAnyOrigin()
 						   .AllowAnyMethod()
-						   .AllowAnyHeader();
+						   .AllowAnyHeader()
+						   .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
 				});
 			});
 
@@ -57,6 +62,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				}
 				);
 			}
+
+			// Enable gRPC-Web for browser compatibility
+			app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
+			// Map gRPC services
+			app.MapGrpcService<SyncGrpcService>().EnableGrpcWeb();
 
 			app.MapControllers();
 			app.MapDefaultEndpoints();
