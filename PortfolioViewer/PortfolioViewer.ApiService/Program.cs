@@ -25,6 +25,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Add gRPC services
 			builder.Services.AddGrpc();
 
+			// Register configuration helper
+			builder.Services.AddSingleton<IConfigurationHelper, ConfigurationHelper>();
+
 			builder.Services.AddCors(options =>
 			{
 				options.AddDefaultPolicy(policy =>
@@ -36,9 +39,13 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				});
 			});
 
-			// Configure SQLite connection
-			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-			builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlite(connectionString));
+			// Configure SQLite connection using configuration helper
+			builder.Services.AddDbContext<DatabaseContext>((serviceProvider, options) =>
+			{
+				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
+				var connectionString = "Data Source="+configHelper.GetConnectionString("DefaultConnection");
+				options.UseSqlite(connectionString);
+			});
 
 			builder.Services.AddControllers(options =>
 			{

@@ -1,23 +1,24 @@
 {
-  "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "http://localhost:5447",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5447"
     },
     "https": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "applicationUrl": "https://localhost:7565;http://localhost:5447",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "GOOGLESEARCH_ENGINEID": "67916343ce9fd4bfe",
+        "GOOGLESEARCH_APIKEY": "AIzaSyCfoFMnKB4igV7eX2M9cNHB9Egi6TY3Pg0",
+        "CONNECTIONSTRING_DEFAULT": "\\\\synology\\docker\\ghostfolio\\sidekick\\ghostfoliosidekick.db"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7565;http://localhost:5447"
     }
-  }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json"
 }

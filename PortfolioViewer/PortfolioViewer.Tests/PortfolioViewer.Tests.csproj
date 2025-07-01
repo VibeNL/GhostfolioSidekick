@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PortfolioViewer.AppHost\PortfolioViewer.AppHost.csproj" />
+    <ProjectReference Include="..\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
