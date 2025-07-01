@@ -101,7 +101,7 @@ namespace GhostfolioSidekick
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
 							services.AddSingleton<ISymbolMatcher[]>(sp => [
-									sp.GetRequiredService<YahooRepository>(), 
+									sp.GetRequiredService<YahooRepository>(),
 									sp.GetRequiredService<CoinGeckoRepository>(),
 									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
 									sp.GetRequiredService<ManualSymbolMatcher>()

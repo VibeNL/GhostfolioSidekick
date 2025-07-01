@@ -30,14 +30,17 @@ You have access to the following functions:
 If a user asks something that can be answered with a function, use a tool_calls array with per function an id, name and valid JSON arguments. If not, answer normally.
 Do not respond with any other text than the tool_calls array when answering with a function.
 
+IMPORTANT: Make sure the "arguments" value is a JSON-encoded STRING, not a JSON object directly. 
+Use the format: "arguments": "{\"parameter1\": \"value\", \"parameter2\": true}"
+
 Format function calls like this:
 { "tool_calls": [
     {
         "id": "call_abc123",
         "type": "function",
         "function": {
-            "name": "OrderPizzaPlugin-add_pizza_to_cart",
-            "arguments": "{\n\"size\": \"Medium\",\n\"toppings\": [\"Cheese\", \"Pepperoni\"]\n}"
+            "name": "MyFunction",
+            "arguments": "{\"parameter1\": \"It is going up\",\"parameter2\": \"true\"}"
         }
     }
 ] }
@@ -94,22 +97,28 @@ Format function calls like this:
 			// Add function calling messages if the chat mode is FunctionCalling
 			if (ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true)
 			{
-				var functions = options.Tools.OfType<KernelFunction>();
+				var functions = options.Tools.OfType<KernelFunction>().ToList();
+				if (functions.Any())
+				{
+					// Create a proper function definition description for each tool
+					var functionDefinitions = new StringBuilder();
+					foreach (var function in functions)
+					{
+						functionDefinitions.AppendLine($"- {function.Name}");
+						functionDefinitions.AppendLine($"  Description: {function.Description ?? function.Name}");
+						functionDefinitions.AppendLine("  Parameters:");
+						
+						foreach (var param in function.Metadata.Parameters)
+						{
+							var paramDesc = param.Description ?? param.Name;
+							var paramType = param.ParameterType?.Name ?? "string";
+							functionDefinitions.AppendLine($"    - {param.Name} ({paramType}): {paramDesc}");
+						}
+						functionDefinitions.AppendLine();
+					}
 
-				// Add prompt with function calling instructions
-				var functionCalls = string.Join(Environment.NewLine,
-											functions.Select((tool, i) => 
-												new StringBuilder()
-													.AppendLine($"{{")
-													.AppendLine($"  \"id\": \"call{i}\",")
-													.AppendLine($"  \"type\": \"function\",")
-													.AppendLine($"  \"function\": {{")
-													.AppendLine($"    \"name\": \"{tool.Name}\",")
-													.AppendLine($"    \"arguments\": {JsonSerializer.Serialize(tool.Metadata.Parameters)}")
-													.AppendLine($"  }}")
-													.Append("}")
-											));
-				convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionCalls)));
+					convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionDefinitions.ToString())));
+				}
 			}
 
 			var model = modelIds[ChatMode];
@@ -142,7 +151,7 @@ Format function calls like this:
 							{
 								foreach (var toolCall in toolCalls)
 								{
-									var output = await CallToolAsync(options, toolCall.Name, JsonSerializer.SerializeToElement(toolCall.Arguments));
+									var output = await CallToolAsync(options, toolCall.Name, toolCall.Arguments);
 									yield return new ChatResponseUpdate(ChatRole.Assistant, output);
 								}
 
@@ -175,7 +184,8 @@ Format function calls like this:
 
 					if ((options?.Tools?.Any() ?? false))
 					{
-						logger.LogDebug("ChatRole.Assistant: {Message}", content);
+						logger.LogDebug("ChatRole.Tool: {Message}", content);
+						yield return new ChatResponseUpdate(ChatRole.Tool, content ?? string.Empty);
 					}
 					else
 					{
@@ -209,30 +219,66 @@ Format function calls like this:
 						var function = toolCall.GetProperty("function");
 						var id = toolCall.GetProperty("id").GetString() ?? Random.Shared.Next().ToString();
 						var name = function.GetProperty("name").GetString() ?? string.Empty;
-						var arguments = JsonDocument.Parse(function.GetProperty("arguments").GetRawText()).RootElement.Clone();
-						var argumentsProperty = function.GetProperty("arguments");
+
+						// Handle different argument formats
 						Dictionary<string, object?>? argumentsDict = null;
-						if (argumentsProperty.ValueKind == JsonValueKind.Object)
+						if (function.TryGetProperty("arguments", out var argumentsProperty))
 						{
-							argumentsDict = new Dictionary<string, object?>();
-							foreach (var prop in argumentsProperty.EnumerateObject())
+							// Try to handle arguments as a JSON string first
+							if (argumentsProperty.ValueKind == JsonValueKind.String)
 							{
-								argumentsDict[prop.Name] = prop.Value.ValueKind switch
+								var argumentsStr = argumentsProperty.GetString();
+								if (!string.IsNullOrEmpty(argumentsStr))
 								{
-									JsonValueKind.String => prop.Value.GetString(),
-									JsonValueKind.Number => prop.Value.TryGetInt64(out var l) ? l : prop.Value.GetDouble(),
-									JsonValueKind.True => true,
-									JsonValueKind.False => false,
-									JsonValueKind.Null => null,
-									_ => prop.Value.GetRawText()
-								};
+									try
+									{
+										// Parse the string as JSON
+										using var argDoc = JsonDocument.Parse(argumentsStr);
+										argumentsDict = new Dictionary<string, object?>();
+										foreach (var prop in argDoc.RootElement.EnumerateObject())
+										{
+											argumentsDict[prop.Name] = prop.Value.ValueKind switch
+											{
+												JsonValueKind.String => prop.Value.GetString(),
+												JsonValueKind.Number => prop.Value.TryGetInt64(out var l) ? l : prop.Value.GetDouble(),
+												JsonValueKind.True => true,
+												JsonValueKind.False => false,
+												JsonValueKind.Null => null,
+												_ => prop.Value.GetRawText()
+											};
+										}
+									}
+									catch (JsonException ex)
+									{
+										logger.LogWarning(ex, "Failed to parse function arguments as JSON string: {Arguments}", argumentsStr);
+										// Fall back to using the string as is
+										argumentsDict = new Dictionary<string, object?> { { "value", argumentsStr } };
+									}
+								}
+							}
+							// If the arguments is a JSON object directly
+							else if (argumentsProperty.ValueKind == JsonValueKind.Object)
+							{
+								argumentsDict = new Dictionary<string, object?>();
+								foreach (var prop in argumentsProperty.EnumerateObject())
+								{
+									argumentsDict[prop.Name] = prop.Value.ValueKind switch
+									{
+										JsonValueKind.String => prop.Value.GetString(),
+										JsonValueKind.Number => prop.Value.TryGetInt64(out var l) ? l : prop.Value.GetDouble(),
+										JsonValueKind.True => true,
+										JsonValueKind.False => false,
+										JsonValueKind.Null => null,
+										_ => prop.Value.GetRawText()
+									};
+								}
 							}
 						}
 
 						toolCalls.Add(new Microsoft.Extensions.AI.FunctionCallContent(
 							id,
 							name,
-							argumentsDict
+							argumentsDict ?? new Dictionary<string, object?>()
 						));
 					}
 					return toolCalls.Count > 0;
@@ -314,7 +360,7 @@ Format function calls like this:
 			};
 		}
 
-		private async Task<string> CallToolAsync(ChatOptions options, string name, JsonElement arguments)
+		private async Task<string> CallToolAsync(ChatOptions options, string name, IDictionary<string, object?> arguments)
 		{
 			var tool = options.Tools?.OfType<KernelFunction>()
 				.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
@@ -325,21 +371,29 @@ Format function calls like this:
 				return $"Tool '{name}' not found.";
 			}
 
-			// Convert JsonElement arguments to KernelArguments
+			// Convert arguments to KernelArguments
 			var kernelArgs = new KernelArguments();
-			if (arguments.ValueKind == JsonValueKind.Object)
+			if (arguments != null)
 			{
-				foreach (var prop in arguments.EnumerateObject())
+				foreach (var arg in arguments)
 				{
-					kernelArgs.Add(prop.Name, prop.Value.ToString());
+					kernelArgs[arg.Key] = arg.Value;
 				}
 			}
 
 			// Call the tool (function)
-			var result = await tool.InvokeAsync(kernelArgs);
-			var output = result?.ToString() ?? "[Function returned null]";
-			logger.LogInformation("Tool '{ToolName}' executed with output: {Output}", name, output);
-			return output;
+			try
+			{
+				var result = await tool.InvokeAsync(kernelArgs);
+				var output = result?.ToString() ?? "[Function returned null]";
+				logger.LogInformation("Tool '{ToolName}' executed with output: {Output}", name, output);
+				return output;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error executing tool '{ToolName}' with arguments: {Arguments}", name, JsonSerializer.Serialize(arguments));
+				return $"Error executing tool '{name}': {ex.Message}";
+			}
 		}
 	}
 }
