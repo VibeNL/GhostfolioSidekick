@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; // TODO 
 
-		const int pageSize = 10000;
+		const int pageSize = 100_000;
 
 		private GrpcChannel? _grpcChannel;
 		private SyncService.SyncServiceClient? _grpcClient;
@@ -39,8 +39,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			_grpcChannel = GrpcChannel.ForAddress(grpcAddress, new GrpcChannelOptions
 			{
 				HttpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()),
-				MaxReceiveMessageSize = 16 * 1024 * 1024, // 16MB
-				MaxSendMessageSize = 16 * 1024 * 1024, // 16MB
+				MaxReceiveMessageSize = 100 * 1024 * 1024, // 100MB
+				MaxSendMessageSize = 100 * 1024 * 1024, // 100MB
 				ThrowOperationCanceledOnCancellation = true
 			});
 
@@ -124,7 +124,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			int page = 1;
 			bool hasMoreData = true;
 
-			while (hasMoreData)
+			while (true)
 			{
 				var request = new GetEntityDataRequest
 				{
@@ -163,11 +163,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					page++;
 
 					if (!hasMoreData)
+					{
 						break;
+					}
 				}
 
 				if (!hasMoreData)
+				{
 					break;
+				}
 			}
 		}
 
@@ -238,6 +242,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 								JsonValueKind.False => false,
 								JsonValueKind.Null => DBNull.Value,
 								JsonValueKind.Object => JsonSerializer.Serialize(record[key]),
+								JsonValueKind.Array => JsonSerializer.Serialize(record[key]),
 								_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind} on table {tableName}. SQL was {command.CommandText}")
 							},
 							null => DBNull.Value,
@@ -286,7 +291,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 							JsonValueKind.False => false,
 							JsonValueKind.Null => DBNull.Value,
 							JsonValueKind.Object => property.Value.GetRawText(), // Serialize nested objects as JSON
-							_ => property.Value.GetRawText() // Fallback for arrays or unsupported types
+							JsonValueKind.Array => property.Value.GetRawText(), // Serialize arrays as JSON
+							_ => property.Value.GetRawText() // Fallback for unsupported types
 						};
 					}
 					result.Add(dictionary);
