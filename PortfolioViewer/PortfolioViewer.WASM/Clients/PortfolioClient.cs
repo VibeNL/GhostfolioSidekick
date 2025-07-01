@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
 	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext)
 	{
-		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock", "MarketData"]; // TODO 
+		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; // TODO 
 
 		const int pageSize = 10000;
 
