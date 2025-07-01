@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
@@ -9,6 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 	{
 		private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
 		private readonly Mock<DatabaseContext> _databaseContextMock;
+		private readonly Mock<ILogger<PortfolioClient>> _loggerMock;
 		private readonly HttpClient _httpClient;
 		private readonly PortfolioClient _portfolioClient;
 
@@ -16,8 +18,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 		{
 			_httpMessageHandlerMock = new Mock<HttpMessageHandler>();
 			_databaseContextMock = new Mock<DatabaseContext>();
+			_loggerMock = new Mock<ILogger<PortfolioClient>>();
 			_httpClient = new HttpClient(_httpMessageHandlerMock.Object);
-			_portfolioClient = new PortfolioClient(_httpClient, _databaseContextMock.Object);
+			_portfolioClient = new PortfolioClient(_httpClient, _databaseContextMock.Object, _loggerMock.Object);
 		}
 
 		[Fact]

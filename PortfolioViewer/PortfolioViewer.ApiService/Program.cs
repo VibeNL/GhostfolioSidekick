@@ -27,9 +27,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 
 			builder.Services.AddCors(options =>
 			{
-				options.AddDefaultPolicy(builder =>
+				options.AddDefaultPolicy(policy =>
 				{
-					builder.AllowAnyOrigin()
+					policy.AllowAnyOrigin()
 						   .AllowAnyMethod()
 						   .AllowAnyHeader()
 						   .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");

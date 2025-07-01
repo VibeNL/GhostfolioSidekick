@@ -5,26 +5,54 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.EntityFrameworkCore;
 using Grpc.Net.Client.Web;
 using Grpc.Net.Client;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext)
+	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext, ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; // TODO 
 
 		const int pageSize = 10000;
 
+		private GrpcChannel? _grpcChannel;
+		private SyncService.SyncServiceClient? _grpcClient;
+		private bool _disposed = false;
+
+		private SyncService.SyncServiceClient GetGrpcClient()
+		{
+			if (_grpcClient != null)
+				return _grpcClient;
+
+			// Create gRPC channel for web - use the httpClient's base address but ensure it's absolute
+			var baseAddress = httpClient.BaseAddress;
+			if (baseAddress == null)
+			{
+				throw new InvalidOperationException("HttpClient BaseAddress is not configured.");
+			}
+
+			// For Blazor WASM, we need to use the actual HTTP URL, not the service discovery name
+			var grpcAddress = baseAddress.ToString().TrimEnd('/');
+			
+			logger.LogInformation("Creating gRPC channel for address: {GrpcAddress}", grpcAddress);
+
+			_grpcChannel = GrpcChannel.ForAddress(grpcAddress, new GrpcChannelOptions
+			{
+				HttpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()),
+				MaxReceiveMessageSize = 16 * 1024 * 1024, // 16MB
+				MaxSendMessageSize = 16 * 1024 * 1024, // 16MB
+				ThrowOperationCanceledOnCancellation = true
+			});
+
+			_grpcClient = new SyncService.SyncServiceClient(_grpcChannel);
+			return _grpcClient;
+		}
+
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
 			{
-				 // Create gRPC channel for web
-				var channel = GrpcChannel.ForAddress(httpClient.BaseAddress!, new GrpcChannelOptions
-				{
-					HttpHandler = new GrpcWebHandler(new HttpClientHandler())
-				});
-
-				var grpcClient = new SyncService.SyncServiceClient(channel);
+				var grpcClient = GetGrpcClient();
 
 				// Step 1: Retrieve Table Names
 				progress?.Report(("Retrieving table names...", 0));
@@ -85,6 +113,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 			catch (Exception ex)
 			{
+				logger.LogError(ex, "Error during portfolio sync: {Message}", ex.Message);
 				progress?.Report(($"Error: {ex.Message}", 100));
 				throw;
 			}
@@ -251,11 +280,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					{
 						dictionary[property.Name] = property.Value.ValueKind switch
 						{
-							JsonValueKind.String => property.Value.GetString(),
+							JsonValueKind.String => property.Value.GetString() ?? string.Empty,
 							JsonValueKind.Number => property.Value.TryGetInt64(out var longValue) ? longValue : property.Value.GetDouble(),
 							JsonValueKind.True => true,
 							JsonValueKind.False => false,
-							JsonValueKind.Null => null!,
+							JsonValueKind.Null => DBNull.Value,
 							JsonValueKind.Object => property.Value.GetRawText(), // Serialize nested objects as JSON
 							_ => property.Value.GetRawText() // Fallback for arrays or unsupported types
 						};
@@ -275,5 +304,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed && disposing)
+			{
+				_grpcChannel?.Dispose();
+				_disposed = true;
+			}
+		}
 	}
 }

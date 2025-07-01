@@ -27,13 +27,21 @@ public static class Program
 		// Configure the default HttpClient for all consumers
 		builder.Services.AddHttpClient(string.Empty, client =>
 		{
-			var apiServiceHttp = configuration.GetSection("Services:apiservice:http").Get<string[]>()?.SingleOrDefault();
-			if (!string.IsNullOrWhiteSpace(apiServiceHttp))
+			var apiServiceHttps = configuration.GetSection("Services:apiservice:https").Get<string[]>()?.FirstOrDefault();
+			var apiServiceHttp = configuration.GetSection("Services:apiservice:http").Get<string[]>()?.FirstOrDefault();
+			
+			// In production/development, use the configured API service URLs
+			if (!string.IsNullOrWhiteSpace(apiServiceHttps))
 			{
-				client.BaseAddress = new Uri("http://apiservice");
+				client.BaseAddress = new Uri(apiServiceHttps);
+			}
+			else if (!string.IsNullOrWhiteSpace(apiServiceHttp))
+			{
+				client.BaseAddress = new Uri(apiServiceHttp);
 			}
 			else
 			{
+				// Fallback to the current host for relative URLs
 				client.BaseAddress = new Uri(hostEnvironment.BaseAddress);
 			}
 		});
