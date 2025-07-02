@@ -287,8 +287,69 @@ window.blazorBrowserStorage = {
         }
     },
 
-    // Get model data (reconstructed from chunks)
+    // Get model data (reconstructed from chunks) - STREAMING VERSION
     async getModelData(modelId) {
+        try {
+            // Check if model exists and is complete
+            const db = await this.initDB();
+            const transaction = db.transaction(['models'], 'readonly');
+            const store = transaction.objectStore('models');
+            const request = store.get(modelId);
+            
+            const modelInfo = await new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+            
+            if (!modelInfo || modelInfo.status !== 'complete') {
+                console.warn('Model not found or not complete:', modelId);
+                return null;
+            }
+            
+            console.log('Model found in storage:', modelInfo);
+            
+            // Instead of loading all chunks into memory, return a streaming interface
+            // This avoids the 2.4GB memory allocation issue
+            return {
+                size: modelInfo.size,
+                totalChunks: modelInfo.chunks,
+                isStreaming: true,
+                modelId: modelId,
+                
+                // Method to get chunks on demand
+                getChunk: async (chunkIndex) => {
+                    const chunkTransaction = db.transaction(['chunks'], 'readonly');
+                    const chunkStore = chunkTransaction.objectStore('chunks');
+                    const chunkRequest = chunkStore.get([modelId, chunkIndex]);
+                    
+                    return new Promise((resolve, reject) => {
+                        chunkRequest.onsuccess = () => {
+                            const chunk = chunkRequest.result;
+                            resolve(chunk ? chunk.data : null);
+                        };
+                        chunkRequest.onerror = () => reject(chunkRequest.error);
+                    });
+                },
+                
+                // Iterator for streaming chunks
+                [Symbol.asyncIterator]: async function* () {
+                    for (let i = 0; i < modelInfo.chunks; i++) {
+                        const chunkData = await this.getChunk(i);
+                        if (chunkData) {
+                            yield new Uint8Array(chunkData);
+                        }
+                    }
+                }
+            };
+            
+        } catch (error) {
+            console.error('Error getting model data:', error);
+            return null;
+        }
+    },
+
+    // Alternative method that tries smaller memory allocation with fallback
+    async getModelDataLegacy(modelId) {
         try {
             // Check if model exists and is complete
             const db = await this.initDB();
@@ -313,44 +374,63 @@ window.blazorBrowserStorage = {
                 return null;
             }
             
-            // Combine all chunks into a single ArrayBuffer
-            let totalSize = 0;
-            chunks.forEach(chunk => totalSize += chunk.data.length);
+            console.log(`Attempting to reconstruct model from ${chunks.length} chunks`);
             
-            const combinedData = new Uint8Array(totalSize);
-            let offset = 0;
-            
-            // Sort chunks by index and combine
+            // Try to use smaller memory footprint approach
+            // Sort chunks by index first
             chunks.sort((a, b) => a.chunkIndex - b.chunkIndex);
-            for (const chunk of chunks) {
-                combinedData.set(new Uint8Array(chunk.data), offset);
-                offset += chunk.data.length;
+            
+            // Calculate total size
+            let totalSize = 0;
+            chunks.forEach(chunk => totalSize += chunk.data.byteLength);
+            
+            console.log(`Total model size: ${totalSize} bytes (${Math.round(totalSize / 1024 / 1024)}MB)`);
+            
+            // Check available memory before attempting allocation
+            if (performance && performance.memory) {
+                const memInfo = performance.memory;
+                console.log('Memory info:', {
+                    used: Math.round(memInfo.usedJSHeapSize / 1024 / 1024) + 'MB',
+                    total: Math.round(memInfo.totalJSHeapSize / 1024 / 1024) + 'MB',
+                    limit: Math.round(memInfo.jsHeapSizeLimit / 1024 / 1024) + 'MB'
+                });
+                
+                // If we don't have enough memory, return streaming interface
+                const availableMemory = memInfo.jsHeapSizeLimit - memInfo.usedJSHeapSize;
+                if (totalSize > availableMemory * 0.5) { // Use only 50% of available memory
+                    console.warn('Insufficient memory for full model loading, using streaming interface');
+                    return await this.getModelData(modelId); // Use streaming version
+                }
             }
             
-            console.log(`Retrieved model data for ${modelId}: ${combinedData.length} bytes`);
-            return combinedData.buffer;
+            try {
+                // Attempt to create the combined buffer
+                const combinedData = new Uint8Array(totalSize);
+                let offset = 0;
+                
+                // Combine chunks into single buffer
+                for (const chunk of chunks) {
+                    const chunkArray = new Uint8Array(chunk.data);
+                    combinedData.set(chunkArray, offset);
+                    offset += chunkArray.length;
+                    
+                    // Yield control periodically to prevent blocking
+                    if (offset % (100 * 1024 * 1024) === 0) { // Every 100MB
+                        await new Promise(resolve => setTimeout(resolve, 10));
+                    }
+                }
+                
+                console.log(`Successfully reconstructed model: ${combinedData.length} bytes`);
+                return combinedData.buffer;
+                
+            } catch (allocError) {
+                console.warn('Failed to allocate large buffer, falling back to streaming:', allocError.message);
+                return await this.getModelData(modelId); // Use streaming version
+            }
             
         } catch (error) {
             console.error('Error getting model data:', error);
             return null;
         }
     },
-
-    // Get storage usage info
-    async getStorageInfo() {
-        try {
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                const estimate = await navigator.storage.estimate();
-                return {
-                    quota: estimate.quota,
-                    usage: estimate.usage,
-                    available: estimate.quota - estimate.usage
-                };
-            }
-            return null;
-        } catch (error) {
-            console.error('Error getting storage info:', error);
-            return null;
-        }
-    }
 };

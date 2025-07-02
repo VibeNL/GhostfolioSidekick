@@ -24,6 +24,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		}
 
 		/// <summary>
+		 /// Gets the storage key for a given model filename (for WASM environments)
+		 /// </summary>
+		 /// <param name="modelFilename">The model filename</param>
+		 /// <returns>The storage key used in IndexedDB</returns>
+		public static string GetStorageKeyForModel(string modelFilename)
+		{
+			// Map specific model filenames to their storage keys
+			if (modelFilename == PHI3_MODEL_FILENAME || modelFilename.Contains("phi-3-mini"))
+			{
+				return BROWSER_STORAGE_KEY;
+			}
+			
+			// For unknown models, use a sanitized version of the filename
+			return "llama_model_" + modelFilename.Replace('.', '_').Replace('-', '_').ToLowerInvariant();
+		}
+
+		/// <summary>
 		/// Downloads the Phi-3 Mini model if it doesn't exist
 		/// In WASM, uses IndexedDB for storage and proxy for download
 		/// </summary>
@@ -157,15 +174,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		{
 			progress?.Report(new InitializeProgress(0.1, "Checking browser storage for model..."));
 			
+			logger.LogInformation("Checking for model in browser storage with key: {StorageKey}", BROWSER_STORAGE_KEY);
+			
 			// Check if model exists in IndexedDB
 			bool modelExists = false;
 			try
 			{
 				modelExists = await jsRuntime!.InvokeAsync<bool>("blazorBrowserStorage.hasModel", BROWSER_STORAGE_KEY);
+				logger.LogInformation("Model exists check result: {Exists} for storage key: {StorageKey}", modelExists, BROWSER_STORAGE_KEY);
 			}
 			catch (Exception ex)
 			{
-				logger.LogWarning(ex, "Failed to check if model exists in browser storage, assuming it doesn't exist");
+				logger.LogWarning(ex, "Failed to check if model exists in browser storage with key '{StorageKey}', assuming it doesn't exist", BROWSER_STORAGE_KEY);
 				modelExists = false;
 			}
 			
@@ -175,6 +195,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 				{
 					// Verify the model size in storage
 					var storedSize = await jsRuntime.InvokeAsync<long>("blazorBrowserStorage.getModelSize", BROWSER_STORAGE_KEY);
+					logger.LogInformation("Found model in storage with size: {Size}MB (expected: {ExpectedSize}MB)", 
+						storedSize / 1_000_000, PHI3_MODEL_SIZE / 1_000_000);
+						
 					if (storedSize > PHI3_MODEL_SIZE * 0.9) // At least 90% of expected size
 					{
 						logger.LogInformation("Phi-3 Mini model already exists in browser storage, size: {Size}MB", storedSize / 1_000_000);
@@ -186,11 +209,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 						try
 						{
 							await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.mountModel", BROWSER_STORAGE_KEY, existingModelPath);
+							logger.LogInformation("Successfully mounted existing model from storage key '{StorageKey}' to path '{ModelPath}'", 
+								BROWSER_STORAGE_KEY, existingModelPath);
 							return existingModelPath;
 						}
 						catch (Exception mountEx)
 						{
-							logger.LogWarning(mountEx, "Failed to mount existing model, will re-download");
+							logger.LogWarning(mountEx, "Failed to mount existing model from storage key '{StorageKey}', will re-download", BROWSER_STORAGE_KEY);
 							// Continue with download
 						}
 					}
@@ -200,16 +225,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 						try
 						{
 							await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.deleteModel", BROWSER_STORAGE_KEY);
+							logger.LogInformation("Deleted incomplete model with storage key: {StorageKey}", BROWSER_STORAGE_KEY);
 						}
 						catch (Exception deleteEx)
 						{
-							logger.LogWarning(deleteEx, "Failed to delete incomplete model, continuing anyway");
+							logger.LogWarning(deleteEx, "Failed to delete incomplete model with storage key '{StorageKey}', continuing anyway", BROWSER_STORAGE_KEY);
 						}
 					}
 				}
 				catch (Exception ex)
 				{
-					logger.LogWarning(ex, "Failed to verify existing model, will attempt re-download");
+					logger.LogWarning(ex, "Failed to verify existing model with storage key '{StorageKey}', will attempt re-download", BROWSER_STORAGE_KEY);
 					// Continue with download
 				}
 			}
@@ -288,15 +314,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 			const int MAX_RETRIES = 3;
 			
 			progress?.Report(new InitializeProgress(0.25, "Starting chunked download (100MB chunks)..."));
+			logger.LogInformation("Starting chunked download for model with storage key: {StorageKey}", BROWSER_STORAGE_KEY);
 
 			// Initialize the storage for chunked download
 			try
 			{
 				await jsRuntime!.InvokeVoidAsync("blazorBrowserStorage.initializeModelDownload", BROWSER_STORAGE_KEY, PHI3_MODEL_SIZE);
+				logger.LogInformation("Initialized chunked download storage for key: {StorageKey}, size: {Size}MB", 
+					BROWSER_STORAGE_KEY, PHI3_MODEL_SIZE / 1_000_000);
 			}
 			catch (Exception ex)
 			{
-				logger.LogError(ex, "Failed to initialize model download storage");
+				logger.LogError(ex, "Failed to initialize model download storage with key '{StorageKey}'", BROWSER_STORAGE_KEY);
 				throw new InvalidOperationException($"Could not initialize browser storage for model download: {ex.Message}");
 			}
 
@@ -381,10 +410,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 				try
 				{
 					await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.mountModel", BROWSER_STORAGE_KEY, downloadedModelPath);
+					logger.LogInformation("Successfully mounted model from storage key '{StorageKey}' to path '{ModelPath}'", 
+						BROWSER_STORAGE_KEY, downloadedModelPath);
 				}
 				catch (Exception ex)
 				{
-					logger.LogError(ex, "Failed to mount downloaded model");
+					logger.LogError(ex, "Failed to mount downloaded model from storage key '{StorageKey}'", BROWSER_STORAGE_KEY);
 					throw new InvalidOperationException($"Could not mount downloaded model: {ex.Message}");
 				}
 				
