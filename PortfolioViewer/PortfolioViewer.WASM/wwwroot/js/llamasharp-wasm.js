@@ -83,12 +83,31 @@ window.llamaSharpWasm = {
 
             console.log('Initializing model:', modelPath, 'with params:', params);
             
+            // Check if blazorBrowserStorage is available
+            if (!window.blazorBrowserStorage) {
+                throw new Error('blazorBrowserStorage not available');
+            }
+            
+            // Extract model ID from path
+            const modelId = modelPath.split('/').pop();
+            if (!modelId) {
+                throw new Error('Invalid model path: ' + modelPath);
+            }
+            
+            // Check if model exists first
+            const modelExists = await blazorBrowserStorage.hasModel(modelId);
+            if (!modelExists) {
+                throw new Error('Model not found in browser storage: ' + modelId);
+            }
+            
             // Get model data from IndexedDB (previously downloaded)
-            const modelData = await blazorBrowserStorage.getModelData(modelPath.split('/').pop());
+            const modelData = await blazorBrowserStorage.getModelData(modelId);
             
             if (!modelData) {
-                throw new Error('Model data not found in browser storage');
+                throw new Error('Model data not found in browser storage: ' + modelId);
             }
+            
+            console.log('Retrieved model data, size:', modelData.byteLength, 'bytes');
 
             // Initialize the model in WASM
             const modelHandle = this.wasmModule._llamacpp_load_model(modelData, params);
@@ -215,140 +234,6 @@ window.llamaSharpWasm = {
         this.activeModels.clear();
         
         console.log('LLamaSharp WASM backend cleaned up');
-    }
-};
-
-// Browser storage interface for model files
-window.blazorBrowserStorage = window.blazorBrowserStorage || {
-    // Mock implementation - in a real scenario, this would interface with IndexedDB
-    storage: new Map(),
-    
-    hasModel: function(key) {
-        try {
-            if (!key) return false;
-            return this.storage.has(key);
-        } catch (error) {
-            console.error('Error checking if model exists:', error);
-            return false;
-        }
-    },
-    
-    getModelSize: function(key) {
-        try {
-            if (!key) return 0;
-            const data = this.storage.get(key);
-            return data ? data.length : 0;
-        } catch (error) {
-            console.error('Error getting model size:', error);
-            return 0;
-        }
-    },
-    
-    getModelData: function(key) {
-        try {
-            if (!key) return null;
-            return this.storage.get(key);
-        } catch (error) {
-            console.error('Error getting model data:', error);
-            return null;
-        }
-    },
-    
-    initializeModelDownload: function(key, totalSize) {
-        try {
-            if (!key || totalSize <= 0) {
-                throw new Error('Invalid parameters for model download initialization');
-            }
-            this.storage.set(key + '_chunks', []);
-            this.storage.set(key + '_totalSize', totalSize);
-            console.log('Initialized download for:', key, 'size:', totalSize);
-            return true;
-        } catch (error) {
-            console.error('Error initializing model download:', error);
-            return false;
-        }
-    },
-    
-    appendModelChunk: function(key, chunkData) {
-        try {
-            if (!key || !chunkData) {
-                throw new Error('Invalid parameters for chunk append');
-            }
-            const chunks = this.storage.get(key + '_chunks') || [];
-            chunks.push(chunkData);
-            this.storage.set(key + '_chunks', chunks);
-            console.log('Appended chunk for:', key, 'chunk size:', chunkData.length);
-            return true;
-        } catch (error) {
-            console.error('Error appending model chunk:', error);
-            return false;
-        }
-    },
-    
-    finalizeModelDownload: function(key) {
-        try {
-            if (!key) {
-                throw new Error('Invalid key for model finalization');
-            }
-            
-            const chunks = this.storage.get(key + '_chunks') || [];
-            if (chunks.length === 0) {
-                throw new Error('No chunks found for model: ' + key);
-            }
-            
-            // Combine all chunks into a single ArrayBuffer
-            const totalSize = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-            const combined = new Uint8Array(totalSize);
-            
-            let offset = 0;
-            for (const chunk of chunks) {
-                combined.set(new Uint8Array(chunk), offset);
-                offset += chunk.length;
-            }
-            
-            // Store the complete model
-            this.storage.set(key, combined.buffer);
-            
-            // Cleanup chunks
-            this.storage.delete(key + '_chunks');
-            this.storage.delete(key + '_totalSize');
-            
-            console.log('Finalized model download for:', key, 'final size:', combined.length);
-            return true;
-            
-        } catch (error) {
-            console.error('Error finalizing model download:', error);
-            return false;
-        }
-    },
-    
-    mountModel: function(key, virtualPath) {
-        try {
-            if (!key || !virtualPath) {
-                throw new Error('Invalid parameters for model mounting');
-            }
-            // In a real implementation, this would mount the model file to Emscripten's virtual file system
-            console.log('Mounted model:', key, 'to virtual path:', virtualPath);
-            return true;
-        } catch (error) {
-            console.error('Error mounting model:', error);
-            return false;
-        }
-    },
-    
-    deleteModel: function(key) {
-        try {
-            if (!key) return true; // Nothing to delete
-            
-            this.storage.delete(key);
-            this.storage.delete(key + '_chunks');
-            this.storage.delete(key + '_totalSize');
-            console.log('Deleted model:', key);
-            return true;
-        } catch (error) {
-            console.error('Error deleting model:', error);
-            return false;
-        }
     }
 };
 

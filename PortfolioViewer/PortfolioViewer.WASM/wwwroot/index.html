@@ -36,14 +36,16 @@
         <span class="dismiss">🗙</span>
     </div>
     
-    <!-- LLamaSharp WASM Support -->
+    <!-- Load site.js first to initialize blazorBrowserStorage -->
+    <script src="js/site.js"></script>
+    
+    <!-- LLamaSharp WASM Support (depends on blazorBrowserStorage) -->
     <script src="js/llamasharp-wasm.js"></script>
     
     <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>navigator.serviceWorker.register('service-worker.js');</script>
     <script src="_content/Bit.Besql/bit-besql.js"></script>
-    <script src="js/site.js"></script>
 
 </body>
 

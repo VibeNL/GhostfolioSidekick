@@ -287,6 +287,55 @@ window.blazorBrowserStorage = {
         }
     },
 
+    // Get model data (reconstructed from chunks)
+    async getModelData(modelId) {
+        try {
+            // Check if model exists and is complete
+            const db = await this.initDB();
+            const transaction = db.transaction(['models'], 'readonly');
+            const store = transaction.objectStore('models');
+            const request = store.get(modelId);
+            
+            const modelInfo = await new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+            
+            if (!modelInfo || modelInfo.status !== 'complete') {
+                console.warn('Model not found or not complete:', modelId);
+                return null;
+            }
+            
+            // Get all chunks for this model
+            const chunks = await this.getModelChunks(modelId);
+            if (chunks.length === 0) {
+                console.warn('No chunks found for model:', modelId);
+                return null;
+            }
+            
+            // Combine all chunks into a single ArrayBuffer
+            let totalSize = 0;
+            chunks.forEach(chunk => totalSize += chunk.data.length);
+            
+            const combinedData = new Uint8Array(totalSize);
+            let offset = 0;
+            
+            // Sort chunks by index and combine
+            chunks.sort((a, b) => a.chunkIndex - b.chunkIndex);
+            for (const chunk of chunks) {
+                combinedData.set(new Uint8Array(chunk.data), offset);
+                offset += chunk.data.length;
+            }
+            
+            console.log(`Retrieved model data for ${modelId}: ${combinedData.length} bytes`);
+            return combinedData.buffer;
+            
+        } catch (error) {
+            console.error('Error getting model data:', error);
+            return null;
+        }
+    },
+
     // Get storage usage info
     async getStorageInfo() {
         try {
