@@ -78,15 +78,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 				client.DefaultRequestHeaders.Add("User-Agent", "PortfolioViewer.WASM/1.0");
 			});
 			
-			// Register the model download service with proper HttpClient injection
+			// Register the model download service for both WASM and server environments
 			services.AddSingleton<ModelDownloadService>((s) => 
 			{
 				var httpClientFactory = s.GetRequiredService<IHttpClientFactory>();
 				var httpClient = httpClientFactory.CreateClient("ModelDownloadService");
+				var jsRuntime = s.GetService<IJSRuntime>(); // May be null in server environments
 				return new ModelDownloadService(
 					httpClient,
 					s.GetRequiredService<ILogger<ModelDownloadService>>(),
-					s.GetRequiredService<IJSRuntime>()
+					jsRuntime
 				);
 			});
 
@@ -123,13 +124,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			services.AddSingleton<GoogleSearchService>((s) =>
 			{
 				var httpClient = s.GetRequiredService<HttpClient>();
-				// Create a context for the GoogleSearchService
 				var context = new GoogleSearchContext
 				{
 					HttpClient = httpClient,
-					// Default URLs are already set in the context class
 				};
-				// Return the service with the context
 				return new GoogleSearchService(context);
 			});
 		}

@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 	{
 		private readonly HttpClient httpClient;
 		private readonly ILogger<ModelDownloadService> logger;
-		private readonly IJSRuntime? jsRuntime;
+		public readonly IJSRuntime? jsRuntime; // Make this public so LLamaSharpChatClient can access it
 		
 		// Phi-3 Mini model details
 		private const string PHI3_MODEL_URL = "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf";
@@ -38,6 +38,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 				
 				if (isWasm && jsRuntime != null)
 				{
+					// In WASM environment, first ensure we have the WASM backend
+					await EnsureWasmBackendAvailableAsync(progress);
 					return await EnsureModelDownloadedWasmAsync(progress);
 				}
 				else if (!isWasm)
@@ -57,7 +59,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 				// This is expected for WASM environments with large models
 				logger.LogWarning(ex, "Model download not supported in current environment");
 				var errorMessage = IsWasmEnvironment() 
-					? "Large model download not supported in browser environment. WebLLM will be used instead."
+					? "LLamaSharp WASM backend not available. WebLLM will be used instead."
 					: ex.Message;
 				
 				progress?.Report(new InitializeProgress(0.0, errorMessage));
@@ -76,6 +78,79 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		}
 
 		/// <summary>
+		/// Ensures the WASM backend for LLamaSharp is available
+		/// </summary>
+		private async Task EnsureWasmBackendAvailableAsync(IProgress<InitializeProgress>? progress = null)
+		{
+			progress?.Report(new InitializeProgress(0.05, "Checking LLamaSharp WASM backend..."));
+			
+			try
+			{
+				// Check if WASM backend is already loaded
+				var backendLoaded = await jsRuntime!.InvokeAsync<bool>("llamaSharpWasm.isBackendLoaded");
+				
+				if (backendLoaded)
+				{
+					logger.LogInformation("LLamaSharp WASM backend already loaded");
+					return;
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Failed to check WASM backend status, assuming not loaded");
+				// Continue with loading attempt
+			}
+
+			progress?.Report(new InitializeProgress(0.1, "Loading LLamaSharp WASM backend..."));
+			
+			// Load the WASM backend
+			try
+			{
+				await jsRuntime!.InvokeVoidAsync("llamaSharpWasm.loadBackend");
+				
+				// Wait for backend to be ready with timeout
+				var maxWaitTime = TimeSpan.FromMinutes(2);
+				var startTime = DateTime.UtcNow;
+				bool isLoaded = false;
+				
+				while (!isLoaded && DateTime.UtcNow - startTime < maxWaitTime)
+				{
+					try
+					{
+						isLoaded = await jsRuntime.InvokeAsync<bool>("llamaSharpWasm.isBackendLoaded");
+					}
+					catch (Exception ex)
+					{
+						logger.LogWarning(ex, "Error checking backend load status, retrying...");
+						await Task.Delay(1000);
+						continue;
+					}
+					
+					if (!isLoaded)
+					{
+						await Task.Delay(500);
+					}
+				}
+				
+				if (!isLoaded)
+				{
+					throw new TimeoutException("WASM backend loading timed out after 2 minutes");
+				}
+				
+				logger.LogInformation("LLamaSharp WASM backend loaded successfully");
+				progress?.Report(new InitializeProgress(0.15, "LLamaSharp WASM backend ready"));
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load LLamaSharp WASM backend");
+				throw new NotSupportedException(
+					$"LLamaSharp WASM backend could not be loaded: {ex.Message}. " +
+					"This might be due to missing WASM files or browser compatibility issues. " +
+					"WebLLM will be used as fallback.");
+			}
+		}
+
+		/// <summary>
 		/// Download and store model in browser using IndexedDB with chunked downloads
 		/// </summary>
 		private async Task<string> EnsureModelDownloadedWasmAsync(IProgress<InitializeProgress>? progress = null)
@@ -83,28 +158,61 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 			progress?.Report(new InitializeProgress(0.1, "Checking browser storage for model..."));
 			
 			// Check if model exists in IndexedDB
-			var modelExists = await jsRuntime!.InvokeAsync<bool>("blazorBrowserStorage.hasModel", BROWSER_STORAGE_KEY);
+			bool modelExists = false;
+			try
+			{
+				modelExists = await jsRuntime!.InvokeAsync<bool>("blazorBrowserStorage.hasModel", BROWSER_STORAGE_KEY);
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Failed to check if model exists in browser storage, assuming it doesn't exist");
+				modelExists = false;
+			}
 			
 			if (modelExists)
 			{
-				// Verify the model size in storage
-				var storedSize = await jsRuntime.InvokeAsync<long>("blazorBrowserStorage.getModelSize", BROWSER_STORAGE_KEY);
-				if (storedSize > PHI3_MODEL_SIZE * 0.9) // At least 90% of expected size
+				try
 				{
-					logger.LogInformation("Phi-3 Mini model already exists in browser storage, size: {Size}MB", storedSize / 1_000_000);
-					progress?.Report(new InitializeProgress(1.0, "Model found in browser storage"));
-					
-					// Create virtual file path for WASM
-					var existingModelPath = $"/models/{PHI3_MODEL_FILENAME}";
-					await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.mountModel", BROWSER_STORAGE_KEY, existingModelPath);
-					return existingModelPath;
+					// Verify the model size in storage
+					var storedSize = await jsRuntime.InvokeAsync<long>("blazorBrowserStorage.getModelSize", BROWSER_STORAGE_KEY);
+					if (storedSize > PHI3_MODEL_SIZE * 0.9) // At least 90% of expected size
+					{
+						logger.LogInformation("Phi-3 Mini model already exists in browser storage, size: {Size}MB", storedSize / 1_000_000);
+						progress?.Report(new InitializeProgress(1.0, "Model found in browser storage"));
+						
+						// Create virtual file path for WASM
+						var existingModelPath = $"/models/{PHI3_MODEL_FILENAME}";
+						
+						try
+						{
+							await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.mountModel", BROWSER_STORAGE_KEY, existingModelPath);
+							return existingModelPath;
+						}
+						catch (Exception mountEx)
+						{
+							logger.LogWarning(mountEx, "Failed to mount existing model, will re-download");
+							// Continue with download
+						}
+					}
+					else
+					{
+						logger.LogWarning("Existing model in browser storage appears incomplete (size: {Size}MB), re-downloading...", storedSize / 1_000_000);
+						try
+						{
+							await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.deleteModel", BROWSER_STORAGE_KEY);
+						}
+						catch (Exception deleteEx)
+						{
+							logger.LogWarning(deleteEx, "Failed to delete incomplete model, continuing anyway");
+						}
+					}
 				}
-				else
+				catch (Exception ex)
 				{
-					logger.LogWarning("Existing model in browser storage appears incomplete, re-downloading...");
-					await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.deleteModel", BROWSER_STORAGE_KEY);
-				 }
-			 }
+					logger.LogWarning(ex, "Failed to verify existing model, will attempt re-download");
+					// Continue with download
+				}
+			}
 
 			// Check if we have a proper base address configured
 			if (httpClient.BaseAddress == null)
@@ -117,7 +225,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 					"HttpClient BaseAddress is not set. This typically indicates that service discovery is not properly " +
 					"configured or the API service is not accessible. Please check the Aspire configuration and ensure " +
 					"PortfolioViewer.ApiService is running and discoverable.");
-			 }
+			}
 
 			// Log HttpClient information for debugging
 			var baseAddress = httpClient.BaseAddress.ToString();
@@ -182,7 +290,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 			progress?.Report(new InitializeProgress(0.25, "Starting chunked download (100MB chunks)..."));
 
 			// Initialize the storage for chunked download
-			await jsRuntime!.InvokeVoidAsync("blazorBrowserStorage.initializeModelDownload", BROWSER_STORAGE_KEY, PHI3_MODEL_SIZE);
+			try
+			{
+				await jsRuntime!.InvokeVoidAsync("blazorBrowserStorage.initializeModelDownload", BROWSER_STORAGE_KEY, PHI3_MODEL_SIZE);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to initialize model download storage");
+				throw new InvalidOperationException($"Could not initialize browser storage for model download: {ex.Message}");
+			}
 
 			long totalBytesDownloaded = 0;
 			long currentOffset = 0;
@@ -220,8 +336,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 						throw new InvalidOperationException($"Failed to download chunk {chunkIndex} after {MAX_RETRIES} retries");
 					}
 
-					// Store chunk in IndexedDB
-					await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.appendModelChunk", BROWSER_STORAGE_KEY, chunkData);
+					// Store chunk in IndexedDB with error handling
+					try
+					{
+						await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.appendModelChunk", BROWSER_STORAGE_KEY, chunkData);
+					}
+					catch (Exception ex)
+					{
+						logger.LogError(ex, "Failed to store chunk {ChunkIndex} in browser storage", chunkIndex);
+						throw new InvalidOperationException($"Could not store chunk {chunkIndex} in browser storage: {ex.Message}");
+					}
 					
 					totalBytesDownloaded += chunkData.Length;
 					currentOffset = endOffset + 1;
@@ -237,7 +361,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 				}
 
 				// Finalize the storage
-				await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.finalizeModelDownload", BROWSER_STORAGE_KEY);
+				try
+				{
+					await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.finalizeModelDownload", BROWSER_STORAGE_KEY);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Failed to finalize model download in browser storage");
+					throw new InvalidOperationException($"Could not finalize model download: {ex.Message}");
+				}
 
 				logger.LogInformation("Successfully downloaded Phi-3 Mini model in {ChunkCount} chunks, total size: {Size}MB", 
 					chunkIndex, totalBytesDownloaded / 1_000_000);
@@ -246,7 +378,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 
 				// Mount the model to virtual file system
 				var downloadedModelPath = $"/models/{PHI3_MODEL_FILENAME}";
-				await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.mountModel", BROWSER_STORAGE_KEY, downloadedModelPath);
+				try
+				{
+					await jsRuntime.InvokeVoidAsync("blazorBrowserStorage.mountModel", BROWSER_STORAGE_KEY, downloadedModelPath);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Failed to mount downloaded model");
+					throw new InvalidOperationException($"Could not mount downloaded model: {ex.Message}");
+				}
 				
 				progress?.Report(new InitializeProgress(1.0, "Chunked model download completed successfully"));
 				return downloadedModelPath;

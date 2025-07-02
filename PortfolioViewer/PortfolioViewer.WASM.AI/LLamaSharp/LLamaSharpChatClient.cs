@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using Microsoft.SemanticKernel;
+using Microsoft.JSInterop;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 {
@@ -14,6 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		private readonly ILogger<LLamaSharpChatClient> logger;
 		private readonly Dictionary<ChatMode, string> modelPaths;
 		private readonly ModelDownloadService? downloadService;
+		private readonly IJSRuntime? jsRuntime;
 		private LLamaWeights? weights;
 		private LLamaContext? context;
 		private ChatSession? session;
@@ -55,13 +57,14 @@ Format function calls like this:
 			this.logger = logger;
 			this.modelPaths = modelPaths;
 			this.downloadService = downloadService;
+			this.jsRuntime = downloadService?.jsRuntime;
 		}
 
 		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
 			try
 			{
-				OnProgress.Report(new InitializeProgress(0.1, "Initializing LLamaSharp CPU fallback..."));
+				OnProgress.Report(new InitializeProgress(0.1, "Initializing LLamaSharp for WebAssembly..."));
 
 				// Try to find or download a model file
 				var modelPath = await FindOrDownloadModelAsync(OnProgress);
@@ -70,48 +73,100 @@ Format function calls like this:
 					logger.LogWarning("No LLamaSharp model files found and download failed. Expected paths: {ModelPaths}", 
 						string.Join(", ", modelPaths.Values));
 					OnProgress.Report(new InitializeProgress(0.0, 
-							"LLamaSharp CPU fallback not available. Using WebLLM for browser-based AI instead."));
+						"LLamaSharp not available - no suitable model found."));
 					return;
 				}
 
 				OnProgress.Report(new InitializeProgress(0.7, $"Loading model from {Path.GetFileName(modelPath)}..."));
 
-				// Configure model parameters for CPU usage
-				var parameters = new ModelParams(modelPath)
+				// In WASM environment, use JavaScript-based initialization
+				if (IsWasmEnvironment())
 				{
-					ContextSize = 2048, // Smaller context for WASM
-					GpuLayerCount = 0, // Force CPU usage
-					UseMemorymap = false, // Don't use memory mapping in WASM
-					UseMemoryLock = false, // Don't lock memory in WASM
-					Threads = 1 // Single thread for WASM
-				};
-
-				OnProgress.Report(new InitializeProgress(0.8, "Creating LLama weights..."));
-
-				// Initialize the model
-				weights = LLamaWeights.LoadFromFile(parameters);
-				
-				OnProgress.Report(new InitializeProgress(0.9, "Creating LLama context..."));
-				
-				context = weights.CreateContext(parameters);
-				
-				OnProgress.Report(new InitializeProgress(0.95, "Creating chat session..."));
-				
-				// Create a chat session
-				var executor = new InteractiveExecutor(context);
-				session = new ChatSession(executor);
+					await InitializeWasmAsync(modelPath, OnProgress);
+				}
+				else
+				{
+					await InitializeNativeAsync(modelPath, OnProgress);
+				}
 
 				IsInitialized = true;
-				OnProgress.Report(new InitializeProgress(1.0, "LLamaSharp CPU fallback initialized successfully"));
+				OnProgress.Report(new InitializeProgress(1.0, "LLamaSharp initialized successfully"));
 				
 				logger.LogInformation("LLamaSharp initialized successfully with model: {ModelPath}", modelPath);
 			}
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Failed to initialize LLamaSharp");
-				OnProgress.Report(new InitializeProgress(0.0, $"Error initializing LLamaSharp: {ex.Message}"));
+				OnProgress.Report(new InitializeProgress(0.0, $"LLamaSharp initialization failed: {ex.Message}"));
 				IsInitialized = false;
 			}
+		}
+
+		/// <summary>
+		/// Initialize LLamaSharp in WebAssembly environment using JavaScript backend
+		/// </summary>
+		private async Task InitializeWasmAsync(string modelPath, IProgress<InitializeProgress> OnProgress)
+		{
+			if (jsRuntime is null)
+			{
+				throw new InvalidOperationException("JSRuntime is required for WASM initialization");
+			}
+
+			OnProgress.Report(new InitializeProgress(0.8, "Initializing WASM LLama context..."));
+
+			// Use JavaScript to initialize the model in WASM environment
+			var success = await jsRuntime.InvokeAsync<bool>("llamaSharpWasm.initializeModel", modelPath, new
+			{
+				contextSize = 2048, // Smaller context for WASM
+				threads = 1, // Single thread for WASM
+				useGpu = false // CPU only in WASM for now
+			});
+
+			if (!success)
+			{
+				throw new InvalidOperationException("Failed to initialize LLamaSharp model in WASM environment");
+			}
+
+			OnProgress.Report(new InitializeProgress(0.95, "WASM LLama context ready"));
+		}
+
+		/// <summary>
+		/// Initialize LLamaSharp using native libraries (server environment)
+		/// </summary>
+		private async Task InitializeNativeAsync(string modelPath, IProgress<InitializeProgress> OnProgress)
+		{
+			// Configure model parameters for server environment
+			var parameters = new ModelParams(modelPath)
+			{
+				ContextSize = 2048,
+				GpuLayerCount = 0, // CPU usage
+				UseMemorymap = true, // Use memory mapping for better performance on server
+				UseMemoryLock = false,
+				Threads = Environment.ProcessorCount > 4 ? 4 : Environment.ProcessorCount
+			};
+
+			OnProgress.Report(new InitializeProgress(0.8, "Creating LLama weights..."));
+			weights = LLamaWeights.LoadFromFile(parameters);
+			
+			OnProgress.Report(new InitializeProgress(0.9, "Creating LLama context..."));
+			context = weights.CreateContext(parameters);
+			
+			OnProgress.Report(new InitializeProgress(0.95, "Creating chat session..."));
+			var executor = new InteractiveExecutor(context);
+			session = new ChatSession(executor);
+
+			await Task.CompletedTask; // Make it async for consistency
+		}
+
+		/// <summary>
+		/// Detects if running in WebAssembly environment
+		/// </summary>
+		private static bool IsWasmEnvironment()
+		{
+			// Check for WASM-specific indicators
+			return System.Runtime.InteropServices.RuntimeInformation.OSDescription.Contains("Browser") ||
+				   Environment.OSVersion.Platform == PlatformID.Other ||
+				   Type.GetType("System.Runtime.InteropServices.JavaScript.JSHost") != null;
 		}
 
 		private async Task<string?> FindOrDownloadModelAsync(IProgress<InitializeProgress> progress)
@@ -228,10 +283,10 @@ Format function calls like this:
 			ChatOptions? options = null,
 			[EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			if (!IsInitialized || session == null)
+			if (!IsInitialized)
 			{
 				yield return new ChatResponseUpdate(ChatRole.Assistant, 
-					"LLamaSharp CPU fallback is not initialized. Please check that model files are available.");
+					"LLamaSharp is not initialized. Please check that model files are available.");
 				yield break;
 			}
 
@@ -239,6 +294,155 @@ Format function calls like this:
 			var prompt = ConvertMessagesToPrompt(messages, options);
 			
 			logger.LogDebug("LLamaSharp prompt: {Prompt}", prompt);
+
+			// Use different execution paths for WASM vs Native
+			if (IsWasmEnvironment())
+			{
+				await foreach (var update in GetStreamingResponseWasmAsync(prompt, options, cancellationToken))
+				{
+					yield return update;
+				}
+			}
+			else
+			{
+				await foreach (var update in GetStreamingResponseNativeAsync(prompt, options, cancellationToken))
+				{
+					yield return update;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Get streaming response using WASM JavaScript backend
+		/// </summary>
+		private async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseWasmAsync(
+			string prompt, 
+			ChatOptions? options, 
+			[EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			if (jsRuntime is null)
+			{
+				yield return new ChatResponseUpdate(ChatRole.Assistant, "JSRuntime not available for WASM execution");
+				yield break;
+			}
+
+			var responseBuilder = new StringBuilder();
+			string? streamId = null;
+			WasmStreamingResult? result = null;
+			string? errorMessage = null;
+
+			// Start the streaming generation in JavaScript
+			try
+			{
+				streamId = await jsRuntime.InvokeAsync<string>("llamaSharpWasm.startStreaming", prompt, new
+				{
+					maxTokens = 1024,
+					temperature = 0.7f,
+					stopTokens = new[] { "</s>", "[INST]", "[/INST]" }
+				});
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error starting WASM streaming");
+				errorMessage = $"Error: {ex.Message}";
+			}
+
+			if (errorMessage is not null)
+			{
+				yield return new ChatResponseUpdate(ChatRole.Assistant, errorMessage);
+				yield break;
+			}
+
+			if (string.IsNullOrEmpty(streamId))
+			{
+				yield return new ChatResponseUpdate(ChatRole.Assistant, "Failed to start streaming session");
+				yield break;
+			}
+
+			// Poll for streaming results
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				errorMessage = null;
+				try
+				{
+					result = await jsRuntime.InvokeAsync<WasmStreamingResult>("llamaSharpWasm.getStreamingResult", streamId);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Error getting WASM streaming result");
+					errorMessage = $"Error: {ex.Message}";
+				}
+
+				if (errorMessage is not null)
+				{
+					yield return new ChatResponseUpdate(ChatRole.Assistant, errorMessage);
+					yield break;
+				}
+				
+				if (result.IsComplete)
+				{
+					if (!string.IsNullOrEmpty(result.Text))
+					{
+						responseBuilder.Append(result.Text);
+						yield return new ChatResponseUpdate(ChatRole.Assistant, result.Text);
+					}
+					break;
+				}
+				
+				if (!string.IsNullOrEmpty(result.Text))
+				{
+					responseBuilder.Append(result.Text);
+					
+					// Check if we have a complete function call response
+					if (options?.Tools?.Any() == true && TryParseToolCalls(responseBuilder.ToString(), out var toolCalls))
+					{
+						// Execute function calls
+						foreach (var toolCall in toolCalls)
+						{
+							string toolResult;
+							try
+							{
+								toolResult = await CallToolAsync(options, toolCall.Name, toolCall.Arguments ?? new Dictionary<string, object?>());
+							}
+							catch (Exception ex)
+							{
+								toolResult = $"Error executing tool: {ex.Message}";
+							}
+							yield return new ChatResponseUpdate(ChatRole.Assistant, toolResult);
+						}
+						yield break;
+					}
+					else
+					{
+						yield return new ChatResponseUpdate(ChatRole.Assistant, result.Text);
+					}
+				}
+				
+				if (result.HasError)
+				{
+					yield return new ChatResponseUpdate(ChatRole.Assistant, $"Error: {result.ErrorMessage}");
+					yield break;
+				}
+
+				// Small delay to prevent overwhelming the browser
+				await Task.Delay(50, cancellationToken);
+			}
+		}
+
+		/// <summary>
+		/// Get streaming response using native LLamaSharp libraries
+		/// </summary>
+		private async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseNativeAsync(
+			string prompt, 
+			ChatOptions? options, 
+			[EnumeratorCancellation] CancellationToken cancellationToken = default)
+		{
+			if (session == null)
+			{
+				yield return new ChatResponseUpdate(ChatRole.Assistant, 
+					"LLamaSharp session is not initialized.");
+				yield break;
+			}
 
 			var responseBuilder = new StringBuilder();
 
@@ -248,11 +452,10 @@ Format function calls like this:
 				MaxTokens = 1024
 			};
 
-			// Generate response using ChatSession - handle errors separately
+			// Generate response using ChatSession
 			IAsyncEnumerable<string>? responseStream = null;
 			string? errorMessage = null;
 
-			// Try to create the response stream
 			try
 			{
 				responseStream = session.ChatAsync(new ChatHistory.Message(AuthorRole.User, prompt), inferenceParams);
@@ -263,14 +466,12 @@ Format function calls like this:
 				errorMessage = $"Error: {ex.Message}";
 			}
 
-			// If there was an error creating the stream, yield the error and exit
 			if (responseStream == null || errorMessage != null)
 			{
 				yield return new ChatResponseUpdate(ChatRole.Assistant, errorMessage ?? "Unknown error occurred");
 				yield break;
 			}
 
-			// Process the response stream - no try-catch around yield statements
 			await foreach (var text in responseStream)
 			{
 				if (cancellationToken.IsCancellationRequested)
@@ -294,6 +495,17 @@ Format function calls like this:
 					yield return new ChatResponseUpdate(ChatRole.Assistant, text);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Result structure for WASM streaming operations
+		/// </summary>
+		private class WasmStreamingResult
+		{
+			public string Text { get; set; } = string.Empty;
+			public bool IsComplete { get; set; }
+			public bool HasError { get; set; }
+			public string ErrorMessage { get; set; } = string.Empty;
 		}
 
 		private string ConvertMessagesToPrompt(IEnumerable<ChatMessage> messages, ChatOptions? options)
