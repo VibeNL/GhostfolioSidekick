@@ -13,16 +13,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 	{
 		private const string modelid = "Qwen3-4B-q4f32_1-MLC";
 		
-		// Default paths for LLamaSharp models - these should be configured based on your setup
-		private static readonly Dictionary<ChatMode, string> LLamaModelPaths = new()
-		{
-			{ ChatMode.Chat, Path.Combine("models", "llama-2-7b-chat.q4_0.gguf") },
-			{ ChatMode.ChatWithThinking, Path.Combine("models", "llama-2-7b-chat.q4_0.gguf") },
-			{ ChatMode.FunctionCalling, Path.Combine("models", "llama-2-7b-chat.q4_0.gguf") },
-		};
+		// Default paths for LLamaSharp models - now using Phi-3 Mini
+		private static readonly Dictionary<ChatMode, string> LLamaModelPaths = 
+			ModelDownloadService.GetDefaultModelPaths("wwwroot/models");
 
 		public static void AddWebChatClient(this IServiceCollection services)
 		{
+			// Register HttpClient for model downloading
+			services.AddHttpClient<ModelDownloadService>();
+			
+			// Register the model download service
+			services.AddSingleton<ModelDownloadService>();
+
 			// Register individual chat clients
 			services.AddSingleton<WebLLMChatClient>((s) => new WebLLMChatClient(
 				s.GetRequiredService<IJSRuntime>(),
@@ -36,7 +38,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 
 			services.AddSingleton<LLamaSharpChatClient>((s) => new LLamaSharpChatClient(
 				s.GetRequiredService<ILogger<LLamaSharpChatClient>>(),
-				LLamaModelPaths
+				LLamaModelPaths,
+				s.GetRequiredService<ModelDownloadService>()
 			));
 
 			// Register the fallback client as the main IWebChatClient
@@ -78,6 +81,32 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			{
 				LLamaModelPaths[kvp.Key] = kvp.Value;
 			}
+		}
+
+		/// <summary>
+		/// Configures the LLamaSharp model to use Phi-3 Mini with automatic downloading.
+		/// This is the default configuration, but you can call this method to explicitly set it up.
+		/// </summary>
+		/// <param name="services">The service collection</param>
+		/// <param name="modelsDirectory">Directory where models should be stored (default: "wwwroot/models")</param>
+		public static void UsePhi3MiniWithAutoDownload(this IServiceCollection services, string modelsDirectory = "wwwroot/models")
+		{
+			var phi3ModelPaths = ModelDownloadService.GetDefaultModelPaths(modelsDirectory);
+			services.ConfigureLLamaSharpModels(phi3ModelPaths);
+		}
+
+		/// <summary>
+		/// Disables automatic model downloading. Models must be manually placed in the configured paths.
+		/// </summary>
+		/// <param name="services">The service collection</param>
+		public static void DisableAutoDownload(this IServiceCollection services)
+		{
+			// Remove the ModelDownloadService registration
+			services.AddSingleton<LLamaSharpChatClient>((s) => new LLamaSharpChatClient(
+				s.GetRequiredService<ILogger<LLamaSharpChatClient>>(),
+				LLamaModelPaths,
+				downloadService: null // No download service
+			));
 		}
 	}
 }

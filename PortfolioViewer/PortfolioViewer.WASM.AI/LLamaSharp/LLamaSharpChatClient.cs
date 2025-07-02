@@ -13,6 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 	{
 		private readonly ILogger<LLamaSharpChatClient> logger;
 		private readonly Dictionary<ChatMode, string> modelPaths;
+		private readonly ModelDownloadService? downloadService;
 		private LLamaWeights? weights;
 		private LLamaContext? context;
 		private ChatSession? session;
@@ -46,30 +47,34 @@ Format function calls like this:
 ] }
 """;
 
-		public LLamaSharpChatClient(ILogger<LLamaSharpChatClient> logger, Dictionary<ChatMode, string> modelPaths)
+		public LLamaSharpChatClient(
+			ILogger<LLamaSharpChatClient> logger, 
+			Dictionary<ChatMode, string> modelPaths, 
+			ModelDownloadService? downloadService = null)
 		{
 			this.logger = logger;
 			this.modelPaths = modelPaths;
+			this.downloadService = downloadService;
 		}
 
-		public Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
+		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
 			try
 			{
 				OnProgress.Report(new InitializeProgress(0.1, "Initializing LLamaSharp CPU fallback..."));
 
-				// Try to find a model file
-				var modelPath = FindAvailableModel();
+				// Try to find or download a model file
+				var modelPath = await FindOrDownloadModelAsync(OnProgress);
 				if (string.IsNullOrEmpty(modelPath))
 				{
-					logger.LogWarning("No LLamaSharp model files found. Expected paths: {ModelPaths}", 
+					logger.LogWarning("No LLamaSharp model files found and download failed. Expected paths: {ModelPaths}", 
 						string.Join(", ", modelPaths.Values));
 					OnProgress.Report(new InitializeProgress(0.0, 
-						"Error: No LLamaSharp model files found. Please ensure GGUF model files are available."));
-					return Task.CompletedTask;
+						"Error: No LLamaSharp model files found and download failed. Please check network connection."));
+					return;
 				}
 
-				OnProgress.Report(new InitializeProgress(0.3, $"Loading model from {Path.GetFileName(modelPath)}..."));
+				OnProgress.Report(new InitializeProgress(0.7, $"Loading model from {Path.GetFileName(modelPath)}..."));
 
 				// Configure model parameters for CPU usage
 				var parameters = new ModelParams(modelPath)
@@ -81,16 +86,16 @@ Format function calls like this:
 					Threads = 1 // Single thread for WASM
 				};
 
-				OnProgress.Report(new InitializeProgress(0.5, "Creating LLama weights..."));
+				OnProgress.Report(new InitializeProgress(0.8, "Creating LLama weights..."));
 
 				// Initialize the model
 				weights = LLamaWeights.LoadFromFile(parameters);
 				
-				OnProgress.Report(new InitializeProgress(0.7, "Creating LLama context..."));
+				OnProgress.Report(new InitializeProgress(0.9, "Creating LLama context..."));
 				
 				context = weights.CreateContext(parameters);
 				
-				OnProgress.Report(new InitializeProgress(0.9, "Creating chat session..."));
+				OnProgress.Report(new InitializeProgress(0.95, "Creating chat session..."));
 				
 				// Create a chat session
 				var executor = new InteractiveExecutor(context);
@@ -107,8 +112,51 @@ Format function calls like this:
 				OnProgress.Report(new InitializeProgress(0.0, $"Error initializing LLamaSharp: {ex.Message}"));
 				IsInitialized = false;
 			}
+		}
 
-			return Task.CompletedTask;
+		private async Task<string?> FindOrDownloadModelAsync(IProgress<InitializeProgress> progress)
+		{
+			// First, try to find existing model files
+			var existingModel = FindAvailableModel();
+			if (!string.IsNullOrEmpty(existingModel))
+			{
+				logger.LogInformation("Found existing model at {ModelPath}", existingModel);
+				return existingModel;
+			}
+
+			// If no existing model and we have a download service, try to download
+			if (downloadService != null)
+			{
+				try
+				{
+					logger.LogInformation("No existing model found, attempting to download Phi-3 Mini...");
+					progress.Report(new InitializeProgress(0.2, "No model found, downloading Phi-3 Mini..."));
+					
+					var downloadProgress = new Progress<InitializeProgress>(p =>
+					{
+						// Scale download progress to 20%-60% of total initialization
+						var scaledProgress = 0.2 + (p.Progress * 0.4);
+						progress.Report(new InitializeProgress(scaledProgress, p.Message));
+					});
+
+					var downloadedPath = await downloadService.EnsureModelDownloadedAsync("wwwroot/models", downloadProgress);
+					
+					// Update model paths to point to the downloaded model
+					foreach (var key in modelPaths.Keys.ToList())
+					{
+						modelPaths[key] = downloadedPath;
+					}
+					
+					return downloadedPath;
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Failed to download model");
+					progress.Report(new InitializeProgress(0.0, $"Model download failed: {ex.Message}"));
+				}
+			}
+
+			return null;
 		}
 
 		private string? FindAvailableModel()
@@ -116,7 +164,7 @@ Format function calls like this:
 			// Check if any of the configured model paths exist
 			foreach (var modelPath in modelPaths.Values.Distinct())
 			{
-				if (File.Exists(modelPath))
+				if (ModelDownloadService.IsModelAvailable(modelPath))
 				{
 					return modelPath;
 				}
@@ -131,7 +179,7 @@ Format function calls like this:
 
 				foreach (var commonPath in commonPaths)
 				{
-					if (File.Exists(commonPath))
+					if (ModelDownloadService.IsModelAvailable(commonPath))
 					{
 						return commonPath;
 					}
@@ -399,7 +447,7 @@ Format function calls like this:
 
 		public IWebChatClient Clone()
 		{
-			var clone = new LLamaSharpChatClient(logger, modelPaths)
+			var clone = new LLamaSharpChatClient(logger, modelPaths, downloadService)
 			{
 				ChatMode = this.ChatMode,
 				weights = this.weights,
