@@ -20,6 +20,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 
+		// Track initialization state
+		public bool IsInitialized { get; private set; } = false;
+		public bool HasWebGPUSupport { get; private set; } = false;
+		public WebLLMError? LastError { get; private set; } = null;
+
 		private const string SystemPromptWithFunctions = """
 You are an AI assistant that can answer questions or call functions to get specific information.
 
@@ -59,6 +64,18 @@ Format function calls like this:
 			ChatOptions? options = null,
 			CancellationToken cancellationToken = default)
 		{
+			 // Check if WebLLM is properly initialized
+			if (!IsInitialized || !HasWebGPUSupport)
+			{
+				var errorMessage = LastError != null 
+					? $"WebLLM is not available: {LastError.ErrorMessage}"
+					: "WebLLM is not initialized or WebGPU is not supported";
+				
+				logger.LogWarning(errorMessage);
+				return new ChatResponse(new ChatMessage(ChatRole.Assistant, 
+					$"I'm sorry, but the local AI model is not available in your browser. {errorMessage}"));
+			}
+
 			// Call GetStreamingResponseAsync
 			var msg = new StringBuilder();
 			await foreach (var response in GetStreamingResponseAsync(messages, options, cancellationToken))
@@ -77,7 +94,36 @@ Format function calls like this:
 		{
 			if (interopInstance == null)
 			{
-				throw new NotSupportedException();
+				throw new NotSupportedException("WebLLM interop instance is not initialized.");
+			}
+
+			// Check for errors before proceeding
+			if (interopInstance.WebLLMErrors.TryDequeue(out WebLLMError? error))
+			{
+				LastError = error;
+				var errorMessage = $"WebLLM Error ({error.ErrorType}): {error.ErrorMessage}";
+				
+				if (error.Suggestions.Any())
+				{
+					errorMessage += "\n\nSuggestions:\n" + string.Join("\n", error.Suggestions.Select(s => $"• {s}"));
+				}
+
+				logger.LogError(errorMessage);
+				yield return new ChatResponseUpdate(ChatRole.Assistant, errorMessage);
+				yield break;
+			}
+
+			// Check if WebLLM is properly initialized
+			if (!IsInitialized || !HasWebGPUSupport)
+			{
+				var errorMessage = LastError != null 
+					? $"WebLLM is not available: {LastError.ErrorMessage}"
+					: "WebLLM is not initialized or WebGPU is not supported";
+				
+				logger.LogWarning(errorMessage);
+				yield return new ChatResponseUpdate(ChatRole.Assistant, 
+					$"I'm sorry, but the local AI model is not available in your browser. {errorMessage}");
+				yield break;
 			}
 
 			// If the last message is assistant, fake it to be a user call
@@ -126,19 +172,43 @@ Format function calls like this:
 			// Call the `completeStreamWebLLM` function in the JavaScript module, but do not wait for it to complete
 			_ = Task.Run(async () =>
 			{
-				await (await GetModule()).InvokeVoidAsync(
-									"completeStreamWebLLM",
-									interopInstance.ConvertMessage(convertedMessages),
-									model,
-									ChatMode == ChatMode.ChatWithThinking,
-									null
-									);
+				try
+				{
+					await (await GetModule()).InvokeVoidAsync(
+										"completeStreamWebLLM",
+										interopInstance.ConvertMessage(convertedMessages),
+										model,
+										ChatMode == ChatMode.ChatWithThinking,
+										null
+										);
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Error calling completeStreamWebLLM");
+					// Queue an error for the main processing loop
+					interopInstance.WebLLMErrors.Enqueue(new WebLLMError(
+						"Completion_Error",
+						$"Error during completion: {ex.Message}",
+						true,
+						new[] { "Try the request again", "Check browser console for more details" }
+					));
+				}
 			});
 
 			string totalText = string.Empty;
 
 			while (true)
 			{
+				// Check for new errors
+				if (interopInstance.WebLLMErrors.TryDequeue(out WebLLMError? streamError))
+				{
+					LastError = streamError;
+					var errorMessage = $"Error: {streamError.ErrorMessage}";
+					logger.LogError(errorMessage);
+					yield return new ChatResponseUpdate(ChatRole.Assistant, errorMessage);
+					yield break;
+				}
+
 				// Wait for a response to be available
 				if (interopInstance.WebLLMCompletions.TryDequeue(out WebLLMCompletion? response))
 				{
@@ -320,12 +390,56 @@ Format function calls like this:
 
 		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
-			// Call the `initialize` function in the JavaScript module
-			interopInstance = new(OnProgress);
-			await (await GetModule()).InvokeVoidAsync(
-				"initializeWebLLM",
-				modelIds.Select(x => x.Value).Distinct(),
-				DotNetObjectReference.Create(interopInstance));
+			try
+			{
+				// Call the `initialize` function in the JavaScript module
+				interopInstance = new(OnProgress);
+				await (await GetModule()).InvokeVoidAsync(
+					"initializeWebLLM",
+					modelIds.Select(x => x.Value).Distinct(),
+					DotNetObjectReference.Create(interopInstance));
+
+				// Check for initialization errors
+				if (interopInstance.WebLLMErrors.TryDequeue(out WebLLMError? initError))
+				{
+					LastError = initError;
+					IsInitialized = false;
+					HasWebGPUSupport = false;
+					logger.LogError("WebLLM initialization failed: {ErrorType} - {ErrorMessage}", initError.ErrorType, initError.ErrorMessage);
+					
+					if (initError.Suggestions.Any())
+					{
+						logger.LogInformation("Suggestions: {Suggestions}", string.Join(", ", initError.Suggestions));
+					}
+				}
+				else
+				{
+					// Check WebGPU support status
+					HasWebGPUSupport = await (await GetModule()).InvokeAsync<bool>("checkWebGPUSupport");
+					IsInitialized = HasWebGPUSupport;
+					
+					if (IsInitialized)
+					{
+						logger.LogInformation("WebLLM initialized successfully with WebGPU support");
+					}
+					else
+					{
+						logger.LogWarning("WebLLM initialization completed but WebGPU is not supported");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Exception during WebLLM initialization");
+				LastError = new WebLLMError(
+					"Initialization_Exception",
+					$"Initialization failed with exception: {ex.Message}",
+					false,
+					new[] { "Check browser console for detailed error information", "Try refreshing the page", "Use a WebGPU-compatible browser" }
+				);
+				IsInitialized = false;
+				HasWebGPUSupport = false;
+			}
 		}
 
 		public static async Task<IJSObjectReference> LoadJsModuleAsync(IJSRuntime jsRuntime, string path)
@@ -357,6 +471,9 @@ Format function calls like this:
 				interopInstance = interopInstance,
 				module = module,
 				ChatMode = this.ChatMode,
+				IsInitialized = this.IsInitialized,
+				HasWebGPUSupport = this.HasWebGPUSupport,
+				LastError = this.LastError
 			};
 		}
 

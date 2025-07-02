@@ -9,6 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private readonly IProgress<InitializeProgress> _progress;
 
 		public ConcurrentQueue<WebLLMCompletion> WebLLMCompletions { get; init; } = new();
+		public ConcurrentQueue<WebLLMError> WebLLMErrors { get; init; } = new();
 
 		public InteropInstance(IProgress<InitializeProgress> progress)
 		{
@@ -28,6 +29,24 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			}
 
 			_progress.Report(new InitializeProgress(progressPercent, progress.Text));
+		}
+
+		[JSInvokable]
+		public void ReportError(WebLLMErrorReport errorReport)
+		{
+			ArgumentNullException.ThrowIfNull(errorReport);
+
+			var error = new WebLLMError(
+				errorReport.ErrorType,
+				errorReport.ErrorMessage,
+				errorReport.IsRecoverable,
+				errorReport.Suggestions ?? Array.Empty<string>()
+			);
+
+			WebLLMErrors.Enqueue(error);
+			
+			// Also report as progress with error information
+			_progress.Report(new InitializeProgress(0.0, $"Error: {errorReport.ErrorMessage}"));
 		}
 
 		[JSInvokable]
@@ -65,6 +84,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 
 	// A progress report for the initialization process
 	public record InitProgressReport(double Progress, string Text, double timeElapsed);
+
+	// An error report from JavaScript
+	public record WebLLMErrorReport(
+		string ErrorType,
+		string ErrorMessage,
+		bool IsRecoverable,
+		string[]? Suggestions
+	);
+
+	// A structured error for internal use
+	public record WebLLMError(
+		string ErrorType,
+		string ErrorMessage,
+		bool IsRecoverable,
+		IReadOnlyList<string> Suggestions
+	);
 
 	// A chat message
 	public record Message(string Role, string Content);
