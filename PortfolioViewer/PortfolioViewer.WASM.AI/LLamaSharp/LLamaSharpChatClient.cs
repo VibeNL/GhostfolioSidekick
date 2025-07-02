@@ -70,7 +70,7 @@ Format function calls like this:
 					logger.LogWarning("No LLamaSharp model files found and download failed. Expected paths: {ModelPaths}", 
 						string.Join(", ", modelPaths.Values));
 					OnProgress.Report(new InitializeProgress(0.0, 
-						"Error: No LLamaSharp model files found and download failed. Please check network connection."));
+							"LLamaSharp CPU fallback not available. Using WebLLM for browser-based AI instead."));
 					return;
 				}
 
@@ -130,7 +130,7 @@ Format function calls like this:
 				try
 				{
 					logger.LogInformation("No existing model found, attempting to download Phi-3 Mini...");
-					progress.Report(new InitializeProgress(0.2, "No model found, downloading Phi-3 Mini..."));
+					progress.Report(new InitializeProgress(0.2, "No model found, attempting download..."));
 					
 					var downloadProgress = new Progress<InitializeProgress>(p =>
 					{
@@ -148,6 +148,20 @@ Format function calls like this:
 					}
 					
 					return downloadedPath;
+				}
+				catch (NotSupportedException ex)
+				{
+					// Handle WASM environment gracefully
+					logger.LogWarning(ex, "Model download not supported in current environment");
+					progress.Report(new InitializeProgress(0.0, 
+						"LLamaSharp not available in browser. WebLLM will be used instead for browser-based AI."));
+				}
+				catch (HttpRequestException ex) when (ex.Message.Contains("Failed to fetch"))
+				{
+					// Handle CORS/network issues
+					logger.LogWarning(ex, "Network issues prevented model download");
+					progress.Report(new InitializeProgress(0.0, 
+						"Unable to download model due to network restrictions. WebLLM will be used instead."));
 				}
 				catch (Exception ex)
 				{

@@ -125,6 +125,245 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
+		[HttpGet("download-model")]
+		public async Task<IActionResult> DownloadModel([FromQuery] string url)
+		{
+			if (string.IsNullOrWhiteSpace(url))
+			{
+				return BadRequest("URL is required.");
+			}
+
+			try
+			{
+				// Validate that the URL is from a trusted source (Hugging Face)
+				var uri = new Uri(url);
+				if (!uri.Host.Contains("huggingface.co"))
+				{
+					return BadRequest("Only Hugging Face model downloads are allowed.");
+				 }
+
+				// Create a dedicated HttpClient for large downloads with extended timeout
+				using var downloadClient = new HttpClient();
+				downloadClient.Timeout = TimeSpan.FromHours(2); // 2 hours for very large downloads
+				downloadClient.DefaultRequestHeaders.Add("User-Agent", "PortfolioViewer-Proxy/1.0");
+				downloadClient.DefaultRequestHeaders.Add("Accept", "*/*");
+				
+				// First, try to get headers to validate the download
+				using var headResponse = await downloadClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, url));
+				if (!headResponse.IsSuccessStatusCode)
+				{
+					return StatusCode((int)headResponse.StatusCode, $"Model not accessible: {headResponse.StatusCode}");
+				}
+
+				var contentLength = headResponse.Content.Headers.ContentLength;
+				var contentType = headResponse.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+				var supportsRanges = headResponse.Headers.AcceptRanges?.Contains("bytes") == true;
+
+				// Log the download attempt
+				Console.WriteLine($"Starting model download: {url}");
+				Console.WriteLine($"Size: {contentLength?.ToString() ?? "unknown"} bytes");
+				Console.WriteLine($"Content-Type: {contentType}");
+				Console.WriteLine($"Supports Range Requests: {supportsRanges}");
+
+				// Check if client requested a range
+				var rangeHeader = Request.Headers["Range"].FirstOrDefault();
+				if (!string.IsNullOrEmpty(rangeHeader) && supportsRanges)
+				{
+					Console.WriteLine($"Client requested range: {rangeHeader}");
+					// Forward the range request
+					var request = new HttpRequestMessage(HttpMethod.Get, url);
+					request.Headers.Add("Range", rangeHeader);
+					
+					using var rangeResponse = await downloadClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+					
+					if (rangeResponse.StatusCode == System.Net.HttpStatusCode.PartialContent)
+					{
+						// Return partial content
+						Response.StatusCode = 206;
+						var data = await rangeResponse.Content.ReadAsByteArrayAsync();
+						
+						// Forward range-related headers
+						if (rangeResponse.Content.Headers.TryGetValues("Content-Range", out var contentRangeValues))
+						{
+							Response.Headers.Append("Content-Range", contentRangeValues.First());
+						}
+						Response.Headers.Append("Accept-Ranges", "bytes");
+						Response.Headers.Append("Content-Length", data.Length.ToString());
+						
+						return File(data, contentType);
+					}
+				}
+
+				// Stream the full model file directly to the client
+				using var response = await downloadClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+				
+				if (!response.IsSuccessStatusCode)
+				{
+					return StatusCode((int)response.StatusCode, $"Failed to download model: {response.StatusCode}");
+				}
+
+				// Set appropriate headers for the download
+				if (contentLength.HasValue)
+				{
+					Response.Headers.Append("Content-Length", contentLength.Value.ToString());
+				}
+				Response.Headers.Append("Content-Type", contentType);
+				Response.Headers.Append("Cache-Control", "public, max-age=31536000"); // Cache for 1 year
+				
+				if (supportsRanges)
+				{
+					Response.Headers.Append("Accept-Ranges", "bytes"); // Support range requests
+				}
+				
+				// Return the stream directly to avoid loading the entire 2.4GB file into memory
+				var stream = await response.Content.ReadAsStreamAsync();
+				return new FileStreamResult(stream, contentType)
+				{
+					EnableRangeProcessing = supportsRanges
+				};
+			}
+			catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+			{
+				return StatusCode(408, "Request timeout - the model download took too long.");
+			}
+			catch (HttpRequestException ex)
+			{
+				return StatusCode(500, $"Failed to download model: {ex.Message}");
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, $"An error occurred during model download: {ex.Message}");
+			}
+		}
+
+		[HttpGet("download-model-range")]
+		public async Task<IActionResult> DownloadModelRange(
+			[FromQuery] string url, 
+			[FromQuery] long start, 
+			[FromQuery] long end)
+		{
+			if (string.IsNullOrWhiteSpace(url))
+			{
+				return BadRequest("URL is required.");
+			}
+
+			if (start < 0 || end < start)
+			{
+				return BadRequest("Invalid range: start must be >= 0 and end must be >= start.");
+			}
+
+			try
+			{
+				// Validate that the URL is from a trusted source (Hugging Face)
+				var uri = new Uri(url);
+				if (!uri.Host.Contains("huggingface.co"))
+				{
+					return BadRequest("Only Hugging Face model downloads are allowed.");
+				}
+
+				// Create a dedicated HttpClient for range requests
+				using var rangeClient = new HttpClient();
+				rangeClient.Timeout = TimeSpan.FromMinutes(10); // 10 minutes for chunk downloads
+				rangeClient.DefaultRequestHeaders.Add("User-Agent", "PortfolioViewer-Proxy/1.0");
+				rangeClient.DefaultRequestHeaders.Add("Accept", "*/*");
+				
+				// Create range request
+				var request = new HttpRequestMessage(HttpMethod.Get, url);
+				request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(start, end);
+
+				Console.WriteLine($"Range request: {url}, bytes {start}-{end} ({end - start + 1} bytes)");
+
+				using var response = await rangeClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+				
+				if (!response.IsSuccessStatusCode)
+				{
+					Console.WriteLine($"Range request failed: {response.StatusCode} - {response.ReasonPhrase}");
+					return StatusCode((int)response.StatusCode, $"Failed to download range: {response.StatusCode} - {response.ReasonPhrase}");
+				}
+
+				// Handle both 206 (Partial Content) and 200 (OK) responses
+				// Some servers might return 200 OK even for range requests
+				if (response.StatusCode != System.Net.HttpStatusCode.PartialContent && 
+					response.StatusCode != System.Net.HttpStatusCode.OK)
+				{
+					return StatusCode((int)response.StatusCode, $"Unexpected response for range request: {response.StatusCode}");
+				}
+
+				var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+				var contentLength = response.Content.Headers.ContentLength;
+				
+				// Get the chunk data
+				var chunkData = await response.Content.ReadAsByteArrayAsync();
+				
+				Console.WriteLine($"Range response: {chunkData.Length} bytes delivered (Content-Length: {contentLength})");
+
+				// Verify the chunk size matches what we expected
+				var expectedSize = end - start + 1;
+				if (chunkData.Length != expectedSize && response.StatusCode == System.Net.HttpStatusCode.PartialContent)
+				{
+					Console.WriteLine($"Warning: Chunk size mismatch. Expected: {expectedSize}, Got: {chunkData.Length}");
+				}
+
+				// Create the result with proper headers
+				var result = new FileContentResult(chunkData, contentType);
+				
+				// Set appropriate response headers based on the response type
+				if (response.StatusCode == System.Net.HttpStatusCode.PartialContent)
+				{
+					Response.StatusCode = 206; // Partial Content
+					Response.Headers.Append("Accept-Ranges", "bytes");
+					
+					 // Try to get Content-Range from the upstream response
+					var contentRangeHeader = response.Content.Headers.FirstOrDefault(h => 
+						h.Key.Equals("Content-Range", StringComparison.OrdinalIgnoreCase));
+					
+					if (!contentRangeHeader.Equals(default(KeyValuePair<string, IEnumerable<string>>)))
+					{
+						var contentRange = contentRangeHeader.Value.FirstOrDefault();
+						if (!string.IsNullOrEmpty(contentRange))
+						{
+							Response.Headers.Append("Content-Range", contentRange);
+							Console.WriteLine($"Forwarding Content-Range: {contentRange}");
+						}
+					}
+					else
+					{
+						// Construct Content-Range header manually for partial content
+						// Format: bytes start-end/total (we don't know total, so use *)
+						var constructedRange = $"bytes {start}-{start + chunkData.Length - 1}/*";
+						Response.Headers.Append("Content-Range", constructedRange);
+						Console.WriteLine($"Constructed Content-Range: {constructedRange}");
+					}
+				}
+				else
+				{
+					// For 200 OK responses, still indicate range support for future requests
+					Response.Headers.Append("Accept-Ranges", "bytes");
+					Console.WriteLine("Server returned 200 OK for range request (full content or no range support)");
+				}
+
+				// Set content length if available
+				Response.Headers.Append("Content-Length", chunkData.Length.ToString());
+
+				return result;
+			}
+			catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+			{
+				Console.WriteLine($"Range request timeout: {ex.Message}");
+				return StatusCode(408, "Range request timeout.");
+			}
+			catch (HttpRequestException ex)
+			{
+				Console.WriteLine($"Range request HTTP error: {ex.Message}");
+				return StatusCode(500, $"Failed to download range: {ex.Message}");
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Range request unexpected error: {ex.Message}");
+				return StatusCode(500, $"An error occurred during range download: {ex.Message}");
+			}
+		}
+
 		private void CleanHtml(HtmlDocument htmlDoc)
 		{
 			// Remove script tags
