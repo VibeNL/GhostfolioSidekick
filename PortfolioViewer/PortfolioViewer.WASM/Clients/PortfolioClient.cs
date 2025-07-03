@@ -123,51 +123,70 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(SyncService.SyncServiceClient grpcClient, string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
+			bool hasMore = true;
 
+			logger.LogInformation("Starting to fetch data for table: {TableName}", tableName);
 
-			var request = new GetEntityDataRequest
+			while (hasMore)
 			{
-				Entity = tableName,
-				Page = page,
-				PageSize = pageSize
-			};
+				logger.LogDebug("Fetching page {Page} for table {TableName} with page size {PageSize}", page, tableName, pageSize);
 
-			using var call = grpcClient.GetEntityData(request, cancellationToken: cancellationToken);
-
-			while (await call.ResponseStream.MoveNext(cancellationToken))
-			{
-				var response = call.ResponseStream.Current;
-
-				if (response.Records.Count == 0)
+				var request = new GetEntityDataRequest
 				{
-					yield break;
-				}
+					Entity = tableName,
+					Page = page,
+					PageSize = pageSize
+				};
 
-				// Pre-allocate the list with known capacity for better performance
-				var data = new List<Dictionary<string, object>>(response.Records.Count);
+				using var call = grpcClient.GetEntityData(request, cancellationToken: cancellationToken);
 
-				// Convert gRPC response to the expected format with optimized loop
-				foreach (var record in response.Records)
+				bool receivedData = false;
+				while (await call.ResponseStream.MoveNext(cancellationToken))
 				{
-					var dictionary = new Dictionary<string, object>(record.Fields.Count);
-					foreach (var field in record.Fields)
+					var response = call.ResponseStream.Current;
+					receivedData = true;
+
+					logger.LogDebug("Received {RecordCount} records for page {Page} of table {TableName}, HasMore: {HasMore}", 
+						response.Records.Count, page, tableName, response.HasMore);
+
+					if (response.Records.Count == 0)
 					{
-						// Convert string back to appropriate type
-						dictionary[field.Key] = ConvertStringToValue(field.Value);
+						hasMore = false;
+						yield break;
 					}
 
-					data.Add(dictionary);
+					// Pre-allocate the list with known capacity for better performance
+					var data = new List<Dictionary<string, object>>(response.Records.Count);
+
+					// Convert gRPC response to the expected format with optimized loop
+					foreach (var record in response.Records)
+					{
+						var dictionary = new Dictionary<string, object>(record.Fields.Count);
+						foreach (var field in record.Fields)
+						{
+							// Convert string back to appropriate type
+							dictionary[field.Key] = ConvertStringToValue(field.Value);
+						}
+
+						data.Add(dictionary);
+					}
+
+					yield return data;
+
+					// Check if there's more data based on the response
+					hasMore = response.HasMore;
 				}
 
-				yield return data;
-
-				if (!response.HasMore)
+				if (!receivedData)
 				{
-					yield break;
+					logger.LogDebug("No data received for page {Page} of table {TableName}", page, tableName);
+					hasMore = false;
 				}
 
 				page++;
 			}
+
+			logger.LogInformation("Completed fetching data for table: {TableName}, total pages: {TotalPages}", tableName, page - 1);
 		}
 
 		private static readonly char[] _jsonStartChars = ['{', '['];

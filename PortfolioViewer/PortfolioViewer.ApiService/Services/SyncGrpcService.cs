@@ -22,8 +22,23 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 		{
 			try
 			{
-				var tables = _context.SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'");
-				var tableNames = await tables.ToListAsync(context.CancellationToken);
+				// Use raw ADO.NET to avoid SqlQueryRaw issues with primitive types
+				var tableNames = new List<string>();
+				
+				using var connection = _context.Database.GetDbConnection();
+				await connection.OpenAsync(context.CancellationToken);
+				using var command = connection.CreateCommand();
+				command.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
+				
+				using var reader = await command.ExecuteReaderAsync(context.CancellationToken);
+				while (await reader.ReadAsync(context.CancellationToken))
+				{
+					var name = reader.GetString(0);
+					if (!string.IsNullOrEmpty(name))
+					{
+						tableNames.Add(name);
+					}
+				}
 				
 				var filteredTableNames = tableNames.Where(x => !_tablesToIgnore.Contains(x)).ToList();
 
@@ -48,7 +63,13 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 
 			try
 			{
+				_logger.LogDebug("Getting entity data for {Entity}, page {Page}, page size {PageSize}", 
+					request.Entity, request.Page, request.PageSize);
+
 				var result = await RawQuery.ReadTable(_context, request.Entity, request.Page, request.PageSize);
+
+				_logger.LogDebug("Retrieved {RecordCount} records for {Entity}, page {Page}", 
+					result.Count, request.Entity, request.Page);
 
 				// Convert the data to protobuf format
 				var records = result.Select(record =>
@@ -62,14 +83,24 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 					return entityRecord;
 				}).ToList();
 
-				// For simplicity, we'll send all records in one response
-				// In a real implementation, you might want to stream in chunks
+				// Check if there are more records by trying to get the next page with a limit of 1
+				bool hasMore = false;
+				if (records.Count == request.PageSize)
+				{
+					var nextPageResult = await RawQuery.ReadTable(_context, request.Entity, request.Page + 1, 1);
+					hasMore = nextPageResult.Count > 0;
+					_logger.LogDebug("Checked next page for {Entity}: hasMore = {HasMore}", request.Entity, hasMore);
+				}
+
 				var response = new GetEntityDataResponse
 				{
 					CurrentPage = request.Page,
-					HasMore = records.Count == request.PageSize // Simple heuristic
+					HasMore = hasMore
 				};
 				response.Records.AddRange(records);
+
+				_logger.LogDebug("Sending response for {Entity}, page {Page}: {RecordCount} records, hasMore: {HasMore}", 
+					request.Entity, request.Page, records.Count, hasMore);
 
 				await responseStream.WriteAsync(response);
 			}
