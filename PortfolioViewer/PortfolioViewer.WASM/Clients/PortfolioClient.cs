@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			// For Blazor WASM, we need to use the actual HTTP URL, not the service discovery name
 			var grpcAddress = baseAddress.ToString().TrimEnd('/');
-			
+
 			logger.LogInformation("Creating gRPC channel for address: {GrpcAddress}", grpcAddress);
 
 			_grpcChannel = GrpcChannel.ForAddress(grpcAddress, new GrpcChannelOptions
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(("Retrieving table names...", 0));
 				var tableNamesResponse = await grpcClient.GetTableNamesAsync(new GetTableNamesRequest(), cancellationToken: cancellationToken);
 				var tableNames = tableNamesResponse.TableNames.ToList();
-				
+
 				if (!tableNames.Any())
 				{
 					progress?.Report(("No tables found in the database.", 100));
@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						totalWritten += dataChunk.Count;
 						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
 					}
-								
+
 					currentStep++;
 				}
 
@@ -124,53 +124,49 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		{
 			int page = 1;
 
-			while (true)
+
+			var request = new GetEntityDataRequest
 			{
-				var request = new GetEntityDataRequest
+				Entity = tableName,
+				Page = page,
+				PageSize = pageSize
+			};
+
+			using var call = grpcClient.GetEntityData(request, cancellationToken: cancellationToken);
+
+			while (await call.ResponseStream.MoveNext(cancellationToken))
+			{
+				var response = call.ResponseStream.Current;
+
+				if (response.Records.Count == 0)
 				{
-					Entity = tableName,
-					Page = page,
-					PageSize = pageSize
-				};
-
-				using var call = grpcClient.GetEntityData(request, cancellationToken: cancellationToken);
-
-				while (await call.ResponseStream.MoveNext(cancellationToken))
-				{
-					var response = call.ResponseStream.Current;
-					
-					if (response.Records.Count == 0)
-					{
-						yield break;
-					}
-
-					// Pre-allocate the list with known capacity for better performance
-					var data = new List<Dictionary<string, object>>(response.Records.Count);
-
-					// Convert gRPC response to the expected format with optimized loop
-					foreach (var record in response.Records)
-					{
-						var dictionary = new Dictionary<string, object>(record.Fields.Count);
-						foreach (var field in record.Fields)
-						{
-							// Convert string back to appropriate type
-							dictionary[field.Key] = ConvertStringToValue(field.Value);
-						}
-						data.Add(dictionary);
-					}
-
-					yield return data;
-
-					if (!response.HasMore)
-					{
-						yield break;
-					}
-					
-					page++;
+					yield break;
 				}
 
-				// If we get here and there's no more data, break out
-				break;
+				// Pre-allocate the list with known capacity for better performance
+				var data = new List<Dictionary<string, object>>(response.Records.Count);
+
+				// Convert gRPC response to the expected format with optimized loop
+				foreach (var record in response.Records)
+				{
+					var dictionary = new Dictionary<string, object>(record.Fields.Count);
+					foreach (var field in record.Fields)
+					{
+						// Convert string back to appropriate type
+						dictionary[field.Key] = ConvertStringToValue(field.Value);
+					}
+
+					data.Add(dictionary);
+				}
+
+				yield return data;
+
+				if (!response.HasMore)
+				{
+					yield break;
+				}
+
+				page++;
 			}
 		}
 
@@ -183,8 +179,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				return DBNull.Value;
 
 			// Fast path for common string values that don't need parsing
-			if (value.Length > 0 && !char.IsDigit(value[0]) && value[0] != '-' && value[0] != '+' && 
-				!_jsonStartChars.Contains(value[0]) && !value.Equals("true", StringComparison.OrdinalIgnoreCase) && 
+			if (value.Length > 0 && !char.IsDigit(value[0]) && value[0] != '-' && value[0] != '+' &&
+				!_jsonStartChars.Contains(value[0]) && !value.Equals("true", StringComparison.OrdinalIgnoreCase) &&
 				!value.Equals("false", StringComparison.OrdinalIgnoreCase))
 			{
 				return value;
@@ -201,15 +197,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			// Try numeric parsing with culture-invariant approach for better performance
 			ReadOnlySpan<char> span = value.AsSpan();
-			
+
 			// Try long first (most common integer type)
 			if (long.TryParse(span, NumberStyles.Integer, CultureInfo.InvariantCulture, out var longValue))
 				return longValue;
-			
+
 			// Try double for decimal values
 			if (double.TryParse(span, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
 				return doubleValue;
-			
+
 			// Only try JSON parsing if it starts with { or [
 			if (value.Length > 1 && _jsonStartChars.Contains(value[0]))
 			{
