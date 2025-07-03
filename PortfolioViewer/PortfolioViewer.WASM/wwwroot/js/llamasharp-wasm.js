@@ -92,18 +92,18 @@ window.llamaSharpWasm = {
                 throw new Error('blazorBrowserStorage not available');
             }
             
-            // Map model paths to storage keys
-            // The ModelDownloadService uses "llama_model_phi3_mini" as the storage key
-            let modelStorageKey;
-            const modelFileName = modelPath.split('/').pop();
-            
-            if (modelFileName === 'phi-3-mini-4k-instruct.Q4_0.gguf' || modelPath.includes('phi-3-mini')) {
-                modelStorageKey = 'llama_model_phi3_mini'; // This matches BROWSER_STORAGE_KEY in C#
-            } else {
-                // For other models, use the filename as fallback
-                modelStorageKey = modelFileName;
+            // Check if AIModelConstants is available
+            if (!window.AIModelConstants) {
+                throw new Error('AIModelConstants not available - ensure ai-model-constants.js is loaded');
             }
             
+            // Get model filename from path
+            const modelFileName = modelPath.split('/').pop();
+            
+            // Use centralized constants to get storage key
+            const modelStorageKey = window.AIModelConstants.getStorageKeyForModel(modelFileName);
+            
+            console.log('Model filename:', modelFileName);
             console.log('Looking for model with storage key:', modelStorageKey);
             
             // Check if model exists first

@@ -39,14 +39,17 @@
     <!-- Load site.js first to initialize blazorBrowserStorage -->
     <script src="js/site.js"></script>
     
-    <!-- Wait for site.js to load and initialize before loading LLamaSharp -->
+    <!-- Load AI model constants before other AI-related scripts -->
+    <script src="js/ai-model-constants.js"></script>
+    
+    <!-- Wait for site.js and constants to load before loading LLamaSharp -->
     <script>
-        // Ensure blazorBrowserStorage is available before loading dependent scripts
+        // Ensure blazorBrowserStorage and AIModelConstants are available before loading dependent scripts
         (function() {
-            function waitForBrowserStorage() {
-                if (window.blazorBrowserStorage) {
-                    console.log('blazorBrowserStorage is available, loading LLamaSharp WASM support...');
-                    // blazorBrowserStorage is available, load the next script
+            function waitForDependencies() {
+                if (window.blazorBrowserStorage && window.AIModelConstants) {
+                    console.log('Dependencies available, loading LLamaSharp WASM support...');
+                    // Dependencies are available, load the next script
                     var script = document.createElement('script');
                     script.src = 'js/llamasharp-wasm.js';
                     script.onerror = function() {
@@ -54,14 +57,17 @@
                     };
                     document.head.appendChild(script);
                 } else {
-                    console.log('Waiting for blazorBrowserStorage to be available...');
+                    const missing = [];
+                    if (!window.blazorBrowserStorage) missing.push('blazorBrowserStorage');
+                    if (!window.AIModelConstants) missing.push('AIModelConstants');
+                    console.log('Waiting for dependencies:', missing.join(', '));
                     // Wait a bit and try again
-                    setTimeout(waitForBrowserStorage, 100);
+                    setTimeout(waitForDependencies, 100);
                 }
             }
             
-            // Start checking after a small delay to ensure site.js has executed
-            setTimeout(waitForBrowserStorage, 50);
+            // Start checking after a small delay to ensure scripts have executed
+            setTimeout(waitForDependencies, 50);
         })();
     </script>
     
