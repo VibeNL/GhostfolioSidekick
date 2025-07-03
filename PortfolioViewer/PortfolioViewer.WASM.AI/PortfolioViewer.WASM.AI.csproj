@@ -19,6 +19,8 @@
 		<PackageReference Include="Microsoft.SemanticKernel" Version="1.59.0" />
 		<PackageReference Include="Microsoft.SemanticKernel.Agents.Abstractions" Version="1.59.0" />
 		<PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.59.0" />
+		<PackageReference Include="LLamaSharp" Version="0.18.0" />
+		<PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.18.0" />
 	</ItemGroup>
 
 	<ItemGroup>
