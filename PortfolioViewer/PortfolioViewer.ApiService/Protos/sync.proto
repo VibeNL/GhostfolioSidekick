@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option csharp_namespace = "GhostfolioSidekick.PortfolioViewer.ApiService.Grpc";
+
+package sync;
+
+// The sync service definition.
+service SyncService {
+  // Gets entity data with pagination
+  rpc GetEntityData (GetEntityDataRequest) returns (stream GetEntityDataResponse);
+  
+  // Gets table names
+  rpc GetTableNames (GetTableNamesRequest) returns (GetTableNamesResponse);
+}
+
+// Request message for getting entity data
+message GetEntityDataRequest {
+  string entity = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+// Response message for entity data (streamed)
+message GetEntityDataResponse {
+  repeated EntityRecord records = 1;
+  bool has_more = 2;
+  int32 current_page = 3;
+}
+
+// Request message for getting table names
+message GetTableNamesRequest {
+}
+
+// Response message for table names
+message GetTableNamesResponse {
+  repeated string table_names = 1;
+}
+
+// Represents a single record from the database
+message EntityRecord {
+  map<string, string> fields = 1;
+}

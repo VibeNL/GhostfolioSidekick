@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			var offset = (page - 1) * pageSize;
 
 			// Construct the raw SQL query with pagination
-			entity = ValidateTableName(databaseContext, entity);
+			entity = await ValidateTableNameAsync(databaseContext, entity);
 			var sqlQuery = $"SELECT * FROM {entity} ORDER BY 1 LIMIT @pageSize OFFSET @offset";
 
 			// Execute the raw SQL query and fetch the data into a DataTable
@@ -47,7 +47,21 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			return result;
 		}
 
-		private static string ValidateTableName(DatabaseContext context, string entity)
+		public static async Task<int> GetTableCount(DatabaseContext context, string entity)
+		{
+			entity = await ValidateTableNameAsync(context, entity);
+			var sqlQuery = $"SELECT COUNT(*) FROM {entity}";
+			
+			using var connection = context.Database.GetDbConnection();
+			await connection.OpenAsync();
+			using var command = connection.CreateCommand();
+			command.CommandText = sqlQuery;
+			
+			var result = await command.ExecuteScalarAsync();
+			return Convert.ToInt32(result);
+		}
+
+		private static async Task<string> ValidateTableNameAsync(DatabaseContext context, string entity)
 		{
 			// Ensure the table name is valid and does not contain invalid characters
 			if (string.IsNullOrWhiteSpace(entity) || entity.Any(c => !char.IsLetterOrDigit(c) && c != '_'))
@@ -56,8 +70,15 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			}
 
 			// Check if the table exists in the database
-			var query = $"SELECT COUNT(*) as VALUE FROM sqlite_master WHERE type='table' AND name='{entity}'";
-			var tableExists = context.SqlQueryRaw<int>(query).FirstOrDefault() > 0;
+			var query = $"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{entity}'";
+			
+			using var connection = context.Database.GetDbConnection();
+			await connection.OpenAsync();
+			using var command = connection.CreateCommand();
+			command.CommandText = query;
+			
+			var result = await command.ExecuteScalarAsync();
+			var tableExists = Convert.ToInt32(result) > 0;
 
 			if (!tableExists)
 			{
@@ -66,6 +87,5 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 
 			return entity;
 		}
-
 	}
 }

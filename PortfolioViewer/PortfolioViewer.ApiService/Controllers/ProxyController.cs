@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Net.Http.Json;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Models;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {
@@ -12,12 +13,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 	public class ProxyController : ControllerBase
 	{
 		private readonly HttpClient _httpClient;
-		private readonly IConfiguration _configuration;
+		private readonly IConfigurationHelper _configurationHelper;
 
-		public ProxyController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+		public ProxyController(IHttpClientFactory httpClientFactory, IConfigurationHelper configurationHelper)
 		{
 			_httpClient = httpClientFactory.CreateClient();
-			_configuration = configuration;
+			_configurationHelper = configurationHelper;
 			// Set default headers to mimic a browser request
 			_httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
 			_httpClient.DefaultRequestHeaders.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
@@ -95,16 +96,17 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 
 			try
 			{
-				var apiKey = _configuration["GoogleSearch:ApiKey"];
-				var cx = _configuration["GoogleSearch:EngineId"];
+				// Use configuration helper to get Google Search settings
+				// This will check environment variables first, then appsettings.json
+				var googleConfig = _configurationHelper.GetConfigurationSection<GoogleSearchConfiguration>("GoogleSearch");
 
-				if (string.IsNullOrEmpty(apiKey))
-					return StatusCode(500, "Google Search API key is not configured.");
+				if (string.IsNullOrEmpty(googleConfig.ApiKey))
+					return StatusCode(500, "Google Search API key is not configured. Set GOOGLESEARCH_APIKEY environment variable or GoogleSearch:ApiKey in appsettings.json.");
 
-				if (string.IsNullOrEmpty(cx))
-					return StatusCode(500, "Google Search Engine ID is not configured.");
+				if (string.IsNullOrEmpty(googleConfig.EngineId))
+					return StatusCode(500, "Google Search Engine ID is not configured. Set GOOGLESEARCH_ENGINEID environment variable or GoogleSearch:EngineId in appsettings.json.");
 
-				var url = $"https://www.googleapis.com/customsearch/v1?q={Uri.EscapeDataString(query)}&key={apiKey}&cx={cx}";
+				var url = $"https://www.googleapis.com/customsearch/v1?q={Uri.EscapeDataString(query)}&key={googleConfig.ApiKey}&cx={googleConfig.EngineId}";
 				var response = await _httpClient.GetAsync(url);
 
 				if (!response.IsSuccessStatusCode)

@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
@@ -21,19 +22,30 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 			builder.Services.AddOpenApi();
 
+			// Add gRPC services
+			builder.Services.AddGrpc();
+
+			// Register configuration helper
+			builder.Services.AddSingleton<IConfigurationHelper, ConfigurationHelper>();
+
 			builder.Services.AddCors(options =>
 			{
-				options.AddDefaultPolicy(builder =>
+				options.AddDefaultPolicy(policy =>
 				{
-					builder.AllowAnyOrigin()
+					policy.AllowAnyOrigin()
 						   .AllowAnyMethod()
-						   .AllowAnyHeader();
+						   .AllowAnyHeader()
+						   .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
 				});
 			});
 
-			// Configure SQLite connection
-			var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-			builder.Services.AddDbContext<DatabaseContext>(options => options.UseSqlite(connectionString));
+			// Configure SQLite connection using configuration helper
+			builder.Services.AddDbContext<DatabaseContext>((serviceProvider, options) =>
+			{
+				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
+				var connectionString = "Data Source="+configHelper.GetConnectionString("DefaultConnection");
+				options.UseSqlite(connectionString);
+			});
 
 			builder.Services.AddControllers(options =>
 			{
@@ -57,6 +69,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				}
 				);
 			}
+
+			// Enable gRPC-Web for browser compatibility
+			app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
+			// Map gRPC services
+			app.MapGrpcService<SyncGrpcService>().EnableGrpcWeb();
 
 			app.MapControllers();
 			app.MapDefaultEndpoints();

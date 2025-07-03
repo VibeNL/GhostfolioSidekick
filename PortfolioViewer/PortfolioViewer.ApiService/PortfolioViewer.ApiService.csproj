@@ -20,6 +20,12 @@
 		<PackageReference Include="HtmlAgilityPack" Version="1.12.1" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
 		<PackageReference Include="Scalar.AspNetCore" Version="2.5.3" />
+		<PackageReference Include="Grpc.AspNetCore" Version="2.62.0" />
+		<PackageReference Include="Grpc.AspNetCore.Web" Version="2.62.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="Protos\sync.proto" GrpcServices="Server" />
 	</ItemGroup>
 
 </Project>
