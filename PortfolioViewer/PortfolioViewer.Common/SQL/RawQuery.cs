@@ -47,6 +47,14 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			return result;
 		}
 
+		public static async Task<int> GetTableCount(DatabaseContext context, string entity)
+		{
+			entity = ValidateTableName(context, entity);
+			var sqlQuery = $"SELECT COUNT(*) FROM {entity}";
+			var result = await context.SqlQueryRaw<int>(sqlQuery).SingleOrDefaultAsync();
+			return result;
+		}
+
 		private static string ValidateTableName(DatabaseContext context, string entity)
 		{
 			// Ensure the table name is valid and does not contain invalid characters
