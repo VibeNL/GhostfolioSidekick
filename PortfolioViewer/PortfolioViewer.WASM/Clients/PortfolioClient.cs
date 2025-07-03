@@ -1,24 +1,65 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.EntityFrameworkCore;
+using Grpc.Net.Client.Web;
+using Grpc.Net.Client;
+using Microsoft.Extensions.Logging;
+using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext)
+	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext, ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; // TODO 
 
-		const int pageSize = 10000;
+		const int pageSize = 10_000;
+
+		private GrpcChannel? _grpcChannel;
+		private SyncService.SyncServiceClient? _grpcClient;
+		private bool _disposed = false;
+
+		private SyncService.SyncServiceClient GetGrpcClient()
+		{
+			if (_grpcClient != null)
+				return _grpcClient;
+
+			// Create gRPC channel for web - use the httpClient's base address but ensure it's absolute
+			var baseAddress = httpClient.BaseAddress;
+			if (baseAddress == null)
+			{
+				throw new InvalidOperationException("HttpClient BaseAddress is not configured.");
+			}
+
+			// For Blazor WASM, we need to use the actual HTTP URL, not the service discovery name
+			var grpcAddress = baseAddress.ToString().TrimEnd('/');
+
+			logger.LogInformation("Creating gRPC channel for address: {GrpcAddress}", grpcAddress);
+
+			_grpcChannel = GrpcChannel.ForAddress(grpcAddress, new GrpcChannelOptions
+			{
+				HttpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()),
+				MaxReceiveMessageSize = 100 * 1024 * 1024, // 100MB
+				MaxSendMessageSize = 100 * 1024 * 1024, // 100MB
+				ThrowOperationCanceledOnCancellation = true
+			});
+
+			_grpcClient = new SyncService.SyncServiceClient(_grpcChannel);
+			return _grpcClient;
+		}
 
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
 			{
+				var grpcClient = GetGrpcClient();
+
 				// Step 1: Retrieve Table Names
 				progress?.Report(("Retrieving table names...", 0));
-				var tables = databaseContext.SqlQueryRaw<string>("SELECT name FROM sqlite_master WHERE type='table'");
-				var tableNames = await tables.ToListAsync(cancellationToken);
+				var tableNamesResponse = await grpcClient.GetTableNamesAsync(new GetTableNamesRequest(), cancellationToken: cancellationToken);
+				var tableNames = tableNamesResponse.TableNames.ToList();
+
 				if (!tableNames.Any())
 				{
 					progress?.Report(("No tables found in the database.", 100));
@@ -52,14 +93,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					var totalWritten = 0;
 					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
 
-					await foreach (var dataChunk in FetchDataAsync(tableName, cancellationToken))
+					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
 					{
 						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
 						await InsertDataAsync(tableName, dataChunk, cancellationToken);
 						totalWritten += dataChunk.Count;
 						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
 					}
-								
+
 					currentStep++;
 				}
 
@@ -73,39 +114,152 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 			catch (Exception ex)
 			{
+				logger.LogError(ex, "Error during portfolio sync: {Message}", ex.Message);
 				progress?.Report(($"Error: {ex.Message}", 100));
 				throw;
 			}
 		}
 
-		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
+		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(SyncService.SyncServiceClient grpcClient, string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
-			bool hasMoreData = true;
+			bool hasMore = true;
 
-			while (hasMoreData)
+			logger.LogInformation("Starting to fetch data for table: {TableName}", tableName);
+
+			while (hasMore)
 			{
-				var response = await httpClient.GetAsync($"/api/sync/{tableName}?page={page}&pageSize={pageSize}", cancellationToken);
-				if (response == null || response.StatusCode != System.Net.HttpStatusCode.OK)
+				logger.LogDebug("Fetching page {Page} for table {TableName} with page size {PageSize}", page, tableName, pageSize);
+
+				var request = new GetEntityDataRequest
 				{
-					yield break;
+					Entity = tableName,
+					Page = page,
+					PageSize = pageSize
+				};
+
+				using var call = grpcClient.GetEntityData(request, cancellationToken: cancellationToken);
+
+				bool receivedData = false;
+				while (await call.ResponseStream.MoveNext(cancellationToken))
+				{
+					var response = call.ResponseStream.Current;
+					receivedData = true;
+
+					logger.LogDebug("Received {RecordCount} records for page {Page} of table {TableName}, HasMore: {HasMore}", 
+						response.Records.Count, page, tableName, response.HasMore);
+
+					if (response.Records.Count == 0)
+					{
+						yield break;
+					}
+
+					// Pre-allocate the list with known capacity for better performance
+					var data = new List<Dictionary<string, object>>(response.Records.Count);
+
+					// Convert gRPC response to the expected format with optimized loop
+					foreach (var record in response.Records)
+					{
+						var dictionary = new Dictionary<string, object>(record.Fields.Count);
+						foreach (var field in record.Fields)
+						{
+							// Convert string back to appropriate type
+							dictionary[field.Key] = ConvertStringToValue(field.Value);
+						}
+
+						data.Add(dictionary);
+					}
+
+					yield return data;
+
+					// Check if there's more data based on the response
+					hasMore = response.HasMore;
 				}
 
-				var rawData = await response.Content.ReadAsStringAsync(cancellationToken);
-				if (string.IsNullOrEmpty(rawData))
+				if (!receivedData)
 				{
-					yield break;
+					logger.LogDebug("No data received for page {Page} of table {TableName}", page, tableName);
+					hasMore = false;
 				}
 
-				var data = DeserializeData(rawData);
-				if (data == null || !data.Any())
-				{
-					yield break;
-				}
-
-				yield return data;
 				page++;
 			}
+
+			logger.LogInformation("Completed fetching data for table: {TableName}, total pages: {TotalPages}", tableName, page - 1);
+		}
+
+		private static readonly char[] _jsonStartChars = ['{', '['];
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static object ConvertStringToValue(string value)
+		{
+			// Handle null or empty strings - convert to appropriate type based on context
+			if (string.IsNullOrEmpty(value))
+				return string.Empty; // Convert null/empty to empty string instead of DBNull.Value
+
+			// Fast path for common string values that don't need parsing
+			if (value.Length > 0 && !char.IsDigit(value[0]) && value[0] != '-' && value[0] != '+' &&
+				!_jsonStartChars.Contains(value[0]) && !value.Equals("true", StringComparison.OrdinalIgnoreCase) &&
+				!value.Equals("false", StringComparison.OrdinalIgnoreCase))
+			{
+				return value;
+			}
+
+			// Fast boolean check
+			if (value.Length <= 5)
+			{
+				if (value.Equals("true", StringComparison.OrdinalIgnoreCase))
+					return true;
+				if (value.Equals("false", StringComparison.OrdinalIgnoreCase))
+					return false;
+			}
+
+			// Try numeric parsing with culture-invariant approach for better performance
+			ReadOnlySpan<char> span = value.AsSpan();
+
+			// Try long first (most common integer type)
+			if (long.TryParse(span, NumberStyles.Integer, CultureInfo.InvariantCulture, out var longValue))
+				return longValue;
+
+			// Try double for decimal values
+			if (double.TryParse(span, NumberStyles.Float, CultureInfo.InvariantCulture, out var doubleValue))
+				return doubleValue;
+
+			// Only try JSON parsing if it starts with { or [
+			if (value.Length > 1 && _jsonStartChars.Contains(value[0]))
+			{
+				try
+				{
+					return JsonDocument.Parse(value).RootElement;
+				}
+				catch
+				{
+					// If it fails, just return as string
+				}
+			}
+
+			return value;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static object? ConvertValueForParameter(object? value)
+		{
+			return value switch
+			{
+				JsonElement jsonElement => jsonElement.ValueKind switch
+				{
+					JsonValueKind.String => jsonElement.GetString(),
+					JsonValueKind.Number => jsonElement.TryGetInt64(out var longValue) ? longValue : jsonElement.GetDouble(),
+					JsonValueKind.True => true,
+					JsonValueKind.False => false,
+					JsonValueKind.Null => null,
+					JsonValueKind.Object => JsonSerializer.Serialize(jsonElement),
+					JsonValueKind.Array => JsonSerializer.Serialize(jsonElement),
+					_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind}")
+				},
+				null => null,
+				_ => value
+			};
 		}
 
 		private async Task InsertDataAsync(string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)
@@ -113,6 +267,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			Console.WriteLine($"InsertDataAsync executing");
 
 			var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start timing
+
+			// Early return if no data to insert
+			if (dataChunk.Count == 0)
+			{
+				logger.LogInformation("No records to insert for table {TableName}", tableName);
+				return;
+			}
 
 			using var transaction = await databaseContext.Database.BeginTransactionAsync(cancellationToken);
 			var columns = string.Join(", ", dataChunk.First().Keys.Select(key => $"\"{key}\""));
@@ -134,22 +295,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					var parameter = parameters[key];
 					if (parameter != null)
 					{
-						object? parameterValue = record[key] switch
-						{
-							JsonElement jsonElement => jsonElement.ValueKind switch
-							{
-								JsonValueKind.String => jsonElement.GetString(),
-								JsonValueKind.Number => jsonElement.TryGetInt64(out var longValue) ? longValue : jsonElement.GetDouble(),
-								JsonValueKind.True => true,
-								JsonValueKind.False => false,
-								JsonValueKind.Null => DBNull.Value,
-								JsonValueKind.Object => JsonSerializer.Serialize(record[key]),
-								_ => throw new InvalidOperationException($"Unsupported JsonValueKind: {jsonElement.ValueKind} on table {tableName}. SQL was {command.CommandText}")
-							},
-							null => DBNull.Value,
-							_ => record[key]
-						};
-						parameter.Value = parameterValue ?? DBNull.Value;
+						object? parameterValue = ConvertValueForParameter(record[key]);
+						// Ensure we never pass null to NOT NULL columns - use empty string instead
+						parameter.Value = parameterValue ?? string.Empty;
 					}
 				}
 
@@ -162,9 +310,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			Console.WriteLine($"InsertDataAsync executed in {stopwatch.ElapsedMilliseconds} ms");
 		}
 
-
 		public static List<Dictionary<string, object>> DeserializeData(string jsonData)
 		{
+			if (string.IsNullOrEmpty(jsonData))
+			{
+				Console.WriteLine("DeserializeData received empty or null JSON data.");
+				return new List<Dictionary<string, object>>();
+			}
+
 			Console.WriteLine($"DeserializeData executing");
 			var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start timing
 
@@ -186,13 +339,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					{
 						dictionary[property.Name] = property.Value.ValueKind switch
 						{
-							JsonValueKind.String => property.Value.GetString(),
+							JsonValueKind.String => property.Value.GetString() ?? string.Empty,
 							JsonValueKind.Number => property.Value.TryGetInt64(out var longValue) ? longValue : property.Value.GetDouble(),
 							JsonValueKind.True => true,
 							JsonValueKind.False => false,
-							JsonValueKind.Null => null!,
+							JsonValueKind.Null => DBNull.Value,
 							JsonValueKind.Object => property.Value.GetRawText(), // Serialize nested objects as JSON
-							_ => property.Value.GetRawText() // Fallback for arrays or unsupported types
+							JsonValueKind.Array => property.Value.GetRawText(), // Serialize arrays as JSON
+							_ => property.Value.GetRawText() // Fallback for unsupported types
 						};
 					}
 					result.Add(dictionary);
@@ -210,5 +364,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed && disposing)
+			{
+				_grpcChannel?.Dispose();
+				_disposed = true;
+			}
+		}
 	}
 }

@@ -371,3 +371,4 @@ FodyWeavers.xsd
 /Tools/ScraperUtilities/Properties/launchSettings.json
 /ProcessingService/Properties/launchSettings.json
 /PortfolioViewer/PortfolioViewer.ApiService/appsettings.Development.json
+/PortfolioViewer/PortfolioViewer.ApiService/Properties/launchSettings.json

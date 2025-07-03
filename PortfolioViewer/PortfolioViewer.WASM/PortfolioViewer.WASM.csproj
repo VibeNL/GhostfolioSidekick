@@ -32,6 +32,10 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
+		<PackageReference Include="Grpc.Net.Client.Web" Version="2.62.0" />
+		<PackageReference Include="Grpc.Net.Client" Version="2.62.0" />
+		<PackageReference Include="Google.Protobuf" Version="3.25.3" />
+		<PackageReference Include="Grpc.Tools" Version="2.62.0" PrivateAssets="All" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -63,6 +67,10 @@
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 	  </TypeScriptCompile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">
