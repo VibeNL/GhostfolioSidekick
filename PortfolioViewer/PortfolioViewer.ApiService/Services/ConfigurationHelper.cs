@@ -180,7 +180,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				nameof(Double) => (T)(object)double.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Decimal) => (T)(object)decimal.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Single) => (T)(object)float.Parse(value, CultureInfo.InvariantCulture),
-				nameof(DateTime) => (T)(object)ParseDateTime(value),
+				nameof(DateTime) => (T)(object)DateTime.Parse(value, CultureInfo.InvariantCulture),
 				nameof(DateTimeOffset) => (T)(object)DateTimeOffset.Parse(value, CultureInfo.InvariantCulture),
 				nameof(TimeSpan) => (T)(object)TimeSpan.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Guid) => (T)(object)Guid.Parse(value),
@@ -244,7 +244,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				nameof(Double) => double.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Decimal) => decimal.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Single) => float.Parse(value, CultureInfo.InvariantCulture),
-				nameof(DateTime) => ParseDateTime(value),
+				nameof(DateTime) => DateTime.Parse(value, CultureInfo.InvariantCulture),
 				nameof(DateTimeOffset) => DateTimeOffset.Parse(value, CultureInfo.InvariantCulture),
 				nameof(TimeSpan) => TimeSpan.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Guid) => Guid.Parse(value),
@@ -268,18 +268,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			}
 
 			throw new NotSupportedException($"Type {targetType.Name} is not supported for configuration conversion");
-		}
-
-		private static DateTime ParseDateTime(string value)
-		{
-			// Parse with proper UTC handling for ISO 8601 format
-			if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateTime))
-			{
-				return dateTime;
-			}
-
-			// Fallback to regular parsing
-			return DateTime.Parse(value, CultureInfo.InvariantCulture);
 		}
 	}
 }

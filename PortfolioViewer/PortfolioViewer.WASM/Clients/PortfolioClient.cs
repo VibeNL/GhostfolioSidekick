@@ -312,6 +312,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 		public static List<Dictionary<string, object>> DeserializeData(string jsonData)
 		{
+			if (string.IsNullOrEmpty(jsonData))
+			{
+				Console.WriteLine("DeserializeData received empty or null JSON data.");
+				return new List<Dictionary<string, object>>();
+			}
+
 			Console.WriteLine($"DeserializeData executing");
 			var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start timing
 
