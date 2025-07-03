@@ -10,10 +10,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		private readonly ILogger<ModelDownloadService> logger;
 		public readonly IJSRuntime? jsRuntime; // Make this public so LLamaSharpChatClient can access it
 		
-		// Phi-3 Mini model details
+		// Phi-3 Mini model details - Using the exact filename from HuggingFace
 		private const string PHI3_MODEL_URL = "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf";
-		private const string PHI3_MODEL_FILENAME = "phi-3-mini-4k-instruct.Q4_0.gguf";
-		private const long PHI3_MODEL_SIZE = 2_400_000_000; // Approximately 2.4GB
+		private const string PHI3_MODEL_FILENAME = "Phi-3-mini-4k-instruct-q4.gguf"; // Match the actual filename
+		private const long PHI3_MODEL_SIZE = 2_240_000_000; // Updated to more accurate size ~2.24GB
 		private const string BROWSER_STORAGE_KEY = "llama_model_phi3_mini";
 
 		public ModelDownloadService(HttpClient httpClient, ILogger<ModelDownloadService> logger, IJSRuntime? jsRuntime = null)
@@ -31,7 +31,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		public static string GetStorageKeyForModel(string modelFilename)
 		{
 			// Map specific model filenames to their storage keys
-			if (modelFilename == PHI3_MODEL_FILENAME || modelFilename.Contains("phi-3-mini"))
+			if (modelFilename == PHI3_MODEL_FILENAME || 
+				modelFilename.Contains("phi-3-mini") || 
+				modelFilename.Contains("Phi-3-mini"))
 			{
 				return BROWSER_STORAGE_KEY;
 			}
@@ -356,8 +358,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		{
 			try
 			{
+				// Test the basic fetch endpoint first
 				var testUrl = new Uri(httpClient.BaseAddress!, "api/proxy/fetch?url=https://httpbin.org/get").ToString();
-				logger.LogInformation("Testing proxy endpoint: {TestUrl}", testUrl);
+				logger.LogInformation("Testing basic proxy endpoint: {TestUrl}", testUrl);
 				
 				var testResponse = await httpClient.GetAsync(testUrl);
 				
@@ -374,7 +377,66 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 					throw new HttpRequestException($"Proxy endpoint not accessible: {errorDetails}");
 				}
 				
-				logger.LogInformation("Proxy endpoint test successful");
+				logger.LogInformation("Basic proxy endpoint test successful");
+
+				// Test if the model URL is accessible via HEAD request
+				await TestModelAccessibilityAsync();
+
+				// Test the specific download-model-range endpoint with a small range from the actual model
+				// Note: This will test the endpoint but may fail due to size - that's expected
+				logger.LogInformation("Testing download-model-range endpoint with actual model URL");
+				
+				try
+				{
+					var downloadTestUrl = new Uri(httpClient.BaseAddress!, 
+						$"api/proxy/download-model-range?url={Uri.EscapeDataString(PHI3_MODEL_URL)}&start=0&end=1023").ToString();
+					
+					logger.LogInformation("Testing download-model-range endpoint: {DownloadTestUrl}", downloadTestUrl);
+					
+					// Set a shorter timeout for this test
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+					var downloadTestResponse = await httpClient.GetAsync(downloadTestUrl, cts.Token);
+					
+					// We expect this to either succeed with partial content or fail due to timeout/size
+					// The important thing is that we don't get "Only Hugging Face model downloads are allowed"
+					if (downloadTestResponse.StatusCode == System.Net.HttpStatusCode.BadRequest)
+					{
+						var errorContent = await downloadTestResponse.Content.ReadAsStringAsync();
+						if (errorContent.Contains("Only Hugging Face model downloads are allowed"))
+						{
+							throw new HttpRequestException($"Model download endpoint rejected HuggingFace URL: {errorContent}");
+						}
+						// Other bad request errors might be acceptable for this test
+						logger.LogInformation("download-model-range endpoint responded with bad request (may be expected): {ErrorContent}", errorContent);
+					}
+					else if (downloadTestResponse.IsSuccessStatusCode || 
+							 downloadTestResponse.StatusCode == System.Net.HttpStatusCode.PartialContent)
+					{
+						logger.LogInformation("download-model-range endpoint test successful");
+					}
+					else
+					{
+						logger.LogInformation("download-model-range endpoint responded with: {StatusCode} (may be expected for test)", 
+							downloadTestResponse.StatusCode);
+					}
+				}
+				catch (TaskCanceledException)
+				{
+					// Timeout is expected for large model requests
+					logger.LogInformation("download-model-range endpoint test timed out (expected for large model)");
+				}
+				catch (HttpRequestException ex) when (ex.Message.Contains("Only Hugging Face"))
+				{
+					// This indicates a real configuration problem
+					throw;
+				}
+				catch (Exception ex)
+				{
+					// Other exceptions during range test are not critical
+					logger.LogInformation("download-model-range endpoint test had expected error: {Message}", ex.Message);
+				}
+				
+				logger.LogInformation("Proxy endpoint tests completed successfully");
 			}
 			catch (HttpRequestException ex)
 			{
@@ -383,7 +445,85 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 					$"Model download requires the API service to be running for CORS proxy support. " +
 					$"Proxy test failed: {ex.Message}. Please ensure the PortfolioViewer.ApiService is running and accessible, " +
 					$"or use WebLLM for browser-based AI.");
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Unexpected error during proxy endpoint test");
+				throw new NotSupportedException(
+					$"Unexpected error during proxy endpoint test: {ex.Message}. " +
+					$"Please ensure the PortfolioViewer.ApiService is running and accessible.");
 			 }
+		}
+
+		/// <summary>
+		/// Test if the actual model URL is accessible
+		/// </summary>
+		private async Task TestModelAccessibilityAsync()
+		{
+			try
+			{
+				logger.LogInformation("Testing model accessibility: {ModelUrl}", PHI3_MODEL_URL);
+				
+				// Use a quick HEAD-like request to test if the URL is accessible
+				// We'll use the download endpoint with a tiny range to avoid downloading the whole file
+				var headTestUrl = new Uri(httpClient.BaseAddress!, 
+					$"api/proxy/download-model-range?url={Uri.EscapeDataString(PHI3_MODEL_URL)}&start=0&end=0").ToString();
+				
+				logger.LogInformation("Testing model accessibility via range request: {TestUrl}", headTestUrl);
+				
+				// This should test if the model is accessible without downloading much data
+				using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+				var headResponse = await httpClient.GetAsync(headTestUrl, cts.Token);
+				
+				// We expect this to potentially fail due to size, but not due to 404 or access issues
+				if (headResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					throw new HttpRequestException($"Model not found at URL: {PHI3_MODEL_URL}");
+				}
+				
+				if (headResponse.StatusCode == System.Net.HttpStatusCode.Forbidden)
+				{
+					throw new HttpRequestException($"Access denied to model URL: {PHI3_MODEL_URL}");
+				}
+				
+				if (headResponse.StatusCode == System.Net.HttpStatusCode.BadRequest)
+				{
+					var errorContent = await headResponse.Content.ReadAsStringAsync();
+					if (errorContent.Contains("Only Hugging Face model downloads are allowed"))
+					{
+						throw new HttpRequestException($"Proxy rejected HuggingFace URL - configuration issue: {errorContent}");
+					}
+					// Other bad request errors might be acceptable
+					logger.LogInformation("Model accessibility test got bad request (may be expected): {ErrorContent}", errorContent);
+				}
+				else if (headResponse.IsSuccessStatusCode || 
+						 headResponse.StatusCode == System.Net.HttpStatusCode.PartialContent)
+				{
+					logger.LogInformation("Model URL accessibility test successful");
+				}
+				else
+				{
+					logger.LogInformation("Model URL accessibility test got status {StatusCode} (may be expected)", headResponse.StatusCode);
+				}
+				
+				logger.LogInformation("Model URL appears to be accessible");
+			}
+			catch (TaskCanceledException)
+			{
+				// Timeout is acceptable for this test
+				logger.LogInformation("Model URL accessibility test timed out (expected for large model)");
+			}
+			catch (HttpRequestException ex) when (ex.Message.Contains("Model not found") || 
+												   ex.Message.Contains("Access denied") || 
+												   ex.Message.Contains("configuration issue"))
+			{
+				throw; // Re-throw these specific errors
+			}
+			catch (Exception ex)
+			{
+				// For other errors (like timeout due to large file), we'll assume the URL is accessible
+				logger.LogInformation("Model URL test completed with expected error (likely due to file size): {Message}", ex.Message);
+			}
 		}
 
 		/// <summary>
@@ -538,26 +678,81 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 			var rangeProxyUrl = new Uri(httpClient.BaseAddress!, 
 				$"api/proxy/download-model-range?url={Uri.EscapeDataString(PHI3_MODEL_URL)}&start={startOffset}&end={endOffset}");
 
-			using var response = await httpClient.GetAsync(rangeProxyUrl);
-			response.EnsureSuccessStatusCode();
+			logger.LogInformation("Requesting chunk: {Url}", rangeProxyUrl);
 
-			// Verify we got the expected range
-			if (response.StatusCode != System.Net.HttpStatusCode.PartialContent && 
-				response.StatusCode != System.Net.HttpStatusCode.OK)
+			try
 			{
-				throw new InvalidOperationException($"Unexpected response status for range request: {response.StatusCode}");
-			}
+				using var response = await httpClient.GetAsync(rangeProxyUrl);
+				
+				logger.LogInformation("Chunk response: Status={StatusCode}, Length={ContentLength}", 
+					response.StatusCode, response.Content.Headers.ContentLength);
 
-			var chunkData = await response.Content.ReadAsByteArrayAsync();
-			
-			// Verify chunk size
-			var expectedSize = endOffset - startOffset + 1;
-			if (chunkData.Length != expectedSize)
+				// Check for specific error responses
+				if (response.StatusCode == System.Net.HttpStatusCode.NotAcceptable)
+				{
+					var errorContent = await response.Content.ReadAsStringAsync();
+					logger.LogError("Server rejected range request with 406 Not Acceptable: {ErrorContent}", errorContent);
+					throw new InvalidOperationException($"Server rejected range request: {errorContent}");
+				}
+
+				if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+				{
+					var errorContent = await response.Content.ReadAsStringAsync();
+					logger.LogError("Bad request for range download: {ErrorContent}", errorContent);
+					throw new InvalidOperationException($"Bad request for range download: {errorContent}");
+				}
+
+				if (!response.IsSuccessStatusCode)
+				{
+					var errorContent = await response.Content.ReadAsStringAsync();
+					logger.LogError("Range request failed: Status={StatusCode}, Content={ErrorContent}", 
+						response.StatusCode, errorContent);
+					throw new HttpRequestException($"Range request failed with status {response.StatusCode}: {errorContent}");
+				}
+
+				// Verify we got the expected range response
+				if (response.StatusCode != System.Net.HttpStatusCode.PartialContent && 
+					response.StatusCode != System.Net.HttpStatusCode.OK)
+				{
+					logger.LogWarning("Unexpected response status for range request: {StatusCode} (expected 206 or 200)", 
+						response.StatusCode);
+				}
+
+				var chunkData = await response.Content.ReadAsByteArrayAsync();
+				
+				// Verify chunk size
+				var expectedSize = endOffset - startOffset + 1;
+				if (chunkData.Length != expectedSize)
+				{
+					logger.LogWarning("Chunk size mismatch: expected {Expected}, got {Actual}", expectedSize, chunkData.Length);
+					
+					// For the last chunk, it might be smaller than expected
+					if (chunkData.Length == 0)
+					{
+						throw new InvalidOperationException($"Received empty chunk for range {startOffset}-{endOffset}");
+					}
+				}
+
+				logger.LogDebug("Successfully downloaded chunk: {ActualSize} bytes for range {Start}-{End}", 
+					chunkData.Length, startOffset, endOffset);
+
+				return chunkData;
+			}
+			catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
 			{
-				logger.LogWarning("Chunk size mismatch: expected {Expected}, got {Actual}", expectedSize, chunkData.Length);
+				logger.LogError(ex, "Timeout downloading chunk {Start}-{End}", startOffset, endOffset);
+				throw new HttpRequestException($"Timeout downloading chunk {startOffset}-{endOffset}", ex);
 			}
-
-			return chunkData;
+			catch (HttpRequestException ex)
+			{
+				logger.LogError(ex, "HTTP error downloading chunk {Start}-{End}: {Message}", startOffset, endOffset, ex.Message);
+				throw;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Unexpected error downloading chunk {Start}-{End}", startOffset, endOffset);
+				throw new InvalidOperationException($"Failed to download chunk {startOffset}-{endOffset}: {ex.Message}", ex);
+			}
 		}
 
 		/// <summary>

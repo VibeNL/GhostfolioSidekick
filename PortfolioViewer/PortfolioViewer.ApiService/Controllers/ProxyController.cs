@@ -251,29 +251,37 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
 				var contentLength = response.Content.Headers.ContentLength;
 				
+				 // Return the chunk data
+				var chunkData = await response.Content.ReadAsByteArrayAsync();
+				
+				Console.WriteLine($"Range response: {chunkData.Length} bytes delivered");
+				
+				// Create FileContentResult with proper headers
+				var result = new FileContentResult(chunkData, contentType);
+				
 				// Set appropriate headers for the range response
 				if (contentLength.HasValue)
 				{
 					Response.Headers.Append("Content-Length", contentLength.Value.ToString());
 				}
-				Response.Headers.Append("Content-Type", contentType);
 				
-				// If the original response was partial content, preserve that status
+				// If the original response was partial content, preserve that status and Content-Range
 				if (response.StatusCode == System.Net.HttpStatusCode.PartialContent)
 				{
 					Response.StatusCode = 206; // Partial Content
-					if (response.Headers.Contains("Content-Range"))
+					
+					// Content-Range is a content header, get it from response.Content.Headers
+					if (response.Content.Headers.TryGetValues("Content-Range", out var contentRangeValues))
 					{
-						Response.Headers.Append("Content-Range", response.Headers.GetValues("Content-Range").First());
+						var contentRange = contentRangeValues.FirstOrDefault();
+						if (!string.IsNullOrEmpty(contentRange))
+						{
+							Response.Headers.Append("Content-Range", contentRange);
+						}
 					}
 				}
-
-				// Return the chunk data
-				var chunkData = await response.Content.ReadAsByteArrayAsync();
 				
-				Console.WriteLine($"Range response: {chunkData.Length} bytes delivered");
-				
-				return File(chunkData, contentType);
+				return result;
 			}
 			catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
 			{
