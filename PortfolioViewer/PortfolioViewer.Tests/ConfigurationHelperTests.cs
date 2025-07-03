@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Models;
@@ -19,13 +20,18 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
                 ["GoogleSearch:ApiKey"] = "test-api-key",
                 ["GoogleSearch:EngineId"] = "test-engine-id",
                 ["TestSetting"] = "config-value",
-                ["Timeout"] = "30"
+                ["Timeout"] = "30",
+                ["TestBool"] = "true",
+                ["TestDecimal"] = "123.45",
+                ["TestDateTime"] = "2023-01-01T00:00:00Z",
+                ["TestGuid"] = "12345678-1234-1234-1234-123456789012"
             };
 
             var configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(configData)
                 .Build();
 
+            // Use null logger for tests (logger is optional)
             _configHelper = new ConfigurationHelper(configuration);
         }
 
@@ -53,6 +59,15 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
         }
 
         [Fact]
+        public void GetConnectionString_ThrowsForNullOrWhiteSpace()
+        {
+            // Act & Assert - ArgumentException.ThrowIfNullOrWhiteSpace throws different exceptions for different inputs
+            Assert.Throws<ArgumentException>(() => _configHelper.GetConnectionString(""));       // Empty string -> ArgumentException
+            Assert.Throws<ArgumentNullException>(() => _configHelper.GetConnectionString(null!));  // Null -> ArgumentNullException
+            Assert.Throws<ArgumentException>(() => _configHelper.GetConnectionString("   "));     // Whitespace -> ArgumentException
+        }
+
+        [Fact]
         public void GetConfigurationValue_ReturnsStringValue()
         {
             // Act
@@ -76,6 +91,15 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
         }
 
         [Fact]
+        public void GetConfigurationValue_ThrowsForNullOrWhiteSpace()
+        {
+            // Act & Assert - ArgumentException.ThrowIfNullOrWhiteSpace throws different exceptions for different inputs
+            Assert.Throws<ArgumentException>(() => _configHelper.GetConfigurationValue(""));       // Empty string -> ArgumentException
+            Assert.Throws<ArgumentNullException>(() => _configHelper.GetConfigurationValue(null!));  // Null -> ArgumentNullException
+            Assert.Throws<ArgumentException>(() => _configHelper.GetConfigurationValue("   "));     // Whitespace -> ArgumentException
+        }
+
+        [Fact]
         public void GetConfigurationValue_WithType_ConvertsToInt()
         {
             // Act
@@ -86,6 +110,46 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
         }
 
         [Fact]
+        public void GetConfigurationValue_WithType_ConvertsToBool()
+        {
+            // Act
+            var result = _configHelper.GetConfigurationValue<bool>("TestBool");
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void GetConfigurationValue_WithType_ConvertsToDecimal()
+        {
+            // Act
+            var result = _configHelper.GetConfigurationValue<decimal>("TestDecimal");
+
+            // Assert
+            Assert.Equal(123.45m, result);
+        }
+
+        [Fact]
+        public void GetConfigurationValue_WithType_ConvertsToDateTime()
+        {
+            // Act
+            var result = _configHelper.GetConfigurationValue<DateTime>("TestDateTime");
+
+            // Assert
+            Assert.Equal(new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc), result);
+        }
+
+        [Fact]
+        public void GetConfigurationValue_WithType_ConvertsToGuid()
+        {
+            // Act
+            var result = _configHelper.GetConfigurationValue<Guid>("TestGuid");
+
+            // Assert
+            Assert.Equal(new Guid("12345678-1234-1234-1234-123456789012"), result);
+        }
+
+        [Fact]
         public void GetConfigurationValue_WithType_UsesDefaultValue()
         {
             // Act
@@ -93,6 +157,16 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 
             // Assert
             Assert.Equal(42, result);
+        }
+
+        [Fact]
+        public void GetConfigurationValue_WithType_HandlesNullableTypes()
+        {
+            // Act
+            var result = _configHelper.GetConfigurationValue<int?>("NonExistentSetting", null);
+
+            // Assert
+            Assert.Null(result);
         }
 
         [Fact]
@@ -118,6 +192,15 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
             // Assert
             Assert.Equal("env-api-key", result.ApiKey);
             Assert.Equal("test-engine-id", result.EngineId); // This should remain from config
+        }
+
+        [Fact]
+        public void GetConfigurationSection_ThrowsForNullOrWhiteSpace()
+        {
+            // Act & Assert - ArgumentException.ThrowIfNullOrWhiteSpace throws different exceptions for different inputs
+            Assert.Throws<ArgumentException>(() => _configHelper.GetConfigurationSection<GoogleSearchConfiguration>(""));       // Empty string -> ArgumentException
+            Assert.Throws<ArgumentNullException>(() => _configHelper.GetConfigurationSection<GoogleSearchConfiguration>(null!));  // Null -> ArgumentNullException  
+            Assert.Throws<ArgumentException>(() => _configHelper.GetConfigurationSection<GoogleSearchConfiguration>("   "));     // Whitespace -> ArgumentException
         }
 
         [Fact]
@@ -151,6 +234,39 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 
             // Assert
             Assert.True(result);
+        }
+
+        [Fact]
+        public void HasConfigurationValue_ReturnsFalseForNullOrWhiteSpace()
+        {
+            // Act & Assert
+            Assert.False(_configHelper.HasConfigurationValue(""));
+            Assert.False(_configHelper.HasConfigurationValue(null!));
+            Assert.False(_configHelper.HasConfigurationValue("   "));
+        }
+
+        [Fact]
+        public void GetConfigurationValue_CachesEnvironmentVariables()
+        {
+            // Arrange
+            SetEnvironmentVariable("TESTCACHE", "cached-value");
+
+            // Act - Call multiple times
+            var result1 = _configHelper.GetConfigurationValue("TestCache");
+            var result2 = _configHelper.GetConfigurationValue("TestCache");
+
+            // Assert
+            Assert.Equal("cached-value", result1);
+            Assert.Equal("cached-value", result2);
+        }
+
+        [Fact]
+        public void GetConfigurationValue_WithType_ThrowsForNullOrWhiteSpace()
+        {
+            // Act & Assert - ArgumentException.ThrowIfNullOrWhiteSpace throws different exceptions for different inputs
+            Assert.Throws<ArgumentException>(() => _configHelper.GetConfigurationValue<int>(""));       // Empty string -> ArgumentException
+            Assert.Throws<ArgumentNullException>(() => _configHelper.GetConfigurationValue<int>(null!));  // Null -> ArgumentNullException
+            Assert.Throws<ArgumentException>(() => _configHelper.GetConfigurationValue<int>("   "));     // Whitespace -> ArgumentException
         }
 
         private void SetEnvironmentVariable(string name, string value)

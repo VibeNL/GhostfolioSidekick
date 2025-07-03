@@ -1,230 +1,285 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
+using System.ComponentModel;
+using System.Globalization;
+using System.Reflection;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 {
-    /// <summary>
-    /// Configuration helper that provides a unified way to read configuration values
-    /// from appsettings.json files and environment variables with proper fallback logic.
-    /// </summary>
-    public class ConfigurationHelper : IConfigurationHelper
-    {
-        private readonly IConfiguration _configuration;
+	/// <summary>
+	/// Configuration helper that provides a unified way to read configuration values
+	/// from appsettings.json files and environment variables with proper fallback logic.
+	/// </summary>
+	public class ConfigurationHelper : IConfigurationHelper
+	{
+		private readonly IConfiguration _configuration;
+		private readonly ILogger<ConfigurationHelper>? _logger;
+		private readonly ConcurrentDictionary<string, string> _envVarCache = new();
+		private readonly ConcurrentDictionary<Type, TypeConverter> _typeConverters = new();
 
-        public ConfigurationHelper(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
+		public ConfigurationHelper(IConfiguration configuration, ILogger<ConfigurationHelper>? logger = null)
+		{
+			_configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+			_logger = logger;
+		}
 
-        /// <summary>
-        /// Gets the database connection string from configuration or environment variable.
-        /// Environment variable CONNECTIONSTRING_DEFAULT takes precedence over appsettings.json.
-        /// </summary>
-        public string GetConnectionString(string name = "DefaultConnection")
-        {
-            // First check environment variable with naming convention
-            var envVarName = $"CONNECTIONSTRING_{name.ToUpper().Replace("CONNECTION", "")}";
-            var envValue = Environment.GetEnvironmentVariable(envVarName);
-            if (!string.IsNullOrEmpty(envValue))
-            {
-                return envValue;
-            }
+		public string GetConnectionString(string name = "DefaultConnection")
+		{
+			ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-            // Fallback to configuration
-            var configValue = _configuration.GetConnectionString(name);
-            if (!string.IsNullOrEmpty(configValue))
-            {
-                return configValue;
-            }
+			var envVarName = $"CONNECTIONSTRING_{NormalizeConnectionStringName(name)}";
+			var envValue = GetCachedEnvironmentVariable(envVarName);
+			if (!string.IsNullOrEmpty(envValue))
+			{
+				_logger?.LogDebug("Using connection string '{Name}' from environment variable '{EnvVar}'", name, envVarName);
+				return envValue;
+			}
 
-            throw new InvalidOperationException($"Connection string '{name}' not found in configuration or environment variable '{envVarName}'");
-        }
+			var configValue = _configuration.GetConnectionString(name);
+			if (!string.IsNullOrEmpty(configValue))
+			{
+				_logger?.LogDebug("Using connection string '{Name}' from configuration", name);
+				return configValue;
+			}
 
-        /// <summary>
-        /// Gets a configuration value with fallback to environment variable.
-        /// Environment variable takes precedence over appsettings.json.
-        /// </summary>
-        public string GetConfigurationValue(string key, string? defaultValue = null)
-        {
-            // First check environment variable (convert dots to underscores and uppercase)
-            var envVarName = key.Replace(":", "_").Replace(".", "_").ToUpper();
-            var envValue = Environment.GetEnvironmentVariable(envVarName);
-            if (!string.IsNullOrEmpty(envValue))
-            {
-                return envValue;
-            }
+			var message = $"Connection string '{name}' not found in configuration or environment variable '{envVarName}'";
+			_logger?.LogError("{Message}", message);
+			throw new InvalidOperationException(message);
+		}
 
-            // Fallback to configuration
-            var configValue = _configuration[key];
-            if (!string.IsNullOrEmpty(configValue))
-            {
-                return configValue;
-            }
+		public string GetConfigurationValue(string key, string? defaultValue = null)
+		{
+			ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-            if (defaultValue != null)
-            {
-                return defaultValue;
-            }
+			var envVarName = NormalizeEnvironmentVariableName(key);
+			var envValue = GetCachedEnvironmentVariable(envVarName);
+			if (!string.IsNullOrEmpty(envValue))
+			{
+				_logger?.LogDebug("Using configuration value '{Key}' from environment variable '{EnvVar}'", key, envVarName);
+				return envValue;
+			}
 
-            throw new InvalidOperationException($"Configuration value '{key}' not found in configuration or environment variable '{envVarName}'");
-        }
+			var configValue = _configuration[key];
+			if (!string.IsNullOrEmpty(configValue))
+			{
+				_logger?.LogDebug("Using configuration value '{Key}' from configuration", key);
+				return configValue;
+			}
 
-        /// <summary>
-        /// Gets a configuration value as a specific type with fallback to environment variable.
-        /// </summary>
-        public T GetConfigurationValue<T>(string key, T? defaultValue = default)
-        {
-            try
-            {
-                // First check environment variable
-                var envVarName = key.Replace(":", "_").Replace(".", "_").ToUpper();
-                var envValue = Environment.GetEnvironmentVariable(envVarName);
-                if (!string.IsNullOrEmpty(envValue))
-                {
-                    return ConvertValue<T>(envValue);
-                }
+			if (defaultValue != null)
+			{
+				_logger?.LogDebug("Using default value for configuration key '{Key}'", key);
+				return defaultValue;
+			}
 
-                // Fallback to configuration
-                var configValue = _configuration[key];
-                if (!string.IsNullOrEmpty(configValue))
-                {
-                    return ConvertValue<T>(configValue);
-                }
+			var message = $"Configuration value '{key}' not found in configuration or environment variable '{envVarName}'";
+			_logger?.LogError("{Message}", message);
+			throw new InvalidOperationException(message);
+		}
 
-                if (defaultValue != null)
-                {
-                    return defaultValue;
-                }
+		public T GetConfigurationValue<T>(string key, T? defaultValue = default)
+		{
+			ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-                throw new InvalidOperationException($"Configuration value '{key}' not found in configuration or environment variable '{envVarName}'");
-            }
-            catch (Exception ex) when (!(ex is InvalidOperationException))
-            {
-                throw new InvalidOperationException($"Failed to convert configuration value '{key}' to type {typeof(T).Name}", ex);
-            }
-        }
+			try
+			{
+				var envVarName = NormalizeEnvironmentVariableName(key);
+				var envValue = GetCachedEnvironmentVariable(envVarName);
+				if (!string.IsNullOrEmpty(envValue))
+				{
+					_logger?.LogDebug("Using configuration value '{Key}' from environment variable '{EnvVar}'", key, envVarName);
+					return ConvertValue<T>(envValue);
+				}
 
-        /// <summary>
-        /// Gets a configuration section and binds it to a model with fallback to environment variables.
-        /// </summary>
-        public T GetConfigurationSection<T>(string sectionName) where T : new()
-        {
-            var section = _configuration.GetSection(sectionName);
-            var model = new T();
-            section.Bind(model);
+				var configValue = _configuration[key];
+				if (!string.IsNullOrEmpty(configValue))
+				{
+					_logger?.LogDebug("Using configuration value '{Key}' from configuration", key);
+					return ConvertValue<T>(configValue);
+				}
 
-            // Override with environment variables if they exist
-            OverrideWithEnvironmentVariables(model, sectionName);
+				if (defaultValue != null || !typeof(T).IsValueType || Nullable.GetUnderlyingType(typeof(T)) != null)
+				{
+					_logger?.LogDebug("Using default value for configuration key '{Key}'", key);
+					return defaultValue!;
+				}
 
-            return model;
-        }
+				var message = $"Configuration value '{key}' not found in configuration or environment variable '{envVarName}'";
+				_logger?.LogError("{Message}", message);
+				throw new InvalidOperationException(message);
+			}
+			catch (Exception ex) when (!(ex is InvalidOperationException))
+			{
+				var message = $"Failed to convert configuration value '{key}' to type {typeof(T).Name}";
+				_logger?.LogError(ex, "{Message}", message);
+				throw new InvalidOperationException(message, ex);
+			}
+		}
 
-        /// <summary>
-        /// Checks if a configuration key exists in either appsettings or environment variables.
-        /// </summary>
-        public bool HasConfigurationValue(string key)
-        {
-            var envVarName = key.Replace(":", "_").Replace(".", "_").ToUpper();
-            return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(envVarName)) ||
-                   !string.IsNullOrEmpty(_configuration[key]);
-        }
+		public T GetConfigurationSection<T>(string sectionName) where T : new()
+		{
+			ArgumentException.ThrowIfNullOrWhiteSpace(sectionName);
 
-        private static T ConvertValue<T>(string value)
-        {
-            var targetType = typeof(T);
-            
-            // Handle nullable types
-            if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                targetType = Nullable.GetUnderlyingType(targetType)!;
-            }
+			var section = _configuration.GetSection(sectionName);
+			var model = new T();
 
-            if (targetType == typeof(string))
-            {
-                return (T)(object)value;
-            }
-            else if (targetType == typeof(int))
-            {
-                return (T)(object)int.Parse(value);
-            }
-            else if (targetType == typeof(bool))
-            {
-                return (T)(object)bool.Parse(value);
-            }
-            else if (targetType == typeof(double))
-            {
-                return (T)(object)double.Parse(value);
-            }
-            else if (targetType == typeof(decimal))
-            {
-                return (T)(object)decimal.Parse(value);
-            }
-            else if (targetType.IsEnum)
-            {
-                return (T)Enum.Parse(targetType, value, true);
-            }
+			try
+			{
+				section.Bind(model);
+				_logger?.LogDebug("Bound configuration section '{SectionName}' to type {TypeName}", sectionName, typeof(T).Name);
+			}
+			catch (Exception ex)
+			{
+				_logger?.LogWarning(ex, "Failed to bind configuration section '{SectionName}' to type {TypeName}", sectionName, typeof(T).Name);
+			}
 
-            throw new NotSupportedException($"Type {typeof(T).Name} is not supported for configuration conversion");
-        }
+			OverrideWithEnvironmentVariables(model, sectionName);
+			return model;
+		}
 
-        private static void OverrideWithEnvironmentVariables<T>(T model, string sectionName)
-        {
-            var properties = typeof(T).GetProperties();
-            foreach (var property in properties)
-            {
-                if (property.CanWrite)
-                {
-                    var envVarName = $"{sectionName.ToUpper()}_{property.Name.ToUpper()}";
-                    var envValue = Environment.GetEnvironmentVariable(envVarName);
-                    if (!string.IsNullOrEmpty(envValue))
-                    {
-                        try
-                        {
-                            var convertedValue = ConvertValue(envValue, property.PropertyType);
-                            property.SetValue(model, convertedValue);
-                        }
-                        catch
-                        {
-                            // Ignore conversion errors for environment variable overrides
-                        }
-                    }
-                }
-            }
-        }
+		public bool HasConfigurationValue(string key)
+		{
+			if (string.IsNullOrWhiteSpace(key))
+			{
+				return false;
+			}
 
-        private static object ConvertValue(string value, Type targetType)
-        {
-            // Handle nullable types
-            if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                targetType = Nullable.GetUnderlyingType(targetType)!;
-            }
+			var envVarName = NormalizeEnvironmentVariableName(key);
+			return !string.IsNullOrEmpty(GetCachedEnvironmentVariable(envVarName)) ||
+				   !string.IsNullOrEmpty(_configuration[key]);
+		}
 
-            if (targetType == typeof(string))
-            {
-                return value;
-            }
-            else if (targetType == typeof(int))
-            {
-                return int.Parse(value);
-            }
-            else if (targetType == typeof(bool))
-            {
-                return bool.Parse(value);
-            }
-            else if (targetType == typeof(double))
-            {
-                return double.Parse(value);
-            }
-            else if (targetType == typeof(decimal))
-            {
-                return decimal.Parse(value);
-            }
-            else if (targetType.IsEnum)
-            {
-                return Enum.Parse(targetType, value, true);
-            }
+		private string GetCachedEnvironmentVariable(string name) =>
+			_envVarCache.GetOrAdd(name, Environment.GetEnvironmentVariable(name) ?? string.Empty);
 
-            throw new NotSupportedException($"Type {targetType.Name} is not supported for configuration conversion");
-        }
-    }
+		private static string NormalizeEnvironmentVariableName(string key) =>
+			key.Replace(":", "_", StringComparison.Ordinal)
+			   .Replace(".", "_", StringComparison.Ordinal)
+			   .ToUpperInvariant();
+
+		private static string NormalizeConnectionStringName(string name) =>
+			name.ToUpperInvariant().Replace("CONNECTION", "", StringComparison.Ordinal);
+
+		private T ConvertValue<T>(string value)
+		{
+			var targetType = typeof(T);
+
+			if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+			{
+				targetType = Nullable.GetUnderlyingType(targetType)!;
+			}
+
+			// Fast path for common types
+			return targetType.Name switch
+			{
+				nameof(String) => (T)(object)value,
+				nameof(Int32) => (T)(object)int.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Int64) => (T)(object)long.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Boolean) => (T)(object)bool.Parse(value),
+				nameof(Double) => (T)(object)double.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Decimal) => (T)(object)decimal.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Single) => (T)(object)float.Parse(value, CultureInfo.InvariantCulture),
+				nameof(DateTime) => (T)(object)ParseDateTime(value),
+				nameof(DateTimeOffset) => (T)(object)DateTimeOffset.Parse(value, CultureInfo.InvariantCulture),
+				nameof(TimeSpan) => (T)(object)TimeSpan.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Guid) => (T)(object)Guid.Parse(value),
+				_ => ConvertComplexType<T>(value, targetType)
+			};
+		}
+
+		private T ConvertComplexType<T>(string value, Type targetType)
+		{
+			if (targetType.IsEnum)
+			{
+				return (T)Enum.Parse(targetType, value, true);
+			}
+
+			var converter = _typeConverters.GetOrAdd(targetType, TypeDescriptor.GetConverter);
+			if (converter?.CanConvertFrom(typeof(string)) == true)
+			{
+				var convertedValue = converter.ConvertFromInvariantString(value);
+				if (convertedValue != null)
+					return (T)convertedValue;
+			}
+
+			throw new NotSupportedException($"Type {typeof(T).Name} is not supported for configuration conversion");
+		}
+
+		private void OverrideWithEnvironmentVariables<T>(T model, string sectionName)
+		{
+			var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+			foreach (var property in properties.Where(p => p.CanWrite))
+			{
+				var envVarName = $"{sectionName.ToUpperInvariant()}_{property.Name.ToUpperInvariant()}";
+				var envValue = GetCachedEnvironmentVariable(envVarName);
+				if (!string.IsNullOrEmpty(envValue))
+				{
+					try
+					{
+						var convertedValue = ConvertValueForType(envValue, property.PropertyType);
+						property.SetValue(model, convertedValue);
+						_logger?.LogDebug("Overrode property {PropertyName} with environment variable {EnvVar}", property.Name, envVarName);
+					}
+					catch (Exception ex)
+					{
+						_logger?.LogWarning(ex, "Failed to convert environment variable {EnvVar} to property {PropertyName} of type {PropertyType}",
+							envVarName, property.Name, property.PropertyType.Name);
+					}
+				}
+			}
+		}
+
+		private object ConvertValueForType(string value, Type targetType)
+		{
+			if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+				targetType = Nullable.GetUnderlyingType(targetType)!;
+
+			return targetType.Name switch
+			{
+				nameof(String) => value,
+				nameof(Int32) => int.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Int64) => long.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Boolean) => bool.Parse(value),
+				nameof(Double) => double.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Decimal) => decimal.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Single) => float.Parse(value, CultureInfo.InvariantCulture),
+				nameof(DateTime) => ParseDateTime(value),
+				nameof(DateTimeOffset) => DateTimeOffset.Parse(value, CultureInfo.InvariantCulture),
+				nameof(TimeSpan) => TimeSpan.Parse(value, CultureInfo.InvariantCulture),
+				nameof(Guid) => Guid.Parse(value),
+				_ => ConvertComplexTypeForType(value, targetType)
+			};
+		}
+
+		private object ConvertComplexTypeForType(string value, Type targetType)
+		{
+			if (targetType.IsEnum)
+			{
+				return Enum.Parse(targetType, value, true);
+			}
+
+			var converter = _typeConverters.GetOrAdd(targetType, TypeDescriptor.GetConverter);
+			if (converter?.CanConvertFrom(typeof(string)) == true)
+			{
+				var convertedValue = converter.ConvertFromInvariantString(value);
+				if (convertedValue != null)
+					return convertedValue;
+			}
+
+			throw new NotSupportedException($"Type {targetType.Name} is not supported for configuration conversion");
+		}
+
+		private static DateTime ParseDateTime(string value)
+		{
+			// Parse with proper UTC handling for ISO 8601 format
+			if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dateTime))
+			{
+				return dateTime;
+			}
+
+			// Fallback to regular parsing
+			return DateTime.Parse(value, CultureInfo.InvariantCulture);
+		}
+	}
 }
