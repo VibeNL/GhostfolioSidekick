@@ -9,7 +9,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 {
 	public static class ServiceCollectionExtentions
 	{
-		private const string modelid = "Phi-3.5-mini-instruct-q4f32_1-MLC";
+		private const string modelid = "Qwen3-4B-q4f32_1-MLC";
+ private const string simple = "Phi-3.5-mini-instruct-q4f32_1-MLC-1k";
 
 		public static void AddWebChatClient(this IServiceCollection services)
 		{
@@ -17,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 				s.GetRequiredService<IJSRuntime>(),
 				s.GetRequiredService<ILogger<WebLLMChatClient>>(),
 				new Dictionary<ChatMode, string> {
-					{ ChatMode.Chat, modelid },
+					{ ChatMode.Chat, simple },
 					{ ChatMode.ChatWithThinking, modelid },
 					{ ChatMode.FunctionCalling, modelid },
 				}
