@@ -12,9 +12,9 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "GOOGLESEARCH_ENGINEID": "67916343ce9fd4bfe",
-        "GOOGLESEARCH_APIKEY": "AIzaSyCfoFMnKB4igV7eX2M9cNHB9Egi6TY3Pg0",
-        "CONNECTIONSTRING_DEFAULT": "\\\\synology\\docker\\ghostfolio\\sidekick\\ghostfoliosidekick.db"
+        "GOOGLESEARCH_ENGINEID": "***",
+        "GOOGLESEARCH_APIKEY": "***",
+        "CONNECTIONSTRING_DEFAULT": "***"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7565;http://localhost:5447"
