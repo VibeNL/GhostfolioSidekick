@@ -3,6 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 {
@@ -71,14 +72,21 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				_logger.LogDebug("Retrieved {RecordCount} records for {Entity}, page {Page}", 
 					result.Count, request.Entity, request.Page);
 
-				// Convert the data to protobuf format
+				// Convert the data to protobuf format with proper null handling
 				var records = result.Select(record =>
 				{
 					var entityRecord = new EntityRecord();
 					foreach (var kvp in record)
 					{
-						// Convert all values to strings for simplicity in protobuf
-						entityRecord.Fields[kvp.Key] = kvp.Value?.ToString() ?? "";
+						// Convert all values to strings with proper null/DBNull handling
+						// Treat null and DBNull as empty string to prevent NOT NULL constraint violations
+						string value = kvp.Value switch
+						{
+							null => "",
+							DBNull => "",
+							_ => kvp.Value.ToString() ?? ""
+						};
+						entityRecord.Fields[kvp.Key] = value;
 					}
 					return entityRecord;
 				}).ToList();

@@ -151,7 +151,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 					if (response.Records.Count == 0)
 					{
-						hasMore = false;
 						yield break;
 					}
 
@@ -194,8 +193,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static object ConvertStringToValue(string value)
 		{
+			// Handle null or empty strings - convert to appropriate type based on context
 			if (string.IsNullOrEmpty(value))
-				return DBNull.Value;
+				return string.Empty; // Convert null/empty to empty string instead of DBNull.Value
 
 			// Fast path for common string values that don't need parsing
 			if (value.Length > 0 && !char.IsDigit(value[0]) && value[0] != '-' && value[0] != '+' &&
@@ -268,6 +268,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			var stopwatch = System.Diagnostics.Stopwatch.StartNew(); // Start timing
 
+			// Early return if no data to insert
+			if (dataChunk.Count == 0)
+			{
+				logger.LogInformation("No records to insert for table {TableName}", tableName);
+				return;
+			}
+
 			using var transaction = await databaseContext.Database.BeginTransactionAsync(cancellationToken);
 			var columns = string.Join(", ", dataChunk.First().Keys.Select(key => $"\"{key}\""));
 			using var connection = databaseContext.Database.GetDbConnection();
@@ -289,7 +296,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					if (parameter != null)
 					{
 						object? parameterValue = ConvertValueForParameter(record[key]);
-						parameter.Value = parameterValue ?? DBNull.Value;
+						// Ensure we never pass null to NOT NULL columns - use empty string instead
+						parameter.Value = parameterValue ?? string.Empty;
 					}
 				}
 
@@ -301,7 +309,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			stopwatch.Stop(); // Stop timing
 			Console.WriteLine($"InsertDataAsync executed in {stopwatch.ElapsedMilliseconds} ms");
 		}
-
 
 		public static List<Dictionary<string, object>> DeserializeData(string jsonData)
 		{
