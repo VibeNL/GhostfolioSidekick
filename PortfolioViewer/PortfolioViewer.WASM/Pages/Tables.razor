@@ -95,21 +95,32 @@
 
     private async Task LoadTableDataAsync(string tableName)
     {
-        // Get total record count
-        TotalRecords = await RawQuery.GetTableCount(DbContext, tableName);
-        TotalPages = (int)Math.Ceiling((double)TotalRecords / PageSize);
-
-        var result = await RawQuery.ReadTable(DbContext, tableName, page, PageSize);
-
-        if (result == null || result.Count == 0)
+        try
         {
-            TableData.Columns = Array.Empty<string>();
-            TableData.Rows = new();
-            return;
-        }
+            // Get total record count
+            TotalRecords = await RawQuery.GetTableCount(DbContext, tableName);
+            TotalPages = (int)Math.Ceiling((double)TotalRecords / PageSize);
 
-        TableData.Columns = result.First().Keys.ToArray();
-        TableData.Rows = result.Select(x => x.Values.ToArray()).ToList();
+            var result = await RawQuery.ReadTable(DbContext, tableName, page, PageSize);
+
+            if (result == null || result.Count == 0)
+            {
+                TableData.Columns = Array.Empty<string>();
+                TableData.Rows = new();
+                return;
+            }
+
+            TableData.Columns = result.First().Keys.ToArray();
+            TableData.Rows = result.Select(x => x.Values.ToArray()).ToList();
+        }
+        catch (Exception ex)
+        {
+            // Handle errors gracefully
+            TableData.Columns = new[] { "Error" };
+            TableData.Rows = new List<object[]> { new object[] { ex.Message } };
+            TotalRecords = 0;
+            TotalPages = 0;
+        }
     }
 
     private class TableDataRecord
