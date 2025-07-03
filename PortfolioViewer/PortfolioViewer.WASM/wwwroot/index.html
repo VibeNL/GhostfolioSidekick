@@ -39,8 +39,31 @@
     <!-- Load site.js first to initialize blazorBrowserStorage -->
     <script src="js/site.js"></script>
     
-    <!-- LLamaSharp WASM Support (depends on blazorBrowserStorage) -->
-    <script src="js/llamasharp-wasm.js"></script>
+    <!-- Wait for site.js to load and initialize before loading LLamaSharp -->
+    <script>
+        // Ensure blazorBrowserStorage is available before loading dependent scripts
+        (function() {
+            function waitForBrowserStorage() {
+                if (window.blazorBrowserStorage) {
+                    console.log('blazorBrowserStorage is available, loading LLamaSharp WASM support...');
+                    // blazorBrowserStorage is available, load the next script
+                    var script = document.createElement('script');
+                    script.src = 'js/llamasharp-wasm.js';
+                    script.onerror = function() {
+                        console.error('Failed to load llamasharp-wasm.js');
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    console.log('Waiting for blazorBrowserStorage to be available...');
+                    // Wait a bit and try again
+                    setTimeout(waitForBrowserStorage, 100);
+                }
+            }
+            
+            // Start checking after a small delay to ensure site.js has executed
+            setTimeout(waitForBrowserStorage, 50);
+        })();
+    </script>
     
     <script src="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication/AuthenticationService.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>

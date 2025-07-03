@@ -12,6 +12,22 @@ window.blazorBrowserStorage = {
     dbName: 'AIModelsDB',
     dbVersion: 1,
     db: null,
+    _initialized: false,
+
+    // Initialize the storage system - call this before any other operations
+    async initialize() {
+        if (this._initialized) return true;
+        
+        try {
+            await this.initDB();
+            this._initialized = true;
+            console.log('blazorBrowserStorage initialized successfully');
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize blazorBrowserStorage:', error);
+            return false;
+        }
+    },
 
     // Initialize IndexedDB
     async initDB() {
@@ -44,9 +60,18 @@ window.blazorBrowserStorage = {
         });
     },
 
+    // Check if storage is ready for use
+    isReady() {
+        return this._initialized && this.db !== null;
+    },
+
     // Check if model exists
     async hasModel(modelId) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             const db = await this.initDB();
             const transaction = db.transaction(['models'], 'readonly');
             const store = transaction.objectStore('models');
@@ -65,6 +90,10 @@ window.blazorBrowserStorage = {
     // Get model size
     async getModelSize(modelId) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             const db = await this.initDB();
             const transaction = db.transaction(['models'], 'readonly');
             const store = transaction.objectStore('models');
@@ -86,6 +115,13 @@ window.blazorBrowserStorage = {
     // Initialize model download
     async initializeModelDownload(modelId, expectedSize) {
         try {
+            if (!this.isReady()) {
+                const initialized = await this.initialize();
+                if (!initialized) {
+                    throw new Error('Failed to initialize browser storage system');
+                }
+            }
+            
             const db = await this.initDB();
             
             // Clear any existing chunks for this model
@@ -115,6 +151,10 @@ window.blazorBrowserStorage = {
     // Append model chunk
     async appendModelChunk(modelId, chunkData) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             const db = await this.initDB();
             
             // Get current model info
@@ -164,6 +204,10 @@ window.blazorBrowserStorage = {
     // Finalize model download
     async finalizeModelDownload(modelId) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             const db = await this.initDB();
             const transaction = db.transaction(['models'], 'readwrite');
             const store = transaction.objectStore('models');
@@ -190,6 +234,10 @@ window.blazorBrowserStorage = {
     // Mount model to virtual file system (for WASM)
     async mountModel(modelId, virtualPath) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             // Create the virtual directory if it doesn't exist
             const dirPath = virtualPath.substring(0, virtualPath.lastIndexOf('/'));
             if (dirPath && typeof FS !== 'undefined') {
@@ -241,6 +289,10 @@ window.blazorBrowserStorage = {
     // Get all chunks for a model
     async getModelChunks(modelId) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             const db = await this.initDB();
             const transaction = db.transaction(['chunks'], 'readonly');
             const store = transaction.objectStore('chunks');
@@ -260,6 +312,10 @@ window.blazorBrowserStorage = {
     // Delete model and all its chunks
     async deleteModel(modelId) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             const db = await this.initDB();
             
             // Delete all chunks
@@ -290,6 +346,10 @@ window.blazorBrowserStorage = {
     // Get model data (reconstructed from chunks) - STREAMING VERSION
     async getModelData(modelId) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             // Check if model exists and is complete
             const db = await this.initDB();
             const transaction = db.transaction(['models'], 'readonly');
@@ -351,6 +411,10 @@ window.blazorBrowserStorage = {
     // Alternative method that tries smaller memory allocation with fallback
     async getModelDataLegacy(modelId) {
         try {
+            if (!this.isReady()) {
+                await this.initialize();
+            }
+            
             // Check if model exists and is complete
             const db = await this.initDB();
             const transaction = db.transaction(['models'], 'readonly');
@@ -433,4 +497,72 @@ window.blazorBrowserStorage = {
             return null;
         }
     },
+};
+
+// Auto-initialize when the page loads
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM loaded, initializing blazorBrowserStorage...');
+    try {
+        const initialized = await window.blazorBrowserStorage.initialize();
+        if (initialized) {
+            console.log('blazorBrowserStorage successfully initialized on DOMContentLoaded');
+        } else {
+            console.warn('blazorBrowserStorage failed to initialize on DOMContentLoaded');
+        }
+    } catch (error) {
+        console.error('Failed to auto-initialize blazorBrowserStorage:', error);
+    }
+});
+
+// Fallback initialization when Blazor is ready
+window.addEventListener('load', async function() {
+    console.log('Window load event, checking blazorBrowserStorage...');
+    if (window.blazorBrowserStorage && !window.blazorBrowserStorage.isReady()) {
+        try {
+            const initialized = await window.blazorBrowserStorage.initialize();
+            if (initialized) {
+                console.log('blazorBrowserStorage successfully initialized on window load');
+            } else {
+                console.warn('blazorBrowserStorage failed to initialize on window load');
+            }
+        } catch (error) {
+            console.error('Failed to initialize blazorBrowserStorage on window load:', error);
+        }
+    }
+});
+
+// Cleanup when page unloads
+window.addEventListener('beforeunload', function() {
+    if (window.blazorBrowserStorage && window.blazorBrowserStorage.db) {
+        try {
+            window.blazorBrowserStorage.db.close();
+            console.log('Closed IndexedDB connection on page unload');
+        } catch (error) {
+            console.warn('Error closing IndexedDB:', error);
+        }
+    }
+});
+
+// Expose a function for Blazor to check if storage is ready
+window.checkBrowserStorageReady = function() {
+    return window.blazorBrowserStorage && window.blazorBrowserStorage.isReady();
+};
+
+// Expose a function for Blazor to manually initialize storage if needed
+window.initializeBrowserStorage = async function() {
+    if (window.blazorBrowserStorage) {
+        return await window.blazorBrowserStorage.initialize();
+    }
+    console.error('blazorBrowserStorage object not found');
+    return false;
+};
+
+// Debugging function to check storage status
+window.debugBrowserStorage = function() {
+    console.log('Browser Storage Debug Info:', {
+        blazorBrowserStorageExists: !!window.blazorBrowserStorage,
+        isInitialized: window.blazorBrowserStorage ? window.blazorBrowserStorage._initialized : false,
+        isReady: window.blazorBrowserStorage ? window.blazorBrowserStorage.isReady() : false,
+        dbExists: window.blazorBrowserStorage ? !!window.blazorBrowserStorage.db : false
+    });
 };

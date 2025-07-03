@@ -172,6 +172,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		/// </summary>
 		private async Task<string> EnsureModelDownloadedWasmAsync(IProgress<InitializeProgress>? progress = null)
 		{
+			progress?.Report(new InitializeProgress(0.05, "Checking browser storage availability..."));
+			
+			// First ensure browser storage is available and initialized
+			await EnsureBrowserStorageInitializedAsync();
+			
 			progress?.Report(new InitializeProgress(0.1, "Checking browser storage for model..."));
 			
 			logger.LogInformation("Checking for model in browser storage with key: {StorageKey}", BROWSER_STORAGE_KEY);
@@ -269,6 +274,82 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 		}
 
 		/// <summary>
+		 /// Ensure browser storage is available and initialized
+		 /// </summary>
+		private async Task EnsureBrowserStorageInitializedAsync()
+		{
+			try
+			{
+				// First check if browser storage is ready
+				bool isReady = false;
+				try
+				{
+					isReady = await jsRuntime!.InvokeAsync<bool>("checkBrowserStorageReady");
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to check browser storage readiness, attempting initialization");
+				}
+
+				if (!isReady)
+				{
+					logger.LogInformation("Browser storage not ready, attempting to initialize...");
+					
+					// Try to initialize browser storage
+					var initialized = await jsRuntime!.InvokeAsync<bool>("initializeBrowserStorage");
+					
+					if (!initialized)
+					{
+						// Try debugging to understand why initialization failed
+						try
+						{
+							await jsRuntime.InvokeVoidAsync("debugBrowserStorage");
+						}
+						catch (Exception debugEx)
+						{
+							logger.LogWarning(debugEx, "Failed to get browser storage debug info");
+						}
+						
+						throw new InvalidOperationException(
+							"Failed to initialize browser storage system. This could be due to: " +
+							"1) IndexedDB not being available in the browser, " +
+							"2) Insufficient browser permissions for storage, " +
+							"3) Browser storage quota exceeded, or " +
+							"4) Browser incompatibility. " +
+							"Please try clearing browser data or using a different browser.");
+					}
+					
+					logger.LogInformation("Browser storage initialized successfully");
+				}
+				else
+				{
+					logger.LogInformation("Browser storage is already ready");
+				}
+
+				// Double-check that the essential functions are available
+				try
+				{
+					// Test if the required functions exist
+					await jsRuntime!.InvokeAsync<bool>("eval", "typeof blazorBrowserStorage !== 'undefined' && typeof blazorBrowserStorage.initializeModelDownload === 'function'");
+				}
+				catch (Exception ex)
+				{
+					logger.LogError(ex, "Browser storage functions are not properly available");
+					throw new InvalidOperationException(
+						"Browser storage JavaScript functions are not available. " +
+						"This indicates a script loading issue. Please refresh the page and try again.");
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to ensure browser storage is initialized");
+				throw new InvalidOperationException($"Browser storage initialization failed: {ex.Message}. " +
+					"This feature requires a modern browser with IndexedDB support. " +
+					"WebLLM will be used as a fallback for AI features.", ex);
+			}
+		}
+
+		/// <summary>
 		/// Test if the proxy endpoint is accessible
 		/// </summary>
 		private async Task TestProxyEndpointAsync(string baseAddress)
@@ -315,6 +396,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.LLamaSharp
 			
 			progress?.Report(new InitializeProgress(0.25, "Starting chunked download (100MB chunks)..."));
 			logger.LogInformation("Starting chunked download for model with storage key: {StorageKey}", BROWSER_STORAGE_KEY);
+
+			 // Ensure browser storage is ready before initializing download
+			await EnsureBrowserStorageInitializedAsync();
 
 			// Initialize the storage for chunked download
 			try
