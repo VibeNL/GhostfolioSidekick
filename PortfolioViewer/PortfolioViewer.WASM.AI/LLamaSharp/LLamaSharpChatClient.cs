@@ -425,7 +425,7 @@ Format function calls like this:
 				}
 
 				// Small delay to prevent overwhelming the browser
-				await Task.Delay(50, cancellationToken);
+				await Task.Yield();
 			}
 		}
 
