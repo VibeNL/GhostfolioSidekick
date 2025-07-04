@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 	public static class ServiceCollectionExtentions
 	{
 		private const string modelid = "Qwen3-4B-q4f32_1-MLC";
- private const string simple = "Phi-3.5-mini-instruct-q4f32_1-MLC-1k";
+ private const string simple = "TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC";
 
 		public static void AddWebChatClient(this IServiceCollection services)
 		{
