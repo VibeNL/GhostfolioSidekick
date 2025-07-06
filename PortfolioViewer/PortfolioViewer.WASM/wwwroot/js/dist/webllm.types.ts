@@ -33,7 +33,7 @@
         messages: Message[];
         temperature: number;
         seed: number;
-        model: string;
+        model?: string;
         stream: boolean;
         stream_options: { include_usage: boolean };
         tool_choice?: string;

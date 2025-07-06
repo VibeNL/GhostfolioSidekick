@@ -29,7 +29,7 @@ export class WebLLMInterop {
     initialize(selectedModels, dotnet) {
         return __awaiter(this, void 0, void 0, function* () {
             this.dotnetInstance = dotnet; // Store the .NET instance
-            this.engine = yield webllm.CreateMLCEngine(selectedModels, { initProgressCallback: this.initProgressCallback });
+            this.engine = yield webllm.CreateMLCEngine(selectedModels[0], { initProgressCallback: this.initProgressCallback });
         });
     }
     // Stream completion
@@ -45,7 +45,7 @@ export class WebLLMInterop {
                 messages,
                 temperature: 0,
                 seed: 42,
-                model: modelId,
+                //model: modelId,
                 tool_choice: "auto",
                 tools: tools,
                 stream: true, // Enable streaming

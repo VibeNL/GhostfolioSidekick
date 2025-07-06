@@ -33,7 +33,7 @@ export class WebLLMInterop {
     public async initialize(selectedModels: string[], dotnet: DotNetInstance): Promise<void> {
         this.dotnetInstance = dotnet; // Store the .NET instance
         this.engine = await webllm.CreateMLCEngine(
-            selectedModels,
+            selectedModels[0],
             { initProgressCallback: this.initProgressCallback }, // engineConfig
         );
     }
@@ -49,7 +49,7 @@ export class WebLLMInterop {
             messages,
             temperature: 0,
             seed: 42,
-            model: modelId,
+            //model: modelId,
             tool_choice: "auto",
             tools: tools,
             stream: true, // Enable streaming
