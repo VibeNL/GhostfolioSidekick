@@ -19,6 +19,8 @@ namespace GhostfolioSidekick.Database
 
 		public virtual DbSet<Holding> Holdings { get; set; }
 
+		public virtual DbSet<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
+
 		public DatabaseContext()
 		{
 		}

@@ -164,6 +164,35 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
+			// Replace PartialSymbolIdentifier with the one from the database
+			var partialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+
+			// Make sure all partialidentifiers are in the database
+			foreach (var activity in activities)
+			{
+				if (activity is IActivityWithPartialIdentifier activityWithId)
+				{
+					foreach (var partialSymbolIdentifier in activityWithId.PartialSymbolIdentifiers)
+					{
+						if (!partialSymbolIdentifiers.Contains(partialSymbolIdentifier))
+						{
+							await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
+							partialSymbolIdentifiers.Add(partialSymbolIdentifier);
+						}
+					}
+				}
+			}
+
+			foreach (var activity in databaseContext.Activities)
+			{
+				if (activity is IActivityWithPartialIdentifier activityWithId)
+				{
+					activityWithId.PartialSymbolIdentifiers = activityWithId.PartialSymbolIdentifiers
+						.Select(x => partialSymbolIdentifiers.FirstOrDefault(y => y.Equals(x)) ?? throw new NotSupportedException())
+						.ToList();
+				}
+			}
+
 			await databaseContext.SaveChangesAsync();
 		}
 	}
