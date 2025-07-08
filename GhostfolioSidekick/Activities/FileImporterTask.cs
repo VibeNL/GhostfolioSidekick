@@ -184,6 +184,8 @@ namespace GhostfolioSidekick.Activities
 				}
 			}
 
+			await databaseContext.SaveChangesAsync();
+
 			foreach (var activity in databaseContext.Activities)
 			{
 				if (activity is IActivityWithPartialIdentifier activityWithId)
