@@ -5,14 +5,14 @@
 namespace GhostfolioSidekick.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class FixMarketDataShadowProperties : Migration
+    public partial class FixPartialIdentifiersAndMarketDataDataIssues : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
 			DeleteIncorrectData(migrationBuilder);
 
-            migrationBuilder.CreateIndex(
+			migrationBuilder.CreateIndex(
                 name: "IX_PartialSymbolIdentifiers_Identifier_AllowedAssetClass_AllowedAssetSubClass",
                 table: "PartialSymbolIdentifiers",
                 columns: new[] { "Identifier", "AllowedAssetClasses", "AllowedAssetSubClasses" },
@@ -25,8 +25,8 @@ namespace GhostfolioSidekick.Database.Migrations
                 unique: true);
         }
 
-		/// <inheritdoc />
-		protected override void Down(MigrationBuilder migrationBuilder)
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
                 name: "IX_PartialSymbolIdentifiers_Identifier_AllowedAssetClass_AllowedAssetSubClass",
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Database.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_MarketData_SymbolProfileDataSource_SymbolProfileSymbol_Date",
                 table: "MarketData");
-		}
+        }
 
 		private void DeleteIncorrectData(MigrationBuilder migrationBuilder)
 		{

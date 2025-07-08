@@ -174,7 +174,8 @@ namespace GhostfolioSidekick.Activities
 				{
 					foreach (var partialSymbolIdentifier in activityWithId.PartialSymbolIdentifiers)
 					{
-						if (!partialSymbolIdentifiers.Contains(partialSymbolIdentifier))
+						// Use our custom equality check instead of Contains
+						if (!partialSymbolIdentifiers.Any(existing => existing.Equals(partialSymbolIdentifier)))
 						{
 							await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
 							partialSymbolIdentifiers.Add(partialSymbolIdentifier);

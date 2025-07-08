@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250708055218_FixMarketDataShadowProperties")]
-    partial class FixMarketDataShadowProperties
+    [Migration("20250708105253_FixPartialIdentifiersAndMarketDataDataIssues")]
+    partial class FixPartialIdentifiersAndMarketDataDataIssues
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -216,10 +216,10 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Key", 0);
 
-                    b.PrimitiveCollection<string>("AllowedAssetClasses")
+                    b.Property<string>("AllowedAssetClasses")
                         .HasColumnType("TEXT");
 
-                    b.PrimitiveCollection<string>("AllowedAssetSubClasses")
+                    b.Property<string>("AllowedAssetSubClasses")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Identifier")

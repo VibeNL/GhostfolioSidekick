@@ -213,10 +213,10 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Key", 0);
 
-                    b.PrimitiveCollection<string>("AllowedAssetClasses")
+                    b.Property<string>("AllowedAssetClasses")
                         .HasColumnType("TEXT");
 
-                    b.PrimitiveCollection<string>("AllowedAssetSubClasses")
+                    b.Property<string>("AllowedAssetSubClasses")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Identifier")
