@@ -15,6 +15,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
 
+			// Configure shadow properties for foreign key
+			builder.Property<string>("SymbolProfileSymbol");
+			builder.Property<string>("SymbolProfileDataSource");
+
 			builder.ComplexProperty(b => b.Close).Property(p => p.Amount).HasColumnName("Close");
 			builder.ComplexProperty(b => b.Close).ComplexProperty(c => c.Currency).Property(p => p.Symbol).HasColumnName("CurrencyClose");
 
@@ -29,6 +33,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			builder.Property(b => b.TradingVolume).HasColumnName("TradingVolume");
 			builder.Property(b => b.Date).HasColumnName("Date");
+
+			// Add Unique index on Symbol, Date and Source
+			builder.HasIndex("SymbolProfileDataSource", "SymbolProfileSymbol", nameof(MarketData.Date))
+				.IsUnique()
+				.HasDatabaseName("IX_MarketData_SymbolProfileDataSource_SymbolProfileSymbol_Date");
 		}
 	}
 }

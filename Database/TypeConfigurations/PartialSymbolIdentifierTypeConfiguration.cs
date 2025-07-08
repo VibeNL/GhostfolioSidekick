@@ -13,6 +13,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasColumnType("integer")
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
+
+			// Add Unique index on Identifier, AllowedAssetClasses and AllowedAssetSubClasses
+			builder.HasIndex(p => new { p.Identifier, p.AllowedAssetClasses, p.AllowedAssetSubClasses })
+				.IsUnique()
+				.HasDatabaseName("IX_PartialSymbolIdentifiers_Identifier_AllowedAssetClass_AllowedAssetSubClass");
 		}
 	}
 }
