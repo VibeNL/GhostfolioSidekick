@@ -147,11 +147,19 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				return true;
 			}
 
-			if (string.Equals(x.Symbol, id, StringComparison.InvariantCultureIgnoreCase) ||
-				(x.AssetSubClass == AssetSubClass.CryptoCurrency &&
-				string.Equals(x.Symbol, id + "USD", StringComparison.InvariantCultureIgnoreCase)) || // Add USD for Yahoo crypto
-				(x.AssetSubClass == AssetSubClass.CryptoCurrency &&
-				string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase))) // Add dashes for CoinGecko
+			if (string.Equals(x.Symbol, id, StringComparison.InvariantCultureIgnoreCase))
+			{
+				return true;
+			}
+
+			if (x.AssetSubClass == AssetSubClass.CryptoCurrency &&
+				string.Equals(x.Symbol, id + "USD", StringComparison.InvariantCultureIgnoreCase)) // Add USD for Yahoo crypto
+			{
+				return true;
+			}
+
+			if (x.AssetSubClass == AssetSubClass.CryptoCurrency &&
+				string.Equals(x.Symbol, id.Replace(" ", "-"), StringComparison.InvariantCultureIgnoreCase)) // Add dashes for CoinGecko
 			{
 				return true;
 			}
