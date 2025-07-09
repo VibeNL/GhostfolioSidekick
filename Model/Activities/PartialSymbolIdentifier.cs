@@ -56,7 +56,7 @@
 			if (other is null) return false;
 			if (ReferenceEquals(this, other)) return true;
 
-			return Identifier == other.Identifier &&
+			return string.Equals(Identifier.Trim(), other.Identifier.Trim(), StringComparison.InvariantCultureIgnoreCase) &&
 				   ListsEqual(AllowedAssetClasses, other.AllowedAssetClasses) &&
 				   ListsEqual(AllowedAssetSubClasses, other.AllowedAssetSubClasses);
 		}

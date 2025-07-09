@@ -128,6 +128,25 @@ namespace GhostfolioSidekick.Activities
 
 		public async Task StoreAll(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
+			// Change to database partialsymbolidentifiers
+			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+
+			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
+			{
+				// If missing from the database, add it
+				foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers)
+				{
+					if (!existingPartialSymbolIdentifiers.Any(x => x == partialSymbolIdentifier))
+					{
+						await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
+						existingPartialSymbolIdentifiers.Add(partialSymbolIdentifier);
+					}
+				}
+
+				activity.PartialSymbolIdentifiers = [.. activity.PartialSymbolIdentifiers.Select(x => existingPartialSymbolIdentifiers.FirstOrDefault(y => y == x) ?? x)];
+			}
+
+
 			// Deduplicate entities
 			var existingActivities = await databaseContext.Activities.ToListAsync();
 			var existingTransactionIds = existingActivities.Select(x => x.TransactionId).ToList();
@@ -161,38 +180,6 @@ namespace GhostfolioSidekick.Activities
 				{
 					databaseContext.Activities.RemoveRange(existingActivity);
 					await databaseContext.Activities.AddRangeAsync(newActivity);
-				}
-			}
-
-			// Replace PartialSymbolIdentifier with the one from the database
-			var partialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
-
-			// Make sure all partialidentifiers are in the database
-			foreach (var activity in activities)
-			{
-				if (activity is IActivityWithPartialIdentifier activityWithId)
-				{
-					foreach (var partialSymbolIdentifier in activityWithId.PartialSymbolIdentifiers)
-					{
-						// Use our custom equality check instead of Contains
-						if (!partialSymbolIdentifiers.Any(existing => existing.Equals(partialSymbolIdentifier)))
-						{
-							await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
-							partialSymbolIdentifiers.Add(partialSymbolIdentifier);
-						}
-					}
-				}
-			}
-
-			await databaseContext.SaveChangesAsync();
-
-			foreach (var activity in databaseContext.Activities)
-			{
-				if (activity is IActivityWithPartialIdentifier activityWithId)
-				{
-					activityWithId.PartialSymbolIdentifiers = activityWithId.PartialSymbolIdentifiers
-						.Select(x => partialSymbolIdentifiers.FirstOrDefault(y => y.Equals(x)) ?? throw new NotSupportedException())
-						.ToList();
 				}
 			}
 

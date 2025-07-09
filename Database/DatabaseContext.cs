@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 namespace GhostfolioSidekick.Database
@@ -42,6 +43,12 @@ namespace GhostfolioSidekick.Database
 			{
 				optionsBuilder.UseSqlite($"Data Source=ghostfoliosidekick.db");
 			}
+
+			base.OnConfiguring(optionsBuilder);
+
+			//optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information)
+			//.EnableSensitiveDataLogging()
+			//.EnableDetailedErrors();
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -74,31 +81,31 @@ namespace GhostfolioSidekick.Database
 			return Database.ExecuteSqlRawAsync(sql, cancellationToken);
 		}
 
-        public async Task<List<Dictionary<string, object?>>> ExecuteDynamicQuery(string sql)
-        {
-            await using var command = Database.GetDbConnection().CreateCommand();
-            command.CommandText = sql;
+		public async Task<List<Dictionary<string, object?>>> ExecuteDynamicQuery(string sql)
+		{
+			await using var command = Database.GetDbConnection().CreateCommand();
+			command.CommandText = sql;
 
-            await Database.OpenConnectionAsync();
+			await Database.OpenConnectionAsync();
 
-            var result = new List<Dictionary<string, object?>>();
+			var result = new List<Dictionary<string, object?>>();
 
-            await using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                var row = new Dictionary<string, object?>();
+			await using var reader = await command.ExecuteReaderAsync();
+			while (await reader.ReadAsync())
+			{
+				var row = new Dictionary<string, object?>();
 
-                for (int i = 0; i < reader.FieldCount; i++)
-                {
-                    var columnName = reader.GetName(i);
-                    row[columnName] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
-                }
+				for (int i = 0; i < reader.FieldCount; i++)
+				{
+					var columnName = reader.GetName(i);
+					row[columnName] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
+				}
 
-                result.Add(row);
-            }
+				result.Add(row);
+			}
 
-            await Database.CloseConnectionAsync();
-            return result;
-        }
+			await Database.CloseConnectionAsync();
+			return result;
+		}
 	}
 }
