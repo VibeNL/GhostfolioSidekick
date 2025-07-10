@@ -96,11 +96,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					symbol.MarketData.Add(marketData);
 				}
 
-				if (!await databaseContext.SymbolProfiles.ContainsAsync(symbol).ConfigureAwait(false))
-				{
-					await databaseContext.SymbolProfiles.AddAsync(symbol);
-				}
-
 				await databaseContext.SaveChangesAsync();
 				logger.LogDebug($"Market data for {symbol.Symbol} from {symbol.DataSource} gathered");
 			}
