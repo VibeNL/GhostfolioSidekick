@@ -233,10 +233,3 @@ ghostfoliosidekick:
 ## Contributing
 
 * Feel free to submit any issue or PR's you think necessary
-
-
-### Fix list
-- Marketdata without symbol
-- Duplicate PartialIdentifiers 
-- #559
-
