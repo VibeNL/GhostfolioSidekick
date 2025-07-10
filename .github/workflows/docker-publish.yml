@@ -22,25 +22,22 @@ env:
   
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  DOTNET_VERSION: '9.0.x'
+  JAVA_VERSION: '21'
  
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions: write-all
-      # contents: read
-      # packages: write
-      # issues: write
-      # pull-requests: write
-      # # This is used to complete the identity challenge
-      # # with sigstore/fulcio when running outside of PRs.
-      # id-token: write
+
+    outputs:
+      secrets-present: ${{ steps.checksecrets.outputs.secretspresent }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          fetch-depth: '0'
+          fetch-depth: 0
 
       - name: Check secrets presence
         id: checksecrets
@@ -51,130 +48,203 @@ jobs:
           else
             echo "secretspresent=YES" >> $GITHUB_OUTPUT
           fi
-        env:
-          SECRET: ${{ secrets.SECRET}}
-      
+
+      # Setup all required tools in parallel where possible
       - name: Set up JDK
+        if: steps.checksecrets.outputs.secretspresent == 'YES'
         uses: actions/setup-java@v4
         with:
-          java-version: 21
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Install Mono
-        run: |
-          sudo apt update
-          sudo apt install -y mono-complete
-
-      - name: Cache SonarCloud packages
+      # Improved caching strategy
+      - name: Cache .NET packages
         uses: actions/cache@v4
         with:
-          path: ~\sonar\cache
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.fsproj', '**/*.vbproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Cache SonarCloud packages
+        if: steps.checksecrets.outputs.secretspresent == 'YES'
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Install WASM tools
+      # Install tools more efficiently
+      - name: Install required workloads and tools
         run: |
           dotnet workload install wasm-tools
-
+          
       - name: Install SonarCloud scanners
+        if: steps.checksecrets.outputs.secretspresent == 'YES'
         run: |
           dotnet tool install --global dotnet-sonarscanner
           dotnet tool install --global dotnet-coverage
 
+      # Restore dependencies first
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Build and analyze with SonarCloud (optimized)
       - name: Build and analyze with SonarCloud
-        if: (steps.checksecrets.outputs.secretspresent == 'YES')
+        if: steps.checksecrets.outputs.secretspresent == 'YES'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-          dotnet build
-          dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
+          dotnet-sonarscanner begin \
+            /k:"VibeNL_GhostfolioSidekick" \
+            /o:"vibenl" \
+            /d:sonar.login="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
+            /d:sonar.coverage.exclusions="**/*Tests*/**,**/wwwroot/**"
+          
+          dotnet build --no-restore --configuration Release
+          
+          dotnet-coverage collect "dotnet test --no-build --configuration Release --verbosity normal" \
+            -f xml -o "coverage.xml"
+          
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
           
-      - name: Build and analyze without SonarCloud
-        if: (steps.checksecrets.outputs.secretspresent == 'NO')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # Build without SonarCloud (optimized)
+      - name: Build and test without SonarCloud
+        if: steps.checksecrets.outputs.secretspresent == 'NO'
         run: |
-          dotnet build
-          dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
-      
-      # Install the cosign tool except on PR
-      # https://github.com/sigstore/cosign-installer
+          dotnet build --no-restore --configuration Release
+          dotnet test --no-build --configuration Release --verbosity normal
+
+      # Upload test results
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            **/TestResults/**/*.xml
+            **/TestResults/**/*.trx
+            coverage.xml
+
+  docker:
+    needs: build
+    if: needs.build.outputs.secrets-present == 'YES'
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install cosign (for security signing)
       - name: Install cosign
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v3.3.0
         with:
           cosign-release: 'v2.1.1'
 
-      # Workaround: https://github.com/docker/build-push-action/issues/461
+      # Setup Docker buildx with enhanced caching
       - name: Setup Docker buildx
-        if: (steps.checksecrets.outputs.secretspresent == 'YES')
         uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: (steps.checksecrets.outputs.secretspresent == 'YES')
+      # Login to Docker registry
+      - name: Log into registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
+      # Extract metadata for Docker (improved tagging)
       - name: Extract Docker metadata
-        if: (steps.checksecrets.outputs.secretspresent == 'YES')
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: vibenl/ghostfoliosidekick
           tags: |
-              # set v2 tag for default branch
-              type=raw,value=v2,enable={{is_default_branch}}
-              type=ref,event=pr
-              # set latest tag for default branch
-              type=raw,value=latest,enable={{is_default_branch}}
+            # set v2 tag for default branch
+            type=raw,value=v2,enable={{is_default_branch}}
+            type=ref,event=pr
+            # set latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # semantic versioning
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+          labels: |
+            org.opencontainers.image.title=${{ github.repository }}
+            org.opencontainers.image.description=GhostfolioSidekick Application
+            org.opencontainers.image.vendor=VibeNL
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      #
-      # tags: ${{ steps.meta.outputs.tags }}
-      #
+      # Build and push Docker image (optimized with better caching)
       - name: Build and push Docker image
-        if: (steps.checksecrets.outputs.secretspresent == 'YES')
         id: build-and-push
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
+          provenance: false
+          sbom: false
 
+      # Sign the image (security best practice)
+      - name: Sign the published Docker image
+        if: github.event_name != 'pull_request'
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: |
+          echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+      # Comment on PR with published version
       - name: Create a PR comment with the published version
         uses: thollander/actions-comment-pull-request@v2
-        if: ${{ github.event_name == 'pull_request' && steps.checksecrets.outputs.secretspresent == 'YES'}}
+        if: github.event_name == 'pull_request'
         with:
           message: |
-            ### Development container published
-
-            Install with:
-
-            ```
-            docker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}
-            ```
+            ### ?? Development container published
+            
+            **Image:** `vibenl/ghostfoliosidekick:pr-${{ github.event.number }}`
+            
+            Install with:        ```bash
+        docker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}
+        ```            
+            **Platforms:** linux/amd64, linux/arm64
+            **Digest:** `${{ steps.build-and-push.outputs.digest }}`
           comment_tag: "development-ghostfoliosidekick-published"
           mode: "recreate"
           pr_number: ${{ github.event.number }}
+
+  security:
+    needs: [build, docker]
+    if: needs.build.outputs.secrets-present == 'YES' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'vibenl/ghostfoliosidekick:latest'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'

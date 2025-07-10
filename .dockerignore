@@ -1,8 +1,10 @@
-**/.classpath
-**/.dockerignore
-**/.env
+# Git and version control
 **/.git
 **/.gitignore
+**/.gitattributes
+
+# IDE and editor files
+**/.classpath
 **/.project
 **/.settings
 **/.toolstarget
@@ -11,15 +13,67 @@
 **/*.*proj.user
 **/*.dbmdl
 **/*.jfm
-**/azds.yaml
+
+# Build outputs
 **/bin
-**/charts
-**/docker-compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
 **/obj
+**/out
+**/TestResults
+
+# Docker files (avoid recursion)
+**/.dockerignore
+**/Dockerfile*
+**/docker-compose*
+
+# Development files
+**/.env
+**/azds.yaml
 **/secrets.dev.yaml
 **/values.dev.yaml
-LICENSE
+
+# Node.js
+**/node_modules
+**/npm-debug.log
+**/yarn-error.log
+**/.npm
+
+# Logs
+**/logs
+**/*.log
+
+# Runtime data
+**/pids
+**/*.pid
+**/*.seed
+**/*.pid.lock
+
+# Coverage and test reports
+**/coverage
+**/.nyc_output
+**/TestResults
+**/.coverage
+
+# Certificates and keys (except the one we explicitly copy)
+**/*.pfx
+**/*.key
+**/*.crt
+**/*.pem
+!certs/aspnetapp.pfx
+
+# Documentation
 README.md
+LICENSE
+**/*.md
+**/docs
+
+# CI/CD
+**/.github
+**/.azure-pipelines
+
+# Package files
+**/*.nuget.props
+**/*.nuget.targets
+
+# Temporary files
+**/tmp
+**/temp

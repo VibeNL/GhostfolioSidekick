@@ -47,6 +47,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				options.UseSqlite(connectionString);
 			});
 
+			// Add health checks with Entity Framework health check
+			builder.Services.AddHealthChecks()
+				.AddDbContextCheck<DatabaseContext>();
+
 			builder.Services.AddControllers(options =>
 			{
 				options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
@@ -72,6 +76,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 
 			// Enable gRPC-Web for browser compatibility
 			app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
+			// Map health checks
+			app.MapHealthChecks("/health");
 
 			// Map gRPC services
 			app.MapGrpcService<SyncGrpcService>().EnableGrpcWeb();
