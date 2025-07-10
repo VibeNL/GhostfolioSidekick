@@ -120,6 +120,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 					break;
 				case "Interest":
 				case "Fixed Term Interest":
+				case "Dual Investment Interest":
 					if (outputCurrency.IsFiat())
 					{
 						yield return PartialActivity.CreateInterest(
@@ -143,6 +144,8 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				case "Deposit To Exchange":
 				case "Locking Term Deposit":
 				case "Unlocking Term Deposit":
+				case "Dual Investment Unlock":
+				case "Dual Investment Lock":
 					yield break;
 				default: throw new NotSupportedException(record.Type);
 			}

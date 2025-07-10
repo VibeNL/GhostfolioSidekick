@@ -90,15 +90,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 					if (existingRecord != null)
 					{
+						databaseContext.MarketDatas.Remove(existingRecord);
 						symbol.MarketData.Remove(existingRecord);
 					}
 
 					symbol.MarketData.Add(marketData);
-				}
-
-				if (!await databaseContext.SymbolProfiles.ContainsAsync(symbol).ConfigureAwait(false))
-				{
-					await databaseContext.SymbolProfiles.AddAsync(symbol);
 				}
 
 				await databaseContext.SaveChangesAsync();
