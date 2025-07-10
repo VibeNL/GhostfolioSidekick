@@ -51,7 +51,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			foreach (var identifier in symbolIdentifiers)
 			{
-				string[] ids = [.. new[] { identifier.Identifier, CryptoMapper.Instance.GetFullname(identifier.Identifier) }.Distinct()];
+				string[] ids = [.. new[] {
+					identifier.Identifier,
+					identifier.Identifier + "USD", // Add USD for Yahoo crypto
+					CryptoMapper.Instance.GetFullname(identifier.Identifier) }.Distinct()];
 
 				var symbol = await FindByDataProvider(
 					ids,
@@ -104,7 +107,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				.ThenBy(x => new[] { Currency.EUR.Symbol, Currency.USD.Symbol, Currency.GBP.Symbol, Currency.GBp.Symbol }.Contains(x.Currency.Symbol) ? 0 : 1) // prefer well known currencies
 				.ThenBy(x =>
 				{
-					var index = SortorderDataSources.IndexOf(x.DataSource.ToString().ToUpperInvariant());
+					var index = SortorderDataSources.IndexOf(x.DataSource.Replace(DataSource + "_", string.Empty).ToString().ToUpperInvariant());
 					if (index < 0)
 					{
 						index = int.MaxValue;
@@ -119,7 +122,8 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		private static int FussyMatch(List<string> identifiers, SymbolProfile profile)
 		{
-			return identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile?.Name ?? string.Empty), FuzzySharp.Fuzz.Ratio(x, profile?.Symbol ?? string.Empty)));
+			var match = identifiers.Max(x => Math.Max(FuzzySharp.Fuzz.Ratio(x, profile?.Name ?? string.Empty), FuzzySharp.Fuzz.Ratio(x, profile?.Symbol ?? string.Empty)));
+			return match;
 		}
 
 		private static SymbolProfile FixYahooCrypto(SymbolProfile x)
