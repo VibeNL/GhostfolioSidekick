@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await context.SaveChangesAsync();
 
 			// Act
-			await _fileImporterTask.StoreAll(context, newActivities);
+			await FileImporterTask.StoreAll(context, newActivities);
 
 			// Assert
 			(await context.Activities.CountAsync()).Should().Be(2);
