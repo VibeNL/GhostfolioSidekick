@@ -9,6 +9,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Activities
 {
@@ -126,8 +127,28 @@ namespace GhostfolioSidekick.Activities
 			return sb.ToString();
 		}
 
-		public async Task StoreAll(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+		[SuppressMessage("Major Code Smell", "S3267:Loops should be simplified using the \"Where\" LINQ method", Justification = "Complex database operations with async calls require explicit loops")]
+		public static async Task StoreAll(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
+			// Change to database partialsymbolidentifiers
+			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+
+			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
+			{
+				// If missing from the database, add it
+				foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers)
+				{
+					if (!existingPartialSymbolIdentifiers.Any(x => x == partialSymbolIdentifier))
+					{
+						await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
+						existingPartialSymbolIdentifiers.Add(partialSymbolIdentifier);
+					}
+				}
+
+				activity.PartialSymbolIdentifiers = [.. activity.PartialSymbolIdentifiers.Select(x => existingPartialSymbolIdentifiers.FirstOrDefault(y => y == x) ?? x)];
+			}
+
+
 			// Deduplicate entities
 			var existingActivities = await databaseContext.Activities.ToListAsync();
 			var existingTransactionIds = existingActivities.Select(x => x.TransactionId).ToList();

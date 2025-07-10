@@ -342,5 +342,24 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 			// Assert
 			await a.Should().ThrowAsync<NotSupportedException>();
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDualInvest_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_dual_invest.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2025, 04, 03, 08, 03, 05, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						0.00001600m,
+						"NXT59tKUFomL7Gww59SZk9eQK")
+				]);
+		}
 	}
 }

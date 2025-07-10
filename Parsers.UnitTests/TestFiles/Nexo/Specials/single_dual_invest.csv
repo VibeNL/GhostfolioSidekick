@@ -1,0 +1,4 @@
+﻿Transaction,Type,Input Currency,Input Amount,Output Currency,Output Amount,USD Equivalent,Fee,Fee Currency,Details,Date / Time (UTC)
+NXT59tKUFomL7Gww59SZk9eQK,Dual Investment Interest,BTC,0.00001600,BTC,0.00001600,$1.34,-,-,"approved / BTC Interest Earned",2025-04-03 08:03:05
+NXT41egxeFdo8Js1v6o1Vt99j,Dual Investment Unlock,BTC,0.01000000,BTC,0.01000000,$835.79,-,-,"approved / Transfer from Dual Investment to Savings Wallet",2025-04-03 08:03:05
+NXT2zgJpEmydVapyhpfishwvL,Dual Investment Lock,BTC,-0.01000000,BTC,0.01000000,$840.62,-,-,"approved / Transfer from Savings Wallet to Dual Investment",2025-04-02 06:08:05
