@@ -15,15 +15,15 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
 
-			 // Configure the list properties to be stored as JSON strings
+			 // Configure the list properties to be stored as JSON strings with sorted lists for canonical representation
 			builder.Property(e => e.AllowedAssetClasses)
 				.HasConversion(
-					v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+					v => v == null ? null : JsonSerializer.Serialize(v.OrderBy(x => x).ToList(), (JsonSerializerOptions?)null),
 					v => v == null ? null : JsonSerializer.Deserialize<List<AssetClass>>(v, (JsonSerializerOptions?)null));
 
 			builder.Property(e => e.AllowedAssetSubClasses)
 				.HasConversion(
-					v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+					v => v == null ? null : JsonSerializer.Serialize(v.OrderBy(x => x).ToList(), (JsonSerializerOptions?)null),
 					v => v == null ? null : JsonSerializer.Deserialize<List<AssetSubClass>>(v, (JsonSerializerOptions?)null));
 
 			// Add Unique index on Identifier, AllowedAssetClasses and AllowedAssetSubClasses
