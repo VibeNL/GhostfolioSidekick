@@ -38,9 +38,6 @@ namespace GhostfolioSidekick.Database
 		// special "local" folder for your platform.
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			////optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.MultipleCollectionIncludeWarning));
-			////optionsBuilder.ConfigureWarnings(w => w.Ignore(CoreEventId.DuplicateDependentEntityTypeInstanceWarning)); // We do not duplicate Currency instances
-
 			optionsBuilder.UseLazyLoadingProxies();
 			if (!optionsBuilder.IsConfigured)
 			{
@@ -48,10 +45,6 @@ namespace GhostfolioSidekick.Database
 			}
 
 			base.OnConfiguring(optionsBuilder);
-
-			//optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information)
-			//.EnableSensitiveDataLogging()
-			//.EnableDetailedErrors();
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
