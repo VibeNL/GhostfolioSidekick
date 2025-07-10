@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
@@ -13,6 +14,22 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasColumnType("integer")
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
+
+			 // Configure the list properties to be stored as JSON strings with sorted lists for canonical representation
+			builder.Property(e => e.AllowedAssetClasses)
+				.HasConversion(
+					v => v == null ? null : JsonSerializer.Serialize(v.OrderBy(x => x).ToList(), (JsonSerializerOptions?)null),
+					v => v == null ? null : JsonSerializer.Deserialize<List<AssetClass>>(v, (JsonSerializerOptions?)null));
+
+			builder.Property(e => e.AllowedAssetSubClasses)
+				.HasConversion(
+					v => v == null ? null : JsonSerializer.Serialize(v.OrderBy(x => x).ToList(), (JsonSerializerOptions?)null),
+					v => v == null ? null : JsonSerializer.Deserialize<List<AssetSubClass>>(v, (JsonSerializerOptions?)null));
+
+			// Add Unique index on Identifier, AllowedAssetClasses and AllowedAssetSubClasses
+			builder.HasIndex(p => new { p.Identifier, p.AllowedAssetClasses, p.AllowedAssetSubClasses })
+				.IsUnique()
+				.HasDatabaseName("IX_PartialSymbolIdentifiers_Identifier_AllowedAssetClass_AllowedAssetSubClass");
 		}
 	}
 }

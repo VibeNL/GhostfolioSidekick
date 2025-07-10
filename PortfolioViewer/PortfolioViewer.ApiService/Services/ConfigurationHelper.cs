@@ -180,8 +180,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				nameof(Double) => (T)(object)double.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Decimal) => (T)(object)decimal.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Single) => (T)(object)float.Parse(value, CultureInfo.InvariantCulture),
-				nameof(DateTime) => (T)(object)DateTime.Parse(value, CultureInfo.InvariantCulture),
-				nameof(DateTimeOffset) => (T)(object)DateTimeOffset.Parse(value, CultureInfo.InvariantCulture),
+				nameof(DateTime) => (T)(object)DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal),// Adjust to UTC
+				nameof(DateTimeOffset) => (T)(object)DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal), // Adjust to UTC
 				nameof(TimeSpan) => (T)(object)TimeSpan.Parse(value, CultureInfo.InvariantCulture),
 				nameof(Guid) => (T)(object)Guid.Parse(value),
 				_ => ConvertComplexType<T>(value, targetType)
