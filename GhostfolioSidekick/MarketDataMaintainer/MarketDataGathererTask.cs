@@ -90,6 +90,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 					if (existingRecord != null)
 					{
+						databaseContext.MarketDatas.Remove(existingRecord);
 						symbol.MarketData.Remove(existingRecord);
 					}
 
