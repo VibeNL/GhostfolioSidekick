@@ -64,7 +64,7 @@
 		public override int GetHashCode()
 		{
 			var hash = new HashCode();
-			hash.Add(Identifier);
+			hash.Add(Identifier.Trim());
 			hash.Add(GetListHashCode(AllowedAssetClasses));
 			hash.Add(GetListHashCode(AllowedAssetSubClasses));
 			return hash.ToHashCode();
