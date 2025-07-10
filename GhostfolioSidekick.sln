@@ -74,6 +74,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortfolioViewer.IntegratieT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortfolioViewer.WASM.AI", "PortfolioViewer\PortfolioViewer.WASM.AI\PortfolioViewer.WASM.AI.csproj", "{E9AC436F-ED11-4057-BD64-1423E9850D43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Performance", "Performance\Performance.csproj", "{1D6286DD-1360-8B41-6A17-BC96FEEB5AA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Performance.UnitTests", "Performance.UnitTests\Performance.UnitTests.csproj", "{D28235D1-0218-B8AD-BB5A-AE38409C7E84}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -196,6 +200,14 @@ Global
 		{E9AC436F-ED11-4057-BD64-1423E9850D43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E9AC436F-ED11-4057-BD64-1423E9850D43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E9AC436F-ED11-4057-BD64-1423E9850D43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D6286DD-1360-8B41-6A17-BC96FEEB5AA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D6286DD-1360-8B41-6A17-BC96FEEB5AA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D6286DD-1360-8B41-6A17-BC96FEEB5AA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D6286DD-1360-8B41-6A17-BC96FEEB5AA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D28235D1-0218-B8AD-BB5A-AE38409C7E84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D28235D1-0218-B8AD-BB5A-AE38409C7E84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D28235D1-0218-B8AD-BB5A-AE38409C7E84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D28235D1-0218-B8AD-BB5A-AE38409C7E84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
