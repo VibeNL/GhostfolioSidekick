@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			foreach (var identifier in identifiers)
 			{
-				for (var i = 0; i < 5; i++) // Bug Ghostfolio, sometimes it just return 0 items.
+				for (var i = 0; i < 5; i++) // Bug Ghostfolio, sometimes it just returns 0 items.
 				{
 					var assets = await apiWrapper.GetSymbolProfile(identifier, includeIndexes);
 
