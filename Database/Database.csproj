@@ -8,7 +8,13 @@
 	<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
+	<ItemGroup>
+		<SonarQubeSetting Include="sonar.coverage.exclusions">
+			<Value>**/Migrations/*</Value>
+		</SonarQubeSetting>
+	</ItemGroup>
+
+	<ItemGroup>
     <PackageReference Include="CompareNETObjects" Version="4.83.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
