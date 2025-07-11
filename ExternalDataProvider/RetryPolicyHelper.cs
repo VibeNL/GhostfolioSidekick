@@ -20,6 +20,11 @@ namespace GhostfolioSidekick.ExternalDataProvider
 					   return false;
 				   }
 
+				   if (x is Exception && x.Message.Contains("'System.Dynamic.ExpandoObject' does not contain a definition for"))
+				   {
+					   return false;
+				   }
+
 				   logger.LogWarning($"An error occurred: {x.Message}");
 				   return true;
 			   })

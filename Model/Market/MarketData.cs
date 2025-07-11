@@ -32,5 +32,15 @@
 		public Money Low { get; set; }
 		public decimal TradingVolume { get; set; }
 		public DateOnly Date { get; set; }
+
+		public void CopyFrom(MarketData marketData)
+		{
+			this.Close = marketData.Close;
+			this.Open = marketData.Open;
+			this.High = marketData.High;
+			this.Low = marketData.Low;
+			this.TradingVolume = marketData.TradingVolume;
+			this.Date = marketData.Date;
+		}
 	}
 }

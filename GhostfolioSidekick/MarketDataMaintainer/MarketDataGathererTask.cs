@@ -90,11 +90,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 					if (existingRecord != null)
 					{
-						databaseContext.MarketDatas.Remove(existingRecord);
-						symbol.MarketData.Remove(existingRecord);
+						existingRecord.CopyFrom(marketData);
 					}
-
-					symbol.MarketData.Add(marketData);
+					else
+					{
+						symbol.MarketData.Add(marketData);
+					}
 				}
 
 				await databaseContext.SaveChangesAsync();
