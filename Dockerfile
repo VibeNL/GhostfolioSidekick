@@ -31,29 +31,42 @@ COPY ["Parsers/Parsers.csproj", "Parsers/"]
 COPY ["Cryptocurrency/Cryptocurrency.csproj", "Cryptocurrency/"]
 COPY ["ExternalDataProvider/ExternalDataProvider.csproj", "ExternalDataProvider/"]
 COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer/PortfolioViewer.ApiService/"]
+COPY ["PortfolioViewer/PortfolioViewer.WASM.AI/PortfolioViewer.WASM.AI.csproj", "PortfolioViewer/PortfolioViewer.WASM.AI/"]
 COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer/PortfolioViewer.WASM/"]
 COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
 
 # Restore dependencies for all projects
-RUN dotnet restore "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -a $TARGETARCH && \
-    dotnet restore "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -a $TARGETARCH && \
-    dotnet restore "GhostfolioSidekick/GhostfolioSidekick.csproj" -a $TARGETARCH
+RUN dotnet restore "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
+    dotnet restore "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
+    dotnet restore "GhostfolioSidekick/GhostfolioSidekick.csproj"
 
 # Copy the entire source code
 COPY . .
 
 # Build all projects in Release mode
+# Build each project separately and handle any gRPC protoc issues by using build platform tools
 RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" \
         -c Release \
-        -a $TARGETARCH \
-        --no-restore && \
-    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" \
+        --no-restore \
+        /p:ProtobufToolsOs=linux \
+        /p:ProtobufToolsCpu=x64 || \
+    (echo "First build failed, trying without protobuf arch specification..." && \
+     dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" \
         -c Release \
-        -a $TARGETARCH \
-        --no-restore && \
-    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" \
+        --no-restore)
+
+RUN dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" \
         -c Release \
-        -a $TARGETARCH \
+        --no-restore \
+        /p:ProtobufToolsOs=linux \
+        /p:ProtobufToolsCpu=x64 || \
+    (echo "First WASM build failed, trying without protobuf arch specification..." && \
+     dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" \
+        -c Release \
+        --no-restore)
+
+RUN dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" \
+        -c Release \
         --no-restore
 
 # Publish API service
@@ -61,7 +74,6 @@ FROM build AS publish-api
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
 RUN dotnet publish "PortfolioViewer.ApiService.csproj" \
     -c Release \
-    -a $TARGETARCH \
     --no-build \
     --no-restore \
     -o /app/publish \
@@ -72,7 +84,6 @@ FROM build AS publish-wasm
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
 RUN dotnet publish "PortfolioViewer.WASM.csproj" \
     -c Release \
-    -a $TARGETARCH \
     --no-build \
     --no-restore \
     -o /app/publish-wasm \
@@ -83,7 +94,6 @@ FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
 RUN dotnet publish "GhostfolioSidekick.csproj" \
     -c Release \
-    -a $TARGETARCH \
     --no-build \
     --no-restore \
     -o /app/publish-sidekick \
@@ -99,7 +109,7 @@ WORKDIR /app
 
 # Install only supervisor in a single optimized layer
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends supervisor && \
+    apt-get install -y --no-install-recommends supervisor curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -115,14 +125,9 @@ COPY --chown=appuser:appgroup supervisord.conf /etc/supervisor/conf.d/supervisor
 RUN mkdir -p /https /var/log/supervisor && \
     chown -R appuser:appgroup /https /var/log/supervisor /app
 
-# Copy SSL certificate if it exists (optional)
-COPY --chown=appuser:appgroup certs/aspnetapp.pfx /https/aspnetapp.pfx
-
 # Set environment variables for production
 ENV ASPNETCORE_ENVIRONMENT=Production \
     ASPNETCORE_URLS="http://+:80;https://+:443" \
-    ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx \
-    ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere \
     DOTNET_RUNNING_IN_CONTAINER=true \
     DOTNET_USE_POLLING_FILE_WATCHER=true \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
