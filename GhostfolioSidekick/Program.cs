@@ -12,6 +12,7 @@ using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using GhostfolioSidekick.PortfolioAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -100,16 +101,22 @@ namespace GhostfolioSidekick
 							services.AddTransient<ICoinGeckoRestClient, CoinGeckoRestClient>();
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
-							services.AddSingleton<ISymbolMatcher[]>(sp => [
-									sp.GetRequiredService<YahooRepository>(),
-									sp.GetRequiredService<CoinGeckoRepository>(),
-									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
-									sp.GetRequiredService<ManualSymbolMatcher>()
-								]);
-							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>()]);
-							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
+							services.AddSingleton<ISymbolMatcher[]>(sp => new ISymbolMatcher[]
+							{
+								sp.GetRequiredService<YahooRepository>(),
+								sp.GetRequiredService<CoinGeckoRepository>(),
+								sp.GetRequiredService<GhostfolioSymbolMatcher>(),
+								sp.GetRequiredService<ManualSymbolMatcher>()
+							});
+							services.AddSingleton<IStockPriceRepository[]>(sp => new IStockPriceRepository[] { sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>() });
+							services.AddSingleton<IStockSplitRepository[]>(sp => new IStockSplitRepository[] { sp.GetRequiredService<YahooRepository>() });
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
+
+							// Register Portfolio Analysis services
+							services.AddScoped<EnhancedPortfolioPerformanceCalculator>();
+							services.AddScoped<MarketDataPortfolioPerformanceCalculator>();
+							services.AddScoped<PortfolioAnalysisService>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							RegisterAllWithInterface<IScheduledWork>(services);
