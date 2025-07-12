@@ -13,6 +13,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasColumnType("integer")
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
+
+			// Configure shadow properties for foreign key
+			builder.Property<string>("SymbolProfileSymbol").IsRequired();
+			builder.Property<string>("SymbolProfileDataSource").IsRequired();
 		}
 	}
 }

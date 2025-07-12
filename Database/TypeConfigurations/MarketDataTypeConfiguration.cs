@@ -16,8 +16,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasAnnotation("Key", 0);
 
 			// Configure shadow properties for foreign key
-			builder.Property<string>("SymbolProfileSymbol");
-			builder.Property<string>("SymbolProfileDataSource");
+			builder.Property<string>("SymbolProfileSymbol").IsRequired();
+			builder.Property<string>("SymbolProfileDataSource").IsRequired();
 
 			builder.ComplexProperty(b => b.Close).Property(p => p.Amount).HasColumnName("Close");
 			builder.ComplexProperty(b => b.Close).ComplexProperty(c => c.Currency).Property(p => p.Symbol).HasColumnName("CurrencyClose");
