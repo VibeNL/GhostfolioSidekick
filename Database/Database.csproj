@@ -9,7 +9,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<SonarQubeSetting Include="sonar.coverage.exclusions">
+		<SonarQubeSetting Include="sonar.exclusions">
 			<Value>**/Migrations/*</Value>
 		</SonarQubeSetting>
 	</ItemGroup>
