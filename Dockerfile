@@ -7,6 +7,12 @@ ARG TARGETPLATFORM
 
 WORKDIR /src
 
+# Set container environment variables
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV DOTNET_gcServer=0
+ENV DOTNET_GCHeapCount=1
+ENV DOTNET_gcConcurrent=0
+
 # Install dependencies in optimized layers
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -16,6 +22,7 @@ RUN apt-get update && \
         curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
+    npm install -g typescript && \
     dotnet workload install wasm-tools && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -43,28 +50,45 @@ RUN dotnet restore "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.A
 # Copy the entire source code
 COPY . .
 
-# Build all projects in Release mode
-# Build each project separately and handle any gRPC protoc issues by using build platform tools
+# Compile TypeScript files first if they exist
+RUN if [ -f "PortfolioViewer/PortfolioViewer.WASM/tsconfig.json" ]; then \
+        cd PortfolioViewer/PortfolioViewer.WASM && \
+        npx tsc; \
+    fi
+
+# Build projects in correct order to handle dependencies
+RUN dotnet build "Database/Database.csproj" -c Release --no-restore
+RUN dotnet build "Model/Model.csproj" -c Release --no-restore
+RUN dotnet build "Configuration/Configuration.csproj" -c Release --no-restore
+RUN dotnet build "GhostfolioAPI/GhostfolioAPI.csproj" -c Release --no-restore
+RUN dotnet build "Parsers/Parsers.csproj" -c Release --no-restore
+RUN dotnet build "Cryptocurrency/Cryptocurrency.csproj" -c Release --no-restore
+RUN dotnet build "ExternalDataProvider/ExternalDataProvider.csproj" -c Release --no-restore
+RUN dotnet build "PortfolioViewer/PortfolioViewer.ServiceDefaults/PortfolioViewer.ServiceDefaults.csproj" -c Release --no-restore
+RUN dotnet build "PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj" -c Release --no-restore
+RUN dotnet build "PortfolioViewer/PortfolioViewer.WASM.AI/PortfolioViewer.WASM.AI.csproj" -c Release --no-restore
+
+# Build API service with gRPC protobuf handling
 RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" \
         -c Release \
         --no-restore \
         /p:ProtobufToolsOs=linux \
         /p:ProtobufToolsCpu=x64 || \
-    (echo "First build failed, trying without protobuf arch specification..." && \
-     dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" \
+    dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" \
         -c Release \
-        --no-restore)
+        --no-restore
 
+# Build WASM project (native compilation will be disabled in container via project file)
 RUN dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" \
         -c Release \
         --no-restore \
         /p:ProtobufToolsOs=linux \
         /p:ProtobufToolsCpu=x64 || \
-    (echo "First WASM build failed, trying without protobuf arch specification..." && \
-     dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" \
+    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" \
         -c Release \
-        --no-restore)
+        --no-restore
 
+# Build Sidekick
 RUN dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" \
         -c Release \
         --no-restore
@@ -79,7 +103,7 @@ RUN dotnet publish "PortfolioViewer.ApiService.csproj" \
     -o /app/publish \
     /p:UseAppHost=false
 
-# Publish WASM
+# Publish WASM (native compilation disabled via project file)
 FROM build AS publish-wasm
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
 RUN dotnet publish "PortfolioViewer.WASM.csproj" \

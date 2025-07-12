@@ -192,7 +192,7 @@ jobs:
             org.opencontainers.image.description=GhostfolioSidekick Application
             org.opencontainers.image.vendor=VibeNL
 
-      # Build and push Docker image (optimized with better caching)
+      # Build and push Docker image (optimized with better caching and WASM build fix)
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v5
@@ -207,6 +207,8 @@ jobs:
           file: ./Dockerfile
           provenance: false
           sbom: false
+          build-args: |
+            DOTNET_RUNNING_IN_CONTAINER=true
 
       # Sign the image (security best practice)
       - name: Sign the published Docker image
@@ -222,7 +224,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         if: github.event_name == 'pull_request'
         with:
-          message: "### ?? Development container published\n\n**Image:** `vibenl/ghostfoliosidekick:pr-${{ github.event.number }}`\n\nInstall with:\n```bash\ndocker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}\n```\n\n**Platforms:** linux/amd64, linux/arm64\n**Digest:** `${{ steps.build-and-push.outputs.digest }}`"
+          message: "### ?? Development container published\n\n**Image:** `vibenl/ghostfoliosidekick:pr-${{ github.event.number }}`\n\nInstall with:\n```bash\ndocker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}\n```\n\n**Platforms:** linux/amd64, linux/arm64\n**Digest:** `${{ steps.build-and-push.outputs.digest }}`\n\n**Note:** WASM native compilation is disabled in container builds for better performance and reliability."
           comment_tag: "development-ghostfoliosidekick-published"
 
   security:

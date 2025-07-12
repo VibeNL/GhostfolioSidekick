@@ -5,7 +5,9 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
-		<WasmBuildNative>true</WasmBuildNative>
+		<!-- Use conditional WasmBuildNative based on environment -->
+		<WasmBuildNative Condition="'$(DOTNET_RUNNING_IN_CONTAINER)' != 'true'">true</WasmBuildNative>
+		<WasmBuildNative Condition="'$(DOTNET_RUNNING_IN_CONTAINER)' == 'true'">false</WasmBuildNative>
 		<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
