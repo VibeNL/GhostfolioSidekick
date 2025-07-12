@@ -216,19 +216,8 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         if: github.event_name == 'pull_request'
         with:
-          message: |
-            ### ?? Development container published
-            
-            **Image:** `vibenl/ghostfoliosidekick:pr-${{ github.event.number }}`
-            
-            Install with:        ```bash
-        docker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}
-        ```            
-            **Platforms:** linux/amd64, linux/arm64
-            **Digest:** `${{ steps.build-and-push.outputs.digest }}`
+          message: "### ?? Development container published\n\n**Image:** `vibenl/ghostfoliosidekick:pr-${{ github.event.number }}`\n\nInstall with:\n```bash\ndocker pull vibenl/ghostfoliosidekick:pr-${{ github.event.number }}\n```\n\n**Platforms:** linux/amd64, linux/arm64\n**Digest:** `${{ steps.build-and-push.outputs.digest }}`"
           comment_tag: "development-ghostfoliosidekick-published"
-          mode: "recreate"
-          pr_number: ${{ github.event.number }}
 
   security:
     needs: [build, docker]
