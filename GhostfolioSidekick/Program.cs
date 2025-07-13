@@ -84,10 +84,10 @@ namespace GhostfolioSidekick
 								var settings = x.GetService<IApplicationSettings>();
 								return settings!.ConfigurationInstance.Settings;
 							});
-							services.AddDbContextFactory<DatabaseContext>(options =>
+							services.AddDbContextFactory<DatabaseContext>((serviceProvider, options) =>
 							{
-								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
-								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+								var settings = serviceProvider.GetRequiredService<IApplicationSettings>();
+								options.UseSqlite($"Data Source={settings.FileImporterPath}/ghostfoliosidekick.db");
 							});
 
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();
