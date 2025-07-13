@@ -117,6 +117,7 @@ namespace GhostfolioSidekick
 							services.AddScoped<EnhancedPortfolioPerformanceCalculator>();
 							services.AddScoped<MarketDataPortfolioPerformanceCalculator>();
 							services.AddScoped<PortfolioAnalysisService>();
+							services.AddScoped<PortfolioPerformanceStorageService>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							RegisterAllWithInterface<IScheduledWork>(services);

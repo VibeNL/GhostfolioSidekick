@@ -30,6 +30,8 @@
 
 		CleanupDatabase,
 
+		StorageMaintenance,
+
 		SyncAccountsWithGhostfolio,
 
 		SyncActivitiesWithGhostfolio,

@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,8 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
 
 		public virtual DbSet<MarketData> MarketDatas { get; set; }
+
+		public virtual DbSet<PortfolioPerformanceSnapshot> PortfolioPerformanceSnapshots { get; set; }
 
 		public DatabaseContext()
 		{

@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.Analysis
 {
 	public class PortfolioPerformanceAnalysisTask(
 		IDbContextFactory<DatabaseContext> dbContextFactory,
-		PortfolioAnalysisService portfolioAnalysisService,
+		PortfolioAnalysisService analysisService,
 		MarketDataPortfolioPerformanceCalculator marketDataCalculator,
 		ILogger<PortfolioPerformanceAnalysisTask> logger) : IScheduledWork
 	{
@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Analysis
 
 		public async Task DoWork()
 		{
-			logger.LogInformation("Starting market data-driven portfolio performance analysis task");
+			logger.LogInformation("Starting enhanced portfolio performance analysis task with persistent storage");
 
 			try
 			{
@@ -46,20 +46,14 @@ namespace GhostfolioSidekick.Analysis
 				// Check market data quality
 				await AssessMarketDataQuality(holdings);
 
-				// Generate comprehensive portfolio insights
-				await portfolioAnalysisService.GeneratePortfolioInsightsAsync(holdings, Currency.EUR);
+				// Generate standard performance report with persistent storage
+				await GenerateStandardPerformanceReport(holdings, Currency.EUR);
 
-				// Analyze performance for different time periods
-				await AnalyzeMultiplePeriodsAsync(holdings);
+				// Generate detailed analysis for individual holdings
+				await GenerateDetailedHoldingAnalysis(holdings, Currency.EUR);
 
-				// Compare different periods using market data
-				await ComparePerformancePeriodsAsync(holdings);
-
-				// Generate individual holding reports with market data
-				await GenerateAccurateHoldingReportsAsync(holdings, Currency.EUR);
-
-				// Generate comprehensive market data-driven report
-				await GenerateMarketDataDrivenReportAsync(holdings, Currency.EUR);
+				// Display storage statistics and available periods
+				await DisplayStorageStatistics();
 
 				logger.LogInformation("Portfolio performance analysis completed successfully");
 			}
@@ -126,94 +120,74 @@ namespace GhostfolioSidekick.Analysis
 			await Task.CompletedTask; // Placeholder for any async operations
 		}
 
-		private async Task AnalyzeMultiplePeriodsAsync(List<Holding> holdings)
+		/// <summary>
+		/// Generate standard performance report using stored calculations
+		/// </summary>
+		private async Task GenerateStandardPerformanceReport(List<Holding> holdings, Currency baseCurrency)
 		{
-			var now = DateTime.Now;
-			var baseCurrency = Currency.EUR; // Could be configurable
-
-			// Analyze different time periods
-			var periods = new[]
-			{
-				("Last Month", now.AddMonths(-1), now),
-				("Last Quarter", now.AddMonths(-3), now),
-				("Last 6 Months", now.AddMonths(-6), now),
-				("Last Year", now.AddYears(-1), now),
-				("Year to Date", new DateTime(now.Year, 1, 1), now)
-			};
-
-			foreach (var (periodName, startDate, endDate) in periods)
-			{
-				logger.LogInformation("Analyzing performance for period: {PeriodName}", periodName);
-
-				try
-				{
-					var hasActivities = holdings
-						.SelectMany(h => h.Activities)
-						.Any(a => a.Date >= startDate && a.Date <= endDate);
-
-					if (!hasActivities)
-					{
-						logger.LogInformation("No activities found for {PeriodName}, skipping", periodName);
-						continue;
-					}
-
-					logger.LogInformation("=== {PeriodName} Performance ===", periodName);
-					
-					 // Use market data-driven analysis for maximum accuracy
-					await portfolioAnalysisService.AnalyzePortfolioPerformanceAsync(
-						holdings, startDate, endDate, baseCurrency);
-
-					logger.LogInformation(""); // Empty line for readability
-				}
-				catch (Exception ex)
-				{
-					logger.LogWarning(ex, "Failed to analyze performance for {PeriodName}", periodName);
-				}
-			}
-		}
-
-		private async Task ComparePerformancePeriodsAsync(List<Holding> holdings)
-		{
-			logger.LogInformation("Comparing performance across different periods using market data");
-
-			var now = DateTime.Now;
-			var baseCurrency = Currency.EUR;
-
-			var comparisonPeriods = new List<(string Name, DateTime Start, DateTime End)>
-			{
-				("Q1 Current Year", new DateTime(now.Year, 1, 1), new DateTime(now.Year, 3, 31)),
-				("Q2 Current Year", new DateTime(now.Year, 4, 1), new DateTime(now.Year, 6, 30)),
-				("Q3 Current Year", new DateTime(now.Year, 7, 1), new DateTime(now.Year, 9, 30)),
-				("Q4 Current Year", new DateTime(now.Year, 10, 1), new DateTime(now.Year, 12, 31)),
-				("Last 12 Months", now.AddYears(-1), now),
-				("Last 6 Months", now.AddMonths(-6), now),
-				("Last 3 Months", now.AddMonths(-3), now)
-			};
+			logger.LogInformation("=== Standard Performance Report (Stored) ===");
 
 			try
 			{
-				await portfolioAnalysisService.ComparePerformancePeriodsAsync(holdings, comparisonPeriods, baseCurrency);
+				// Get standard performance reports with storage
+				var performanceResults = await analysisService.GetStandardPerformanceReportAsync(
+					holdings, baseCurrency, forceRecalculation: false);
+
+				if (!performanceResults.Any())
+				{
+					logger.LogWarning("No performance data available for any standard periods");
+					return;
+				}
+
+				foreach (var (periodName, performance) in performanceResults)
+				{
+					logger.LogInformation("{PeriodName}: TWR {TWR:F2}%, Dividends {Dividends}, Value {InitialValue} ? {FinalValue}",
+						periodName, performance.TimeWeightedReturn, performance.TotalDividends, 
+						performance.InitialValue, performance.FinalValue);
+				}
+
+				// Generate detailed summary for the most recent period
+				var recentPeriod = performanceResults.FirstOrDefault();
+				if (recentPeriod.Value != null)
+				{
+					logger.LogInformation("=== Detailed Summary for {PeriodName} ===", recentPeriod.Key);
+					var summary = await analysisService.GeneratePerformanceSummaryAsync(
+						holdings, recentPeriod.Value.StartDate, recentPeriod.Value.EndDate, baseCurrency, forceRecalculation: false);
+					
+					var lines = summary.Split('\n');
+					foreach (var line in lines)
+					{
+						logger.LogInformation(line);
+					}
+				}
 			}
 			catch (Exception ex)
 			{
-				logger.LogWarning(ex, "Error during performance period comparison");
+				logger.LogWarning(ex, "Error generating standard performance report");
 			}
 		}
 
 		/// <summary>
-		/// Generate accurate performance reports for specific holdings using market data
+		/// Generate detailed analysis for individual holdings with storage
 		/// </summary>
-		public async Task GenerateAccurateHoldingReportsAsync(List<Holding> holdings, Currency baseCurrency)
+		private async Task GenerateDetailedHoldingAnalysis(List<Holding> holdings, Currency baseCurrency)
 		{
-			logger.LogInformation("Generating accurate individual holding reports using market data");
+			logger.LogInformation("=== Detailed Holding Analysis (Stored) ===");
 
-			foreach (var holding in holdings.Take(10)) // Limit to first 10 holdings for demo
+			try
 			{
-				try
+				// Analyze top 10 holdings by activity count
+				var topHoldings = holdings
+					.Where(h => h.Activities.Any())
+					.OrderByDescending(h => h.Activities.Count)
+					.Take(10)
+					.ToList();
+
+				foreach (var holding in topHoldings)
 				{
 					var symbolProfile = holding.SymbolProfiles.FirstOrDefault();
 					var symbol = symbolProfile?.Symbol ?? "Unknown";
-					
+
 					logger.LogInformation("Analyzing holding: {Symbol}", symbol);
 
 					if (!holding.Activities.Any())
@@ -225,143 +199,81 @@ namespace GhostfolioSidekick.Analysis
 					var startDate = holding.Activities.Min(a => a.Date);
 					var endDate = holding.Activities.Max(a => a.Date);
 
-					// Generate accurate summary using market data
-					var summary = await portfolioAnalysisService.GenerateAccuratePerformanceSummaryAsync(
-						new List<Holding> { holding }, startDate, endDate, baseCurrency);
-					
-					logger.LogInformation("Performance for {Symbol}:\n{Summary}", symbol, summary);
+					// Generate performance for this specific holding with storage
+					var performance = await analysisService.CalculatePortfolioPerformanceAsync(
+						new List<Holding> { holding }, startDate, endDate, baseCurrency, forceRecalculation: false);
 
-					// Generate detailed valuation report if market data is available
+					logger.LogInformation("{Symbol} Performance: TWR {TWR:F2}%, Dividends {Dividends}, Period {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}",
+						symbol, performance.TimeWeightedReturn, performance.TotalDividends, startDate, endDate);
+
+					// Calculate current value if market data is available
 					if (symbolProfile?.MarketData != null && symbolProfile.MarketData.Any())
 					{
 						var currentValue = await marketDataCalculator.CalculateAccuratePortfolioValueAsync(
 							new List<Holding> { holding }, DateTime.Now, baseCurrency);
 						
-						var quantity = holding.Activities
-							.OfType<Model.Activities.Types.BuySellActivity>()
-							.Sum(a => a.Quantity);
+						var quantity = marketDataCalculator.CalculateQuantityAtDate(holding.Activities, DateTime.Now);
 
-						logger.LogInformation("Current holding details:");
-						logger.LogInformation("  Quantity: {Quantity:F4}", quantity);
-						logger.LogInformation("  Current Value: {Value}", currentValue);
-						logger.LogInformation("  Market Data Points: {DataPoints}", symbolProfile.MarketData.Count);
+						logger.LogInformation("  Current Position: {Quantity:F4} shares, Value: {Value}",
+							quantity, currentValue);
 					}
 				}
-				catch (Exception ex)
-				{
-					logger.LogWarning(ex, "Failed to generate report for holding");
-				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error generating detailed holding analysis");
 			}
 		}
 
 		/// <summary>
-		/// Generate a comprehensive market data-driven portfolio report
+		/// Display storage statistics and available periods for monitoring
 		/// </summary>
-		public async Task GenerateMarketDataDrivenReportAsync(List<Holding> holdings, Currency baseCurrency)
-		{
-			logger.LogInformation("=== Comprehensive Market Data-Driven Portfolio Report ===");
-
-			try
-			{
-				// Overall portfolio statistics
-				var totalHoldings = holdings.Count;
-				var totalActivities = holdings.SelectMany(h => h.Activities).Count();
-				var dateRange = holdings.SelectMany(h => h.Activities).Any() 
-					? $"{holdings.SelectMany(h => h.Activities).Min(a => a.Date):yyyy-MM-dd} to {holdings.SelectMany(h => h.Activities).Max(a => a.Date):yyyy-MM-dd}"
-					: "No activities";
-
-				logger.LogInformation("Portfolio Overview:");
-				logger.LogInformation("  Total Holdings: {TotalHoldings}", totalHoldings);
-				logger.LogInformation("  Total Activities: {TotalActivities}", totalActivities);
-				logger.LogInformation("  Date Range: {DateRange}", dateRange);
-				logger.LogInformation("  Base Currency: {BaseCurrency}", baseCurrency.Symbol);
-				logger.LogInformation("");
-
-				// Current accurate portfolio value
-				var currentValue = await marketDataCalculator.CalculateAccuratePortfolioValueAsync(
-					holdings, DateTime.Now, baseCurrency);
-				logger.LogInformation("Current Portfolio Value (Market Data): {CurrentValue}", currentValue);
-
-				// Recent performance (last 3 months) with market data accuracy
-				var recentStart = DateTime.Now.AddMonths(-3);
-				var recentEnd = DateTime.Now;
-
-				logger.LogInformation("=== Recent Performance Analysis (Market Data-Driven) ===");
-				await portfolioAnalysisService.AnalyzePortfolioPerformanceAsync(
-					holdings, recentStart, recentEnd, baseCurrency);
-
-				// Year-to-date performance
-				var ytdStart = new DateTime(DateTime.Now.Year, 1, 1);
-				logger.LogInformation("=== Year-to-Date Performance Analysis ===");
-				await portfolioAnalysisService.AnalyzePortfolioPerformanceAsync(
-					holdings, ytdStart, DateTime.Now, baseCurrency);
-
-				// Portfolio allocation analysis
-				logger.LogInformation("=== Portfolio Allocation Analysis ===");
-				await AnalyzePortfolioAllocation(holdings, baseCurrency);
-			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex, "Error generating comprehensive report");
-			}
-		}
-
-		/// <summary>
-		/// Analyze portfolio allocation by asset class and currency
-		/// </summary>
-		private async Task AnalyzePortfolioAllocation(List<Holding> holdings, Currency baseCurrency)
+		private async Task DisplayStorageStatistics()
 		{
 			try
 			{
-				var totalValue = await marketDataCalculator.CalculateAccuratePortfolioValueAsync(
-					holdings, DateTime.Now, baseCurrency);
+				logger.LogInformation("=== Performance Storage Statistics ===");
 
-				if (totalValue.Amount == 0)
+				var stats = await analysisService.GetStorageStatisticsAsync();
+				
+				logger.LogInformation("Total Performance Snapshots: {TotalSnapshots}", stats.TotalSnapshots);
+				logger.LogInformation("Latest Snapshots: {LatestSnapshots}", stats.LatestSnapshots);
+				logger.LogInformation("Historical Snapshots: {HistoricalSnapshots}", stats.HistoricalSnapshots);
+				
+				if (stats.OldestSnapshot.HasValue)
 				{
-					logger.LogInformation("Portfolio value is zero, skipping allocation analysis");
-					return;
+					logger.LogInformation("Oldest Snapshot: {OldestSnapshot:yyyy-MM-dd HH:mm:ss}", stats.OldestSnapshot.Value);
+				}
+				
+				if (stats.NewestSnapshot.HasValue)
+				{
+					logger.LogInformation("Newest Snapshot: {NewestSnapshot:yyyy-MM-dd HH:mm:ss}", stats.NewestSnapshot.Value);
 				}
 
-				// Asset class allocation
-				var assetClassAllocation = new Dictionary<string, decimal>();
-				var currencyAllocation = new Dictionary<string, decimal>();
-
-				foreach (var holding in holdings)
+				// Display snapshots by calculation type
+				foreach (var (calcType, count) in stats.SnapshotsByCalculationType)
 				{
-					var symbolProfile = holding.SymbolProfiles.FirstOrDefault();
-					if (symbolProfile == null) continue;
-
-					var holdingValue = await marketDataCalculator.CalculateHoldingValueAsync(holding, DateTime.Now, baseCurrency);
-					var percentage = (holdingValue.Amount / totalValue.Amount) * 100;
-
-					// Asset class allocation
-					var assetClass = symbolProfile.AssetClass.ToString();
-					if (!assetClassAllocation.ContainsKey(assetClass))
-						assetClassAllocation[assetClass] = 0;
-					assetClassAllocation[assetClass] += percentage;
-
-					// Currency allocation  
-					var currency = symbolProfile.Currency?.Symbol ?? "Unknown";
-					if (!currencyAllocation.ContainsKey(currency))
-						currencyAllocation[currency] = 0;
-					currencyAllocation[currency] += percentage;
+					logger.LogInformation("Calculation Type {CalculationType}: {Count} snapshots", calcType, count);
 				}
 
-				logger.LogInformation("Asset Class Allocation:");
-				foreach (var kvp in assetClassAllocation.OrderByDescending(x => x.Value))
+				// Display available periods
+				logger.LogInformation("=== Available Performance Periods ===");
+				var availablePeriods = await analysisService.GetAvailablePeriodsAsync();
+				
+				foreach (var (startDate, endDate, currency, calcType) in availablePeriods.Take(10)) // Show first 10
 				{
-					logger.LogInformation("  {AssetClass}: {Percentage:F1}%", kvp.Key, kvp.Value);
+					logger.LogInformation("Period: {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd} ({Currency}, {CalculationType})",
+						startDate, endDate, currency.Symbol, calcType);
 				}
 
-				logger.LogInformation("Currency Allocation:");
-				foreach (var kvp in currencyAllocation.OrderByDescending(x => x.Value))
+				if (availablePeriods.Count > 10)
 				{
-					logger.LogInformation("  {Currency}: {Percentage:F1}%", kvp.Key, kvp.Value);
+					logger.LogInformation("... and {AdditionalCount} more periods", availablePeriods.Count - 10);
 				}
 			}
 			catch (Exception ex)
 			{
-				logger.LogWarning(ex, "Error analyzing portfolio allocation");
+				logger.LogWarning(ex, "Error displaying storage statistics");
 			}
 		}
 	}
