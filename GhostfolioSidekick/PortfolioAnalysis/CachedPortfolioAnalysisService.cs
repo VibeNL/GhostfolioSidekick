@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.PortfolioAnalysis
 {
 	/// <summary>
-	/// Enhanced portfolio analysis service with persistent performance storage
+	/// Enhanced portfolio analysis service with persistent performance storage and per-asset/account analysis
 	/// </summary>
 	public class PortfolioAnalysisService
 	{
@@ -31,6 +31,8 @@ namespace GhostfolioSidekick.PortfolioAnalysis
 			this.logger = logger;
 		}
 
+		#region Portfolio-wide Performance
+
 		/// <summary>
 		/// Calculate portfolio performance with persistent storage
 		/// </summary>
@@ -41,39 +43,324 @@ namespace GhostfolioSidekick.PortfolioAnalysis
 			Currency baseCurrency,
 			bool forceRecalculation = false)
 		{
+			return await CalculatePerformanceWithScopeAsync(
+				holdings, startDate, endDate, baseCurrency, 
+				PerformanceScope.Portfolio, null, forceRecalculation);
+		}
+
+		/// <summary>
+		/// Get portfolio performance with automatic period detection and storage
+		/// </summary>
+		public async Task<Dictionary<string, PortfolioPerformance>> GetStandardPerformanceReportAsync(
+			List<Holding> holdings,
+			Currency baseCurrency,
+			bool forceRecalculation = false)
+		{
+			var now = DateTime.Now;
+			var periods = new List<(string Name, DateTime Start, DateTime End)>
+			{
+				("Last Week", now.AddDays(-7), now),
+				("Last Month", now.AddMonths(-1), now),
+				("Last Quarter", now.AddMonths(-3), now),
+				("Last 6 Months", now.AddMonths(-6), now),
+				("Last Year", now.AddYears(-1), now),
+				("Year to Date", new DateTime(now.Year, 1, 1), now),
+				("Last 2 Years", now.AddYears(-2), now),
+				("Last 3 Years", now.AddYears(-3), now)
+			};
+
+			// Filter periods that have activities
+			var validPeriods = periods.Where(period =>
+				holdings.SelectMany(h => h.Activities)
+					.Any(a => a.Date >= period.Start && a.Date <= period.End)
+			).ToList();
+
+			logger.LogInformation("Generating standard performance report for {ValidPeriods}/{TotalPeriods} periods with activities",
+				validPeriods.Count, periods.Count);
+
+			return await CalculateMultiplePeriodPerformanceAsync(holdings, validPeriods, baseCurrency, forceRecalculation);
+		}
+
+		#endregion
+
+		#region Per-Account Performance
+
+		/// <summary>
+		/// Calculate performance for a specific account
+		/// </summary>
+		public async Task<PortfolioPerformance> CalculateAccountPerformanceAsync(
+			List<Holding> holdings,
+			string accountName,
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency,
+			bool forceRecalculation = false)
+		{
+			return await CalculatePerformanceWithScopeAsync(
+				holdings, startDate, endDate, baseCurrency,
+				PerformanceScope.Account, accountName, forceRecalculation);
+		}
+
+		/// <summary>
+		/// Calculate performance for all accounts in the portfolio
+		/// </summary>
+		public async Task<Dictionary<string, PortfolioPerformance>> CalculateAllAccountsPerformanceAsync(
+			List<Holding> holdings,
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency,
+			bool forceRecalculation = false)
+		{
+			// Get all unique account names
+			var accountNames = holdings
+				.SelectMany(h => h.Activities)
+				.Where(a => a.Date >= startDate && a.Date <= endDate)
+				.Select(a => a.Account?.Name)
+				.Where(name => !string.IsNullOrEmpty(name))
+				.Distinct()
+				.ToList();
+
+			logger.LogInformation("Calculating performance for {AccountCount} accounts", accountNames.Count);
+
+			var results = new Dictionary<string, PortfolioPerformance>();
+
+			foreach (var accountName in accountNames)
+			{
+				try
+				{
+					var performance = await CalculateAccountPerformanceAsync(
+						holdings, accountName!, startDate, endDate, baseCurrency, forceRecalculation);
+					
+					results[accountName!] = performance;
+					
+					logger.LogDebug("Calculated performance for account {AccountName}: TWR {TWR:F2}%", 
+						accountName, performance.TimeWeightedReturn);
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to calculate performance for account {AccountName}", accountName);
+				}
+			}
+
+			return results;
+		}
+
+		/// <summary>
+		/// Get stored account performances from database
+		/// </summary>
+		public async Task<Dictionary<string, PortfolioPerformance>> GetStoredAccountPerformancesAsync(
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency,
+			string calculationType = "MarketData")
+		{
+			return await storageService.GetAccountPerformancesAsync(startDate, endDate, baseCurrency, calculationType);
+		}
+
+		#endregion
+
+		#region Per-Asset Performance
+
+		/// <summary>
+		/// Calculate performance for a specific asset/symbol
+		/// </summary>
+		public async Task<PortfolioPerformance> CalculateAssetPerformanceAsync(
+			List<Holding> holdings,
+			string symbol,
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency,
+			bool forceRecalculation = false)
+		{
+			return await CalculatePerformanceWithScopeAsync(
+				holdings, startDate, endDate, baseCurrency,
+				PerformanceScope.Asset, symbol, forceRecalculation);
+		}
+
+		/// <summary>
+		/// Calculate performance for all assets in the portfolio
+		/// </summary>
+		public async Task<Dictionary<string, PortfolioPerformance>> CalculateAllAssetsPerformanceAsync(
+			List<Holding> holdings,
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency,
+			bool forceRecalculation = false)
+		{
+			// Get all unique symbols that have activities in the period
+			var symbols = holdings
+				.Where(h => h.Activities.Any(a => a.Date >= startDate && a.Date <= endDate))
+				.SelectMany(h => h.SymbolProfiles)
+				.Select(sp => sp.Symbol)
+				.Distinct()
+				.ToList();
+
+			logger.LogInformation("Calculating performance for {AssetCount} assets", symbols.Count);
+
+			var results = new Dictionary<string, PortfolioPerformance>();
+
+			foreach (var symbol in symbols)
+			{
+				try
+				{
+					var performance = await CalculateAssetPerformanceAsync(
+						holdings, symbol, startDate, endDate, baseCurrency, forceRecalculation);
+					
+					results[symbol] = performance;
+					
+					logger.LogDebug("Calculated performance for asset {Symbol}: TWR {TWR:F2}%", 
+						symbol, performance.TimeWeightedReturn);
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to calculate performance for asset {Symbol}", symbol);
+				}
+			}
+
+			return results;
+		}
+
+		/// <summary>
+		/// Get stored asset performances from database
+		/// </summary>
+		public async Task<Dictionary<string, PortfolioPerformance>> GetStoredAssetPerformancesAsync(
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency,
+			string calculationType = "MarketData")
+		{
+			return await storageService.GetAssetPerformancesAsync(startDate, endDate, baseCurrency, calculationType);
+		}
+
+		#endregion
+
+		#region Multi-dimensional Analysis
+
+		/// <summary>
+		/// Generate comprehensive performance breakdown by portfolio, accounts, and assets
+		/// </summary>
+		public async Task<ComprehensivePerformanceReport> GenerateComprehensivePerformanceReportAsync(
+			List<Holding> holdings,
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency,
+			bool forceRecalculation = false)
+		{
+			logger.LogInformation("Generating comprehensive performance report for period {StartDate} to {EndDate}",
+				startDate, endDate);
+
+			var report = new ComprehensivePerformanceReport
+			{
+				StartDate = startDate,
+				EndDate = endDate,
+				BaseCurrency = baseCurrency,
+				GeneratedAt = DateTime.UtcNow
+			};
+
+			try
+			{
+				// Calculate portfolio-wide performance
+				report.PortfolioPerformance = await CalculatePortfolioPerformanceAsync(
+					holdings, startDate, endDate, baseCurrency, forceRecalculation);
+
+				// Calculate per-account performance
+				report.AccountPerformances = await CalculateAllAccountsPerformanceAsync(
+					holdings, startDate, endDate, baseCurrency, forceRecalculation);
+
+				// Calculate per-asset performance
+				report.AssetPerformances = await CalculateAllAssetsPerformanceAsync(
+					holdings, startDate, endDate, baseCurrency, forceRecalculation);
+
+				// Generate summary statistics
+				report.Summary = GeneratePerformanceSummary(report);
+
+				logger.LogInformation("Comprehensive report generated: Portfolio TWR {PortfolioTWR:F2}%, {AccountCount} accounts, {AssetCount} assets",
+					report.PortfolioPerformance.TimeWeightedReturn, 
+					report.AccountPerformances.Count,
+					report.AssetPerformances.Count);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error generating comprehensive performance report");
+				throw;
+			}
+
+			return report;
+		}
+
+		#endregion
+
+		#region Helper Methods
+
+		/// <summary>
+		/// Core method for calculating performance with different scopes
+		/// </summary>
+		private async Task<PortfolioPerformance> CalculatePerformanceWithScopeAsync(
+			List<Holding> holdings,
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency,
+			PerformanceScope scope,
+			string? scopeIdentifier,
+			bool forceRecalculation)
+		{
 			const string CalculationType = "MarketData";
+
+			// Filter holdings based on scope
+			var relevantHoldings = FilterHoldingsByScope(holdings, scope, scopeIdentifier);
+
+			if (!relevantHoldings.Any())
+			{
+				logger.LogWarning("No holdings found for scope {Scope}:{ScopeId}", scope, scopeIdentifier ?? "All");
+				return CreateEmptyPerformance(startDate, endDate, baseCurrency);
+			}
 
 			// Check if we have a stored calculation and if recalculation is needed
 			if (!forceRecalculation)
 			{
 				var needsRecalc = await storageService.NeedsRecalculationAsync(
-					holdings, startDate, endDate, baseCurrency, CalculationType);
+					relevantHoldings, startDate, endDate, baseCurrency, CalculationType, scope, scopeIdentifier);
 
 				if (!needsRecalc)
 				{
 					var stored = await storageService.GetLatestPerformanceAsync(
-						startDate, endDate, baseCurrency, CalculationType);
+						startDate, endDate, baseCurrency, CalculationType, scope, scopeIdentifier);
 
 					if (stored != null)
 					{
-						logger.LogInformation("Using stored portfolio performance for period {StartDate} to {EndDate}",
-							startDate, endDate);
+						logger.LogInformation("Using stored performance for scope {Scope}:{ScopeId}, period {StartDate} to {EndDate}",
+							scope, scopeIdentifier ?? "All", startDate, endDate);
 						return stored;
 					}
 				}
 			}
 
-			// Calculate fresh performance using the most accurate method available
-			logger.LogInformation("Calculating fresh portfolio performance for period {StartDate} to {EndDate}",
-				startDate, endDate);
+			// Calculate fresh performance
+			logger.LogInformation("Calculating fresh performance for scope {Scope}:{ScopeId}, period {StartDate} to {EndDate}",
+				scope, scopeIdentifier ?? "All", startDate, endDate);
 
-			var performance = await CalculateWithFallback(holdings, startDate, endDate, baseCurrency);
+			var performance = await CalculateWithFallback(relevantHoldings, startDate, endDate, baseCurrency);
 
 			// Store the result
 			await storageService.StorePerformanceAsync(
-				holdings, startDate, endDate, baseCurrency, CalculationType, performance);
+				relevantHoldings, startDate, endDate, baseCurrency, CalculationType, performance, scope, scopeIdentifier);
 
 			return performance;
+		}
+
+		/// <summary>
+		/// Filter holdings based on performance scope
+		/// </summary>
+		private List<Holding> FilterHoldingsByScope(List<Holding> holdings, PerformanceScope scope, string? scopeIdentifier)
+		{
+			return scope switch
+			{
+				PerformanceScope.Account => holdings.Where(h =>
+					h.Activities.Any(a => a.Account?.Name == scopeIdentifier)).ToList(),
+				PerformanceScope.Asset => holdings.Where(h =>
+					h.SymbolProfiles.Any(sp => sp.Symbol == scopeIdentifier)).ToList(),
+				_ => holdings
+			};
 		}
 
 		/// <summary>
@@ -112,37 +399,108 @@ namespace GhostfolioSidekick.PortfolioAnalysis
 		}
 
 		/// <summary>
-		/// Get portfolio performance with automatic period detection and storage
+		/// Calculate performance with fallback strategy
 		/// </summary>
-		public async Task<Dictionary<string, PortfolioPerformance>> GetStandardPerformanceReportAsync(
+		private async Task<PortfolioPerformance> CalculateWithFallback(
 			List<Holding> holdings,
-			Currency baseCurrency,
-			bool forceRecalculation = false)
+			DateTime startDate,
+			DateTime endDate,
+			Currency baseCurrency)
 		{
-			var now = DateTime.Now;
-			var periods = new List<(string Name, DateTime Start, DateTime End)>
+			// Collect activities for the period
+			var allActivities = holdings
+				.SelectMany(h => h.Activities)
+				.Where(a => a.Date >= startDate && a.Date <= endDate)
+				.ToList();
+
+			if (!allActivities.Any())
 			{
-				("Last Week", now.AddDays(-7), now),
-				("Last Month", now.AddMonths(-1), now),
-				("Last Quarter", now.AddMonths(-3), now),
-				("Last 6 Months", now.AddMonths(-6), now),
-				("Last Year", now.AddYears(-1), now),
-				("Year to Date", new DateTime(now.Year, 1, 1), now),
-				("Last 2 Years", now.AddYears(-2), now),
-				("Last 3 Years", now.AddYears(-3), now)
-			};
+				logger.LogWarning("No activities found for the specified period {StartDate} to {EndDate}",
+					startDate, endDate);
+				
+				return CreateEmptyPerformance(startDate, endDate, baseCurrency);
+			}
 
-			// Filter periods that have activities
-			var validPeriods = periods.Where(period =>
-				holdings.SelectMany(h => h.Activities)
-					.Any(a => a.Date >= period.Start && a.Date <= period.End)
-			).ToList();
+			// Try market data-driven calculation first (most accurate)
+			try
+			{
+				logger.LogDebug("Attempting market data-driven calculation");
+				return await marketDataCalculator.CalculateAccuratePerformanceAsync(
+					allActivities, holdings, startDate, endDate, baseCurrency);
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Market data-driven calculation failed, falling back to enhanced calculation");
 
-			logger.LogInformation("Generating standard performance report for {ValidPeriods}/{TotalPeriods} periods with activities",
-				validPeriods.Count, periods.Count);
-
-			return await CalculateMultiplePeriodPerformanceAsync(holdings, validPeriods, baseCurrency, forceRecalculation);
+				// Fallback to enhanced calculator
+				try
+				{
+					logger.LogDebug("Attempting enhanced calculation");
+					return await enhancedCalculator.CalculatePerformanceAsync(
+						allActivities, holdings, startDate, endDate, baseCurrency);
+				}
+				catch (Exception ex2)
+				{
+					logger.LogWarning(ex2, "Enhanced calculation failed, using basic calculation");
+					
+					// Final fallback to basic calculator
+					return basicCalculator.CalculateBasicPerformance(
+						allActivities, holdings, startDate, endDate, baseCurrency);
+				}
+			}
 		}
+
+		private PortfolioPerformance CreateEmptyPerformance(DateTime startDate, DateTime endDate, Currency baseCurrency)
+		{
+			return new PortfolioPerformance(
+				0, new Money(baseCurrency, 0), 0, 0,
+				startDate, endDate, baseCurrency,
+				new Money(baseCurrency, 0), new Money(baseCurrency, 0), new Money(baseCurrency, 0));
+		}
+
+		/// <summary>
+		/// Generate performance summary statistics
+		/// </summary>
+		private PerformanceSummary GeneratePerformanceSummary(ComprehensivePerformanceReport report)
+		{
+			var accountTWRs = report.AccountPerformances.Values.Select(p => p.TimeWeightedReturn).ToList();
+			var assetTWRs = report.AssetPerformances.Values.Select(p => p.TimeWeightedReturn).ToList();
+
+			return new PerformanceSummary
+			{
+				BestPerformingAccount = report.AccountPerformances
+					.OrderByDescending(kvp => kvp.Value.TimeWeightedReturn)
+					.FirstOrDefault(),
+				WorstPerformingAccount = report.AccountPerformances
+					.OrderBy(kvp => kvp.Value.TimeWeightedReturn)
+					.FirstOrDefault(),
+				BestPerformingAsset = report.AssetPerformances
+					.OrderByDescending(kvp => kvp.Value.TimeWeightedReturn)
+					.FirstOrDefault(),
+				WorstPerformingAsset = report.AssetPerformances
+					.OrderBy(kvp => kvp.Value.TimeWeightedReturn)
+					.FirstOrDefault(),
+				AverageAccountTWR = accountTWRs.Any() ? accountTWRs.Average() : 0,
+				AverageAssetTWR = assetTWRs.Any() ? assetTWRs.Average() : 0,
+				AccountTWRStandardDeviation = CalculateStandardDeviation(accountTWRs),
+				AssetTWRStandardDeviation = CalculateStandardDeviation(assetTWRs)
+			};
+		}
+
+		private decimal CalculateStandardDeviation(List<decimal> values)
+		{
+			if (!values.Any()) return 0;
+			
+			var average = values.Average();
+			var sumOfSquaresOfDifferences = values.Sum(val => (double)Math.Pow((double)(val - average), 2));
+			var standardDeviation = Math.Sqrt(sumOfSquaresOfDifferences / values.Count);
+			
+			return (decimal)standardDeviation;
+		}
+
+		#endregion
+
+		#region Existing Methods (updated for compatibility)
 
 		/// <summary>
 		/// Get historical performance data for a specific period
@@ -159,7 +517,7 @@ namespace GhostfolioSidekick.PortfolioAnalysis
 		/// <summary>
 		/// Get all available performance periods
 		/// </summary>
-		public async Task<List<(DateTime StartDate, DateTime EndDate, Currency BaseCurrency, string CalculationType)>> GetAvailablePeriodsAsync()
+		public async Task<List<(DateTime StartDate, DateTime EndDate, Currency BaseCurrency, string CalculationType, PerformanceScope Scope, string? ScopeIdentifier)>> GetAvailablePeriodsAsync()
 		{
 			return await storageService.GetAvailablePeriodsAsync();
 		}
@@ -198,62 +556,6 @@ namespace GhostfolioSidekick.PortfolioAnalysis
 		}
 
 		/// <summary>
-		/// Calculate performance with fallback strategy
-		/// </summary>
-		private async Task<PortfolioPerformance> CalculateWithFallback(
-			List<Holding> holdings,
-			DateTime startDate,
-			DateTime endDate,
-			Currency baseCurrency)
-		{
-			// Collect activities for the period
-			var allActivities = holdings
-				.SelectMany(h => h.Activities)
-				.Where(a => a.Date >= startDate && a.Date <= endDate)
-				.ToList();
-
-			if (!allActivities.Any())
-			{
-				logger.LogWarning("No activities found for the specified period {StartDate} to {EndDate}",
-					startDate, endDate);
-				
-				// Return empty performance
-				return new PortfolioPerformance(
-					0, new Money(baseCurrency, 0), 0, 0,
-					startDate, endDate, baseCurrency,
-					new Money(baseCurrency, 0), new Money(baseCurrency, 0), new Money(baseCurrency, 0));
-			}
-
-			// Try market data-driven calculation first (most accurate)
-			try
-			{
-				logger.LogDebug("Attempting market data-driven calculation");
-				return await marketDataCalculator.CalculateAccuratePerformanceAsync(
-					allActivities, holdings, startDate, endDate, baseCurrency);
-			}
-			catch (Exception ex)
-			{
-				logger.LogWarning(ex, "Market data-driven calculation failed, falling back to enhanced calculation");
-
-				// Fallback to enhanced calculator
-				try
-				{
-					logger.LogDebug("Attempting enhanced calculation");
-					return await enhancedCalculator.CalculatePerformanceAsync(
-						allActivities, holdings, startDate, endDate, baseCurrency);
-				}
-				catch (Exception ex2)
-				{
-					logger.LogWarning(ex2, "Enhanced calculation failed, using basic calculation");
-					
-					// Final fallback to basic calculator
-					return basicCalculator.CalculateBasicPerformance(
-						allActivities, holdings, startDate, endDate, baseCurrency);
-				}
-			}
-		}
-
-		/// <summary>
 		/// Generate a comprehensive performance summary with storage
 		/// </summary>
 		public async Task<string> GeneratePerformanceSummaryAsync(
@@ -289,5 +591,38 @@ namespace GhostfolioSidekick.PortfolioAnalysis
 				   $"• Portfolio Value Change: {performance.InitialValue.Amount:F2} ? {performance.FinalValue.Amount:F2} {baseCurrency.Symbol}\n" +
 				   $"• Net Cash Flows: {performance.NetCashFlows.Amount:F2} {baseCurrency.Symbol}";
 		}
+
+		#endregion
+	}
+
+	/// <summary>
+	/// Comprehensive performance report including portfolio, account, and asset breakdowns
+	/// </summary>
+	public class ComprehensivePerformanceReport
+	{
+		public DateTime StartDate { get; set; }
+		public DateTime EndDate { get; set; }
+		public Currency BaseCurrency { get; set; } = Currency.EUR;
+		public DateTime GeneratedAt { get; set; }
+
+		public PortfolioPerformance PortfolioPerformance { get; set; } = new();
+		public Dictionary<string, PortfolioPerformance> AccountPerformances { get; set; } = new();
+		public Dictionary<string, PortfolioPerformance> AssetPerformances { get; set; } = new();
+		public PerformanceSummary Summary { get; set; } = new();
+	}
+
+	/// <summary>
+	/// Summary statistics for performance analysis
+	/// </summary>
+	public class PerformanceSummary
+	{
+		public KeyValuePair<string, PortfolioPerformance> BestPerformingAccount { get; set; }
+		public KeyValuePair<string, PortfolioPerformance> WorstPerformingAccount { get; set; }
+		public KeyValuePair<string, PortfolioPerformance> BestPerformingAsset { get; set; }
+		public KeyValuePair<string, PortfolioPerformance> WorstPerformingAsset { get; set; }
+		public decimal AverageAccountTWR { get; set; }
+		public decimal AverageAssetTWR { get; set; }
+		public decimal AccountTWRStandardDeviation { get; set; }
+		public decimal AssetTWRStandardDeviation { get; set; }
 	}
 }

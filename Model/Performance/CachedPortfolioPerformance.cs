@@ -45,8 +45,8 @@ namespace GhostfolioSidekick.Model.Performance
 		public DateTime CalculatedAt { get; set; } = DateTime.UtcNow;
 
 		/// <summary>
-		 /// Version number for tracking updates to the same period
-		 /// </summary>
+		/// Version number for tracking updates to the same period
+		/// </summary>
 		public int Version { get; set; } = 1;
 
 		/// <summary>
@@ -58,5 +58,36 @@ namespace GhostfolioSidekick.Model.Performance
 		/// Whether this snapshot is the current/latest version for this period
 		/// </summary>
 		public bool IsLatest { get; set; } = true;
+
+		/// <summary>
+		/// Scope of the performance calculation (Portfolio, Account, Asset)
+		/// </summary>
+		public PerformanceScope Scope { get; set; } = PerformanceScope.Portfolio;
+
+		/// <summary>
+		/// Identifier for the scope (null for portfolio, account name for account, symbol for asset)
+		/// </summary>
+		public string? ScopeIdentifier { get; set; }
+	}
+
+	/// <summary>
+	/// Defines the scope of performance calculation
+	/// </summary>
+	public enum PerformanceScope
+	{
+		/// <summary>
+		/// Entire portfolio performance
+		/// </summary>
+		Portfolio,
+
+		/// <summary>
+		/// Performance for a specific account
+		/// </summary>
+		Account,
+
+		/// <summary>
+		/// Performance for a specific asset/symbol
+		/// </summary>
+		Asset
 	}
 }

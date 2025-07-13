@@ -22,17 +22,28 @@ namespace GhostfolioSidekick.Database.Configuration
 				.HasConversion<string>()
 				.IsRequired();
 
+			builder.Property(e => e.Scope)
+				.HasConversion<string>()
+				.IsRequired();
+
+			builder.Property(e => e.ScopeIdentifier)
+				.HasMaxLength(200);
+
 			// Index for efficient lookups
-			builder.HasIndex(e => new { e.PortfolioHash, e.StartDate, e.EndDate, e.BaseCurrency, e.CalculationType })
+			builder.HasIndex(e => new { e.PortfolioHash, e.StartDate, e.EndDate, e.BaseCurrency, e.CalculationType, e.Scope, e.ScopeIdentifier })
 				.HasDatabaseName("IX_PortfolioPerformanceSnapshot_Lookup");
 
 			// Index for finding latest versions
-			builder.HasIndex(e => new { e.StartDate, e.EndDate, e.BaseCurrency, e.IsLatest })
+			builder.HasIndex(e => new { e.StartDate, e.EndDate, e.BaseCurrency, e.IsLatest, e.Scope, e.ScopeIdentifier })
 				.HasDatabaseName("IX_PortfolioPerformanceSnapshot_Latest");
 
 			// Index for historical queries
 			builder.HasIndex(e => e.CalculatedAt)
 				.HasDatabaseName("IX_PortfolioPerformanceSnapshot_CalculatedAt");
+
+			 // Index for scope-based queries
+			builder.HasIndex(e => new { e.Scope, e.ScopeIdentifier })
+				.HasDatabaseName("IX_PortfolioPerformanceSnapshot_Scope");
 
 			// Configure the PortfolioPerformance as an owned entity
 			builder.OwnsOne(e => e.Performance, performance =>

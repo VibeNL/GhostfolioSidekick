@@ -9,7 +9,6 @@ namespace GhostfolioSidekick.Analysis
 	public class PortfolioPerformanceAnalysisTask(
 		IDbContextFactory<DatabaseContext> dbContextFactory,
 		PortfolioAnalysisService analysisService,
-		MarketDataPortfolioPerformanceCalculator marketDataCalculator,
 		ILogger<PortfolioPerformanceAnalysisTask> logger) : IScheduledWork
 	{
 		public string Name => "Portfolio Performance Analysis";
@@ -22,7 +21,7 @@ namespace GhostfolioSidekick.Analysis
 
 		public async Task DoWork()
 		{
-			logger.LogInformation("Starting enhanced portfolio performance analysis task with persistent storage");
+			logger.LogInformation("Starting enhanced portfolio performance analysis with per-asset and per-account breakdown");
 
 			try
 			{
@@ -31,6 +30,7 @@ namespace GhostfolioSidekick.Analysis
 				// Get all holdings with their activities and market data
 				var holdings = await context.Holdings
 					.Include(h => h.Activities)
+					.ThenInclude(a => a.Account)
 					.Include(h => h.SymbolProfiles)
 					.ThenInclude(sp => sp.MarketData)
 					.ToListAsync();
@@ -46,13 +46,16 @@ namespace GhostfolioSidekick.Analysis
 				// Check market data quality
 				await AssessMarketDataQuality(holdings);
 
-				// Generate standard performance report with persistent storage
-				await GenerateStandardPerformanceReport(holdings, Currency.EUR);
+				// Generate comprehensive performance report (portfolio + accounts + assets)
+				await GenerateComprehensivePerformanceReport(holdings, Currency.EUR);
 
-				// Generate detailed analysis for individual holdings
-				await GenerateDetailedHoldingAnalysis(holdings, Currency.EUR);
+				// Generate account-specific analysis
+				await GenerateAccountPerformanceAnalysis(holdings, Currency.EUR);
 
-				// Display storage statistics and available periods
+				// Generate asset-specific analysis
+				await GenerateAssetPerformanceAnalysis(holdings, Currency.EUR);
+
+				// Display storage statistics
 				await DisplayStorageStatistics();
 
 				logger.LogInformation("Portfolio performance analysis completed successfully");
@@ -61,6 +64,207 @@ namespace GhostfolioSidekick.Analysis
 			{
 				logger.LogError(ex, "Error during portfolio performance analysis");
 				throw;
+			}
+		}
+
+		/// <summary>
+		 /// Generate comprehensive performance report with portfolio, account, and asset breakdowns
+		 /// </summary>
+		private async Task GenerateComprehensivePerformanceReport(List<Holding> holdings, Currency baseCurrency)
+		{
+			logger.LogInformation("=== Comprehensive Performance Report ===");
+
+			try
+			{
+				var now = DateTime.Now;
+				var startDate = now.AddMonths(-3); // Last quarter
+				var endDate = now;
+
+				var report = await analysisService.GenerateComprehensivePerformanceReportAsync(
+					holdings, startDate, endDate, baseCurrency, forceRecalculation: false);
+
+				logger.LogInformation("Period: {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}", startDate, endDate);
+				logger.LogInformation("Generated at: {GeneratedAt:yyyy-MM-dd HH:mm:ss}", report.GeneratedAt);
+				logger.LogInformation("");
+
+				// Portfolio-wide performance
+				logger.LogInformation("=== Portfolio Performance ===");
+				var portfolio = report.PortfolioPerformance;
+				logger.LogInformation("Time-Weighted Return: {TWR:F2}%", portfolio.TimeWeightedReturn);
+				logger.LogInformation("Portfolio Value: {InitialValue} ? {FinalValue}", 
+					portfolio.InitialValue, portfolio.FinalValue);
+				logger.LogInformation("Total Dividends: {Dividends}", portfolio.TotalDividends);
+				logger.LogInformation("");
+
+				// Account performance summary
+				logger.LogInformation("=== Account Performance Summary ===");
+				logger.LogInformation("Number of Accounts: {AccountCount}", report.AccountPerformances.Count);
+				if (report.AccountPerformances.Any())
+				{
+					logger.LogInformation("Average Account TWR: {AvgTWR:F2}%", report.Summary.AverageAccountTWR);
+					logger.LogInformation("Best Performing Account: {Account} ({TWR:F2}%)", 
+						report.Summary.BestPerformingAccount.Key, 
+						report.Summary.BestPerformingAccount.Value.TimeWeightedReturn);
+					logger.LogInformation("Worst Performing Account: {Account} ({TWR:F2}%)", 
+						report.Summary.WorstPerformingAccount.Key, 
+						report.Summary.WorstPerformingAccount.Value.TimeWeightedReturn);
+				}
+				logger.LogInformation("");
+
+				// Asset performance summary
+				logger.LogInformation("=== Asset Performance Summary ===");
+				logger.LogInformation("Number of Assets: {AssetCount}", report.AssetPerformances.Count);
+				if (report.AssetPerformances.Any())
+				{
+					logger.LogInformation("Average Asset TWR: {AvgTWR:F2}%", report.Summary.AverageAssetTWR);
+					logger.LogInformation("Best Performing Asset: {Asset} ({TWR:F2}%)", 
+						report.Summary.BestPerformingAsset.Key, 
+						report.Summary.BestPerformingAsset.Value.TimeWeightedReturn);
+					logger.LogInformation("Worst Performing Asset: {Asset} ({TWR:F2}%)", 
+						report.Summary.WorstPerformingAsset.Key, 
+						report.Summary.WorstPerformingAsset.Value.TimeWeightedReturn);
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error generating comprehensive performance report");
+			}
+		}
+
+		/// <summary>
+		/// Generate detailed account performance analysis
+		/// </summary>
+		private async Task GenerateAccountPerformanceAnalysis(List<Holding> holdings, Currency baseCurrency)
+		{
+			logger.LogInformation("=== Account Performance Analysis ===");
+
+			try
+			{
+				var now = DateTime.Now;
+				var startDate = now.AddMonths(-6); // Last 6 months
+				var endDate = now;
+
+				var accountPerformances = await analysisService.CalculateAllAccountsPerformanceAsync(
+					holdings, startDate, endDate, baseCurrency, forceRecalculation: false);
+
+				if (!accountPerformances.Any())
+				{
+					logger.LogInformation("No account performances found for the period");
+					return;
+				}
+
+				logger.LogInformation("Account performance for period {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}:", 
+					startDate, endDate);
+
+				// Sort accounts by performance
+				var sortedAccounts = accountPerformances
+					.OrderByDescending(kvp => kvp.Value.TimeWeightedReturn)
+					.ToList();
+
+				foreach (var (accountName, performance) in sortedAccounts)
+				{
+					logger.LogInformation("Account: {AccountName}", accountName);
+					logger.LogInformation("  TWR: {TWR:F2}%", performance.TimeWeightedReturn);
+					logger.LogInformation("  Value Change: {InitialValue} ? {FinalValue}", 
+						performance.InitialValue, performance.FinalValue);
+					logger.LogInformation("  Dividends: {Dividends}", performance.TotalDividends);
+					logger.LogInformation("  Net Cash Flows: {NetCashFlows}", performance.NetCashFlows);
+					logger.LogInformation("");
+				}
+
+				// Calculate account allocation
+				var totalPortfolioValue = accountPerformances.Values.Sum(p => p.FinalValue.Amount);
+				if (totalPortfolioValue > 0)
+				{
+					logger.LogInformation("=== Account Allocation ===");
+					foreach (var (accountName, performance) in sortedAccounts)
+					{
+						var allocation = (performance.FinalValue.Amount / totalPortfolioValue) * 100;
+						logger.LogInformation("{AccountName}: {Allocation:F1}% ({Value})", 
+							accountName, allocation, performance.FinalValue);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error generating account performance analysis");
+			}
+		}
+
+		/// <summary>
+		/// Generate detailed asset performance analysis
+		/// </summary>
+		private async Task GenerateAssetPerformanceAnalysis(List<Holding> holdings, Currency baseCurrency)
+		{
+			logger.LogInformation("=== Asset Performance Analysis ===");
+
+			try
+			{
+				var now = DateTime.Now;
+				var startDate = now.AddMonths(-6); // Last 6 months
+				var endDate = now;
+
+				var assetPerformances = await analysisService.CalculateAllAssetsPerformanceAsync(
+					holdings, startDate, endDate, baseCurrency, forceRecalculation: false);
+
+				if (!assetPerformances.Any())
+				{
+					logger.LogInformation("No asset performances found for the period");
+					return;
+				}
+
+				logger.LogInformation("Asset performance for period {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}:", 
+					startDate, endDate);
+
+				// Sort assets by performance
+				var sortedAssets = assetPerformances
+					.OrderByDescending(kvp => kvp.Value.TimeWeightedReturn)
+					.Take(20) // Show top 20 performers
+					.ToList();
+
+				foreach (var (symbol, performance) in sortedAssets)
+				{
+					logger.LogInformation("Asset: {Symbol}", symbol);
+					logger.LogInformation("  TWR: {TWR:F2}%", performance.TimeWeightedReturn);
+					logger.LogInformation("  Value Change: {InitialValue} ? {FinalValue}", 
+						performance.InitialValue, performance.FinalValue);
+					logger.LogInformation("  Dividends: {Dividends}", performance.TotalDividends);
+					logger.LogInformation("  Currency Impact: {CurrencyImpact:F2}%", performance.CurrencyImpact);
+					logger.LogInformation("");
+				}
+
+				// Show asset allocation for top performers
+				var totalPortfolioValue = assetPerformances.Values.Sum(p => p.FinalValue.Amount);
+				if (totalPortfolioValue > 0)
+				{
+					logger.LogInformation("=== Top Asset Allocation ===");
+					foreach (var (symbol, performance) in sortedAssets.Take(10))
+					{
+						var allocation = (performance.FinalValue.Amount / totalPortfolioValue) * 100;
+						logger.LogInformation("{Symbol}: {Allocation:F1}% ({Value})", 
+							symbol, allocation, performance.FinalValue);
+					}
+				}
+
+				// Performance distribution analysis
+				var allTWRs = assetPerformances.Values.Select(p => p.TimeWeightedReturn).ToList();
+				if (allTWRs.Any())
+				{
+					logger.LogInformation("=== Asset Performance Distribution ===");
+					logger.LogInformation("Best Performer: {Best:F2}%", allTWRs.Max());
+					logger.LogInformation("Worst Performer: {Worst:F2}%", allTWRs.Min());
+					logger.LogInformation("Average: {Average:F2}%", allTWRs.Average());
+					logger.LogInformation("Median: {Median:F2}%", CalculateMedian(allTWRs));
+					
+					var positivePerformers = allTWRs.Count(twr => twr > 0);
+					var positivePercentage = (double)positivePerformers / allTWRs.Count * 100;
+					logger.LogInformation("Positive Performers: {Count}/{Total} ({Percentage:F1}%)", 
+						positivePerformers, allTWRs.Count, positivePercentage);
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error generating asset performance analysis");
 			}
 		}
 
@@ -117,112 +321,7 @@ namespace GhostfolioSidekick.Analysis
 				logger.LogWarning("Market data coverage is below 80%. Performance calculations may be less accurate.");
 			}
 
-			await Task.CompletedTask; // Placeholder for any async operations
-		}
-
-		/// <summary>
-		/// Generate standard performance report using stored calculations
-		/// </summary>
-		private async Task GenerateStandardPerformanceReport(List<Holding> holdings, Currency baseCurrency)
-		{
-			logger.LogInformation("=== Standard Performance Report (Stored) ===");
-
-			try
-			{
-				// Get standard performance reports with storage
-				var performanceResults = await analysisService.GetStandardPerformanceReportAsync(
-					holdings, baseCurrency, forceRecalculation: false);
-
-				if (!performanceResults.Any())
-				{
-					logger.LogWarning("No performance data available for any standard periods");
-					return;
-				}
-
-				foreach (var (periodName, performance) in performanceResults)
-				{
-					logger.LogInformation("{PeriodName}: TWR {TWR:F2}%, Dividends {Dividends}, Value {InitialValue} ? {FinalValue}",
-						periodName, performance.TimeWeightedReturn, performance.TotalDividends, 
-						performance.InitialValue, performance.FinalValue);
-				}
-
-				// Generate detailed summary for the most recent period
-				var recentPeriod = performanceResults.FirstOrDefault();
-				if (recentPeriod.Value != null)
-				{
-					logger.LogInformation("=== Detailed Summary for {PeriodName} ===", recentPeriod.Key);
-					var summary = await analysisService.GeneratePerformanceSummaryAsync(
-						holdings, recentPeriod.Value.StartDate, recentPeriod.Value.EndDate, baseCurrency, forceRecalculation: false);
-					
-					var lines = summary.Split('\n');
-					foreach (var line in lines)
-					{
-						logger.LogInformation(line);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				logger.LogWarning(ex, "Error generating standard performance report");
-			}
-		}
-
-		/// <summary>
-		/// Generate detailed analysis for individual holdings with storage
-		/// </summary>
-		private async Task GenerateDetailedHoldingAnalysis(List<Holding> holdings, Currency baseCurrency)
-		{
-			logger.LogInformation("=== Detailed Holding Analysis (Stored) ===");
-
-			try
-			{
-				// Analyze top 10 holdings by activity count
-				var topHoldings = holdings
-					.Where(h => h.Activities.Any())
-					.OrderByDescending(h => h.Activities.Count)
-					.Take(10)
-					.ToList();
-
-				foreach (var holding in topHoldings)
-				{
-					var symbolProfile = holding.SymbolProfiles.FirstOrDefault();
-					var symbol = symbolProfile?.Symbol ?? "Unknown";
-
-					logger.LogInformation("Analyzing holding: {Symbol}", symbol);
-
-					if (!holding.Activities.Any())
-					{
-						logger.LogInformation("No activities found for {Symbol}", symbol);
-						continue;
-					}
-
-					var startDate = holding.Activities.Min(a => a.Date);
-					var endDate = holding.Activities.Max(a => a.Date);
-
-					// Generate performance for this specific holding with storage
-					var performance = await analysisService.CalculatePortfolioPerformanceAsync(
-						new List<Holding> { holding }, startDate, endDate, baseCurrency, forceRecalculation: false);
-
-					logger.LogInformation("{Symbol} Performance: TWR {TWR:F2}%, Dividends {Dividends}, Period {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}",
-						symbol, performance.TimeWeightedReturn, performance.TotalDividends, startDate, endDate);
-
-					// Calculate current value if market data is available
-					if (symbolProfile?.MarketData != null && symbolProfile.MarketData.Any())
-					{
-						var currentValue = await marketDataCalculator.CalculateAccuratePortfolioValueAsync(
-							new List<Holding> { holding }, DateTime.Now, baseCurrency);
-						
-						var quantity = marketDataCalculator.CalculateQuantityAtDate(holding.Activities, DateTime.Now);
-
-						logger.LogInformation("  Current Position: {Quantity:F4} shares, Value: {Value}",
-							quantity, currentValue);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				logger.LogWarning(ex, "Error generating detailed holding analysis");
-			}
+			await Task.CompletedTask;
 		}
 
 		/// <summary>
@@ -256,24 +355,51 @@ namespace GhostfolioSidekick.Analysis
 					logger.LogInformation("Calculation Type {CalculationType}: {Count} snapshots", calcType, count);
 				}
 
-				// Display available periods
-				logger.LogInformation("=== Available Performance Periods ===");
-				var availablePeriods = await analysisService.GetAvailablePeriodsAsync();
-				
-				foreach (var (startDate, endDate, currency, calcType) in availablePeriods.Take(10)) // Show first 10
+				// Display snapshots by scope
+				foreach (var (scope, count) in stats.SnapshotsByScope)
 				{
-					logger.LogInformation("Period: {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd} ({Currency}, {CalculationType})",
-						startDate, endDate, currency.Symbol, calcType);
+					logger.LogInformation("Scope {Scope}: {Count} snapshots", scope, count);
 				}
 
-				if (availablePeriods.Count > 10)
+				// Display sample of available periods
+				logger.LogInformation("=== Sample Available Performance Periods ===");
+				var availablePeriods = await analysisService.GetAvailablePeriodsAsync();
+				
+				var samplePeriods = availablePeriods.Take(15).ToList(); // Show first 15
+				foreach (var (startDate, endDate, currency, calcType, scope, scopeId) in samplePeriods)
 				{
-					logger.LogInformation("... and {AdditionalCount} more periods", availablePeriods.Count - 10);
+					logger.LogInformation("Period: {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd} ({Currency}, {CalculationType}, {Scope}:{ScopeId})",
+						startDate, endDate, currency.Symbol, calcType, scope, scopeId ?? "All");
+				}
+
+				if (availablePeriods.Count > 15)
+				{
+					logger.LogInformation("... and {AdditionalCount} more periods", availablePeriods.Count - 15);
 				}
 			}
 			catch (Exception ex)
 			{
 				logger.LogWarning(ex, "Error displaying storage statistics");
+			}
+		}
+
+		/// <summary>
+		/// Calculate median value from a list of decimals
+		/// </summary>
+		private decimal CalculateMedian(List<decimal> values)
+		{
+			if (!values.Any()) return 0;
+
+			var sorted = values.OrderBy(x => x).ToList();
+			var count = sorted.Count;
+
+			if (count % 2 == 0)
+			{
+				return (sorted[count / 2 - 1] + sorted[count / 2]) / 2;
+			}
+			else
+			{
+				return sorted[count / 2];
 			}
 		}
 	}
