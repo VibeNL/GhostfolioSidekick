@@ -1,8 +1,10 @@
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace GhostfolioSidekick.Database.Configuration
+namespace GhostfolioSidekick.Database.TypeConfigurations
 {
 	public class PortfolioPerformanceSnapshotConfiguration : IEntityTypeConfiguration<PortfolioPerformanceSnapshot>
 	{
@@ -18,8 +20,14 @@ namespace GhostfolioSidekick.Database.Configuration
 				.IsRequired()
 				.HasMaxLength(50);
 
+			// Create converter for Currency type
+			var currencyConverter = new ValueConverter<Currency, string>(
+				v => v.Symbol,
+				v => Currency.GetCurrency(v));
+
+			// Map the BaseCurrency property on the main entity
 			builder.Property(e => e.BaseCurrency)
-				.HasConversion<string>()
+				.HasConversion(currencyConverter)
 				.IsRequired();
 
 			builder.Property(e => e.Scope)
@@ -57,12 +65,17 @@ namespace GhostfolioSidekick.Database.Configuration
 				performance.Property(p => p.CurrencyImpact)
 					.HasPrecision(18, 8);
 
+				// Map the BaseCurrency property on the owned entity
+				performance.Property(p => p.BaseCurrency)
+					.HasConversion(currencyConverter);
+
+				// Configure Money properties as owned entities
 				performance.OwnsOne(p => p.TotalDividends, dividend =>
 				{
 					dividend.Property(d => d.Amount)
 						.HasPrecision(18, 8);
 					dividend.Property(d => d.Currency)
-						.HasConversion<string>();
+						.HasConversion(currencyConverter);
 				});
 
 				performance.OwnsOne(p => p.InitialValue, initialValue =>
@@ -70,7 +83,7 @@ namespace GhostfolioSidekick.Database.Configuration
 					initialValue.Property(iv => iv.Amount)
 						.HasPrecision(18, 8);
 					initialValue.Property(iv => iv.Currency)
-						.HasConversion<string>();
+						.HasConversion(currencyConverter);
 				});
 
 				performance.OwnsOne(p => p.FinalValue, finalValue =>
@@ -78,7 +91,7 @@ namespace GhostfolioSidekick.Database.Configuration
 					finalValue.Property(fv => fv.Amount)
 						.HasPrecision(18, 8);
 					finalValue.Property(fv => fv.Currency)
-						.HasConversion<string>();
+						.HasConversion(currencyConverter);
 				});
 
 				performance.OwnsOne(p => p.NetCashFlows, netCashFlows =>
@@ -86,11 +99,8 @@ namespace GhostfolioSidekick.Database.Configuration
 					netCashFlows.Property(ncf => ncf.Amount)
 						.HasPrecision(18, 8);
 					netCashFlows.Property(ncf => ncf.Currency)
-						.HasConversion<string>();
+						.HasConversion(currencyConverter);
 				});
-
-				performance.Property(p => p.BaseCurrency)
-					.HasConversion<string>();
 			});
 		}
 	}
