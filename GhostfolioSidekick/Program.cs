@@ -12,7 +12,6 @@ using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using GhostfolioSidekick.PortfolioAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -112,12 +111,6 @@ namespace GhostfolioSidekick
 							services.AddSingleton<IStockSplitRepository[]>(sp => new IStockSplitRepository[] { sp.GetRequiredService<YahooRepository>() });
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
-
-							// Register Portfolio Analysis services
-							services.AddScoped<EnhancedPortfolioPerformanceCalculator>();
-							services.AddScoped<MarketDataPortfolioPerformanceCalculator>();
-							services.AddScoped<PortfolioAnalysisService>();
-							services.AddScoped<PortfolioPerformanceStorageService>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							RegisterAllWithInterface<IScheduledWork>(services);
