@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Analysis
 	{
 		public string Name => "Portfolio Performance Analysis";
 
-		public TaskPriority Priority => TaskPriority.DisplayInformation;
+		public TaskPriority Priority => TaskPriority.PerformanceCalculator;
 
 		public TimeSpan ExecutionFrequency => Frequencies.Daily;
 
@@ -33,6 +33,7 @@ namespace GhostfolioSidekick.Analysis
 					.ThenInclude(a => a.Account)
 					.Include(h => h.SymbolProfiles)
 					.ThenInclude(sp => sp.MarketData)
+					.AsSplitQuery()
 					.ToListAsync();
 
 				if (!holdings.Any())

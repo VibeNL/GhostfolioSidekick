@@ -6,6 +6,8 @@
 
 		GenerateDatabase,
 
+		PerformanceCalculator,
+
 		AccountMaintainer,
 
 		MaintainManualSymbol,
