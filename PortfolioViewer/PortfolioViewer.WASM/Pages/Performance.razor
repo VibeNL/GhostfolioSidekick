@@ -1,0 +1,352 @@
+@page "/performance"
+@using GhostfolioSidekick.PortfolioViewer.WASM.Services
+@inject PortfolioPerformanceService PerformanceService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Performance Analysis</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-chart-line"></i> Dynamic Portfolio Performance Analysis
+            </h1>
+            
+            @if (IsLoading)
+            {
+                <div class="d-flex justify-content-center my-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2">Loading performance data...</span>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> @ErrorMessage
+                </div>
+            }
+            else
+            {
+                <!-- Navigation Tabs -->
+                <ul class="nav nav-tabs mb-4" id="performanceTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @(ActiveTab == "periods" ? "active" : "")" 
+                                @onclick="@(() => SetActiveTab("periods"))" type="button">
+                            <i class="fas fa-clock"></i> Time Periods
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @(ActiveTab == "statistics" ? "active" : "")" 
+                                @onclick="@(() => SetActiveTab("statistics"))" type="button">
+                            <i class="fas fa-chart-pie"></i> Portfolio Statistics
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @(ActiveTab == "report" ? "active" : "")" 
+                                @onclick="@(() => SetActiveTab("report"))" type="button">
+                            <i class="fas fa-file-alt"></i> Detailed Report
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    @if (ActiveTab == "periods")
+                    {
+                        <div class="tab-pane fade show active">
+                            @RenderTimePeriodsTab()
+                        </div>
+                    }
+                    else if (ActiveTab == "statistics")
+                    {
+                        <div class="tab-pane fade show active">
+                            @RenderStatisticsTab()
+                        </div>
+                    }
+                    else if (ActiveTab == "report")
+                    {
+                        <div class="tab-pane fade show active">
+                            @RenderReportTab()
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string ActiveTab = "periods";
+    private bool IsLoading = true;
+    private string ErrorMessage = string.Empty;
+    
+    private List<TimePeriodInfo>? TimePeriods;
+    private PortfolioStatistics? PortfolioStats;
+    private string? DetailedReport;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllData();
+    }
+
+    private async Task LoadAllData()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            var tasks = new[]
+            {
+                LoadTimePeriods(),
+                LoadPortfolioStatistics(),
+                LoadDetailedReport()
+            };
+
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading performance data: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadTimePeriods()
+    {
+        try
+        {
+            TimePeriods = await PerformanceService.CalculateAllMeaningfulTimePeriodsAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage += $"Time Periods: {ex.Message} ";
+        }
+    }
+
+    private async Task LoadPortfolioStatistics()
+    {
+        try
+        {
+            PortfolioStats = await PerformanceService.GetPortfolioStatisticsAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage += $"Portfolio Statistics: {ex.Message} ";
+        }
+    }
+
+    private async Task LoadDetailedReport()
+    {
+        try
+        {
+            DetailedReport = await PerformanceService.GenerateTimePeriodsReportAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage += $"Detailed Report: {ex.Message} ";
+        }
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+
+    private RenderFragment RenderTimePeriodsTab()
+    {
+        return @<div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">?? Dynamically Calculated Time Periods</h3>
+            </div>
+            <div class="card-body">
+                @if (TimePeriods?.Any() == true)
+                {
+                    @foreach (var group in TimePeriods.GroupBy(p => GetPeriodCategory(p.Name)).OrderBy(g => GetCategoryOrder(g.Key)))
+                    {
+                        <div class="mb-4">
+                            <h4 class="text-primary">?? @group.Key</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Period Name</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Duration (Days)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var period in group.OrderByDescending(p => p.EndDate))
+                                        {
+                                            <tr>
+                                                <td><strong>@period.Name</strong></td>
+                                                <td>@period.StartDate.ToString("yyyy-MM-dd")</td>
+                                                <td>@period.EndDate.ToString("yyyy-MM-dd")</td>
+                                                <td>@period.DurationDays.ToString("F0")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="alert alert-info mt-4">
+                        <h5>?? Summary Statistics</h5>
+                        <ul class="mb-0">
+                            <li>Total Periods Calculated: @TimePeriods.Count</li>
+                            <li>Average Duration: @TimePeriods.Average(p => p.DurationDays).ToString("F0") days</li>
+                            <li>Longest Period: @TimePeriods.OrderByDescending(p => p.DurationDays).First().Name (@TimePeriods.Max(p => p.DurationDays).ToString("F0") days)</li>
+                            <li>Shortest Period: @TimePeriods.OrderBy(p => p.DurationDays).First().Name (@TimePeriods.Min(p => p.DurationDays).ToString("F0") days)</li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        No time periods available.
+                    </div>
+                }
+            </div>
+        </div>;
+    }
+
+    private RenderFragment RenderStatisticsTab()
+    {
+        return @<div class="row">
+            @if (PortfolioStats != null)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5>?? Portfolio Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                <li>Total Activities: @PortfolioStats.TotalActivities.ToString("N0")</li>
+                                <li>Total Holdings: @PortfolioStats.TotalHoldings.ToString("N0")</li>
+                                <li>Total Accounts: @PortfolioStats.TotalAccounts.ToString("N0")</li>
+                                <li>Unique Symbols: @PortfolioStats.UniqueSymbols.ToString("N0")</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card border-info">
+                        <div class="card-header bg-info text-white">
+                            <h5>?? Portfolio Timeline</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                <li>First Activity: @PortfolioStats.FirstActivityDate.ToString("yyyy-MM-dd")</li>
+                                <li>Last Activity: @PortfolioStats.LastActivityDate.ToString("yyyy-MM-dd")</li>
+                                <li>Portfolio Age: @PortfolioStats.PortfolioAgeDays.ToString("F0") days</li>
+                                <li>Portfolio Age: @(PortfolioStats.PortfolioAgeDays / 365.25).ToString("F1") years</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                @if (PortfolioStats.ActivitiesByType.Any())
+                {
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>?? Activity Types Breakdown</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Activity Type</th>
+                                                <th>Count</th>
+                                                <th>Percentage</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var (activityType, count) in PortfolioStats.ActivitiesByType.OrderByDescending(kvp => kvp.Value))
+                                            {
+                                                var percentage = (double)count / PortfolioStats.TotalActivities * 100;
+                                                <tr>
+                                                    <td>@activityType</td>
+                                                    <td>@count.ToString("N0")</td>
+                                                    <td>@percentage.ToString("F1")%</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        No portfolio statistics available.
+                    </div>
+                </div>
+            }
+        </div>;
+    }
+
+    private RenderFragment RenderReportTab()
+    {
+        return @<div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">?? Comprehensive Time Periods Report</h3>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(DetailedReport))
+                {
+                    <pre class="bg-light p-3 rounded border" style="white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 0.9rem;">@DetailedReport</pre>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        No detailed report available.
+                    </div>
+                }
+            </div>
+        </div>;
+    }
+
+    private string GetPeriodCategory(string periodName)
+    {
+        if (periodName.Contains("Week")) return "Weekly Periods";
+        if (periodName.Contains("Month") && !periodName.Contains("Year") && !periodName.Contains("First")) return "Monthly Periods";
+        if (periodName.Contains("Quarter") || periodName.StartsWith("Q")) return "Quarterly Periods";
+        if (periodName.Contains("Year") && !periodName.Contains("Rolling")) return "Annual Periods";
+        if (periodName.Contains("Rolling")) return "Rolling Periods";
+        if (periodName.Contains("Inception")) return "Inception Periods";
+        if (periodName.Contains("First")) return "Milestone Periods";
+        return "Other Periods";
+    }
+
+    private int GetCategoryOrder(string category)
+    {
+        return category switch
+        {
+            "Weekly Periods" => 1,
+            "Monthly Periods" => 2,
+            "Quarterly Periods" => 3,
+            "Annual Periods" => 4,
+            "Rolling Periods" => 5,
+            "Milestone Periods" => 6,
+            "Inception Periods" => 7,
+            _ => 8
+        };
+    }
+}

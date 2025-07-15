@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -59,8 +60,9 @@ public static class Program
 
 		builder.Services.AddWebChatClient();
 
-		// Register PortfolioClient for DI
+		// Register clients and services for DI
 		builder.Services.AddScoped<Clients.PortfolioClient>();
+		builder.Services.AddScoped<PortfolioPerformanceService>();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
