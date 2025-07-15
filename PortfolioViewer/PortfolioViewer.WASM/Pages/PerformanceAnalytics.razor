@@ -256,7 +256,7 @@ else
             .OrderByDescending(a => a.TotalAmount)
             .ToList();
 
-        // Load top active holdings
+        // Load top active holdings - Fixed to avoid client projection with instance method
         var holdings = await DbContext.Holdings
             .Include(h => h.SymbolProfiles)
             .Include(h => h.Activities)
@@ -276,11 +276,14 @@ else
             .Take(10)
             .ToList();
 
-        // Load activity timeline
-        ActivityTimeline = await DbContext.Activities
+        // Load activity timeline - Fixed to avoid client projection with instance method
+        var timelineActivities = await DbContext.Activities
             .Include(a => a.Account)
             .OrderByDescending(a => a.Date)
             .Take(50)
+            .ToListAsync();
+
+        ActivityTimeline = timelineActivities
             .Select(a => new TimelineItem
             {
                 Date = a.Date,
@@ -288,10 +291,10 @@ else
                 Account = a.Account.Name,
                 Description = a.Description ?? "No description"
             })
-            .ToListAsync();
+            .ToList();
     }
 
-    private string GetActivityTypeName(Activity activity)
+    private static string GetActivityTypeName(Activity activity)
     {
         return activity.GetType().Name switch
         {
