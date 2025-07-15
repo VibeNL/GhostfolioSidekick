@@ -4,6 +4,7 @@
 @using GhostfolioSidekick.Model.Activities.Types
 @using GhostfolioSidekick.Model.Market
 @using Microsoft.EntityFrameworkCore
+@implements IDisposable
 
 <PageTitle>Holdings Performance</PageTitle>
 
@@ -13,12 +14,28 @@
 {
     <div class="d-flex justify-content-center">
         <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
+            <span class="visually-hidden">Loading holdings data...</span>
+        </div>
+        <div class="ms-3">
+            <p class="text-muted">Loading holdings data in batches to optimize memory usage...</p>
         </div>
     </div>
 }
 else
 {
+    @if (totalHoldings > 50)
+    {
+        <div class="alert alert-info" role="alert">
+            <strong>Memory Optimization:</strong> 
+            Displaying holdings in batches to prevent memory issues. 
+            Total holdings: @totalHoldings. 
+            @if (AllHoldings?.Count != totalHoldings)
+            {
+                <span>Showing @(AllHoldings?.Count ?? 0) holdings for optimal performance.</span>
+            }
+        </div>
+    }
+
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">
