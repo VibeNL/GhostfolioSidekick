@@ -59,12 +59,15 @@ namespace GhostfolioSidekick.Analysis
 				// Display storage statistics
 				await DisplayStorageStatistics();
 
+				// Clean up old performance calculation snapshots
+				await CleanupOldPerformanceSnapshots();
+
 				logger.LogInformation("Portfolio performance analysis completed successfully");
 			}
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Error during portfolio performance analysis");
-				throw;
+				throw new InvalidOperationException("Portfolio performance analysis failed. See inner exception for details.", ex);
 			}
 		}
 
@@ -259,7 +262,7 @@ namespace GhostfolioSidekick.Analysis
 					
 					var positivePerformers = allTWRs.Count(twr => twr > 0);
 					var positivePercentage = (double)positivePerformers / allTWRs.Count * 100;
-					logger.LogInformation("Positive Performers: {Count}/{Total} ({Percentage:F1}%)", 
+					logger.LogInformation("Positive Performers: {PositiveCount}/{TotalCount} ({Percentage:F1}%)", 
 						positivePerformers, allTWRs.Count, positivePercentage);
 				}
 			}
@@ -401,6 +404,45 @@ namespace GhostfolioSidekick.Analysis
 			else
 			{
 				return sorted[count / 2];
+			}
+		}
+
+		/// <summary>
+		/// Clean up old performance calculation snapshots to prevent database bloat
+		/// </summary>
+		private async Task CleanupOldPerformanceSnapshots()
+		{
+			try
+			{
+				logger.LogInformation("=== Performance Snapshots Cleanup ===");
+
+				// Get current storage statistics before cleanup
+				var statsBefore = await analysisService.GetStorageStatisticsAsync();
+				logger.LogInformation("Before cleanup: {TotalSnapshots} total snapshots ({LatestSnapshots} latest, {HistoricalSnapshots} historical)",
+					statsBefore.TotalSnapshots, statsBefore.LatestSnapshots, statsBefore.HistoricalSnapshots);
+
+				// Clean up old versions, keeping only the latest 3 versions for each period/scope combination
+				const int versionsToKeep = 3;
+				await analysisService.CleanupOldSnapshotsAsync(versionsToKeep);
+
+				// Get storage statistics after cleanup to show the impact
+				var statsAfter = await analysisService.GetStorageStatisticsAsync();
+				var snapshotsRemoved = statsBefore.TotalSnapshots - statsAfter.TotalSnapshots;
+
+				if (snapshotsRemoved > 0)
+				{
+					logger.LogInformation("Cleanup completed: Removed {RemovedCount} old performance snapshots", snapshotsRemoved);
+					logger.LogInformation("After cleanup: {TotalSnapshots} total snapshots ({LatestSnapshots} latest, {HistoricalSnapshots} historical)",
+						statsAfter.TotalSnapshots, statsAfter.LatestSnapshots, statsAfter.HistoricalSnapshots);
+				}
+				else
+				{
+					logger.LogInformation("No old snapshots found for cleanup");
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error during performance snapshots cleanup");
 			}
 		}
 	}
