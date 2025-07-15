@@ -1,0 +1,548 @@
+@page "/activity-timeline"
+@using GhostfolioSidekick.Database
+@using GhostfolioSidekick.Model.Activities
+@using GhostfolioSidekick.Model.Activities.Types
+@using Microsoft.EntityFrameworkCore
+@inject DatabaseContext DbContext
+
+<PageTitle>Activity Timeline</PageTitle>
+
+<h1>Activity Timeline</h1>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Filter Activities</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <select @bind="selectedActivityType" class="form-select">
+                                    <option value="">All Activity Types</option>
+                                    @if (ActivityTypes != null)
+                                    {
+                                        @foreach (var type in ActivityTypes)
+                                        {
+                                            <option value="@type">@type</option>
+                                        }
+                                    }
+                                </select>
+                                <select @bind="selectedAccount" class="form-select">
+                                    <option value="">All Accounts</option>
+                                    @if (Accounts != null)
+                                    {
+                                        @foreach (var account in Accounts)
+                                        {
+                                            <option value="@account">@account</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="dateFrom" class="form-label">From Date:</label>
+                            <input type="date" id="dateFrom" @bind="dateFrom" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dateTo" class="form-label">To Date:</label>
+                            <input type="date" id="dateTo" @bind="dateTo" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button class="btn btn-primary me-2" @onclick="ApplyFilters">Apply Filters</button>
+                            <button class="btn btn-secondary" @onclick="ClearFilters">Clear Filters</button>
+                            <span class="ms-3 text-muted">
+                                Showing @(FilteredActivities?.Count ?? 0) of @(AllActivities?.Count ?? 0) activities
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Timeline View</h5>
+                </div>
+                <div class="card-body">
+                    @if (FilteredActivities != null && FilteredActivities.Any())
+                    {
+                        <div class="timeline-container" style="max-height: 600px; overflow-y: auto;">
+                            @foreach (var group in FilteredActivities.GroupBy(a => a.Date.Date).OrderByDescending(g => g.Key))
+                            {
+                                <div class="timeline-day mb-4">
+                                    <div class="day-header bg-light p-2 mb-3 rounded">
+                                        <h6 class="mb-0">
+                                            @group.Key.ToString("dddd, MMMM dd, yyyy")
+                                            <span class="badge bg-secondary ms-2">@group.Count() activities</span>
+                                        </h6>
+                                    </div>
+                                    
+                                    @foreach (var activity in group.OrderByDescending(a => a.Date))
+                                    {
+                                        <div class="timeline-item border-start border-3 @GetTimelineBorderClass(activity.ActivityType) ps-3 pb-3 mb-3">
+                                            <div class="row">
+                                                <div class="col-md-2">
+                                                    <small class="text-muted">@activity.Date.ToString("HH:mm")</small>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <span class="badge @GetActivityBadgeClass(activity.ActivityType)">
+                                                        @activity.ActivityType
+                                                    </span>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <strong>@activity.Account</strong>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    @if (!string.IsNullOrEmpty(activity.Symbol))
+                                                    {
+                                                        <span class="text-primary">@activity.Symbol</span>
+                                                    }
+                                                </div>
+                                                <div class="col-md-2">
+                                                    @if (!string.IsNullOrEmpty(activity.Amount))
+                                                    {
+                                                        <span class="fw-bold">@activity.Amount</span>
+                                                    }
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ShowActivityDetails(activity)">
+                                                        Details
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(activity.Description))
+                                            {
+                                                <div class="row mt-2">
+                                                    <div class="col-md-12">
+                                                        <small class="text-muted">@activity.Description</small>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <p>No activities found matching the current filters.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (SelectedActivityDetails != null)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Activity Details</h5>
+                        <button type="button" class="btn-close" @onclick="CloseActivityDetails"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%;">Transaction ID</th>
+                                    <td>@SelectedActivityDetails.TransactionId</td>
+                                </tr>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <td>@SelectedActivityDetails.Date.ToString("MM/dd/yyyy HH:mm:ss")</td>
+                                </tr>
+                                <tr>
+                                    <th>Activity Type</th>
+                                    <td>
+                                        <span class="badge @GetActivityBadgeClass(SelectedActivityDetails.ActivityType)">
+                                            @SelectedActivityDetails.ActivityType
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Account</th>
+                                    <td>@SelectedActivityDetails.Account</td>
+                                </tr>
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.Symbol))
+                                {
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <td>@SelectedActivityDetails.Symbol</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.Amount))
+                                {
+                                    <tr>
+                                        <th>Amount</th>
+                                        <td>@SelectedActivityDetails.Amount</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.Quantity))
+                                {
+                                    <tr>
+                                        <th>Quantity</th>
+                                        <td>@SelectedActivityDetails.Quantity</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.UnitPrice))
+                                {
+                                    <tr>
+                                        <th>Unit Price</th>
+                                        <td>@SelectedActivityDetails.UnitPrice</td>
+                                    </tr>
+                                }
+                                @if (SelectedActivityDetails.SortingPriority.HasValue)
+                                {
+                                    <tr>
+                                        <th>Sorting Priority</th>
+                                        <td>@SelectedActivityDetails.SortingPriority</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.Description))
+                                {
+                                    <tr>
+                                        <th>Description</th>
+                                        <td>@SelectedActivityDetails.Description</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        @if (SelectedActivityDetails.AdditionalInfo.Any())
+                        {
+                            <h6 class="mt-4">Additional Information</h6>
+                            <table class="table table-sm">
+                                <tbody>
+                                    @foreach (var info in SelectedActivityDetails.AdditionalInfo)
+                                    {
+                                        <tr>
+                                            <th style="width: 30%;">@info.Key</th>
+                                            <td>@info.Value</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseActivityDetails">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool isLoading = true;
+    private string selectedActivityType = "";
+    private string selectedAccount = "";
+    private DateTime? dateFrom;
+    private DateTime? dateTo;
+
+    private List<ActivityTimelineItem>? AllActivities;
+    private List<ActivityTimelineItem>? FilteredActivities;
+    private List<string>? ActivityTypes;
+    private List<string>? Accounts;
+    private ActivityDetailsData? SelectedActivityDetails;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTimelineData();
+        isLoading = false;
+    }
+
+    private async Task LoadTimelineData()
+    {
+        var activities = await DbContext.Activities
+            .Include(a => a.Account)
+            .Include(a => a.Holding)
+                .ThenInclude(h => h.SymbolProfiles)
+            .OrderByDescending(a => a.Date)
+            .ToListAsync();
+
+        AllActivities = activities.Select(a => new ActivityTimelineItem
+        {
+            Id = a.Id,
+            Date = a.Date,
+            ActivityType = GetActivityTypeName(a),
+            Account = a.Account.Name,
+            Symbol = GetSymbolFromActivity(a),
+            Amount = GetAmountFromActivity(a),
+            Description = a.Description ?? ""
+        }).ToList();
+
+        ActivityTypes = AllActivities.Select(a => a.ActivityType).Distinct().OrderBy(t => t).ToList();
+        Accounts = AllActivities.Select(a => a.Account).Distinct().OrderBy(a => a).ToList();
+
+        FilteredActivities = AllActivities;
+    }
+
+    private Task ApplyFilters()
+    {
+        var filtered = AllActivities?.AsQueryable();
+
+        if (!string.IsNullOrEmpty(selectedActivityType))
+        {
+            filtered = filtered?.Where(a => a.ActivityType == selectedActivityType);
+        }
+
+        if (!string.IsNullOrEmpty(selectedAccount))
+        {
+            filtered = filtered?.Where(a => a.Account == selectedAccount);
+        }
+
+        if (dateFrom.HasValue)
+        {
+            filtered = filtered?.Where(a => a.Date.Date >= dateFrom.Value.Date);
+        }
+
+        if (dateTo.HasValue)
+        {
+            filtered = filtered?.Where(a => a.Date.Date <= dateTo.Value.Date);
+        }
+
+        FilteredActivities = filtered?.ToList() ?? new List<ActivityTimelineItem>();
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task ClearFilters()
+    {
+        selectedActivityType = "";
+        selectedAccount = "";
+        dateFrom = null;
+        dateTo = null;
+        FilteredActivities = AllActivities;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task ShowActivityDetails(ActivityTimelineItem timelineItem)
+    {
+        var activity = await DbContext.Activities
+            .Include(a => a.Account)
+            .Include(a => a.Holding)
+                .ThenInclude(h => h.SymbolProfiles)
+            .FirstOrDefaultAsync(a => a.Id == timelineItem.Id);
+
+        if (activity != null)
+        {
+            SelectedActivityDetails = new ActivityDetailsData
+            {
+                TransactionId = activity.TransactionId,
+                Date = activity.Date,
+                ActivityType = GetActivityTypeName(activity),
+                Account = activity.Account.Name,
+                Symbol = GetSymbolFromActivity(activity),
+                Amount = GetAmountFromActivity(activity),
+                Quantity = GetQuantityFromActivity(activity),
+                UnitPrice = GetUnitPriceFromActivity(activity),
+                SortingPriority = activity.SortingPriority,
+                Description = activity.Description ?? "",
+                AdditionalInfo = GetAdditionalInfoFromActivity(activity)
+            };
+        }
+        StateHasChanged();
+    }
+
+    private void CloseActivityDetails()
+    {
+        SelectedActivityDetails = null;
+        StateHasChanged();
+    }
+
+    private string GetActivityTypeName(Activity activity)
+    {
+        return activity.GetType().Name switch
+        {
+            nameof(BuySellActivity) => "Buy/Sell",
+            nameof(DividendActivity) => "Dividend",
+            nameof(CashDepositWithdrawalActivity) => "Cash Deposit/Withdrawal",
+            nameof(FeeActivity) => "Fee",
+            nameof(InterestActivity) => "Interest",
+            nameof(GiftAssetActivity) => "Gift Asset",
+            nameof(GiftFiatActivity) => "Gift Fiat",
+            nameof(KnownBalanceActivity) => "Known Balance",
+            nameof(LiabilityActivity) => "Liability",
+            nameof(RepayBondActivity) => "Repay Bond",
+            nameof(ValuableActivity) => "Valuable",
+            nameof(SendAndReceiveActivity) => "Send/Receive",
+            nameof(StakingRewardActivity) => "Staking Reward",
+            _ => activity.GetType().Name.Replace("Activity", "")
+        };
+    }
+
+    private string GetSymbolFromActivity(Activity activity)
+    {
+        return activity.Holding?.SymbolProfiles.FirstOrDefault()?.Symbol ?? "";
+    }
+
+    private string GetAmountFromActivity(Activity activity)
+    {
+        return activity switch
+        {
+            BuySellActivity bsa => bsa.TotalTransactionAmount.ToString(),
+            DividendActivity da => da.Amount.ToString(),
+            CashDepositWithdrawalActivity cdwa => cdwa.Amount.ToString(),
+            FeeActivity fa => fa.Amount.ToString(),
+            InterestActivity ia => ia.Amount.ToString(),
+            GiftFiatActivity gfa => gfa.Amount.ToString(),
+            KnownBalanceActivity kba => kba.Amount.ToString(),
+            LiabilityActivity la => la.Price.ToString(),
+            RepayBondActivity rba => rba.TotalRepayAmount.ToString(),
+            ValuableActivity va => va.Price.ToString(),
+            _ => ""
+        };
+    }
+
+    private string GetQuantityFromActivity(Activity activity)
+    {
+        return activity switch
+        {
+            ActivityWithQuantityAndUnitPrice qup => qup.Quantity.ToString("N4"),
+            _ => ""
+        };
+    }
+
+    private string GetUnitPriceFromActivity(Activity activity)
+    {
+        return activity switch
+        {
+            ActivityWithQuantityAndUnitPrice qup => qup.UnitPrice.ToString(),
+            _ => ""
+        };
+    }
+
+    private Dictionary<string, string> GetAdditionalInfoFromActivity(Activity activity)
+    {
+        var info = new Dictionary<string, string>();
+
+        if (activity is BuySellActivity bsa)
+        {
+            info["Adjusted Quantity"] = bsa.AdjustedQuantity.ToString("N4");
+            info["Adjusted Unit Price"] = bsa.AdjustedUnitPrice.ToString();
+            if (bsa.Fees.Any())
+            {
+                info["Total Fees"] = string.Join(", ", bsa.Fees.Select(f => f.Money.ToString()));
+            }
+            if (bsa.Taxes.Any())
+            {
+                info["Total Taxes"] = string.Join(", ", bsa.Taxes.Select(t => t.Money.ToString()));
+            }
+        }
+        else if (activity is DividendActivity da)
+        {
+            if (da.Fees.Any())
+            {
+                info["Total Fees"] = string.Join(", ", da.Fees.Select(f => f.Money.ToString()));
+            }
+            if (da.Taxes.Any())
+            {
+                info["Total Taxes"] = string.Join(", ", da.Taxes.Select(t => t.Money.ToString()));
+            }
+        }
+        else if (activity is SendAndReceiveActivity sra)
+        {
+            if (sra.Fees.Any())
+            {
+                info["Total Fees"] = string.Join(", ", sra.Fees.Select(f => f.Money.ToString()));
+            }
+        }
+
+        return info;
+    }
+
+    private string GetActivityBadgeClass(string activityType)
+    {
+        return activityType switch
+        {
+            "Buy/Sell" => "bg-primary",
+            "Dividend" => "bg-success",
+            "Cash Deposit/Withdrawal" => "bg-info",
+            "Fee" => "bg-warning text-dark",
+            "Interest" => "bg-secondary",
+            "Gift Asset" => "bg-success",
+            "Gift Fiat" => "bg-info",
+            "Known Balance" => "bg-dark",
+            "Liability" => "bg-danger",
+            "Repay Bond" => "bg-primary",
+            "Valuable" => "bg-warning text-dark",
+            "Send/Receive" => "bg-info",
+            "Staking Reward" => "bg-success",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    private string GetTimelineBorderClass(string activityType)
+    {
+        return activityType switch
+        {
+            "Buy/Sell" => "border-primary",
+            "Dividend" => "border-success",
+            "Cash Deposit/Withdrawal" => "border-info",
+            "Fee" => "border-warning",
+            "Interest" => "border-secondary",
+            "Gift Asset" => "border-success",
+            "Gift Fiat" => "border-info",
+            "Known Balance" => "border-dark",
+            "Liability" => "border-danger",
+            "Repay Bond" => "border-primary",
+            "Valuable" => "border-warning",
+            "Send/Receive" => "border-info",
+            "Staking Reward" => "border-success",
+            _ => "border-light"
+        };
+    }
+
+    private class ActivityTimelineItem
+    {
+        public long Id { get; set; }
+        public DateTime Date { get; set; }
+        public string ActivityType { get; set; } = string.Empty;
+        public string Account { get; set; } = string.Empty;
+        public string Symbol { get; set; } = string.Empty;
+        public string Amount { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+
+    private class ActivityDetailsData
+    {
+        public string TransactionId { get; set; } = string.Empty;
+        public DateTime Date { get; set; }
+        public string ActivityType { get; set; } = string.Empty;
+        public string Account { get; set; } = string.Empty;
+        public string Symbol { get; set; } = string.Empty;
+        public string Amount { get; set; } = string.Empty;
+        public string Quantity { get; set; } = string.Empty;
+        public string UnitPrice { get; set; } = string.Empty;
+        public int? SortingPriority { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public Dictionary<string, string> AdditionalInfo { get; set; } = new();
+    }
+}

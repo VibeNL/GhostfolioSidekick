@@ -1,0 +1,245 @@
+@page "/portfolio-overview"
+@using GhostfolioSidekick.Database
+@using GhostfolioSidekick.Model.Activities
+@using GhostfolioSidekick.Model.Activities.Types
+@using Microsoft.EntityFrameworkCore
+@inject DatabaseContext DbContext
+
+<PageTitle>Portfolio Overview</PageTitle>
+
+<h1>Portfolio Overview</h1>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Accounts</div>
+                <div class="card-body">
+                    <h4 class="card-title">@TotalAccounts</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Total Holdings</div>
+                <div class="card-body">
+                    <h4 class="card-title">@TotalHoldings</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Total Activities</div>
+                <div class="card-body">
+                    <h4 class="card-title">@TotalActivities</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Buy Transactions</div>
+                <div class="card-body">
+                    <h4 class="card-title">@BuyTransactions</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Activity Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Activity Type</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ActivityBreakdown != null)
+                            {
+                                @foreach (var item in ActivityBreakdown)
+                                {
+                                    <tr>
+                                        <td>@item.Key</td>
+                                        <td>@item.Value</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Activities</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Account</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (RecentActivities != null)
+                            {
+                                @foreach (var activity in RecentActivities)
+                                {
+                                    <tr>
+                                        <td>@activity.Date.ToString("MM/dd/yyyy")</td>
+                                        <td>@GetActivityTypeName(activity)</td>
+                                        <td>@activity.Account.Name</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Accounts Summary</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Account Name</th>
+                                <th>Platform</th>
+                                <th>Activities Count</th>
+                                <th>Latest Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (AccountSummaries != null)
+                            {
+                                @foreach (var account in AccountSummaries)
+                                {
+                                    <tr>
+                                        <td>@account.Name</td>
+                                        <td>@(account.Platform?.Name ?? "N/A")</td>
+                                        <td>@account.ActivitiesCount</td>
+                                        <td>@account.LatestBalanceDisplay</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private int TotalAccounts = 0;
+    private int TotalHoldings = 0;
+    private int TotalActivities = 0;
+    private int BuyTransactions = 0;
+    private Dictionary<string, int>? ActivityBreakdown;
+    private List<Activity>? RecentActivities;
+    private List<AccountSummary>? AccountSummaries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        isLoading = false;
+    }
+
+    private async Task LoadData()
+    {
+        // Load basic statistics
+        TotalAccounts = await DbContext.Accounts.CountAsync();
+        TotalHoldings = await DbContext.Holdings.CountAsync();
+        TotalActivities = await DbContext.Activities.CountAsync();
+        BuyTransactions = await DbContext.Activities.OfType<BuySellActivity>().CountAsync();
+
+        // Load activity breakdown
+        var activities = await DbContext.Activities.ToListAsync();
+        ActivityBreakdown = activities
+            .GroupBy(a => GetActivityTypeName(a))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Load recent activities
+        RecentActivities = await DbContext.Activities
+            .Include(a => a.Account)
+            .OrderByDescending(a => a.Date)
+            .Take(10)
+            .ToListAsync();
+
+        // Load account summaries
+        var accounts = await DbContext.Accounts
+            .Include(a => a.Platform)
+            .Include(a => a.Balance)
+            .ToListAsync();
+
+        var accountActivitiesCounts = await DbContext.Activities
+            .GroupBy(a => a.Account.Id)
+            .Select(g => new { AccountId = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        AccountSummaries = accounts.Select(account => new AccountSummary
+        {
+            Name = account.Name,
+            Platform = account.Platform,
+            ActivitiesCount = accountActivitiesCounts.FirstOrDefault(x => x.AccountId == account.Id)?.Count ?? 0,
+            LatestBalanceDisplay = account.Balance
+                .OrderByDescending(b => b.Date)
+                .FirstOrDefault()?.Money.ToString() ?? "N/A"
+        }).ToList();
+    }
+
+    private string GetActivityTypeName(Activity activity)
+    {
+        return activity.GetType().Name switch
+        {
+            nameof(BuySellActivity) => "Buy/Sell",
+            nameof(DividendActivity) => "Dividend",
+            nameof(CashDepositWithdrawalActivity) => "Cash Deposit/Withdrawal",
+            nameof(FeeActivity) => "Fee",
+            nameof(InterestActivity) => "Interest",
+            nameof(GiftAssetActivity) => "Gift Asset",
+            nameof(GiftFiatActivity) => "Gift Fiat",
+            nameof(KnownBalanceActivity) => "Known Balance",
+            nameof(LiabilityActivity) => "Liability",
+            nameof(RepayBondActivity) => "Repay Bond",
+            nameof(ValuableActivity) => "Valuable",
+            nameof(SendAndReceiveActivity) => "Send/Receive",
+            nameof(StakingRewardActivity) => "Staking Reward",
+            _ => activity.GetType().Name
+        };
+    }
+
+    private class AccountSummary
+    {
+        public string Name { get; set; } = string.Empty;
+        public GhostfolioSidekick.Model.Accounts.Platform? Platform { get; set; }
+        public int ActivitiesCount { get; set; }
+        public string LatestBalanceDisplay { get; set; } = string.Empty;
+    }
+}

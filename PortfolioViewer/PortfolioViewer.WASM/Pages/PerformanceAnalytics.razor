@@ -1,0 +1,371 @@
+@page "/performance-analytics"
+@using GhostfolioSidekick.Database
+@using GhostfolioSidekick.Model.Activities
+@using GhostfolioSidekick.Model.Activities.Types
+@using Microsoft.EntityFrameworkCore
+@inject DatabaseContext DbContext
+
+<PageTitle>Performance Analytics</PageTitle>
+
+<h1>Performance Analytics</h1>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Monthly Activity Volume</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if (MonthlyActivityData != null)
+                        {
+                            @foreach (var month in MonthlyActivityData.Take(12))
+                            {
+                                <div class="col-md-2 mb-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">@month.Month</h6>
+                                            <p class="card-text">@month.Count activities</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Transaction Value Analysis</h5>
+                </div>
+                <div class="card-body">
+                    @if (BuySellAnalysis != null)
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Currency</th>
+                                    <th>Total Buy Volume</th>
+                                    <th>Total Sell Volume</th>
+                                    <th>Transaction Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var analysis in BuySellAnalysis)
+                                {
+                                    <tr>
+                                        <td>@analysis.Currency</td>
+                                        <td>@analysis.TotalBuyVolume.ToString("N2")</td>
+                                        <td>@analysis.TotalSellVolume.ToString("N2")</td>
+                                        <td>@analysis.TransactionCount</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Dividend Income Overview</h5>
+                </div>
+                <div class="card-body">
+                    @if (DividendAnalysis != null)
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Currency</th>
+                                    <th>Total Dividends</th>
+                                    <th>Average Payment</th>
+                                    <th>Payment Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var analysis in DividendAnalysis)
+                                {
+                                    <tr>
+                                        <td>@analysis.Currency</td>
+                                        <td>@analysis.TotalAmount.ToString("N2")</td>
+                                        <td>@analysis.AveragePayment.ToString("N2")</td>
+                                        <td>@analysis.PaymentCount</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Holdings with Most Activity</h5>
+                </div>
+                <div class="card-body">
+                    @if (TopActiveHoldings != null)
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Asset Class</th>
+                                    <th>Total Activities</th>
+                                    <th>Latest Activity</th>
+                                    <th>Activity Types</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var holding in TopActiveHoldings)
+                                {
+                                    <tr>
+                                        <td>@holding.Symbol</td>
+                                        <td>@holding.AssetClass</td>
+                                        <td>@holding.ActivityCount</td>
+                                        <td>@holding.LatestActivity?.ToString("MM/dd/yyyy")</td>
+                                        <td>@string.Join(", ", holding.ActivityTypes)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Portfolio Activity Timeline</h5>
+                </div>
+                <div class="card-body">
+                    @if (ActivityTimeline != null)
+                    {
+                        <div class="timeline" style="max-height: 400px; overflow-y: auto;">
+                            @foreach (var timelineItem in ActivityTimeline)
+                            {
+                                <div class="timeline-item mb-3 p-3 border-start border-3 @GetTimelineBorderClass(timelineItem.ActivityType)">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <small class="text-muted">@timelineItem.Date.ToString("MM/dd/yyyy")</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <span class="badge @GetActivityBadgeClass(timelineItem.ActivityType)">
+                                                @timelineItem.ActivityType
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>@timelineItem.Account</strong>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <span class="text-muted">@timelineItem.Description</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private List<MonthlyData>? MonthlyActivityData;
+    private List<BuySellVolumeAnalysis>? BuySellAnalysis;
+    private List<DividendIncomeAnalysis>? DividendAnalysis;
+    private List<HoldingActivitySummary>? TopActiveHoldings;
+    private List<TimelineItem>? ActivityTimeline;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAnalyticsData();
+        isLoading = false;
+    }
+
+    private async Task LoadAnalyticsData()
+    {
+        // Load monthly activity data
+        var activities = await DbContext.Activities.ToListAsync();
+        MonthlyActivityData = activities
+            .GroupBy(a => new { a.Date.Year, a.Date.Month })
+            .Select(g => new MonthlyData
+            {
+                Month = $"{g.Key.Year}-{g.Key.Month:D2}",
+                Count = g.Count()
+            })
+            .OrderByDescending(m => m.Month)
+            .ToList();
+
+        // Load buy/sell analysis
+        var buySellActivities = await DbContext.Activities
+            .OfType<BuySellActivity>()
+            .ToListAsync();
+
+        BuySellAnalysis = buySellActivities
+            .GroupBy(a => a.TotalTransactionAmount.Currency.Symbol)
+            .Select(g => new BuySellVolumeAnalysis
+            {
+                Currency = g.Key,
+                TotalBuyVolume = g.Where(a => a.Quantity > 0).Sum(a => a.TotalTransactionAmount.Amount),
+                TotalSellVolume = g.Where(a => a.Quantity < 0).Sum(a => Math.Abs(a.TotalTransactionAmount.Amount)),
+                TransactionCount = g.Count()
+            })
+            .OrderByDescending(a => a.TotalBuyVolume + a.TotalSellVolume)
+            .ToList();
+
+        // Load dividend analysis
+        var dividendActivities = await DbContext.Activities
+            .OfType<DividendActivity>()
+            .ToListAsync();
+
+        DividendAnalysis = dividendActivities
+            .GroupBy(a => a.Amount.Currency.Symbol)
+            .Select(g => new DividendIncomeAnalysis
+            {
+                Currency = g.Key,
+                TotalAmount = g.Sum(a => a.Amount.Amount),
+                AveragePayment = g.Average(a => a.Amount.Amount),
+                PaymentCount = g.Count()
+            })
+            .OrderByDescending(a => a.TotalAmount)
+            .ToList();
+
+        // Load top active holdings
+        var holdings = await DbContext.Holdings
+            .Include(h => h.SymbolProfiles)
+            .Include(h => h.Activities)
+            .ToListAsync();
+
+        TopActiveHoldings = holdings
+            .Where(h => h.Activities.Any())
+            .Select(h => new HoldingActivitySummary
+            {
+                Symbol = h.SymbolProfiles.FirstOrDefault()?.Symbol ?? "Unknown",
+                AssetClass = h.SymbolProfiles.FirstOrDefault()?.AssetClass.ToString() ?? "Unknown",
+                ActivityCount = h.Activities.Count,
+                LatestActivity = h.Activities.Max(a => a.Date),
+                ActivityTypes = h.Activities.Select(a => GetActivityTypeName(a)).Distinct().ToList()
+            })
+            .OrderByDescending(h => h.ActivityCount)
+            .Take(10)
+            .ToList();
+
+        // Load activity timeline
+        ActivityTimeline = await DbContext.Activities
+            .Include(a => a.Account)
+            .OrderByDescending(a => a.Date)
+            .Take(50)
+            .Select(a => new TimelineItem
+            {
+                Date = a.Date,
+                ActivityType = GetActivityTypeName(a),
+                Account = a.Account.Name,
+                Description = a.Description ?? "No description"
+            })
+            .ToListAsync();
+    }
+
+    private string GetActivityTypeName(Activity activity)
+    {
+        return activity.GetType().Name switch
+        {
+            nameof(BuySellActivity) => "Buy/Sell",
+            nameof(DividendActivity) => "Dividend",
+            nameof(CashDepositWithdrawalActivity) => "Cash",
+            nameof(FeeActivity) => "Fee",
+            nameof(InterestActivity) => "Interest",
+            _ => activity.GetType().Name.Replace("Activity", "")
+        };
+    }
+
+    private string GetActivityBadgeClass(string activityType)
+    {
+        return activityType switch
+        {
+            "Buy/Sell" => "bg-primary",
+            "Dividend" => "bg-success",
+            "Cash" => "bg-info",
+            "Fee" => "bg-warning",
+            "Interest" => "bg-secondary",
+            _ => "bg-light text-dark"
+        };
+    }
+
+    private string GetTimelineBorderClass(string activityType)
+    {
+        return activityType switch
+        {
+            "Buy/Sell" => "border-primary",
+            "Dividend" => "border-success",
+            "Cash" => "border-info",
+            "Fee" => "border-warning",
+            "Interest" => "border-secondary",
+            _ => "border-light"
+        };
+    }
+
+    private class MonthlyData
+    {
+        public string Month { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
+    private class BuySellVolumeAnalysis
+    {
+        public string Currency { get; set; } = string.Empty;
+        public decimal TotalBuyVolume { get; set; }
+        public decimal TotalSellVolume { get; set; }
+        public int TransactionCount { get; set; }
+    }
+
+    private class DividendIncomeAnalysis
+    {
+        public string Currency { get; set; } = string.Empty;
+        public decimal TotalAmount { get; set; }
+        public decimal AveragePayment { get; set; }
+        public int PaymentCount { get; set; }
+    }
+
+    private class HoldingActivitySummary
+    {
+        public string Symbol { get; set; } = string.Empty;
+        public string AssetClass { get; set; } = string.Empty;
+        public int ActivityCount { get; set; }
+        public DateTime? LatestActivity { get; set; }
+        public List<string> ActivityTypes { get; set; } = [];
+    }
+
+    private class TimelineItem
+    {
+        public DateTime Date { get; set; }
+        public string ActivityType { get; set; } = string.Empty;
+        public string Account { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+}
