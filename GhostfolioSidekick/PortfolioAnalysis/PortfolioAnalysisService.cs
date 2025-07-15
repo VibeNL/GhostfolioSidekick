@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Portfolio;
 using GhostfolioSidekick.Model.Services;
@@ -56,29 +57,250 @@ namespace GhostfolioSidekick.PortfolioAnalysis
 			Currency baseCurrency,
 			bool forceRecalculation = false)
 		{
+			// Calculate all meaningful time periods dynamically
+			var periods = CalculateAllMeaningfulTimePeriods(holdings);
+
+			logger.LogInformation("Generating standard performance report for {PeriodCount} dynamically calculated periods",
+				periods.Count);
+
+			return await CalculateMultiplePeriodPerformanceAsync(holdings, periods, baseCurrency, forceRecalculation);
+		}
+
+		/// <summary>
+		/// Calculate all meaningful time periods based on portfolio activity data
+		/// </summary>
+		public List<(string Name, DateTime Start, DateTime End)> CalculateAllMeaningfulTimePeriods(List<Holding> holdings)
+		{
 			var now = DateTime.Now;
-			var periods = new List<(string Name, DateTime Start, DateTime End)>
+			var periods = new List<(string Name, DateTime Start, DateTime End)>();
+
+			// Get all activity dates to determine meaningful periods
+			var allActivities = holdings.SelectMany(h => h.Activities).ToList();
+			if (!allActivities.Any())
+			{
+				logger.LogWarning("No activities found for period calculation");
+				return periods;
+			}
+
+			var firstActivity = allActivities.Min(a => a.Date);
+			var lastActivity = allActivities.Max(a => a.Date);
+
+			logger.LogInformation("Portfolio activity span: {FirstActivity:yyyy-MM-dd} to {LastActivity:yyyy-MM-dd}", 
+				firstActivity, lastActivity);
+
+			// Add different types of periods
+			periods.AddRange(GetStandardPeriods(now, allActivities));
+			periods.AddRange(GetYearlyPeriods(firstActivity, now, allActivities));
+			periods.AddRange(GetQuarterlyPeriods(firstActivity, now, allActivities));
+			periods.AddRange(GetMonthlyPeriods(now, allActivities));
+			periods.AddRange(GetMilestonePeriods(firstActivity, now));
+			periods.AddRange(GetInceptionPeriods(firstActivity, now));
+			periods.AddRange(GetRollingPeriods(firstActivity, now, allActivities));
+
+			// Remove duplicates and sort by end date descending (most recent first)
+			var uniquePeriods = periods
+				.GroupBy(p => new { p.Start, p.End })
+				.Select(g => g.First())
+				.OrderByDescending(p => p.End)
+				.ThenByDescending(p => p.Start)
+				.ToList();
+
+			logger.LogInformation("Calculated {TotalPeriods} meaningful time periods from portfolio activities", 
+				uniquePeriods.Count);
+
+			return uniquePeriods;
+		}
+
+		/// <summary>
+		/// Get standard relative periods
+		/// </summary>
+		private List<(string Name, DateTime Start, DateTime End)> GetStandardPeriods(DateTime now, List<Activity> allActivities)
+		{
+			var periods = new List<(string Name, DateTime Start, DateTime End)>();
+			var standardPeriods = new List<(string Name, DateTime Start, DateTime End)>
 			{
 				("Last Week", now.AddDays(-7), now),
 				("Last Month", now.AddMonths(-1), now),
 				("Last Quarter", now.AddMonths(-3), now),
 				("Last 6 Months", now.AddMonths(-6), now),
 				("Last Year", now.AddYears(-1), now),
-				("Year to Date", new DateTime(now.Year, 1, 1), now),
+				("Year to Date", new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local), now),
 				("Last 2 Years", now.AddYears(-2), now),
 				("Last 3 Years", now.AddYears(-3), now)
 			};
 
-			// Filter periods that have activities
-			var validPeriods = periods.Where(period =>
-				holdings.SelectMany(h => h.Activities)
-					.Any(a => a.Date >= period.Start && a.Date <= period.End)
-			).ToList();
+			foreach (var period in standardPeriods)
+			{
+				if (HasActivitiesInPeriod(allActivities, period.Start, period.End))
+				{
+					periods.Add(period);
+				}
+			}
 
-			logger.LogInformation("Generating standard performance report for {ValidPeriods}/{TotalPeriods} periods with activities",
-				validPeriods.Count, periods.Count);
+			return periods;
+		}
 
-			return await CalculateMultiplePeriodPerformanceAsync(holdings, validPeriods, baseCurrency, forceRecalculation);
+		/// <summary>
+		/// Get yearly periods
+		/// </summary>
+		private List<(string Name, DateTime Start, DateTime End)> GetYearlyPeriods(DateTime firstActivity, DateTime now, List<Activity> allActivities)
+		{
+			var periods = new List<(string Name, DateTime Start, DateTime End)>();
+			var firstYear = firstActivity.Year;
+			var currentYear = now.Year;
+
+			for (int year = firstYear; year <= currentYear; year++)
+			{
+				var yearStart = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Local);
+				var yearEnd = year == currentYear ? now : new DateTime(year, 12, 31, 23, 59, 59, DateTimeKind.Local);
+
+				if (HasActivitiesInPeriod(allActivities, yearStart, yearEnd))
+				{
+					periods.Add(($"Year {year}", yearStart, yearEnd));
+				}
+			}
+
+			return periods;
+		}
+
+		/// <summary>
+		/// Get quarterly periods
+		/// </summary>
+		private List<(string Name, DateTime Start, DateTime End)> GetQuarterlyPeriods(DateTime firstActivity, DateTime now, List<Activity> allActivities)
+		{
+			var periods = new List<(string Name, DateTime Start, DateTime End)>();
+			var firstYear = firstActivity.Year;
+			var currentYear = now.Year;
+
+			for (int year = firstYear; year <= currentYear; year++)
+			{
+				for (int quarter = 1; quarter <= 4; quarter++)
+				{
+					var quarterStart = new DateTime(year, (quarter - 1) * 3 + 1, 1, 0, 0, 0, DateTimeKind.Local);
+					var quarterEnd = quarter == 4 && year == currentYear 
+						? now 
+						: quarterStart.AddMonths(3).AddDays(-1);
+
+					// Don't add future quarters
+					if (quarterStart > now) break;
+
+					if (HasActivitiesInPeriod(allActivities, quarterStart, quarterEnd))
+					{
+						periods.Add(($"Q{quarter} {year}", quarterStart, quarterEnd));
+					}
+				}
+			}
+
+			return periods;
+		}
+
+		/// <summary>
+		/// Get monthly periods for recent months
+		/// </summary>
+		private List<(string Name, DateTime Start, DateTime End)> GetMonthlyPeriods(DateTime now, List<Activity> allActivities)
+		{
+			var periods = new List<(string Name, DateTime Start, DateTime End)>();
+			var monthStart = now.AddMonths(-24);
+
+			while (monthStart < now)
+			{
+				var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+				if (monthEnd > now) monthEnd = now;
+
+				if (HasActivitiesInPeriod(allActivities, monthStart, monthEnd))
+				{
+					periods.Add(($"{monthStart:MMMM yyyy}", monthStart, monthEnd));
+				}
+
+				monthStart = monthStart.AddMonths(1);
+			}
+
+			return periods;
+		}
+
+		/// <summary>
+		/// Get milestone periods
+		/// </summary>
+		private List<(string Name, DateTime Start, DateTime End)> GetMilestonePeriods(DateTime firstActivity, DateTime now)
+		{
+			var periods = new List<(string Name, DateTime Start, DateTime End)>();
+			var milestoneStart = firstActivity;
+			var milestoneCounter = 1;
+
+			while (milestoneStart.AddMonths(6) <= now)
+			{
+				var milestoneEnd = milestoneStart.AddMonths(6);
+				if (milestoneEnd > now) milestoneEnd = now;
+
+				periods.Add(($"First {milestoneCounter * 6} Months", milestoneStart, milestoneEnd));
+				milestoneStart = milestoneStart.AddMonths(6);
+				milestoneCounter++;
+			}
+
+			return periods;
+		}
+
+		/// <summary>
+		/// Get inception periods
+		/// </summary>
+		private List<(string Name, DateTime Start, DateTime End)> GetInceptionPeriods(DateTime firstActivity, DateTime now)
+		{
+			var periods = new List<(string Name, DateTime Start, DateTime End)>();
+			
+			if (firstActivity < now)
+			{
+				periods.Add(("Inception to Date", firstActivity, now));
+			}
+
+			return periods;
+		}
+
+		/// <summary>
+		/// Get rolling periods for portfolios with significant history
+		/// </summary>
+		private List<(string Name, DateTime Start, DateTime End)> GetRollingPeriods(DateTime firstActivity, DateTime now, List<Activity> allActivities)
+		{
+			var periods = new List<(string Name, DateTime Start, DateTime End)>();
+			var portfolioAge = (now - firstActivity).TotalDays;
+			
+			if (portfolioAge <= 365) return periods; // Only for portfolios older than 1 year
+
+			// Add rolling 1-year periods every 3 months
+			var rollingStart = firstActivity;
+			while (rollingStart.AddYears(1) <= now)
+			{
+				var rollingEnd = rollingStart.AddYears(1);
+				if (HasActivitiesInPeriod(allActivities, rollingStart, rollingEnd))
+				{
+					periods.Add(($"Rolling Year {rollingStart:yyyy-MM-dd}", rollingStart, rollingEnd));
+				}
+				rollingStart = rollingStart.AddMonths(3);
+			}
+
+			return periods;
+		}
+
+		/// <summary>
+		/// Check if there are any activities in the specified time period
+		/// </summary>
+		private bool HasActivitiesInPeriod(List<Activity> activities, DateTime start, DateTime end)
+		{
+			return activities.Any(a => a.Date >= start && a.Date <= end);
+		}
+
+		/// <summary>
+		/// Get comprehensive performance analysis for all meaningful periods
+		/// </summary>
+		public async Task<Dictionary<string, PortfolioPerformance>> GetComprehensiveTimePeriodsAnalysisAsync(
+			List<Holding> holdings,
+			Currency baseCurrency,
+			bool forceRecalculation = false)
+		{
+			var allPeriods = CalculateAllMeaningfulTimePeriods(holdings);
+			
+			logger.LogInformation("Running comprehensive analysis for {PeriodCount} time periods", allPeriods.Count);
+
+			return await CalculateMultiplePeriodPerformanceAsync(holdings, allPeriods, baseCurrency, forceRecalculation);
 		}
 
 		#endregion
@@ -590,6 +812,117 @@ namespace GhostfolioSidekick.PortfolioAnalysis
 				   $"• Currency Impact: {performance.CurrencyImpact:F2}%\n" +
 				   $"• Portfolio Value Change: {performance.InitialValue.Amount:F2} ? {performance.FinalValue.Amount:F2} {baseCurrency.Symbol}\n" +
 				   $"• Net Cash Flows: {performance.NetCashFlows.Amount:F2} {baseCurrency.Symbol}";
+		}
+
+		#endregion
+
+		#region Time Periods Report
+
+		/// <summary>
+		/// Get a detailed report of all calculated time periods with summary information
+		/// </summary>
+		public string GenerateTimePeriodsReport(List<Holding> holdings)
+		{
+			var allPeriods = CalculateAllMeaningfulTimePeriods(holdings);
+			var report = new System.Text.StringBuilder();
+
+			report.AppendLine("=== Dynamic Time Periods Analysis Report ===");
+			report.AppendLine($"Generated at: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+			report.AppendLine("");
+
+			if (!allPeriods.Any())
+			{
+				report.AppendLine("No meaningful time periods found.");
+				return report.ToString();
+			}
+
+			// Get all activity dates for context
+			var allActivities = holdings.SelectMany(h => h.Activities).ToList();
+			var firstActivity = allActivities.Min(a => a.Date);
+			var lastActivity = allActivities.Max(a => a.Date);
+
+			report.AppendLine($"Portfolio Activity Span: {firstActivity:yyyy-MM-dd} to {lastActivity:yyyy-MM-dd}");
+			report.AppendLine($"Total Activity Period: {(lastActivity - firstActivity).TotalDays:F0} days");
+			report.AppendLine($"Total Activities: {allActivities.Count}");
+			report.AppendLine("");
+
+			// Group and display by category
+			var groupedPeriods = allPeriods
+				.GroupBy(p => GetPeriodCategoryForReport(p.Name))
+				.OrderBy(g => GetCategoryOrderForReport(g.Key));
+
+			foreach (var group in groupedPeriods)
+			{
+				report.AppendLine($"=== {group.Key} ===");
+				
+				var sortedPeriods = group.OrderByDescending(p => p.End).ToList();
+				
+				foreach (var period in sortedPeriods)
+				{
+					var days = (period.End - period.Start).TotalDays;
+					var activitiesInPeriod = allActivities.Count(a => a.Date >= period.Start && a.Date <= period.End);
+					
+					report.AppendLine($"  {period.Name}:");
+					report.AppendLine($"    Period: {period.Start:yyyy-MM-dd} to {period.End:yyyy-MM-dd}");
+					report.AppendLine($"    Duration: {days:F0} days");
+					report.AppendLine($"    Activities: {activitiesInPeriod}");
+				}
+				report.AppendLine("");
+			}
+
+			// Summary statistics
+			report.AppendLine("=== Summary Statistics ===");
+			report.AppendLine($"Total Periods Calculated: {allPeriods.Count}");
+			
+			var periodsByCategory = groupedPeriods.ToDictionary(g => g.Key, g => g.Count());
+			foreach (var (category, count) in periodsByCategory.OrderByDescending(kvp => kvp.Value))
+			{
+				report.AppendLine($"  {category}: {count} periods");
+			}
+
+			var avgDuration = allPeriods.Average(p => (p.End - p.Start).TotalDays);
+			var longestPeriod = allPeriods.OrderByDescending(p => (p.End - p.Start).TotalDays).First();
+			var shortestPeriod = allPeriods.OrderBy(p => (p.End - p.Start).TotalDays).First();
+
+			report.AppendLine("");
+			report.AppendLine($"Average Period Duration: {avgDuration:F0} days");
+			report.AppendLine($"Longest Period: {longestPeriod.Name} ({(longestPeriod.End - longestPeriod.Start).TotalDays:F0} days)");
+			report.AppendLine($"Shortest Period: {shortestPeriod.Name} ({(shortestPeriod.End - shortestPeriod.Start).TotalDays:F0} days)");
+
+			return report.ToString();
+		}
+
+		/// <summary>
+		/// Categorize periods for reporting
+		/// </summary>
+		private string GetPeriodCategoryForReport(string periodName)
+		{
+			if (periodName.Contains("Week")) return "Weekly Periods";
+			if (periodName.Contains("Month") && !periodName.Contains("Year") && !periodName.Contains("First")) return "Monthly Periods";
+			if (periodName.Contains("Quarter") || periodName.StartsWith("Q")) return "Quarterly Periods";
+			if (periodName.Contains("Year") && !periodName.Contains("Rolling")) return "Annual Periods";
+			if (periodName.Contains("Rolling")) return "Rolling Periods";
+			if (periodName.Contains("Inception")) return "Inception Periods";
+			if (periodName.Contains("First")) return "Milestone Periods";
+			return "Other Periods";
+		}
+
+		/// <summary>
+		/// Get category display order for reporting
+		/// </summary>
+		private int GetCategoryOrderForReport(string category)
+		{
+			return category switch
+			{
+				"Weekly Periods" => 1,
+				"Monthly Periods" => 2,
+				"Quarterly Periods" => 3,
+				"Annual Periods" => 4,
+				"Rolling Periods" => 5,
+				"Milestone Periods" => 6,
+				"Inception Periods" => 7,
+				_ => 8
+			};
 		}
 
 		#endregion

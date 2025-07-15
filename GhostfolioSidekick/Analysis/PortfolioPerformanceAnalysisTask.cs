@@ -47,6 +47,9 @@ namespace GhostfolioSidekick.Analysis
 				// Check market data quality
 				await AssessMarketDataQuality(holdings);
 
+				// Show dynamic time periods calculation
+				await DisplayDynamicTimePeriodsReport(holdings);
+
 				// Generate comprehensive performance report (portfolio + accounts + assets)
 				await GenerateComprehensivePerformanceReport(holdings, Currency.EUR);
 
@@ -80,59 +83,193 @@ namespace GhostfolioSidekick.Analysis
 
 			try
 			{
-				var now = DateTime.Now;
-				var startDate = now.AddMonths(-3); // Last quarter
-				var endDate = now;
-
-				var report = await analysisService.GenerateComprehensivePerformanceReportAsync(
-					holdings, startDate, endDate, baseCurrency, forceRecalculation: false);
-
-				logger.LogInformation("Period: {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}", startDate, endDate);
-				logger.LogInformation("Generated at: {GeneratedAt:yyyy-MM-dd HH:mm:ss}", report.GeneratedAt);
-				logger.LogInformation("");
-
-				// Portfolio-wide performance
-				logger.LogInformation("=== Portfolio Performance ===");
-				var portfolio = report.PortfolioPerformance;
-				logger.LogInformation("Time-Weighted Return: {TWR:F2}%", portfolio.TimeWeightedReturn);
-				logger.LogInformation("Portfolio Value: {InitialValue} ? {FinalValue}", 
-					portfolio.InitialValue, portfolio.FinalValue);
-				logger.LogInformation("Total Dividends: {Dividends}", portfolio.TotalDividends);
-				logger.LogInformation("");
-
-				// Account performance summary
-				logger.LogInformation("=== Account Performance Summary ===");
-				logger.LogInformation("Number of Accounts: {AccountCount}", report.AccountPerformances.Count);
-				if (report.AccountPerformances.Any())
+				// Get all meaningful time periods for comprehensive analysis
+				var allPeriods = analysisService.CalculateAllMeaningfulTimePeriods(holdings);
+				
+				if (!allPeriods.Any())
 				{
-					logger.LogInformation("Average Account TWR: {AvgTWR:F2}%", report.Summary.AverageAccountTWR);
-					logger.LogInformation("Best Performing Account: {Account} ({TWR:F2}%)", 
-						report.Summary.BestPerformingAccount.Key, 
-						report.Summary.BestPerformingAccount.Value.TimeWeightedReturn);
-					logger.LogInformation("Worst Performing Account: {Account} ({TWR:F2}%)", 
-						report.Summary.WorstPerformingAccount.Key, 
-						report.Summary.WorstPerformingAccount.Value.TimeWeightedReturn);
+					logger.LogWarning("No meaningful time periods found for comprehensive analysis");
+					return;
 				}
-				logger.LogInformation("");
 
-				// Asset performance summary
-				logger.LogInformation("=== Asset Performance Summary ===");
-				logger.LogInformation("Number of Assets: {AssetCount}", report.AssetPerformances.Count);
-				if (report.AssetPerformances.Any())
+				logger.LogInformation("Analyzing {PeriodCount} time periods", allPeriods.Count);
+
+				// Analyze the most recent quarter for detailed breakdown
+				var recentPeriod = allPeriods.FirstOrDefault(p => 
+					p.Name.Contains("Last Quarter") || p.Name.Contains("Q") || p.Name.Contains("Month"));
+
+				if (recentPeriod.Name != null)
 				{
-					logger.LogInformation("Average Asset TWR: {AvgTWR:F2}%", report.Summary.AverageAssetTWR);
-					logger.LogInformation("Best Performing Asset: {Asset} ({TWR:F2}%)", 
-						report.Summary.BestPerformingAsset.Key, 
-						report.Summary.BestPerformingAsset.Value.TimeWeightedReturn);
-					logger.LogInformation("Worst Performing Asset: {Asset} ({TWR:F2}%)", 
-						report.Summary.WorstPerformingAsset.Key, 
-						report.Summary.WorstPerformingAsset.Value.TimeWeightedReturn);
+					logger.LogInformation("Detailed analysis for period: {PeriodName} ({StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd})", 
+						recentPeriod.Name, recentPeriod.Start, recentPeriod.End);
+
+					var report = await analysisService.GenerateComprehensivePerformanceReportAsync(
+						holdings, recentPeriod.Start, recentPeriod.End, baseCurrency, forceRecalculation: false);
+
+					logger.LogInformation("Generated at: {GeneratedAt:yyyy-MM-dd HH:mm:ss}", report.GeneratedAt);
+					logger.LogInformation("");
+
+					// Portfolio-wide performance
+					logger.LogInformation("=== Portfolio Performance ===");
+					var portfolio = report.PortfolioPerformance;
+					logger.LogInformation("Time-Weighted Return: {TWR:F2}%", portfolio.TimeWeightedReturn);
+					logger.LogInformation("Portfolio Value: {InitialValue} ? {FinalValue}", 
+						portfolio.InitialValue, portfolio.FinalValue);
+					logger.LogInformation("Total Dividends: {Dividends}", portfolio.TotalDividends);
+					logger.LogInformation("");
+
+					// Account performance summary
+					logger.LogInformation("=== Account Performance Summary ===");
+					logger.LogInformation("Number of Accounts: {AccountCount}", report.AccountPerformances.Count);
+					if (report.AccountPerformances.Any())
+					{
+						logger.LogInformation("Average Account TWR: {AvgTWR:F2}%", report.Summary.AverageAccountTWR);
+						logger.LogInformation("Best Performing Account: {Account} ({TWR:F2}%)", 
+							report.Summary.BestPerformingAccount.Key, 
+							report.Summary.BestPerformingAccount.Value.TimeWeightedReturn);
+						logger.LogInformation("Worst Performing Account: {Account} ({TWR:F2}%)", 
+							report.Summary.WorstPerformingAccount.Key, 
+							report.Summary.WorstPerformingAccount.Value.TimeWeightedReturn);
+					}
+					logger.LogInformation("");
+
+					// Asset performance summary
+					logger.LogInformation("=== Asset Performance Summary ===");
+					logger.LogInformation("Number of Assets: {AssetCount}", report.AssetPerformances.Count);
+					if (report.AssetPerformances.Any())
+					{
+						logger.LogInformation("Average Asset TWR: {AvgTWR:F2}%", report.Summary.AverageAssetTWR);
+						logger.LogInformation("Best Performing Asset: {Asset} ({TWR:F2}%)", 
+							report.Summary.BestPerformingAsset.Key, 
+							report.Summary.BestPerformingAsset.Value.TimeWeightedReturn);
+						logger.LogInformation("Worst Performing Asset: {Asset} ({TWR:F2}%)", 
+							report.Summary.WorstPerformingAsset.Key, 
+							report.Summary.WorstPerformingAsset.Value.TimeWeightedReturn);
+					}
 				}
+
+				// Generate performance overview for all calculated periods
+				await GenerateAllPeriodsPerformanceOverview(holdings, baseCurrency);
 			}
 			catch (Exception ex)
 			{
 				logger.LogWarning(ex, "Error generating comprehensive performance report");
 			}
+		}
+
+		/// <summary>
+		/// Generate performance overview for all calculated time periods
+		/// </summary>
+		private async Task GenerateAllPeriodsPerformanceOverview(List<Holding> holdings, Currency baseCurrency)
+		{
+			logger.LogInformation("=== All Time Periods Performance Overview ===");
+
+			try
+			{
+				var allPeriodsPerformance = await analysisService.GetComprehensiveTimePeriodsAnalysisAsync(
+					holdings, baseCurrency, forceRecalculation: false);
+
+				if (!allPeriodsPerformance.Any())
+				{
+					logger.LogInformation("No performance data available for any time period");
+					return;
+				}
+
+				logger.LogInformation("Performance overview for {PeriodCount} time periods:", allPeriodsPerformance.Count);
+				logger.LogInformation("");
+
+				// Group and display by period type
+				var groupedPeriods = allPeriodsPerformance
+					.GroupBy(kvp => GetPeriodCategory(kvp.Key))
+					.OrderBy(g => GetCategoryOrder(g.Key));
+
+				foreach (var group in groupedPeriods)
+				{
+					logger.LogInformation("=== {CategoryName} ===", group.Key);
+					
+					var sortedPeriods = group.OrderByDescending(kvp => kvp.Value.EndDate).Take(10); // Show most recent 10 per category
+					
+					foreach (var (periodName, performance) in sortedPeriods)
+					{
+						var days = (performance.EndDate - performance.StartDate).TotalDays;
+						var annualizedReturn = CalculateAnnualizedReturn(performance.TimeWeightedReturn, days);
+						
+						logger.LogInformation("{Period}: TWR {TWR:F2}% | Annualized {Annualized:F2}% | Value {FinalValue} | Days: {Days:F0}",
+							periodName,
+							performance.TimeWeightedReturn,
+							annualizedReturn,
+							performance.FinalValue,
+							days);
+					}
+					logger.LogInformation("");
+				}
+
+				// Performance statistics
+				var allTWRs = allPeriodsPerformance.Values.Select(p => p.TimeWeightedReturn).ToList();
+				if (allTWRs.Any())
+				{
+					logger.LogInformation("=== Performance Statistics Across All Periods ===");
+					logger.LogInformation("Best Period Performance: {Best:F2}%", allTWRs.Max());
+					logger.LogInformation("Worst Period Performance: {Worst:F2}%", allTWRs.Min());
+					logger.LogInformation("Average Performance: {Average:F2}%", allTWRs.Average());
+					logger.LogInformation("Median Performance: {Median:F2}%", CalculateMedian(allTWRs));
+					
+					var positiveCount = allTWRs.Count(twr => twr > 0);
+					var positivePercentage = (double)positiveCount / allTWRs.Count * 100;
+					logger.LogInformation("Positive Periods: {PositiveCount}/{TotalCount} ({Percentage:F1}%)", 
+						positiveCount, allTWRs.Count, positivePercentage);
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error generating all periods performance overview");
+			}
+		}
+
+		/// <summary>
+		/// Categorize periods for better organization
+		/// </summary>
+		private string GetPeriodCategory(string periodName)
+		{
+			if (periodName.Contains("Week")) return "Weekly Periods";
+			if (periodName.Contains("Month") && !periodName.Contains("Year")) return "Monthly Periods";
+			if (periodName.Contains("Quarter") || periodName.StartsWith("Q")) return "Quarterly Periods";
+			if (periodName.Contains("Year") && !periodName.Contains("Rolling")) return "Annual Periods";
+			if (periodName.Contains("Rolling")) return "Rolling Periods";
+			if (periodName.Contains("Inception")) return "Inception Periods";
+			if (periodName.Contains("First")) return "Milestone Periods";
+			return "Other Periods";
+		}
+
+		/// <summary>
+		/// Get category display order
+		/// </summary>
+		private int GetCategoryOrder(string category)
+		{
+			return category switch
+			{
+				"Weekly Periods" => 1,
+				"Monthly Periods" => 2,
+				"Quarterly Periods" => 3,
+				"Annual Periods" => 4,
+				"Rolling Periods" => 5,
+				"Milestone Periods" => 6,
+				"Inception Periods" => 7,
+				_ => 8
+			};
+		}
+
+		/// <summary>
+		/// Calculate annualized return from time-weighted return and period length
+		/// </summary>
+		private decimal CalculateAnnualizedReturn(decimal timeWeightedReturn, double days)
+		{
+			if (days <= 0) return timeWeightedReturn;
+			
+			var years = days / 365.25;
+			if (years < 0.1) return timeWeightedReturn; // For very short periods, return as-is
+			
+			return (decimal)(Math.Pow((double)(1 + timeWeightedReturn / 100), 1 / years) - 1) * 100;
 		}
 
 		/// <summary>
@@ -144,21 +281,32 @@ namespace GhostfolioSidekick.Analysis
 
 			try
 			{
-				var now = DateTime.Now;
-				var startDate = now.AddMonths(-6); // Last 6 months
-				var endDate = now;
+				// Get meaningful time periods and select a representative period for detailed analysis
+				var allPeriods = analysisService.CalculateAllMeaningfulTimePeriods(holdings);
+				
+				// Use the longest meaningful period for comprehensive account analysis
+				var analysisPeriod = allPeriods
+					.Where(p => !p.Name.Contains("Rolling") && !p.Name.Contains("Week"))
+					.OrderByDescending(p => (p.End - p.Start).TotalDays)
+					.FirstOrDefault();
+
+				if (analysisPeriod.Name == null)
+				{
+					logger.LogInformation("No suitable period found for account analysis");
+					return;
+				}
+
+				logger.LogInformation("Account analysis period: {PeriodName} ({StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd})", 
+					analysisPeriod.Name, analysisPeriod.Start, analysisPeriod.End);
 
 				var accountPerformances = await analysisService.CalculateAllAccountsPerformanceAsync(
-					holdings, startDate, endDate, baseCurrency, forceRecalculation: false);
+					holdings, analysisPeriod.Start, analysisPeriod.End, baseCurrency, forceRecalculation: false);
 
 				if (!accountPerformances.Any())
 				{
 					logger.LogInformation("No account performances found for the period");
 					return;
 				}
-
-				logger.LogInformation("Account performance for period {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}:", 
-					startDate, endDate);
 
 				// Sort accounts by performance
 				var sortedAccounts = accountPerformances
@@ -167,8 +315,11 @@ namespace GhostfolioSidekick.Analysis
 
 				foreach (var (accountName, performance) in sortedAccounts)
 				{
+					var days = (performance.EndDate - performance.StartDate).TotalDays;
+					var annualizedReturn = CalculateAnnualizedReturn(performance.TimeWeightedReturn, days);
+					
 					logger.LogInformation("Account: {AccountName}", accountName);
-					logger.LogInformation("  TWR: {TWR:F2}%", performance.TimeWeightedReturn);
+					logger.LogInformation("  TWR: {TWR:F2}% | Annualized: {Annualized:F2}%", performance.TimeWeightedReturn, annualizedReturn);
 					logger.LogInformation("  Value Change: {InitialValue} ? {FinalValue}", 
 						performance.InitialValue, performance.FinalValue);
 					logger.LogInformation("  Dividends: {Dividends}", performance.TotalDividends);
@@ -188,10 +339,65 @@ namespace GhostfolioSidekick.Analysis
 							accountName, allocation, performance.FinalValue);
 					}
 				}
+
+				// Generate account performance across multiple periods for trend analysis
+				await GenerateAccountPerformanceTrends(holdings, baseCurrency, sortedAccounts.Take(5).Select(kvp => kvp.Key).ToList());
 			}
 			catch (Exception ex)
 			{
 				logger.LogWarning(ex, "Error generating account performance analysis");
+			}
+		}
+
+		/// <summary>
+		/// Generate account performance trends across multiple time periods
+		/// </summary>
+		private async Task GenerateAccountPerformanceTrends(List<Holding> holdings, Currency baseCurrency, List<string> topAccounts)
+		{
+			if (!topAccounts.Any()) return;
+
+			logger.LogInformation("=== Account Performance Trends (Top {AccountCount} Accounts) ===", topAccounts.Count);
+
+			try
+			{
+				// Get key periods for trend analysis
+				var allPeriods = analysisService.CalculateAllMeaningfulTimePeriods(holdings);
+				var trendPeriods = allPeriods
+					.Where(p => p.Name.Contains("Year") && !p.Name.Contains("Rolling") || 
+					           p.Name.Contains("Quarter") || 
+					           p.Name.Contains("Inception"))
+					.OrderByDescending(p => p.End)
+					.Take(8)
+					.ToList();
+
+				foreach (var account in topAccounts)
+				{
+					logger.LogInformation("Account: {AccountName}", account);
+					
+					foreach (var period in trendPeriods)
+					{
+						try
+						{
+							var performance = await analysisService.CalculateAccountPerformanceAsync(
+								holdings, account, period.Start, period.End, baseCurrency, forceRecalculation: false);
+							
+							var days = (performance.EndDate - performance.StartDate).TotalDays;
+							var annualizedReturn = CalculateAnnualizedReturn(performance.TimeWeightedReturn, days);
+							
+							logger.LogInformation("  {Period}: {TWR:F2}% (Annualized: {Annualized:F2}%)",
+								period.Name, performance.TimeWeightedReturn, annualizedReturn);
+						}
+						catch (Exception ex)
+						{
+							logger.LogDebug(ex, "Could not calculate {Account} performance for {Period}", account, period.Name);
+						}
+					}
+					logger.LogInformation("");
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error generating account performance trends");
 			}
 		}
 
@@ -204,21 +410,34 @@ namespace GhostfolioSidekick.Analysis
 
 			try
 			{
-				var now = DateTime.Now;
-				var startDate = now.AddMonths(-6); // Last 6 months
-				var endDate = now;
+				// Get meaningful time periods and select a representative period for detailed analysis
+				var allPeriods = analysisService.CalculateAllMeaningfulTimePeriods(holdings);
+				
+				// Use a substantial period for asset analysis (prefer last year or last quarter)
+				var analysisPeriod = allPeriods
+					.Where(p => p.Name.Contains("Year") || p.Name.Contains("Quarter") || p.Name.Contains("Month"))
+					.Where(p => !p.Name.Contains("Rolling"))
+					.OrderByDescending(p => p.End)
+					.ThenByDescending(p => (p.End - p.Start).TotalDays)
+					.FirstOrDefault();
+
+				if (analysisPeriod.Name == null)
+				{
+					logger.LogInformation("No suitable period found for asset analysis");
+					return;
+				}
+
+				logger.LogInformation("Asset analysis period: {PeriodName} ({StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd})", 
+					analysisPeriod.Name, analysisPeriod.Start, analysisPeriod.End);
 
 				var assetPerformances = await analysisService.CalculateAllAssetsPerformanceAsync(
-					holdings, startDate, endDate, baseCurrency, forceRecalculation: false);
+					holdings, analysisPeriod.Start, analysisPeriod.End, baseCurrency, forceRecalculation: false);
 
 				if (!assetPerformances.Any())
 				{
 					logger.LogInformation("No asset performances found for the period");
 					return;
 				}
-
-				logger.LogInformation("Asset performance for period {StartDate:yyyy-MM-dd} to {EndDate:yyyy-MM-dd}:", 
-					startDate, endDate);
 
 				// Sort assets by performance
 				var sortedAssets = assetPerformances
@@ -228,8 +447,11 @@ namespace GhostfolioSidekick.Analysis
 
 				foreach (var (symbol, performance) in sortedAssets)
 				{
+					var days = (performance.EndDate - performance.StartDate).TotalDays;
+					var annualizedReturn = CalculateAnnualizedReturn(performance.TimeWeightedReturn, days);
+					
 					logger.LogInformation("Asset: {Symbol}", symbol);
-					logger.LogInformation("  TWR: {TWR:F2}%", performance.TimeWeightedReturn);
+					logger.LogInformation("  TWR: {TWR:F2}% | Annualized: {Annualized:F2}%", performance.TimeWeightedReturn, annualizedReturn);
 					logger.LogInformation("  Value Change: {InitialValue} ? {FinalValue}", 
 						performance.InitialValue, performance.FinalValue);
 					logger.LogInformation("  Dividends: {Dividends}", performance.TotalDividends);
@@ -265,10 +487,65 @@ namespace GhostfolioSidekick.Analysis
 					logger.LogInformation("Positive Performers: {PositiveCount}/{TotalCount} ({Percentage:F1}%)", 
 						positivePerformers, allTWRs.Count, positivePercentage);
 				}
+
+				// Generate asset performance across multiple periods for top performers
+				await GenerateAssetPerformanceTrends(holdings, baseCurrency, sortedAssets.Take(10).Select(kvp => kvp.Key).ToList());
 			}
 			catch (Exception ex)
 			{
 				logger.LogWarning(ex, "Error generating asset performance analysis");
+			}
+		}
+
+		/// <summary>
+		/// Generate asset performance trends across multiple time periods
+		/// </summary>
+		private async Task GenerateAssetPerformanceTrends(List<Holding> holdings, Currency baseCurrency, List<string> topAssets)
+		{
+			if (!topAssets.Any()) return;
+
+			logger.LogInformation("=== Asset Performance Trends (Top {AssetCount} Assets) ===", topAssets.Count);
+
+			try
+			{
+				// Get key periods for trend analysis
+				var allPeriods = analysisService.CalculateAllMeaningfulTimePeriods(holdings);
+				var trendPeriods = allPeriods
+					.Where(p => p.Name.Contains("Year") && !p.Name.Contains("Rolling") || 
+					           p.Name.Contains("Quarter") || 
+					           p.Name.Contains("Inception"))
+					.OrderByDescending(p => p.End)
+					.Take(6)
+					.ToList();
+
+				foreach (var asset in topAssets)
+				{
+					logger.LogInformation("Asset: {Symbol}", asset);
+					
+					foreach (var period in trendPeriods)
+					{
+						try
+						{
+							var performance = await analysisService.CalculateAssetPerformanceAsync(
+								holdings, asset, period.Start, period.End, baseCurrency, forceRecalculation: false);
+							
+							var days = (performance.EndDate - performance.StartDate).TotalDays;
+							var annualizedReturn = CalculateAnnualizedReturn(performance.TimeWeightedReturn, days);
+							
+							logger.LogInformation("  {Period}: {TWR:F2}% (Annualized: {Annualized:F2}%)",
+								period.Name, performance.TimeWeightedReturn, annualizedReturn);
+						}
+						catch (Exception ex)
+						{
+							logger.LogDebug(ex, "Could not calculate {Asset} performance for {Period}", asset, period.Name);
+						}
+					}
+					logger.LogInformation("");
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error generating asset performance trends");
 			}
 		}
 
@@ -444,6 +721,32 @@ namespace GhostfolioSidekick.Analysis
 			{
 				logger.LogWarning(ex, "Error during performance snapshots cleanup");
 			}
+		}
+
+		/// <summary>
+		/// Display dynamic time periods calculation report
+		/// </summary>
+		private async Task DisplayDynamicTimePeriodsReport(List<Holding> holdings)
+		{
+			try
+			{
+				logger.LogInformation("=== Dynamic Time Periods Calculation ===");
+
+				var report = analysisService.GenerateTimePeriodsReport(holdings);
+				
+				// Log the report line by line for better formatting
+				var lines = report.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+				foreach (var line in lines)
+				{
+					logger.LogInformation(line.TrimEnd('\r'));
+				}
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Error generating dynamic time periods report");
+			}
+			
+			await Task.CompletedTask;
 		}
 	}
 }
