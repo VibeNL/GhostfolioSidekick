@@ -1,9 +1,5 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.Services.Implementation;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.Services.UnitTests
 {
