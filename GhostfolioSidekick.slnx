@@ -1,4 +1,17 @@
 <Solution>
+  <Folder Name="/PortfolioViewer/">
+    <Project Path="PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.AppHost/PortfolioViewer.AppHost.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.IntegratieTests/PortfolioViewer.IntegratieTests.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.ServiceDefaults/PortfolioViewer.ServiceDefaults.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.Services.UnitTests/PortfolioViewer.Services.UnitTests.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.Services/PortfolioViewer.Services.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.Tests/PortfolioViewer.Tests.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM.AI/PortfolioViewer.WASM.AI.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM.UnitTests/PortfolioViewer.WASM.UnitTests.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" />
+  </Folder>
   <Folder Name="/SolutionItems/">
     <File Path=".editorconfig" />
     <File Path=".github/workflows/docker-publish.yml" />
@@ -10,17 +23,6 @@
     <Project Path="Tools/AnonymisePDF.UnitTests/AnonymisePDF.UnitTests.csproj" />
     <Project Path="Tools/AnonymisePDF/AnonymisePDF.csproj" />
     <Project Path="Tools/ScraperUtilities/ScraperUtilities.csproj" />
-  </Folder>
-  <Folder Name="/Website/">
-    <Project Path="PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" />
-    <Project Path="PortfolioViewer/PortfolioViewer.AppHost/PortfolioViewer.AppHost.csproj" />
-    <Project Path="PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj" />
-    <Project Path="PortfolioViewer/PortfolioViewer.IntegratieTests/PortfolioViewer.IntegratieTests.csproj" />
-    <Project Path="PortfolioViewer/PortfolioViewer.ServiceDefaults/PortfolioViewer.ServiceDefaults.csproj" />
-    <Project Path="PortfolioViewer/PortfolioViewer.Tests/PortfolioViewer.Tests.csproj" />
-    <Project Path="PortfolioViewer/PortfolioViewer.WASM.AI/PortfolioViewer.WASM.AI.csproj" />
-    <Project Path="PortfolioViewer/PortfolioViewer.WASM.UnitTests/PortfolioViewer.WASM.UnitTests.csproj" />
-    <Project Path="PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" />
   </Folder>
   <Project Path="Configuration.UnitTests/Configuration.UnitTests.csproj" />
   <Project Path="Configuration/Configuration.csproj" />
