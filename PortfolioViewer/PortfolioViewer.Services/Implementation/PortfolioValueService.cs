@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.PortfolioViewer.Services.Interfaces;
 using GhostfolioSidekick.PortfolioViewer.Services.Models;
@@ -10,11 +11,13 @@ namespace GhostfolioSidekick.PortfolioViewer.Services.Implementation;
 public class PortfolioValueService : IPortfolioValueService
 {
     private readonly DatabaseContext _dbContext;
+    private readonly ICurrencyExchange _currencyExchange;
     private readonly ILogger<PortfolioValueService> _logger;
 
-    public PortfolioValueService(DatabaseContext dbContext, ILogger<PortfolioValueService> logger)
+    public PortfolioValueService(DatabaseContext dbContext, ICurrencyExchange currencyExchange, ILogger<PortfolioValueService> logger)
     {
         _dbContext = dbContext;
+        _currencyExchange = currencyExchange;
         _logger = logger;
     }
 
@@ -111,6 +114,7 @@ public class PortfolioValueService : IPortfolioValueService
                 .ToListAsync();
 
             var breakdown = new List<AccountBreakdown>();
+            var targetCurrency = GhostfolioSidekick.Model.Currency.GetCurrency(currency);
 
             foreach (var account in accounts)
             {
@@ -120,27 +124,34 @@ public class PortfolioValueService : IPortfolioValueService
                     .FirstOrDefault();
 
                 // Calculate holdings value for this account
-                var holdingsValue = await CalculateCurrentHoldingsValueForAccount(account.Id, currency);
+                var holdingsValue = await CalculateCurrentHoldingsValueForAccount(account.Id, targetCurrency);
 
+                // Convert cash balance to target currency if needed
+                var cashBalance = 0m;
                 if (latestBalance != null)
                 {
-                    breakdown.Add(new AccountBreakdown
+                    if (latestBalance.Money.Currency.Symbol == currency)
                     {
-                        AccountName = account.Name,
-                        CashBalance = latestBalance.Money.Amount,
-                        HoldingsValue = holdingsValue,
-                        CurrentValue = latestBalance.Money.Amount + holdingsValue
-                    });
+                        cashBalance = latestBalance.Money.Amount;
+                    }
+                    else
+                    {
+                        var convertedMoney = await _currencyExchange.ConvertMoney(
+                            latestBalance.Money, 
+                            targetCurrency, 
+                            DateOnly.FromDateTime(DateTime.Today));
+                        cashBalance = convertedMoney.Amount;
+                    }
                 }
-                else if (holdingsValue > 0)
+
+                if (cashBalance > 0 || holdingsValue > 0)
                 {
-                    // Account has holdings but no cash balance recorded
                     breakdown.Add(new AccountBreakdown
                     {
                         AccountName = account.Name,
-                        CashBalance = 0,
+                        CashBalance = cashBalance,
                         HoldingsValue = holdingsValue,
-                        CurrentValue = holdingsValue
+                        CurrentValue = cashBalance + holdingsValue
                     });
                 }
             }
@@ -215,19 +226,21 @@ public class PortfolioValueService : IPortfolioValueService
     {
         try
         {
-            // Get all holdings that have activities in the date range
+            // Get all holdings that have activities in the date range or before
             var holdingsWithActivities = await _dbContext.Holdings
                 .Include(h => h.Activities)
                 .Include(h => h.SymbolProfiles)
-                .Where(h => h.Activities.Any(a => a.Date >= startDate && a.Date <= endDate))
+                .ThenInclude(sp => sp.MarketData)
+                .Where(h => h.Activities.Any(a => a.Date <= endDate))
                 .ToListAsync();
 
             var holdingValuePoints = new List<HoldingValuePoint>();
+            var targetCurrency = GhostfolioSidekick.Model.Currency.GetCurrency(currency);
 
             foreach (var holding in holdingsWithActivities)
             {
                 // Calculate position over time for this holding
-                var positions = await CalculateHoldingPositionOverTime(holding.Id, startDate, endDate, currency);
+                var positions = await CalculateHoldingPositionOverTime(holding, startDate, endDate, targetCurrency);
                 holdingValuePoints.AddRange(positions);
             }
 
@@ -240,14 +253,14 @@ public class PortfolioValueService : IPortfolioValueService
         }
     }
 
-    private async Task<List<HoldingValuePoint>> CalculateHoldingPositionOverTime(long holdingId, DateTime startDate, DateTime endDate, string currency)
+    private async Task<List<HoldingValuePoint>> CalculateHoldingPositionOverTime(GhostfolioSidekick.Model.Holding holding, DateTime startDate, DateTime endDate, GhostfolioSidekick.Model.Currency targetCurrency)
     {
         try
         {
             // Get all buy/sell activities for this holding
             var activities = await _dbContext.Activities
                 .OfType<BuySellActivity>()
-                .Where(a => a.Holding != null && a.Holding.Id == holdingId && a.Date <= endDate)
+                .Where(a => a.Holding != null && a.Holding.Id == holding.Id && a.Date <= endDate)
                 .OrderBy(a => a.Date)
                 .ToListAsync();
 
@@ -256,16 +269,6 @@ public class PortfolioValueService : IPortfolioValueService
 
             var positions = new List<HoldingValuePoint>();
             var currentQuantity = 0m;
-            var currentDate = startDate;
-
-            // Get latest symbol profile for pricing
-            var holding = await _dbContext.Holdings
-                .Include(h => h.SymbolProfiles)
-                .FirstOrDefaultAsync(h => h.Id == holdingId);
-
-            var symbolProfile = holding?.SymbolProfiles?.FirstOrDefault();
-            if (symbolProfile == null)
-                return new List<HoldingValuePoint>();
 
             // Calculate quantity at start date
             foreach (var activity in activities.Where(a => a.Date <= startDate))
@@ -274,6 +277,7 @@ public class PortfolioValueService : IPortfolioValueService
             }
 
             // Generate positions for each week in the date range
+            var currentDate = startDate;
             while (currentDate <= endDate)
             {
                 // Update quantity based on activities up to this date
@@ -284,25 +288,16 @@ public class PortfolioValueService : IPortfolioValueService
 
                 if (currentQuantity > 0)
                 {
-                    // For now, use the latest activity's unit price as market price
-                    // In a real implementation, you'd want to fetch historical market prices
-                    var latestActivity = activities.Where(a => a.Date <= currentDate).LastOrDefault();
-                    var estimatedPrice = latestActivity?.UnitPrice?.Amount ?? 0;
-
-                    // Convert price to target currency if needed
-                    if (latestActivity?.UnitPrice?.Currency?.Symbol != currency)
-                    {
-                        // For now, assume 1:1 conversion. In real implementation, use exchange rates
-                        // This is a simplification - you'd want to implement proper currency conversion
-                    }
+                    // Get market price for this date
+                    var marketPrice = await GetMarketPriceForDate(holding, currentDate, targetCurrency);
 
                     positions.Add(new HoldingValuePoint
                     {
                         Date = currentDate,
-                        HoldingId = (int)holdingId,
+                        HoldingId = (int)holding.Id,
                         Quantity = currentQuantity,
-                        Price = estimatedPrice,
-                        Value = currentQuantity * estimatedPrice
+                        Price = marketPrice,
+                        Value = currentQuantity * marketPrice
                     });
                 }
 
@@ -313,12 +308,63 @@ public class PortfolioValueService : IPortfolioValueService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calculating holding position over time for holding {HoldingId}", holdingId);
+            _logger.LogError(ex, "Error calculating holding position over time for holding {HoldingId}", holding.Id);
             return new List<HoldingValuePoint>();
         }
     }
 
-    private async Task<decimal> CalculateCurrentHoldingsValueForAccount(int accountId, string currency)
+    private async Task<decimal> GetMarketPriceForDate(GhostfolioSidekick.Model.Holding holding, DateTime date, GhostfolioSidekick.Model.Currency targetCurrency)
+    {
+        try
+        {
+            var symbolProfile = holding.SymbolProfiles?.FirstOrDefault();
+            if (symbolProfile == null)
+                return 0;
+
+            var dateOnly = DateOnly.FromDateTime(date);
+
+            // Try to get market data for the exact date
+            var marketData = symbolProfile.MarketData?
+                .Where(md => md.Date <= dateOnly)
+                .OrderByDescending(md => md.Date)
+                .FirstOrDefault();
+
+            if (marketData?.Close != null)
+            {
+                // Convert the market price to target currency
+                var convertedPrice = await _currencyExchange.ConvertMoney(
+                    marketData.Close,
+                    targetCurrency,
+                    dateOnly);
+                return convertedPrice.Amount;
+            }
+
+            // Fallback: use latest activity price for this holding
+            var latestActivity = await _dbContext.Activities
+                .OfType<BuySellActivity>()
+                .Where(a => a.Holding != null && a.Holding.Id == holding.Id && a.Date <= date)
+                .OrderByDescending(a => a.Date)
+                .FirstOrDefaultAsync();
+
+            if (latestActivity?.UnitPrice != null)
+            {
+                var convertedPrice = await _currencyExchange.ConvertMoney(
+                    latestActivity.UnitPrice,
+                    targetCurrency,
+                    dateOnly);
+                return convertedPrice.Amount;
+            }
+
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting market price for holding {HoldingId} on date {Date}", holding.Id, date);
+            return 0;
+        }
+    }
+
+    private async Task<decimal> CalculateCurrentHoldingsValueForAccount(int accountId, GhostfolioSidekick.Model.Currency targetCurrency)
     {
         try
         {
@@ -328,6 +374,7 @@ public class PortfolioValueService : IPortfolioValueService
                 .Where(a => a.Account.Id == accountId && a.Holding != null)
                 .Include(a => a.Holding)
                 .ThenInclude(h => h!.SymbolProfiles)
+                .ThenInclude(sp => sp.MarketData)
                 .OrderBy(a => a.Date)
                 .ToListAsync();
 
@@ -353,21 +400,16 @@ public class PortfolioValueService : IPortfolioValueService
                 var holdingId = kvp.Key;
                 var quantity = kvp.Value;
 
-                // Get the latest activity for this holding to estimate current price
-                var latestActivity = activities
-                    .Where(a => a.Holding?.Id == holdingId)
-                    .OrderByDescending(a => a.Date)
-                    .FirstOrDefault();
+                // Get the holding with its symbol profile and market data
+                var holding = await _dbContext.Holdings
+                    .Include(h => h.SymbolProfiles)
+                    .ThenInclude(sp => sp.MarketData)
+                    .FirstOrDefaultAsync(h => h.Id == holdingId);
 
-                if (latestActivity?.UnitPrice != null)
+                if (holding != null)
                 {
-                    var estimatedPrice = latestActivity.UnitPrice.Amount;
-                    
-                    // Convert to target currency if needed (simplified for now)
-                    if (latestActivity.UnitPrice.Currency?.Symbol == currency)
-                    {
-                        holdingsValue += quantity * estimatedPrice;
-                    }
+                    var currentPrice = await GetMarketPriceForDate(holding, DateTime.Today, targetCurrency);
+                    holdingsValue += quantity * currentPrice;
                 }
             }
 

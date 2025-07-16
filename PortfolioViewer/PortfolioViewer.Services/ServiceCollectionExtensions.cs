@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.Services.Implementation;
 using GhostfolioSidekick.PortfolioViewer.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,9 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddPortfolioViewerServices(this IServiceCollection services)
     {
+        // Register database services
+        services.AddScoped<ICurrencyExchange, CurrencyExchange>();
+
         // Register performance services
         services.AddScoped<IPortfolioValueService, PortfolioValueService>();
         services.AddScoped<IHoldingsPerformanceService, HoldingsPerformanceService>();
