@@ -1,0 +1,223 @@
+@page "/portfolio-value-over-time"
+@using GhostfolioSidekick.Database
+@using GhostfolioSidekick.Model.Activities
+@using GhostfolioSidekick.Model.Activities.Types
+@using Microsoft.EntityFrameworkCore
+@using Radzen.Blazor
+
+<PageTitle>Portfolio Value Over Time</PageTitle>
+
+<h1>Portfolio Value Over Time</h1>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading portfolio data...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Portfolio Value Timeline</h5>
+                    <div class="d-flex gap-2">
+                        <select @bind="selectedTimeframe" class="form-select" style="width: auto;">
+                            <option value="1m">1 Month</option>
+                            <option value="3m">3 Months</option>
+                            <option value="6m">6 Months</option>
+                            <option value="1y">1 Year</option>
+                            <option value="2y">2 Years</option>
+                            <option value="all">All Time</option>
+                        </select>
+                        <select @bind="selectedCurrency" class="form-select" style="width: auto;">
+                            @if (AvailableCurrencies != null)
+                            {
+                                @foreach (var currency in AvailableCurrencies)
+                                {
+                                    <option value="@currency">@currency</option>
+                                }
+                            }
+                        </select>
+                        <button class="btn btn-primary" @onclick="RefreshChart">Update</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (PortfolioData != null && PortfolioData.Any())
+                    {
+                        <div style="height: 400px; width: 100%;">
+                            <RadzenChart>
+                                <RadzenLineSeries Smooth="true" Data="@PortfolioChartData" CategoryProperty="Date" Title="Portfolio Value" LineType="LineType.Solid" ValueProperty="Value">
+                                    <RadzenMarkers MarkerType="MarkerType.None" />
+                                    <RadzenSeriesDataLabels Visible="false" />
+                                </RadzenLineSeries>
+                                <RadzenLineSeries Smooth="true" Data="@InvestedChartData" CategoryProperty="Date" Title="Cumulative Invested" LineType="LineType.Dashed" ValueProperty="Value">
+                                    <RadzenMarkers MarkerType="MarkerType.None" />
+                                    <RadzenSeriesDataLabels Visible="false" />
+                                </RadzenLineSeries>
+                                <RadzenCategoryAxis Padding="20" FormatString="{0:MMM dd}" />
+                                <RadzenValueAxis Formatter="@FormatAsValue" Min="0">
+                                    <RadzenGridLines Visible="true" />
+                                    <RadzenAxisTitle Text="@($"Value ({selectedCurrency})")" />
+                                </RadzenValueAxis>
+                                <RadzenLegend Position="LegendPosition.Top" />
+                                <RadzenChartTooltip />
+                            </RadzenChart>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <details>
+                                <summary class="btn btn-link p-0 border-0 text-start">
+                                    <i class="bi bi-table"></i> View Data Table (@PortfolioData.Count data points)
+                                </summary>
+                                <div class="data-table-container mt-3">
+                                    <table class="table table-striped table-sm">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Total Value</th>
+                                                <th>Cash Value</th>
+                                                <th>Holdings Value</th>
+                                                <th>Cumulative Invested</th>
+                                                <th>Return</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @{
+                                                var sortedData = PortfolioData.OrderByDescending(p => p.Date).ToList();
+                                            }
+                                            @foreach (var point in sortedData.Take(20))
+                                            {
+                                                var totalReturn = point.CumulativeInvested > 0 ? ((point.TotalValue - point.CumulativeInvested) / point.CumulativeInvested) * 100 : 0;
+                                                <tr>
+                                                    <td>@point.Date.ToString("MM/dd/yyyy")</td>
+                                                    <td class="fw-bold">@point.TotalValue.ToString("N2") @selectedCurrency</td>
+                                                    <td>@point.CashValue.ToString("N2") @selectedCurrency</td>
+                                                    <td>@point.HoldingsValue.ToString("N2") @selectedCurrency</td>
+                                                    <td>@point.CumulativeInvested.ToString("N2") @selectedCurrency</td>
+                                                    <td class="@(totalReturn >= 0 ? "text-success" : "text-danger") fw-bold">
+                                                        @(totalReturn >= 0 ? "+" : "")@totalReturn.ToString("F2")%
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                    @if (PortfolioData.Count > 20)
+                                    {
+                                        <small class="text-muted">Showing latest 20 data points. Total: @PortfolioData.Count points</small>
+                                    }
+                                </div>
+                            </details>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <strong>No Data Available</strong><br />
+                            No portfolio value data found for the selected timeframe. This may occur if:
+                            <ul class="mb-0">
+                                <li>There are no activities in your portfolio</li>
+                                <li>No account balance data is available</li>
+                                <li>The selected timeframe doesn't contain any data</li>
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row portfolio-stats">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="bi bi-graph-up text-success me-2"></i>Current Portfolio Value</h6>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-success">@CurrentPortfolioValue</h4>
+                    <small class="text-muted">as of @CurrentValueDate</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="bi bi-arrow-up-right-circle @(TotalReturnAmount >= 0 ? "text-success" : "text-danger") me-2"></i>Total Return</h6>
+                </div>
+                <div class="card-body">
+                    <h4 class="@(TotalReturnAmount >= 0 ? "text-success" : "text-danger")">
+                        @TotalReturnAmount.ToString("F2") @selectedCurrency
+                    </h4>
+                    <small class="text-muted">
+                        (@(TotalReturnPercent >= 0 ? "+" : "")@TotalReturnPercent.ToString("F2")%)
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="bi bi-cash-coin text-primary me-2"></i>Total Invested</h6>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-primary">@TotalInvestedAmount</h4>
+                    <small class="text-muted">cash deposits minus withdrawals</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (PortfolioBreakdown != null && PortfolioBreakdown.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-pie-chart me-2"></i>Portfolio Breakdown by Account</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Account</th>
+                                        <th>Current Value</th>
+                                        <th>Cash Balance</th>
+                                        <th>Holdings Value</th>
+                                        <th>% of Portfolio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var breakdown in PortfolioBreakdown)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold">@breakdown.AccountName</td>
+                                            <td>@breakdown.CurrentValue.ToString("N2") @selectedCurrency</td>
+                                            <td>@breakdown.CashBalance.ToString("N2") @selectedCurrency</td>
+                                            <td>@breakdown.HoldingsValue.ToString("N2") @selectedCurrency</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="me-2">@breakdown.PercentageOfPortfolio.ToString("F1")%</span>
+                                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                                        <div class="progress-bar bg-primary" 
+                                                             style="width: @breakdown.PercentageOfPortfolio.ToString("F1")%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

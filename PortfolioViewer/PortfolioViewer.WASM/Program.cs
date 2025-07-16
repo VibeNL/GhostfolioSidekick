@@ -3,6 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Radzen;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -61,6 +62,9 @@ public static class Program
 
 		// Register PortfolioClient for DI
 		builder.Services.AddScoped<Clients.PortfolioClient>();
+
+		// Add Radzen Blazor services for native charts
+		builder.Services.AddRadzenComponents();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
