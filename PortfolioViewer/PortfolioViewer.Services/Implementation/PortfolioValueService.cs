@@ -270,10 +270,11 @@ public class PortfolioValueService : IPortfolioValueService
             var positions = new List<HoldingValuePoint>();
             var currentQuantity = 0m;
 
-            // Calculate quantity at start date
+            // Calculate quantity at start date using AdjustedQuantity (which handles buy/sell signs correctly)
             foreach (var activity in activities.Where(a => a.Date <= startDate))
             {
-                currentQuantity += activity.Quantity;
+                // Use AdjustedQuantity which already has correct signs: positive for buy, negative for sell
+                currentQuantity += activity.AdjustedQuantity != 0 ? activity.AdjustedQuantity : activity.Quantity;
             }
 
             // Generate positions for each week in the date range
@@ -283,7 +284,8 @@ public class PortfolioValueService : IPortfolioValueService
                 // Update quantity based on activities up to this date
                 foreach (var activity in activities.Where(a => a.Date <= currentDate && a.Date > currentDate.AddDays(-7)))
                 {
-                    currentQuantity += activity.Quantity;
+                    // Use AdjustedQuantity which already has correct signs: positive for buy, negative for sell
+                    currentQuantity += activity.AdjustedQuantity != 0 ? activity.AdjustedQuantity : activity.Quantity;
                 }
 
                 if (currentQuantity > 0)
@@ -381,7 +383,7 @@ public class PortfolioValueService : IPortfolioValueService
             var holdingsValue = 0m;
             var holdingQuantities = new Dictionary<long, decimal>();
 
-            // Calculate current quantities for each holding
+            // Calculate current quantities for each holding using AdjustedQuantity
             foreach (var activity in activities)
             {
                 if (activity.Holding?.Id != null)
@@ -390,7 +392,8 @@ public class PortfolioValueService : IPortfolioValueService
                     if (!holdingQuantities.ContainsKey(holdingId))
                         holdingQuantities[holdingId] = 0;
 
-                    holdingQuantities[holdingId] += activity.Quantity;
+                    // Use AdjustedQuantity which already has correct signs: positive for buy, negative for sell
+                    holdingQuantities[holdingId] += activity.AdjustedQuantity != 0 ? activity.AdjustedQuantity : activity.Quantity;
                 }
             }
 
