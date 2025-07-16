@@ -71,24 +71,79 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
         private string GetActivityTypeName(Activity activity)
         {
-            return activity.GetType().Name switch
-            {
-                nameof(BuySellActivity) => "Buy/Sell",
-                nameof(DividendActivity) => "Dividend",
-                nameof(CashDepositWithdrawalActivity) => "Cash Deposit/Withdrawal",
-                nameof(FeeActivity) => "Fee",
-                nameof(InterestActivity) => "Interest",
-                nameof(GiftAssetActivity) => "Gift Asset",
-                nameof(GiftFiatActivity) => "Gift Fiat",
-                nameof(KnownBalanceActivity) => "Known Balance",
-                nameof(LiabilityActivity) => "Liability",
-                nameof(RepayBondActivity) => "Repay Bond",
-                nameof(ValuableActivity) => "Valuable",
-                nameof(SendAndReceiveActivity) => "Send/Receive",
-                nameof(StakingRewardActivity) => "Staking Reward",
-                _ => activity.GetType().Name
-            };
-        }
+			if (activity == null)
+			{
+				return "Unknown Activity";
+			}
+
+			if (activity is BuySellActivity)
+			{
+				return "Buy/Sell";
+			}
+
+			if (activity is DividendActivity)
+			{
+				return "Dividend";
+			}
+
+			if (activity is CashDepositWithdrawalActivity)
+			{
+				return "Cash Deposit/Withdrawal";
+			}
+
+			if (activity is FeeActivity)
+			{
+				return "Fee";
+			}
+
+			if (activity is InterestActivity)
+			{
+				return "Interest";
+			}
+
+			if (activity is GiftAssetActivity)
+			{
+				return "Gift Asset";
+			}
+
+			if (activity is GiftFiatActivity)
+			{
+				return "Gift Fiat";
+			}
+
+			if (activity is KnownBalanceActivity)
+			{
+				return "Known Balance";
+			}
+
+			if (activity is LiabilityActivity)
+			{
+				return "Liability";
+			}
+
+			if (activity is RepayBondActivity)
+			{
+				return "Repay Bond";
+			}
+
+			if (activity is ValuableActivity)
+			{
+				return "Valuable";
+			}
+
+			if (activity is SendAndReceiveActivity)
+			{
+				return "Send/Receive";
+			}
+
+			if (activity is StakingRewardActivity)
+			{
+				return "Staking Reward";
+			}
+
+			// Default case for any other activity type
+			return activity.GetType().Name.Replace("Activity", string.Empty);
+		}
 
         private class AccountSummary
         {
