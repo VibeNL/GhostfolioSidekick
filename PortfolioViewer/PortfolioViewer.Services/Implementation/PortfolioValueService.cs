@@ -59,7 +59,7 @@ public class PortfolioValueService : IPortfolioValueService
 
             var cashFlows = await LoadCashFlows(startDate, endDate, currency);
             var accountBalances = await LoadAccountBalances(startDate, endDate, currency);
-            var holdingsValues = new List<HoldingValuePoint>(); // Simplified for now
+            var holdingsValues = await LoadHoldingsValues(startDate, endDate, currency);
 
             return CalculatePortfolioValueOverTime(cashFlows, accountBalances, holdingsValues, startDate, endDate);
         }
@@ -119,14 +119,28 @@ public class PortfolioValueService : IPortfolioValueService
                     .OrderByDescending(b => b.Date)
                     .FirstOrDefault();
 
+                // Calculate holdings value for this account
+                var holdingsValue = await CalculateCurrentHoldingsValueForAccount(account.Id, currency);
+
                 if (latestBalance != null)
                 {
                     breakdown.Add(new AccountBreakdown
                     {
                         AccountName = account.Name,
                         CashBalance = latestBalance.Money.Amount,
-                        HoldingsValue = 0, // Would need to calculate from holdings in this account
-                        CurrentValue = latestBalance.Money.Amount
+                        HoldingsValue = holdingsValue,
+                        CurrentValue = latestBalance.Money.Amount + holdingsValue
+                    });
+                }
+                else if (holdingsValue > 0)
+                {
+                    // Account has holdings but no cash balance recorded
+                    breakdown.Add(new AccountBreakdown
+                    {
+                        AccountName = account.Name,
+                        CashBalance = 0,
+                        HoldingsValue = holdingsValue,
+                        CurrentValue = holdingsValue
                     });
                 }
             }
@@ -197,6 +211,175 @@ public class PortfolioValueService : IPortfolioValueService
             .ToListAsync();
     }
 
+    private async Task<List<HoldingValuePoint>> LoadHoldingsValues(DateTime startDate, DateTime endDate, string currency)
+    {
+        try
+        {
+            // Get all holdings that have activities in the date range
+            var holdingsWithActivities = await _dbContext.Holdings
+                .Include(h => h.Activities)
+                .Include(h => h.SymbolProfiles)
+                .Where(h => h.Activities.Any(a => a.Date >= startDate && a.Date <= endDate))
+                .ToListAsync();
+
+            var holdingValuePoints = new List<HoldingValuePoint>();
+
+            foreach (var holding in holdingsWithActivities)
+            {
+                // Calculate position over time for this holding
+                var positions = await CalculateHoldingPositionOverTime(holding.Id, startDate, endDate, currency);
+                holdingValuePoints.AddRange(positions);
+            }
+
+            return holdingValuePoints;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading holdings values for currency {Currency}", currency);
+            return new List<HoldingValuePoint>();
+        }
+    }
+
+    private async Task<List<HoldingValuePoint>> CalculateHoldingPositionOverTime(long holdingId, DateTime startDate, DateTime endDate, string currency)
+    {
+        try
+        {
+            // Get all buy/sell activities for this holding
+            var activities = await _dbContext.Activities
+                .OfType<BuySellActivity>()
+                .Where(a => a.Holding != null && a.Holding.Id == holdingId && a.Date <= endDate)
+                .OrderBy(a => a.Date)
+                .ToListAsync();
+
+            if (!activities.Any())
+                return new List<HoldingValuePoint>();
+
+            var positions = new List<HoldingValuePoint>();
+            var currentQuantity = 0m;
+            var currentDate = startDate;
+
+            // Get latest symbol profile for pricing
+            var holding = await _dbContext.Holdings
+                .Include(h => h.SymbolProfiles)
+                .FirstOrDefaultAsync(h => h.Id == holdingId);
+
+            var symbolProfile = holding?.SymbolProfiles?.FirstOrDefault();
+            if (symbolProfile == null)
+                return new List<HoldingValuePoint>();
+
+            // Calculate quantity at start date
+            foreach (var activity in activities.Where(a => a.Date <= startDate))
+            {
+                currentQuantity += activity.Quantity;
+            }
+
+            // Generate positions for each week in the date range
+            while (currentDate <= endDate)
+            {
+                // Update quantity based on activities up to this date
+                foreach (var activity in activities.Where(a => a.Date <= currentDate && a.Date > currentDate.AddDays(-7)))
+                {
+                    currentQuantity += activity.Quantity;
+                }
+
+                if (currentQuantity > 0)
+                {
+                    // For now, use the latest activity's unit price as market price
+                    // In a real implementation, you'd want to fetch historical market prices
+                    var latestActivity = activities.Where(a => a.Date <= currentDate).LastOrDefault();
+                    var estimatedPrice = latestActivity?.UnitPrice?.Amount ?? 0;
+
+                    // Convert price to target currency if needed
+                    if (latestActivity?.UnitPrice?.Currency?.Symbol != currency)
+                    {
+                        // For now, assume 1:1 conversion. In real implementation, use exchange rates
+                        // This is a simplification - you'd want to implement proper currency conversion
+                    }
+
+                    positions.Add(new HoldingValuePoint
+                    {
+                        Date = currentDate,
+                        HoldingId = (int)holdingId,
+                        Quantity = currentQuantity,
+                        Price = estimatedPrice,
+                        Value = currentQuantity * estimatedPrice
+                    });
+                }
+
+                currentDate = currentDate.AddDays(7); // Weekly intervals
+            }
+
+            return positions;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating holding position over time for holding {HoldingId}", holdingId);
+            return new List<HoldingValuePoint>();
+        }
+    }
+
+    private async Task<decimal> CalculateCurrentHoldingsValueForAccount(int accountId, string currency)
+    {
+        try
+        {
+            // Get all holdings activities for this account
+            var activities = await _dbContext.Activities
+                .OfType<BuySellActivity>()
+                .Where(a => a.Account.Id == accountId && a.Holding != null)
+                .Include(a => a.Holding)
+                .ThenInclude(h => h!.SymbolProfiles)
+                .OrderBy(a => a.Date)
+                .ToListAsync();
+
+            var holdingsValue = 0m;
+            var holdingQuantities = new Dictionary<long, decimal>();
+
+            // Calculate current quantities for each holding
+            foreach (var activity in activities)
+            {
+                if (activity.Holding?.Id != null)
+                {
+                    var holdingId = activity.Holding.Id;
+                    if (!holdingQuantities.ContainsKey(holdingId))
+                        holdingQuantities[holdingId] = 0;
+
+                    holdingQuantities[holdingId] += activity.Quantity;
+                }
+            }
+
+            // Calculate value for each holding with positive quantity
+            foreach (var kvp in holdingQuantities.Where(h => h.Value > 0))
+            {
+                var holdingId = kvp.Key;
+                var quantity = kvp.Value;
+
+                // Get the latest activity for this holding to estimate current price
+                var latestActivity = activities
+                    .Where(a => a.Holding?.Id == holdingId)
+                    .OrderByDescending(a => a.Date)
+                    .FirstOrDefault();
+
+                if (latestActivity?.UnitPrice != null)
+                {
+                    var estimatedPrice = latestActivity.UnitPrice.Amount;
+                    
+                    // Convert to target currency if needed (simplified for now)
+                    if (latestActivity.UnitPrice.Currency?.Symbol == currency)
+                    {
+                        holdingsValue += quantity * estimatedPrice;
+                    }
+                }
+            }
+
+            return holdingsValue;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating current holdings value for account {AccountId}", accountId);
+            return 0;
+        }
+    }
+
     private List<PortfolioValuePoint> CalculatePortfolioValueOverTime(
         List<CashFlowPoint> cashFlows,
         List<BalancePoint> accountBalances,
@@ -210,6 +393,7 @@ public class PortfolioValueService : IPortfolioValueService
         // Collect all relevant dates
         allDates.AddRange(cashFlows.Select(cf => cf.Date));
         allDates.AddRange(accountBalances.Select(ab => ab.Date));
+        allDates.AddRange(holdingsValues.Select(hv => hv.Date));
 
         // Add some regular intervals for smoother chart
         var current = startDate;
@@ -233,12 +417,19 @@ public class PortfolioValueService : IPortfolioValueService
                 .Select(g => g.OrderByDescending(ab => ab.Date).First())
                 .Sum(ab => ab.Amount);
 
+            // Calculate total holdings value at this date
+            var totalHoldingsValue = holdingsValues
+                .Where(hv => hv.Date <= date)
+                .GroupBy(hv => hv.HoldingId)
+                .Select(g => g.OrderByDescending(hv => hv.Date).First())
+                .Sum(hv => hv.Value);
+
             portfolioPoints.Add(new PortfolioValuePoint
             {
                 Date = date,
-                TotalValue = latestBalances,
+                TotalValue = latestBalances + totalHoldingsValue,
                 CashValue = latestBalances,
-                HoldingsValue = 0,
+                HoldingsValue = totalHoldingsValue,
                 CumulativeInvested = cumulativeCashFlow
             });
         }
