@@ -1,0 +1,42 @@
+<Solution>
+  <Folder Name="/SolutionItems/">
+    <File Path=".editorconfig" />
+    <File Path=".github/workflows/docker-publish.yml" />
+    <File Path="Dockerfile" />
+    <File Path="README.md" />
+    <File Path="supervisord.conf" />
+  </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="Tools/AnonymisePDF.UnitTests/AnonymisePDF.UnitTests.csproj" />
+    <Project Path="Tools/AnonymisePDF/AnonymisePDF.csproj" />
+    <Project Path="Tools/ScraperUtilities/ScraperUtilities.csproj" />
+  </Folder>
+  <Folder Name="/Website/">
+    <Project Path="PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.AppHost/PortfolioViewer.AppHost.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.IntegratieTests/PortfolioViewer.IntegratieTests.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.ServiceDefaults/PortfolioViewer.ServiceDefaults.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.Tests/PortfolioViewer.Tests.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM.AI/PortfolioViewer.WASM.AI.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM.UnitTests/PortfolioViewer.WASM.UnitTests.csproj" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" />
+  </Folder>
+  <Project Path="Configuration.UnitTests/Configuration.UnitTests.csproj" />
+  <Project Path="Configuration/Configuration.csproj" />
+  <Project Path="Cryptocurrency.UnitTests/Cryptocurrency.UnitTests.csproj" />
+  <Project Path="Cryptocurrency/Cryptocurrency.csproj" />
+  <Project Path="Database.UnitTests/Database.UnitTests.csproj" />
+  <Project Path="Database/Database.csproj" />
+  <Project Path="ExternalDataProvider.UnitTests/ExternalDataProvider.UnitTests.csproj" />
+  <Project Path="ExternalDataProvider/ExternalDataProvider.csproj" />
+  <Project Path="GhostfolioAPI.UnitTests/GhostfolioAPI.UnitTests.csproj" />
+  <Project Path="GhostfolioAPI/GhostfolioAPI.csproj" />
+  <Project Path="GhostfolioSidekick.UnitTests/GhostfolioSidekick.UnitTests.csproj" />
+  <Project Path="GhostfolioSidekick/GhostfolioSidekick.csproj" />
+  <Project Path="IntegrationTests/IntegrationTests.csproj" />
+  <Project Path="Model.UnitTests/Model.UnitTests.csproj" />
+  <Project Path="Model/Model.csproj" />
+  <Project Path="Parsers.UnitTests/Parsers.UnitTests.csproj" />
+  <Project Path="Parsers/Parsers.csproj" />
+</Solution>
