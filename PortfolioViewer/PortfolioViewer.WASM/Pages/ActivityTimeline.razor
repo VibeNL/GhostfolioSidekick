@@ -1,0 +1,258 @@
+@page "/activity-timeline"
+@using GhostfolioSidekick.Database
+@using GhostfolioSidekick.Model.Activities
+@using GhostfolioSidekick.Model.Activities.Types
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Activity Timeline</PageTitle>
+
+<h1>Activity Timeline</h1>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Filter Activities</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <select @bind="selectedActivityType" class="form-select">
+                                    <option value="">All Activity Types</option>
+                                    @if (ActivityTypes != null)
+                                    {
+                                        @foreach (var type in ActivityTypes)
+                                        {
+                                            <option value="@type">@type</option>
+                                        }
+                                    }
+                                </select>
+                                <select @bind="selectedAccount" class="form-select">
+                                    <option value="">All Accounts</option>
+                                    @if (Accounts != null)
+                                    {
+                                        @foreach (var account in Accounts)
+                                        {
+                                            <option value="@account">@account</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="dateFrom" class="form-label">From Date:</label>
+                            <input type="date" id="dateFrom" @bind="dateFrom" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dateTo" class="form-label">To Date:</label>
+                            <input type="date" id="dateTo" @bind="dateTo" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button class="btn btn-primary me-2" @onclick="ApplyFilters">Apply Filters</button>
+                            <button class="btn btn-secondary" @onclick="ClearFilters">Clear Filters</button>
+                            <span class="ms-3 text-muted">
+                                Showing @(FilteredActivities?.Count ?? 0) of @(AllActivities?.Count ?? 0) activities
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Timeline View</h5>
+                </div>
+                <div class="card-body">
+                    @if (FilteredActivities != null && FilteredActivities.Any())
+                    {
+                        <div class="timeline-container" style="max-height: 600px; overflow-y: auto;">
+                            @foreach (var group in FilteredActivities.GroupBy(a => a.Date.Date).OrderByDescending(g => g.Key))
+                            {
+                                <div class="timeline-day mb-4">
+                                    <div class="day-header bg-light p-2 mb-3 rounded">
+                                        <h6 class="mb-0">
+                                            @group.Key.ToString("dddd, MMMM dd, yyyy")
+                                            <span class="badge bg-secondary ms-2">@group.Count() activities</span>
+                                        </h6>
+                                    </div>
+                                    
+                                    @foreach (var activity in group.OrderByDescending(a => a.Date))
+                                    {
+                                        <div class="timeline-item border-start border-3 @GetTimelineBorderClass(activity.ActivityType) ps-3 pb-3 mb-3">
+                                            <div class="row">
+                                                <div class="col-md-2">
+                                                    <small class="text-muted">@activity.Date.ToString("HH:mm")</small>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <span class="badge @GetActivityBadgeClass(activity.ActivityType)">
+                                                        @activity.ActivityType
+                                                    </span>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <strong>@activity.Account</strong>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    @if (!string.IsNullOrEmpty(activity.Symbol))
+                                                    {
+                                                        <span class="text-primary">@activity.Symbol</span>
+                                                    }
+                                                </div>
+                                                <div class="col-md-2">
+                                                    @if (!string.IsNullOrEmpty(activity.Amount))
+                                                    {
+                                                        <span class="fw-bold">@activity.Amount</span>
+                                                    }
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ShowActivityDetails(activity)">
+                                                        Details
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(activity.Description))
+                                            {
+                                                <div class="row mt-2">
+                                                    <div class="col-md-12">
+                                                        <small class="text-muted">@activity.Description</small>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <p>No activities found matching the current filters.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (SelectedActivityDetails != null)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Activity Details</h5>
+                        <button type="button" class="btn-close" @onclick="CloseActivityDetails"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%;">Transaction ID</th>
+                                    <td>@SelectedActivityDetails.TransactionId</td>
+                                </tr>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <td>@SelectedActivityDetails.Date.ToString("MM/dd/yyyy HH:mm:ss")</td>
+                                </tr>
+                                <tr>
+                                    <th>Activity Type</th>
+                                    <td>
+                                        <span class="badge @GetActivityBadgeClass(SelectedActivityDetails.ActivityType)">
+                                            @SelectedActivityDetails.ActivityType
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Account</th>
+                                    <td>@SelectedActivityDetails.Account</td>
+                                </tr>
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.Symbol))
+                                {
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <td>@SelectedActivityDetails.Symbol</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.Amount))
+                                {
+                                    <tr>
+                                        <th>Amount</th>
+                                        <td>@SelectedActivityDetails.Amount</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.Quantity))
+                                {
+                                    <tr>
+                                        <th>Quantity</th>
+                                        <td>@SelectedActivityDetails.Quantity</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.UnitPrice))
+                                {
+                                    <tr>
+                                        <th>Unit Price</th>
+                                        <td>@SelectedActivityDetails.UnitPrice</td>
+                                    </tr>
+                                }
+                                @if (SelectedActivityDetails.SortingPriority.HasValue)
+                                {
+                                    <tr>
+                                        <th>Sorting Priority</th>
+                                        <td>@SelectedActivityDetails.SortingPriority</td>
+                                    </tr>
+                                }
+                                @if (!string.IsNullOrEmpty(SelectedActivityDetails.Description))
+                                {
+                                    <tr>
+                                        <th>Description</th>
+                                        <td>@SelectedActivityDetails.Description</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        @if (SelectedActivityDetails.AdditionalInfo.Any())
+                        {
+                            <h6 class="mt-4">Additional Information</h6>
+                            <table class="table table-sm">
+                                <tbody>
+                                    @foreach (var info in SelectedActivityDetails.AdditionalInfo)
+                                    {
+                                        <tr>
+                                            <th style="width: 30%;">@info.Key</th>
+                                            <td>@info.Value</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseActivityDetails">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
