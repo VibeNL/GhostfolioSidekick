@@ -15,7 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-    <PackageReference Include="CompareNETObjects" Version="4.83.0" />
+    <PackageReference Include="CompareNETObjects" Version="4.84.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.7">
