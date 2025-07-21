@@ -11,6 +11,8 @@ namespace GhostfolioSidekick.Database
 {
 	public class DatabaseContext : DbContext
 	{
+		public const string DbFileName = "GhostfolioSidekick.db";
+
 		public virtual DbSet<Platform> Platforms { get; set; }
 
 		public virtual DbSet<Account> Accounts { get; set; }

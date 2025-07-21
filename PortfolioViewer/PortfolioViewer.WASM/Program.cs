@@ -3,6 +3,8 @@ using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.JSInterop;
+using System.Reflection;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -53,9 +55,22 @@ public static class Program
 			builder.Configuration.Bind("Local", options.ProviderOptions);
 		});
 
-		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options =>
-			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
-			);
+		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(async (sp, options) =>
+		{
+			var js = sp.GetRequiredService<IJSRuntime>();
+
+			// Step 1: Import the JavaScript module that contains IndexedDB functions
+			var module = await js.InvokeAsync<IJSObjectReference>("import", "./js/sqlite-persistence.js");
+			Console.WriteLine("JavaScript module loaded");
+
+			// Step 2: Restore database from IndexedDB to the virtual filesystem
+			// This step is critical - it must happen BEFORE we open the database
+			// to ensure we don't lose data across page refreshes
+			await module.InvokeVoidAsync("setupDatabase", DatabaseContext.DbFileName);
+			Console.WriteLine("Database setup completed");
+			
+			options.UseSqlite($"Data Source={DatabaseContext.DbFileName};Cache=Shared;Pooling=true;");
+		}); 
 
 		builder.Services.AddWebChatClient();
 
