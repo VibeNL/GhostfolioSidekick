@@ -1,16 +1,18 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text.Json;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
-using Microsoft.EntityFrameworkCore;
-using Grpc.Net.Client.Web;
 using Grpc.Net.Client;
+using Grpc.Net.Client.Web;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 using System.Globalization;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext, ILogger<PortfolioClient> logger) : IDisposable
+	public class PortfolioClient(HttpClient httpClient, IJSRuntime jSRuntime, DatabaseContext databaseContext, ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; // TODO 
 
@@ -110,7 +112,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
 
+				// Step 5: Finalize sync
+				await jSRuntime.InvokeVoidAsync("syncDatabaseToIndexedDb", DatabaseContext.DbFileName);
+
 				progress?.Report(("Sync completed successfully.", 100));
+
 			}
 			catch (Exception ex)
 			{
