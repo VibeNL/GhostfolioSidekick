@@ -12,7 +12,7 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, IJSRuntime jSRuntime, DatabaseContext databaseContext, ILogger<PortfolioClient> logger) : IDisposable
+	public class PortfolioClient(HttpClient httpClient, SqlitePersistance sqlitePersistance, DatabaseContext databaseContext, ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; // TODO 
 
@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
 
 				// Step 5: Finalize sync
-				await jSRuntime.InvokeVoidAsync("syncDatabaseToIndexedDb", DatabaseContext.DbFileName);
+				await sqlitePersistance.SaveChangesAsync(cancellationToken);
 
 				progress?.Report(("Sync completed successfully.", 100));
 

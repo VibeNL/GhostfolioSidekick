@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			_databaseContextMock = new Mock<DatabaseContext>();
 			_loggerMock = new Mock<ILogger<PortfolioClient>>();
 			_httpClient = new HttpClient(_httpMessageHandlerMock.Object);
-			_portfolioClient = new PortfolioClient(_httpClient, _jsRuntimeMock.Object, _databaseContextMock.Object, _loggerMock.Object);
+			_portfolioClient = new PortfolioClient(_httpClient, new SqlitePersistance(_jsRuntimeMock.Object), _databaseContextMock.Object, _loggerMock.Object);
 		}
 
 		[Fact]
