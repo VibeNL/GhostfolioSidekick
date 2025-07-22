@@ -22,7 +22,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Bit.Besql" Version="9.10.0" />
-		<PackageReference Include="Blazor-ApexCharts" Version="6.0.1" />
 		<PackageReference Include="Markdig" Version="0.41.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.7" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.7" PrivateAssets="all" />
@@ -32,6 +31,7 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Plotly.Blazor" Version="6.0.2" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
 		<PackageReference Include="Grpc.Net.Client.Web" Version="2.71.0" />
 		<PackageReference Include="Grpc.Net.Client" Version="2.71.0" />

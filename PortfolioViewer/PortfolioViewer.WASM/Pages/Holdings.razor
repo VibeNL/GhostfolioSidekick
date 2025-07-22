@@ -31,18 +31,11 @@
                     @if (ViewMode == "treemap")
                     {
                         <div class="treemap-container" style="height: 500px;">
-                            <ApexChart TItem="TreemapDataPoint" Title="Portfolio Allocation" 
-                                       Options="TreemapOptions" 
-                                       @ref="treemapChart"
-                                       Height="450">
-                                <ApexPointSeries TItem="TreemapDataPoint"
-                                                Items="TreemapData"
-                                                Name="Holdings"
-                                                SeriesType="SeriesType.Treemap"
-                                                XValue="@(e => e.Label)"
-                                                YValue="@(e => e.Value)"
-                                                PointColor="@(e => e.Color)" />
-                            </ApexChart>
+                            <PlotlyChart @ref="treemapChart" 
+                                        Data="plotData" 
+                                        Layout="plotLayout" 
+                                        Config="plotConfig" 
+                                        style="height: 450px; width: 100%;" />
                         </div>
                     }
                     else

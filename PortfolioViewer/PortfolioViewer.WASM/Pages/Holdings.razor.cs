@@ -1,6 +1,7 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
-using ApexCharts;
+using Plotly.Blazor;
+using Plotly.Blazor.Traces;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -8,80 +9,68 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
     {
         private string ViewMode = "table";
         private List<HoldingDisplayModel> HoldingsList = new();
-        private ApexChart<TreemapDataPoint>? treemapChart;
-        private ApexChartOptions<TreemapDataPoint> TreemapOptions = new();
-        private List<TreemapDataPoint> TreemapData = new();
+        private PlotlyChart? treemapChart;
+        private Config plotConfig = new();
+        private Plotly.Blazor.Layout plotLayout = new();
+        private IList<ITrace> plotData = new List<ITrace>();
 
         protected override async Task OnInitializedAsync()
         {
             await LoadSampleData();
             PrepareTreemapData();
-            ConfigureTreemapOptions();
-        }
-
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender && ViewMode == "treemap" && treemapChart != null)
-            {
-                await treemapChart.RenderAsync();
-            }
         }
 
         private void PrepareTreemapData()
         {
-            TreemapData = HoldingsList.Select(h => new TreemapDataPoint
+            var treemapTrace = new TreeMap
             {
-                Label = $"{h.Symbol}\n${(h.CurrentValue / 1000):F0}k",
-                Value = h.CurrentValue,
-                Color = GetColorForSector(h.Sector),
-                Symbol = h.Symbol,
-                Name = h.Name,
-                CurrentValue = h.CurrentValue,
-                Weight = h.Weight,
-                GainLoss = h.GainLoss,
-                GainLossPercentage = h.GainLossPercentage,
-                Sector = h.Sector
-            }).ToList();
-        }
-
-        private void ConfigureTreemapOptions()
-        {
-            TreemapOptions = new ApexChartOptions<TreemapDataPoint>
-            {
-                Chart = new Chart
+                Labels = HoldingsList.Select(h => h.Symbol).ToArray(),
+                Values = HoldingsList.Select(h => (object)h.CurrentValue).ToList(),
+                Parents = HoldingsList.Select(h => "").ToArray(),
+                Text = HoldingsList.Select(h => $"{h.Symbol}<br>${(h.CurrentValue / 1000):F0}k<br>{h.GainLossPercentage:P1}").ToArray(),
+                TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
+                BranchValues = Plotly.Blazor.Traces.TreeMapLib.BranchValuesEnum.Total,
+                PathBar = new Plotly.Blazor.Traces.TreeMapLib.PathBar
                 {
-                    Type = ChartType.Treemap,
-                    Height = 450,
-                    Animations = new Animations
+                    Visible = false
+                },
+                Marker = new Plotly.Blazor.Traces.TreeMapLib.Marker
+                {
+                    Colors = HoldingsList.Select(h => (object)GetColorForSector(h.Sector)).ToList(),
+                    Line = new Plotly.Blazor.Traces.TreeMapLib.MarkerLib.Line
                     {
-                        Enabled = true,
-                        Speed = 800
+                        Width = 2,
+                        Color = "#ffffff"
                     }
                 },
-                Legend = new Legend
+                TextFont = new Plotly.Blazor.Traces.TreeMapLib.TextFont
                 {
-                    Show = false
-                },
-                PlotOptions = new PlotOptions
-                {
-                    Treemap = new PlotOptionsTreemap
-                    {
-                        EnableShades = true,
-                        ShadeIntensity = 0.5,
-                        ReverseNegativeShade = true
-                    }
-                },
-                DataLabels = new DataLabels
-                {
-                    Enabled = true,
-                    Style = new DataLabelsStyle
-                    {
-                        FontSize = "12px",
-                        FontWeight = "600",
-                        Colors = new List<string> { "#fff" }
-                    },
-                    OffsetY = -4
+                    Size = 12,
+                    Color = "#ffffff"
                 }
+            };
+
+            plotData = new List<ITrace> { treemapTrace };
+
+            plotLayout = new Plotly.Blazor.Layout
+            {
+                Title = new Plotly.Blazor.LayoutLib.Title
+                {
+                    Text = "Portfolio Allocation"
+                },
+                Margin = new Plotly.Blazor.LayoutLib.Margin
+                {
+                    T = 50,
+                    L = 10,
+                    R = 10,
+                    B = 10
+                },
+                Height = 450
+            };
+
+            plotConfig = new Config
+            {
+                Responsive = true
             };
         }
 
@@ -244,19 +233,5 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private Dictionary<string, decimal> AssetClassAllocation =>
             HoldingsList.GroupBy(h => h.AssetClass)
                    .ToDictionary(g => g.Key, g => g.Sum(h => h.Weight));
-    }
-
-    public class TreemapDataPoint
-    {
-        public string Label { get; set; } = string.Empty;
-        public decimal Value { get; set; }
-        public string Color { get; set; } = string.Empty;
-        public string Symbol { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public decimal CurrentValue { get; set; }
-        public decimal Weight { get; set; }
-        public decimal GainLoss { get; set; }
-        public decimal GainLossPercentage { get; set; }
-        public string Sector { get; set; } = string.Empty;
     }
 }
