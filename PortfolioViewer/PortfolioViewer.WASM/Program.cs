@@ -74,8 +74,8 @@ public static class Program
 
 		// Initialize the database after building the app
 		var serviceScope = app.Services.CreateScope();
-		var sqlitePersistance = serviceScope.ServiceProvider.GetRequiredService<SqlitePersistence>();
-		await sqlitePersistance.InitializeDatabase();
+		var sqlitePersistence = serviceScope.ServiceProvider.GetRequiredService<SqlitePersistence>();
+		await sqlitePersistence.InitializeDatabase();
 
 		await app.RunAsync();
 	}

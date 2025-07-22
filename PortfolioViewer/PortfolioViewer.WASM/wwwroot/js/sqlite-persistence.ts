@@ -148,7 +148,7 @@ export async function setupDatabase(filename: string): Promise<void> {
 
                         // If database already exists in the virtual filesystem, remove it first
                         if (window.Blazor.runtime.Module.FS.analyzePath(path).exists) {
-                            console.log("Database file already exists on local file system, removing it to create a new file from IndexedDB. ")
+                            console.log("Database file already exists on local file system, removing it to create a new file from IndexedDB.");
                             window.Blazor.runtime.Module.FS.unlink(path);
                         }
 
