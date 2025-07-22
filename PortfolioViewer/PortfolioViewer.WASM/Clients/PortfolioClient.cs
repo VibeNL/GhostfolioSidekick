@@ -25,7 +25,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient GetGrpcClient()
 		{
 			if (_grpcClient != null)
+			{
 				return _grpcClient;
+			}
 
 			// Create gRPC channel for web - use the httpClient's base address but ensure it's absolute
 			var baseAddress = httpClient.BaseAddress;
@@ -88,7 +90,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
 
-
 				// Step 3: Sync Data for Each Table
 				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)).OrderBy(x => x))
 				{
@@ -113,6 +114,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
 
 				// Step 5: Finalize sync
+				await databaseContext.ExecutePragma("PRAGMA journal_mode = DELETE;"); // Use simpler journaling mode
+				await databaseContext.ExecutePragma("PRAGMA synchronous = FULL;"); // Force immediate writes
+				await databaseContext.ExecutePragma("PRAGMA cache_size = -2000;"); // Limit cache size to force writes
+
 				await sqlitePersistance.SaveChangesAsync(cancellationToken);
 
 				progress?.Report(("Sync completed successfully.", 100));

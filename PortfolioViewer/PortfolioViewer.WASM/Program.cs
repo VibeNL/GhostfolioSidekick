@@ -61,8 +61,8 @@ public static class Program
 			var sqlitePersistance = sp.GetRequiredService<SqlitePersistance>();
 			await sqlitePersistance.InitializeDatabase();
 			options.UseSqlite($"Filename={DatabaseContext.DbFileName}");
-		}); 
-
+		});
+		
 		builder.Services.AddWebChatClient();
 
 		// Register PortfolioClient for DI
@@ -72,7 +72,8 @@ public static class Program
 
 		var app = builder.Build();
 
-		var context = app.Services.GetRequiredService<DatabaseContext>();
+		var contextFactory = app.Services.GetRequiredService<IDbContextFactory<DatabaseContext>>();
+		await using var context = await contextFactory.CreateDbContextAsync();
 		var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
 		if (pendingMigrations.Any())
 		{
