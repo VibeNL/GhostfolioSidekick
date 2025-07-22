@@ -12,7 +12,7 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, SqlitePersistance sqlitePersistance, DatabaseContext databaseContext, ILogger<PortfolioClient> logger) : IDisposable
+	public class PortfolioClient(HttpClient httpClient, SqlitePersistance sqlitePersistance, IDbContextFactory<DatabaseContext> dbContextFactory, ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock", "MarketData"]; // TODO 
 
@@ -22,41 +22,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed = false;
 
-		private SyncService.SyncServiceClient GetGrpcClient()
-		{
-			if (_grpcClient != null)
-			{
-				return _grpcClient;
-			}
-
-			// Create gRPC channel for web - use the httpClient's base address but ensure it's absolute
-			var baseAddress = httpClient.BaseAddress;
-			if (baseAddress == null)
-			{
-				throw new InvalidOperationException("HttpClient BaseAddress is not configured.");
-			}
-
-			// For Blazor WASM, we need to use the actual HTTP URL, not the service discovery name
-			var grpcAddress = baseAddress.ToString().TrimEnd('/');
-
-			logger.LogInformation("Creating gRPC channel for address: {GrpcAddress}", grpcAddress);
-
-			_grpcChannel = GrpcChannel.ForAddress(grpcAddress, new GrpcChannelOptions
-			{
-				HttpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()),
-				MaxReceiveMessageSize = 100 * 1024 * 1024, // 100MB
-				MaxSendMessageSize = 100 * 1024 * 1024, // 100MB
-				ThrowOperationCanceledOnCancellation = true
-			});
-
-			_grpcClient = new SyncService.SyncServiceClient(_grpcChannel);
-			return _grpcClient;
-		}
-
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
 			{
+				// Step 0: Ensure Database is Up-to-Date
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync();
+				if (pendingMigrations.Any())
+				{
+					await databaseContext.Database.MigrateAsync();
+				}
+
 				var grpcClient = GetGrpcClient();
 
 				// Step 1: Retrieve Table Names
@@ -99,7 +76,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
 					{
 						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
-						await InsertDataAsync(tableName, dataChunk, cancellationToken);
+						await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
 						totalWritten += dataChunk.Count;
 						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
 					}
@@ -131,6 +108,37 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
+		private SyncService.SyncServiceClient GetGrpcClient()
+		{
+			if (_grpcClient != null)
+			{
+				return _grpcClient;
+			}
+
+			// Create gRPC channel for web - use the httpClient's base address but ensure it's absolute
+			var baseAddress = httpClient.BaseAddress;
+			if (baseAddress == null)
+			{
+				throw new InvalidOperationException("HttpClient BaseAddress is not configured.");
+			}
+
+			// For Blazor WASM, we need to use the actual HTTP URL, not the service discovery name
+			var grpcAddress = baseAddress.ToString().TrimEnd('/');
+
+			logger.LogInformation("Creating gRPC channel for address: {GrpcAddress}", grpcAddress);
+
+			_grpcChannel = GrpcChannel.ForAddress(grpcAddress, new GrpcChannelOptions
+			{
+				HttpHandler = new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()),
+				MaxReceiveMessageSize = 100 * 1024 * 1024, // 100MB
+				MaxSendMessageSize = 100 * 1024 * 1024, // 100MB
+				ThrowOperationCanceledOnCancellation = true
+			});
+
+			_grpcClient = new SyncService.SyncServiceClient(_grpcChannel);
+			return _grpcClient;
+		}
+
 		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(SyncService.SyncServiceClient grpcClient, string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
@@ -157,7 +165,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					var response = call.ResponseStream.Current;
 					receivedData = true;
 
-					logger.LogDebug("Received {RecordCount} records for page {Page} of table {TableName}, HasMore: {HasMore}", 
+					logger.LogDebug("Received {RecordCount} records for page {Page} of table {TableName}, HasMore: {HasMore}",
 						response.Records.Count, page, tableName, response.HasMore);
 
 					if (response.Records.Count == 0)
@@ -273,7 +281,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			};
 		}
 
-		private async Task InsertDataAsync(string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)
+		private async Task InsertDataAsync(DatabaseContext databaseContext, string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)
 		{
 			Console.WriteLine($"InsertDataAsync executing");
 

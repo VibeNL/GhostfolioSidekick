@@ -56,11 +56,11 @@ public static class Program
 		});
 
 		builder.Services.AddSingleton<SqlitePersistance>();
-		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(async (sp, options) =>
+		
+		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options =>
 		{
-			var sqlitePersistance = sp.GetRequiredService<SqlitePersistance>();
-			await sqlitePersistance.InitializeDatabase();
-			options.UseSqlite($"Filename={DatabaseContext.DbFileName}");
+			options.UseSqlite($"Data Source={DatabaseContext.DbFileName}");
+			options.UseLazyLoadingProxies();
 		});
 		
 		builder.Services.AddWebChatClient();
@@ -72,13 +72,10 @@ public static class Program
 
 		var app = builder.Build();
 
-		var contextFactory = app.Services.GetRequiredService<IDbContextFactory<DatabaseContext>>();
-		await using var context = await contextFactory.CreateDbContextAsync();
-		var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-		if (pendingMigrations.Any())
-		{
-			await context.Database.MigrateAsync();
-		}
+		// Initialize the database after building the app
+		var serviceScope = app.Services.CreateScope();
+		var sqlitePersistance = serviceScope.ServiceProvider.GetRequiredService<SqlitePersistance>();
+		await sqlitePersistance.InitializeDatabase();
 
 		await app.RunAsync();
 	}

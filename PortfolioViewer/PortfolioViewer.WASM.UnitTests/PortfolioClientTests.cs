@@ -9,22 +9,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {
 	public class PortfolioClientTests
 	{
-		private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
-		private readonly Mock<DatabaseContext> _databaseContextMock;
-		private readonly Mock<ILogger<PortfolioClient>> _loggerMock;
-		private readonly HttpClient _httpClient;
-		private readonly PortfolioClient _portfolioClient;
-
-		public PortfolioClientTests()
-		{
-			_httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-			var _jsRuntimeMock = new Mock<IJSRuntime>();
-			_databaseContextMock = new Mock<DatabaseContext>();
-			_loggerMock = new Mock<ILogger<PortfolioClient>>();
-			_httpClient = new HttpClient(_httpMessageHandlerMock.Object);
-			_portfolioClient = new PortfolioClient(_httpClient, new SqlitePersistance(_jsRuntimeMock.Object), _databaseContextMock.Object, _loggerMock.Object);
-		}
-
 		[Fact]
 		public void DeserializeData_ShouldReturnDeserializedData()
 		{
