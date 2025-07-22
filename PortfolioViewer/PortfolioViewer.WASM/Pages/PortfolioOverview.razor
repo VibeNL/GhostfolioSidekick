@@ -1,0 +1,155 @@
+@page "/portfolio-overview"
+@using GhostfolioSidekick.Database
+@using GhostfolioSidekick.Model.Activities
+@using GhostfolioSidekick.Model.Activities.Types
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Portfolio Overview</PageTitle>
+
+<h1>Portfolio Overview</h1>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Accounts</div>
+                <div class="card-body">
+                    <h4 class="card-title">@TotalAccounts</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Total Holdings</div>
+                <div class="card-body">
+                    <h4 class="card-title">@TotalHoldings</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Total Activities</div>
+                <div class="card-body">
+                    <h4 class="card-title">@TotalActivities</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Buy Transactions</div>
+                <div class="card-body">
+                    <h4 class="card-title">@BuyTransactions</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Activity Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Activity Type</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ActivityBreakdown != null)
+                            {
+                                @foreach (var item in ActivityBreakdown)
+                                {
+                                    <tr>
+                                        <td>@item.Key</td>
+                                        <td>@item.Value</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Activities</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Account</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (RecentActivities != null)
+                            {
+                                @foreach (var activity in RecentActivities)
+                                {
+                                    <tr>
+                                        <td>@activity.Date.ToString("MM/dd/yyyy")</td>
+                                        <td>@GetActivityTypeName(activity)</td>
+                                        <td>@activity.Account.Name</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Accounts Summary</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Account Name</th>
+                                <th>Platform</th>
+                                <th>Activities Count</th>
+                                <th>Latest Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (AccountSummaries != null)
+                            {
+                                @foreach (var account in AccountSummaries)
+                                {
+                                    <tr>
+                                        <td>@account.Name</td>
+                                        <td>@(account.Platform?.Name ?? "N/A")</td>
+                                        <td>@account.ActivitiesCount</td>
+                                        <td>@account.LatestBalanceDisplay</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}

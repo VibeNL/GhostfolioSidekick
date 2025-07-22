@@ -1,0 +1,190 @@
+@page "/performance-analytics"
+
+<PageTitle>Performance Analytics</PageTitle>
+
+<h1>Performance Analytics</h1>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Monthly Activity Volume</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if (MonthlyActivityData != null)
+                        {
+                            @foreach (var month in MonthlyActivityData.Take(12))
+                            {
+                                <div class="col-md-2 mb-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">@month.Month</h6>
+                                            <p class="card-text">@month.Count activities</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Transaction Value Analysis</h5>
+                </div>
+                <div class="card-body">
+                    @if (BuySellAnalysis != null)
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Currency</th>
+                                    <th>Total Buy Volume</th>
+                                    <th>Total Sell Volume</th>
+                                    <th>Transaction Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var analysis in BuySellAnalysis)
+                                {
+                                    <tr>
+                                        <td>@analysis.Currency</td>
+                                        <td>@analysis.TotalBuyVolume.ToString("N2")</td>
+                                        <td>@analysis.TotalSellVolume.ToString("N2")</td>
+                                        <td>@analysis.TransactionCount</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Dividend Income Overview</h5>
+                </div>
+                <div class="card-body">
+                    @if (DividendAnalysis != null)
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Currency</th>
+                                    <th>Total Dividends</th>
+                                    <th>Average Payment</th>
+                                    <th>Payment Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var analysis in DividendAnalysis)
+                                {
+                                    <tr>
+                                        <td>@analysis.Currency</td>
+                                        <td>@analysis.TotalAmount.ToString("N2")</td>
+                                        <td>@analysis.AveragePayment.ToString("N2")</td>
+                                        <td>@analysis.PaymentCount</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Holdings with Most Activity</h5>
+                </div>
+                <div class="card-body">
+                    @if (TopActiveHoldings != null)
+                    {
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Asset Class</th>
+                                    <th>Total Activities</th>
+                                    <th>Latest Activity</th>
+                                    <th>Activity Types</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var holding in TopActiveHoldings)
+                                {
+                                    <tr>
+                                        <td>@holding.Symbol</td>
+                                        <td>@holding.AssetClass</td>
+                                        <td>@holding.ActivityCount</td>
+                                        <td>@holding.LatestActivity?.ToString("MM/dd/yyyy")</td>
+                                        <td>@string.Join(", ", holding.ActivityTypes)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Portfolio Activity Timeline</h5>
+                </div>
+                <div class="card-body">
+                    @if (ActivityTimeline != null)
+                    {
+                        <div class="timeline" style="max-height: 400px; overflow-y: auto;">
+                            @foreach (var timelineItem in ActivityTimeline)
+                            {
+                                <div class="timeline-item mb-3 p-3 border-start border-3 @GetTimelineBorderClass(timelineItem.ActivityType)">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <small class="text-muted">@timelineItem.Date.ToString("MM/dd/yyyy")</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <span class="badge @GetActivityBadgeClass(timelineItem.ActivityType)">
+                                                @timelineItem.ActivityType
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>@timelineItem.Account</strong>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <span class="text-muted">@timelineItem.Description</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
