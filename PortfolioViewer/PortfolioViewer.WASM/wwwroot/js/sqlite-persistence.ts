@@ -68,6 +68,7 @@ export function setupDatabase(filename: string): Promise<void> {
 
         // This fires after IndexedDB is successfully opened
         dbRequest.onsuccess = (): void => {
+
             console.log('Database opened successfully');
 
             const db: IDBDatabase = (dbRequest as IDBOpenDBRequestExtended).result;

@@ -60,7 +60,7 @@ public static class Program
 		{
 			var sqlitePersistance = sp.GetRequiredService<SqlitePersistance>();
 			await sqlitePersistance.InitializeDatabase();
-			options.UseSqlite($"Data Source={DatabaseContext.DbFileName};Cache=Shared;Pooling=true;");
+			options.UseSqlite($"Filename={DatabaseContext.DbFileName}");
 		}); 
 
 		builder.Services.AddWebChatClient();
