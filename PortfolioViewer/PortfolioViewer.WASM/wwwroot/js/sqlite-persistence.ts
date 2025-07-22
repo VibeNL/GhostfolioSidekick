@@ -19,6 +19,7 @@ declare global {
                         ): void;
                         readFile(path: string): Uint8Array;
                         stat(path: string): { size: number };
+                        readdir(path: string): string[];
                     };
                 };
             };
@@ -39,7 +40,57 @@ interface IDBRequestExtended<T = any> extends IDBRequest<T> {
     result: T;
 }
 
-export function setupDatabase(filename: string): Promise<void> {
+export function waitForBlazorRuntime(): Promise<void> {
+    return new Promise<void>((resolve) => {
+        function checkRuntime(): void {
+            if (window.Blazor?.runtime?.Module?.FS) {
+                console.log('Blazor runtime is ready');
+                resolve();
+            } else {
+                console.log('Waiting for Blazor runtime...');
+                setTimeout(checkRuntime, 100);
+            }
+        }
+        checkRuntime();
+    });
+}
+
+export function debugFileSystem(filename: string): void {
+    try {
+        const path = `/${filename}`;
+        console.log(`=== Database Debug Info for ${filename} ===`);
+        
+        // Check if Blazor runtime is available
+        if (!window.Blazor?.runtime?.Module?.FS) {
+            console.error('Blazor runtime or FS module not available');
+            return;
+        }
+
+        // List root directory contents
+        try {
+            const rootContents = window.Blazor.runtime.Module.FS.readdir('/');
+            console.log('Root directory contents:', rootContents);
+        } catch (e) {
+            console.error('Error reading root directory:', e);
+        }
+
+        // Check if the database file exists
+        const pathInfo = window.Blazor.runtime.Module.FS.analyzePath(path);
+        console.log(`Database file exists: ${pathInfo.exists}`);
+        
+        if (pathInfo.exists) {
+            const stat = window.Blazor.runtime.Module.FS.stat(path);
+            console.log(`Database file size: ${stat.size} bytes`);
+        }
+    } catch (error) {
+        console.error('Error in debugFileSystem:', error);
+    }
+}
+
+export async function setupDatabase(filename: string): Promise<void> {
+    // Wait for Blazor runtime to be available
+    await waitForBlazorRuntime();
+    
     return new Promise<void>((resolve, reject) => {
         console.log(`Setting up database: ${filename}`);
 
@@ -117,6 +168,10 @@ export function setupDatabase(filename: string): Promise<void> {
                         // No database found in IndexedDB - this is normal for first run
                         console.log('No existing database found in IndexedDB');
                     }
+
+                    // Debug the file system state
+                    debugFileSystem(filename);
+                    
                     resolve();
                 } catch (error) {
                     console.error('Error during file system operations:', error);
@@ -133,9 +188,15 @@ export function setupDatabase(filename: string): Promise<void> {
     });
 }
 
-export function syncDatabaseToIndexedDb(filename: string): Promise<void> {
+export async function syncDatabaseToIndexedDb(filename: string): Promise<void> {
+    // Wait for Blazor runtime to be available
+    await waitForBlazorRuntime();
+    
     return new Promise<void>((resolve, reject) => {
         console.log(`Syncing database to IndexedDB: ${filename}`);
+
+        // Debug before sync
+        debugFileSystem(filename);
 
         // Open the IndexedDB database
         const dbRequest: IDBOpenDBRequest = window.indexedDB.open('SqliteStorage', 1);

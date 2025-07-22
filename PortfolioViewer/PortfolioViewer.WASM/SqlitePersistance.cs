@@ -27,16 +27,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 			Console.WriteLine("Database setup completed");
 		}
 
-		internal async Task SaveChangesAsync(CancellationToken cancellationToken)
+		public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
 		{
 			if (module == null)
 			{
 				module = await js.InvokeAsync<IJSObjectReference>("import", "./js/sqlite-persistence.js");
 			}
 
-			Console.WriteLine("JavaScript module loaded");
+			Console.WriteLine("Syncing database to IndexedDB");
 
 			await module.InvokeVoidAsync("syncDatabaseToIndexedDb", DatabaseContext.DbFileName);
+			Console.WriteLine("Database sync completed");
+		}
+
+		public async Task DebugFileSystem()
+		{
+			if (module == null)
+			{
+				module = await js.InvokeAsync<IJSObjectReference>("import", "./js/sqlite-persistence.js");
+			}
+
+			await module.InvokeVoidAsync("debugFileSystem", DatabaseContext.DbFileName);
 		}
 	}
 }
