@@ -3,12 +3,12 @@ using Microsoft.JSInterop;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM
 {
-	public class SqlitePersistance
+	public class SqlitePersistence
 	{
 		private readonly IJSRuntime js;
 		private IJSObjectReference module;
 
-		public SqlitePersistance(IJSRuntime js)
+		public SqlitePersistence(IJSRuntime js)
 		{
 			ArgumentNullException.ThrowIfNull(js);
 			this.js = js;

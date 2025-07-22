@@ -55,7 +55,7 @@ public static class Program
 			builder.Configuration.Bind("Local", options.ProviderOptions);
 		});
 
-		builder.Services.AddSingleton<SqlitePersistance>();
+		builder.Services.AddSingleton<SqlitePersistence>();
 		
 		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options =>
 		{
@@ -74,7 +74,7 @@ public static class Program
 
 		// Initialize the database after building the app
 		var serviceScope = app.Services.CreateScope();
-		var sqlitePersistance = serviceScope.ServiceProvider.GetRequiredService<SqlitePersistance>();
+		var sqlitePersistance = serviceScope.ServiceProvider.GetRequiredService<SqlitePersistence>();
 		await sqlitePersistance.InitializeDatabase();
 
 		await app.RunAsync();
