@@ -3,6 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
+using ApexCharts;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -61,6 +62,9 @@ public static class Program
 
 		// Register PortfolioClient for DI
 		builder.Services.AddScoped<Clients.PortfolioClient>();
+
+		// Add ApexCharts
+		builder.Services.AddApexCharts();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
