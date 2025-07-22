@@ -40,10 +40,9 @@ namespace GhostfolioSidekick.Database
 		// special "local" folder for your platform.
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseLazyLoadingProxies();
-
 			if (!optionsBuilder.IsConfigured)
 			{
+				optionsBuilder.UseLazyLoadingProxies();
 				optionsBuilder.UseSqlite($"Data Source={DbFileName}");
 			}
 
