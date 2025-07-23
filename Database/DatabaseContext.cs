@@ -11,6 +11,8 @@ namespace GhostfolioSidekick.Database
 {
 	public class DatabaseContext : DbContext
 	{
+		public const string DbFileName = "GhostfolioSidekick.db";
+
 		public virtual DbSet<Platform> Platforms { get; set; }
 
 		public virtual DbSet<Account> Accounts { get; set; }
@@ -38,10 +40,10 @@ namespace GhostfolioSidekick.Database
 		// special "local" folder for your platform.
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 		{
-			optionsBuilder.UseLazyLoadingProxies();
 			if (!optionsBuilder.IsConfigured)
 			{
-				optionsBuilder.UseSqlite($"Data Source=ghostfoliosidekick.db");
+				optionsBuilder.UseLazyLoadingProxies();
+				optionsBuilder.UseSqlite($"Data Source={DbFileName}");
 			}
 
 			base.OnConfiguring(optionsBuilder);

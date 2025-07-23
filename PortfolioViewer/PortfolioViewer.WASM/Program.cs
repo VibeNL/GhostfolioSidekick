@@ -3,6 +3,8 @@ using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.JSInterop;
+using System.Reflection;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -53,10 +55,14 @@ public static class Program
 			builder.Configuration.Bind("Local", options.ProviderOptions);
 		});
 
+		builder.Services.AddSingleton<SqlitePersistence>();
+		
 		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options =>
-			options.UseSqlite("Data Source=portfolio.db;Cache=Shared;Pooling=true;")
-			);
-
+		{
+			options.UseSqlite($"Data Source={DatabaseContext.DbFileName}");
+			options.UseLazyLoadingProxies();
+		});
+		
 		builder.Services.AddWebChatClient();
 
 		// Register PortfolioClient for DI
@@ -66,12 +72,10 @@ public static class Program
 
 		var app = builder.Build();
 
-		var context = app.Services.GetRequiredService<DatabaseContext>();
-		var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-		if (pendingMigrations.Any())
-		{
-			await context.Database.MigrateAsync();
-		}
+		// Initialize the database after building the app
+		var serviceScope = app.Services.CreateScope();
+		var sqlitePersistence = serviceScope.ServiceProvider.GetRequiredService<SqlitePersistence>();
+		await sqlitePersistence.InitializeDatabase();
 
 		await app.RunAsync();
 	}
