@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
     public partial class Holdings
     {
-        private string ViewMode = "table";
+        private string ViewMode = "treemap";
         private List<HoldingDisplayModel> HoldingsList = new();
         private PlotlyChart? treemapChart;
         private Config plotConfig = new();
