@@ -2,16 +2,8 @@
 
 namespace GhostfolioSidekick.PerformanceCalculations.Models
 {
-	public record CalculatedSnapshot
+	public record CalculatedSnapshot(DateOnly Date, decimal Quantity, Money AverageCostPrice, Money CurrentUnitPrice, Money TotalInvested, Money TotalValue)
 	{
-		public DateOnly Date { get; set; }
-
-		public decimal Quantity { get; set; } = 0;
-
-		public Money AverageCostPrice { get; set; } = Money.Zero;
-
-		public Money TotalInvested { get; set; } = Money.Zero;
-
-		public Money TotalValue { get; set; } = Money.Zero;
+		public static CalculatedSnapshot Empty(Currency currency) => new(DateOnly.MinValue, 0, Money.Zero(currency), Money.Zero(currency), Money.Zero(currency), Money.Zero(currency));
 	}
 }

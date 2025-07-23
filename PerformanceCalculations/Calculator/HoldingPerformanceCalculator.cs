@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -6,9 +7,9 @@ using GhostfolioSidekick.PerformanceCalculations.Models;
 
 namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 {
-	public class HoldingPerformanceCalculator(DatabaseContext databaseContext) : IHoldingPerformanceCalculator
+	public class HoldingPerformanceCalculator(DatabaseContext databaseContext, ICurrencyExchange currencyExchange) : IHoldingPerformanceCalculator
 	{
-		public async Task<IEnumerable<HoldingAggregated>> GetCalculatedHoldings()
+		public async Task<IEnumerable<HoldingAggregated>> GetCalculatedHoldings(Currency targetCurrency)
 		{
 			var holdings = databaseContext.Holdings.Where(x => x.SymbolProfiles.Any()).Select(
 				x => new HoldingAggregated
@@ -21,13 +22,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					AssetSubClass = x.SymbolProfiles.First().AssetSubClass,
 					CountryWeight = x.SymbolProfiles.First().CountryWeight,
 					SectorWeights = x.SymbolProfiles.First().SectorWeights,
-					CalculatedSnapshots = CalculateSnapShots(x.Activities, x.SymbolProfiles.First().MarketData)
+					CalculatedSnapshots = CalculateSnapShots(targetCurrency, x.Activities, x.SymbolProfiles.First().MarketData)
 				});
 
 			return holdings.ToList();
 		}
 
 		private ICollection<CalculatedSnapshot> CalculateSnapShots(
+			Currency targetCurrency,
 			ICollection<Activity> activities,
 			ICollection<Model.Market.MarketData> marketData)
 		{
@@ -35,14 +37,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			var maxDate = DateOnly.FromDateTime(activities.Max(x => x.Date));
 			var snapshots = new List<CalculatedSnapshot>(maxDate.DayNumber - minDate.DayNumber + 1);
 
-			var previousSnapshot = new CalculatedSnapshot
-			{
-				Date = minDate.AddDays(-1),
-				AverageCostPrice = Money.Zero,
-				Quantity = 0,
-				TotalInvested = Money.Zero,
-				TotalValue = Money.Zero
-			};
+			var previousSnapshot = new CalculatedSnapshot(minDate.AddDays(-1), 0, Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency));
+
 			for (var date = minDate; date <= maxDate; date = date.AddDays(1))
 			{
 				var snapshot = previousSnapshot with
@@ -50,8 +46,13 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					Date = date,
 				};
 
-				foreach (var activity in activities.Where(x => DateOnly.FromDateTime(x.Date) == date).OrderBy(x => x.Date))
+				foreach (var activity in activities.OfType<ActivityWithQuantityAndUnitPrice>().Where(x => DateOnly.FromDateTime(x.Date) == date).OrderBy(x => x.Date))
 				{
+					var correctedAdjustedUnitPrice = currencyExchange.ConvertMoney(
+						activity.AdjustedUnitPrice,
+						targetCurrency,
+						DateOnly.FromDateTime(activity.Date));
+
 					snapshot = snapshot with
 					{
 						AverageCostPrice = activity switch
@@ -68,7 +69,6 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 						TotalInvested = activity switch
 						{
 							BuySellActivity buyOrSell => snapshot.TotalInvested.Add(buyOrSell.AdjustedUnitPrice.Times(buyOrSell.AdjustedQuantity)),
-							DividendActivity dividend => snapshot.TotalInvested.Add(dividend.Amount),
 							_ => snapshot.TotalInvested
 						}
 					};
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 				snapshot = snapshot with
 				{
-					TotalValue = marketData.FirstOrDefault(x => x.Date == date)?.Close.Times(snapshot.Quantity) ?? Money.Zero
+					TotalValue = marketData.FirstOrDefault(x => x.Date == date)?.Close.Times(snapshot.Quantity) ?? Money.Zero(targetCurrency)
 				};
 
 				snapshots.Add(snapshot);

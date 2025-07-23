@@ -6,7 +6,7 @@
 
 		public Currency Currency { get; set; }
 
-		public static Money Zero { get; } = new Money(Currency.USD, 0);
+		public static Money Zero(Currency currency) => new(currency, 0);
 
 		public Money()
 		{
