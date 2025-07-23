@@ -51,13 +51,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				int currentStep = 0;
 
 				// Step 2: Clear Tables
-				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
-				{
-					progress?.Report(($"Clearing table: {tableName}...", 0));
-					var deleteSql = $"DELETE FROM {tableName}";
-					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
-				}
-
 				// Disable contraints on DB
 				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
 				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
@@ -67,6 +60,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
 
+				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
+				{
+					progress?.Report(($"Clearing table: {tableName}...", 0));
+					var deleteSql = $"DELETE FROM {tableName}";
+					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+				}
+				
 				// Step 3: Sync Data for Each Table
 				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)).OrderBy(x => x))
 				{
