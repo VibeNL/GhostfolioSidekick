@@ -1,4 +1,5 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
@@ -7,6 +8,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
     public partial class Holdings
     {
+        [Inject]
+        private PortfolioClient? PortfolioClient { get; set; }
+
         private string ViewMode = "treemap";
         private List<HoldingDisplayModel> HoldingsList = new();
         private PlotlyChart? treemapChart;
@@ -14,14 +18,79 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private Plotly.Blazor.Layout plotLayout = new();
         private IList<ITrace> plotData = new List<ITrace>();
 
+        // Loading state management
+        private bool IsLoading { get; set; } = true;
+        private bool HasError { get; set; } = false;
+        private string ErrorMessage { get; set; } = string.Empty;
+
         protected override async Task OnInitializedAsync()
         {
-            await LoadSampleData();
-            PrepareTreemapData();
+            await LoadPortfolioDataAsync();
         }
+
+        private async Task LoadPortfolioDataAsync()
+        {
+            try
+            {
+                IsLoading = true;
+                HasError = false;
+                ErrorMessage = string.Empty;
+                StateHasChanged(); // Update UI to show loading state
+
+                // Yield control to allow UI to update
+                await Task.Yield();
+                
+                // TODO: Replace this with actual data loading from your service/API
+                // Example for real implementation:
+                // HoldingsList = await LoadRealPortfolioDataAsync();
+                
+                // For now, keeping the sample data but making it async
+                await LoadSampleDataAsync();
+                
+                // Prepare chart data after loading
+                await Task.Run(() => PrepareTreemapData());
+            }
+            catch (Exception ex)
+            {
+                HasError = true;
+                ErrorMessage = ex.Message;
+            }
+            finally
+            {
+                IsLoading = false;
+                StateHasChanged(); // Update UI when loading is complete
+            }
+        }
+
+        // TODO: Implement this method to load real data from your backend
+        // private async Task<List<HoldingDisplayModel>> LoadRealPortfolioDataAsync()
+        // {
+        //     try
+        //     {
+        //         // Use your PortfolioClient or other service to load real data
+        //         // This is where you would make API calls or database queries
+        //         
+        //         // Example implementation (uncomment and modify as needed):
+        //         // var holdings = await PortfolioClient.GetHoldingsAsync();
+        //         // return holdings.Select(h => new HoldingDisplayModel 
+        //         // {
+        //         //     Symbol = h.Symbol,
+        //         //     Name = h.Name,
+        //         //     // ... map other properties
+        //         // }).ToList();
+        //         
+        //         return new List<HoldingDisplayModel>();
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         throw new InvalidOperationException($"Failed to load portfolio data: {ex.Message}", ex);
+        //     }
+        // }
 
         private void PrepareTreemapData()
         {
+            if (!HoldingsList.Any()) return;
+
             var treemapTrace = new TreeMap
             {
                 Labels = HoldingsList.Select(h => h.Symbol).ToArray(),
@@ -95,9 +164,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             return colors.TryGetValue(sector, out var color) ? color : "#7f8c8d";
         }
 
-        private async Task LoadSampleData()
+        private async Task LoadSampleDataAsync()
         {
-            // Sample data for demonstration
+            // Simulate network/database call delay
+            await Task.Delay(500);
+
+            // Sample data for demonstration - replace with real data loading
             HoldingsList = new List<HoldingDisplayModel>
             {
                 new HoldingDisplayModel
@@ -216,10 +288,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
             // Calculate weights based on total portfolio value
             var totalValue = HoldingsList.Sum(h => h.CurrentValue);
-            foreach (var holding in HoldingsList)
+            if (totalValue > 0)
             {
-                holding.Weight = holding.CurrentValue / totalValue;
+                foreach (var holding in HoldingsList)
+                {
+                    holding.Weight = holding.CurrentValue / totalValue;
+                }
             }
+        }
+
+        // Add refresh method for manual data reload
+        private async Task RefreshDataAsync()
+        {
+            await LoadPortfolioDataAsync();
         }
 
         private decimal TotalValue => HoldingsList.Sum(h => h.CurrentValue);

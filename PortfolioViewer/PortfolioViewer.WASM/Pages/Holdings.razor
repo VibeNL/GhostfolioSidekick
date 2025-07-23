@@ -11,158 +11,218 @@
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Portfolio Overview</h5>
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn @(ViewMode == "treemap" ? "btn-primary" : "btn-outline-primary")" 
-                                @onclick="@(() => ViewMode = "treemap")">
-                            <i class="bi bi-diagram-3"></i> Treemap
-                        </button>
-                        <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")" 
-                                @onclick="@(() => ViewMode = "table")">
-                            <i class="bi bi-table"></i> Table
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    @if (ViewMode == "treemap")
-                    {
-                        <div class="treemap-container" style="height: 500px;">
-                            <PlotlyChart @ref="treemapChart" 
-                                        Data="plotData" 
-                                        Layout="plotLayout" 
-                                        Config="plotConfig" 
-                                        style="height: 450px; width: 100%;" />
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th scope="col">Symbol</th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">Quantity</th>
-                                        <th scope="col">Avg Price</th>
-                                        <th scope="col">Current Price</th>
-                                        <th scope="col" class="text-end">Current Value</th>
-                                        <th scope="col" class="text-end">Gain/Loss</th>
-                                        <th scope="col" class="text-end">%</th>
-                                        <th scope="col" class="text-end">Weight</th>
-                                        <th scope="col">Sector</th>
-                                        <th scope="col">Asset Class</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var holding in HoldingsList)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <strong>@holding.Symbol</strong>
-                                            </td>
-                                            <td>@holding.Name</td>
-                                            <td>@holding.Quantity.ToString("N2")</td>
-                                            <td>@holding.AveragePrice.ToString("C")</td>
-                                            <td>@holding.CurrentPrice.ToString("C")</td>
-                                            <td class="text-end">
-                                                <strong>@holding.CurrentValue.ToString("C")</strong>
-                                            </td>
-                                            <td class="text-end">
-                                                <span class="@(holding.GainLoss >= 0 ? "text-success" : "text-danger")">
-                                                    @holding.GainLoss.ToString("C")
-                                                </span>
-                                            </td>
-                                            <td class="text-end">
-                                                <span class="@(holding.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
-                                                    @holding.GainLossPercentage.ToString("P2")
-                                                </span>
-                                            </td>
-                                            <td class="text-end">@holding.Weight.ToString("P1")</td>
-                                            <td>
-                                                <span class="badge bg-secondary">@holding.Sector</span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-info">@holding.AssetClass</span>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <th colspan="5">Total Portfolio Value</th>
-                                        <th class="text-end">@TotalValue.ToString("C")</th>
-                                        <th class="text-end">
-                                            <span class="@(TotalGainLoss >= 0 ? "text-success" : "text-danger")">
-                                                @TotalGainLoss.ToString("C")
-                                            </span>
-                                        </th>
-                                        <th class="text-end">
-                                            <span class="@(TotalGainLossPercentage >= 0 ? "text-success" : "text-danger")">
-                                                @TotalGainLossPercentage.ToString("P2")
-                                            </span>
-                                        </th>
-                                        <th class="text-end">100.0%</th>
-                                        <th colspan="2"></th>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @if (ViewMode == "table")
+    @if (IsLoading)
     {
+        <!-- Loading State -->
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h6 class="card-title mb-0">Sector Allocation</h6>
-                    </div>
-                    <div class="card-body">
-                        @foreach (var sector in SectorAllocation)
-                        {
-                            <div class="mb-2">
-                                <div class="d-flex justify-content-between">
-                                    <span>@sector.Key</span>
-                                    <span>@sector.Value.ToString("P1")</span>
-                                </div>
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar" style="width: @(sector.Value * 100)%"></div>
-                                </div>
-                            </div>
-                        }
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Portfolio Data...</h5>
+                        <p class="text-muted mb-0">Please wait while we fetch your holdings information.</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+        </div>
+    }
+    else if (HasError)
+    {
+        <!-- Error State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!HoldingsList.Any())
+    {
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h6 class="card-title mb-0">Asset Class Allocation</h6>
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-pie-chart text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">No Holdings Found</h5>
+                        <p class="text-muted mb-3">Your portfolio appears to be empty or data hasn't been synced yet.</p>
+                        <button class="btn btn-primary" @onclick="RefreshDataAsync">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Main Content -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Portfolio Overview</h5>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn @(ViewMode == "treemap" ? "btn-primary" : "btn-outline-primary")" 
+                                        @onclick="@(() => ViewMode = "treemap")">
+                                    <i class="bi bi-diagram-3"></i> Treemap
+                                </button>
+                                <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")" 
+                                        @onclick="@(() => ViewMode = "table")">
+                                    <i class="bi bi-table"></i> Table
+                                </button>
+                            </div>
+                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@IsLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
-                        @foreach (var assetClass in AssetClassAllocation)
+                        @if (ViewMode == "treemap")
                         {
-                            <div class="mb-2">
-                                <div class="d-flex justify-content-between">
-                                    <span>@assetClass.Key</span>
-                                    <span>@assetClass.Value.ToString("P1")</span>
-                                </div>
-                                <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar bg-info" style="width: @(assetClass.Value * 100)%"></div>
-                                </div>
+                            <div class="treemap-container" style="height: 500px;">
+                                <PlotlyChart @ref="treemapChart" 
+                                            Data="plotData" 
+                                            Layout="plotLayout" 
+                                            Config="plotConfig" 
+                                            style="height: 450px; width: 100%;" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">Symbol</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Quantity</th>
+                                            <th scope="col">Avg Price</th>
+                                            <th scope="col">Current Price</th>
+                                            <th scope="col" class="text-end">Current Value</th>
+                                            <th scope="col" class="text-end">Gain/Loss</th>
+                                            <th scope="col" class="text-end">%</th>
+                                            <th scope="col" class="text-end">Weight</th>
+                                            <th scope="col">Sector</th>
+                                            <th scope="col">Asset Class</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var holding in HoldingsList)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@holding.Symbol</strong>
+                                                </td>
+                                                <td>@holding.Name</td>
+                                                <td>@holding.Quantity.ToString("N2")</td>
+                                                <td>@holding.AveragePrice.ToString("C")</td>
+                                                <td>@holding.CurrentPrice.ToString("C")</td>
+                                                <td class="text-end">
+                                                    <strong>@holding.CurrentValue.ToString("C")</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(holding.GainLoss >= 0 ? "text-success" : "text-danger")">
+                                                        @holding.GainLoss.ToString("C")
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(holding.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                        @holding.GainLossPercentage.ToString("P2")
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">@holding.Weight.ToString("P1")</td>
+                                                <td>
+                                                    <span class="badge bg-secondary">@holding.Sector</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">@holding.AssetClass</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <th colspan="5">Total Portfolio Value</th>
+                                            <th class="text-end">@TotalValue.ToString("C")</th>
+                                            <th class="text-end">
+                                                <span class="@(TotalGainLoss >= 0 ? "text-success" : "text-danger")">
+                                                    @TotalGainLoss.ToString("C")
+                                                </span>
+                                            </th>
+                                            <th class="text-end">
+                                                <span class="@(TotalGainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                    @TotalGainLossPercentage.ToString("P2")
+                                                </span>
+                                            </th>
+                                            <th class="text-end">100.0%</th>
+                                            <th colspan="2"></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
                         }
                     </div>
                 </div>
             </div>
         </div>
+
+        @if (ViewMode == "table")
+        {
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Sector Allocation</h6>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var sector in SectorAllocation)
+                            {
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>@sector.Key</span>
+                                        <span>@sector.Value.ToString("P1")</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar" style="width: @(sector.Value * 100)%"></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Asset Class Allocation</h6>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var assetClass in AssetClassAllocation)
+                            {
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span>@assetClass.Key</span>
+                                        <span>@assetClass.Value.ToString("P1")</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-info" style="width: @(assetClass.Value * 100)%"></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     }
 </div>
 
@@ -178,5 +238,10 @@
         position: sticky;
         top: 0;
         z-index: 10;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
     }
 </style>
