@@ -14,32 +14,119 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 	{
 		public async Task<IEnumerable<HoldingAggregated>> GetCalculatedHoldings(Currency targetCurrency)
 		{
+			// Step 1: Get Holdings with SymbolProfiles (optimized projection)
 			var holdingData = await databaseContext
 				.Holdings
-				.Include(x => x.Activities)
-				.Include(x => x.SymbolProfiles)
 				.Where(x => x.SymbolProfiles.Any())
 				.AsNoTracking()
 				.Select(x => new
-			{
-				Holding = x,
-				SymbolProfiles = x.SymbolProfiles,
-				Activities = x.Activities
-			}).ToListAsync();
+				{
+					HoldingId = x.Id,
+					SymbolProfiles = x.SymbolProfiles.Select(sp => new
+					{
+						sp.Symbol,
+						sp.Name,
+						sp.DataSource,
+						sp.AssetClass,
+						sp.AssetSubClass,
+						sp.CountryWeight,
+						sp.SectorWeights
+					}).ToList()
+				})
+				.ToListAsync();
 
+			if (!holdingData.Any())
+			{
+				return [];
+			}
+
+			var holdingIds = holdingData.Select(x => x.HoldingId).ToList();
+
+			// Step 2: Get Activities separately to avoid Cartesian product
+			var activitiesData = await databaseContext
+				.Activities
+				.Where(x => x.Holding != null && holdingIds.Contains(x.Holding.Id))
+				.AsNoTracking()
+				.Select(x => new
+				{
+					HoldingId = x.Holding!.Id,
+					Activity = x
+				})
+				.ToListAsync();
+
+			var activitiesByHolding = activitiesData
+				.GroupBy(x => x.HoldingId)
+				.ToDictionary(g => g.Key, g => g.Select(x => x.Activity).ToList());
+
+			// Step 3: Pre-load all MarketData for all symbol profiles to avoid N+1 queries
+			var symbolProfileKeys = holdingData
+				.SelectMany(x => x.SymbolProfiles)
+				.Select(sp => new { sp.Symbol, sp.DataSource })
+				.Distinct()
+				.ToList();
+
+			var allMarketData = new Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, Money>>();
+
+			if (symbolProfileKeys.Any())
+			{
+				// Extract the symbol/datasource pairs to local variables to avoid closure in LINQ
+				var symbols = symbolProfileKeys.Select(x => x.Symbol).ToList();
+				var dataSources = symbolProfileKeys.Select(x => x.DataSource).ToList();
+
+				var marketDataQuery = await databaseContext
+					.MarketDatas
+					.Where(md => symbols.Contains(EF.Property<string>(md, "SymbolProfileSymbol")) &&
+								dataSources.Contains(EF.Property<string>(md, "SymbolProfileDataSource")))
+					.AsNoTracking()
+					.Select(md => new
+					{
+						Symbol = EF.Property<string>(md, "SymbolProfileSymbol"),
+						DataSource = EF.Property<string>(md, "SymbolProfileDataSource"),
+						md.Date,
+						md.Close
+					})
+					.ToListAsync();
+
+				// Filter the results in memory to match exact pairs since EF query is broader
+				var filteredMarketData = marketDataQuery
+					.Where(md => symbolProfileKeys.Any(sp => sp.Symbol == md.Symbol && sp.DataSource == md.DataSource))
+					.ToList();
+
+				// Group market data by symbol profile
+				foreach (var group in filteredMarketData.GroupBy(x => new { x.Symbol, x.DataSource }))
+				{
+					allMarketData[(group.Key.Symbol, group.Key.DataSource)] = group
+						.ToDictionary(x => x.Date, x => x.Close);
+				}
+			}
+
+			// Step 4: Build result
 			var returnList = new List<HoldingAggregated>(holdingData.Count);
 			foreach (var data in holdingData)
 			{
 				var defaultSymbolProfile = data.SymbolProfiles.FirstOrDefault();
-
 				if (defaultSymbolProfile == null)
 				{
 					continue;
 				}
 
+				var activities = activitiesByHolding.GetValueOrDefault(data.HoldingId, []);
+
+				// Create proper SymbolProfile objects for the calculation method
+				var symbolProfiles = data.SymbolProfiles.Select(sp => new SymbolProfile
+				{
+					Symbol = sp.Symbol,
+					Name = sp.Name,
+					DataSource = sp.DataSource,
+					AssetClass = sp.AssetClass,
+					AssetSubClass = sp.AssetSubClass,
+					CountryWeight = sp.CountryWeight,
+					SectorWeights = sp.SectorWeights
+				}).ToList();
+
 				returnList.Add(new HoldingAggregated
 				{
-					ActivityCount = data.Activities.Count,
+					ActivityCount = activities.Count,
 					Symbol = defaultSymbolProfile.Symbol,
 					Name = defaultSymbolProfile.Name,
 					DataSource = defaultSymbolProfile.DataSource,
@@ -47,7 +134,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					AssetSubClass = defaultSymbolProfile.AssetSubClass,
 					CountryWeight = defaultSymbolProfile.CountryWeight,
 					SectorWeights = defaultSymbolProfile.SectorWeights,
-					CalculatedSnapshots = await CalculateSnapShots(targetCurrency, data.SymbolProfiles, data.Activities).ConfigureAwait(false)
+					CalculatedSnapshots = await CalculateSnapShots(targetCurrency, symbolProfiles, activities, allMarketData).ConfigureAwait(false)
 				});
 			}
 
@@ -57,7 +144,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 		private async Task<ICollection<CalculatedSnapshot>> CalculateSnapShots(
 			Currency targetCurrency,
 			IList<SymbolProfile> symbolProfiles,
-			ICollection<Activity> activities)
+			ICollection<Activity> activities,
+			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, Money>> preLoadedMarketData)
 		{
 			if (activities.Count == 0)
 			{
@@ -77,15 +165,17 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 			var previousSnapshot = new CalculatedSnapshot(minDate.AddDays(-1), 0, Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency));
 
+			// Use pre-loaded market data instead of querying database
 			Dictionary<DateOnly, Money> marketData = new(dayCount);
 			foreach (SymbolProfile symbolProfile in symbolProfiles)
 			{
-				await databaseContext
-						.SymbolProfiles
-						.Where(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource)
-						.SelectMany(x => x.MarketData)
-						.AsNoTracking()
-						.ForEachAsync(x => marketData.TryAdd(x.Date, x.Close));
+				if (preLoadedMarketData.TryGetValue((symbolProfile.Symbol, symbolProfile.DataSource), out var symbolMarketData))
+				{
+					foreach (var kvp in symbolMarketData)
+					{
+						marketData.TryAdd(kvp.Key, kvp.Value);
+					}
+				}
 			}
 
 			var lastKnownMarketPrice = marketData
@@ -112,7 +202,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 						snapshot = snapshot with
 						{
-							AverageCostPrice = CalculateAverageCostPrice(snapshot, activity),
+							AverageCostPrice = CalculateAverageCostPrice(snapshot, correctedAdjustedUnitPrice, activity.Quantity),
 							Quantity = snapshot.Quantity + activity.AdjustedQuantity,
 							TotalInvested = snapshot.TotalInvested.Add(correctedAdjustedUnitPrice.Times(activity.AdjustedQuantity)),
 						};
@@ -120,7 +210,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				}
 
 				var marketPrice = marketData.TryGetValue(date, out var closePrice) ? closePrice : lastKnownMarketPrice;
-								snapshot = snapshot with
+				snapshot = snapshot with
 				{
 					TotalValue = marketPrice.Times(snapshot.Quantity)
 				};
@@ -132,11 +222,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			return snapshots;
 		}
 
-		private Money CalculateAverageCostPrice(CalculatedSnapshot snapshot, BuySellActivity activity)
+		private static Money CalculateAverageCostPrice(CalculatedSnapshot snapshot, Money unitPriceActivity, decimal quantityActivity)
 		{
-			var unitPriceActivity = activity.AdjustedUnitPrice;
-			var quantityActivity = activity.AdjustedQuantity;
-
 			if (snapshot.Quantity == 0)
 			{
 				return unitPriceActivity;
