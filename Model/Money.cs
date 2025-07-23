@@ -2,6 +2,8 @@
 {
 	public record Money
 	{
+		private const decimal Epsilon = 0.0001m;
+
 		public decimal Amount { get; set; }
 
 		public Currency Currency { get; set; }
@@ -47,12 +49,21 @@
 
 		public Money SafeDivide(decimal amount)
 		{
-			if (amount == 0)
+			if (amount <= Epsilon)
 			{
 				return new Money(Currency, 0);
 			}
 
-			return new Money(Currency, Amount / amount);
+			try
+			{
+				return new Money(Currency, Amount / amount);
+			}
+			catch (Exception ex)
+			{
+				// Log the exception or handle it as needed
+				Console.WriteLine($"Error during division: {ex.Message}");
+				return new Money(Currency, 0);
+			}
 		}
 
 		public override string ToString()
