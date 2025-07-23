@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.PerformanceCalculations.Models
 {
-	public record CalculatedSnapshots
+	public record CalculatedSnapshot
 	{
 		public DateOnly Date { get; set; }
 

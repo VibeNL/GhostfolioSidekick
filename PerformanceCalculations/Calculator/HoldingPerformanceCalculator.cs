@@ -27,15 +27,15 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			return holdings.ToList();
 		}
 
-		private ICollection<CalculatedSnapshots> CalculateSnapShots(
+		private ICollection<CalculatedSnapshot> CalculateSnapShots(
 			ICollection<Activity> activities,
 			ICollection<Model.Market.MarketData> marketData)
 		{
 			var minDate = DateOnly.FromDateTime(activities.Min(x => x.Date));
 			var maxDate = DateOnly.FromDateTime(activities.Max(x => x.Date));
-			var snapshots = new List<CalculatedSnapshots>(maxDate.DayNumber - minDate.DayNumber + 1);
+			var snapshots = new List<CalculatedSnapshot>(maxDate.DayNumber - minDate.DayNumber + 1);
 
-			var previousSnapshot = new CalculatedSnapshots
+			var previousSnapshot = new CalculatedSnapshot
 			{
 				Date = minDate.AddDays(-1),
 				AverageCostPrice = Money.Zero,
