@@ -96,15 +96,19 @@ namespace GhostfolioSidekick.Database.Repository
 				}
 
 				// Use the last known value from cache. Maybe a holiday or weekend?
-				var lastKnownRate = cachedRates
+				var values = cachedRates
 					.Where(x => x.Key < searchDate)
-					.OrderByDescending(x => x.Key)
+					.OrderByDescending(x => x.Key);
+				var count = values.Count();
+				var lastKnownRate = values
 					.FirstOrDefault();
 
 				if (lastKnownRate.Value != 0)
 				{
 					return lastKnownRate.Value * searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
 				}
+
+				logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency} in preloaded cache. Trying to query database.", sourceCurrency, targetCurrency);
 			}
 
 			// Fall back to database query if not preloaded or not found in cache
@@ -157,7 +161,7 @@ namespace GhostfolioSidekick.Database.Repository
 
 				// Group and cache the data
 				_preloadedExchangeRates.Clear();
-				foreach (var group in allExchangeRateData.GroupBy(x => x.Symbol))
+				foreach (var group in allExchangeRateData.Where(x => x.Amount != 0).GroupBy(x => x.Symbol))
 				{
 					_preloadedExchangeRates[group.Key] = group
 						.ToDictionary(x => x.Date, x => x.Amount);
