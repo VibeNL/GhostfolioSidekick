@@ -6,7 +6,6 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PerformanceCalculations.Models;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 {
