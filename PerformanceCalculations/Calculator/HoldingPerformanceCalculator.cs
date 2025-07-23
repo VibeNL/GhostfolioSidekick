@@ -114,7 +114,9 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 						{
 							AverageCostPrice = activity.Quantity > 0 
 								? snapshot.AverageCostPrice.Add(correctedAdjustedUnitPrice.Subtract(snapshot.AverageCostPrice).SafeDivide(snapshot.Quantity + activity.AdjustedQuantity))
-								: snapshot.AverageCostPrice.Subtract((snapshot.AverageCostPrice.Subtract(correctedAdjustedUnitPrice)).Times((activity.AdjustedQuantity / snapshot.Quantity))),
+								: snapshot.Quantity != 0 
+									? snapshot.AverageCostPrice.Subtract((snapshot.AverageCostPrice.Subtract(correctedAdjustedUnitPrice)).Times((activity.AdjustedQuantity / snapshot.Quantity)))
+									: correctedAdjustedUnitPrice, // When snapshot.Quantity is 0, use the current activity's price as the new average cost price
 							Quantity = snapshot.Quantity + activity.AdjustedQuantity,
 							TotalInvested = snapshot.TotalInvested.Add(correctedAdjustedUnitPrice.Times(activity.AdjustedQuantity)),
 						};
