@@ -112,11 +112,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 						snapshot = snapshot with
 						{
-							AverageCostPrice = activity.Quantity > 0 
-								? snapshot.AverageCostPrice.Add(correctedAdjustedUnitPrice.Subtract(snapshot.AverageCostPrice).SafeDivide(snapshot.Quantity + activity.AdjustedQuantity))
-								: snapshot.Quantity != 0 
-									? snapshot.AverageCostPrice.Subtract((snapshot.AverageCostPrice.Subtract(correctedAdjustedUnitPrice)).Times((activity.AdjustedQuantity / snapshot.Quantity)))
-									: correctedAdjustedUnitPrice, // When snapshot.Quantity is 0, use the current activity's price as the new average cost price
+							AverageCostPrice = CalculateAverageCostPrice(snapshot, activity),
 							Quantity = snapshot.Quantity + activity.AdjustedQuantity,
 							TotalInvested = snapshot.TotalInvested.Add(correctedAdjustedUnitPrice.Times(activity.AdjustedQuantity)),
 						};
@@ -134,6 +130,20 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 
 			return snapshots;
+		}
+
+		private Money CalculateAverageCostPrice(CalculatedSnapshot snapshot, BuySellActivity activity)
+		{
+			var unitPriceActivity = activity.AdjustedUnitPrice;
+			var quantityActivity = activity.AdjustedQuantity;
+
+			if (snapshot.Quantity == 0)
+			{
+				return unitPriceActivity;
+			}
+
+			return snapshot.TotalInvested.Add(unitPriceActivity.Times(quantityActivity))
+				.SafeDivide(snapshot.Quantity + quantityActivity);
 		}
 	}
 }
