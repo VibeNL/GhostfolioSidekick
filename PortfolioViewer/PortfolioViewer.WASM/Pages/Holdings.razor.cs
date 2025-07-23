@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
             var treemapTrace = new TreeMap
             {
-                Labels = HoldingsList.Select(h => h.Symbol).ToArray(),
+                Labels = HoldingsList.Select(h => $"{h.Name}({h.Symbol})").ToArray(),
                 Values = HoldingsList.Select(h => (object)h.CurrentValue).ToList(),
                 Parents = HoldingsList.Select(h => "").ToArray(),
                 Text = HoldingsList.Select(h => $"{h.Symbol}<br>{h.Currency}{(h.CurrentValue / 1000):F0}k<br>{h.GainLossPercentage:P1}").ToArray(),
