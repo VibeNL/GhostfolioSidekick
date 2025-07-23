@@ -72,14 +72,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private void PrepareTreemapData()
         {
-            if (!HoldingsList.Any()) return;
+			if (HoldingsList.Count == 0)
+			{
+				return;
+			}
 
             var treemapTrace = new TreeMap
             {
                 Labels = HoldingsList.Select(h => h.Symbol).ToArray(),
                 Values = HoldingsList.Select(h => (object)h.CurrentValue).ToList(),
                 Parents = HoldingsList.Select(h => "").ToArray(),
-                Text = HoldingsList.Select(h => $"{h.Symbol}<br>${(h.CurrentValue / 1000):F0}k<br>{h.GainLossPercentage:P1}").ToArray(),
+                Text = HoldingsList.Select(h => $"{h.Symbol}<br>{h.Currency}{(h.CurrentValue / 1000):F0}k<br>{h.GainLossPercentage:P1}").ToArray(),
                 TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
                 BranchValues = Plotly.Blazor.Traces.TreeMapLib.BranchValuesEnum.Total,
                 PathBar = new Plotly.Blazor.Traces.TreeMapLib.PathBar

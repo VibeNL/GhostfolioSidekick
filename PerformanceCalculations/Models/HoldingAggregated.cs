@@ -22,5 +22,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Models
 		public virtual ICollection<SectorWeight> SectorWeights { get; set; } = [];
 
 		public virtual ICollection<CalculatedSnapshot> CalculatedSnapshots { get; set; } = [];
+
+		public override string ToString()
+		{
+			return $"{Symbol} ({DataSource}) - {Name ?? "No Name"}";
+		}
 	}
 }

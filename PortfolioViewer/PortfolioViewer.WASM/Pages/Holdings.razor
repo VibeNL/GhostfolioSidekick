@@ -125,19 +125,19 @@
                                                 </td>
                                                 <td>@holding.Name</td>
                                                 <td>@holding.Quantity.ToString("N2")</td>
-                                                <td>@holding.AveragePrice.ToString("C")</td>
-                                                <td>@holding.CurrentPrice.ToString("C")</td>
+                                                <td>@holding.Currency @holding.AveragePrice.ToString("N2")</td>
+                                                <td>@holding.Currency @holding.CurrentPrice.ToString("N2")</td>
                                                 <td class="text-end">
                                                     <strong>@holding.CurrentValue.ToString("C")</strong>
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(holding.GainLoss >= 0 ? "text-success" : "text-danger")">
-                                                        @holding.GainLoss.ToString("C")
+                                                        @holding.Currency @holding.GainLoss.ToString("N2")
                                                     </span>
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(holding.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
-                                                        @holding.GainLossPercentage.ToString("P2")
+                                                        Currency @holding.GainLossPercentage.ToString("P2")
                                                     </span>
                                                 </td>
                                                 <td class="text-end">@holding.Weight.ToString("P1")</td>
@@ -153,10 +153,10 @@
                                     <tfoot class="table-light">
                                         <tr>
                                             <th colspan="5">Total Portfolio Value</th>
-                                            <th class="text-end">@TotalValue.ToString("C")</th>
+                                            <th class="text-end">EUR Currency @TotalValue.ToString("N2")</th>
                                             <th class="text-end">
                                                 <span class="@(TotalGainLoss >= 0 ? "text-success" : "text-danger")">
-                                                    @TotalGainLoss.ToString("C")
+                                                    EUR @TotalGainLoss.ToString("N2")
                                                 </span>
                                             </th>
                                             <th class="text-end">

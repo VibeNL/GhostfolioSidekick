@@ -195,24 +195,28 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				{
 					foreach (var activity in dayActivities)
 					{
-						var correctedAdjustedUnitPrice = await currencyExchange.ConvertMoney(
+						var convertedAdjustedUnitPrice = await currencyExchange.ConvertMoney(
 							activity.AdjustedUnitPrice,
 							targetCurrency,
-							DateOnly.FromDateTime(activity.Date)).ConfigureAwait(false);
+							date).ConfigureAwait(false);
 
 						snapshot = snapshot with
 						{
-							AverageCostPrice = CalculateAverageCostPrice(snapshot, correctedAdjustedUnitPrice, activity.Quantity),
+							AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, activity.Quantity),
 							Quantity = snapshot.Quantity + activity.AdjustedQuantity,
-							TotalInvested = snapshot.TotalInvested.Add(correctedAdjustedUnitPrice.Times(activity.AdjustedQuantity)),
+							TotalInvested = snapshot.TotalInvested.Add(convertedAdjustedUnitPrice.Times(activity.AdjustedQuantity)),
 						};
 					}
 				}
 
 				var marketPrice = marketData.TryGetValue(date, out var closePrice) ? closePrice : lastKnownMarketPrice;
+				var marketPriceConverted = await currencyExchange.ConvertMoney(
+							marketPrice,
+							targetCurrency,
+							date).ConfigureAwait(false);
 				snapshot = snapshot with
 				{
-					TotalValue = marketPrice.Times(snapshot.Quantity)
+					TotalValue = marketPriceConverted.Times(snapshot.Quantity)
 				};
 
 				snapshots.Add(snapshot);
