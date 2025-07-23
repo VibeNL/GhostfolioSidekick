@@ -128,7 +128,7 @@
                                                 <td>@holding.Currency @holding.AveragePrice.ToString("N2")</td>
                                                 <td>@holding.Currency @holding.CurrentPrice.ToString("N2")</td>
                                                 <td class="text-end">
-                                                    <strong>@holding.CurrentValue.ToString("C")</strong>
+                                                    <strong>@holding.Currency @holding.CurrentValue.ToString("N2")</strong>
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(holding.GainLoss >= 0 ? "text-success" : "text-danger")">
