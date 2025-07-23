@@ -87,6 +87,7 @@ namespace GhostfolioSidekick
 							{
 								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
 								options.UseSqlite($"Data Source={settings!.FileImporterPath}/ghostfoliosidekick.db");
+								options.UseLazyLoadingProxies();
 							});
 
 							services.AddSingleton<ICurrencyMapper, SymbolMapper>();

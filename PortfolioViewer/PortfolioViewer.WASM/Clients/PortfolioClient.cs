@@ -1,18 +1,20 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text.Json;
-using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
-using Microsoft.EntityFrameworkCore;
-using Grpc.Net.Client.Web;
 using Grpc.Net.Client;
+using Grpc.Net.Client.Web;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
 using System.Globalization;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, DatabaseContext databaseContext, ILogger<PortfolioClient> logger) : IDisposable
+	public class PortfolioClient(HttpClient httpClient, SqlitePersistence sqlitePersistence, IDbContextFactory<DatabaseContext> dbContextFactory, ILogger<PortfolioClient> logger) : IDisposable
 	{
-		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; // TODO 
+		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; 
 
 		const int pageSize = 10_000;
 
@@ -20,10 +22,98 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed = false;
 
+		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
+		{
+			try
+			{
+				// Step 0: Ensure Database is Up-to-Date
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync();
+				if (pendingMigrations.Any())
+				{
+					await databaseContext.Database.MigrateAsync();
+				}
+
+				var grpcClient = GetGrpcClient();
+
+				// Step 1: Retrieve Table Names
+				progress?.Report(("Retrieving table names...", 0));
+				var tableNamesResponse = await grpcClient.GetTableNamesAsync(new GetTableNamesRequest(), cancellationToken: cancellationToken);
+				var tableNames = tableNamesResponse.TableNames.ToList();
+
+				if (!tableNames.Any())
+				{
+					progress?.Report(("No tables found in the database.", 100));
+					return;
+				}
+
+				int totalSteps = tableNames.Count; // Clearing + Syncing
+				int currentStep = 0;
+
+				// Step 2: Clear Tables
+				// Disable contraints on DB
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
+				await databaseContext.ExecutePragma("PRAGMA cache_size =1000000;");
+				await databaseContext.ExecutePragma("PRAGMA locking_mode=EXCLUSIVE;");
+				await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
+				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
+
+				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
+				{
+					progress?.Report(($"Clearing table: {tableName}...", 0));
+					var deleteSql = $"DELETE FROM {tableName}";
+					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+				}
+				
+				// Step 3: Sync Data for Each Table
+				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)).OrderBy(x => x))
+				{
+					var totalWritten = 0;
+					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
+
+					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
+					{
+						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
+						await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
+						totalWritten += dataChunk.Count;
+						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
+					}
+
+					currentStep++;
+				}
+
+				// Step 4: Enable constraints on DB
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
+				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
+
+				// Step 5: Finalize sync
+				await databaseContext.ExecutePragma("PRAGMA journal_mode = DELETE;"); // Use simpler journaling mode
+				await databaseContext.ExecutePragma("PRAGMA synchronous = FULL;"); // Force immediate writes
+				await databaseContext.ExecutePragma("PRAGMA cache_size = -2000;"); // Limit cache size to force writes
+
+				await sqlitePersistence.SaveChangesAsync(cancellationToken);
+
+				progress?.Report(("Sync completed successfully.", 100));
+
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error during portfolio sync: {Message}", ex.Message);
+				progress?.Report(($"Error: {ex.Message}", 100));
+				throw;
+			}
+		}
+
 		private SyncService.SyncServiceClient GetGrpcClient()
 		{
 			if (_grpcClient != null)
+			{
 				return _grpcClient;
+			}
 
 			// Create gRPC channel for web - use the httpClient's base address but ensure it's absolute
 			var baseAddress = httpClient.BaseAddress;
@@ -47,77 +137,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			_grpcClient = new SyncService.SyncServiceClient(_grpcChannel);
 			return _grpcClient;
-		}
-
-		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
-		{
-			try
-			{
-				var grpcClient = GetGrpcClient();
-
-				// Step 1: Retrieve Table Names
-				progress?.Report(("Retrieving table names...", 0));
-				var tableNamesResponse = await grpcClient.GetTableNamesAsync(new GetTableNamesRequest(), cancellationToken: cancellationToken);
-				var tableNames = tableNamesResponse.TableNames.ToList();
-
-				if (!tableNames.Any())
-				{
-					progress?.Report(("No tables found in the database.", 100));
-					return;
-				}
-
-				int totalSteps = tableNames.Count; // Clearing + Syncing
-				int currentStep = 0;
-
-				// Step 2: Clear Tables
-				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
-				{
-					progress?.Report(($"Clearing table: {tableName}...", 0));
-					var deleteSql = $"DELETE FROM {tableName}";
-					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
-				}
-
-				// Disable contraints on DB
-				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
-				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
-				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
-				await databaseContext.ExecutePragma("PRAGMA cache_size =1000000;");
-				await databaseContext.ExecutePragma("PRAGMA locking_mode=EXCLUSIVE;");
-				await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
-				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
-
-
-				// Step 3: Sync Data for Each Table
-				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)).OrderBy(x => x))
-				{
-					var totalWritten = 0;
-					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
-
-					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
-					{
-						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
-						await InsertDataAsync(tableName, dataChunk, cancellationToken);
-						totalWritten += dataChunk.Count;
-						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
-					}
-
-					currentStep++;
-				}
-
-				// Step 4: Enable constraints on DB
-				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
-				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
-				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
-				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
-
-				progress?.Report(("Sync completed successfully.", 100));
-			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex, "Error during portfolio sync: {Message}", ex.Message);
-				progress?.Report(($"Error: {ex.Message}", 100));
-				throw;
-			}
 		}
 
 		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(SyncService.SyncServiceClient grpcClient, string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -146,7 +165,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					var response = call.ResponseStream.Current;
 					receivedData = true;
 
-					logger.LogDebug("Received {RecordCount} records for page {Page} of table {TableName}, HasMore: {HasMore}", 
+					logger.LogDebug("Received {RecordCount} records for page {Page} of table {TableName}, HasMore: {HasMore}",
 						response.Records.Count, page, tableName, response.HasMore);
 
 					if (response.Records.Count == 0)
@@ -262,7 +281,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			};
 		}
 
-		private async Task InsertDataAsync(string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)
+		private async Task InsertDataAsync(DatabaseContext databaseContext, string tableName, List<Dictionary<string, object>> dataChunk, CancellationToken cancellationToken)
 		{
 			Console.WriteLine($"InsertDataAsync executing");
 
