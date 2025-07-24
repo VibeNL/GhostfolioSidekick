@@ -225,6 +225,16 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				previousSnapshot = snapshot;
 			}
 
+			// Round the values to avoid floating point issues
+			foreach (var snapshot in snapshots)
+			{
+				snapshot.AverageCostPrice = new Money(targetCurrency, Math.Round(snapshot.AverageCostPrice.Amount, Constants.NumberOfDecimals));
+				snapshot.CurrentUnitPrice = new Money(targetCurrency, Math.Round(snapshot.CurrentUnitPrice.Amount, Constants.NumberOfDecimals));
+				snapshot.TotalInvested = new Money(targetCurrency, Math.Round(snapshot.TotalInvested.Amount, Constants.NumberOfDecimals));
+				snapshot.TotalValue = new Money(targetCurrency, Math.Round(snapshot.TotalValue.Amount, Constants.NumberOfDecimals));
+				snapshot.Quantity = Math.Round(snapshot.Quantity, Constants.NumberOfDecimals);
+			}
+
 			return snapshots;
 		}
 

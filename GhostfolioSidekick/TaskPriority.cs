@@ -6,8 +6,6 @@
 
 		GenerateDatabase,
 
-		Performance, // TODO: TEMP
-
 		AccountMaintainer,
 
 		MaintainManualSymbol,
@@ -48,6 +46,6 @@
 
 		//GatherAllData,
 
-		
+		Performance,
 	}
 }

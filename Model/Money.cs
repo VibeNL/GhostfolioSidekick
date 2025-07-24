@@ -2,8 +2,6 @@
 {
 	public record Money
 	{
-		private const decimal Epsilon = 0.0001m;
-
 		public decimal Amount { get; set; }
 
 		public Currency Currency { get; set; }
@@ -49,7 +47,7 @@
 
 		public Money SafeDivide(decimal amount)
 		{
-			if (amount <= Epsilon)
+			if (amount <= Constants.Epsilon)
 			{
 				return new Money(Currency, 0);
 			}
