@@ -11,7 +11,7 @@ using GhostfolioSidekick.PerformanceCalculations.Calculator;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
-namespace GhostfolioSidekick.PerformanceCalculations_UnitTests.Calculator
+namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 {
 	public class HoldingPerformanceCalculatorTests : IDisposable
 	{
@@ -479,7 +479,7 @@ namespace GhostfolioSidekick.PerformanceCalculations_UnitTests.Calculator
 				"Dividend payment"
 			);
 			
-			var activities = new GhostfolioSidekick.Model.Activities.Activity[]
+			var activities = new Activity[]
 			{
 				CreateBuySellActivity(account, DateTime.Today.AddDays(-5), 100, new Money(Currency.USD, 150), "T1"),
 				dividendActivity
@@ -545,7 +545,7 @@ namespace GhostfolioSidekick.PerformanceCalculations_UnitTests.Calculator
 			return new HoldingPerformanceCalculator(context, _mockCurrencyExchange.Object);
 		}
 
-		private static Holding CreateHolding(IList<SymbolProfile> symbolProfiles, ICollection<GhostfolioSidekick.Model.Activities.Activity> activities)
+		private static Holding CreateHolding(IList<SymbolProfile> symbolProfiles, ICollection<Activity> activities)
 		{
 			return new Holding
 			{

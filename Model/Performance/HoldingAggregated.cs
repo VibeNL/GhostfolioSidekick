@@ -1,7 +1,7 @@
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 
-namespace GhostfolioSidekick.PerformanceCalculations.Models
+namespace GhostfolioSidekick.Model.Performance
 {
 	public class HoldingAggregated
 	{

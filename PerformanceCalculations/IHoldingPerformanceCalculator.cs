@@ -1,5 +1,5 @@
 ﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.PerformanceCalculations.Models;
+using GhostfolioSidekick.Model.Performance;
 
 namespace GhostfolioSidekick.PerformanceCalculations
 {

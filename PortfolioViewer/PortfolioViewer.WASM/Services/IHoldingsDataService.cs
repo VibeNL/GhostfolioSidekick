@@ -1,6 +1,6 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.PerformanceCalculations;
-using GhostfolioSidekick.PerformanceCalculations.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services

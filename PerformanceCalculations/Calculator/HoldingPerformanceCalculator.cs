@@ -3,8 +3,8 @@ using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.PerformanceCalculations.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PerformanceCalculations.Calculator

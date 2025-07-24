@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.PerformanceCalculations.Models
+namespace GhostfolioSidekick.Model.Performance
 {
 	public record CalculatedSnapshot(DateOnly Date, decimal Quantity, Money AverageCostPrice, Money CurrentUnitPrice, Money TotalInvested, Money TotalValue)
 	{
