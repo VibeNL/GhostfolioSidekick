@@ -1,7 +1,5 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.PerformanceCalculations;
-using GhostfolioSidekick.PerformanceCalculations.Calculator;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Web;
@@ -73,10 +71,7 @@ public static class Program
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
 		// Performance Calculations
-		builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
-		builder.Services.AddScoped<IHoldingPerformanceCalculator, HoldingPerformanceCalculator>();
-
 
 		var app = builder.Build();
 
