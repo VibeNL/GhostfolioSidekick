@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
 	public class PortfolioClient(HttpClient httpClient, SqlitePersistence sqlitePersistence, IDbContextFactory<DatabaseContext> dbContextFactory, ILogger<PortfolioClient> logger) : IDisposable
 	{
-		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"]; 
+		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 
 		const int pageSize = 10_000;
 
@@ -36,19 +36,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				var grpcClient = GetGrpcClient();
 
-				// Step 1: Retrieve Table Names
-				progress?.Report(("Retrieving table names...", 0));
+				// Step 1: Retrieve Table Names and Row Counts
+				progress?.Report(("Retrieving table names and row counts...", 0));
 				var tableNamesResponse = await grpcClient.GetTableNamesAsync(new GetTableNamesRequest(), cancellationToken: cancellationToken);
 				var tableNames = tableNamesResponse.TableNames.ToList();
+				var totalRows = tableNamesResponse.TotalRows.ToList();
 
-				if (!tableNames.Any())
+				if (tableNames.Count == 0)
 				{
 					progress?.Report(("No tables found in the database.", 100));
 					return;
 				}
 
+				var recordsWritten = 0;
+				var totalRecordsToSync = totalRows.Sum();
+
 				int totalSteps = tableNames.Count; // Clearing + Syncing
-				int currentStep = 0;
 
 				// Step 2: Clear Tables
 				// Disable contraints on DB
@@ -60,28 +63,40 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
 				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
 
-				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)))
+				for (int i = 0; i < tableNames.Count; i++)
 				{
-					progress?.Report(($"Clearing table: {tableName}...", 0));
-					var deleteSql = $"DELETE FROM {tableName}";
-					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
-				}
-				
-				// Step 3: Sync Data for Each Table
-				foreach (var tableName in tableNames.Where(x => !TablesToIgnore.Contains(x)).OrderBy(x => x))
-				{
-					var totalWritten = 0;
-					progress?.Report(($"Syncing data for table: {tableName}...", (currentStep * 100) / totalSteps));
-
-					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
+					var tableName = tableNames[i];
+					if (!TablesToIgnore.Contains(tableName))
 					{
-						progress?.Report(($"Inserting data into table: {tableName}...", (currentStep * 100) / totalSteps));
-						await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
-						totalWritten += dataChunk.Count;
-						progress?.Report(($"Inserted total written {totalWritten} into table: {tableName}...", (currentStep * 100) / totalSteps));
+						var rowCount = totalRows[i];
+						progress?.Report(($"Clearing table: {tableName} ({rowCount} rows)...", 0));
+						var deleteSql = $"DELETE FROM {tableName}";
+						await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
 					}
+				}
 
-					currentStep++;
+				// Step 3: Sync Data for Each Table
+				for (int i = 0; i < tableNames.Count; i++)
+				{
+					var tableName = tableNames[i];
+					if (!TablesToIgnore.Contains(tableName))
+					{
+						var expectedRowCount = totalRows[i];
+						var totalWrittenTable = 0;
+						progress?.Report(($"Syncing data for table: {tableName} ({expectedRowCount} rows)...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+
+						await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
+						{
+							progress?.Report(($"Inserting data into table: {tableName} ({totalWrittenTable}/{expectedRowCount})...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+							await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
+							totalWrittenTable += dataChunk.Count;
+							recordsWritten += dataChunk.Count;
+							progress?.Report(($"Inserted {totalWrittenTable}/{expectedRowCount} records into table: {tableName}...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+						}
+
+						logger.LogInformation("Completed syncing table {TableName}: {ActualRows}/{ExpectedRows} records",
+							tableName, totalWrittenTable, expectedRowCount);
+					}
 				}
 
 				// Step 4: Enable constraints on DB
@@ -396,6 +411,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				_grpcChannel?.Dispose();
 				_disposed = true;
 			}
+		}
+
+		private int CalculatePercentage(long written, long total)
+		{
+			if (total == 0)
+			{
+				return 100; // Avoid division by zero
+			}
+
+			return (int)((double)written / total * 100);
 		}
 	}
 }
