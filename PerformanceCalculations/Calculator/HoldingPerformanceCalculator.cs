@@ -188,7 +188,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 			for (var date = minDate; date <= maxDate; date = date.AddDays(1))
 			{
-				var snapshot = previousSnapshot with
+				var snapshot = new CalculatedSnapshot(previousSnapshot)
 				{
 					Date = date,
 				};
@@ -202,12 +202,9 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 							targetCurrency,
 							date).ConfigureAwait(false);
 
-						snapshot = snapshot with
-						{
-							AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, activity.Quantity),
-							Quantity = snapshot.Quantity + activity.AdjustedQuantity,
-							TotalInvested = snapshot.TotalInvested.Add(convertedAdjustedUnitPrice.Times(activity.AdjustedQuantity)),
-						};
+						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, activity.Quantity);
+						snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
+						snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedAdjustedUnitPrice.Times(activity.AdjustedQuantity));
 					}
 				}
 
@@ -216,10 +213,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 							marketPrice,
 							targetCurrency,
 							date).ConfigureAwait(false);
-				snapshot = snapshot with
-				{
-					TotalValue = marketPriceConverted.Times(snapshot.Quantity)
-				};
+				snapshot.CurrentUnitPrice = marketPriceConverted;
+				snapshot.TotalValue = marketPriceConverted.Times(snapshot.Quantity);
 
 				snapshots.Add(snapshot);
 				previousSnapshot = snapshot;

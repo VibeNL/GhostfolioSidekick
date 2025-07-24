@@ -5,6 +5,8 @@ namespace GhostfolioSidekick.Model.Performance
 {
 	public class HoldingAggregated
 	{
+		public long Id { get; set; }
+
 		public string Symbol { get; set; } = string.Empty;
 
 		public string? Name { get; set; }
@@ -22,6 +24,7 @@ namespace GhostfolioSidekick.Model.Performance
 		public virtual ICollection<SectorWeight> SectorWeights { get; set; } = [];
 
 		public virtual ICollection<CalculatedSnapshot> CalculatedSnapshots { get; set; } = [];
+		
 
 		public override string ToString()
 		{
