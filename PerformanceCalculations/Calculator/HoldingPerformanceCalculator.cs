@@ -106,7 +106,12 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			var returnList = new List<HoldingAggregated>(holdingData.Count);
 			foreach (var data in holdingData)
 			{
-				var defaultSymbolProfile = data.SymbolProfiles.FirstOrDefault();
+				var defaultSymbolProfile = data
+					.SymbolProfiles
+					.OrderBy(x => x.
+						DataSource
+						.Contains(Datasource.GHOSTFOLIO) ? 2 : 1)
+					.FirstOrDefault();
 				if (defaultSymbolProfile == null)
 				{
 					continue;
@@ -155,7 +160,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 
 			var minDate = DateOnly.FromDateTime(activities.Min(x => x.Date));
-			var maxDate = DateOnly.FromDateTime(activities.Max(x => x.Date));
+			var maxDate = DateOnly.FromDateTime(DateTime.Today);
 			
 			var dayCount = maxDate.DayNumber - minDate.DayNumber + 1;
 			var snapshots = new List<CalculatedSnapshot>(dayCount);
