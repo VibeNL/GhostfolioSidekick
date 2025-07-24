@@ -1,5 +1,4 @@
 ﻿using Microsoft.Playwright;
-using Xunit;
 
 public class ChatE2ETest
 {

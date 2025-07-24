@@ -1,9 +1,5 @@
 ﻿using System.Text.Json;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
-using Microsoft.Extensions.Logging;
-using Microsoft.JSInterop;
-using Moq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {

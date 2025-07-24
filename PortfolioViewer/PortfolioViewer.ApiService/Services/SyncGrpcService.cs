@@ -3,7 +3,6 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 {

@@ -3,7 +3,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text;
-using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {

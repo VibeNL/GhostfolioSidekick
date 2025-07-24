@@ -7,8 +7,6 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.JSInterop;
-using System.Reflection;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
