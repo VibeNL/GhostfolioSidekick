@@ -43,8 +43,26 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				
 				var filteredTableNames = tableNames.Where(x => !_tablesToIgnore.Contains(x)).ToList();
 
+				// Get row counts for each table
+				var totalRows = new List<long>();
+				foreach (var tableName in filteredTableNames)
+				{
+					try
+					{
+						var rowCount = await RawQuery.GetTableCount(_context, tableName);
+						totalRows.Add(rowCount);
+						_logger.LogDebug("Table {TableName} has {RowCount} rows", tableName, rowCount);
+					}
+					catch (Exception ex)
+					{
+						_logger.LogWarning(ex, "Failed to get row count for table {TableName}", tableName);
+						totalRows.Add(0); // Default to 0 if we can't get the count
+					}
+				}
+
 				var response = new GetTableNamesResponse();
 				response.TableNames.AddRange(filteredTableNames);
+				response.TotalRows.AddRange(totalRows);
 
 				return response;
 			}
