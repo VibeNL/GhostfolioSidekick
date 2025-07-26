@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			result.Should().BeEmpty();
@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			result.Should().BeEmpty();
@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			result.Should().BeEmpty();
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			result.Should().HaveCount(1);
@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			result.Should().HaveCount(1);
@@ -171,7 +171,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			var holdingAggregated = result.First();
@@ -229,7 +229,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			var holdingAggregated = result.First();
@@ -286,7 +286,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			var holdingAggregated = result.First();
@@ -327,7 +327,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			var holdingAggregated = result.First();
@@ -360,7 +360,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.EUR);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			result.Should().HaveCount(1);
@@ -394,7 +394,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act & Assert - Should not throw exception
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 			result.Should().HaveCount(1);
 		}
 
@@ -423,7 +423,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			var holdingAggregated = result.First();
@@ -451,7 +451,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			var holdingAggregated = result.First();
@@ -492,7 +492,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 
 			// Assert
 			var holdingAggregated = result.First();
@@ -522,7 +522,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var calculator = CreateCalculator(context);
 
 			// Act & Assert - This should handle the edge case gracefully
-			var result = await calculator.GetCalculatedHoldings(Currency.USD);
+			var result = await calculator.GetCalculatedHoldings();
 			result.Should().HaveCount(1);
 			
 			var holdingAggregated = result.First();

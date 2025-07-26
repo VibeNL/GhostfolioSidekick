@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Performance
 		public async Task DoWork()
 		{
 			// Calculate performance for all holdings
-			var holdings = await holdingPerformanceCalculator.GetCalculatedHoldings(Model.Currency.EUR);
+			var holdings = await holdingPerformanceCalculator.GetCalculatedHoldings();
 
 			if (holdings == null || !holdings.Any())
 			{

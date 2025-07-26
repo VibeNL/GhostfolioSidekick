@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 {
 	public class HoldingPerformanceCalculator(DatabaseContext databaseContext, ICurrencyExchange currencyExchange) : IHoldingPerformanceCalculator
 	{
-		public async Task<IEnumerable<HoldingAggregated>> GetCalculatedHoldings(Currency targetCurrency)
+		public async Task<IEnumerable<HoldingAggregated>> GetCalculatedHoldings()
 		{
 			// Preload all exchange rates for better performance
 			await currencyExchange.PreloadAllExchangeRates();
@@ -32,7 +32,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 						sp.AssetClass,
 						sp.AssetSubClass,
 						sp.CountryWeight,
-						sp.SectorWeights
+						sp.SectorWeights,
+						sp.Currency
 					}).ToList()
 				})
 				.ToListAsync();
@@ -128,7 +129,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					AssetClass = sp.AssetClass,
 					AssetSubClass = sp.AssetSubClass,
 					CountryWeight = sp.CountryWeight,
-					SectorWeights = sp.SectorWeights
+					SectorWeights = sp.SectorWeights,
+					Currency = sp.Currency
 				}).ToList();
 
 				returnList.Add(new HoldingAggregated
@@ -141,7 +143,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					AssetSubClass = defaultSymbolProfile.AssetSubClass,
 					CountryWeight = defaultSymbolProfile.CountryWeight,
 					SectorWeights = defaultSymbolProfile.SectorWeights,
-					CalculatedSnapshots = await CalculateSnapShots(targetCurrency, symbolProfiles, activities, allMarketData).ConfigureAwait(false)
+					CalculatedSnapshots = await CalculateSnapShots(defaultSymbolProfile.Currency, symbolProfiles, activities, allMarketData).ConfigureAwait(false)
 				});
 			}
 
