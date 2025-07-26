@@ -7,7 +7,6 @@ using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Globalization;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API
 {

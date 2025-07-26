@@ -12,6 +12,8 @@ using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using GhostfolioSidekick.PerformanceCalculations;
+using GhostfolioSidekick.PerformanceCalculations.Calculator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -116,6 +118,8 @@ namespace GhostfolioSidekick
 							RegisterAllWithInterface<IScheduledWork>(services);
 							RegisterAllWithInterface<IHoldingStrategy>(services);
 							RegisterAllWithInterface<IFileImporter>(services);
+
+							services.AddScoped<IHoldingPerformanceCalculator, HoldingPerformanceCalculator>();
 
 							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
 						});

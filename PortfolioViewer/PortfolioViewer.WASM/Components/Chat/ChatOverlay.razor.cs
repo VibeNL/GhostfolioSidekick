@@ -1,16 +1,9 @@
-﻿using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI;
+﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using Markdig;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Xml.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {

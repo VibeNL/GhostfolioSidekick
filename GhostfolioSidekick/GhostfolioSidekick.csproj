@@ -25,6 +25,7 @@
 	  <ProjectReference Include="..\ExternalDataProvider\ExternalDataProvider.csproj" />
 	  <ProjectReference Include="..\GhostfolioAPI\GhostfolioAPI.csproj" />
 	  <ProjectReference Include="..\Parsers\Parsers.csproj" />
+	  <ProjectReference Include="..\PerformanceCalculations\PerformanceCalculations.csproj" />
 	</ItemGroup>
 
 	

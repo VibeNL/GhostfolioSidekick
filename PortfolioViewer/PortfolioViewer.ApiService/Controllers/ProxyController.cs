@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using HtmlAgilityPack;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Net.Http.Json;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Models;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 

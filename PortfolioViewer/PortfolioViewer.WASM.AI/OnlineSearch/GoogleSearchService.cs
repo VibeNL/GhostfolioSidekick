@@ -1,5 +1,4 @@
 using System.Net.Http.Json;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 {

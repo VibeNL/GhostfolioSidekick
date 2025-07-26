@@ -1,4 +1,4 @@
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch.Models
+namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 {
     // Models for Google Search Service
     

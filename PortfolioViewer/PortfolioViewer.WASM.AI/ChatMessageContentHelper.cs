@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.AI;
-using Microsoft.SemanticKernel;
+﻿using Microsoft.SemanticKernel;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 {

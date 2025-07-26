@@ -1,5 +1,3 @@
-using System.Net.Http;
-
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 {
     /// <summary>

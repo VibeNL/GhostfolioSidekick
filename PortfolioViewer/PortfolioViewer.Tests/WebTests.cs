@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace GhostfolioSidekick.PortfolioViewer.Tests;
+﻿namespace GhostfolioSidekick.PortfolioViewer.Tests;
 
 public class WebTests
 {

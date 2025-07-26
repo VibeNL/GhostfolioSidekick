@@ -45,5 +45,7 @@
 		//SetBenchmarks,
 
 		//GatherAllData,
+
+		Performance,
 	}
 }

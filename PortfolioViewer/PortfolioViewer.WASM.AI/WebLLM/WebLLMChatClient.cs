@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
-using OpenAI.Responses;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
