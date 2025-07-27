@@ -13,33 +13,60 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			Currency targetCurrency,
 			CancellationToken cancellationToken = default)
 		{
-			var holdings = await databaseContext
+			// Step 1: Project only the required fields and the ID of the latest snapshot
+			var holdingProjections = await databaseContext
 				.HoldingAggregateds
-				.Select(x => new
+				.Select(h => new
 				{
-					Holding = x,
-					LastSnapshot = x.CalculatedSnapshots.OrderByDescending(x => x.Date).FirstOrDefault(CalculatedSnapshot.Empty(targetCurrency))
+					AssetClass = h.AssetClass,
+					Name = h.Name,
+					Symbol = h.Symbol,
+					SectorWeights = h.SectorWeights,
+					LastSnapshotId = h.CalculatedSnapshots
+						.OrderByDescending(x => x.Date)
+						.Select(x => (long?)x.Id)
+						.FirstOrDefault()
 				})
-				.ToListAsync();
+				.ToListAsync(cancellationToken);
+
+			// Step 2: Fetch all required snapshots in one go
+			var snapshotIds = holdingProjections
+				.Where(h => h.LastSnapshotId.HasValue)
+				.Select(h => h.LastSnapshotId.Value)
+				.ToList();
+
+			var snapshotsDict = await databaseContext.CalculatedSnapshots
+				.Where(x => snapshotIds.Contains(x.Id))
+				.ToDictionaryAsync(x => x.Id, cancellationToken);
 
 			var list = new List<HoldingDisplayModel>();
 
-			foreach (var h in holdings)
+			foreach (var h in holdingProjections)
 			{
-				var convertedLastSnapshot = await ConvertToTargetCurrency(targetCurrency, h.LastSnapshot);
+				CalculatedSnapshot lastSnapshot = null;
+				if (h.LastSnapshotId.HasValue && snapshotsDict.TryGetValue(h.LastSnapshotId.Value, out var snap))
+				{
+					lastSnapshot = snap;
+				}
+				else
+				{
+					lastSnapshot = CalculatedSnapshot.Empty(targetCurrency);
+				}
+
+				var convertedLastSnapshot = await ConvertToTargetCurrency(targetCurrency, lastSnapshot);
 				list.Add(new HoldingDisplayModel
 				{
-					AssetClass = h.Holding.AssetClass.ToString(),
+					AssetClass = h.AssetClass.ToString(),
 					AveragePrice = convertedLastSnapshot.AverageCostPrice.Amount,
 					Currency = targetCurrency.Symbol.ToString(),
 					CurrentValue = convertedLastSnapshot.TotalValue.Amount,
 					CurrentPrice = convertedLastSnapshot.CurrentUnitPrice.Amount,
 					GainLoss = convertedLastSnapshot.TotalValue.Amount - convertedLastSnapshot.TotalInvested.Amount,
 					GainLossPercentage = convertedLastSnapshot.TotalValue.Amount == 0 ? 0 : (convertedLastSnapshot.TotalValue.Amount - convertedLastSnapshot.TotalInvested.Amount) / convertedLastSnapshot.TotalValue.Amount * 100,
-					Name = h.Holding.Name ?? string.Empty,
+					Name = h.Name ?? string.Empty,
 					Quantity = convertedLastSnapshot.Quantity,
-					Symbol = h.Holding.Symbol,
-					Sector = string.Join(",", h.Holding.SectorWeights.Select(x => x.Name)),
+					Symbol = h.Symbol,
+					Sector = string.Join(",", h.SectorWeights.Select(x => x.Name)),
 					Weight = 0,
 				});
 			}

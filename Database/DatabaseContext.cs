@@ -32,6 +32,8 @@ namespace GhostfolioSidekick.Database
 		// Performance sets
 		public virtual DbSet<HoldingAggregated> HoldingAggregateds { get; set; }
 
+		public virtual DbSet<CalculatedSnapshot> CalculatedSnapshots { get; set; }
+
 		public DatabaseContext()
 		{
 		}
