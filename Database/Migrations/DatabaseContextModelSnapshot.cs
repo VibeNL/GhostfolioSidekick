@@ -423,6 +423,109 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.ToTable("Holdings", (string)null);
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Market.CurrencyExchangeRate", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Key", 0);
+
+                    b.Property<long?>("CurrencyExchangeProfileID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Date");
+
+                    b.Property<decimal>("TradingVolume")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("TradingVolume");
+
+                    b.ComplexProperty<Dictionary<string, object>>("Close", "GhostfolioSidekick.Model.Market.CurrencyExchangeRate.Close#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Close");
+
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Market.CurrencyExchangeRate.Close#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyClose");
+                                });
+                        });
+
+                    b.ComplexProperty<Dictionary<string, object>>("High", "GhostfolioSidekick.Model.Market.CurrencyExchangeRate.High#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("High");
+
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Market.CurrencyExchangeRate.High#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyHigh");
+                                });
+                        });
+
+                    b.ComplexProperty<Dictionary<string, object>>("Low", "GhostfolioSidekick.Model.Market.CurrencyExchangeRate.Low#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Low");
+
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Market.CurrencyExchangeRate.Low#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyLow");
+                                });
+                        });
+
+                    b.ComplexProperty<Dictionary<string, object>>("Open", "GhostfolioSidekick.Model.Market.CurrencyExchangeRate.Open#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Open");
+
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Market.CurrencyExchangeRate.Open#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyOpen");
+                                });
+                        });
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CurrencyExchangeProfileID", "Date")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CurrencyExchangeRate_CurrencyExchangeProfileID_Date");
+
+                    b.ToTable("CurrencyExchangeRate", (string)null);
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>
                 {
                     b.Property<int>("ID")
@@ -701,6 +804,30 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("HoldingAggregateds", (string)null);
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.CurrencyExchangeProfile", b =>
+                {
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SourceCurrency")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("SourceCurrency");
+
+                    b.Property<string>("TargetCurrency")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("TargetCurrency");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("SourceCurrency", "TargetCurrency")
+                        .IsUnique();
+
+                    b.ToTable("CurrencyExchangeProfile", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
@@ -1229,6 +1356,14 @@ namespace GhostfolioSidekick.Database.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Market.CurrencyExchangeRate", b =>
+                {
+                    b.HasOne("GhostfolioSidekick.Model.Symbols.CurrencyExchangeProfile", null)
+                        .WithMany("Rates")
+                        .HasForeignKey("CurrencyExchangeProfileID")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
@@ -1278,6 +1413,11 @@ namespace GhostfolioSidekick.Database.Migrations
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.HoldingAggregated", b =>
                 {
                     b.Navigation("CalculatedSnapshots");
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.CurrencyExchangeProfile", b =>
+                {
+                    b.Navigation("Rates");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>

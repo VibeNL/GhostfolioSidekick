@@ -11,6 +11,27 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+			// Delete all existing currency exchange rates from the market data table
+			migrationBuilder.Sql("DELETE FROM MarketData WHERE SymbolProfileSymbol IN (" +
+									"SELECT distinct SymbolProfileSymbol " +
+									"FROM MarketData " +
+									"WHERE length(SymbolProfileSymbol) = 6 " +
+									"AND CURRENCYCLOSE = SUBSTR(SymbolProfileSymbol, 0, 4))");
+			
+			migrationBuilder.CreateTable(
+                name: "CurrencyExchangeProfile",
+                columns: table => new
+                {
+                    ID = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    SourceCurrency = table.Column<string>(type: "TEXT", nullable: false),
+                    TargetCurrency = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CurrencyExchangeProfile", x => x.ID);
+                });
+
             migrationBuilder.CreateTable(
                 name: "HoldingAggregateds",
                 columns: table => new
@@ -29,6 +50,35 @@ namespace GhostfolioSidekick.Database.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_HoldingAggregateds", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CurrencyExchangeRate",
+                columns: table => new
+                {
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TradingVolume = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Date = table.Column<DateOnly>(type: "TEXT", nullable: false),
+                    CurrencyExchangeProfileID = table.Column<long>(type: "INTEGER", nullable: true),
+                    Close = table.Column<decimal>(type: "TEXT", nullable: false),
+                    CurrencyClose = table.Column<string>(type: "TEXT", nullable: false),
+                    High = table.Column<decimal>(type: "TEXT", nullable: false),
+                    CurrencyHigh = table.Column<string>(type: "TEXT", nullable: false),
+                    Low = table.Column<decimal>(type: "TEXT", nullable: false),
+                    CurrencyLow = table.Column<string>(type: "TEXT", nullable: false),
+                    Open = table.Column<decimal>(type: "TEXT", nullable: false),
+                    CurrencyOpen = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CurrencyExchangeRate", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_CurrencyExchangeRate_CurrencyExchangeProfile_CurrencyExchangeProfileID",
+                        column: x => x.CurrencyExchangeProfileID,
+                        principalTable: "CurrencyExchangeProfile",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -64,6 +114,18 @@ namespace GhostfolioSidekick.Database.Migrations
                 name: "IX_CalculatedSnapshots_HoldingAggregatedId",
                 table: "CalculatedSnapshots",
                 column: "HoldingAggregatedId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CurrencyExchangeProfile_SourceCurrency_TargetCurrency",
+                table: "CurrencyExchangeProfile",
+                columns: new[] { "SourceCurrency", "TargetCurrency" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CurrencyExchangeRate_CurrencyExchangeProfileID_Date",
+                table: "CurrencyExchangeRate",
+                columns: new[] { "CurrencyExchangeProfileID", "Date" },
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -73,7 +135,13 @@ namespace GhostfolioSidekick.Database.Migrations
                 name: "CalculatedSnapshots");
 
             migrationBuilder.DropTable(
+                name: "CurrencyExchangeRate");
+
+            migrationBuilder.DropTable(
                 name: "HoldingAggregateds");
+
+            migrationBuilder.DropTable(
+                name: "CurrencyExchangeProfile");
         }
     }
 }

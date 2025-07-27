@@ -25,9 +25,21 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			this.logger = logger;
 		}
 
-		public Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
+		public async Task<IEnumerable<CurrencyExchangeRate>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
-			return GetStockMarketData($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", currencyFrom, fromDate);
+			var marketData= await GetStockMarketData($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", currencyFrom, fromDate);
+
+			var result = marketData.Select(x => new CurrencyExchangeRate
+			{
+				Date = x.Date,
+				Close= x.Close,
+				High = x.High,
+				Low = x.Low,
+				Open = x.Open,
+				TradingVolume = x.TradingVolume,
+			}).ToList();
+
+			return result;
 		}
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
@@ -251,7 +263,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return AssetClass.Undefined;
 				default:
 					return AssetClass.Undefined;
-			};
+			}
+			;
 		}
 
 		private AssetSubClass? ParseQuoteTypeAsSub(string quoteType)
@@ -270,7 +283,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return AssetSubClass.Undefined;
 				default:
 					return null;
-			};
+			}
+			;
 		}
 	}
 }

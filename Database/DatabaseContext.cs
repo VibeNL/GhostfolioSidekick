@@ -17,6 +17,8 @@ namespace GhostfolioSidekick.Database
 
 		public virtual DbSet<Account> Accounts { get; set; }
 
+		public virtual DbSet<CurrencyExchangeProfile> CurrencyExchangeRates { get; set; }
+
 		public virtual DbSet<SymbolProfile> SymbolProfiles { get; set; }
 
 		public virtual DbSet<Activity> Activities { get; set; }
