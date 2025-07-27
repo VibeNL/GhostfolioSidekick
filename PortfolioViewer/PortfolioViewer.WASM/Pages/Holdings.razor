@@ -1,4 +1,4 @@
-@page "/holdings"
+﻿@page "/holdings"
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
 
 <PageTitle>Holdings</PageTitle>
@@ -72,11 +72,11 @@
                         <h5 class="card-title mb-0">Portfolio Overview</h5>
                         <div class="d-flex gap-2">
                             <div class="btn-group" role="group">
-                                <button type="button" class="btn @(ViewMode == "treemap" ? "btn-primary" : "btn-outline-primary")" 
+                                <button type="button" class="btn @(ViewMode == "treemap" ? "btn-primary" : "btn-outline-primary")"
                                         @onclick="@(() => ViewMode = "treemap")">
                                     <i class="bi bi-diagram-3"></i> Treemap
                                 </button>
-                                <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")" 
+                                <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")"
                                         @onclick="@(() => ViewMode = "table")">
                                     <i class="bi bi-table"></i> Table
                                 </button>
@@ -90,11 +90,11 @@
                         @if (ViewMode == "treemap")
                         {
                             <div class="treemap-container" style="height: 500px;">
-                                <PlotlyChart @ref="treemapChart" 
-                                            Data="plotData" 
-                                            Layout="plotLayout" 
-                                            Config="plotConfig" 
-                                            style="height: 450px; width: 100%;" />
+                                <PlotlyChart @ref="treemapChart"
+                                             Data="plotData"
+                                             Layout="plotLayout"
+                                             Config="plotConfig"
+                                             style="height: 450px; width: 100%;" />
                             </div>
                         }
                         else
@@ -103,17 +103,61 @@
                                 <table class="table table-hover">
                                     <thead class="table-dark">
                                         <tr>
-                                            <th scope="col">Symbol</th>
-                                            <th scope="col">Name</th>
-                                            <th scope="col">Quantity</th>
-                                            <th scope="col">Avg Price</th>
-                                            <th scope="col">Current Price</th>
-                                            <th scope="col" class="text-end">Current Value</th>
-                                            <th scope="col" class="text-end">Gain/Loss</th>
-                                            <th scope="col" class="text-end">%</th>
-                                            <th scope="col" class="text-end">Weight</th>
-                                            <th scope="col">Sector</th>
-                                            <th scope="col">Asset Class</th>
+                                            <th scope="col">
+                                                <button type="button" @onclick="@(() => SortBy("Symbol"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Symbol @(sortColumn == "Symbol" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col">
+                                                <button type="button" @onclick="@(() => SortBy("Name"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Name @(sortColumn == "Name" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col">
+                                                <button type="button" @onclick="@(() => SortBy("Quantity"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Quantity @(sortColumn == "Quantity" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col">
+                                                <button type="button" @onclick="@(() => SortBy("AveragePrice"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Avg Price @(sortColumn == "AveragePrice" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col">
+                                                <button type="button" @onclick="@(() => SortBy("CurrentPrice"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Current Price @(sortColumn == "CurrentPrice" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <button type="button" @onclick="@(() => SortBy("CurrentValue"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Current Value @(sortColumn == "CurrentValue" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <button type="button" @onclick="@(() => SortBy("GainLoss"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Gain/Loss @(sortColumn == "GainLoss" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <button type="button" @onclick="@(() => SortBy("GainLossPercentage"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    % @(sortColumn == "GainLossPercentage" ? (sortAscending ? "?" : "?") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <button type="button" @onclick="@(() => SortBy("Weight"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Weight @(sortColumn == "Weight" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col">
+                                                <button type="button" @onclick="@(() => SortBy("Sector"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Sector @(sortColumn == "Sector" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col">
+                                                <button type="button" @onclick="@(() => SortBy("AssetClass"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Asset Class @(sortColumn == "AssetClass" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -233,7 +277,7 @@
         overflow: hidden;
         background: white;
     }
-    
+
     .table th {
         position: sticky;
         top: 0;
