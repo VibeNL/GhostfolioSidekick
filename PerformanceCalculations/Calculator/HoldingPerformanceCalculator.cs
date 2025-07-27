@@ -213,6 +213,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				}
 
 				var marketPrice = marketData.TryGetValue(date, out var closePrice) ? closePrice : lastKnownMarketPrice;
+				lastKnownMarketPrice = marketPrice;
 				var marketPriceConverted = await currencyExchange.ConvertMoney(
 							marketPrice,
 							targetCurrency,
