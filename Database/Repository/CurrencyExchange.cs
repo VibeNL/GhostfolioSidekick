@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Database.Repository
 {
 	public class CurrencyExchange(IDbContextFactory<DatabaseContext> databaseContextFactory, ILogger<CurrencyExchange> logger) : ICurrencyExchange, IDisposable
 	{
-		private readonly Dictionary<string, Dictionary<DateOnly, decimal>> _preloadedExchangeRates = new();
+		private readonly Dictionary<(Currency, Currency), Dictionary<DateOnly, decimal>> _preloadedExchangeRates = new();
 		private bool _isPreloaded = false;
 		private readonly SemaphoreSlim _preloadSemaphore = new(1, 1);
 		private bool _disposed = false;
@@ -85,10 +85,9 @@ namespace GhostfolioSidekick.Database.Repository
 				return searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
 			}
 
-			var symbolKey = $"{searchSourceCurrency.Item1.Symbol}{searchTargetCurrency.Item1.Symbol}";
-
 			// Try to get from preloaded cache first
-			if (_isPreloaded && _preloadedExchangeRates.TryGetValue(symbolKey, out var cachedRates))
+			if (_isPreloaded && _preloadedExchangeRates.TryGetValue((searchSourceCurrency.Item1, searchTargetCurrency.Item1),
+				out var cachedRates))
 			{
 				if (cachedRates.TryGetValue(searchDate, out exchangeRate) && exchangeRate != 0)
 				{
@@ -99,9 +98,7 @@ namespace GhostfolioSidekick.Database.Repository
 				var values = cachedRates
 					.Where(x => x.Key < searchDate)
 					.OrderByDescending(x => x.Key);
-				var count = values.Count();
-				var lastKnownRate = values
-					.FirstOrDefault();
+				var lastKnownRate = values.FirstOrDefault();
 
 				if (lastKnownRate.Value != 0)
 				{
@@ -113,23 +110,23 @@ namespace GhostfolioSidekick.Database.Repository
 
 			// Fall back to database query if not preloaded or not found in cache
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
-			exchangeRate = await databaseContext.SymbolProfiles
-								.Where(x => x.Symbol == symbolKey)
-								.SelectMany(x => x.MarketData)
-								.Where(x => x.Date == searchDate)
-								.Select(x => x.Close.Amount)
-								.FirstOrDefaultAsync();
+			exchangeRate = await databaseContext.CurrencyExchangeRates
+				.Where(x => x.SourceCurrency == searchSourceCurrency.Item1 && x.TargetCurrency == searchTargetCurrency.Item1)
+				.SelectMany(x => x.Rates)
+				.Where(x => x.Date == searchDate)
+				.Select(x => x.Close.Amount)
+				.FirstOrDefaultAsync();
 
 			if (exchangeRate == 0)
 			{
 				// Use the last known value. Maybe a holiday or weekend?
-				exchangeRate = await databaseContext.SymbolProfiles
-									.Where(x => x.Symbol == symbolKey)
-									.SelectMany(x => x.MarketData)
-									.Where(x => x.Date < searchDate)
-									.OrderByDescending(x => x.Date)
-									.Select(x => x.Close.Amount)
-									.FirstOrDefaultAsync();
+				exchangeRate = await databaseContext.CurrencyExchangeRates
+					.Where(x => x.SourceCurrency == searchSourceCurrency.Item1 && x.TargetCurrency == searchTargetCurrency.Item1)
+					.SelectMany(x => x.Rates)
+					.Where(x => x.Date < searchDate)
+					.OrderByDescending(x => x.Date)
+					.Select(x => x.Close.Amount)
+					.FirstOrDefaultAsync();
 
 				if (exchangeRate == 0)
 				{
@@ -147,24 +144,21 @@ namespace GhostfolioSidekick.Database.Repository
 
 			try
 			{
-				// Get all currency exchange rate symbols (currency pairs) with their market data in a single query
-				// Use EF.Property to access shadow properties within the LINQ query
-				var allExchangeRateData = await databaseContext.MarketDatas
-					.Where(md => EF.Property<string>(md, "SymbolProfileSymbol").Length == 6) // Currency pairs are typically 6 characters (USDEUR, GBPUSD, etc.)
-					.Select(md => new
-					{
-						Symbol = EF.Property<string>(md, "SymbolProfileSymbol"),
-						md.Date,
-						md.Close.Amount
-					})
-					.ToListAsync();
+				var allExchangeRateData = await databaseContext.CurrencyExchangeRates
+				.SelectMany(profile => profile.Rates, (profile, rate) => new
+				{
+					SourceCurrency = profile.SourceCurrency,
+					TargetCurrency = profile.TargetCurrency,
+					Date = rate.Date,
+					Amount = rate.Close.Amount
+				})
+				.ToListAsync();
 
 				// Group and cache the data
 				_preloadedExchangeRates.Clear();
-				foreach (var group in allExchangeRateData.Where(x => x.Amount != 0).GroupBy(x => x.Symbol))
+				foreach (var group in allExchangeRateData.Where(x => x.Amount != 0).GroupBy(x => new { x.SourceCurrency, x.TargetCurrency }))
 				{
-					_preloadedExchangeRates[group.Key] = group
-						.ToDictionary(x => x.Date, x => x.Amount);
+					_preloadedExchangeRates[(group.Key.SourceCurrency, group.Key.TargetCurrency)] = group.ToDictionary(x => x.Date, x => x.Amount);
 				}
 			}
 			catch (Exception ex)
