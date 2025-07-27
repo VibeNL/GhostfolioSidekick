@@ -28,6 +28,8 @@
 		
 		CalculatePrice,
 
+		PerformanceCalculations,
+
 		CleanupDatabase,
 
 		SyncAccountsWithGhostfolio,
@@ -45,7 +47,5 @@
 		//SetBenchmarks,
 
 		//GatherAllData,
-
-		Performance,
 	}
 }

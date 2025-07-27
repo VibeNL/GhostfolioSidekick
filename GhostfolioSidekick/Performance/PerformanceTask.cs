@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Performance
 		IHoldingPerformanceCalculator holdingPerformanceCalculator,
 		DatabaseContext databaseContext) : IScheduledWork
 	{
-		public TaskPriority Priority => TaskPriority.Performance;
+		public TaskPriority Priority => TaskPriority.PerformanceCalculations;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
 
