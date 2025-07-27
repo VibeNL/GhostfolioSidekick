@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					CurrentValue = convertedLastSnapshot.TotalValue.Amount,
 					CurrentPrice = convertedLastSnapshot.CurrentUnitPrice.Amount,
 					GainLoss = convertedLastSnapshot.TotalValue.Amount - convertedLastSnapshot.TotalInvested.Amount,
-					GainLossPercentage = convertedLastSnapshot.TotalValue.Amount == 0 ? 0 : (convertedLastSnapshot.TotalValue.Amount - convertedLastSnapshot.TotalInvested.Amount) / convertedLastSnapshot.TotalValue.Amount * 100,
+					GainLossPercentage = convertedLastSnapshot.TotalValue.Amount == 0 ? 0 : (convertedLastSnapshot.TotalValue.Amount - convertedLastSnapshot.TotalInvested.Amount) / convertedLastSnapshot.TotalValue.Amount,
 					Name = h.Name ?? string.Empty,
 					Quantity = convertedLastSnapshot.Quantity,
 					Symbol = h.Symbol,
