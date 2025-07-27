@@ -144,13 +144,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			// Normalize the gain/loss percentage to a range of -1 to 1
 			decimal clamped = Math.Clamp(gainLossPercentage, -1, 1);
 
-			if (clamped >= 0)
+			// Apply quadratic scaling for a faster color transition
+			decimal scaled = clamped >= 0 ? clamped * clamped : -1 * (clamped * clamped);
+
+			if (scaled >= 0)
 			{
 				// Green scale: from #ffeaea (very light green) to #28a745 (strong green)
 				// Interpolate between (255, 255, 234) and (40, 167, 69)
-				int r = (int)(255 - (215 * clamped)); // 255 -> 40
-				int g = (int)(255 - (88 * clamped));  // 255 -> 167
-				int b = (int)(234 - (165 * clamped)); // 234 -> 69
+				int r = (int)(255 - (215 * scaled)); // 255 -> 40
+				int g = (int)(255 - (88 * scaled));  // 255 -> 167
+				int b = (int)(234 - (165 * scaled)); // 234 -> 69
 				var green = $"#{r:X2}{g:X2}{b:X2}";
 				return green;
 			}
@@ -158,10 +161,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				// Red scale: from #eaffea (very light red) to #dc3545 (strong red)
 				// Interpolate between (234, 255, 234) and (220, 53, 69)
-				clamped = Math.Abs(clamped);
-				int r = (int)(234 - (14 * clamped));  // 234 -> 220
-				int g = (int)(255 - (202 * clamped)); // 255 -> 53
-				int b = (int)(234 - (165 * clamped)); // 234 -> 69
+				scaled = Math.Abs(scaled);
+				int r = (int)(234 - (14 * scaled));  // 234 -> 220
+				int g = (int)(255 - (202 * scaled)); // 255 -> 53
+				int b = (int)(234 - (165 * scaled)); // 234 -> 69
 				var red = $"#{r:X2}{g:X2}{b:X2}";
 				return red;
 			}
