@@ -71,6 +71,8 @@ public static class Program
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
 		// Performance Calculations
+		builder.Services.AddMemoryCache();
+		builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
 
 		var app = builder.Build();
