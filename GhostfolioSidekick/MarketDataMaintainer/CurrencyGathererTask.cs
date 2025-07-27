@@ -112,18 +112,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 						if (existing != null)
 						{
-							var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
-							ComparisonResult result = compareLogic.Compare(existing, item);
-
-							if (result.AreEqual)
-							{
-								continue;
-							}
-							
-							currencyExchangeProfile.Rates.Remove(existing);
+							existing.CopyFrom(item);
 						}
-
-						currencyExchangeProfile.Rates.Add(item);
+						else
+						{
+							currencyExchangeProfile.Rates.Add(item);
+						}
 					}
 
 					if (!await writeDatabaseContext.CurrencyExchangeRates.ContainsAsync(currencyExchangeProfile).ConfigureAwait(false))
