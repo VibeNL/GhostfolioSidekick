@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				},
 				Marker = new Plotly.Blazor.Traces.TreeMapLib.Marker
 				{
-					Colors = HoldingsList.Select(h => (object)GetColorForSector(h.Sector)).ToList(),
+					Colors = HoldingsList.Select(h => (object)GetColorForGainLoss(h.GainLossPercentage)).ToList(),
 					Line = new Plotly.Blazor.Traces.TreeMapLib.MarkerLib.Line
 					{
 						Width = 2,
@@ -134,25 +134,37 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 		}
 
-		private string GetColorForSector(string sector)
+		private object GetColorForGainLoss(decimal gainLossPercentage)
 		{
-			var colors = new Dictionary<string, string>
+			if (gainLossPercentage == 0)
 			{
-				{ "Technology", "#3498db" },
-				{ "Healthcare", "#e74c3c" },
-				{ "Financial Services", "#2ecc71" },
-				{ "Consumer Cyclical", "#f39c12" },
-				{ "Communication Services", "#9b59b6" },
-				{ "Industrial", "#1abc9c" },
-				{ "Consumer Defensive", "#95a5a6" },
-				{ "Energy", "#e67e22" },
-				{ "Utilities", "#34495e" },
-				{ "Real Estate", "#8e44ad" },
-				{ "Basic Materials", "#d35400" },
-				{ "Cryptocurrency", "#f1c40f" }
-			};
+				return "#808080"; // Gray for neutral
+			}
 
-			return colors.TryGetValue(sector, out var color) ? color : "#7f8c8d";
+			// Normalize the gain/loss percentage to a range of -1 to 1
+			decimal clamped = Math.Clamp(gainLossPercentage, -1, 1);
+
+			if (clamped >= 0)
+			{
+				// Green scale: from #ffeaea (very light green) to #28a745 (strong green)
+				// Interpolate between (255, 255, 234) and (40, 167, 69)
+				int r = (int)(255 - (215 * clamped)); // 255 -> 40
+				int g = (int)(255 - (88 * clamped));  // 255 -> 167
+				int b = (int)(234 - (165 * clamped)); // 234 -> 69
+				var green = $"#{r:X2}{g:X2}{b:X2}";
+				return green;
+			}
+			else
+			{
+				// Red scale: from #eaffea (very light red) to #dc3545 (strong red)
+				// Interpolate between (234, 255, 234) and (220, 53, 69)
+				clamped = Math.Abs(clamped);
+				int r = (int)(234 - (14 * clamped));  // 234 -> 220
+				int g = (int)(255 - (202 * clamped)); // 255 -> 53
+				int b = (int)(234 - (165 * clamped)); // 234 -> 69
+				var red = $"#{r:X2}{g:X2}{b:X2}";
+				return red;
+			}
 		}
 
 		// Add refresh method for manual data reload
