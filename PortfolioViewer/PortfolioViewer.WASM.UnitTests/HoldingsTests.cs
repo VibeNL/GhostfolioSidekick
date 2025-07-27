@@ -1,88 +1,131 @@
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using GhostfolioSidekick.PortfolioViewer.WASM.Pages;
-using System.Collections.Generic;
-using Xunit;
-using Plotly.Blazor;
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
+using Moq;
+using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {
-    public class HoldingsTests
+    public class HoldingsDataServiceTests
     {
         [Fact]
-        public void SortHoldings_SortsBySymbolAscendingAndDescending()
+        public async Task GetHoldingsAsync_ReturnsExpectedHoldings()
         {
-            var holdings = new HoldingsTestable();
-            holdings.SetHoldingsList(new List<HoldingDisplayModel>
+            // Arrange
+            var targetCurrency = Currency.USD;
+            var sectorWeights = new List<SectorWeight> { new SectorWeight { Name = "Tech" } };
+            var holdingAggregateds = new List<HoldingAggregated>
             {
-                new() { Symbol = "B", Name = "Beta" },
-                new() { Symbol = "A", Name = "Alpha" },
-                new() { Symbol = "C", Name = "Charlie" }
-            });
-            holdings.SetSortColumn("Symbol");
-            holdings.SetSortAscending(true);
+                new HoldingAggregated
+                {
+                    AssetClass = AssetClass.Equity,
+                    Name = "Test Holding",
+                    Symbol = "TST",
+                    SectorWeights = sectorWeights,
+                    CalculatedSnapshots = new List<CalculatedSnapshot>
+                    {
+                        new CalculatedSnapshot(1, new DateOnly(2024,1,1), 10, new Money(targetCurrency, 100), new Money(targetCurrency, 120), new Money(targetCurrency, 1000), new Money(targetCurrency, 1200))
+                    }
+                }
+            };
+            var calculatedSnapshots = holdingAggregateds.SelectMany(h => h.CalculatedSnapshots).ToList();
 
-            holdings.InvokeSortHoldings();
-            Assert.Equal(new[] { "A", "B", "C" }, holdings.GetHoldingsList().ConvertAll(h => h.Symbol));
+            var dbContextMock = new Mock<DatabaseContext>();
+            dbContextMock.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
+            dbContextMock.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(calculatedSnapshots);
 
-            holdings.SetSortAscending(false);
-            holdings.InvokeSortHoldings();
-            Assert.Equal(new[] { "C", "B", "A" }, holdings.GetHoldingsList().ConvertAll(h => h.Symbol));
+            var currencyExchangeMock = new Mock<ICurrencyExchange>();
+            currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
+                .ReturnsAsync((Money m, Currency c, DateOnly d) => m);
+
+            var service = new HoldingsDataService(dbContextMock.Object, currencyExchangeMock.Object);
+
+            // Act
+            var result = await service.GetHoldingsAsync(targetCurrency);
+
+            // Assert
+            Assert.Single(result);
+            var holding = result[0];
+            Assert.Equal("TST", holding.Symbol);
+            Assert.Equal("Test Holding", holding.Name);
+            Assert.Equal(1200, holding.CurrentValue);
+            Assert.Equal(10, holding.Quantity);
+            Assert.Equal(100, holding.AveragePrice);
+            Assert.Equal(120, holding.CurrentPrice);
+            Assert.Equal(200, holding.GainLoss);
+            Assert.Equal("Tech", holding.Sector);
+            Assert.Equal("Equity", holding.AssetClass);
+            Assert.Equal("USD", holding.Currency);
         }
 
         [Fact]
-        public void GetColorForGainLoss_ReturnsExpectedColors()
+        public async Task GetHoldingsAsync_EmptySnapshots_ReturnsEmptySnapshot()
         {
-            var holdings = new HoldingsTestable();
-            Assert.Equal("#808080", holdings.InvokeGetColorForGainLoss(0)); // Neutral
-            Assert.StartsWith("#", holdings.InvokeGetColorForGainLoss(0.5m).ToString()); // Greenish
-            Assert.StartsWith("#", holdings.InvokeGetColorForGainLoss(-0.5m).ToString()); // Reddish
+            // Arrange
+            var targetCurrency = Currency.USD;
+            var holdingAggregateds = new List<HoldingAggregated>
+            {
+                new HoldingAggregated
+                {
+                    AssetClass = AssetClass.Equity,
+                    Name = "Test Holding",
+                    Symbol = "TST",
+                    SectorWeights = new List<SectorWeight>(),
+                    CalculatedSnapshots = new List<CalculatedSnapshot>()
+                }
+            };
+
+            var dbContextMock = new Mock<DatabaseContext>();
+            dbContextMock.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
+            dbContextMock.Setup(x => x.CalculatedSnapshots).ReturnsDbSet(new List<CalculatedSnapshot>());
+
+            var currencyExchangeMock = new Mock<ICurrencyExchange>();
+            currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
+                .ReturnsAsync((Money m, Currency c, DateOnly d) => m);
+
+            var service = new HoldingsDataService(dbContextMock.Object, currencyExchangeMock.Object);
+
+            // Act
+            var result = await service.GetHoldingsAsync(targetCurrency);
+
+            // Assert
+            Assert.Single(result);
+            var holding = result[0];
+            Assert.Equal("TST", holding.Symbol);
+            Assert.Equal(0, holding.CurrentValue);
+            Assert.Equal(0, holding.Quantity);
         }
 
         [Fact]
-        public void PrepareTreemapData_DoesNothingIfEmpty()
+        public async Task ConvertToTargetCurrency_ReturnsConvertedSnapshot()
         {
-            var holdings = new HoldingsTestable();
-            holdings.SetHoldingsList(new List<HoldingDisplayModel>());
-            holdings.InvokePrepareTreemapData();
-            Assert.NotNull(holdings.GetPlotData());
-            Assert.Empty(holdings.GetPlotData());
-        }
-    }
+            // Arrange
+            var targetCurrency = Currency.USD;
+            var originalCurrency = Currency.EUR;
+            var snapshot = new CalculatedSnapshot(1, new DateOnly(2024,1,1), 10, new Money(originalCurrency, 100), new Money(originalCurrency, 120), new Money(originalCurrency, 1000), new Money(originalCurrency, 1200));
 
-    // Testable subclass using reflection to access private members
-    public class HoldingsTestable : Holdings
-    {
-        public void SetHoldingsList(List<HoldingDisplayModel> value)
-        {
-            typeof(Holdings).GetField("HoldingsList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.SetValue(this, value);
-        }
-        public List<HoldingDisplayModel> GetHoldingsList()
-        {
-            return (List<HoldingDisplayModel>)typeof(Holdings).GetField("HoldingsList", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(this)!;
-        }
-        public void SetSortColumn(string value)
-        {
-            typeof(Holdings).GetField("sortColumn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.SetValue(this, value);
-        }
-        public void SetSortAscending(bool value)
-        {
-            typeof(Holdings).GetField("sortAscending", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.SetValue(this, value);
-        }
-        public void InvokeSortHoldings()
-        {
-            typeof(Holdings).GetMethod("SortHoldings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(this, null);
-        }
-        public object InvokeGetColorForGainLoss(decimal p)
-        {
-            return typeof(Holdings).GetMethod("GetColorForGainLoss", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(this, new object[] { p })!;
-        }
-        public void InvokePrepareTreemapData()
-        {
-            typeof(Holdings).GetMethod("PrepareTreemapData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(this, null);
-        }
-        public IList<ITrace> GetPlotData()
-        {
-            return (IList<ITrace>)typeof(Holdings).GetField("plotData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(this)!;
+            var dbContextMock = new Mock<DatabaseContext>();
+            var currencyExchangeMock = new Mock<ICurrencyExchange>();
+            currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), targetCurrency, It.IsAny<DateOnly>()))
+                .ReturnsAsync((Money m, Currency c, DateOnly d) => new Money(targetCurrency, m.Amount * 2));
+
+            var service = new HoldingsDataService(dbContextMock.Object, currencyExchangeMock.Object);
+
+            // Use reflection to call private method
+            var method = typeof(HoldingsDataService).GetMethod("ConvertToTargetCurrency", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+            var task = (Task<CalculatedSnapshot>)method.Invoke(service, new object[] { targetCurrency, snapshot })!;
+            var result = await task;
+
+            // Assert
+            Assert.Equal(targetCurrency, result.AverageCostPrice.Currency);
+            Assert.Equal(200, result.AverageCostPrice.Amount);
+            Assert.Equal(240, result.CurrentUnitPrice.Amount);
+            Assert.Equal(2000, result.TotalInvested.Amount);
+            Assert.Equal(2400, result.TotalValue.Amount);
         }
     }
 }

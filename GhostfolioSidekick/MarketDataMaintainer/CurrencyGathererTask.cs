@@ -3,7 +3,6 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
