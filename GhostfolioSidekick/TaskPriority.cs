@@ -5,7 +5,7 @@
 		DisplayInformation,
 
 		GenerateDatabase,
-PerformanceCalculations,
+
 		AccountMaintainer,
 
 		MaintainManualSymbol,
@@ -28,7 +28,7 @@ PerformanceCalculations,
 		
 		CalculatePrice,
 
-		
+		PerformanceCalculations,
 
 		CleanupDatabase,
 
