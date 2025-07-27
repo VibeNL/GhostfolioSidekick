@@ -2,10 +2,8 @@
 
 namespace GhostfolioSidekick.Database.Repository
 {
-	public interface ICurrencyExchange : IDisposable
+	public interface ICurrencyExchange
 	{
 		Task<Money> ConvertMoney(Money money, Currency currency, DateOnly date);
-		Task PreloadAllExchangeRates();
-		void ClearPreloadedCache();
 	}
 }

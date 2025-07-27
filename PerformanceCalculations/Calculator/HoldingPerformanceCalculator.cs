@@ -13,9 +13,6 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 	{
 		public async Task<IEnumerable<HoldingAggregated>> GetCalculatedHoldings()
 		{
-			// Preload all exchange rates for better performance
-			await currencyExchange.PreloadAllExchangeRates();
-
 			// Step 1: Get Holdings with SymbolProfiles (optimized projection)
 			var holdingData = await databaseContext
 				.Holdings

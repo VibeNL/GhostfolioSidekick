@@ -1,15 +1,16 @@
 ﻿using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Database.Repository
 {
-	public class CurrencyExchange(IDbContextFactory<DatabaseContext> databaseContextFactory, ILogger<CurrencyExchange> logger) : ICurrencyExchange, IDisposable
+	public class CurrencyExchange(
+			IDbContextFactory<DatabaseContext> databaseContextFactory,
+			IMemoryCache memoryCache,
+			ILogger<CurrencyExchange> logger) : ICurrencyExchange
 	{
-		private readonly Dictionary<(Currency, Currency), Dictionary<DateOnly, decimal>> _preloadedExchangeRates = new();
-		private bool _isPreloaded = false;
 		private readonly SemaphoreSlim _preloadSemaphore = new(1, 1);
-		private bool _disposed = false;
 
 		public async Task<Money> ConvertMoney(Money money, Currency currency, DateOnly date)
 		{
@@ -18,47 +19,6 @@ namespace GhostfolioSidekick.Database.Repository
 			var exchangeRate = await GetExchangeRate(date, sourceCurrency, targetCurrency);
 
 			return new Money(currency, money.Times(exchangeRate).Amount);
-		}
-
-		public async Task PreloadAllExchangeRates()
-		{
-			if (_isPreloaded)
-			{
-				return;
-			}
-
-			await _preloadSemaphore.WaitAsync();
-			try
-			{
-				if (_isPreloaded)
-				{
-					return;
-				}
-
-				logger.LogInformation("Starting preload of all exchange rates...");
-				await PreloadAllExchangeRatesInternal();
-				_isPreloaded = true;
-				logger.LogInformation("Exchange rates preload completed. Loaded {Count} currency pairs.", _preloadedExchangeRates.Count);
-			}
-			finally
-			{
-				_preloadSemaphore.Release();
-			}
-		}
-
-		public void ClearPreloadedCache()
-		{
-			_preloadSemaphore.Wait();
-			try
-			{
-				_preloadedExchangeRates.Clear();
-				_isPreloaded = false;
-				logger.LogInformation("Exchange rates cache cleared.");
-			}
-			finally
-			{
-				_preloadSemaphore.Release();
-			}
 		}
 
 		private async Task<decimal> GetExchangeRate(DateOnly searchDate, Currency sourceCurrency, Currency targetCurrency)
@@ -86,56 +46,49 @@ namespace GhostfolioSidekick.Database.Repository
 			}
 
 			// Try to get from preloaded cache first
-			if (_isPreloaded && _preloadedExchangeRates.TryGetValue((searchSourceCurrency.Item1, searchTargetCurrency.Item1),
-				out var cachedRates))
+			if (!memoryCache.TryGetValue(new ExchangeRateKey(searchSourceCurrency.Item1, searchTargetCurrency.Item1), 
+				out IDictionary<DateOnly, decimal>? cachedRates))
 			{
-				if (cachedRates.TryGetValue(searchDate, out exchangeRate) && exchangeRate != 0)
+				await PreloadAllExchangeRates();
+				if (!memoryCache.TryGetValue(new ExchangeRateKey(searchSourceCurrency.Item1, searchTargetCurrency.Item1), out cachedRates))
 				{
-					return exchangeRate * searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
-				}
-
-				// Use the last known value from cache. Maybe a holiday or weekend?
-				var values = cachedRates
-					.Where(x => x.Key < searchDate)
-					.OrderByDescending(x => x.Key);
-				var lastKnownRate = values.FirstOrDefault();
-
-				if (lastKnownRate.Value != 0)
-				{
-					return lastKnownRate.Value * searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
-				}
-
-				logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency} in preloaded cache. Trying to query database.", sourceCurrency, targetCurrency);
-			}
-
-			// Fall back to database query if not preloaded or not found in cache
-			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
-			exchangeRate = await databaseContext.CurrencyExchangeRates
-				.Where(x => x.SourceCurrency == searchSourceCurrency.Item1 && x.TargetCurrency == searchTargetCurrency.Item1)
-				.SelectMany(x => x.Rates)
-				.Where(x => x.Date == searchDate)
-				.Select(x => x.Close.Amount)
-				.FirstOrDefaultAsync();
-
-			if (exchangeRate == 0)
-			{
-				// Use the last known value. Maybe a holiday or weekend?
-				exchangeRate = await databaseContext.CurrencyExchangeRates
-					.Where(x => x.SourceCurrency == searchSourceCurrency.Item1 && x.TargetCurrency == searchTargetCurrency.Item1)
-					.SelectMany(x => x.Rates)
-					.Where(x => x.Date < searchDate)
-					.OrderByDescending(x => x.Date)
-					.Select(x => x.Close.Amount)
-					.FirstOrDefaultAsync();
-
-				if (exchangeRate == 0)
-				{
-					logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency}. Using 1:1 rate.", sourceCurrency, targetCurrency);
-					return 1;
+					logger.LogWarning("No exchange rates found for {FromCurrency} to {ToCurrency}.", sourceCurrency, targetCurrency);
+					return 1m; // Default to 1 if no rate is found
 				}
 			}
 
-			return exchangeRate * searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
+			if (cachedRates.TryGetValue(searchDate, out exchangeRate) && exchangeRate != 0)
+			{
+				return exchangeRate * searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
+			}
+
+			// Use the last known value from cache. Maybe a holiday or weekend?
+			var values = cachedRates
+				.Where(x => x.Key < searchDate)
+				.OrderByDescending(x => x.Key);
+			var lastKnownRate = values.FirstOrDefault();
+
+			if (lastKnownRate.Value != 0)
+			{
+				return lastKnownRate.Value * searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
+			}
+
+			logger.LogWarning("No exchange rate found for {FromCurrency} to {ToCurrency}.", sourceCurrency, targetCurrency);
+			return 1m; // Default to 1 if no rate is found
+		}
+
+		private async Task PreloadAllExchangeRates()
+		{
+			await _preloadSemaphore.WaitAsync();
+			try
+			{
+				logger.LogInformation("Starting preload of all exchange rates...");
+				await PreloadAllExchangeRatesInternal();
+			}
+			finally
+			{
+				_preloadSemaphore.Release();
+			}
 		}
 
 		private async Task PreloadAllExchangeRatesInternal()
@@ -147,44 +100,26 @@ namespace GhostfolioSidekick.Database.Repository
 				var allExchangeRateData = await databaseContext.CurrencyExchangeRates
 				.SelectMany(profile => profile.Rates, (profile, rate) => new
 				{
-					SourceCurrency = profile.SourceCurrency,
-					TargetCurrency = profile.TargetCurrency,
-					Date = rate.Date,
-					Amount = rate.Close.Amount
+					profile.SourceCurrency,
+					profile.TargetCurrency,
+					rate.Date,
+					rate.Close.Amount
 				})
 				.ToListAsync();
 
-				// Group and cache the data
-				_preloadedExchangeRates.Clear();
 				foreach (var group in allExchangeRateData.Where(x => x.Amount != 0).GroupBy(x => new { x.SourceCurrency, x.TargetCurrency }))
 				{
-					_preloadedExchangeRates[(group.Key.SourceCurrency, group.Key.TargetCurrency)] = group.ToDictionary(x => x.Date, x => x.Amount);
+					memoryCache.Set(
+						new ExchangeRateKey(group.Key.SourceCurrency, group.Key.TargetCurrency), 
+						group.ToDictionary(x => x.Date, x => x.Amount));
 				}
 			}
 			catch (Exception ex)
 			{
-				logger.LogWarning(ex, "Failed to preload exchange rates from MarketDatas. This may be expected in unit tests.");
-				// Clear any partial data that might have been loaded
-				_preloadedExchangeRates.Clear();
+				logger.LogWarning(ex, "Failed to preload exchange rates.");
 			}
 		}
 
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (!_disposed)
-			{
-				if (disposing)
-				{
-					_preloadSemaphore?.Dispose();
-				}
-				_disposed = true;
-			}
-		}
+		private record ExchangeRateKey(Currency SourceCurrency, Currency TargetCurrency);
 	}
 }
