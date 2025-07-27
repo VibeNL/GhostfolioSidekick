@@ -68,6 +68,8 @@ public static class Program
 		// Register PortfolioClient for DI
 		builder.Services.AddScoped<Clients.PortfolioClient>();
 
+		builder.Services.AddSingleton<ITestContextService, TestContextService>();
+
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
 		// Performance Calculations

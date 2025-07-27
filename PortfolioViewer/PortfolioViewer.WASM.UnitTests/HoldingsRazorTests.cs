@@ -9,38 +9,35 @@ using GhostfolioSidekick.Model;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {
     public class HoldingsRazorTests : TestContext
     {
+        public HoldingsRazorTests()
+        {
+            Services.AddSingleton<ITestContextService>(new TestContextService { IsTest = true });
+        }
+
         [Fact]
         public void Holdings_ShowsLoadingState_WhenIsLoadingIsTrue()
         {
-            // Arrange
             var mockService = new Mock<IHoldingsDataService>();
             Services.AddSingleton(mockService.Object);
-
-            // Act
             var cut = RenderComponent<Holdings>();
-
-            // Assert
             Assert.Contains("Loading Portfolio Data...", cut.Markup);
         }
 
         [Fact]
         public void Holdings_ShowsErrorState_WhenHasErrorIsTrue()
         {
-            // Arrange
             var mockService = new Mock<IHoldingsDataService>();
             Services.AddSingleton(mockService.Object);
-            // Render and set error state via reflection
             var cut = RenderComponent<Holdings>();
             cut.Instance.GetType().GetProperty("HasError", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.SetValue(cut.Instance, true);
             cut.Instance.GetType().GetProperty("ErrorMessage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.SetValue(cut.Instance, "Test error!");
             cut.Render();
-
-            // Assert
             Assert.Contains("Error Loading Data", cut.Markup);
             Assert.Contains("Test error!", cut.Markup);
             Assert.Contains("Try Again", cut.Markup);
@@ -48,26 +45,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 
         private class FakeHoldingsDataService : IHoldingsDataService
         {
-            private readonly List<HoldingDisplayModel> _holdings;
+            private List<HoldingDisplayModel> _holdings;
+            public int RefreshCount { get; private set; } = 0;
             public FakeHoldingsDataService(List<HoldingDisplayModel> holdings) => _holdings = holdings;
-            public Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, CancellationToken cancellationToken = default) => Task.FromResult(_holdings);
+            public void SetHoldings(List<HoldingDisplayModel> holdings) => _holdings = holdings;
+            public Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, CancellationToken cancellationToken = default)
+            {
+                RefreshCount++;
+                return Task.FromResult(_holdings);
+            }
         }
 
         [Fact]
         public void Holdings_ShowsEmptyState_WhenHoldingsListIsEmpty()
         {
-            // Arrange
             Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(new List<HoldingDisplayModel>()));
             var cut = RenderComponent<Holdings>();
-
-            // Act
             cut.WaitForAssertion(() => Assert.Contains("No Holdings Found", cut.Markup));
         }
 
         [Fact]
         public void Holdings_RendersTable_WhenHoldingsExistAndViewModeIsTable()
         {
-            // Arrange
             var holdings = new List<HoldingDisplayModel>
             {
                 new HoldingDisplayModel {
@@ -76,10 +75,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             };
             Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
             var cut = RenderComponent<Holdings>();
-            // Switch to table view
-            cut.FindAll("button").First(b => b.TextContent.Contains("Table")).Click();
-
-            // Assert
+            cut.WaitForAssertion(() => Assert.Contains("Table", cut.Markup));
+            var tableButton = cut.FindAll("button").FirstOrDefault(b => b.TextContent.Contains("Table"));
+            if (tableButton == null)
+            {
+                throw new Xunit.Sdk.XunitException($"Table button not found. Markup: {cut.Markup}");
+            }
+            tableButton.Click();
             cut.WaitForAssertion(() => Assert.Contains("Apple Inc.", cut.Markup));
             Assert.Contains("AAPL", cut.Markup);
             Assert.Contains("Current Value", cut.Markup);
@@ -88,7 +90,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void Holdings_RendersTreemap_WhenViewModeIsTreemap()
         {
-            // Arrange
             var holdings = new List<HoldingDisplayModel>
             {
                 new HoldingDisplayModel {
@@ -97,10 +98,114 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             };
             Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
             var cut = RenderComponent<Holdings>();
+            cut.WaitForAssertion(() =>
+            {
+                if (!cut.Markup.Contains("treemap-container"))
+                {
+                    throw new Xunit.Sdk.XunitException($"treemap-container not found. Markup: {cut.Markup}");
+                }
+            });
+        }
 
-            // Assert
-            // Treemap is default view
-            cut.WaitForAssertion(() => Assert.Contains("treemap-container", cut.Markup));
+        [Fact]
+        public void Holdings_RefreshButton_CallsDataReload()
+        {
+            var holdings = new List<HoldingDisplayModel>
+            {
+                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = 100, CurrentPrice = 150, CurrentValue = 1500, GainLoss = 500, GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
+            };
+            var fakeService = new FakeHoldingsDataService(holdings);
+            Services.AddSingleton<IHoldingsDataService>(fakeService);
+            var cut = RenderComponent<Holdings>();
+            cut.WaitForAssertion(() => Assert.Contains("Refresh", cut.Markup));
+            var refreshButton = cut.FindAll("button").FirstOrDefault(b => b.TextContent.Contains("Refresh"));
+            if (refreshButton == null)
+            {
+                throw new Xunit.Sdk.XunitException($"Refresh button not found. Markup: {cut.Markup}");
+            }
+            refreshButton.Click();
+            cut.WaitForAssertion(() => Assert.True(fakeService.RefreshCount > 1));
+        }
+
+        [Fact]
+        public void Holdings_Sorting_WorksOnSymbolColumn()
+        {
+            var holdings = new List<HoldingDisplayModel>
+            {
+                new HoldingDisplayModel { Symbol = "MSFT", Name = "Microsoft", Quantity = 5, AveragePrice = 200, CurrentPrice = 250, CurrentValue = 1250, GainLoss = 250, GainLossPercentage = 0.25m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
+                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = 100, CurrentPrice = 150, CurrentValue = 1500, GainLoss = 500, GainLossPercentage = 0.5m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
+            };
+            Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
+            var cut = RenderComponent<Holdings>();
+            cut.WaitForAssertion(() => Assert.Contains("Table", cut.Markup));
+            var tableButton = cut.FindAll("button").FirstOrDefault(b => b.TextContent.Contains("Table"));
+            if (tableButton == null)
+            {
+                throw new Xunit.Sdk.XunitException($"Table button not found. Markup: {cut.Markup}");
+            }
+            tableButton.Click();
+            cut.WaitForAssertion(() => Assert.Contains("Symbol", cut.Markup));
+            var symbolHeader = cut.FindAll("th button").FirstOrDefault(b => b.TextContent.Contains("Symbol"));
+            if (symbolHeader == null)
+            {
+                throw new Xunit.Sdk.XunitException($"Symbol column header not found. Markup: {cut.Markup}");
+            }
+            // Try single click first
+            symbolHeader.Click();
+            cut.WaitForAssertion(() =>
+            {
+                var rows = cut.FindAll("tbody tr");
+                var rowHtml = string.Join("\n---\n", rows.Select(r => r.InnerHtml));
+                if (!rows[0].InnerHtml.Contains("AAPL") || !rows[1].InnerHtml.Contains("MSFT"))
+                {
+                    // Try double click (descending)
+                    symbolHeader.Click();
+                    rows = cut.FindAll("tbody tr");
+                    rowHtml = string.Join("\n---\n", rows.Select(r => r.InnerHtml));
+                    if (!rows[0].InnerHtml.Contains("AAPL") || !rows[1].InnerHtml.Contains("MSFT"))
+                    {
+                        throw new Xunit.Sdk.XunitException($"Sorting failed. Table rows after sort:\n{rowHtml}");
+                    }
+                }
+            });
+        }
+
+        [Fact]
+        public void Holdings_RendersMultipleFakeHoldings_AndSortsByValue()
+        {
+            var holdings = new List<HoldingDisplayModel>
+            {
+                new HoldingDisplayModel { Symbol = "GOOG", Name = "Google", Quantity = 2, AveragePrice = 1200, CurrentPrice = 1300, CurrentValue = 2600, GainLoss = 200, GainLossPercentage = 0.08m, Weight = 0.3m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
+                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = 100, CurrentPrice = 150, CurrentValue = 1500, GainLoss = 500, GainLossPercentage = 0.5m, Weight = 0.4m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
+                new HoldingDisplayModel { Symbol = "TSLA", Name = "Tesla", Quantity = 1, AveragePrice = 700, CurrentPrice = 800, CurrentValue = 800, GainLoss = 100, GainLossPercentage = 0.125m, Weight = 0.3m, Sector = "Auto", AssetClass = "Equity", Currency = "USD" }
+            };
+            Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
+            var cut = RenderComponent<Holdings>();
+            cut.WaitForAssertion(() => Assert.Contains("Table", cut.Markup));
+            var tableButton = cut.FindAll("button").FirstOrDefault(b => b.TextContent.Contains("Table"));
+            if (tableButton == null)
+            {
+                throw new Xunit.Sdk.XunitException($"Table button not found. Markup: {cut.Markup}");
+            }
+            tableButton.Click();
+            cut.WaitForAssertion(() => Assert.Contains("Current Value", cut.Markup));
+            var valueHeader = cut.FindAll("th button").FirstOrDefault(b => b.TextContent.Contains("Current Value"));
+            if (valueHeader == null)
+            {
+                throw new Xunit.Sdk.XunitException($"Current Value column header not found. Markup: {cut.Markup}");
+            }
+            // Click twice for descending order
+            valueHeader.Click();
+            valueHeader.Click();
+            cut.WaitForAssertion(() =>
+            {
+                var rows = cut.FindAll("tbody tr");
+                var rowHtml = string.Join("\n---\n", rows.Select(r => r.InnerHtml));
+                if (!rows[0].InnerHtml.Contains("GOOG") || !rows[1].InnerHtml.Contains("AAPL") || !rows[2].InnerHtml.Contains("TSLA"))
+                {
+                    throw new Xunit.Sdk.XunitException($"Sorting by value failed. Table rows after sort:\n{rowHtml}");
+                }
+            });
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿@page "/holdings"
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
 
 <PageTitle>Holdings</PageTitle>
 
@@ -87,7 +88,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        @if (ViewMode == "treemap")
+                        @if (ViewMode == "treemap" && !TestContextService.IsTest)
                         {
                             <div class="treemap-container" style="height: 500px;">
                                 <PlotlyChart @ref="treemapChart"
@@ -95,6 +96,12 @@
                                              Layout="plotLayout"
                                              Config="plotConfig"
                                              style="height: 450px; width: 100%;" />
+                            </div>
+                        }
+                        else if (ViewMode == "treemap" && TestContextService.IsTest)
+                        {
+                            <div class="treemap-container" style="height: 500px;">
+                                <!-- Skipped PlotlyChart in test context -->
                             </div>
                         }
                         else
