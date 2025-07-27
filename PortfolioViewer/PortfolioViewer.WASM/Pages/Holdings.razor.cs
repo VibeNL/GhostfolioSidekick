@@ -100,13 +100,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					Line = new Plotly.Blazor.Traces.TreeMapLib.MarkerLib.Line
 					{
 						Width = 2,
-						Color = "#ffffff"
+						Color = "#000000"
 					}
 				},
 				TextFont = new Plotly.Blazor.Traces.TreeMapLib.TextFont
 				{
 					Size = 12,
-					Color = "#ffffff"
+					Color = "#000000"
 				}
 			};
 
