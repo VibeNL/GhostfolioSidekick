@@ -44,9 +44,9 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 		{
 			// Arrange
 			var money = new Money(Currency.GBP, 100);
-			var currency = Currency.GBp;
+			var currency = Currency.GBp; // Note: GBp is the penny, GBP is the pound
 			var date = DateOnly.FromDateTime(DateTime.Now);
-			var exchangeRate = 100m;
+			var exchangeRate = Currency.GBP.GetKnownExchangeRate(Currency.GBp); // Should be 0.01m
 
 			// Act
 			var result = await _currencyExchange.ConvertMoney(money, currency, date);
@@ -65,20 +65,29 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 			var exchangeRate = 0.85m;
 
 			var dbContextMock = new Mock<DatabaseContext>();
-			dbContextMock.Setup(x => x.SymbolProfiles)
+			dbContextMock.Setup(x => x.CurrencyExchangeRates)
 				.ReturnsDbSet(new[]
 				{
-					new SymbolProfile
+					new CurrencyExchangeProfile
 					{
-						Symbol = $"{money.Currency.Symbol}{currency.Symbol}",
-						MarketData = new[]
+						SourceCurrency = Currency.USD,
+						TargetCurrency = Currency.EUR,
+						Rates = new List<CurrencyExchangeRate>
 						{
-							new MarketData { Date = date, Close = new Money(currency, exchangeRate) }
+							new CurrencyExchangeRate
+							{
+								Date = date,
+								Close = new Money(currency, exchangeRate),
+								Open = new Money(currency, exchangeRate),
+								High = new Money(currency, exchangeRate),
+								Low = new Money(currency, exchangeRate),
+								TradingVolume = 0
+							}
 						}
 					}
 				});
 
-            _dbContextFactoryMock.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(dbContextMock.Object);
+			_dbContextFactoryMock.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(dbContextMock.Object);
 
 			// Act
 			var result = await _currencyExchange.ConvertMoney(money, currency, date);
@@ -98,15 +107,24 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 			var exchangeRate = 0.85m;
 
 			var dbContextMock = new Mock<DatabaseContext>();
-			dbContextMock.Setup(x => x.SymbolProfiles)
+			dbContextMock.Setup(x => x.CurrencyExchangeRates)
 				.ReturnsDbSet(new[]
 				{
-					new SymbolProfile
+					new CurrencyExchangeProfile
 					{
-						Symbol = $"{money.Currency.Symbol}{currency.Symbol}",
-						MarketData = new[]
+						SourceCurrency = Currency.USD,
+						TargetCurrency = Currency.EUR,
+						Rates = new List<CurrencyExchangeRate>
 						{
-							new MarketData { Date = previousDate, Close =  new Money(currency, exchangeRate) }
+							new CurrencyExchangeRate
+							{
+								Date = previousDate,
+								Close = new Money(currency, exchangeRate),
+								Open = new Money(currency, exchangeRate),
+								High = new Money(currency, exchangeRate),
+								Low = new Money(currency, exchangeRate),
+								TradingVolume = 0
+							}
 						}
 					}
 				});
@@ -129,8 +147,8 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			var dbContextMock = new Mock<DatabaseContext>();
-			dbContextMock.Setup(x => x.SymbolProfiles)
-				.ReturnsDbSet(new SymbolProfile[0]);
+			dbContextMock.Setup(x => x.CurrencyExchangeRates)
+				.ReturnsDbSet(new CurrencyExchangeProfile[0]);
 
 			_dbContextFactoryMock.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(dbContextMock.Object);
 
