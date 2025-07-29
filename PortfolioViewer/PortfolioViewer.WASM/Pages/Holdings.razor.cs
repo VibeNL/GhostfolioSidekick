@@ -114,10 +114,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			plotLayout = new Plotly.Blazor.Layout
 			{
-				Title = new Plotly.Blazor.LayoutLib.Title
-				{
-					Text = "Portfolio Allocation"
-				},
 				Margin = new Plotly.Blazor.LayoutLib.Margin
 				{
 					T = 50,
@@ -125,7 +121,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					R = 10,
 					B = 10
 				},
-				Height = 450
+				AutoSize = true,
 			};
 
 			plotConfig = new Config
