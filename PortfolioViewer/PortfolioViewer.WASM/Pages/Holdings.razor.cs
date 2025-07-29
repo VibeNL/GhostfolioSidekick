@@ -25,8 +25,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string ErrorMessage { get; set; } = string.Empty;
 
 		// Sorting state
-		private string sortColumn = "Symbol";
-		private bool sortAscending = true;
+		private string sortColumn = "CurrentValue";
+		private bool sortAscending = false;
 
 		protected override async Task OnInitializedAsync()
 		{
