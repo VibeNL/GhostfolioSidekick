@@ -66,9 +66,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					Name = h.Name ?? string.Empty,
 					Quantity = convertedLastSnapshot.Quantity,
 					Symbol = h.Symbol,
-					Sector = string.Join(",", h.SectorWeights.Select(x => x.Name)),
+					Sector = h.SectorWeights.Any() ? string.Join(",", h.SectorWeights.Select(x => x.Name)) : "Undefined",
 					Weight = 0,
 				});
+			}
+
+			// Calculate weights
+			var totalValue = list.Sum(x => x.CurrentValue.Amount);
+			if (totalValue > 0)
+			{
+				foreach (var holding in list)
+				{
+					holding.Weight = holding.CurrentValue.Amount / totalValue;
+				}
 			}
 
 			return list;

@@ -235,7 +235,7 @@
                             <h6 class="card-title mb-0">Sector Allocation</h6>
                         </div>
                         <div class="card-body">
-                            @foreach (var sector in SectorAllocation)
+                            @foreach (var sector in SectorAllocation.OrderByDescending(x => x.Value))
                             {
                                 <div class="mb-2">
                                     <div class="d-flex justify-content-between">
@@ -256,7 +256,7 @@
                             <h6 class="card-title mb-0">Asset Class Allocation</h6>
                         </div>
                         <div class="card-body">
-                            @foreach (var assetClass in AssetClassAllocation)
+                            @foreach (var assetClass in AssetClassAllocation.OrderByDescending(x => x.Value))
                             {
                                 <div class="mb-2">
                                     <div class="d-flex justify-content-between">
