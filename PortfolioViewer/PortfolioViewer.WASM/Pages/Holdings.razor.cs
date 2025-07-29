@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				Margin = new Plotly.Blazor.LayoutLib.Margin
 				{
-					T = 50,
+					T = 10,
 					L = 10,
 					R = 10,
 					B = 10
