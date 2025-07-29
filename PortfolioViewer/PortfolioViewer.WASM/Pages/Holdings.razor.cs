@@ -11,11 +11,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	{
 		[Inject]
 		private IHoldingsDataService? HoldingsDataService { get; set; }
+		
 		// View mode for the treemap
-
 		private string ViewMode = "treemap";
 		private List<HoldingDisplayModel> HoldingsList = new();
-		private PlotlyChart? treemapChart;
 		private Config plotConfig = new();
 		private Plotly.Blazor.Layout plotLayout = new();
 		private IList<ITrace> plotData = new List<ITrace>();

@@ -91,8 +91,7 @@
                         @if (ViewMode == "treemap" && !TestContextService.IsTest)
                         {
                             <div class="treemap-container" style="height: 500px;">
-                                <PlotlyChart @ref="treemapChart"
-                                             Data="plotData"
+                                <PlotlyChart Data="plotData"
                                              Layout="plotLayout"
                                              Config="plotConfig"
                                              style="height: 450px; width: 100%;" />
