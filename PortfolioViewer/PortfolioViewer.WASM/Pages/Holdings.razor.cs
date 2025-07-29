@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			var treemapTrace = new TreeMap
 			{
-				Labels = HoldingsList.Select(h => h.Name).ToArray(),
+				Labels = HoldingsList.Select(h => $"{h.Name} (GainLossPercentage {h.GainLossPercentage})").ToArray(),
 				Values = HoldingsList.Select(h => (object)h.CurrentValue.Amount).ToList(),
 				Parents = HoldingsList.Select(h => "").ToArray(),
 				Text = HoldingsList.Select(h => $"{h.Name}({h.Symbol})<br>{CurrencyDisplay.DisplaySignAndAmount(h.CurrentValue)}").ToArray(),
@@ -132,37 +132,31 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private object GetColorForGainLoss(decimal gainLossPercentage)
 		{
-			if (gainLossPercentage == 0)
+			if (Math.Abs(gainLossPercentage) < 0.01m)
 			{
 				return "#808080"; // Gray for neutral
 			}
 
-			// Normalize the gain/loss percentage to a range of -1 to 1
-			decimal clamped = Math.Clamp(gainLossPercentage, -1, 1);
+			// Clamp the percentage to a reasonable range for color intensity
+			const decimal maxAbs = 50m; // 50% gain/loss is max intensity
+			var clamped = Math.Max(-maxAbs, Math.Min(maxAbs, gainLossPercentage));
+			var intensity = (int)(Math.Min(Math.Abs(clamped) / maxAbs, 1m) * 255);
 
-			// Apply quadratic scaling for a faster color transition
-			decimal scaled = clamped >= 0 ? clamped * clamped : -1 * (clamped * clamped);
-
-			if (scaled >= 0)
+			if (clamped > 0)
 			{
-				// Green scale: from #ffeaea (very light green) to #28a745 (strong green)
-				// Interpolate between (255, 255, 234) and (40, 167, 69)
-				int r = (int)(255 - (215 * scaled)); // 255 -> 40
-				int g = (int)(255 - (88 * scaled));  // 255 -> 167
-				int b = (int)(234 - (165 * scaled)); // 234 -> 69
-				var green = $"#{r:X2}{g:X2}{b:X2}";
-				return green;
+				// Green: from pastel (#ccffcc) to pure green (#00ff00)
+				int r = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				int g = 255;
+				int b = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				return $"#{r:X2}{g:X2}{b:X2}";
 			}
 			else
 			{
-				// Red scale: from #eaffea (very light red) to #dc3545 (strong red)
-				// Interpolate between (234, 255, 234) and (220, 53, 69)
-				scaled = Math.Abs(scaled);
-				int r = (int)(234 - (14 * scaled));  // 234 -> 220
-				int g = (int)(255 - (202 * scaled)); // 255 -> 53
-				int b = (int)(234 - (165 * scaled)); // 234 -> 69
-				var red = $"#{r:X2}{g:X2}{b:X2}";
-				return red;
+				// Red: from pastel (#ffcccc) to pure red (#ff0000)
+				int r = 255;
+				int g = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				int b = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				return $"#{r:X2}{g:X2}{b:X2}";
 			}
 		}
 
