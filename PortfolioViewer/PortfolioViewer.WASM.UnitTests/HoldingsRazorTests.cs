@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var holdings = new List<HoldingDisplayModel>
             {
                 new HoldingDisplayModel {
-                    Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = 100, CurrentPrice = 150, CurrentValue = 1500, GainLoss = 500, GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD"
+                    Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD"
                 }
             };
             Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var holdings = new List<HoldingDisplayModel>
             {
                 new HoldingDisplayModel {
-                    Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = 100, CurrentPrice = 150, CurrentValue = 1500, GainLoss = 500, GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD"
+                    Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD"
                 }
             };
             Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         {
             var holdings = new List<HoldingDisplayModel>
             {
-                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = 100, CurrentPrice = 150, CurrentValue = 1500, GainLoss = 500, GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
+                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
             };
             var fakeService = new FakeHoldingsDataService(holdings);
             Services.AddSingleton<IHoldingsDataService>(fakeService);
@@ -132,8 +132,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         {
             var holdings = new List<HoldingDisplayModel>
             {
-                new HoldingDisplayModel { Symbol = "MSFT", Name = "Microsoft", Quantity = 5, AveragePrice = 200, CurrentPrice = 250, CurrentValue = 1250, GainLoss = 250, GainLossPercentage = 0.25m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
-                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = 100, CurrentPrice = 150, CurrentValue = 1500, GainLoss = 500, GainLossPercentage = 0.5m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
+                new HoldingDisplayModel { Symbol = "MSFT", Name = "Microsoft", Quantity = 5, AveragePrice = new Money(Currency.USD, 200), CurrentPrice = new Money(Currency.USD, 250), CurrentValue = new Money(Currency.USD, 1250), GainLoss = new Money(Currency.USD, 250), GainLossPercentage = 0.25m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
+                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
             };
             Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
             var cut = RenderComponent<Holdings>();
@@ -175,9 +175,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         {
             var holdings = new List<HoldingDisplayModel>
             {
-                new HoldingDisplayModel { Symbol = "GOOG", Name = "Google", Quantity = 2, AveragePrice = 1200, CurrentPrice = 1300, CurrentValue = 2600, GainLoss = 200, GainLossPercentage = 0.08m, Weight = 0.3m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
-                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = 100, CurrentPrice = 150, CurrentValue = 1500, GainLoss = 500, GainLossPercentage = 0.5m, Weight = 0.4m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
-                new HoldingDisplayModel { Symbol = "TSLA", Name = "Tesla", Quantity = 1, AveragePrice = 700, CurrentPrice = 800, CurrentValue = 800, GainLoss = 100, GainLossPercentage = 0.125m, Weight = 0.3m, Sector = "Auto", AssetClass = "Equity", Currency = "USD" }
+                new HoldingDisplayModel { Symbol = "GOOG", Name = "Google", Quantity = 2, AveragePrice = new Money(Currency.USD, 1200), CurrentPrice = new Money(Currency.USD, 1300), CurrentValue = new Money(Currency.USD, 2600), GainLoss = new Money(Currency.USD, 200), GainLossPercentage = 0.08m, Weight = 0.3m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
+                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 0.4m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
+                new HoldingDisplayModel { Symbol = "TSLA", Name = "Tesla", Quantity = 1, AveragePrice = new Money(Currency.USD, 700), CurrentPrice = new Money(Currency.USD, 800), CurrentValue = new Money(Currency.USD, 800), GainLoss = new Money(Currency.USD, 100), GainLossPercentage = 0.125m, Weight = 0.3m, Sector = "Auto", AssetClass = "Equity", Currency = "USD" }
             };
             Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
             var cut = RenderComponent<Holdings>();

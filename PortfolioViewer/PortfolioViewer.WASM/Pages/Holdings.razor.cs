@@ -1,8 +1,9 @@
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
-using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -84,10 +85,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			var treemapTrace = new TreeMap
 			{
-				Labels = HoldingsList.Select(h => $"{h.Name}({h.Symbol})").ToArray(),
-				Values = HoldingsList.Select(h => (object)h.CurrentValue).ToList(),
+				Labels = HoldingsList.Select(h => h.Name).ToArray(),
+				Values = HoldingsList.Select(h => (object)h.CurrentValue.Amount).ToList(),
 				Parents = HoldingsList.Select(h => "").ToArray(),
-				Text = HoldingsList.Select(h => $"{h.Name}({h.Symbol})<br>{h.Currency}{h.CurrentValue:N0}").ToArray(),
+				Text = HoldingsList.Select(h => $"{h.Name}({h.Symbol})<br>{CurrencyDisplay.DisplaySignAndAmount(h.CurrentValue)}").ToArray(),
 				TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
 				BranchValues = Plotly.Blazor.Traces.TreeMapLib.BranchValuesEnum.Total,
 				PathBar = new Plotly.Blazor.Traces.TreeMapLib.PathBar
@@ -130,7 +131,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			plotConfig = new Config
 			{
-				Responsive = true
+				Responsive = true,
 			};
 		}
 
@@ -176,9 +177,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			await LoadPortfolioDataAsync();
 		}
 
-		private decimal TotalValue => HoldingsList.Sum(h => h.CurrentValue);
-		private decimal TotalGainLoss => HoldingsList.Sum(h => h.GainLoss);
-		private decimal TotalGainLossPercentage => TotalValue > 0 ? TotalGainLoss / (TotalValue - TotalGainLoss) : 0;
+		private Money TotalValue => Money.Sum(HoldingsList.Select(h => h.CurrentValue));
+		private Money TotalGainLoss => Money.Sum(HoldingsList.Select(h => h.GainLoss));
+		private decimal TotalGainLossPercentage => TotalGainLoss.SafeDivide(TotalValue.Subtract(TotalGainLoss)).Amount;
 
 		private Dictionary<string, decimal> SectorAllocation =>
 			HoldingsList.GroupBy(h => h.Sector)

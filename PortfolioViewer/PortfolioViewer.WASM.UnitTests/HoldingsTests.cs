@@ -28,7 +28,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                     SectorWeights = sectorWeights,
                     CalculatedSnapshots = new List<CalculatedSnapshot>
                     {
-                        new CalculatedSnapshot(1, new DateOnly(2024,1,1), 10, new Money(targetCurrency, 100), new Money(targetCurrency, 120), new Money(targetCurrency, 1000), new Money(targetCurrency, 1200))
+                        new CalculatedSnapshot(
+                            1,
+                            new DateOnly(2024,1,1),
+                            10,
+                            new Money(targetCurrency, 100),
+                            new Money(targetCurrency, 120),
+                            new Money(targetCurrency, 1000),
+                            new Money(targetCurrency, 1200)
+                        )
                     }
                 }
             };
@@ -52,11 +60,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var holding = result[0];
             Assert.Equal("TST", holding.Symbol);
             Assert.Equal("Test Holding", holding.Name);
-            Assert.Equal(1200, holding.CurrentValue);
+            Assert.Equal(1200, holding.CurrentValue.Amount);
             Assert.Equal(10, holding.Quantity);
-            Assert.Equal(100, holding.AveragePrice);
-            Assert.Equal(120, holding.CurrentPrice);
-            Assert.Equal(200, holding.GainLoss);
+            Assert.Equal(100, holding.AveragePrice.Amount);
+            Assert.Equal(120, holding.CurrentPrice.Amount);
+            Assert.Equal(200, holding.GainLoss.Amount);
             Assert.Equal("Tech", holding.Sector);
             Assert.Equal("Equity", holding.AssetClass);
             Assert.Equal("USD", holding.Currency);
@@ -96,7 +104,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             Assert.Single(result);
             var holding = result[0];
             Assert.Equal("TST", holding.Symbol);
-            Assert.Equal(0, holding.CurrentValue);
+            Assert.Equal(0, holding.CurrentValue.Amount);
             Assert.Equal(0, holding.Quantity);
         }
 
@@ -106,7 +114,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             // Arrange
             var targetCurrency = Currency.USD;
             var originalCurrency = Currency.EUR;
-            var snapshot = new CalculatedSnapshot(1, new DateOnly(2024,1,1), 10, new Money(originalCurrency, 100), new Money(originalCurrency, 120), new Money(originalCurrency, 1000), new Money(originalCurrency, 1200));
+            var snapshot = new CalculatedSnapshot(
+                1,
+                new DateOnly(2024,1,1),
+                10,
+                new Money(originalCurrency, 100),
+                new Money(originalCurrency, 120),
+                new Money(originalCurrency, 1000),
+                new Money(originalCurrency, 1200)
+            );
 
             var dbContextMock = new Mock<DatabaseContext>();
             var currencyExchangeMock = new Mock<ICurrencyExchange>();

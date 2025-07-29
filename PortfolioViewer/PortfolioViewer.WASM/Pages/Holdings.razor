@@ -176,14 +176,14 @@
                                                 </td>
                                                 <td>@holding.Name</td>
                                                 <td>@holding.Quantity.ToString("N2")</td>
-                                                <td>@holding.Currency @holding.AveragePrice.ToString("N2")</td>
-                                                <td>@holding.Currency @holding.CurrentPrice.ToString("N2")</td>
+                                                <td>@CurrencyDisplay.DisplaySignAndAmount(@holding.AveragePrice)</td>
+                                                <td>@CurrencyDisplay.DisplaySignAndAmount(@holding.CurrentPrice)</td>
                                                 <td class="text-end">
-                                                    <strong>@holding.Currency @holding.CurrentValue.ToString("N2")</strong>
+                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@holding.CurrentValue)</strong>
                                                 </td>
                                                 <td class="text-end">
-                                                    <span class="@(holding.GainLoss >= 0 ? "text-success" : "text-danger")">
-                                                        @holding.Currency @holding.GainLoss.ToString("N2")
+                                                    <span class="@(holding.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                        @CurrencyDisplay.DisplaySignAndAmount(@holding.GainLoss)
                                                     </span>
                                                 </td>
                                                 <td class="text-end">
@@ -204,10 +204,10 @@
                                     <tfoot class="table-light">
                                         <tr>
                                             <th colspan="5">Total Portfolio Value</th>
-                                            <th class="text-end">EUR Currency @TotalValue.ToString("N2")</th>
+                                            <th class="text-end">CurrencyDisplay.DisplaySignAndAmount(@TotalValue.Amount)</th>
                                             <th class="text-end">
-                                                <span class="@(TotalGainLoss >= 0 ? "text-success" : "text-danger")">
-                                                    EUR @TotalGainLoss.ToString("N2")
+                                                <span class="@(TotalGainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                    CurrencyDisplay.DisplaySignAndAmount(@TotalGainLoss.Amount)
                                                 </span>
                                             </th>
                                             <th class="text-end">

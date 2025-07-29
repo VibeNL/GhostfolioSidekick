@@ -1,6 +1,7 @@
-﻿namespace GhostfolioSidekick.Model
+﻿
+namespace GhostfolioSidekick.Model
 {
-	public record Money
+	public record Money : IComparable<Money>, IEquatable<Money>
 	{
 		public decimal Amount { get; set; }
 
@@ -64,9 +65,54 @@
 			}
 		}
 
+
+		public Money SafeDivide(Money money)
+		{
+			if (money.Currency != Currency)
+			{
+				throw new ArgumentException("Currencies do not match", nameof(money));
+			}
+
+			return SafeDivide(money.Amount);
+		}
+
 		public override string ToString()
 		{
 			return $"{Amount} {Currency}";
+		}
+
+		public static Money Sum(IEnumerable<Money> enumerable)
+		{
+			// Check if all currencies are the same
+			if (!enumerable.Any())
+			{
+				return Zero(Currency.USD);
+			}
+
+			var firstCurrency = enumerable.First().Currency;
+			decimal totalAmount = 0;
+			foreach (var money in enumerable)
+			{
+				if (money.Currency != firstCurrency)
+				{
+					throw new ArgumentException("All Money objects must have the same currency", nameof(enumerable));
+				}
+
+				totalAmount += money.Amount;
+			}
+
+			return new Money(firstCurrency, totalAmount);
+		}
+
+		public int CompareTo(Money? other)
+		{
+			if (other is null)
+			{
+				return 1; // null is considered less than any Money instance
+			}
+
+			return Amount.CompareTo(other.Amount);
+
 		}
 	}
 }

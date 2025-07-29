@@ -57,11 +57,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				list.Add(new HoldingDisplayModel
 				{
 					AssetClass = h.AssetClass.ToString(),
-					AveragePrice = convertedLastSnapshot.AverageCostPrice.Amount,
+					AveragePrice = convertedLastSnapshot.AverageCostPrice,
 					Currency = targetCurrency.Symbol.ToString(),
-					CurrentValue = convertedLastSnapshot.TotalValue.Amount,
-					CurrentPrice = convertedLastSnapshot.CurrentUnitPrice.Amount,
-					GainLoss = convertedLastSnapshot.TotalValue.Amount - convertedLastSnapshot.TotalInvested.Amount,
+					CurrentValue = convertedLastSnapshot.TotalValue,
+					CurrentPrice = convertedLastSnapshot.CurrentUnitPrice,
+					GainLoss = convertedLastSnapshot.TotalValue.Subtract(convertedLastSnapshot.TotalInvested),
 					GainLossPercentage = convertedLastSnapshot.TotalValue.Amount == 0 ? 0 : (convertedLastSnapshot.TotalValue.Amount - convertedLastSnapshot.TotalInvested.Amount) / convertedLastSnapshot.TotalValue.Amount,
 					Name = h.Name ?? string.Empty,
 					Quantity = convertedLastSnapshot.Quantity,
