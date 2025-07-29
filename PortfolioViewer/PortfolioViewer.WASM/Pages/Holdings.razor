@@ -203,10 +203,10 @@
                                     <tfoot class="table-light">
                                         <tr>
                                             <th colspan="5">Total Portfolio Value</th>
-                                            <th class="text-end">CurrencyDisplay.DisplaySignAndAmount(@TotalValue.Amount)</th>
+                                            <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TotalValue)</th>
                                             <th class="text-end">
                                                 <span class="@(TotalGainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                    CurrencyDisplay.DisplaySignAndAmount(@TotalGainLoss.Amount)
+                                                    @CurrencyDisplay.DisplaySignAndAmount(@TotalGainLoss)
                                                 </span>
                                             </th>
                                             <th class="text-end">
@@ -301,7 +301,7 @@
     }
     
     .table td, .table th {
-        white-space: nowrap;
+        white-space: normal;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
     }
