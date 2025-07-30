@@ -97,7 +97,7 @@ Format function calls like this:
 			if (ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true)
 			{
 				var functions = options.Tools.OfType<KernelFunction>().ToList();
-				if (functions.Any())
+				if (functions.Count != 0)
 				{
 					// Create a proper function definition description for each tool
 					var functionDefinitions = new StringBuilder();

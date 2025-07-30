@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				})
 				.ToListAsync();
 
-			if (!holdingData.Any())
+			if (holdingData.Count == 0)
 			{
 				return [];
 			}
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 			var allMarketData = new Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, Money>>();
 
-			if (symbolProfileKeys.Any())
+			if (symbolProfileKeys.Count != 0)
 			{
 				// Extract the symbol/datasource pairs to local variables to avoid closure in LINQ
 				var symbols = symbolProfileKeys.Select(x => x.Symbol).ToList();

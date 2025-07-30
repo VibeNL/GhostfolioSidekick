@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 
 			var dbContextMock = new Mock<DatabaseContext>();
 			dbContextMock.Setup(x => x.CurrencyExchangeRates)
-				.ReturnsDbSet(new CurrencyExchangeProfile[0]);
+				.ReturnsDbSet(Array.Empty<CurrencyExchangeProfile>());
 
 			_dbContextFactoryMock.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(dbContextMock.Object);
 

@@ -264,7 +264,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				default:
 					return AssetClass.Undefined;
 			}
-			;
 		}
 
 		private AssetSubClass? ParseQuoteTypeAsSub(string quoteType)
@@ -284,7 +283,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				default:
 					return null;
 			}
-			;
 		}
 	}
 }

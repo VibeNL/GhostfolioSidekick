@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Performance
 {
-	// TODO, make this task optional
 	internal class PerformanceTask(
 		IHoldingPerformanceCalculator holdingPerformanceCalculator,
 		DatabaseContext databaseContext) : IScheduledWork

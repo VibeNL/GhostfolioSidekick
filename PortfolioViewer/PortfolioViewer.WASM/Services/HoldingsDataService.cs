@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					Name = h.Name ?? string.Empty,
 					Quantity = convertedLastSnapshot.Quantity,
 					Symbol = h.Symbol,
-					Sector = h.SectorWeights.Any() ? string.Join(",", h.SectorWeights.Select(x => x.Name)) : "Undefined",
+					Sector = h.SectorWeights.Count != 0 ? string.Join(",", h.SectorWeights.Select(x => x.Name)) : "Undefined",
 					Weight = 0,
 				});
 			}

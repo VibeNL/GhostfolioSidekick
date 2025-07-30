@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			try
 			{
 				var records = ParseRecords(words);
-				return records.Any();
+				return records.Count != 0;
 			}
 			catch
 			{

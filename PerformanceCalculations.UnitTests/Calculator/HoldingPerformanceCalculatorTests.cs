@@ -13,6 +13,7 @@ using Moq;
 
 namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 {
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "Its a test")]
 	public class HoldingPerformanceCalculatorTests : IDisposable
 	{
 		private readonly DbContextOptions<DatabaseContext> _dbContextOptions;

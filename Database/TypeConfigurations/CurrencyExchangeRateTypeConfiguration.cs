@@ -15,9 +15,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
 
-			// Configure shadow properties for foreign key
-			//builder.Property<long>("CurrencyExchangeProfileID").IsRequired();
-
 			builder.ComplexProperty(b => b.Close).Property(p => p.Amount).HasColumnName("Close");
 			builder.ComplexProperty(b => b.Close).ComplexProperty(c => c.Currency).Property(p => p.Symbol).HasColumnName("CurrencyClose");
 

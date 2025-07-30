@@ -57,6 +57,12 @@ namespace GhostfolioSidekick.Database.Repository
 				}
 			}
 
+			if (cachedRates == null)
+			{
+				logger.LogWarning("No exchange rates found for {FromCurrency} to {ToCurrency}.", sourceCurrency, targetCurrency);
+				return 1m; // Default to 1 if no rate is found
+			}
+
 			if (cachedRates.TryGetValue(searchDate, out exchangeRate) && exchangeRate != 0)
 			{
 				return exchangeRate * searchSourceCurrency.Item2 * (1m / searchTargetCurrency.Item2);
@@ -120,6 +126,6 @@ namespace GhostfolioSidekick.Database.Repository
 			}
 		}
 
-		private record ExchangeRateKey(Currency SourceCurrency, Currency TargetCurrency);
+		private sealed record ExchangeRateKey(Currency SourceCurrency, Currency TargetCurrency);
 	}
 }
