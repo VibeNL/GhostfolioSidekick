@@ -87,22 +87,34 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				return;
 			}
 
-			List<object> list = new();
+			List<object> valueList = new();
+			List<object> investedList = new();
 			foreach (var p in TimeSeriesData)
 			{
-				list.Add(await Sum(p.Value, p.Date, CurrencyExchange));
+				valueList.Add(await Sum(p.Value, p.Date, CurrencyExchange));
+				investedList.Add(await Sum(p.Invested, p.Date, CurrencyExchange));
 			}
 
-			var lineTrace = new Scatter
+			var valueTrace = new Scatter
 			{
 				X = TimeSeriesData.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
-				Y = list,
+				Y = valueList,
 				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 				Name = "Portfolio Value",
 				Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#007bff", Width = 2 },
 				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#007bff", Size = 6 }
 			};
-			plotData = new List<ITrace> { lineTrace };
+			var investedTrace = new Scatter
+			{
+				X = TimeSeriesData.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
+				Y = investedList,
+				Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+				Name = "Invested Amount",
+				Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#28a745", Width = 2 },
+				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 6 }
+			};
+
+			plotData = new List<ITrace> { valueTrace, investedTrace };
 			plotLayout = new Plotly.Blazor.Layout
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Portfolio Value Over Time" },
