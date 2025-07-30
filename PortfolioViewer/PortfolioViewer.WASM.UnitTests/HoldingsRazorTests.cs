@@ -54,14 +54,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 RefreshCount++;
                 return Task.FromResult(_holdings);
             }
-            // Stub implementation to satisfy IHoldingsDataService
-            public Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
+
+			public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
+			{
+				// For testing, return a fixed date
+				await Task.Delay(10); // Simulate async delay
+				return DateOnly.FromDateTime(new DateTime(2020, 1, 1));
+			}
+
+			// Stub implementation to satisfy IHoldingsDataService
+			public Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
                 Currency targetCurrency,
                 DateTime startDate,
                 DateTime endDate,
-                string aggregation = "daily",
-                string? assetClass = null,
-                string? sector = null,
                 CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(new List<PortfolioValueHistoryPoint>());

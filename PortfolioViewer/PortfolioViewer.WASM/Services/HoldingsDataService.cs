@@ -85,6 +85,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			return list;
 		}
 
+		public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
+		{
+			// Get the earliest date from the snapshots
+			var minDate = await databaseContext.CalculatedSnapshots
+				.OrderBy(s => s.Date)
+				.Select(s => s.Date)
+				.FirstOrDefaultAsync(cancellationToken);
+			return minDate;
+		}
+
 		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
 			Currency targetCurrency,
 			DateTime startDate,

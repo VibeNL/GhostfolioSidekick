@@ -16,15 +16,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         /// <returns>List of holdings with their current values and performance data</returns>
         Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, CancellationToken cancellationToken = default);
 
-        /// <summary>
-        /// Loads the portfolio value history (time series)
-        /// </summary>
-        /// <param name="targetCurrency">Currency to convert values to</param>
-        /// <param name="startDate">Start date for the time series</param>
-        /// <param name="endDate">End date for the time series</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns>List of portfolio value history points</returns>
-        Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
+		/// <summary>
+		/// Get the earliest date for which we have portfolio data.
+		/// </summary>
+		/// <param name="cancellationToken">Cancellation token for the async operation</param>
+		/// <returns>The date</returns>
+		Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default);
+
+		/// <summary>
+		/// Loads the portfolio value history (time series)
+		/// </summary>
+		/// <param name="targetCurrency">Currency to convert values to</param>
+		/// <param name="startDate">Start date for the time series</param>
+		/// <param name="endDate">End date for the time series</param>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>List of portfolio value history points</returns>
+		Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
             Currency targetCurrency,
             DateTime startDate,
             DateTime endDate,
