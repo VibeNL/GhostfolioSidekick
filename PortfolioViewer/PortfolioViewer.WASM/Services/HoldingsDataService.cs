@@ -89,26 +89,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			Currency targetCurrency,
 			DateTime startDate,
 			DateTime endDate,
-			string aggregation = "daily",
-			string? assetClass = null,
-			string? sector = null,
 			CancellationToken cancellationToken = default)
 		{
 			// Query snapshots in date range
 			var query = databaseContext.CalculatedSnapshots
 				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) && s.Date <= DateOnly.FromDateTime(endDate));
-			// AssetClass and Sector filters are not applied (not available in CalculatedSnapshot)
 
-			//var snapshots = await query.ToListAsync(cancellationToken);
-
-			// Group by aggregation
-			//var grouped = aggregation switch
-			//{
-			//	"monthly" => snapshots.GroupBy(s => new DateTime(s.Date.Year, s.Date.Month, 1)),
-			//	"weekly" => snapshots.GroupBy(s => s.Date.ToDateTime(TimeOnly.MinValue).AddDays(-(int)s.Date.DayOfWeek)),
-			//	_ => snapshots.GroupBy(s => s.Date.ToDateTime(TimeOnly.MinValue).Date)
-			//};
-						
 			var resultQuery = query
 				.GroupBy(s => s.Date)
 				.OrderBy(g => g.Key)
@@ -120,7 +106,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				}).
 				AsSplitQuery();
 
-			return await resultQuery.ToListAsync();
+			return await resultQuery.ToListAsync(cancellationToken);
 		}
 
 		private async Task<CalculatedSnapshot> ConvertToTargetCurrency(Currency targetCurrency, CalculatedSnapshot calculatedSnapshot)

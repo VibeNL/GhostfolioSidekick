@@ -28,24 +28,8 @@
                 <option value="GBP">GBP</option>
             </select>
         </div>
-        <div class="col-md-3">
-            <label for="aggregation" class="form-label">Aggregation</label>
-            <select id="aggregation" class="form-select" @bind="Aggregation">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-            </select>
-        </div>
     </div>
     <div class="row mb-3">
-        <div class="col-md-3">
-            <label for="assetClass" class="form-label">Asset Class</label>
-            <input type="text" id="assetClass" class="form-control" @bind="AssetClassFilter" placeholder="(optional)" />
-        </div>
-        <div class="col-md-3">
-            <label for="sector" class="form-label">Sector</label>
-            <input type="text" id="sector" class="form-control" @bind="SectorFilter" placeholder="(optional)" />
-        </div>
         <div class="col-md-3 d-flex align-items-end">
             <button class="btn btn-primary w-100" @onclick="LoadTimeSeriesAsync" disabled="@IsLoading">
                 <i class="bi bi-bar-chart-line"></i> Load Chart

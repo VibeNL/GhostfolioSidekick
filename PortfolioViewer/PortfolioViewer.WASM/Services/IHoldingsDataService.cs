@@ -22,18 +22,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         /// <param name="targetCurrency">Currency to convert values to</param>
         /// <param name="startDate">Start date for the time series</param>
         /// <param name="endDate">End date for the time series</param>
-        /// <param name="aggregation">Aggregation period (e.g., daily, weekly, monthly)</param>
-        /// <param name="assetClass">Optional asset class filter</param>
-        /// <param name="sector">Optional sector filter</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>List of portfolio value history points</returns>
         Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
             Currency targetCurrency,
             DateTime startDate,
             DateTime endDate,
-            string aggregation = "daily",
-            string? assetClass = null,
-            string? sector = null,
             CancellationToken cancellationToken = default);
     }
 }

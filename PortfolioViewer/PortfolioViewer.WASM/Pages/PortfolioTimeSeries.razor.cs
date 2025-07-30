@@ -22,9 +22,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected DateTime StartDate { get; set; } = DateTime.Today.AddMonths(-6);
 		protected DateTime EndDate { get; set; } = DateTime.Today;
 		protected string SelectedCurrency { get; set; } = "EUR";
-		protected string Aggregation { get; set; } = "daily";
-		protected string? AssetClassFilter { get; set; }
-		protected string? SectorFilter { get; set; }
 
 		// State
 		protected bool IsLoading { get; set; } = false;
@@ -60,10 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				TimeSeriesData = await HoldingsDataService.GetPortfolioValueHistoryAsync(
 					currency,
 					StartDate,
-					EndDate,
-					Aggregation,
-					AssetClassFilter,
-					SectorFilter
+					EndDate
 				) ?? new List<PortfolioValueHistoryPoint>();
 				await PrepareChartData();
 			}
