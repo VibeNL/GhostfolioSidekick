@@ -2,9 +2,9 @@
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 namespace GhostfolioSidekick.Database
@@ -17,6 +17,8 @@ namespace GhostfolioSidekick.Database
 
 		public virtual DbSet<Account> Accounts { get; set; }
 
+		public virtual DbSet<CurrencyExchangeProfile> CurrencyExchangeRates { get; set; }
+
 		public virtual DbSet<SymbolProfile> SymbolProfiles { get; set; }
 
 		public virtual DbSet<Activity> Activities { get; set; }
@@ -26,6 +28,11 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; }
 
 		public virtual DbSet<MarketData> MarketDatas { get; set; }
+
+		// Performance sets
+		public virtual DbSet<HoldingAggregated> HoldingAggregateds { get; set; }
+
+		public virtual DbSet<CalculatedSnapshot> CalculatedSnapshots { get; set; }
 
 		public DatabaseContext()
 		{

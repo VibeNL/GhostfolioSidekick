@@ -5,6 +5,6 @@ namespace GhostfolioSidekick.ExternalDataProvider
 {
 	public interface ICurrencyRepository
 	{
-		Task<IEnumerable<MarketData>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate);
+		Task<IEnumerable<CurrencyExchangeRate>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate);
 	}
 }

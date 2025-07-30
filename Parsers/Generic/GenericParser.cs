@@ -35,12 +35,11 @@ namespace GhostfolioSidekick.Parsers.Generic
 			}
 
 			// Todo: remove when scraper is fixed
-			if (record.ActivityType == PartialActivityType.CashDeposit || record.ActivityType == PartialActivityType.CashWithdrawal)
+			if ((record.ActivityType == PartialActivityType.CashDeposit || 
+				record.ActivityType == PartialActivityType.CashWithdrawal) && 
+				record.Quantity == 0)
 			{
-				if (record.Quantity == 0)
-				{
-					record.Quantity = 1; // Pdcb8
-				}
+				record.Quantity = 1; // Pdcb8
 			}
 
 			switch (record.ActivityType)

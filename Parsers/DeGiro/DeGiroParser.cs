@@ -7,7 +7,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 {
 	public class DeGiroParser : RecordBaseImporter<DeGiroRecord>
 	{
-		private readonly Dictionary<string, bool> KnownHeaderCache = [];
 		private readonly ICurrencyMapper currencyMapper;
 
 		private static IDeGiroStrategy strategy = new DeGiroMultiStrategy(

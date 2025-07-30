@@ -28,6 +28,8 @@
 		
 		CalculatePrice,
 
+		PerformanceCalculations,
+
 		CleanupDatabase,
 
 		SyncAccountsWithGhostfolio,

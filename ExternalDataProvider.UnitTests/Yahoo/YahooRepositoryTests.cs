@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsAssignableFrom<IEnumerable<MarketData>>(result);
+            Assert.IsAssignableFrom<IEnumerable<CurrencyExchangeRate>>(result);
         }
 
         [Fact]

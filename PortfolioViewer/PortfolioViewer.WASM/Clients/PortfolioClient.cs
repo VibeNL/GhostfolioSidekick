@@ -3,10 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.JSInterop;
 using System.Globalization;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 

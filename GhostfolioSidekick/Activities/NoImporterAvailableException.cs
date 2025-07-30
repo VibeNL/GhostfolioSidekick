@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.Activities
 {
 	[Serializable]
 	[ExcludeFromCodeCoverage]
-	internal class NoImporterAvailableException : Exception
+	public class NoImporterAvailableException : Exception
 	{
 		public NoImporterAvailableException()
 		{

@@ -1,10 +1,10 @@
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.JSInterop;
-using System.Reflection;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -68,7 +68,14 @@ public static class Program
 		// Register PortfolioClient for DI
 		builder.Services.AddScoped<Clients.PortfolioClient>();
 
+		builder.Services.AddSingleton<ITestContextService, TestContextService>();
+
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
+
+		// Performance Calculations
+		builder.Services.AddMemoryCache();
+		builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
+		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
 
 		var app = builder.Build();
 

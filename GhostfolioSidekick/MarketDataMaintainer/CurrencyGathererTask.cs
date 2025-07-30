@@ -3,7 +3,6 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
@@ -93,7 +92,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			foreach (var match in currenciesMatches)
 			{
-				string symbolString = match.Item1.Currency.Symbol + match.Item2.Currency.Symbol;
+				var sourceCurrency = match.Item1.Currency;
+				var targetCurrency = match.Item2.Currency;
 				DateOnly fromDate = DateOnly.FromDateTime(new DateTime[] { match.Item1.Date, match.Item2.Date }.Min());
 
 				var currencyHistory = await currencyRepository.GetCurrencyHistory(match.Item1.Currency, match.Item2.Currency, fromDate);
@@ -101,33 +101,27 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				{
 					using var writeDatabaseContext = await databaseContextFactory.CreateDbContextAsync();
 
-					var symbolProfile = await writeDatabaseContext.SymbolProfiles
-						.Where(x => x.Symbol == symbolString)
-						.FirstOrDefaultAsync() ?? new SymbolProfile(symbolString, symbolString, [], match.Item1.Currency with { }, Datasource.YAHOO, AssetClass.Undefined, null, [], []);
+					var currencyExchangeProfile = await writeDatabaseContext.CurrencyExchangeRates
+						.Where(x => x.SourceCurrency == sourceCurrency && x.TargetCurrency == targetCurrency)
+						.FirstOrDefaultAsync() ?? new CurrencyExchangeProfile(sourceCurrency, targetCurrency);
 					
 					foreach (var item in currencyHistory)
 					{
-						var existing = symbolProfile.MarketData.SingleOrDefault(x => x.Date == item.Date);
+						var existing = currencyExchangeProfile.Rates.SingleOrDefault(x => x.Date == item.Date);
 
 						if (existing != null)
 						{
-							var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
-							ComparisonResult result = compareLogic.Compare(existing, item);
-
-							if (result.AreEqual)
-							{
-								continue;
-							}
-							
-							symbolProfile.MarketData.Remove(existing);
+							existing.CopyFrom(item);
 						}
-
-						symbolProfile.MarketData.Add(item);
+						else
+						{
+							currencyExchangeProfile.Rates.Add(item);
+						}
 					}
 
-					if (!await writeDatabaseContext.SymbolProfiles.ContainsAsync(symbolProfile).ConfigureAwait(false))
+					if (!await writeDatabaseContext.CurrencyExchangeRates.ContainsAsync(currencyExchangeProfile).ConfigureAwait(false))
 					{
-						await writeDatabaseContext.SymbolProfiles.AddAsync(symbolProfile);
+						await writeDatabaseContext.CurrencyExchangeRates.AddAsync(currencyExchangeProfile);
 					}
 
 					await writeDatabaseContext.SaveChangesAsync();

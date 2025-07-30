@@ -11,6 +11,7 @@ using GhostfolioSidekick.Sync;
 
 namespace GhostfolioSidekick.UnitTests.Sync
 {
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "Its a test")]
 	public class SyncManualSymbolsWithGhostfolioTaskTests : IDisposable
 	{
 		private readonly DbContextOptions<DatabaseContext> _dbContextOptions;

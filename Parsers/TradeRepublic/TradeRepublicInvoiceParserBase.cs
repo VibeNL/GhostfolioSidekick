@@ -117,13 +117,10 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					headers.Clear();
 				}
 
-				if (!inHeader && headers.Count == 4) // parsing rows buys and sells
+				if (!inHeader && headers.Count == 4 && !hasMainActivityParsed) // parsing rows buys and sells
 				{
-					if (!hasMainActivityParsed)
-					{
-						i = ParseSecurityRecord(words, i, dateTime.GetValueOrDefault(), headers, activities);
-						hasMainActivityParsed = true;
-					}
+					i = ParseSecurityRecord(words, i, dateTime.GetValueOrDefault(), headers, activities);
+					hasMainActivityParsed = true;
 				}
 
 				if (!inHeader && headers.Count == 2) // parsing fees
