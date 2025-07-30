@@ -227,6 +227,7 @@ ghostfoliosidekick:
 |**GHOSTFOLIO_URL**  | The endpoint for your ghostfolio instance.   |
 |**GHOSTFOLIO_ACCESTOKEN**  | The token as used to 'login' in the UI |
 |**FILEIMPORTER_PATH**  | The path to the files (see [Import Path]) |
+|**DATABASE_PATH** | The path to the database file. If it is only a path the file will be named 'ghostfolio.db'. In case this variable is not specified, it will be placed in the **FILEIMPORTER_PATH** folder |
 |**CONFIGURATIONFILE_PATH**  | (optional) The path to the config file, for example '/files/config/config.json' |
 |**TROTTLE_WAITINSECONDS**  | (optional) The time in seconds between calls to Ghostfolio. Defaults to no waittime. |
 
