@@ -1,0 +1,98 @@
+@page "/portfolio-timeseries"
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+
+<PageTitle>Portfolio Time Series</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h1 class="display-4">Portfolio Time Series</h1>
+            <p class="text-muted">View the historical value of your portfolio over time.</p>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" id="startDate" class="form-control" @bind="StartDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" id="endDate" class="form-control" @bind="EndDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="currency" class="form-label">Currency</label>
+            <select id="currency" class="form-select" @bind="SelectedCurrency">
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="aggregation" class="form-label">Aggregation</label>
+            <select id="aggregation" class="form-select" @bind="Aggregation">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label for="assetClass" class="form-label">Asset Class</label>
+            <input type="text" id="assetClass" class="form-control" @bind="AssetClassFilter" placeholder="(optional)" />
+        </div>
+        <div class="col-md-3">
+            <label for="sector" class="form-label">Sector</label>
+            <input type="text" id="sector" class="form-control" @bind="SectorFilter" placeholder="(optional)" />
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primary w-100" @onclick="LoadTimeSeriesAsync" disabled="@IsLoading">
+                <i class="bi bi-bar-chart-line"></i> Load Chart
+            </button>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="text-muted">Loading Time Series Data...</h5>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="LoadTimeSeriesAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (TimeSeriesData.Count == 0)
+    {
+        <div class="row">
+            <div class="col-12 text-center">
+                <h5 class="text-muted">No time series data found for the selected filters.</h5>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+            </div>
+        </div>
+    }
+</div>

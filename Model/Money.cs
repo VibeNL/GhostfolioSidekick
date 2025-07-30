@@ -104,6 +104,14 @@ namespace GhostfolioSidekick.Model
 			return new Money(firstCurrency, totalAmount);
 		}
 
+		public static Money[] SumPerCurrency(IEnumerable<Money> enumerable)
+		{
+			var grouped = enumerable
+				.GroupBy(m => m.Currency)
+				.ToDictionary(g => g.Key, Sum);
+			return grouped.Values.ToArray();
+		}
+
 		public int CompareTo(Money? other)
 		{
 			if (other is null)
@@ -112,7 +120,6 @@ namespace GhostfolioSidekick.Model
 			}
 
 			return Amount.CompareTo(other.Amount);
-
 		}
 	}
 }

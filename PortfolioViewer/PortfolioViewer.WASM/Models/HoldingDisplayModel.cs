@@ -1,7 +1,9 @@
 using GhostfolioSidekick.Model;
+using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {
+
     public class HoldingDisplayModel
     {
         public string Symbol { get; set; } = string.Empty;

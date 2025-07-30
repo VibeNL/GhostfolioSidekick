@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
@@ -82,6 +83,44 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 
 			return list;
+		}
+
+		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
+			Currency targetCurrency,
+			DateTime startDate,
+			DateTime endDate,
+			string aggregation = "daily",
+			string? assetClass = null,
+			string? sector = null,
+			CancellationToken cancellationToken = default)
+		{
+			// Query snapshots in date range
+			var query = databaseContext.CalculatedSnapshots
+				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) && s.Date <= DateOnly.FromDateTime(endDate));
+			// AssetClass and Sector filters are not applied (not available in CalculatedSnapshot)
+
+			//var snapshots = await query.ToListAsync(cancellationToken);
+
+			// Group by aggregation
+			//var grouped = aggregation switch
+			//{
+			//	"monthly" => snapshots.GroupBy(s => new DateTime(s.Date.Year, s.Date.Month, 1)),
+			//	"weekly" => snapshots.GroupBy(s => s.Date.ToDateTime(TimeOnly.MinValue).AddDays(-(int)s.Date.DayOfWeek)),
+			//	_ => snapshots.GroupBy(s => s.Date.ToDateTime(TimeOnly.MinValue).Date)
+			//};
+						
+			var resultQuery = query
+				.GroupBy(s => s.Date)
+				.OrderBy(g => g.Key)
+				.Select(g => new PortfolioValueHistoryPoint
+				{
+					Date = g.Key,
+					Value = Money.SumPerCurrency(g.Select(x => x.TotalValue)),
+					Invested = Money.SumPerCurrency(g.Select(x => x.TotalInvested)),
+				}).
+				AsSplitQuery();
+
+			return await resultQuery.ToListAsync();
 		}
 
 		private async Task<CalculatedSnapshot> ConvertToTargetCurrency(Currency targetCurrency, CalculatedSnapshot calculatedSnapshot)
