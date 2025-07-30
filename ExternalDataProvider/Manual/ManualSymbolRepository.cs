@@ -1,36 +1,55 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.GhostfolioAPI;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.Sync
+namespace GhostfolioSidekick.ExternalDataProvider.Manual
 {
-	internal class SyncManualSymbolsWithGhostfolioTask(
-			IDbContextFactory<DatabaseContext> databaseContextFactory,
-			IGhostfolioSync ghostfolioSync,
-			ICurrencyExchange currencyExchange) : IScheduledWork
+	public class ManualSymbolRepository(
+			DatabaseContext databaseContext,
+			ICurrencyExchange currencyExchange) : ISymbolMatcher, IStockPriceRepository
 	{
-		public TaskPriority Priority => TaskPriority.SyncManualActivitiesWithGhostfolio;
+		public string DataSource => Datasource.MANUAL;
 
-		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
+		public DateOnly MinDate => throw new NotImplementedException();
 
-		public bool ExceptionsAreFatal => false;
-
-		public async Task DoWork()
+		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
-			await using var databaseContext = databaseContextFactory.CreateDbContext();
-			var manualSymbolProfiles = await databaseContext.SymbolProfiles.Where(x => x.DataSource == Datasource.MANUAL).ToListAsync();
-			await ghostfolioSync.SyncSymbolProfiles(manualSymbolProfiles);
-
-			foreach (var profile in manualSymbolProfiles)
+			foreach (var identifier in symbolIdentifiers)
 			{
-				var list = await CalculatePricesBasedOnActivityUnitPrice(databaseContext, profile);
-				await ghostfolioSync.SyncMarketData(profile, list);
+				var symbolProfileQuery = databaseContext.SymbolProfiles
+						.Where(x => x.DataSource == Datasource.MANUAL);
+
+				var symbolProfile = (await symbolProfileQuery
+						.Where(x => identifier.AllowedAssetClasses == null || !identifier.AllowedAssetClasses!.Any() || identifier.AllowedAssetClasses!.Contains(x.AssetClass))
+						.Where(x => identifier.AllowedAssetSubClasses == null || x.AssetSubClass == null || !identifier.AllowedAssetSubClasses!.Any() || identifier.AllowedAssetSubClasses!.Contains(x.AssetSubClass.Value))
+						.ToListAsync()) // SQLlite does not support string operations that well
+						.FirstOrDefault(x =>
+							string.Equals(x.Symbol, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
+							string.Equals(x.ISIN, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
+							string.Equals(x.Name, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase) ||
+							x.Identifiers.Any(y => string.Equals(y, identifier.Identifier, StringComparison.InvariantCultureIgnoreCase)));
+				if (symbolProfile != null)
+				{
+					return symbolProfile;
+				}
 			}
+
+			return null;
 		}
+
+		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
+		{
+			var list = await CalculatePricesBasedOnActivityUnitPrice(databaseContext, symbol);
+			return list
+				.Where(x => x.Date >= fromDate)
+				.OrderBy(x => x.Date)
+				.ToList();
+		}
+
 
 		private async Task<ICollection<MarketData>> CalculatePricesBasedOnActivityUnitPrice(
 				DatabaseContext databaseContext,

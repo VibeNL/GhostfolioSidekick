@@ -30,15 +30,14 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
 		}
 
-		private DatabaseContext CreateTask(out SyncManualSymbolsWithGhostfolioTask task)
+		private DatabaseContext CreateTask(out SyncManualActivitiesmarketDataWithGhostfolioTask task)
 		{
 			var context = new DatabaseContext(_dbContextOptions);
 			context.Database.EnsureCreated();
 
-			task = new SyncManualSymbolsWithGhostfolioTask(
+			task = new SyncManualActivitiesmarketDataWithGhostfolioTask(
 				new DbContextFactory(context),
-				_mockGhostfolioSync.Object,
-				_mockCurrencyExchange.Object);
+				_mockGhostfolioSync.Object);
 
 			return context;
 		}
@@ -47,7 +46,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		public async Task DoWork_ShouldSyncSymbolProfilesAndMarketData()
 		{
 			// Arrange
-			using var context = CreateTask(out SyncManualSymbolsWithGhostfolioTask task);
+			using var context = CreateTask(out SyncManualActivitiesmarketDataWithGhostfolioTask task);
 			var symbol = new SymbolProfile
 			{
 				Symbol = "W",
@@ -84,7 +83,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		public async Task DoWork_ShouldHandleEmptySymbolProfiles()
 		{
 			// Arrange
-			using var context = CreateTask(out SyncManualSymbolsWithGhostfolioTask task);
+			using var context = CreateTask(out SyncManualActivitiesmarketDataWithGhostfolioTask task);
 
 			// Act
 			await task.DoWork();
@@ -98,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		public async Task DoWork_ShouldHandleEmptyActivities()
 		{
 			// Arrange
-			using var context = CreateTask(out SyncManualSymbolsWithGhostfolioTask task);
+			using var context = CreateTask(out SyncManualActivitiesmarketDataWithGhostfolioTask task);
 			var symbol = new SymbolProfile
 			{
 				Symbol = "W",
