@@ -35,10 +35,9 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			var context = new DatabaseContext(_dbContextOptions);
 			context.Database.EnsureCreated();
 
-			task = new SyncManualSymbolsWithGhostfolioTask(
+			task = new SyncManualActivitiesmarketDataWithGhostfolioTask(
 				new DbContextFactory(context),
-				_mockGhostfolioSync.Object,
-				_mockCurrencyExchange.Object);
+				_mockGhostfolioSync.Object);
 
 			return context;
 		}
