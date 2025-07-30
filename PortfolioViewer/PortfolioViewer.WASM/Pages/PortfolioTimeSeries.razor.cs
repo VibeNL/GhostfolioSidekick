@@ -23,6 +23,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected DateTime EndDate { get; set; } = DateTime.Today;
 		protected string SelectedCurrency { get; set; } = "EUR";
 
+		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
+
 		// State
 		protected bool IsLoading { get; set; } = false;
 		protected bool HasError { get; set; } = false;
@@ -59,6 +61,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					StartDate,
 					EndDate
 				) ?? new List<PortfolioValueHistoryPoint>();
+				MinDate = TimeSeriesData.Count > 0 ? TimeSeriesData.Min(p => p.Date) : DateOnly.FromDayNumber(1);
 				await PrepareChartData();
 			}
 			catch (Exception ex)

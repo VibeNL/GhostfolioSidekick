@@ -12,6 +12,19 @@
     </div>
 
     <div class="row mb-3">
+        <div class="col-12">
+            <div class="btn-group mb-2" role="group" aria-label="Quick Date Ranges">
+                <button class="btn btn-outline-primary" @onclick='() => SetDateRange("LastWeek")'>Last Week</button>
+                <button class="btn btn-outline-primary" @onclick='() => SetDateRange("LastMonth")'>Last Month</button>
+                <button class="btn btn-outline-primary" @onclick='() => SetDateRange("YearToDate")'>Year to Date</button>
+                <button class="btn btn-outline-primary" @onclick='() => SetDateRange("OneYear")'>1 Year</button>
+                <button class="btn btn-outline-primary" @onclick='() => SetDateRange("FiveYear")'>5 Year</button>
+                <button class="btn btn-outline-primary" @onclick='() => SetDateRange("Max")'>Max Range</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
         <div class="col-md-3">
             <label for="startDate" class="form-label">Start Date</label>
             <input type="date" id="startDate" class="form-control" @bind="StartDate" />
@@ -80,3 +93,41 @@
         </div>
     }
 </div>
+
+@code {
+    // Only SetDateRange method here, properties are defined in .razor.cs
+    private void SetDateRange(string range)
+    {
+        var today = DateTime.Today;
+        switch (range)
+        {
+            case "LastWeek":
+                StartDate = today.AddDays(-7);
+                EndDate = today;
+                break;
+            case "LastMonth":
+                StartDate = today.AddMonths(-1);
+                EndDate = today;
+                break;
+            case "YearToDate":
+                StartDate = new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                EndDate = today;
+                break;
+            case "OneYear":
+                StartDate = today.AddYears(-1);
+                EndDate = today;
+                break;
+            case "FiveYear":
+                StartDate = today.AddYears(-5);
+                EndDate = today;
+                break;
+            case "Max":
+                StartDate = MinDate.ToDateTime(TimeOnly.MinValue); // Adjust to your earliest data date if needed
+                EndDate = today;
+                break;
+        }
+
+        // Trigger the chart update
+        LoadTimeSeriesAsync();
+    }
+}
