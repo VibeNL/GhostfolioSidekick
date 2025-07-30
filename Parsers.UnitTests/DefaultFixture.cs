@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {
-	public class DefaultFixture
+	public static class DefaultFixture
 	{
 		public static Fixture Create()
 		{
