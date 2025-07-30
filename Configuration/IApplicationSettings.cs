@@ -4,6 +4,8 @@
 	{
 		string FileImporterPath { get; }
 
+		string DatabasePath { get; }
+
 		string GhostfolioUrl { get; }
 
 		string GhostfolioAccessToken { get; }

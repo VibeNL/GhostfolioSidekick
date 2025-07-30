@@ -7,6 +7,7 @@ namespace GhostfolioSidekick.Configuration
 		private const string URL = "GHOSTFOLIO_URL";
 		private const string ACCESSTOKEN = "GHOSTFOLIO_ACCESTOKEN";
 		private const string PATHFILES = "FILEIMPORTER_PATH";
+		private const string DATABASEPATH = "DATABASE_PATH";
 		private const string CONFIGURATIONFILE = "CONFIGURATIONFILE_PATH";
 		private const string TROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
 
@@ -25,6 +26,8 @@ namespace GhostfolioSidekick.Configuration
 		}
 
 		public string FileImporterPath => Environment.GetEnvironmentVariable(PATHFILES)!;
+
+		public string DatabasePath => Environment.GetEnvironmentVariable(DATABASEPATH)!;
 
 		public string GhostfolioAccessToken => Environment.GetEnvironmentVariable(ACCESSTOKEN)!;
 
