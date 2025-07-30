@@ -99,7 +99,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<YahooRepository>();
 							services.AddSingleton<CoinGeckoRepository>();
 							services.AddSingleton<GhostfolioSymbolMatcher>();
-							services.AddSingleton<ManualSymbolMatcher>();
+							services.AddSingleton<ManualSymbolRepository>();
 							services.AddTransient<ICoinGeckoRestClient, CoinGeckoRestClient>();
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
@@ -107,9 +107,9 @@ namespace GhostfolioSidekick
 									sp.GetRequiredService<YahooRepository>(),
 									sp.GetRequiredService<CoinGeckoRepository>(),
 									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
-									sp.GetRequiredService<ManualSymbolMatcher>()
+									sp.GetRequiredService<ManualSymbolRepository>()
 								]);
-							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>()]);
+							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
