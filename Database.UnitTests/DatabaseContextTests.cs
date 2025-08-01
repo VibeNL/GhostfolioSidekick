@@ -63,6 +63,7 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 				CalculatedSnapshots = 
 				{
 					new CalculatedSnapshot(
+						0, 0,
 						DateOnly.FromDateTime(DateTime.Today),
 						100m,
 						new Money(Currency.USD, 50m),

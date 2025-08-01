@@ -30,6 +30,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                     {
                         new CalculatedSnapshot(
                             1,
+							0,
                             new DateOnly(2024,1,1),
                             10,
                             new Money(targetCurrency, 100),
@@ -116,6 +117,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var originalCurrency = Currency.EUR;
             var snapshot = new CalculatedSnapshot(
                 1,
+				0,
                 new DateOnly(2024,1,1),
                 10,
                 new Money(originalCurrency, 100),

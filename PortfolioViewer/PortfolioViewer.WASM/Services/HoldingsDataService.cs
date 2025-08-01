@@ -44,14 +44,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 			foreach (var h in holdingProjections)
 			{
-				CalculatedSnapshot lastSnapshot = null;
+				CalculatedSnapshot lastSnapshot;
 				if (h.LastSnapshotId.HasValue && snapshotsDict.TryGetValue(h.LastSnapshotId.Value, out var snap))
 				{
 					lastSnapshot = snap;
 				}
 				else
 				{
-					lastSnapshot = CalculatedSnapshot.Empty(targetCurrency);
+					lastSnapshot = CalculatedSnapshot.Empty(targetCurrency, 0);
 				}
 
 				var convertedLastSnapshot = await ConvertToTargetCurrency(targetCurrency, lastSnapshot);
