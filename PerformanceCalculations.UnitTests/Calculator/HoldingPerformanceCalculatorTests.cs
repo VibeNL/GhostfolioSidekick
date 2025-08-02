@@ -184,6 +184,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			firstSnapshot.Date.Should().Be(DateOnly.FromDateTime(buyDate));
 			firstSnapshot.Quantity.Should().Be(100);
 			firstSnapshot.TotalValue.Amount.Should().Be(155 * 100); // Market price * quantity
+			firstSnapshot.TotalInvested.Amount.Should().Be(150 * 100); // Unit price * quantity (TotalTransactionAmount)
 		}
 
 		[Fact]
@@ -254,10 +255,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(150); // Total quantity
 			finalSnapshot.TotalValue.Amount.Should().Be(155 * 150); // Today's market price * total quantity
+			finalSnapshot.TotalInvested.Amount.Should().Be((100 * 150) + (50 * 160)); // First buy: 100*150 + Second buy: 50*160 = 23000
 		}
 
 		[Fact]
-		public async Task GetCalculatedHoldings_ShouldHandleSellActivities_ReduceQuantityCorrectly()
+		public async Task GetCalculatedHoldings_ShouldHandleSellActivities_ReduceQuantityAndTotalInvested()
 		{
 			// Arrange
 			using var context = CreateDatabaseContext();
@@ -308,6 +310,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holdingAggregated = result.First();
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(70); // 100 - 30
+			// TotalInvested: buy 100*150 = 15000, sell reduces by (-30)*160 = -4800, total = 10200
+			finalSnapshot.TotalInvested.Amount.Should().Be(10200);
 		}
 
 		[Fact]
@@ -605,7 +609,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 		private static BuySellActivity CreateBuySellActivity(Account account, DateTime date, decimal quantity, Money unitPrice, string transactionId)
 		{
-			return new BuySellActivity(
+			var activity = new BuySellActivity(
 				account,
 				null,
 				[],
@@ -619,6 +623,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 				AdjustedQuantity = quantity,
 				AdjustedUnitPrice = unitPrice
 			};
+			
+			// Set TotalTransactionAmount to quantity * unitPrice (for testing purposes)
+			activity.TotalTransactionAmount = new Money(unitPrice.Currency, Math.Abs(quantity) * unitPrice.Amount);
+			
+			return activity;
 		}
 
 		public void Dispose()
@@ -634,6 +643,76 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			{
 				// Ignore cleanup errors
 			}
+		}
+
+		[Fact]
+		public async Task GetCalculatedHoldings_ShouldCalculateTotalInvested_WithBuyAndSellActivities()
+		{
+			// Arrange
+			using var context = CreateDatabaseContext();
+			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
+			var account = CreateAccount("Test Account");
+			
+			var buyDate = DateTime.Today.AddDays(-10);
+			var sellDate = DateTime.Today.AddDays(-5);
+			
+			var activities = new[]
+			{
+				CreateBuySellActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
+				CreateBuySellActivity(account, sellDate, -30, new Money(Currency.USD, 160), "T2") // Sell 30 shares
+			};
+			var holding = CreateHolding([symbolProfile], activities);
+
+			// Add market data
+			var marketData1 = new MarketData
+			{
+				Date = DateOnly.FromDateTime(buyDate),
+				Close = new Money(Currency.USD, 155),
+				Open = new Money(Currency.USD, 150),
+				High = new Money(Currency.USD, 160),
+				Low = new Money(Currency.USD, 145),
+				TradingVolume = 1000000
+			};
+			var marketData2 = new MarketData
+			{
+				Date = DateOnly.FromDateTime(sellDate),
+				Close = new Money(Currency.USD, 165),
+				Open = new Money(Currency.USD, 160),
+				High = new Money(Currency.USD, 170),
+				Low = new Money(Currency.USD, 155),
+				TradingVolume = 800000
+			};
+			symbolProfile.MarketData.Add(marketData1);
+			symbolProfile.MarketData.Add(marketData2);
+
+			context.Holdings.Add(holding);
+			await context.SaveChangesAsync();
+
+			var calculator = CreateCalculator(context);
+
+			// Act
+			var result = await calculator.GetCalculatedHoldings();
+
+			// Assert
+			var holdingAggregated = result.First();
+			
+			// Check first snapshot (buy day)
+			var firstSnapshot = holdingAggregated.CalculatedSnapshots.First();
+			firstSnapshot.Date.Should().Be(DateOnly.FromDateTime(buyDate));
+			firstSnapshot.Quantity.Should().Be(100);
+			firstSnapshot.TotalInvested.Amount.Should().Be(15000); // 100 * 150
+			
+			// Check sell day snapshot
+			var sellSnapshot = holdingAggregated.CalculatedSnapshots
+				.FirstOrDefault(s => s.Date == DateOnly.FromDateTime(sellDate));
+			sellSnapshot.Should().NotBeNull();
+			sellSnapshot!.Quantity.Should().Be(70); // 100 - 30
+			sellSnapshot.TotalInvested.Amount.Should().Be(10200); // 15000 - (30 * 160) = 10200
+			
+			// Check final snapshot
+			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
+			finalSnapshot.Quantity.Should().Be(70); // 100 - 30
+			finalSnapshot.TotalInvested.Amount.Should().Be(10200); // Should remain the same
 		}
 	}
 }
