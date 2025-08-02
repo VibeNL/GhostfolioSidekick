@@ -212,7 +212,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, activity.Quantity);
 						snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
-						snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
+						snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal.Times(Math.Sign(activity.Quantity)));
 					}
 				}
 
