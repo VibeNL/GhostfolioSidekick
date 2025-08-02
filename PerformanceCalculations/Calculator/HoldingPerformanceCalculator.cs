@@ -205,10 +205,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 							activity.AdjustedUnitPrice,
 							targetCurrency,
 							date).ConfigureAwait(false);
+						var convertedTotal = await currencyExchange.ConvertMoney(
+							activity.TotalTransactionAmount,
+							targetCurrency,
+							date).ConfigureAwait(false);
 
 						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, activity.Quantity);
 						snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
-						snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedAdjustedUnitPrice.Times(activity.AdjustedQuantity));
+						snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
 					}
 				}
 
