@@ -10,7 +10,10 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
+			// Delete old snapshots without account ID
+			migrationBuilder.Sql("DELETE FROM CalculatedSnapshots");
+
+			migrationBuilder.AddColumn<int>(
                 name: "AccountId",
                 table: "CalculatedSnapshots",
                 type: "INTEGER",

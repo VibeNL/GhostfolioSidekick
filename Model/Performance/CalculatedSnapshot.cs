@@ -40,6 +40,7 @@
 			CurrentUnitPrice = original.CurrentUnitPrice;
 			TotalInvested = original.TotalInvested;
 			TotalValue = original.TotalValue;
+			AccountId = original.AccountId;
 		}
 
 		public static CalculatedSnapshot Empty(Currency currency, int accountId) => new(0, accountId, DateOnly.MinValue, 0, Money.Zero(currency), Money.Zero(currency), Money.Zero(currency), Money.Zero(currency));
