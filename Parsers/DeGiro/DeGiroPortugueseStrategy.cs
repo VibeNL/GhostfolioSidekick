@@ -71,21 +71,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return decimal.Parse(quantity, GetCultureForParsingNumbers());
 		}
 
-		public decimal? GetTotal(DeGiroRecord record)
-		{
-			if (string.IsNullOrWhiteSpace(record.Total))
-			{
-				return null;
-			}
-
-			return decimal.Parse(record.Total, GetCultureForParsingNumbers());
-		}
-
-		public decimal GetBalance(DeGiroRecord record)
-		{
-			return decimal.Parse(record.Balance, GetCultureForParsingNumbers());
-		}
-
 		public Currency GetCurrency(DeGiroRecord record, ICurrencyMapper currencyMapper)
 		{
 			var currency = Regex.Match(record.Description!, "[Venda|Compra] (?<amount>\\d+) (.*)@(?<price>[0-9]+[,0-9]+) (?<currency>[A-Z]+)", RegexOptions.None, TimeSpan.FromMilliseconds(100)).Groups[4].Value;

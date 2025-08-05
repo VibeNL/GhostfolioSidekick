@@ -77,21 +77,6 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return currencyMapper.Map(currency);
 		}
 
-		public decimal? GetTotal(DeGiroRecord record)
-		{
-			if (string.IsNullOrWhiteSpace(record.Total))
-			{
-				return null;
-			}
-
-			return decimal.Parse(record.Total, GetCultureForParsingNumbers());
-		}
-
-		public decimal GetBalance(DeGiroRecord record)
-		{
-			return decimal.Parse(record.Balance, GetCultureForParsingNumbers());
-		}
-
 		public void SetGenerateTransactionIdIfEmpty(DeGiroRecord record, DateTime recordDate)
 		{
 			if (!string.IsNullOrWhiteSpace(record.TransactionId))
