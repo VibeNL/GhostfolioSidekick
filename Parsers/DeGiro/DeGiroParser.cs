@@ -27,14 +27,14 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			var knownBalance = PartialActivity.CreateKnownBalance(
 				currencyMapper.Map(record.BalanceCurrency),
 				recordDate,
-				record.Balance,
+				GetNumber(record.Balance),
 				rowNumber);
 			PartialActivity? partialActivity;
 
 			var activityType = strategy.GetActivityType(record);
 
 			var currencyRecord = !string.IsNullOrWhiteSpace(record.Mutation) ? currencyMapper.Map(record.Mutation) : strategy.GetCurrency(record, currencyMapper);
-			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
+			var recordTotal = Math.Abs(GetNumber(record.Total));
 
 			strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
 
@@ -87,6 +87,27 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			}
 
 			return [knownBalance, partialActivity];
+		}
+
+		private static decimal GetNumber(string text)
+		{
+			if (string.IsNullOrWhiteSpace(text))
+			{
+				return 0;
+			}
+
+			// If the last seperator is a comma, replace it with a dot
+			if (text.LastIndexOf(',') > text.LastIndexOf('.'))
+			{
+				text = text.Replace(',', '.');
+			}
+
+			if (decimal.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out var result))
+			{
+				return result;
+			}
+
+			return 0;
 		}
 
 		private static decimal GetRecordTotal(decimal recordTotal, decimal quantity, decimal unitPrice)
