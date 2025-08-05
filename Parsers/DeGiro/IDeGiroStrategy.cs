@@ -11,6 +11,10 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		decimal GetUnitPrice(DeGiroRecord record);
 
+		decimal? GetTotal(DeGiroRecord record);
+
+		decimal GetBalance(DeGiroRecord record);
+
 		Currency GetCurrency(DeGiroRecord record, ICurrencyMapper currencyMapper);
 
 		void SetGenerateTransactionIdIfEmpty(DeGiroRecord record, DateTime recordDate);

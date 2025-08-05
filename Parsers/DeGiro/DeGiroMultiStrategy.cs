@@ -19,6 +19,20 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return null;
 		}
 
+		public decimal GetBalance(DeGiroRecord record)
+		{
+			foreach (var strategy in strategies)
+			{
+				var balance = strategy.GetBalance(record);
+				if (balance != 0)
+				{
+					return balance;
+				}
+			}
+
+			return 0;
+		}
+
 		public Currency GetCurrency(DeGiroRecord record, ICurrencyMapper currencyMapper)
 		{
 			foreach (var strategy in strategies)
@@ -55,6 +69,20 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			}
 
 			return 0;
+		}
+
+		public decimal? GetTotal(DeGiroRecord record)
+		{
+			foreach (var strategy in strategies)
+			{
+				var total = strategy.GetTotal(record);
+				if (total != null)
+				{
+					return total;
+				}
+			}
+
+			return null;
 		}
 
 		public decimal GetUnitPrice(DeGiroRecord record)

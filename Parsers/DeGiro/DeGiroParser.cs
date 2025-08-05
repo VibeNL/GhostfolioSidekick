@@ -27,14 +27,14 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			var knownBalance = PartialActivity.CreateKnownBalance(
 				currencyMapper.Map(record.BalanceCurrency),
 				recordDate,
-				record.Balance,
+				strategy.GetBalance(record),
 				rowNumber);
 			PartialActivity? partialActivity;
 
 			var activityType = strategy.GetActivityType(record);
 
 			var currencyRecord = !string.IsNullOrWhiteSpace(record.Mutation) ? currencyMapper.Map(record.Mutation) : strategy.GetCurrency(record, currencyMapper);
-			var recordTotal = Math.Abs(record.Total.GetValueOrDefault());
+			var recordTotal = Math.Abs(strategy.GetTotal(record) ?? 0);
 
 			strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
 

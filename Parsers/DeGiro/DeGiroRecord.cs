@@ -44,14 +44,14 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 		public required string Mutation { get; set; }
 
 		[Index(8)]
-		public decimal? Total { get; set; }
+		public required string Total { get; set; }
 
 		[Name(	"Balance",	// EN
 				"Saldo")]	// NL & PT
 		public required string BalanceCurrency { get; set; }
 
 		[Index(10)]
-		public decimal Balance { get; set; }
+		public required string Balance { get; set; }
 
 		[Name(	"Order Id",     // EN & NL
 				"ID da Ordem")] // PT
