@@ -126,6 +126,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({SelectedCurrency})" } } },
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 				AutoSize = true,
+				ShowLegend = true,
+				Legend = [new Plotly.Blazor.LayoutLib.Legend
+				{
+					Orientation = Plotly.Blazor.LayoutLib.LegendLib.OrientationEnum.H,
+				}]
 			};
 			plotConfig = new Config { Responsive = true };
 		}
