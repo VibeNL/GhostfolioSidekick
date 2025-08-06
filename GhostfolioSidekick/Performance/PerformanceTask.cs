@@ -31,9 +31,9 @@ namespace GhostfolioSidekick.Performance
 				// Try to find existing entity with its snapshots
 				var existing = await databaseContext.HoldingAggregateds
 					.Include(h => h.CalculatedSnapshots)
-					.FirstOrDefaultAsync(h => 
-						h.Symbol == holding.Symbol && 
-						h.AssetClass == holding.AssetClass && 
+					.FirstOrDefaultAsync(h =>
+						h.Symbol == holding.Symbol &&
+						h.AssetClass == holding.AssetClass &&
 						h.AssetSubClass == holding.AssetSubClass);
 
 				if (existing != null)
@@ -65,14 +65,14 @@ namespace GhostfolioSidekick.Performance
 
 		private static void UpdateCalculatedSnapshots(HoldingAggregated existing, ICollection<CalculatedSnapshot> newSnapshots)
 		{
-			var existingSnapshotsByDate = existing.CalculatedSnapshots.ToDictionary(s => s.Date);
-			var newSnapshotsByDate = newSnapshots.ToDictionary(s => s.Date);
+			var existingSnapshotsByDate = existing.CalculatedSnapshots.ToDictionary(s => new { s.AccountId, s.Date });
+			var newSnapshotsByDate = newSnapshots.ToDictionary(s => new { s.AccountId, s.Date });
 
 			// Remove snapshots that no longer exist in the new calculation
 			var snapshotsToRemove = existing.CalculatedSnapshots
-				.Where(existingSnapshot => !newSnapshotsByDate.ContainsKey(existingSnapshot.Date))
+				.Where(existingSnapshot => !newSnapshotsByDate.ContainsKey(new { existingSnapshot.AccountId, existingSnapshot.Date }))
 				.ToList();
-			
+
 			foreach (var snapshotToRemove in snapshotsToRemove)
 			{
 				existing.CalculatedSnapshots.Remove(snapshotToRemove);
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.Performance
 			// Update existing snapshots or add new ones
 			foreach (var newSnapshot in newSnapshots)
 			{
-				if (existingSnapshotsByDate.TryGetValue(newSnapshot.Date, out var existingSnapshot))
+				if (existingSnapshotsByDate.TryGetValue(new { newSnapshot.AccountId, newSnapshot.Date }, out var existingSnapshot))
 				{
 					UpdateSnapshotProperties(existingSnapshot, newSnapshot);
 				}

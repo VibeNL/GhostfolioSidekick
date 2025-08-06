@@ -6,6 +6,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Pages;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,14 +63,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 				return DateOnly.FromDateTime(new DateTime(2020, 1, 1));
 			}
 
-			// Stub implementation to satisfy IHoldingsDataService
-			public Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
+            // Updated stub implementation to satisfy IHoldingsDataService
+            public Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
                 Currency targetCurrency,
                 DateTime startDate,
                 DateTime endDate,
+                int accountId,
                 CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(new List<PortfolioValueHistoryPoint>());
+            }
+
+            public Task<List<Account>> GetAccountsAsync()
+            {
+                return Task.FromResult(new List<Account>());
             }
         }
 

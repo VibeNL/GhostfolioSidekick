@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Performance;
@@ -50,13 +51,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				.Select(x => new
 				{
 					HoldingId = x.Holding!.Id,
+					AccountId = x.Account.Id,
 					Activity = x
 				})
 				.ToListAsync();
 
 			var activitiesByHolding = activitiesData
 				.GroupBy(x => x.HoldingId)
-				.ToDictionary(g => g.Key, g => g.Select(x => x.Activity).ToList());
+				.ToDictionary(g => g.Key, g => g.Select(x => new { x.AccountId, x.Activity }).ToList());
 
 			// Step 3: Pre-load all MarketData for all symbol profiles to avoid N+1 queries
 			var symbolProfileKeys = holdingData
@@ -130,6 +132,22 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					Currency = sp.Currency
 				}).ToList();
 
+				var accountIds = activities.Select(x => x.AccountId)
+					.Distinct()
+					.ToList();
+				var snapshots = new List<CalculatedSnapshot>();
+
+				foreach (var accountId in accountIds)
+				{
+					var lst = await CalculateSnapShots(
+						defaultSymbolProfile.Currency, 
+						accountId,
+						symbolProfiles, 
+						activities.Where(x => x.AccountId == accountId).Select(x => x.Activity).ToList(), 
+						allMarketData).ConfigureAwait(false);
+					snapshots.AddRange(lst);
+				}
+
 				returnList.Add(new HoldingAggregated
 				{
 					ActivityCount = activities.Count,
@@ -140,7 +158,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					AssetSubClass = defaultSymbolProfile.AssetSubClass,
 					CountryWeight = defaultSymbolProfile.CountryWeight,
 					SectorWeights = defaultSymbolProfile.SectorWeights,
-					CalculatedSnapshots = await CalculateSnapShots(defaultSymbolProfile.Currency, symbolProfiles, activities, allMarketData).ConfigureAwait(false)
+					CalculatedSnapshots = snapshots
 				});
 			}
 
@@ -149,6 +167,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 		private async Task<ICollection<CalculatedSnapshot>> CalculateSnapShots(
 			Currency targetCurrency,
+			int accountId,
 			IList<SymbolProfile> symbolProfiles,
 			ICollection<Activity> activities,
 			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, Money>> preLoadedMarketData)
@@ -169,7 +188,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				.GroupBy(x => DateOnly.FromDateTime(x.Date))
 				.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
 
-			var previousSnapshot = new CalculatedSnapshot(minDate.AddDays(-1), 0, Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency));
+			var previousSnapshot = new CalculatedSnapshot(0, accountId, minDate.AddDays(-1), 0, Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency));
 
 			// Use pre-loaded market data instead of querying database
 			Dictionary<DateOnly, Money> marketData = new(dayCount);

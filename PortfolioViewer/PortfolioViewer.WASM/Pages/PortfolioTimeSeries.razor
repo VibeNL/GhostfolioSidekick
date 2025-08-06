@@ -41,6 +41,16 @@
                 <option value="GBP">GBP</option>
             </select>
         </div>
+        <div class="col-md-3">
+            <label for="account" class="form-label">Account</label>
+            <select id="account" class="form-select" @bind="SelectedAccountId">
+                <option value="0">All Accounts</option>
+                @foreach (var account in Accounts)
+                {
+                    <option value="@account.Id">@account.Name</option>
+                }
+            </select>
+        </div>
     </div>
     <div class="row mb-3">
         <div class="col-md-3 d-flex align-items-end">

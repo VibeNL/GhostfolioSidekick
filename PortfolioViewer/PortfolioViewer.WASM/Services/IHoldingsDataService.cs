@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.Model.Accounts;
 using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
@@ -29,12 +30,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		/// <param name="targetCurrency">Currency to convert values to</param>
 		/// <param name="startDate">Start date for the time series</param>
 		/// <param name="endDate">End date for the time series</param>
+		/// <param name="accountId">Account filter</param>
 		/// <param name="cancellationToken">Cancellation token</param>
 		/// <returns>List of portfolio value history points</returns>
 		Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
             Currency targetCurrency,
             DateTime startDate,
             DateTime endDate,
+            int accountId,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Loads all available accounts
+        /// </summary>
+        /// <returns>List of accounts</returns>
+        Task<List<Account>> GetAccountsAsync();
     }
 }

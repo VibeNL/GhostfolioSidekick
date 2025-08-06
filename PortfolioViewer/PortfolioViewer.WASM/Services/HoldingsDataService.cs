@@ -3,6 +3,7 @@ using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.Model.Accounts;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -44,14 +45,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 			foreach (var h in holdingProjections)
 			{
-				CalculatedSnapshot lastSnapshot = null;
+				CalculatedSnapshot lastSnapshot;
 				if (h.LastSnapshotId.HasValue && snapshotsDict.TryGetValue(h.LastSnapshotId.Value, out var snap))
 				{
 					lastSnapshot = snap;
 				}
 				else
 				{
-					lastSnapshot = CalculatedSnapshot.Empty(targetCurrency);
+					lastSnapshot = CalculatedSnapshot.Empty(targetCurrency, 0);
 				}
 
 				var convertedLastSnapshot = await ConvertToTargetCurrency(targetCurrency, lastSnapshot);
@@ -99,11 +100,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			Currency targetCurrency,
 			DateTime startDate,
 			DateTime endDate,
+			int accountId,
 			CancellationToken cancellationToken = default)
 		{
-			// Query snapshots in date range
+			// Query snapshots in date range and filter by account
 			var query = databaseContext.CalculatedSnapshots
 				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) && s.Date <= DateOnly.FromDateTime(endDate));
+
+			if (accountId > 0)
+			{
+				query = query.Where(s => s.AccountId == accountId);
+			}
 
 			var resultQuery = query
 				.GroupBy(s => s.Date)
@@ -113,10 +120,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					Date = g.Key,
 					Value = Money.SumPerCurrency(g.Select(x => x.TotalValue)),
 					Invested = Money.SumPerCurrency(g.Select(x => x.TotalInvested)),
-				}).
-				AsSplitQuery();
+				})
+				.AsSplitQuery();
 
 			return await resultQuery.ToListAsync(cancellationToken);
+		}
+
+		public async Task<List<Account>> GetAccountsAsync()
+		{
+			return await databaseContext.Accounts.ToListAsync();
 		}
 
 		private async Task<CalculatedSnapshot> ConvertToTargetCurrency(Currency targetCurrency, CalculatedSnapshot calculatedSnapshot)

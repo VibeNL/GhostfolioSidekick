@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
@@ -22,6 +23,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected DateTime StartDate { get; set; } = DateTime.Today.AddMonths(-6);
 		protected DateTime EndDate { get; set; } = DateTime.Today;
 		protected string SelectedCurrency { get; set; } = "EUR";
+		protected int SelectedAccountId { get; set; } // New property for selected account
+		protected List<Account> Accounts { get; set; } = new(); // New property for account list
 
 		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
 
@@ -39,6 +42,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected override async Task OnInitializedAsync()
 		{
 			MinDate = await HoldingsDataService.GetMinDateAsync();
+			Accounts = await HoldingsDataService.GetAccountsAsync();
+			SelectedAccountId = 0;
+			
 			await LoadTimeSeriesAsync();
 		}
 
@@ -60,7 +66,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				TimeSeriesData = await HoldingsDataService.GetPortfolioValueHistoryAsync(
 					currency,
 					StartDate,
-					EndDate
+					EndDate,
+					SelectedAccountId // Pass selected account
 				) ?? new List<PortfolioValueHistoryPoint>();
 				await PrepareChartData();
 			}
