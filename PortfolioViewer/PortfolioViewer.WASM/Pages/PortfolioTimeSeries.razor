@@ -1,4 +1,4 @@
-@page "/portfolio-timeseries"
+﻿@page "/portfolio-timeseries"
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
 
 <PageTitle>Portfolio Time Series</PageTitle>
@@ -98,11 +98,138 @@
     {
         <div class="row">
             <div class="col-12">
-                <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Portfolio Time Series</h5>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn @(ViewMode == "chart" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => ViewMode = "chart")">
+                                    <i class="bi bi-bar-chart-line"></i> Chart
+                                </button>
+                                <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => ViewMode = "table")">
+                                    <i class="bi bi-table"></i> Table
+                                </button>
+                            </div>
+                            <button class="btn btn-outline-secondary" @onclick="LoadTimeSeriesAsync" disabled="@IsLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewMode == "chart")
+                        {
+                            <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">
+                                                <button type="button" @onclick="@(() => SortBy("Date"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Date @(sortColumn == "Date" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <button type="button" @onclick="@(() => SortBy("TotalValue"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Portfolio Value @(sortColumn == "TotalValue" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <button type="button" @onclick="@(() => SortBy("TotalInvested"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Total Invested @(sortColumn == "TotalInvested" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <button type="button" @onclick="@(() => SortBy("GainLoss"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    Gain/Loss @(sortColumn == "GainLoss" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <button type="button" @onclick="@(() => SortBy("GainLossPercentage"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                    % @(sortColumn == "GainLossPercentage" ? (sortAscending ? "↑" : "↓") : "")
+                                                </button>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var dataPoint in TimeSeriesDisplayData)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@dataPoint.Date.ToString("yyyy-MM-dd")</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalValue)</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    @CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalInvested)
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(dataPoint.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                        @CurrencyDisplay.DisplaySignAndAmount(@dataPoint.GainLoss)
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(dataPoint.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                        @dataPoint.GainLossPercentage.ToString("P2")
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    @if (TimeSeriesDisplayData.Count > 0)
+                                    {
+                                        <tfoot class="table-light">
+                                            <tr>
+                                                <th>Latest (@TimeSeriesDisplayData.Last().Date.ToString("yyyy-MM-dd"))</th>
+                                                <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalValue)</th>
+                                                <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalInvested)</th>
+                                                <th class="text-end">
+                                                    <span class="@(TimeSeriesDisplayData.Last().GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                        @CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().GainLoss)
+                                                    </span>
+                                                </th>
+                                                <th class="text-end">
+                                                    <span class="@(TimeSeriesDisplayData.Last().GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                        @TimeSeriesDisplayData.Last().GainLossPercentage.ToString("P2")
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                        </tfoot>
+                                    }
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     }
 </div>
+
+<style>
+    .table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        width: 100%;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .table td, .table th {
+        white-space: normal;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+</style>
 
 @code {
     // Only SetDateRange method here, properties are defined in .razor.cs

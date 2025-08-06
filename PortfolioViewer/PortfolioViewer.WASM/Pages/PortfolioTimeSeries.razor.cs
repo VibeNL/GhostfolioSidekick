@@ -19,6 +19,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
 
+		// View mode for chart/table toggle
+		protected string ViewMode { get; set; } = "chart";
+
 		// Filters
 		protected DateTime StartDate { get; set; } = DateTime.Today.AddMonths(-6);
 		protected DateTime EndDate { get; set; } = DateTime.Today;
@@ -33,6 +36,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected bool HasError { get; set; } = false;
 		protected string ErrorMessage { get; set; } = string.Empty;
 		protected List<PortfolioValueHistoryPoint> TimeSeriesData { get; set; } = new();
+		protected List<TimeSeriesDisplayModel> TimeSeriesDisplayData { get; set; } = new();
+
+		// Sorting state
+		private string sortColumn = "Date";
+		private bool sortAscending = false;
 
 		// Plotly chart
 		protected Config plotConfig = new();
@@ -69,6 +77,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					EndDate,
 					SelectedAccountId // Pass selected account
 				) ?? new List<PortfolioValueHistoryPoint>();
+				
+				await PrepareDisplayData();
 				await PrepareChartData();
 			}
 			catch (Exception ex)
@@ -81,6 +91,38 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				IsLoading = false;
 				StateHasChanged();
 			}
+		}
+
+		private async Task PrepareDisplayData()
+		{
+			if (TimeSeriesData.Count == 0)
+			{
+				TimeSeriesDisplayData = new List<TimeSeriesDisplayModel>();
+				return;
+			}
+
+			var displayData = new List<TimeSeriesDisplayModel>();
+			var targetCurrency = Currency.GetCurrency(SelectedCurrency);
+
+			foreach (var point in TimeSeriesData)
+			{
+				var totalValue = await SumMoney(point.Value, point.Date, targetCurrency);
+				var totalInvested = await SumMoney(point.Invested, point.Date, targetCurrency);
+				var gainLoss = totalValue.Subtract(totalInvested);
+				var gainLossPercentage = totalInvested.Amount == 0 ? 0 : gainLoss.Amount / totalInvested.Amount;
+
+				displayData.Add(new TimeSeriesDisplayModel
+				{
+					Date = point.Date,
+					TotalValue = totalValue,
+					TotalInvested = totalInvested,
+					GainLoss = gainLoss,
+					GainLossPercentage = gainLossPercentage
+				});
+			}
+
+			TimeSeriesDisplayData = displayData;
+			SortDisplayData();
 		}
 
 		private async Task PrepareChartData()
@@ -135,6 +177,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			plotConfig = new Config { Responsive = true };
 		}
 
+		private async Task<Money> SumMoney(Money[] values, DateOnly date, Currency targetCurrency)
+		{
+			if (CurrencyExchange == null)
+			{
+				return new Money(targetCurrency, 0);
+			}
+
+			if (values.Length == 0)
+			{
+				return new Money(targetCurrency, 0);
+			}
+
+			var convertedValues = new List<Money>(values.Length);
+			foreach (var v in values)
+			{
+				var converted = await CurrencyExchange.ConvertMoney(v, targetCurrency, date);
+				convertedValues.Add(converted);
+			}
+
+			return Money.Sum(convertedValues);
+		}
+
 		private async Task<object> Sum(Money[] value, DateOnly date, ICurrencyExchange? currencyExchange)
 		{
 			var targetCurrency = Currency.GetCurrency(SelectedCurrency);
@@ -157,6 +221,54 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			var sum = Money.Sum(convertedValues);
 			return sum.Amount;
+		}
+
+		private void SortBy(string column)
+		{
+			if (sortColumn == column)
+			{
+				sortAscending = !sortAscending;
+			}
+			else
+			{
+				sortColumn = column;
+				sortAscending = true;
+			}
+			SortDisplayData();
+		}
+
+		private void SortDisplayData()
+		{
+			switch (sortColumn)
+			{
+				case "Date":
+					TimeSeriesDisplayData = sortAscending 
+						? TimeSeriesDisplayData.OrderBy(d => d.Date).ToList() 
+						: TimeSeriesDisplayData.OrderByDescending(d => d.Date).ToList();
+					break;
+				case "TotalValue":
+					TimeSeriesDisplayData = sortAscending 
+						? TimeSeriesDisplayData.OrderBy(d => d.TotalValue.Amount).ToList() 
+						: TimeSeriesDisplayData.OrderByDescending(d => d.TotalValue.Amount).ToList();
+					break;
+				case "TotalInvested":
+					TimeSeriesDisplayData = sortAscending 
+						? TimeSeriesDisplayData.OrderBy(d => d.TotalInvested.Amount).ToList() 
+						: TimeSeriesDisplayData.OrderByDescending(d => d.TotalInvested.Amount).ToList();
+					break;
+				case "GainLoss":
+					TimeSeriesDisplayData = sortAscending 
+						? TimeSeriesDisplayData.OrderBy(d => d.GainLoss.Amount).ToList() 
+						: TimeSeriesDisplayData.OrderByDescending(d => d.GainLoss.Amount).ToList();
+					break;
+				case "GainLossPercentage":
+					TimeSeriesDisplayData = sortAscending 
+						? TimeSeriesDisplayData.OrderBy(d => d.GainLossPercentage).ToList() 
+						: TimeSeriesDisplayData.OrderByDescending(d => d.GainLossPercentage).ToList();
+					break;
+				default:
+					break;
+			}
 		}
 	}
 }

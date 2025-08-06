@@ -146,7 +146,7 @@
                                             </th>
                                             <th scope="col" class="text-end">
                                                 <button type="button" @onclick="@(() => SortBy("GainLossPercentage"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    % @(sortColumn == "GainLossPercentage" ? (sortAscending ? "?" : "?") : "")
+                                                    % @(sortColumn == "GainLossPercentage" ? (sortAscending ? "↑" : "↓") : "")
                                                 </button>
                                             </th>
                                             <th scope="col" class="text-end">
