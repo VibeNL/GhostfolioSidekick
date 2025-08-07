@@ -160,13 +160,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 var currentDate = DateOnly.FromDateTime(startDate);
                 var endDateOnly = DateOnly.FromDateTime(endDate);
                 var basePrice = 100m;
+                var baseAveragePrice = 95m; // Slightly lower average price
 
                 for (int i = 0; i < 5; i++) // Just 5 data points for testing
                 {
                     priceHistory.Add(new HoldingPriceHistoryPoint
                     {
                         Date = currentDate.AddDays(i),
-                        Price = new Money(Currency.USD, basePrice + i * 5)
+                        Price = new Money(Currency.USD, basePrice + i * 5),
+                        AveragePrice = new Money(Currency.USD, baseAveragePrice + i * 2)
                     });
                 }
 

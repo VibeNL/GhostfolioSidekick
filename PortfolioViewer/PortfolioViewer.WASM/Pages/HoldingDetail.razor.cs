@@ -140,21 +140,37 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
             await Task.Run(() =>
             {
+                var dates = PriceHistory.OrderBy(p => p.Date)
+                    .Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
+                    .ToArray();
+
+                // Current market price trace
                 var priceTrace = new Scatter
                 {
-                    X = PriceHistory.OrderBy(p => p.Date)
-                        .Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
-                        .ToArray(),
+                    X = dates,
                     Y = PriceHistory.OrderBy(p => p.Date)
                         .Select(p => (object)p.Price.Amount)
                         .ToList(),
                     Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
-                    Name = $"{Symbol} Price",
+                    Name = $"Market Price",
                     Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#007bff", Width = 2 },
                     Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#007bff", Size = 4 }
                 };
 
-                plotData = new List<ITrace> { priceTrace };
+                // Average paid price trace
+                var averagePriceTrace = new Scatter
+                {
+                    X = dates,
+                    Y = PriceHistory.OrderBy(p => p.Date)
+                        .Select(p => (object)p.AveragePrice.Amount)
+                        .ToList(),
+					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+					Name = $"Average Paid Price",
+                    Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#28a745", Width = 2 },
+                    Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 4 }
+                };
+
+                plotData = new List<ITrace> { priceTrace, averagePriceTrace };
 
                 var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? "USD";
                 plotLayout = new Plotly.Blazor.Layout
@@ -177,7 +193,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                     },
                     Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
                     AutoSize = true,
-                    ShowLegend = false
+                    ShowLegend = true,
+                    Legend = new List<Plotly.Blazor.LayoutLib.Legend>
+                    {
+                        new Plotly.Blazor.LayoutLib.Legend
+                        {
+                            Orientation = Plotly.Blazor.LayoutLib.LegendLib.OrientationEnum.H
+                        }
+                    }
                 };
 
                 plotConfig = new Config { Responsive = true };

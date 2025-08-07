@@ -6,5 +6,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
     {
         public DateOnly Date { get; set; }
         public Money Price { get; set; } = new Money(Currency.USD, 0);
+        public Money AveragePrice { get; set; } = new Money(Currency.USD, 0);
     }
 }

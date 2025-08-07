@@ -138,18 +138,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			CancellationToken cancellationToken = default)
 		{
 			// Get price history from the holding's calculated snapshots
-			var priceHistory = await databaseContext.HoldingAggregateds
+			var snapshots = await databaseContext.HoldingAggregateds
 				.Where(h => h.Symbol == symbol)
 				.SelectMany(h => h.CalculatedSnapshots)
 				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) &&
 						   s.Date <= DateOnly.FromDateTime(endDate))
 				.OrderBy(s => s.Date)
-				.Select(s => new HoldingPriceHistoryPoint
-				{
-					Date = s.Date,
-					Price = s.CurrentUnitPrice
-				})
 				.ToListAsync(cancellationToken);
+
+			var priceHistory = new List<HoldingPriceHistoryPoint>();
+			
+			foreach (var snapshot in snapshots)
+			{
+				priceHistory.Add(new HoldingPriceHistoryPoint
+				{
+					Date = snapshot.Date,
+					Price = snapshot.CurrentUnitPrice,
+					AveragePrice = snapshot.AverageCostPrice
+				});
+			}
 
 			return priceHistory;
 		}
