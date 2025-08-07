@@ -43,10 +43,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 			var list = new List<HoldingDisplayModel>();
 
-			foreach (var h in holdingProjections)
+			foreach (var holding in holdingProjections)
 			{
 				CalculatedSnapshot lastSnapshot;
-				if (h.LastSnapshotId.HasValue && snapshotsDict.TryGetValue(h.LastSnapshotId.Value, out var snap))
+
+				if (holding.LastSnapshotId.HasValue && snapshotsDict.TryGetValue(holding.LastSnapshotId.Value, out var snap))
 				{
 					lastSnapshot = snap;
 				}
@@ -58,17 +59,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				var convertedLastSnapshot = await ConvertToTargetCurrency(targetCurrency, lastSnapshot);
 				list.Add(new HoldingDisplayModel
 				{
-					AssetClass = h.AssetClass.ToString(),
+					AssetClass = holding.AssetClass.ToString(),
 					AveragePrice = convertedLastSnapshot.AverageCostPrice,
 					Currency = targetCurrency.Symbol.ToString(),
 					CurrentValue = convertedLastSnapshot.TotalValue,
 					CurrentPrice = convertedLastSnapshot.CurrentUnitPrice,
 					GainLoss = convertedLastSnapshot.TotalValue.Subtract(convertedLastSnapshot.TotalInvested),
 					GainLossPercentage = convertedLastSnapshot.TotalValue.Amount == 0 ? 0 : (convertedLastSnapshot.TotalValue.Amount - convertedLastSnapshot.TotalInvested.Amount) / convertedLastSnapshot.TotalValue.Amount,
-					Name = h.Name ?? string.Empty,
+					Name = holding.Name ?? string.Empty,
 					Quantity = convertedLastSnapshot.Quantity,
-					Symbol = h.Symbol,
-					Sector = h.SectorWeights.Count != 0 ? string.Join(",", h.SectorWeights.Select(x => x.Name)) : "Undefined",
+					Symbol = holding.Symbol,
+					Sector = holding.SectorWeights.Count != 0 ? string.Join(",", holding.SectorWeights.Select(x => x.Name)) : "Undefined",
 					Weight = 0,
 				});
 			}
