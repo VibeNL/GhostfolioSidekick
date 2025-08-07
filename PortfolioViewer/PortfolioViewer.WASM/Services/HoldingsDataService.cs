@@ -143,18 +143,56 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				.SelectMany(h => h.CalculatedSnapshots)
 				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) &&
 						   s.Date <= DateOnly.FromDateTime(endDate))
-				.OrderBy(s => s.Date)
+				.GroupBy(s => s.Date)
+				.OrderBy(g => g.Key)
+				.Select(g => new
+				{
+					Date = g.Key,
+					Snapshots = g.ToList()
+				})
 				.ToListAsync(cancellationToken);
 
 			var priceHistory = new List<HoldingPriceHistoryPoint>();
 			
-			foreach (var snapshot in snapshots)
+			foreach (var snapshotGroup in snapshots)
 			{
+				// Calculate quantity-weighted average for current unit price and average cost price
+				var totalQuantity = snapshotGroup.Snapshots.Sum(s => s.Quantity);
+				
+				Money aggregatedCurrentPrice;
+				Money aggregatedAveragePrice;
+				
+				if (totalQuantity == 0)
+				{
+					// If total quantity is zero, use the first snapshot's prices
+					var firstSnapshot = snapshotGroup.Snapshots.First();
+					aggregatedCurrentPrice = firstSnapshot.CurrentUnitPrice;
+					aggregatedAveragePrice = firstSnapshot.AverageCostPrice;
+				}
+				else
+				{
+					// Calculate quantity-weighted average prices
+					var totalValueAtCurrentPrice = Money.Zero(snapshotGroup.Snapshots.First().CurrentUnitPrice.Currency);
+					var totalValueAtAveragePrice = Money.Zero(snapshotGroup.Snapshots.First().AverageCostPrice.Currency);
+					
+					foreach (var snapshot in snapshotGroup.Snapshots)
+					{
+						var valueAtCurrentPrice = snapshot.CurrentUnitPrice.Times(snapshot.Quantity);
+						var valueAtAveragePrice = snapshot.AverageCostPrice.Times(snapshot.Quantity);
+						
+						totalValueAtCurrentPrice = totalValueAtCurrentPrice.Add(valueAtCurrentPrice);
+						totalValueAtAveragePrice = totalValueAtAveragePrice.Add(valueAtAveragePrice);
+					}
+					
+					aggregatedCurrentPrice = totalValueAtCurrentPrice.SafeDivide(totalQuantity);
+					aggregatedAveragePrice = totalValueAtAveragePrice.SafeDivide(totalQuantity);
+				}
+
 				priceHistory.Add(new HoldingPriceHistoryPoint
 				{
-					Date = snapshot.Date,
-					Price = snapshot.CurrentUnitPrice,
-					AveragePrice = snapshot.AverageCostPrice
+					Date = snapshotGroup.Date,
+					Price = aggregatedCurrentPrice,
+					AveragePrice = aggregatedAveragePrice
 				});
 			}
 
