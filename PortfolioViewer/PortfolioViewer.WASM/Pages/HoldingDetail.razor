@@ -1,0 +1,292 @@
+@page "/holding/{symbol}"
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IHoldingsDataService HoldingsDataService
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+@inject NavigationManager Navigation
+
+<PageTitle>@Symbol - Holding Details</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="/holdings" class="text-decoration-none">
+                            <i class="bi bi-pie-chart"></i> Holdings
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">@Symbol</li>
+                </ol>
+            </nav>
+            <h1 class="display-4">@Symbol</h1>
+            @if (HoldingInfo != null)
+            {
+                <p class="text-muted">@HoldingInfo.Name</p>
+            }
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <!-- Loading State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Holding Data...</h5>
+                        <p class="text-muted mb-0">Please wait while we fetch price history and details.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <!-- Error State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HoldingInfo == null)
+    {
+        <!-- Not Found State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-exclamation-circle text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">Holding Not Found</h5>
+                        <p class="text-muted mb-3">The holding "@Symbol" was not found in your portfolio.</p>
+                        <a href="/holdings" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Back to Holdings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Main Content -->
+        <div class="row mb-4">
+            <!-- Holding Summary Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Current Position</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <small class="text-muted">Quantity</small>
+                                <div class="h4">@HoldingInfo.Quantity.ToString("N2")</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="text-muted">Average Price</small>
+                                <div class="h5">@CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.AveragePrice)</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="text-muted">Current Price</small>
+                                <div class="h5">@CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.CurrentPrice)</div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <small class="text-muted">Current Value</small>
+                                <div class="h3">@CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.CurrentValue)</div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="text-muted">Gain/Loss</small>
+                                <div class="h5 @(HoldingInfo.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                    @CurrencyDisplay.DisplaySignAndAmount(@HoldingInfo.GainLoss)
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <small class="text-muted">Return %</small>
+                                <div class="h5 @(HoldingInfo.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                    @HoldingInfo.GainLossPercentage.ToString("P2")
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Portfolio Weight</small>
+                                <div class="h6">@HoldingInfo.Weight.ToString("P1")</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Sector</small>
+                                <div class="h6">
+                                    <span class="badge bg-secondary">@HoldingInfo.Sector</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Chart -->
+            <div class="col-md-8 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Price History</h5>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn @(TimeRange == "1M" ? "btn-primary" : "btn-outline-primary") btn-sm"
+                                        @onclick="@(() => SetTimeRange("1M"))">
+                                    1M
+                                </button>
+                                <button type="button" class="btn @(TimeRange == "3M" ? "btn-primary" : "btn-outline-primary") btn-sm"
+                                        @onclick="@(() => SetTimeRange("3M"))">
+                                    3M
+                                </button>
+                                <button type="button" class="btn @(TimeRange == "6M" ? "btn-primary" : "btn-outline-primary") btn-sm"
+                                        @onclick="@(() => SetTimeRange("6M"))">
+                                    6M
+                                </button>
+                                <button type="button" class="btn @(TimeRange == "1Y" ? "btn-primary" : "btn-outline-primary") btn-sm"
+                                        @onclick="@(() => SetTimeRange("1Y"))">
+                                    1Y
+                                </button>
+                                <button type="button" class="btn @(TimeRange == "ALL" ? "btn-primary" : "btn-outline-primary") btn-sm"
+                                        @onclick="@(() => SetTimeRange("ALL"))">
+                                    All
+                                </button>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="RefreshDataAsync" disabled="@IsLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (!TestContextService.IsTest && PriceHistory.Any())
+                        {
+                            <div class="price-chart-container">
+                                <PlotlyChart Data="plotData"
+                                             Layout="plotLayout"
+                                             Config="plotConfig"
+                                             style="height: 100%; width: 100%;" />
+                            </div>
+                        }
+                        else if (TestContextService.IsTest)
+                        {
+                            <div class="price-chart-container">
+                                <!-- Price chart skipped in test context -->
+                                <div class="text-center py-5">
+                                    <i class="bi bi-graph-up text-muted" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-3">Price chart would be displayed here</p>
+                                </div>
+                            </div>
+                        }
+                        else if (!PriceHistory.Any())
+                        {
+                            <div class="text-center py-5">
+                                <i class="bi bi-graph-up text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-3">No price history available for this holding</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (PriceHistory.Any())
+        {
+            <!-- Price History Table -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Price Data</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">Date</th>
+                                            <th scope="col" class="text-end">Price</th>
+                                            <th scope="col" class="text-end">Change</th>
+                                            <th scope="col" class="text-end">Change %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var (price, index) in PriceHistory.OrderByDescending(p => p.Date).Take(10).Select((p, i) => (p, i)))
+                                        {
+                                            var previousPrice = index < PriceHistory.Count - 1 ? 
+                                                PriceHistory.OrderByDescending(p => p.Date).Skip(index + 1).FirstOrDefault()?.Price : 
+                                                null;
+                                            var change = previousPrice != null ? price.Price.Amount - previousPrice.Amount : 0;
+                                            var changePercent = previousPrice != null && previousPrice.Amount != 0 ? 
+                                                (change / previousPrice.Amount) : 0;
+                                            
+                                            <tr>
+                                                <td>@price.Date.ToString("yyyy-MM-dd")</td>
+                                                <td class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@price.Price)</td>
+                                                <td class="text-end">
+                                                    @if (previousPrice != null)
+                                                    {
+                                                        <span class="@(change >= 0 ? "text-success" : "text-danger")">
+                                                            @(change >= 0 ? "+" : "")@change.ToString("F2")
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td class="text-end">
+                                                    @if (previousPrice != null)
+                                                    {
+                                                        <span class="@(changePercent >= 0 ? "text-success" : "text-danger")">
+                                                            @(changePercent >= 0 ? "+" : "")@changePercent.ToString("P2")
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .price-chart-container {
+        width: 100%;
+        min-height: 400px;
+        height: 60vh;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        overflow: hidden;
+        background: white;
+    }
+
+    .table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>

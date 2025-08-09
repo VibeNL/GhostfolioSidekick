@@ -11,6 +11,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	{
 		[Inject]
 		private IHoldingsDataService? HoldingsDataService { get; set; }
+
+		[Inject]
+		private NavigationManager? Navigation { get; set; }
 		
 		// View mode for the treemap
 		private string ViewMode = "treemap";
@@ -232,6 +235,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				default:
 					break;
 			}
+		}
+
+		private void NavigateToHoldingDetail(string symbol)
+		{
+			Navigation?.NavigateTo($"/holding/{Uri.EscapeDataString(symbol)}");
 		}
 	}
 }

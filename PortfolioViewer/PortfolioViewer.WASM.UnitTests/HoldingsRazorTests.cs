@@ -78,6 +78,31 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             {
                 return Task.FromResult(new List<Account>());
             }
+
+            public Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
+                string symbol,
+                DateTime startDate,
+                DateTime endDate,
+                CancellationToken cancellationToken = default)
+            {
+                // Return fake price history data for testing
+                var priceHistory = new List<HoldingPriceHistoryPoint>();
+                var currentDate = DateOnly.FromDateTime(startDate);
+                var endDateOnly = DateOnly.FromDateTime(endDate);
+                var basePrice = 100m;
+
+                while (currentDate <= endDateOnly)
+                {
+                    priceHistory.Add(new HoldingPriceHistoryPoint
+                    {
+                        Date = currentDate,
+                        Price = new Money(Currency.USD, basePrice + (decimal)(Math.Sin(currentDate.DayNumber * 0.1) * 10))
+                    });
+                    currentDate = currentDate.AddDays(1);
+                }
+
+                return Task.FromResult(priceHistory);
+            }
         }
 
         [Fact]

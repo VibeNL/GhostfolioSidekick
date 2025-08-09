@@ -169,7 +169,7 @@
                                     <tbody>
                                         @foreach (var holding in HoldingsList)
                                         {
-                                            <tr>
+                                            <tr class="holding-row" @onclick="@(() => NavigateToHoldingDetail(holding.Symbol))" style="cursor: pointer;" title="Click to view details">
                                                 <td>
                                                     <strong>@holding.Symbol</strong>
                                                 </td>
@@ -187,7 +187,7 @@
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(holding.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
-                                                        Currency @holding.GainLossPercentage.ToString("P2")
+                                                        @holding.GainLossPercentage.ToString("P2")
                                                     </span>
                                                 </td>
                                                 <td class="text-end">@holding.Weight.ToString("P1")</td>
@@ -304,5 +304,14 @@
         white-space: normal;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
+    }
+
+    .holding-row:hover {
+        background-color: #f8f9fa !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .holding-row {
+        transition: background-color 0.15s ease-in-out;
     }
 </style>
