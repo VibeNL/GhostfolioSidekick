@@ -45,5 +45,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         /// </summary>
         /// <returns>List of accounts</returns>
         Task<List<Account>> GetAccountsAsync();
+
+        /// <summary>
+        /// Loads price history for a specific holding
+        /// </summary>
+        /// <param name="symbol">Symbol of the holding</param>
+        /// <param name="startDate">Start date for the price history</param>
+        /// <param name="endDate">End date for the price history</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of price history points</returns>
+        Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
+            string symbol,
+            DateTime startDate,
+            DateTime endDate,
+            CancellationToken cancellationToken = default);
     }
 }
