@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
             var mainPage = await loginPage.LoginAsync();
 
 			var lst = new List<ActivityWithSymbol>();
-			foreach (var account in (await mainPage.GetPortfolios()).Skip(1)) // BUG in SCALABLE IF NO TRANSACTIONS YET IN THE NEW PORTFOLIO
+			foreach (var account in (await mainPage.GetPortfolios()))
 			{
 				await mainPage.SwitchToAccount(account);
 				var transactionPage = await mainPage.GoToTransactions();

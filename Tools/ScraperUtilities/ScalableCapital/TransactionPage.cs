@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				{
 					continue;
 				}
-                				                
+
 				var symbol = await AddSymbol(generatedTransaction);
 				if (symbol != null)
 				{
@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			}
 
 			var isin = url.Split(
-				["isin=","&"],
+				["isin=", "&"],
 				StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
 			return new ActivityWithSymbol
 			{
