@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
-		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles)
+		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			logger.LogInformation("Scraping transactions...");
 
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				await page.WaitForSelectorAsync("h3:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
 
 				// Process transaction details
-				var generatedTransaction = await ProcessDetails(knownProfiles);
+				var generatedTransaction = await ProcessDetails(knownProfiles, outputDirectory);
 				if (generatedTransaction == null)
 				{
 					logger.LogWarning("Transaction {Counter} skipped. No valid activity found.", counter);
@@ -89,10 +89,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return page.Locator("li[class='timeline__entry']").CountAsync();
 		}
 
-		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles)
+		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			var table = await ParseTable(0);
-			var status = table.FirstOrDefault(x => new string[] { 
+			var status = table.FirstOrDefault(x => new string[] {
 				"Status", "Transfer",
 				"Card payment", "Card refund",
 				"Round up", "Saveback", "Savings Plan" }.Contains(x.Item1)).Item2;
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			var time = await page.Locator("p[class='detailHeader__subheading -time']").First.InnerHTMLAsync();
 			string dateString = time.Replace(" at", string.Empty);
 
-			if (!DateTime.TryParseExact(dateString, "dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedTime) && 
+			if (!DateTime.TryParseExact(dateString, "dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedTime) &&
 				!DateTime.TryParseExact(dateString, "dd MMMM HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime))
 			{
 				logger.LogWarning("Failed to parse date: {DateString}", dateString);
@@ -184,9 +184,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			if (headerText.Contains("You invested") || saving || rewards)
 			{
 				var transactionTable = await ParseTable(0);
-				var isBond = transactionTable.Any(x => x.Item1 == "Nominal");
+				//var isBond = transactionTable.Any(x => x.Item1 == "Nominal");
 
-				var fee = transactionTable.FirstOrDefault(x => x.Item1 == "Fee").Item2;
+				/*var fee = transactionTable.FirstOrDefault(x => x.Item1 == "Fee").Item2;
 				var total = transactionTable.FirstOrDefault(x => x.Item1 == "Total").Item2;
 				var orderType = table.FirstOrDefault(x => x.Item1 == "Order Type").Item2;
 				var fees = new List<Money>();
@@ -201,14 +201,79 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 					return null;
 				}
 				else
-				{
-					// Download the attached document if available
-					var links = await page.Locator("a[class='detailDocuments__entry']").AllAsync();
-					foreach (var item in links)
+				{*/
+					var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
+
+					var symbol = knownProfiles
+					.FirstOrDefault(x => x.ISIN == asset || x.Name == asset);
+
+					if (symbol == null)
 					{
-						throw new NotImplementedException();				
+						logger.LogWarning("Symbol not found: {Asset}", asset);
+						return null;
 					}
 
+					// Download the attached document if available
+					var links = await page.Locator("div[class='detailDocuments__entry']").AllAsync();
+					int counter = 1;
+					foreach (var item in links)
+					{
+						// open the link in a new tab
+						var countPages = page.Context.Pages.Count;
+						await item.ClickAsync();
+						
+						while (page.Context.Pages.Count <= countPages)
+						{
+							await Task.Delay(100);
+						}
+
+						var newPage = page.Context.Pages.LastOrDefault();
+						if (newPage != null)
+						{
+							try
+							{
+								// Wait for the new page to load
+								await newPage.WaitForLoadStateAsync(LoadState.NetworkIdle);
+							}
+							catch
+							{
+								// Ignore for now
+							}
+
+							// Get Url
+							var url = newPage.Url;
+
+							// Download from url
+							logger.LogInformation("Downloading document from {Url}", url);
+							var fileName = $"{symbol.ISIN} {parsedTime:yyyy-MM-dd-HH-mm-ss} {counter++}.pdf";
+							var directory = Path.Combine(outputDirectory, "TradeRepublic");
+							var filePath = Path.Combine(directory, fileName);
+							if (!Directory.Exists(directory))
+							{
+								Directory.CreateDirectory(directory);
+							}
+
+							using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+							{
+								// Get manually from url
+								var response = await newPage.Context.APIRequest.GetAsync(url);
+								if (response.Ok)
+								{
+									var body = await response.BodyAsync();
+									// Write the response body to the file
+									await fileStream.WriteAsync(body);
+								}
+								else
+								{
+									logger.LogWarning("Failed to download document from {Url}. Status code: {StatusCode}", url, response.Status);
+								}
+							}
+
+							// Close the new page
+							await newPage.CloseAsync();
+						}
+
+					//}
 
 					/*
 					var quantity = transactionTable.FirstOrDefault(x => x.Item1 == "Shares").Item2;
@@ -272,7 +337,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			// Parse the value from strings like 'You received €1,105.00'
 			// Or 'You added €5.00 via Direct Debit'
 			var euroPattern = new Regex(@"€\s?([\d,\.]+)", RegexOptions.None, TimeSpan.FromSeconds(1));
-			
+
 			// Parse the value from strings like 'You received 74.17 EUR'
 			var eurPattern = new Regex(@"([\d,\.]+)\s*EUR", RegexOptions.None, TimeSpan.FromSeconds(1));
 
