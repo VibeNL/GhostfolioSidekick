@@ -33,7 +33,11 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 				// Process transaction details
 				var generatedTransaction = await ProcessDetails(knownProfiles);
-				if (generatedTransaction != null)
+				if (generatedTransaction == null)
+				{
+					logger.LogWarning("Transaction {Counter} skipped. No valid activity found.", counter);
+				}
+				else
 				{
 					list.Add(generatedTransaction);
 					logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.Activity.ToString());
@@ -88,7 +92,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles)
 		{
 			var table = await ParseTable(0);
-			var status = table.FirstOrDefault(x => x.Item1 == "Status").Item2;
+			var status = table.FirstOrDefault(x => new string[] { 
+				"Status", "Transfer",
+				"Card payment", "Card refund",
+				"Round up", "Saveback", "Savings Plan" }.Contains(x.Item1)).Item2;
 
 			var completedStatus = new string[] { "Completed", "Executed", };
 
@@ -176,7 +183,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			var saving = headerText.Contains("You saved");
 			if (headerText.Contains("You invested") || saving || rewards)
 			{
-				var transactionTable = await ParseTable(saving ? 2 : 1);
+				var transactionTable = await ParseTable(0);
 				var isBond = transactionTable.Any(x => x.Item1 == "Nominal");
 
 				var fee = transactionTable.FirstOrDefault(x => x.Item1 == "Fee").Item2;
@@ -195,6 +202,15 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				}
 				else
 				{
+					// Download the attached document if available
+					var links = await page.Locator("a[class='detailDocuments__entry']").AllAsync();
+					foreach (var item in links)
+					{
+												
+					}
+
+
+					/*
 					var quantity = transactionTable.FirstOrDefault(x => x.Item1 == "Shares").Item2;
 					var unitPrice = transactionTable.FirstOrDefault(x => x.Item1 == "Share price").Item2;
 					var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
@@ -238,7 +254,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 						},
 						Symbol = symbol.ISIN,
 						symbolName = symbol.Name,
-					};
+					};*/
 				}
 			}
 
