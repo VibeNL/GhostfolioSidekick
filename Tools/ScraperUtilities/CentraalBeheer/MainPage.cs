@@ -7,8 +7,14 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 	{
 		internal async Task<TransactionPage> GoToTransactions()
 		{
-			// 
-			await page.GotoAsync("https://www.centraalbeheer.nl/mijncb/mijn-producten/beleggen/transacties");
+			// Click on Beleggingsopdracht
+			await page.Locator("a[href*='/mijncb/mijn-producten/beleggen']").ClickAsync();
+
+			// Click on Beleggingsopdracht
+			await page.Locator("a[href*='/mijncb/mijn-producten/beleggen/beleggingsrekening-inzien']").ClickAsync();
+
+			// Clock on Afgeronde opdrachten
+			await page.Locator("a[href*='/mijncb/mijn-producten/beleggen/transacties']").ClickAsync();
 
 			// Wait for transactions to load
 			logger.LogInformation("Waiting for transactions to load...");

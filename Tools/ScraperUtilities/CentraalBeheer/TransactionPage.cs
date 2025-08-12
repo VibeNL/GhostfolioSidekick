@@ -42,6 +42,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 				}
 
 				logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
+				Task.Delay(1000).Wait(); // Wait for the page to update, just in case
 			}
 
 			return list;
