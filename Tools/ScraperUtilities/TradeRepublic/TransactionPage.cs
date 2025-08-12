@@ -206,7 +206,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 					var links = await page.Locator("a[class='detailDocuments__entry']").AllAsync();
 					foreach (var item in links)
 					{
-												
+						throw new NotImplementedException();				
 					}
 
 
