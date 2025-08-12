@@ -78,6 +78,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             {
                 return Task.FromResult(new List<Account>());
             }
+
+            // Add this method stub to address the compilation error
+            public Task<List<PortfolioValueHistoryPoint>> GetHoldingPriceHistoryAsync(
+                string symbol,
+                DateTime startDate,
+                DateTime endDate,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(new List<PortfolioValueHistoryPoint>());
+            }
         }
 
         [Fact]

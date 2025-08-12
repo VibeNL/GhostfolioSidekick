@@ -76,6 +76,7 @@ public static class Program
 		builder.Services.AddMemoryCache();
 		builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
+		builder.Services.AddScoped<IDividendsDataService, DividendsDataService>();
 
 		var app = builder.Build();
 

@@ -131,6 +131,36 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			return await databaseContext.Accounts.ToListAsync();
 		}
 
+		public async Task<List<PortfolioValueHistoryPoint>> GetHoldingPriceHistoryAsync(
+			string symbol,
+			DateTime startDate,
+			DateTime endDate,
+			CancellationToken cancellationToken = default)
+		{
+			// Get the holding aggregated first, then get its snapshots
+			var holdingAggregated = await databaseContext.HoldingAggregateds
+				.Include(h => h.CalculatedSnapshots)
+				.FirstOrDefaultAsync(h => h.Symbol == symbol, cancellationToken);
+
+			if (holdingAggregated == null)
+			{
+				return new List<PortfolioValueHistoryPoint>();
+			}
+
+			var snapshots = holdingAggregated.CalculatedSnapshots
+				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) && s.Date <= DateOnly.FromDateTime(endDate))
+				.OrderBy(s => s.Date)
+				.Select(s => new PortfolioValueHistoryPoint
+				{
+					Date = s.Date,
+					Value = new Money[] { s.TotalValue },
+					Invested = new Money[] { s.TotalInvested }
+				})
+				.ToList();
+
+			return snapshots;
+		}
+
 		private async Task<CalculatedSnapshot> ConvertToTargetCurrency(Currency targetCurrency, CalculatedSnapshot calculatedSnapshot)
 		{
 			if (calculatedSnapshot.CurrentUnitPrice.Currency == targetCurrency)

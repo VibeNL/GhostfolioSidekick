@@ -1,0 +1,429 @@
+@page "/dividends"
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.Model
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+
+<PageTitle>Dividends</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h1 class="display-4">Dividend Analysis</h1>
+            <p class="text-muted">Track and analyze your dividend income over time</p>
+        </div>
+    </div>
+
+    <!-- Filters and Controls -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Filters and View Options</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Quick Date Range Buttons -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label">Quick Date Ranges</label>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary btn-sm" @onclick='() => SetDateRange("LastMonth")'>Last Month</button>
+                                <button class="btn btn-outline-primary btn-sm" @onclick='() => SetDateRange("LastQuarter")'>Last Quarter</button>
+                                <button class="btn btn-outline-primary btn-sm" @onclick='() => SetDateRange("YearToDate")'>Year to Date</button>
+                                <button class="btn btn-outline-primary btn-sm" @onclick='() => SetDateRange("LastYear")'>Last Year</button>
+                                <button class="btn btn-outline-primary btn-sm" @onclick='() => SetDateRange("FiveYear")'>5 Years</button>
+                                <button class="btn btn-outline-primary btn-sm" @onclick='() => SetDateRange("Max")'>Max Range</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Controls -->
+                    <div class="row">
+                        <div class="col-md-2">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" id="startDate" class="form-control form-control-sm" @bind="StartDate" @bind:after="OnFiltersChanged" />
+                        </div>
+                        <div class="col-md-2">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="date" id="endDate" class="form-control form-control-sm" @bind="EndDate" @bind:after="OnFiltersChanged" />
+                        </div>
+                        <div class="col-md-2">
+                            <label for="currency" class="form-label">Currency</label>
+                            <select id="currency" class="form-select form-select-sm" @bind="SelectedCurrency" @bind:after="OnFiltersChanged">
+                                <option value="EUR">EUR</option>
+                                <option value="USD">USD</option>
+                                <option value="GBP">GBP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="account" class="form-label">Account</label>
+                            <select id="account" class="form-select form-select-sm" @bind="SelectedAccountId" @bind:after="OnFiltersChanged">
+                                <option value="0">All Accounts</option>
+                                @foreach (var account in Accounts)
+                                {
+                                    <option value="@account.Id">@account.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="symbol" class="form-label">Symbol</label>
+                            <select id="symbol" class="form-select form-select-sm" @bind="SelectedSymbol" @bind:after="OnFiltersChanged">
+                                <option value="">All Symbols</option>
+                                @foreach (var symbol in AvailableSymbols)
+                                {
+                                    <option value="@symbol">@symbol</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="assetClass" class="form-label">Asset Class</label>
+                            <select id="assetClass" class="form-select form-select-sm" @bind="SelectedAssetClass" @bind:after="OnFiltersChanged">
+                                <option value="">All Asset Classes</option>
+                                @foreach (var assetClass in AvailableAssetClasses)
+                                {
+                                    <option value="@assetClass">@assetClass</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <!-- Loading State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Dividend Data...</h5>
+                        <p class="text-muted mb-0">Please wait while we fetch your dividend information.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <!-- Error State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Summary Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h6 class="card-title">Total Dividends</h6>
+                        <h4 class="card-text">@CurrencyDisplay.DisplaySignAndAmount(@TotalDividends)</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger">
+                    <div class="card-body">
+                        <h6 class="card-title">Total Taxes</h6>
+                        <h4 class="card-text">@CurrencyDisplay.DisplaySignAndAmount(@TotalTaxes)</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h6 class="card-title">Net Dividends</h6>
+                        <h4 class="card-text">@CurrencyDisplay.DisplaySignAndAmount(@TotalNet)</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h6 class="card-title">Dividend Count</h6>
+                        <h4 class="card-text">@TotalDividendCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Mode Selection and Data Display -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Dividend Data</h5>
+                        <div class="d-flex gap-2">
+                            <!-- View Mode Toggle -->
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn @(ViewMode == "chart" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(async () => await OnViewModeChanged("chart"))">
+                                    <i class="bi bi-bar-chart"></i> Chart
+                                </button>
+                                <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(async () => await OnViewModeChanged("table"))">
+                                    <i class="bi bi-table"></i> Table
+                                </button>
+                            </div>
+
+                            <!-- Chart/Table Type Selection -->
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn @(ChartType == "monthly" ? "btn-secondary" : "btn-outline-secondary") btn-sm"
+                                        @onclick="@(async () => await OnChartTypeChanged("monthly"))">
+                                    <i class="bi bi-calendar-month"></i> Monthly
+                                </button>
+                                <button type="button" class="btn @(ChartType == "yearly" ? "btn-secondary" : "btn-outline-secondary") btn-sm"
+                                        @onclick="@(async () => await OnChartTypeChanged("yearly"))">
+                                    <i class="bi bi-calendar"></i> Yearly
+                                </button>
+                                <button type="button" class="btn @(ChartType == "individual" ? "btn-secondary" : "btn-outline-secondary") btn-sm"
+                                        @onclick="@(async () => await OnChartTypeChanged("individual"))">
+                                    <i class="bi bi-list-ul"></i> Individual
+                                </button>
+                            </div>
+
+                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@IsLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewMode == "chart")
+                        {
+                            @if (!TestContextService.IsTest && AggregatedDividends.Any())
+                            {
+                                <div class="chart-container">
+                                    <PlotlyChart Data="plotData"
+                                                 Layout="plotLayout"
+                                                 Config="plotConfig"
+                                                 style="height: 100%; width: 100%;" />
+                                </div>
+                            }
+                            else if (TestContextService.IsTest)
+                            {
+                                <div class="chart-container">
+                                    <!-- Skipped PlotlyChart in test context -->
+                                    <div class="text-center py-5">
+                                        <i class="bi bi-bar-chart text-muted" style="font-size: 4rem;"></i>
+                                        <h5 class="text-muted mt-3">Chart View</h5>
+                                        <p class="text-muted">Dividend bar chart would be displayed here</p>
+                                    </div>
+                                </div>
+                            }
+                            else if (!AggregatedDividends.Any())
+                            {
+                                <div class="text-center py-5">
+                                    <i class="bi bi-cash-coin text-muted" style="font-size: 4rem;"></i>
+                                    <h5 class="text-muted mt-3">No Dividends Found</h5>
+                                    <p class="text-muted mb-3">No dividend data found for the selected filters and time period.</p>
+                                    <button class="btn btn-primary" @onclick="RefreshDataAsync">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else if (ViewMode == "table")
+                        {
+                            @if (ChartType == "individual")
+                            {
+                                <!-- Individual Dividends Table -->
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th scope="col">
+                                                    <button type="button" @onclick="@(() => SortBy("Date"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Date @(sortColumn == "Date" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col">
+                                                    <button type="button" @onclick="@(() => SortBy("Symbol"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Symbol @(sortColumn == "Symbol" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col">
+                                                    <button type="button" @onclick="@(() => SortBy("Name"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Name @(sortColumn == "Name" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col" class="text-end">
+                                                    <button type="button" @onclick="@(() => SortBy("Amount"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Gross Amount @(sortColumn == "Amount" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col" class="text-end">
+                                                    <button type="button" @onclick="@(() => SortBy("TaxAmount"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Tax @(sortColumn == "TaxAmount" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col" class="text-end">
+                                                    <button type="button" @onclick="@(() => SortBy("NetAmount"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Net Amount @(sortColumn == "NetAmount" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col">
+                                                    <button type="button" @onclick="@(() => SortBy("Account"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Account @(sortColumn == "Account" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col">Asset Class</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var dividend in IndividualDividends)
+                                            {
+                                                <tr>
+                                                    <td>@dividend.Date.ToString("yyyy-MM-dd")</td>
+                                                    <td><strong>@dividend.Symbol</strong></td>
+                                                    <td>@dividend.Name</td>
+                                                    <td class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@dividend.Amount)</td>
+                                                    <td class="text-end text-danger">@CurrencyDisplay.DisplaySignAndAmount(@dividend.TaxAmount)</td>
+                                                    <td class="text-end"><strong>@CurrencyDisplay.DisplaySignAndAmount(@dividend.NetAmount)</strong></td>
+                                                    <td>@dividend.AccountName</td>
+                                                    <td><span class="badge bg-info">@dividend.AssetClass</span></td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        @if (IndividualDividends.Any())
+                                        {
+                                            <tfoot class="table-light">
+                                                <tr>
+                                                    <th colspan="3">Total</th>
+                                                    <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@Money.Sum(IndividualDividends.Select(d => d.Amount)))</th>
+                                                    <th class="text-end text-danger">@CurrencyDisplay.DisplaySignAndAmount(@Money.Sum(IndividualDividends.Select(d => d.TaxAmount)))</th>
+                                                    <th class="text-end"><strong>@CurrencyDisplay.DisplaySignAndAmount(@Money.Sum(IndividualDividends.Select(d => d.NetAmount)))</strong></th>
+                                                    <th colspan="2"></th>
+                                                </tr>
+                                            </tfoot>
+                                        }
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Aggregated Dividends Table -->
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th scope="col">
+                                                    <button type="button" @onclick="@(() => SortBy("Period"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Period @(sortColumn == "Period" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col" class="text-end">
+                                                    <button type="button" @onclick="@(() => SortBy("TotalAmount"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Gross Amount @(sortColumn == "TotalAmount" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col" class="text-end">
+                                                    <button type="button" @onclick="@(() => SortBy("TotalTaxAmount"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Tax @(sortColumn == "TotalTaxAmount" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col" class="text-end">
+                                                    <button type="button" @onclick="@(() => SortBy("TotalNetAmount"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Net Amount @(sortColumn == "TotalNetAmount" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                                <th scope="col" class="text-center">
+                                                    <button type="button" @onclick="@(() => SortBy("DividendCount"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                        Count @(sortColumn == "DividendCount" ? (sortAscending ? "?" : "?") : "")
+                                                    </button>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var period in AggregatedDividends)
+                                            {
+                                                <tr>
+                                                    <td><strong>@period.Period</strong></td>
+                                                    <td class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@period.TotalAmount)</td>
+                                                    <td class="text-end text-danger">@CurrencyDisplay.DisplaySignAndAmount(@period.TotalTaxAmount)</td>
+                                                    <td class="text-end"><strong>@CurrencyDisplay.DisplaySignAndAmount(@period.TotalNetAmount)</strong></td>
+                                                    <td class="text-center">@period.DividendCount</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        @if (AggregatedDividends.Any())
+                                        {
+                                            <tfoot class="table-light">
+                                                <tr>
+                                                    <th>Total</th>
+                                                    <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@Money.Sum(AggregatedDividends.Select(d => d.TotalAmount)))</th>
+                                                    <th class="text-end text-danger">@CurrencyDisplay.DisplaySignAndAmount(@Money.Sum(AggregatedDividends.Select(d => d.TotalTaxAmount)))</th>
+                                                    <th class="text-end"><strong>@CurrencyDisplay.DisplaySignAndAmount(@Money.Sum(AggregatedDividends.Select(d => d.TotalNetAmount)))</strong></th>
+                                                    <th class="text-center">@AggregatedDividends.Sum(d => d.DividendCount)</th>
+                                                </tr>
+                                            </tfoot>
+                                        }
+                                    </table>
+                                </div>
+                            }
+
+                            @if ((!IndividualDividends.Any() && ChartType == "individual") || (!AggregatedDividends.Any() && ChartType != "individual"))
+                            {
+                                <div class="text-center py-5">
+                                    <i class="bi bi-cash-coin text-muted" style="font-size: 4rem;"></i>
+                                    <h5 class="text-muted mt-3">No Dividends Found</h5>
+                                    <p class="text-muted mb-3">No dividend data found for the selected filters and time period.</p>
+                                    <button class="btn btn-primary" @onclick="RefreshDataAsync">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                                    </button>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .chart-container {
+        width: 100%;
+        min-height: 500px;
+        height: 70vh;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        overflow: hidden;
+        background: white;
+        margin-bottom: 1rem;
+    }
+
+    .table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .table td, .table th {
+        white-space: normal;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .btn-group .btn {
+        font-size: 0.875rem;
+    }
+</style>
