@@ -118,6 +118,19 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleRoundUpInformation_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/InformationOnly/single_round_up_information.pdf", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEmpty();
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
 		{
 			// Arrange

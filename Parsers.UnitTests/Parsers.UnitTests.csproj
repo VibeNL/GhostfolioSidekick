@@ -416,6 +416,9 @@
 		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_buy_stock.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\TradeRepublic\EN\InformationOnly\single_round_up_information.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\TradeRepublic\EN\BuyOrders\single_savingsplan_stock.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

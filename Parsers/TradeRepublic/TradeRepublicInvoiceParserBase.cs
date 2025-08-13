@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			for (int i = 0; i < words.Count; i++)
 			{
-				if (IsCheckWords("TRADE REPUBLIC BANK GMBH", words, i))
+				if (IsCheckWords("TRADE REPUBLIC BANK GMBH", words, i, true))
 				{
 					foundTradeRepublic = true;
 				}
@@ -171,6 +171,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				{
 					inHeader = false;
 				}
+			}
+
+			if (activities.Count == 0)
+			{
+				return activities;
 			}
 
 			var mainActivity = activities.Single(x => !string.IsNullOrWhiteSpace(x.TransactionId));

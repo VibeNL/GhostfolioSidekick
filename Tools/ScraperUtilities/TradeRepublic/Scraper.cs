@@ -3,7 +3,7 @@ using Microsoft.Playwright;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
-	internal class Scraper(IPage page, ILogger logger)
+	internal class Scraper(IPage page, ILogger logger, string outputDirectory)
 	{
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			var lst = new List<ActivityWithSymbol>();
 			var symbols = await mainPage.ScrapeSymbols();
 			var transactionPage = await mainPage.GoToTransactions();
-			var transactions = await transactionPage.ScrapeTransactions(symbols);
+			var transactions = await transactionPage.ScrapeTransactions(symbols, outputDirectory);
 			lst.AddRange(transactions);
 			return lst;
 		}

@@ -12,6 +12,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 	{
 		readonly CultureInfo cultureInfo = new("nl-NL");
 		private const string Prefix = "Centraal Beheer ";
+		private const int MillisecondsDelay = 1000;
 
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
@@ -42,6 +43,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 				}
 
 				logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
+				await Task.Delay(MillisecondsDelay); // Wait for the page to update, just in case
 			}
 
 			return list;
@@ -53,7 +55,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			await page.Locator("#filter-van").FillAsync("01-01-2010");
 			await page.Locator("#filter-tot").FillAsync(DateTime.Now.ToString("dd-MM-yyyy"));
 
-			Thread.Sleep(1000);
+			Thread.Sleep(MillisecondsDelay);
 		}
 
 		private async Task<ActivityWithSymbol?> AddSymbol(int counter, Activity? generatedTransaction)

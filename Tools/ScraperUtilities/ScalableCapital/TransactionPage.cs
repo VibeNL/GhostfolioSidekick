@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 {
@@ -36,7 +37,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				{
 					continue;
 				}
-                				                
+
 				var symbol = await AddSymbol(generatedTransaction);
 				if (symbol != null)
 				{
@@ -106,7 +107,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				};
 			}
 
-			var link = page.Locator("[href*=\"/broker/security?\"]").First;
+			var link = page.Locator("[href*=\"/broker/security?\"]").Last;
 			var name = await link.InnerTextAsync();
 			var url = await link.GetAttributeAsync("href");
 			if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(name))
@@ -115,7 +116,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			}
 
 			var isin = url.Split(
-				["isin=","&"],
+				["isin=", "&"],
 				StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)[1];
 			return new ActivityWithSymbol
 			{
@@ -127,13 +128,13 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 		private Task<IReadOnlyList<ILocator>> GetTransactions()
 		{
-			return page.Locator("div[role='list']").AllAsync();
+			return page.GetByTestId(TransactionTestId()).AllAsync();
 		}
 
 		private Task<int> GetTransacionsCount()
 		{
 			// Count number of divs with role list
-			return page.Locator("div[role='list']").CountAsync();
+			return page.GetByTestId(TransactionTestId()).CountAsync();
 		}
 
 		private async Task<Activity?> ProcessDetails()
@@ -268,5 +269,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		{
 			await page.GotoAsync("https://de.scalable.capital/cockpit/");
 		}
+
+		[GeneratedRegex(".*transaction.*")]
+		private static partial Regex TransactionTestId();
 	}
 }

@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 							break;
 						case SupportedBrokers.TradeRepublic:
 							{
-								var scraper = new TradeRepublic.Scraper(page, _logger);
+								var scraper = new TradeRepublic.Scraper(page, _logger, outputDirectory);
 								transactions = await scraper.ScrapeTransactions();
 							}
 							break;
