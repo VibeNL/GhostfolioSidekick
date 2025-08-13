@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System;
 
 namespace GhostfolioSidekick.Parsers.PDFParser
 {
@@ -43,14 +44,14 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 		protected abstract List<PartialActivity> ParseRecords(List<SingleWordToken> words);
 
 
-		protected static bool IsCheckWords(string check, List<SingleWordToken> words, int i)
+		protected static bool IsCheckWords(string check, List<SingleWordToken> words, int i, bool caseInsentitive = false)
 		{
 			var splitted = check.Split(" ");
 			for (int j = 0; j < splitted.Length; j++)
 			{
 				var expected = splitted[j];
 				var actual = words[i + j].Text;
-				if (expected != actual)
+				if (!string.Equals(expected, actual, caseInsentitive ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture))
 				{
 					return false;
 				}

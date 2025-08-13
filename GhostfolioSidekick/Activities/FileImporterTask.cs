@@ -74,7 +74,17 @@ namespace GhostfolioSidekick.Activities
 
 					foreach (var file in files)
 					{
-						var importer = importers.SingleOrDefault(x => x.CanParse(file).Result) ?? throw new NoImporterAvailableException($"File {file} has no importer");
+						var importer = importers.SingleOrDefault(x => x.CanParse(file).Result);
+
+						if (importer is null && file.EndsWith("csv"))
+						{
+							throw new NoImporterAvailableException($"No importer available for {file}");
+						}
+						else if (importer is null)
+						{
+							logger.LogWarning("No importer available for {File}", file);
+							continue;
+						}
 
 						if (importer is IActivityFileImporter activityImporter)
 						{
@@ -172,10 +182,15 @@ namespace GhostfolioSidekick.Activities
 				var existingActivity = existingActivities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
 				var newActivity = activities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
 
-				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { 
-						MaxDifferences = int.MaxValue, 
-					IgnoreObjectTypes = true, 
-					MembersToIgnore = [nameof(Activity.Id), nameof(BuySellActivity.AdjustedQuantity), nameof(BuySellActivity.AdjustedUnitPrice), nameof(BuySellActivity.AdjustedUnitPriceSource)] } };
+				var compareLogic = new CompareLogic()
+				{
+					Config = new ComparisonConfig
+					{
+						MaxDifferences = int.MaxValue,
+						IgnoreObjectTypes = true,
+						MembersToIgnore = [nameof(Activity.Id), nameof(BuySellActivity.AdjustedQuantity), nameof(BuySellActivity.AdjustedUnitPrice), nameof(BuySellActivity.AdjustedUnitPriceSource)]
+					}
+				};
 				ComparisonResult result = compareLogic.Compare(existingActivity, newActivity);
 
 				if (!result.AreEqual)
