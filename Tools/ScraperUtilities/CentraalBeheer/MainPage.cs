@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			// Click on Beleggingsopdracht
 			await page.Locator("a[href*='/mijncb/mijn-producten/beleggen/beleggingsrekening-inzien']").ClickAsync();
 
-			// Clock on Afgeronde opdrachten
+			// Click on Afgeronde opdrachten
 			await page.Locator("a[href*='/mijncb/mijn-producten/beleggen/transacties']").ClickAsync();
 
 			// Wait for transactions to load
