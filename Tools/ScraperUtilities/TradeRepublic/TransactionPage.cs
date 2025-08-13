@@ -10,6 +10,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
+		private int MainTransactionTableIndex = 0;
+
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			logger.LogInformation("Scraping transactions...");
@@ -184,142 +186,76 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			if (headerText.Contains("You invested") || saving || rewards)
 			{
 				var transactionTable = await ParseTable(MainTransactionTableIndex);
-				//var isBond = transactionTable.Any(x => x.Item1 == "Nominal");
+				var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
 
-				/*var fee = transactionTable.FirstOrDefault(x => x.Item1 == "Fee").Item2;
-				var total = transactionTable.FirstOrDefault(x => x.Item1 == "Total").Item2;
-				var orderType = table.FirstOrDefault(x => x.Item1 == "Order Type").Item2;
-				var fees = new List<Money>();
-				if (fee != "Free")
-				{
-					fees.Add(new Money(Currency.EUR, ParseMoney(fee)));
-				}
+				var symbol = knownProfiles
+				.FirstOrDefault(x => x.ISIN == asset || x.Name == asset);
 
-				if (isBond)
+				if (symbol == null)
 				{
-					logger.LogWarning("Bonds are not supported yet.");
+					logger.LogWarning("Symbol not found: {Asset}", asset);
 					return null;
 				}
-				else
-				{*/
-					var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
 
-					var symbol = knownProfiles
-					.FirstOrDefault(x => x.ISIN == asset || x.Name == asset);
+				// Download the attached document if available
+				var links = await page.Locator("div[class='detailDocuments__entry']").AllAsync();
+				int counter = 1;
+				foreach (var item in links)
+				{
+					// open the link in a new tab
+					var countPages = page.Context.Pages.Count;
+					await item.ClickAsync();
 
-					if (symbol == null)
+					while (page.Context.Pages.Count <= countPages)
 					{
-						logger.LogWarning("Symbol not found: {Asset}", asset);
-						return null;
+						await Task.Delay(100);
 					}
 
-					// Download the attached document if available
-					var links = await page.Locator("div[class='detailDocuments__entry']").AllAsync();
-					int counter = 1;
-					foreach (var item in links)
+					var newPage = page.Context.Pages.LastOrDefault();
+					if (newPage != null)
 					{
-						// open the link in a new tab
-						var countPages = page.Context.Pages.Count;
-						await item.ClickAsync();
-						
-						while (page.Context.Pages.Count <= countPages)
+						try
 						{
-							await Task.Delay(100);
+							// Wait for the new page to load
+							await newPage.WaitForLoadStateAsync(LoadState.NetworkIdle);
+						}
+						catch
+						{
+							// Ignore for now
 						}
 
-						var newPage = page.Context.Pages.LastOrDefault();
-						if (newPage != null)
+						// Get Url
+						var url = newPage.Url;
+
+						// Download from url
+						logger.LogInformation("Downloading document from {Url}", url);
+						var fileName = $"{symbol.ISIN} {parsedTime:yyyy-MM-dd-HH-mm-ss} {counter++}.pdf";
+						var directory = Path.Combine(outputDirectory, "TradeRepublic");
+						var filePath = Path.Combine(directory, fileName);
+						if (!Directory.Exists(directory))
 						{
-							try
-							{
-								// Wait for the new page to load
-								await newPage.WaitForLoadStateAsync(LoadState.NetworkIdle);
-							}
-							catch
-							{
-								// Ignore for now
-							}
-
-							// Get Url
-							var url = newPage.Url;
-
-							// Download from url
-							logger.LogInformation("Downloading document from {Url}", url);
-							var fileName = $"{symbol.ISIN} {parsedTime:yyyy-MM-dd-HH-mm-ss} {counter++}.pdf";
-							var directory = Path.Combine(outputDirectory, "TradeRepublic");
-							var filePath = Path.Combine(directory, fileName);
-							if (!Directory.Exists(directory))
-							{
-								Directory.CreateDirectory(directory);
-							}
-
-							using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-							{
-								// Get manually from url
-								var response = await newPage.Context.APIRequest.GetAsync(url);
-								if (response.Ok)
-								{
-									var body = await response.BodyAsync();
-									// Write the response body to the file
-									await fileStream.WriteAsync(body);
-								}
-								else
-								{
-									logger.LogWarning("Failed to download document from {Url}. Status code: {StatusCode}", url, response.Status);
-								}
-							}
-
-							// Close the new page
-							await newPage.CloseAsync();
+							Directory.CreateDirectory(directory);
 						}
 
-					//}
-
-					/*
-					var quantity = transactionTable.FirstOrDefault(x => x.Item1 == "Shares").Item2;
-					var unitPrice = transactionTable.FirstOrDefault(x => x.Item1 == "Share price").Item2;
-					var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
-
-					var symbol = knownProfiles
-					.FirstOrDefault(x => x.ISIN == asset || x.Name == asset);
-
-					if (symbol == null)
-					{
-						logger.LogWarning("Symbol not found: {Asset}", asset);
-						return null;
-					}
-
-					if (rewards)
-					{
-						return new ActivityWithSymbol
+						using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write))
 						{
-							Activity = new GiftAssetActivity
+							// Get manually from url
+							var response = await newPage.Context.APIRequest.GetAsync(url);
+							if (response.Ok)
 							{
-								Quantity = ParseMoney(quantity),
-								UnitPrice = new Money(Currency.EUR, ParseMoney(unitPrice)),
-								Date = parsedTime,
-								TransactionId = GenerateTransactionId(time, table),
-								Description = headerText,
-							},
-							Symbol = symbol.ISIN,
-							symbolName = symbol.Name,
-						};
-					}
+								var body = await response.BodyAsync();
+								// Write the response body to the file
+								await fileStream.WriteAsync(body);
+							}
+							else
+							{
+								logger.LogWarning("Failed to download document from {Url}. Status code: {StatusCode}", url, response.Status);
+							}
+						}
 
-					return new ActivityWithSymbol
-					{
-						Activity = new BuySellActivity
-						{
-							Quantity = ParseMoney(quantity),
-							UnitPrice = new Money(Currency.EUR, ParseMoney(unitPrice)),
-							Date = parsedTime,
-							TransactionId = GenerateTransactionId(time, table),
-							TotalTransactionAmount = new Money(Currency.EUR, ParseMoney(total)),
-							Description = headerText,
-						},
-						Symbol = symbol.ISIN,
-						symbolName = symbol.Name,
-					};*/
+						// Close the new page
+						await newPage.CloseAsync();
+					}
 				}
 			}
 
