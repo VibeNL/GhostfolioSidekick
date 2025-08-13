@@ -4,16 +4,20 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
+using System.ComponentModel;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
-	public partial class Holdings
+	public partial class Holdings : IDisposable
 	{
 		[Inject]
 		private IHoldingsDataService? HoldingsDataService { get; set; }
 
 		[Inject]
 		private NavigationManager? Navigation { get; set; }
+
+		[CascadingParameter]
+		private FilterState FilterState { get; set; } = new();
 		
 		// View mode for the treemap
 		private string ViewMode = "treemap";
@@ -31,9 +35,60 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string sortColumn = "CurrentValue";
 		private bool sortAscending = false;
 
+		private FilterState? _previousFilterState;
+
 		protected override async Task OnInitializedAsync()
 		{
+			// Subscribe to filter changes
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged += OnFilterStateChanged;
+			}
+			
 			await LoadPortfolioDataAsync();
+		}
+
+		protected override async Task OnParametersSetAsync()
+		{
+			// Check if filter state has changed
+			if (_previousFilterState == null || HasFilterStateChanged())
+			{
+				// Unsubscribe from old filter state
+				if (_previousFilterState != null)
+				{
+					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+				}
+				
+				// Subscribe to new filter state
+				if (FilterState != null)
+				{
+					FilterState.PropertyChanged += OnFilterStateChanged;
+				}
+				
+				_previousFilterState = FilterState;
+				await LoadPortfolioDataAsync();
+			}
+		}
+
+		private bool HasFilterStateChanged()
+		{
+			if (_previousFilterState == null) return true;
+			
+			// For Holdings, we only care about currency changes
+			return _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency;
+		}
+
+		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			// Only react to currency changes for Holdings page
+			if (e.PropertyName == nameof(FilterState.SelectedCurrency))
+			{
+				await InvokeAsync(async () =>
+				{
+					await LoadPortfolioDataAsync();
+					StateHasChanged();
+				});
+			}
 		}
 
 		private async Task LoadPortfolioDataAsync()
@@ -70,7 +125,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				return await HoldingsDataService?.GetHoldingsAsync(Model.Currency.EUR) ?? new List<HoldingDisplayModel>();
+				var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
+				return await HoldingsDataService?.GetHoldingsAsync(currency) ?? new List<HoldingDisplayModel>();
 			}
 			catch (Exception ex)
 			{
@@ -240,6 +296,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private void NavigateToHoldingDetail(string symbol)
 		{
 			Navigation?.NavigateTo($"/holding/{Uri.EscapeDataString(symbol)}");
+		}
+
+		public void Dispose()
+		{
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged -= OnFilterStateChanged;
+			}
+			if (_previousFilterState != null)
+			{
+				_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+			}
 		}
 	}
 }

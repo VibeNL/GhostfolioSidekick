@@ -1,20 +1,104 @@
 ﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@implements IDisposable
 @inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
+<div class="page">
+    <header>
+        <NavMenu @bind-StartDate="@GlobalStartDate"
+                 @bind-EndDate="@GlobalEndDate"
+                 @bind-SelectedCurrency="@GlobalSelectedCurrency" 
+                 @bind-SelectedAccountId="@GlobalSelectedAccountId"
+                 ShowFilters="@ShouldShowFilters"
+                 ShowDateFilters="@ShouldShowDateFilters"
+                 ShowCurrencyFilter="@ShouldShowCurrencyFilter"
+                 ShowAccountFilter="@ShouldShowAccountFilters"
+                 OnFiltersChanged="@OnGlobalFiltersChanged" />
+    </header>
+
+    <main class="content">
         <div class="top-row px-4 auth">
             <LoginDisplay />
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
-        <article class="content px-4">
-            @Body
+        <article class="content-body px-4">
+            <!-- Debug info for filter state -->
+            <div style="background: #e3f2fd; padding: 0.5rem; margin-bottom: 1rem; font-size: 0.8rem; border-radius: 0.25rem;">
+                <strong>Filter Debug:</strong> 
+                Currency: @GlobalSelectedCurrency | 
+                Start: @GlobalStartDate.ToString("yyyy-MM-dd") | 
+                End: @GlobalEndDate.ToString("yyyy-MM-dd") | 
+                Account: @GlobalSelectedAccountId |
+                Page: @(IsTimeSeriesPage ? "TimeSeries" : IsHoldingsPage ? "Holdings" : "Other")
+            </div>
+            
+            <CascadingValue Value="@_filterState">
+                @Body
+            </CascadingValue>
         </article>
     </main>
 
     <ChatOverlay />
 </div>
+
+@code {
+    // Global filter state
+    private DateTime GlobalStartDate = DateTime.Today.AddMonths(-6);
+    private DateTime GlobalEndDate = DateTime.Today;
+    private string GlobalSelectedCurrency = "EUR";
+    private int GlobalSelectedAccountId = 0;
+
+    private FilterState _filterState = new();
+    
+    // Determine which filters to show based on current page
+    private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowCurrencyFilter || ShouldShowAccountFilters;
+    private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage);
+    private bool ShouldShowCurrencyFilter => CurrentPageSupportsFilters;
+    private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && IsTimeSeriesPage;
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    
+    private bool CurrentPageSupportsFilters => IsTimeSeriesPage || IsHoldingDetailPage || IsHoldingsPage;
+    private bool IsTimeSeriesPage => Navigation.Uri.Contains("/portfolio-timeseries");
+    private bool IsHoldingDetailPage => Navigation.Uri.Contains("/holding/");
+    private bool IsHoldingsPage => Navigation.Uri.Contains("/holdings");
+
+    protected override void OnInitialized()
+    {
+        UpdateFilterState();
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateFilterState();
+        StateHasChanged();
+    }
+
+    private void UpdateFilterState()
+    {
+        _filterState.StartDate = GlobalStartDate;
+        _filterState.EndDate = GlobalEndDate;
+        _filterState.SelectedCurrency = GlobalSelectedCurrency;
+        _filterState.SelectedAccountId = GlobalSelectedAccountId;
+        
+        // Force update of pages when filter state changes
+        StateHasChanged();
+    }
+
+    private async Task OnGlobalFiltersChanged()
+    {
+        UpdateFilterState();
+        StateHasChanged();
+        
+        // Force a complete re-render by yielding control
+        await Task.Yield();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

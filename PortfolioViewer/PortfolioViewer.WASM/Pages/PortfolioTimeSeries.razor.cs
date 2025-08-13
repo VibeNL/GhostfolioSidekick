@@ -8,10 +8,11 @@ using Plotly.Blazor.Traces;
 using System.Globalization;
 using System.Collections.Generic;
 using GhostfolioSidekick.Database.Repository;
+using System.ComponentModel;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
-	public partial class PortfolioTimeSeries : ComponentBase
+	public partial class PortfolioTimeSeries : ComponentBase, IDisposable
 	{
 		[Inject]
 		private IHoldingsDataService? HoldingsDataService { get; set; }
@@ -19,15 +20,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
 
+		[CascadingParameter]
+		private FilterState FilterState { get; set; } = new();
+
 		// View mode for chart/table toggle
 		protected string ViewMode { get; set; } = "chart";
 
-		// Filters
-		protected DateTime StartDate { get; set; } = DateTime.Today.AddMonths(-6);
-		protected DateTime EndDate { get; set; } = DateTime.Today;
-		protected string SelectedCurrency { get; set; } = "EUR";
-		protected int SelectedAccountId { get; set; } // New property for selected account
-		protected List<Account> Accounts { get; set; } = new(); // New property for account list
+		// Properties that read from cascaded filter state
+		protected DateTime StartDate => FilterState.StartDate;
+		protected DateTime EndDate => FilterState.EndDate;
+		protected string SelectedCurrency => FilterState.SelectedCurrency;
+		protected int SelectedAccountId => FilterState.SelectedAccountId;
 
 		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
 
@@ -47,13 +50,60 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected Plotly.Blazor.Layout plotLayout = new();
 		protected IList<ITrace> plotData = new List<ITrace>();
 
+		private FilterState? _previousFilterState;
+
 		protected override async Task OnInitializedAsync()
 		{
 			MinDate = await HoldingsDataService.GetMinDateAsync();
-			Accounts = await HoldingsDataService.GetAccountsAsync();
-			SelectedAccountId = 0;
+			
+			// Subscribe to filter changes
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged += OnFilterStateChanged;
+			}
 			
 			await LoadTimeSeriesAsync();
+		}
+
+		protected override async Task OnParametersSetAsync()
+		{
+			// Check if filter state has changed
+			if (_previousFilterState == null || HasFilterStateChanged())
+			{
+				// Unsubscribe from old filter state
+				if (_previousFilterState != null)
+				{
+					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+				}
+				
+				// Subscribe to new filter state
+				if (FilterState != null)
+				{
+					FilterState.PropertyChanged += OnFilterStateChanged;
+				}
+				
+				_previousFilterState = FilterState;
+				await LoadTimeSeriesAsync();
+			}
+		}
+
+		private bool HasFilterStateChanged()
+		{
+			if (_previousFilterState == null) return true;
+			
+			return _previousFilterState.StartDate != FilterState.StartDate ||
+				   _previousFilterState.EndDate != FilterState.EndDate ||
+				   _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency ||
+				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
+		}
+
+		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			await InvokeAsync(async () =>
+			{
+				await LoadTimeSeriesAsync();
+				StateHasChanged();
+			});
 		}
 
 		protected async Task LoadTimeSeriesAsync()
@@ -75,7 +125,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					currency,
 					StartDate,
 					EndDate,
-					SelectedAccountId // Pass selected account
+					SelectedAccountId
 				) ?? new List<PortfolioValueHistoryPoint>();
 				
 				await PrepareDisplayData();
@@ -268,6 +318,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					break;
 				default:
 					break;
+			}
+		}
+
+		public void Dispose()
+		{
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged -= OnFilterStateChanged;
+			}
+			if (_previousFilterState != null)
+			{
+				_previousFilterState.PropertyChanged -= OnFilterStateChanged;
 			}
 		}
 	}
