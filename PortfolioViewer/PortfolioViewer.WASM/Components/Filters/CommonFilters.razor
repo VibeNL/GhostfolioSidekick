@@ -15,13 +15,13 @@
                 <div class="date-input">
                     <label class="form-label-sm">From</label>
                     <input type="date" class="form-control form-control-sm" 
-                           value="@StartDate.ToString("yyyy-MM-dd")" 
+                           value="@_currentStartDate.ToString("yyyy-MM-dd")" 
                            @onchange="OnStartDateChanged" />
                 </div>
                 <div class="date-input">
                     <label class="form-label-sm">To</label>
                     <input type="date" class="form-control form-control-sm" 
-                           value="@EndDate.ToString("yyyy-MM-dd")" 
+                           value="@_currentEndDate.ToString("yyyy-MM-dd")" 
                            @onchange="OnEndDateChanged" />
                 </div>
             </div>
@@ -32,7 +32,7 @@
     {
         <div class="filter-group">
             <label class="form-label-sm">Currency</label>
-            <select class="form-select form-select-sm" value="@SelectedCurrency" @onchange="OnCurrencyChangedHandler">
+            <select class="form-select form-select-sm" value="@_currentSelectedCurrency" @onchange="OnCurrencyChangedHandler">
                 <option value="EUR">EUR</option>
                 <option value="USD">USD</option>
                 <option value="GBP">GBP</option>
@@ -44,7 +44,7 @@
     {
         <div class="filter-group">
             <label class="form-label-sm">Account</label>
-            <select class="form-select form-select-sm" value="@SelectedAccountId" @onchange="OnAccountChangedHandler">
+            <select class="form-select form-select-sm" value="@_currentSelectedAccountId" @onchange="OnAccountChangedHandler">
                 <option value="0">All Accounts</option>
                 @foreach (var account in Accounts)
                 {
