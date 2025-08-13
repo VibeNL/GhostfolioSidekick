@@ -1,14 +1,18 @@
 ﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using Markdig;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
-	public partial class ChatOverlay : IDisposable
+	public partial class ChatOverlay : ComponentBase, IDisposable
 	{
+		[Inject] private IJSRuntime JS { get; set; } = default!;
+
 		private bool IsOpen = false;
 		private string CurrentMessage = "";
 		private bool IsBotTyping = false;
@@ -20,8 +24,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private string streamingAuthor = string.Empty;
 		private InitializeProgress lastProgress = new(0);
 
-		private IJSRuntime JS { get; set; }
-
 		private readonly List<ChatMessageContent> memory = new();
 		private readonly AgentOrchestrator orchestrator;
 		private readonly AgentLogger agentLogger;
@@ -29,6 +31,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		internal string CurrentAgentName => agentLogger.CurrentAgentName;
 
 		internal string CurrentAgentFunction => agentLogger.CurrentAgentFunction;
+
+		private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
 		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
 		{
@@ -133,12 +137,40 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			InvokeAsync(StateHasChanged);
 		}
 
+		private async Task HandleInputKeyUp(KeyboardEventArgs e)
+		{
+			if (e.Key == "Enter" && !IsBotTyping)
+			{
+				await StreamPromptRequest();
+			}
+		}
+
+		private string GetBubbleStyle(ChatMessageContent? message)
+		{
+			const string baseStyle = "max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); ";
+
+			if (message?.Role == AuthorRole.User)
+			{
+				return baseStyle + "background-color: #dbeafe; align-self: flex-end;";
+			}
+			else if (message?.Role == AuthorRole.Assistant)
+			{
+				return baseStyle + "background-color: #e0f7fa; align-self: flex-start; border: 1px solid #b2ebf2;";
+			}
+			else if (message?.Role == AuthorRole.System)
+			{
+				return baseStyle + "background-color: #f3e5f5; align-self: center; font-style: italic;";
+			}
+			else
+			{
+				return baseStyle + "background-color: #ffffff; border: 1px solid #e5e7eb; align-self: flex-start;";
+			}
+		}
+
 		public void Dispose()
 		{
 			// Unsubscribe from AgentLogger event
 			agentLogger.CurrentAgentNameChanged -= OnCurrentAgentNameChanged;
 		}
-
-		private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 	}
 }

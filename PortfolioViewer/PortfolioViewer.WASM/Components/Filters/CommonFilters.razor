@@ -1,7 +1,3 @@
-@using GhostfolioSidekick.Model
-@using GhostfolioSidekick.Model.Accounts
-@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IHoldingsDataService HoldingsDataService
-
 <div class="filters-container">
     @if (ShowDateFilters)
     {
@@ -18,11 +14,15 @@
             <div class="d-flex gap-2 flex-wrap">
                 <div class="date-input">
                     <label class="form-label-sm">From</label>
-                    <input type="date" class="form-control form-control-sm" @bind="StartDate" @bind:after="OnDateChanged" />
+                    <input type="date" class="form-control form-control-sm" 
+                           value="@StartDate.ToString("yyyy-MM-dd")" 
+                           @onchange="OnStartDateChanged" />
                 </div>
                 <div class="date-input">
                     <label class="form-label-sm">To</label>
-                    <input type="date" class="form-control form-control-sm" @bind="EndDate" @bind:after="OnDateChanged" />
+                    <input type="date" class="form-control form-control-sm" 
+                           value="@EndDate.ToString("yyyy-MM-dd")" 
+                           @onchange="OnEndDateChanged" />
                 </div>
             </div>
         </div>
@@ -32,7 +32,7 @@
     {
         <div class="filter-group">
             <label class="form-label-sm">Currency</label>
-            <select class="form-select form-select-sm" @bind="SelectedCurrency" @bind:after="OnCurrencyChanged">
+            <select class="form-select form-select-sm" value="@SelectedCurrency" @onchange="OnCurrencyChangedHandler">
                 <option value="EUR">EUR</option>
                 <option value="USD">USD</option>
                 <option value="GBP">GBP</option>
@@ -44,7 +44,7 @@
     {
         <div class="filter-group">
             <label class="form-label-sm">Account</label>
-            <select class="form-select form-select-sm" @bind="SelectedAccountId" @bind:after="OnAccountChanged">
+            <select class="form-select form-select-sm" value="@SelectedAccountId" @onchange="OnAccountChangedHandler">
                 <option value="0">All Accounts</option>
                 @foreach (var account in Accounts)
                 {
@@ -54,97 +54,3 @@
         </div>
     }
 </div>
-
-@code {
-    [Parameter] public bool ShowDateFilters { get; set; } = false;
-    [Parameter] public bool ShowCurrencyFilter { get; set; } = false;
-    [Parameter] public bool ShowAccountFilter { get; set; } = false;
-
-    [Parameter] public DateTime StartDate { get; set; } = DateTime.Today.AddMonths(-6);
-    [Parameter] public DateTime EndDate { get; set; } = DateTime.Today;
-    [Parameter] public string SelectedCurrency { get; set; } = "EUR";
-    [Parameter] public int SelectedAccountId { get; set; } = 0;
-
-    [Parameter] public EventCallback<DateTime> StartDateChanged { get; set; }
-    [Parameter] public EventCallback<DateTime> EndDateChanged { get; set; }
-    [Parameter] public EventCallback<string> SelectedCurrencyChanged { get; set; }
-    [Parameter] public EventCallback<int> SelectedAccountIdChanged { get; set; }
-    [Parameter] public EventCallback OnFiltersChanged { get; set; }
-
-    private List<Account> Accounts { get; set; } = new();
-    private string? _currentDateRange = null;
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (ShowAccountFilter)
-        {
-            Accounts = await HoldingsDataService.GetAccountsAsync();
-        }
-    }
-
-    private string GetDateRangeButtonClass(string range)
-    {
-        return _currentDateRange == range ? "btn-primary" : "btn-outline-primary";
-    }
-
-    private async Task SetDateRange(string range)
-    {
-        _currentDateRange = range;
-        var today = DateTime.Today;
-        
-        switch (range)
-        {
-            case "LastWeek":
-                StartDate = today.AddDays(-7);
-                EndDate = today;
-                break;
-            case "LastMonth":
-                StartDate = today.AddMonths(-1);
-                EndDate = today;
-                break;
-            case "YearToDate":
-                StartDate = new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                EndDate = today;
-                break;
-            case "OneYear":
-                StartDate = today.AddYears(-1);
-                EndDate = today;
-                break;
-            case "FiveYear":
-                StartDate = today.AddYears(-5);
-                EndDate = today;
-                break;
-            case "Max":
-                StartDate = new DateTime(2020, 1, 1); // Adjust to your earliest data date if needed
-                EndDate = today;
-                break;
-        }
-
-        await NotifyFiltersChanged();
-    }
-
-    private async Task OnDateChanged()
-    {
-        _currentDateRange = null; // Clear quick date selection when manual dates are used
-        await NotifyFiltersChanged();
-    }
-
-    private async Task OnCurrencyChanged()
-    {
-        await SelectedCurrencyChanged.InvokeAsync(SelectedCurrency);
-        await NotifyFiltersChanged();
-    }
-
-    private async Task OnAccountChanged()
-    {
-        await SelectedAccountIdChanged.InvokeAsync(SelectedAccountId);
-        await NotifyFiltersChanged();
-    }
-
-    private async Task NotifyFiltersChanged()
-    {
-        await StartDateChanged.InvokeAsync(StartDate);
-        await EndDateChanged.InvokeAsync(EndDate);
-        await OnFiltersChanged.InvokeAsync();
-    }
-}

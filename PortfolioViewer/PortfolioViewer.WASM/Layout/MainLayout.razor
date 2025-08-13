@@ -26,14 +26,14 @@
             <!-- Debug info for filter state -->
             <div style="background: #e3f2fd; padding: 0.5rem; margin-bottom: 1rem; font-size: 0.8rem; border-radius: 0.25rem;">
                 <strong>Filter Debug:</strong> 
-                Currency: @GlobalSelectedCurrency | 
-                Start: @GlobalStartDate.ToString("yyyy-MM-dd") | 
-                End: @GlobalEndDate.ToString("yyyy-MM-dd") | 
-                Account: @GlobalSelectedAccountId |
+                Currency: @GlobalSelectedCurrency (@_filterState.SelectedCurrency) | 
+                Start: @GlobalStartDate.ToString("yyyy-MM-dd") (@_filterState.StartDate.ToString("yyyy-MM-dd")) | 
+                End: @GlobalEndDate.ToString("yyyy-MM-dd") (@_filterState.EndDate.ToString("yyyy-MM-dd")) | 
+                Account: @GlobalSelectedAccountId (@_filterState.SelectedAccountId) |
                 Page: @(IsTimeSeriesPage ? "TimeSeries" : IsHoldingsPage ? "Holdings" : "Other")
             </div>
             
-            <CascadingValue Value="@_filterState">
+            <CascadingValue Value="@_filterState" IsFixed="false">
                 @Body
             </CascadingValue>
         </article>
@@ -41,64 +41,3 @@
 
     <ChatOverlay />
 </div>
-
-@code {
-    // Global filter state
-    private DateTime GlobalStartDate = DateTime.Today.AddMonths(-6);
-    private DateTime GlobalEndDate = DateTime.Today;
-    private string GlobalSelectedCurrency = "EUR";
-    private int GlobalSelectedAccountId = 0;
-
-    private FilterState _filterState = new();
-    
-    // Determine which filters to show based on current page
-    private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowCurrencyFilter || ShouldShowAccountFilters;
-    private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage);
-    private bool ShouldShowCurrencyFilter => CurrentPageSupportsFilters;
-    private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && IsTimeSeriesPage;
-
-    [Inject] private NavigationManager Navigation { get; set; } = default!;
-    
-    private bool CurrentPageSupportsFilters => IsTimeSeriesPage || IsHoldingDetailPage || IsHoldingsPage;
-    private bool IsTimeSeriesPage => Navigation.Uri.Contains("/portfolio-timeseries");
-    private bool IsHoldingDetailPage => Navigation.Uri.Contains("/holding/");
-    private bool IsHoldingsPage => Navigation.Uri.Contains("/holdings");
-
-    protected override void OnInitialized()
-    {
-        UpdateFilterState();
-        Navigation.LocationChanged += OnLocationChanged;
-    }
-
-    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
-    {
-        UpdateFilterState();
-        StateHasChanged();
-    }
-
-    private void UpdateFilterState()
-    {
-        _filterState.StartDate = GlobalStartDate;
-        _filterState.EndDate = GlobalEndDate;
-        _filterState.SelectedCurrency = GlobalSelectedCurrency;
-        _filterState.SelectedAccountId = GlobalSelectedAccountId;
-        
-        // Force update of pages when filter state changes
-        StateHasChanged();
-    }
-
-    private async Task OnGlobalFiltersChanged()
-    {
-        UpdateFilterState();
-        StateHasChanged();
-        
-        // Force a complete re-render by yielding control
-        await Task.Yield();
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        Navigation.LocationChanged -= OnLocationChanged;
-    }
-}

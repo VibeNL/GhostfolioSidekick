@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
             { 
                 if (_selectedCurrency != value)
                 {
-                    _selectedCurrency = value;
+                    _selectedCurrency = value ?? "EUR"; // Ensure non-null value
                     OnPropertyChanged(nameof(SelectedCurrency));
                 }
             } 
@@ -66,6 +66,45 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        // Method to update all properties at once to reduce multiple notifications
+        public void UpdateAll(DateTime startDate, DateTime endDate, string selectedCurrency, int selectedAccountId)
+        {
+            var hasChanges = false;
+
+            if (_startDate != startDate)
+            {
+                _startDate = startDate;
+                hasChanges = true;
+            }
+
+            if (_endDate != endDate)
+            {
+                _endDate = endDate;
+                hasChanges = true;
+            }
+
+            if (_selectedCurrency != selectedCurrency)
+            {
+                _selectedCurrency = selectedCurrency ?? "EUR";
+                hasChanges = true;
+            }
+
+            if (_selectedAccountId != selectedAccountId)
+            {
+                _selectedAccountId = selectedAccountId;
+                hasChanges = true;
+            }
+
+            // Only notify if there were actual changes
+            if (hasChanges)
+            {
+                OnPropertyChanged(nameof(StartDate));
+                OnPropertyChanged(nameof(EndDate));
+                OnPropertyChanged(nameof(SelectedCurrency));
+                OnPropertyChanged(nameof(SelectedAccountId));
+            }
         }
     }
 }
