@@ -110,8 +110,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		public async Task<IReadOnlyCollection<ChatMessageContent>> History()
 		{
-			// History is stored in reverse order, so we need to reverse it to display it correctly.
-			return await groupChat.GetChatMessagesAsync().Reverse().Where(x => x.Content != null).ToListAsync();
+			// With the following code to manually collect the messages into a list:
+			var messages = new List<ChatMessageContent>();
+			await foreach (var message in groupChat.GetChatMessagesAsync())
+			{
+				messages.Add(message);
+			}
+
+			return messages.AsEnumerable().Reverse().Where(x => x.Content != null).ToList();
 		}
 
 		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)
