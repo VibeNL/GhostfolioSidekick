@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				};
 			}
 
-			var link = page.Locator("[href*=\"/broker/security?\"]").First;
+			var link = page.Locator("[href*=\"/broker/security?\"]").Last;
 			var name = await link.InnerTextAsync();
 			var url = await link.GetAttributeAsync("href");
 			if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(name))
