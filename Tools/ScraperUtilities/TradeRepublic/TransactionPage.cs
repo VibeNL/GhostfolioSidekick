@@ -183,7 +183,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			var saving = headerText.Contains("You saved");
 			if (headerText.Contains("You invested") || saving || rewards)
 			{
-				var transactionTable = await ParseTable(0);
+				var transactionTable = await ParseTable(MainTransactionTableIndex);
 				//var isBond = transactionTable.Any(x => x.Item1 == "Nominal");
 
 				/*var fee = transactionTable.FirstOrDefault(x => x.Item1 == "Fee").Item2;
