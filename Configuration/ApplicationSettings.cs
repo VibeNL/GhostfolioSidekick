@@ -29,6 +29,25 @@ namespace GhostfolioSidekick.Configuration
 
 		public string DatabasePath => Environment.GetEnvironmentVariable(DATABASEPATH)!;
 
+		public string DatabaseFilePath
+		{
+			get
+			{
+				var dbPath = DatabasePath ?? FileImporterPath;
+				if (string.IsNullOrEmpty(dbPath))
+				{
+					throw new InvalidOperationException("Database path is not configured.");
+				}
+
+				if (!dbPath.EndsWith(".db", StringComparison.OrdinalIgnoreCase))
+				{
+					dbPath = Path.Combine(dbPath, "ghostfolio.db");
+				}
+
+				return dbPath;
+			}
+		}
+
 		public string GhostfolioAccessToken => Environment.GetEnvironmentVariable(ACCESSTOKEN)!;
 
 		public string GhostfolioUrl

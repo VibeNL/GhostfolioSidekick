@@ -6,6 +6,8 @@
 
 		string DatabasePath { get; }
 
+		string DatabaseFilePath { get; }
+
 		string GhostfolioUrl { get; }
 
 		string GhostfolioAccessToken { get; }

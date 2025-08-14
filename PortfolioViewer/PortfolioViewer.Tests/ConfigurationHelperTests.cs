@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
                 .Build();
 
             // Use null logger for tests (logger is optional)
-            _configHelper = new ConfigurationHelper(configuration);
+            _configHelper = new ConfigurationHelper(configuration, );
         }
 
         [Fact]

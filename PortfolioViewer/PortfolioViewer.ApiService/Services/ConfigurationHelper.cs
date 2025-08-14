@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Configuration;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
@@ -12,38 +13,22 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 	public class ConfigurationHelper : IConfigurationHelper
 	{
 		private readonly IConfiguration _configuration;
+		private readonly IApplicationSettings applicationSettings;
 		private readonly ILogger<ConfigurationHelper>? _logger;
 		private readonly ConcurrentDictionary<string, string> _envVarCache = new();
 		private readonly ConcurrentDictionary<Type, TypeConverter> _typeConverters = new();
 
-		public ConfigurationHelper(IConfiguration configuration, ILogger<ConfigurationHelper>? logger = null)
+		public ConfigurationHelper(IConfiguration configuration, IApplicationSettings applicationSettings, ILogger<ConfigurationHelper>? logger = null)
 		{
 			_configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+			this.applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 			_logger = logger;
 		}
 
-		public string GetConnectionString(string name = "DefaultConnection")
+		public string GetConnectionString()
 		{
-			ArgumentException.ThrowIfNullOrWhiteSpace(name);
-
-			var envVarName = $"CONNECTIONSTRING_{NormalizeConnectionStringName(name)}";
-			var envValue = GetCachedEnvironmentVariable(envVarName);
-			if (!string.IsNullOrEmpty(envValue))
-			{
-				_logger?.LogDebug("Using connection string '{Name}' from environment variable '{EnvVar}'", name, envVarName);
-				return envValue;
-			}
-
-			var configValue = _configuration.GetConnectionString(name);
-			if (!string.IsNullOrEmpty(configValue))
-			{
-				_logger?.LogDebug("Using connection string '{Name}' from configuration", name);
-				return configValue;
-			}
-
-			var message = $"Connection string '{name}' not found in configuration or environment variable '{envVarName}'";
-			_logger?.LogError("{Message}", message);
-			throw new InvalidOperationException(message);
+			var path = applicationSettings.DatabaseFilePath;
+			return path;
 		}
 
 		public string GetConfigurationValue(string key, string? defaultValue = null)
