@@ -174,6 +174,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 
                 return Task.FromResult(priceHistory);
             }
+
+            public Task<List<TransactionDisplayModel>> GetTransactionsAsync(
+                Currency targetCurrency,
+                DateTime startDate,
+                DateTime endDate,
+                int accountId,
+                string symbol,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(new List<TransactionDisplayModel>());
+            }
+
+            public Task<List<string>> GetSymbolsAsync()
+            {
+                return Task.FromResult(new List<string> { "AAPL", "MSFT", "GOOGL" });
+            }
         }
 
         private class MockNavigationManager : NavigationManager

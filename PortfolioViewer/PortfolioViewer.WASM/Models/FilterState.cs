@@ -8,6 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
         private DateTime _endDate = DateTime.Today;
         private string _selectedCurrency = "EUR";
         private int _selectedAccountId = 0;
+        private string _selectedSymbol = ""; // Add symbol filter
 
         public DateTime StartDate 
         { 
@@ -57,6 +58,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
                 {
                     _selectedAccountId = value;
                     OnPropertyChanged(nameof(SelectedAccountId));
+                }
+            } 
+        }
+
+        public string SelectedSymbol 
+        { 
+            get => _selectedSymbol; 
+            set 
+            { 
+                if (_selectedSymbol != value)
+                {
+                    _selectedSymbol = value ?? "";
+                    OnPropertyChanged(nameof(SelectedSymbol));
                 }
             } 
         }

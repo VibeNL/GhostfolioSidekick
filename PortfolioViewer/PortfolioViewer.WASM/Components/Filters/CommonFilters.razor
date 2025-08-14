@@ -57,5 +57,19 @@
                 </select>
             </div>
         }
+
+        @if (ShowSymbolFilter)
+        {
+            <div class="filter-group">
+                <label class="form-label-sm">Symbol</label>
+                <select class="form-select form-select-sm" value="@FilterState.SelectedSymbol" @onchange="OnSymbolChanged">
+                    <option value="">All Symbols</option>
+                    @foreach (var symbol in Symbols)
+                    {
+                        <option value="@symbol">@symbol</option>
+                    }
+                </select>
+            </div>
+        }
     </div>
 }
