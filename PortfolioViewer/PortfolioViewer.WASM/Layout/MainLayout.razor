@@ -19,7 +19,7 @@
             </div>
 
             <article class="content-body px-4">
-                <!-- Debug info for filter state -->
+               @*  <!-- Debug info for filter state -->
                 <div style="background: #e3f2fd; padding: 0.5rem; margin-bottom: 1rem; font-size: 0.8rem; border-radius: 0.25rem;">
                     <strong>Filter Debug:</strong> 
                     Currency: @FilterStateInstance.SelectedCurrency | 
@@ -27,7 +27,7 @@
                     End: @FilterStateInstance.EndDate.ToString("yyyy-MM-dd") | 
                     Account: @FilterStateInstance.SelectedAccountId |
                     Page: @(IsTimeSeriesPage ? "TimeSeries" : IsHoldingsPage ? "Holdings" : "Other")
-                </div>
+                </div> *@
                 
                 @Body
             </article>

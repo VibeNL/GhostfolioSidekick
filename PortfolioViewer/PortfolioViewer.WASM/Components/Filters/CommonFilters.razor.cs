@@ -25,6 +25,53 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             {
                 Accounts = await HoldingsDataService.GetAccountsAsync();
             }
+            
+            // Detect if FilterState already has YTD dates set and update the button selection
+            DetectCurrentDateRange();
+        }
+
+        protected override void OnParametersSet()
+        {
+            // Re-detect the current date range when parameters change
+            DetectCurrentDateRange();
+        }
+
+        private void DetectCurrentDateRange()
+        {
+            if (FilterState == null) return;
+
+            var today = DateTime.Today;
+            var startOfYear = new DateTime(today.Year, 1, 1);
+
+            // Check if current dates match predefined ranges
+            if (FilterState.StartDate.Date == startOfYear && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "YearToDate";
+            }
+            else if (FilterState.StartDate.Date == today.AddDays(-7) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "LastWeek";
+            }
+            else if (FilterState.StartDate.Date == today.AddMonths(-1) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "LastMonth";
+            }
+            else if (FilterState.StartDate.Date == today.AddYears(-1) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "OneYear";
+            }
+            else if (FilterState.StartDate.Date == today.AddYears(-5) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "FiveYear";
+            }
+            else if (FilterState.StartDate.Date == new DateTime(2020, 1, 1) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "Max";
+            }
+            else
+            {
+                _currentDateRange = null; // Custom date range
+            }
         }
 
         private string GetDateRangeButtonClass(string range)
@@ -83,8 +130,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             
             if (DateTime.TryParse(e.Value?.ToString(), out var newDate))
             {
-                _currentDateRange = null; // Clear quick date selection
                 FilterState.StartDate = newDate;
+                DetectCurrentDateRange(); // Re-detect the date range after manual change
             }
         }
 
@@ -94,8 +141,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             
             if (DateTime.TryParse(e.Value?.ToString(), out var newDate))
             {
-                _currentDateRange = null; // Clear quick date selection
                 FilterState.EndDate = newDate;
+                DetectCurrentDateRange(); // Re-detect the date range after manual change
             }
         }
 

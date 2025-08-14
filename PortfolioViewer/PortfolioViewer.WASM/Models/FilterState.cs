@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {
     public class FilterState : INotifyPropertyChanged
     {
-        private DateTime _startDate = DateTime.Today.AddMonths(-6);
+        private DateTime _startDate = new DateTime(DateTime.Today.Year, 1, 1);  // YTD start - January 1st of current year
         private DateTime _endDate = DateTime.Today;
         private string _selectedCurrency = "EUR";
         private int _selectedAccountId = 0;
