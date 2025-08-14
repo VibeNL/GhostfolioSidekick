@@ -9,9 +9,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
         /// <summary>
         /// Gets the database connection string from configuration or environment variable.
         /// </summary>
-        /// <param name="name">The name of the connection string (defaults to "DefaultConnection")</param>
         /// <returns>The connection string value</returns>
-        string GetConnectionString(string name = "DefaultConnection");
+        string GetConnectionString();
 
         /// <summary>
         /// Gets a configuration value with fallback to environment variable.

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Models;
+using GhostfolioSidekick.Configuration;
 
 namespace GhostfolioSidekick.PortfolioViewer.Tests
 {
@@ -8,6 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
     {
         private readonly IConfigurationHelper _configHelper;
         private readonly List<string> _environmentVariablesToCleanup = new();
+        private readonly FakeApplicationSettings _fakeApplicationSettings;
 
         public ConfigurationHelperTests()
         {
@@ -29,40 +31,34 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
                 .AddInMemoryCollection(configData)
                 .Build();
 
+            // Create fake IApplicationSettings
+            _fakeApplicationSettings = new FakeApplicationSettings { DatabaseFilePath = "Data Source=test.db" };
+
             // Use null logger for tests (logger is optional)
-            _configHelper = new ConfigurationHelper(configuration);
+            _configHelper = new ConfigurationHelper(configuration, _fakeApplicationSettings);
         }
 
         [Fact]
-        public void GetConnectionString_ReturnsValueFromConfiguration()
+        public void GetConnectionString_ReturnsValueFromApplicationSettings()
         {
             // Act
-            var result = _configHelper.GetConnectionString("DefaultConnection");
+            var result = _configHelper.GetConnectionString();
 
             // Assert
             Assert.Equal("Data Source=test.db", result);
         }
 
         [Fact]
-        public void GetConnectionString_PrefersEnvironmentVariable()
+        public void GetConnectionString_ReturnsValueFromFakeApplicationSettings()
         {
             // Arrange
-            SetEnvironmentVariable("CONNECTIONSTRING_DEFAULT", "Data Source=env.db");
+            _fakeApplicationSettings.DatabaseFilePath = "Data Source=env.db";
 
             // Act
-            var result = _configHelper.GetConnectionString("DefaultConnection");
+            var result = _configHelper.GetConnectionString();
 
             // Assert
             Assert.Equal("Data Source=env.db", result);
-        }
-
-        [Fact]
-        public void GetConnectionString_ThrowsForNullOrWhiteSpace()
-        {
-            // Act & Assert - ArgumentException.ThrowIfNullOrWhiteSpace throws different exceptions for different inputs
-            Assert.Throws<ArgumentException>(() => _configHelper.GetConnectionString(""));       // Empty string -> ArgumentException
-            Assert.Throws<ArgumentNullException>(() => _configHelper.GetConnectionString(null!));  // Null -> ArgumentNullException
-            Assert.Throws<ArgumentException>(() => _configHelper.GetConnectionString("   "));     // Whitespace -> ArgumentException
         }
 
         [Fact]
@@ -280,6 +276,18 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
             {
                 Environment.SetEnvironmentVariable(envVar, null);
             }
+        }
+
+        private class FakeApplicationSettings : IApplicationSettings
+        {
+            public string FileImporterPath { get; set; } = string.Empty;
+            public string DatabasePath { get; set; } = string.Empty;
+            public string DatabaseFilePath { get; set; } = string.Empty;
+            public string GhostfolioUrl { get; set; } = string.Empty;
+            public string GhostfolioAccessToken { get; set; } = string.Empty;
+            public int TrottleTimeout { get; set; }
+            public ConfigurationInstance ConfigurationInstance { get; set; } = new();
+            public bool AllowAdminCalls { get; set; }
         }
     }
 }

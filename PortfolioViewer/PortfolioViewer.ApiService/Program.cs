@@ -1,6 +1,7 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
+using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
 using GhostfolioSidekick.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -27,6 +28,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			builder.Services.AddGrpc();
 
 			// Register configuration helper
+			builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 			builder.Services.AddSingleton<IConfigurationHelper, ConfigurationHelper>();
 
 			// Register ApplicationSettings
@@ -47,7 +49,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			builder.Services.AddDbContext<DatabaseContext>((serviceProvider, options) =>
 			{
 				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
-				var connectionString = "Data Source="+configHelper.GetConnectionString("DefaultConnection");
+				var connectionString = "Data Source="+configHelper.GetConnectionString();
 				options.UseSqlite(connectionString);
 			});
 

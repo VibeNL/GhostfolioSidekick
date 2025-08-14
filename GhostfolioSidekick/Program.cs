@@ -88,18 +88,7 @@ namespace GhostfolioSidekick
 							services.AddDbContextFactory<DatabaseContext>(options =>
 							{
 								var settings = services.BuildServiceProvider().GetService<IApplicationSettings>();
-
-								var dbPath = settings?.DatabasePath ?? settings?.FileImporterPath;
-								if (string.IsNullOrEmpty(dbPath))
-								{
-									throw new InvalidOperationException("Database path is not configured.");
-								}
-
-								if (!dbPath.EndsWith(".db", StringComparison.OrdinalIgnoreCase))
-								{
-									dbPath = Path.Combine(dbPath, "ghostfolio.db");
-								}
-
+								var dbPath = settings?.DatabaseFilePath;
 								options.UseSqlite($"Data Source={dbPath}");
 								options.UseLazyLoadingProxies();
 							});
