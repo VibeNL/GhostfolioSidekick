@@ -119,36 +119,3 @@
 		</div>
 	</div>
 }
-
-@code
-{
-	private async Task HandleInputKeyUp(KeyboardEventArgs e)
-	{
-	    if (e.Key == "Enter" && !IsBotTyping)
-	    {
-			await StreamPromptRequest();
-		}
-	}
-
-	private string GetBubbleStyle(ChatMessageContent? message)
-	{
-		const string baseStyle = "max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); ";
-
-		if (message?.Role == AuthorRole.User)
-		{
-			return baseStyle + "background-color: #dbeafe; align-self: flex-end;";
-		}
-		else if (message?.Role == AuthorRole.Assistant)
-		{
-			return baseStyle + "background-color: #e0f7fa; align-self: flex-start; border: 1px solid #b2ebf2;";
-		}
-		else if (message?.Role == AuthorRole.System)
-		{
-			return baseStyle + "background-color: #f3e5f5; align-self: center; font-style: italic;";
-		}
-		else
-		{
-			return baseStyle + "background-color: #ffffff; border: 1px solid #e5e7eb; align-self: flex-start;";
-		}
-	}
-}

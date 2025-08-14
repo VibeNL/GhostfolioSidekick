@@ -1,5 +1,4 @@
 ﻿@page "/"
-@inject IJSRuntime JSRuntime
 
 <PageTitle>Home</PageTitle>
 
@@ -41,21 +40,4 @@
 	section Go home
 	Go downstairs: 5: Me
 	Sit down: 5: Me
-</div>
-
-@code {
-	IJSObjectReference mermaidmodule;
-	protected override async Task OnAfterRenderAsync(bool firstRender)
-	{
-		if (firstRender)
-		{
-			mermaidmodule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/mermaidmodule.js");
-			await mermaidmodule.InvokeVoidAsync("Initialize");
-			await mermaidmodule.InvokeVoidAsync("Render", "mermaid");
-		}
-		else
-		{
-			await mermaidmodule.InvokeVoidAsync("Render", "mermaid");
-		}
-	}
-} *@
+</div> *@

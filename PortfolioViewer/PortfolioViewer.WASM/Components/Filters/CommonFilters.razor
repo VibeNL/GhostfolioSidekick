@@ -1,0 +1,61 @@
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+
+@if (FilterState != null)
+{
+    <div class="filters-container">
+        @if (ShowDateFilters)
+        {
+            <div class="filter-group date-filters">
+                <div class="btn-group mb-2" role="group" aria-label="Quick Date Ranges">
+                    <button class="btn @(GetDateRangeButtonClass("LastWeek"))" @onclick='() => SetDateRange("LastWeek")'>1W</button>
+                    <button class="btn @(GetDateRangeButtonClass("LastMonth"))" @onclick='() => SetDateRange("LastMonth")'>1M</button>
+                    <button class="btn @(GetDateRangeButtonClass("YearToDate"))" @onclick='() => SetDateRange("YearToDate")'>YTD</button>
+                    <button class="btn @(GetDateRangeButtonClass("OneYear"))" @onclick='() => SetDateRange("OneYear")'>1Y</button>
+                    <button class="btn @(GetDateRangeButtonClass("FiveYear"))" @onclick='() => SetDateRange("FiveYear")'>5Y</button>
+                    <button class="btn @(GetDateRangeButtonClass("Max"))" @onclick='() => SetDateRange("Max")'>All</button>
+                </div>
+                
+                <div class="d-flex gap-2 flex-wrap">
+                    <div class="date-input">
+                        <label class="form-label-sm">From</label>
+                        <input type="date" class="form-control form-control-sm" 
+                               value="@FilterState.StartDate.ToString("yyyy-MM-dd")" 
+                               @onchange="OnStartDateChanged" />
+                    </div>
+                    <div class="date-input">
+                        <label class="form-label-sm">To</label>
+                        <input type="date" class="form-control form-control-sm" 
+                               value="@FilterState.EndDate.ToString("yyyy-MM-dd")" 
+                               @onchange="OnEndDateChanged" />
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (ShowCurrencyFilter)
+        {
+            <div class="filter-group">
+                <label class="form-label-sm">Currency</label>
+                <select class="form-select form-select-sm" value="@FilterState.SelectedCurrency" @onchange="OnCurrencyChanged">
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="GBP">GBP</option>
+                </select>
+            </div>
+        }
+
+        @if (ShowAccountFilter)
+        {
+            <div class="filter-group">
+                <label class="form-label-sm">Account</label>
+                <select class="form-select form-select-sm" value="@FilterState.SelectedAccountId" @onchange="OnAccountChanged">
+                    <option value="0">All Accounts</option>
+                    @foreach (var account in Accounts)
+                    {
+                        <option value="@account.Id">@account.Name</option>
+                    }
+                </select>
+            </div>
+        }
+    </div>
+}

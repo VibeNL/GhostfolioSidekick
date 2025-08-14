@@ -1,20 +1,38 @@
 ﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@implements IDisposable
 @inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+
+<CascadingValue Value="@FilterStateInstance" IsFixed="false">
+    <div class="page">
+        <header>
+            <NavMenu ShowFilters="@ShouldShowFilters"
+                     ShowDateFilters="@ShouldShowDateFilters"
+                     ShowCurrencyFilter="@ShouldShowCurrencyFilter"
+                     ShowAccountFilter="@ShouldShowAccountFilters" />
+        </header>
+
+        <main class="content">
+            <div class="top-row px-4 auth">
+                <LoginDisplay />
+                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            </div>
+
+            <article class="content-body px-4">
+               @*  <!-- Debug info for filter state -->
+                <div style="background: #e3f2fd; padding: 0.5rem; margin-bottom: 1rem; font-size: 0.8rem; border-radius: 0.25rem;">
+                    <strong>Filter Debug:</strong> 
+                    Currency: @FilterStateInstance.SelectedCurrency | 
+                    Start: @FilterStateInstance.StartDate.ToString("yyyy-MM-dd") | 
+                    End: @FilterStateInstance.EndDate.ToString("yyyy-MM-dd") | 
+                    Account: @FilterStateInstance.SelectedAccountId |
+                    Page: @(IsTimeSeriesPage ? "TimeSeries" : IsHoldingsPage ? "Holdings" : "Other")
+                </div> *@
+                
+                @Body
+            </article>
+        </main>
+
+        <ChatOverlay />
     </div>
-
-    <main>
-        <div class="top-row px-4 auth">
-            <LoginDisplay />
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-
-    <ChatOverlay />
-</div>
+</CascadingValue>

@@ -1,44 +1,47 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">PortfolioViewer.WASM</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+        <a class="navbar-brand" href="">PortfolioViewer</a>
+        
+        <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu" aria-controls="navbarNav" aria-expanded="@(!collapseNavMenu)" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+        
+        <div class="@NavMenuCssClass navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <i class="bi bi-house-door-fill me-1"></i>Home
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="holdings">
+                        <i class="bi bi-pie-chart-fill me-1"></i>Holdings
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="portfolio-timeseries">
+                        <i class="bi bi-bar-chart-line me-1"></i>Time Series
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="tables">
+                        <i class="bi bi-table me-1"></i>Tables
+                    </NavLink>
+                </li>
+            </ul>
+
+            <!-- Simplified Filters Section -->
+            @if (ShowFilters)
+            {
+                <div class="navbar-filters ms-auto">
+                    <CommonFilters 
+                        ShowDateFilters="ShowDateFilters"
+                        ShowCurrencyFilter="ShowCurrencyFilter"
+                        ShowAccountFilter="ShowAccountFilter" />
+                </div>
+            }
+        </div>
     </div>
-</div>
-
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="holdings">
-                <span class="bi bi-pie-chart-fill-nav-menu" aria-hidden="true"></span> Holdings
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="portfolio-timeseries">
-                <span class="bi bi-bar-chart-line-nav-menu" aria-hidden="true"></span> Portfolio Time Series
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="tables">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Table Viewer
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
+</nav>
