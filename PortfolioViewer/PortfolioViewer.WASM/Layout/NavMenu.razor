@@ -32,19 +32,14 @@
                 </li>
             </ul>
 
-            <!-- Filters Section -->
+            <!-- Simplified Filters Section -->
             @if (ShowFilters)
             {
                 <div class="navbar-filters ms-auto">
                     <CommonFilters 
-                        @bind-StartDate="StartDate"
-                        @bind-EndDate="EndDate" 
-                        @bind-SelectedCurrency="SelectedCurrency"
-                        @bind-SelectedAccountId="SelectedAccountId"
                         ShowDateFilters="ShowDateFilters"
                         ShowCurrencyFilter="ShowCurrencyFilter"
-                        ShowAccountFilter="ShowAccountFilter"
-                        OnFiltersChanged="OnFiltersChanged" />
+                        ShowAccountFilter="ShowAccountFilter" />
                 </div>
             }
         </div>
