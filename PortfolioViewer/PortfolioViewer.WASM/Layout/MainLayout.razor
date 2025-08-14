@@ -9,7 +9,8 @@
             <NavMenu ShowFilters="@ShouldShowFilters"
                      ShowDateFilters="@ShouldShowDateFilters"
                      ShowCurrencyFilter="@ShouldShowCurrencyFilter"
-                     ShowAccountFilter="@ShouldShowAccountFilters" />
+                     ShowAccountFilter="@ShouldShowAccountFilters"
+                     ShowSymbolFilter="@ShouldShowSymbolFilter" />
         </header>
 
         <main class="content">
@@ -26,7 +27,8 @@
                     Start: @FilterStateInstance.StartDate.ToString("yyyy-MM-dd") | 
                     End: @FilterStateInstance.EndDate.ToString("yyyy-MM-dd") | 
                     Account: @FilterStateInstance.SelectedAccountId |
-                    Page: @(IsTimeSeriesPage ? "TimeSeries" : IsHoldingsPage ? "Holdings" : "Other")
+                    Symbol: @FilterStateInstance.SelectedSymbol |
+                    Page: @(IsTimeSeriesPage ? "TimeSeries" : IsHoldingsPage ? "Holdings" : IsTransactionsPage ? "Transactions" : "Other")
                 </div> *@
                 
                 @Body

@@ -1,0 +1,344 @@
+@page "/transactions"
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+
+<PageTitle>Transactions</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h1 class="display-4">Portfolio Transactions</h1>
+            <p class="text-muted">View and filter your portfolio transactions</p>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <!-- Loading State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Transaction Data...</h5>
+                        <p class="text-muted mb-0">Please wait while we fetch your transaction information.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <!-- Error State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!TransactionsList.Any())
+    {
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-receipt text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">No Transactions Found</h5>
+                        <p class="text-muted mb-3">No transactions match your current filter criteria or date range.</p>
+                        <button class="btn btn-primary" @onclick="RefreshDataAsync">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Main Content -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Transactions (@TransactionsList.Count)</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@IsLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">
+                                            <button type="button" @onclick="@(() => SortBy("Date"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Date @(sortColumn == "Date" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col">
+                                            <button type="button" @onclick="@(() => SortBy("Type"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Type @(sortColumn == "Type" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col">
+                                            <button type="button" @onclick="@(() => SortBy("Symbol"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Symbol @(sortColumn == "Symbol" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col">
+                                            <button type="button" @onclick="@(() => SortBy("Name"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Name @(sortColumn == "Name" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col">
+                                            <button type="button" @onclick="@(() => SortBy("AccountName"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Account @(sortColumn == "AccountName" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col" class="text-end">
+                                            <button type="button" @onclick="@(() => SortBy("Quantity"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Quantity @(sortColumn == "Quantity" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col" class="text-end">
+                                            <button type="button" @onclick="@(() => SortBy("UnitPrice"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Unit Price @(sortColumn == "UnitPrice" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col" class="text-end">
+                                            <button type="button" @onclick="@(() => SortBy("TotalValue"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Total Value @(sortColumn == "TotalValue" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col" class="text-end">
+                                            <button type="button" @onclick="@(() => SortBy("Fee"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Fee @(sortColumn == "Fee" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col" class="text-end">
+                                            <button type="button" @onclick="@(() => SortBy("Tax"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Tax @(sortColumn == "Tax" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                        <th scope="col">
+                                            <button type="button" @onclick="@(() => SortBy("Description"))" class="btn btn-link text-white text-decoration-none p-0">
+                                                Description @(sortColumn == "Description" ? (sortAscending ? "?" : "?") : "")
+                                            </button>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var transaction in TransactionsList)
+                                    {
+                                        <tr class="transaction-row" title="@transaction.TransactionId">
+                                            <td>
+                                                <strong>@transaction.Date.ToString("yyyy-MM-dd")</strong>
+                                                <br>
+                                                <small class="text-muted">@transaction.Date.ToString("HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetTypeClass(transaction.Type)">@transaction.Type</span>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(transaction.Symbol))
+                                                {
+                                                    <strong>@transaction.Symbol</strong>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(transaction.Name))
+                                                {
+                                                    @transaction.Name
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@transaction.AccountName</span>
+                                            </td>
+                                            <td class="text-end">
+                                                @if (transaction.Quantity.HasValue)
+                                                {
+                                                    @transaction.Quantity.Value.ToString("N4")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                @if (transaction.UnitPrice != null)
+                                                {
+                                                    @CurrencyDisplay.DisplaySignAndAmount(transaction.UnitPrice)
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                @if (transaction.TotalValue != null)
+                                                {
+                                                    <strong class="@GetValueClass(transaction.TotalValue, transaction.Type)">
+                                                        @CurrencyDisplay.DisplaySignAndAmount(transaction.TotalValue)
+                                                    </strong>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                @if (transaction.Fee != null)
+                                                {
+                                                    <span class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(transaction.Fee)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                @if (transaction.Tax != null)
+                                                {
+                                                    <span class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(transaction.Tax)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(transaction.Description))
+                                                {
+                                                    <small>@transaction.Description</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Transaction Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <span>Total Transactions:</span>
+                            <strong>@TransactionsList.Count</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Date Range:</span>
+                            <small>@FilterState.StartDate.ToString("yyyy-MM-dd") to @FilterState.EndDate.ToString("yyyy-MM-dd")</small>
+                        </div>
+                        @if (!string.IsNullOrEmpty(FilterState.SelectedSymbol))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>Filtered Symbol:</span>
+                                <strong>@FilterState.SelectedSymbol</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Transaction Types</h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var typeGroup in TransactionTypeBreakdown.OrderByDescending(x => x.Value))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>@typeGroup.Key:</span>
+                                <strong>@typeGroup.Value</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Account Breakdown</h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var accountGroup in AccountBreakdown.OrderByDescending(x => x.Value))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>@accountGroup.Key:</span>
+                                <strong>@accountGroup.Value</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        width: 100%;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .table td, .table th {
+        white-space: nowrap;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .transaction-row:hover {
+        background-color: #f8f9fa !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .transaction-row {
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .table td:nth-child(11) {
+        max-width: 200px;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+</style>

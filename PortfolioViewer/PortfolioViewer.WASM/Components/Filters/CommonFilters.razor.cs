@@ -15,8 +15,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         [Parameter] public bool ShowDateFilters { get; set; } = false;
         [Parameter] public bool ShowCurrencyFilter { get; set; } = false;
         [Parameter] public bool ShowAccountFilter { get; set; } = false;
+        [Parameter] public bool ShowSymbolFilter { get; set; } = false;
 
         private List<Account> Accounts { get; set; } = new();
+        private List<string> Symbols { get; set; } = new();
         private string? _currentDateRange = null;
 
         protected override async Task OnInitializedAsync()
@@ -24,6 +26,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             if (ShowAccountFilter)
             {
                 Accounts = await HoldingsDataService.GetAccountsAsync();
+            }
+            
+            if (ShowSymbolFilter)
+            {
+                Symbols = await HoldingsDataService.GetSymbolsAsync();
             }
             
             // Detect if FilterState already has YTD dates set and update the button selection
@@ -56,6 +63,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             {
                 _currentDateRange = "LastMonth";
             }
+            else if (FilterState.StartDate.Date == today.AddMonths(-3) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "ThreeMonths";
+            }
+            else if (FilterState.StartDate.Date == today.AddMonths(-6) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "SixMonths";
+            }
             else if (FilterState.StartDate.Date == today.AddYears(-1) && FilterState.EndDate.Date == today)
             {
                 _currentDateRange = "OneYear";
@@ -74,93 +89,94 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
         }
 
-        private string GetDateRangeButtonClass(string range)
-        {
-            return _currentDateRange == range ? "btn-primary" : "btn-outline-primary";
-        }
-
         private void SetDateRange(string range)
         {
             if (FilterState == null) return;
-            
-            _currentDateRange = range;
+
             var today = DateTime.Today;
-            
-            DateTime newStartDate;
-            DateTime newEndDate;
-            
+            _currentDateRange = range;
+
             switch (range)
             {
                 case "LastWeek":
-                    newStartDate = today.AddDays(-7);
-                    newEndDate = today;
+                    FilterState.StartDate = today.AddDays(-7);
+                    FilterState.EndDate = today;
                     break;
                 case "LastMonth":
-                    newStartDate = today.AddMonths(-1);
-                    newEndDate = today;
+                    FilterState.StartDate = today.AddMonths(-1);
+                    FilterState.EndDate = today;
+                    break;
+                case "ThreeMonths":
+                    FilterState.StartDate = today.AddMonths(-3);
+                    FilterState.EndDate = today;
+                    break;
+                case "SixMonths":
+                    FilterState.StartDate = today.AddMonths(-6);
+                    FilterState.EndDate = today;
                     break;
                 case "YearToDate":
-                    newStartDate = new DateTime(today.Year, 1, 1);
-                    newEndDate = today;
+                    FilterState.StartDate = new DateTime(today.Year, 1, 1);
+                    FilterState.EndDate = today;
                     break;
                 case "OneYear":
-                    newStartDate = today.AddYears(-1);
-                    newEndDate = today;
+                    FilterState.StartDate = today.AddYears(-1);
+                    FilterState.EndDate = today;
                     break;
                 case "FiveYear":
-                    newStartDate = today.AddYears(-5);
-                    newEndDate = today;
+                    FilterState.StartDate = today.AddYears(-5);
+                    FilterState.EndDate = today;
                     break;
                 case "Max":
-                    newStartDate = new DateTime(2020, 1, 1);
-                    newEndDate = today;
+                    FilterState.StartDate = new DateTime(2020, 1, 1);
+                    FilterState.EndDate = today;
                     break;
-                default:
-                    return;
             }
+        }
 
-            // Directly update the FilterState - this will trigger PropertyChanged events
-            FilterState.StartDate = newStartDate;
-            FilterState.EndDate = newEndDate;
+        private string GetDateRangeButtonClass(string range)
+        {
+            return range == _currentDateRange ? "btn-primary" : "btn-outline-primary";
         }
 
         private void OnStartDateChanged(ChangeEventArgs e)
         {
-            if (FilterState == null) return;
-            
-            if (DateTime.TryParse(e.Value?.ToString(), out var newDate))
+            if (FilterState != null && DateTime.TryParse(e.Value?.ToString(), out var date))
             {
-                FilterState.StartDate = newDate;
-                DetectCurrentDateRange(); // Re-detect the date range after manual change
+                FilterState.StartDate = date;
+                _currentDateRange = null; // Clear predefined range when custom date is set
             }
         }
 
         private void OnEndDateChanged(ChangeEventArgs e)
         {
-            if (FilterState == null) return;
-            
-            if (DateTime.TryParse(e.Value?.ToString(), out var newDate))
+            if (FilterState != null && DateTime.TryParse(e.Value?.ToString(), out var date))
             {
-                FilterState.EndDate = newDate;
-                DetectCurrentDateRange(); // Re-detect the date range after manual change
+                FilterState.EndDate = date;
+                _currentDateRange = null; // Clear predefined range when custom date is set
             }
         }
 
         private void OnCurrencyChanged(ChangeEventArgs e)
         {
-            if (FilterState == null) return;
-            
-            var newCurrency = e.Value?.ToString() ?? "EUR";
-            FilterState.SelectedCurrency = newCurrency;
+            if (FilterState != null && e.Value != null)
+            {
+                FilterState.SelectedCurrency = e.Value.ToString() ?? "EUR";
+            }
         }
 
         private void OnAccountChanged(ChangeEventArgs e)
         {
-            if (FilterState == null) return;
-            
-            if (int.TryParse(e.Value?.ToString(), out var accountId))
+            if (FilterState != null && int.TryParse(e.Value?.ToString(), out var accountId))
             {
                 FilterState.SelectedAccountId = accountId;
+            }
+        }
+
+        private void OnSymbolChanged(ChangeEventArgs e)
+        {
+            if (FilterState != null && e.Value != null)
+            {
+                FilterState.SelectedSymbol = e.Value.ToString() ?? "";
             }
         }
     }

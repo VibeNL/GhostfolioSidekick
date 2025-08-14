@@ -1,8 +1,5 @@
 @page "/holding/{symbol}"
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
-@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IHoldingsDataService HoldingsDataService
-@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
-@inject NavigationManager Navigation
 
 <PageTitle>@Symbol - Holding Details</PageTitle>
 
@@ -139,28 +136,6 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">Price History</h5>
                         <div class="d-flex gap-2">
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn @(TimeRange == "1M" ? "btn-primary" : "btn-outline-primary") btn-sm"
-                                        @onclick="@(() => SetTimeRange("1M"))">
-                                    1M
-                                </button>
-                                <button type="button" class="btn @(TimeRange == "3M" ? "btn-primary" : "btn-outline-primary") btn-sm"
-                                        @onclick="@(() => SetTimeRange("3M"))">
-                                    3M
-                                </button>
-                                <button type="button" class="btn @(TimeRange == "6M" ? "btn-primary" : "btn-outline-primary") btn-sm"
-                                        @onclick="@(() => SetTimeRange("6M"))">
-                                    6M
-                                </button>
-                                <button type="button" class="btn @(TimeRange == "1Y" ? "btn-primary" : "btn-outline-primary") btn-sm"
-                                        @onclick="@(() => SetTimeRange("1Y"))">
-                                    1Y
-                                </button>
-                                <button type="button" class="btn @(TimeRange == "ALL" ? "btn-primary" : "btn-outline-primary") btn-sm"
-                                        @onclick="@(() => SetTimeRange("ALL"))">
-                                    All
-                                </button>
-                            </div>
                             <button class="btn btn-outline-secondary btn-sm" @onclick="RefreshDataAsync" disabled="@IsLoading">
                                 <i class="bi bi-arrow-clockwise"></i> Refresh
                             </button>

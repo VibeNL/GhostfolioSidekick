@@ -9,6 +9,8 @@
                 <div class="btn-group mb-2" role="group" aria-label="Quick Date Ranges">
                     <button class="btn @(GetDateRangeButtonClass("LastWeek"))" @onclick='() => SetDateRange("LastWeek")'>1W</button>
                     <button class="btn @(GetDateRangeButtonClass("LastMonth"))" @onclick='() => SetDateRange("LastMonth")'>1M</button>
+                    <button class="btn @(GetDateRangeButtonClass("ThreeMonths"))" @onclick='() => SetDateRange("ThreeMonths")'>3M</button>
+                    <button class="btn @(GetDateRangeButtonClass("SixMonths"))" @onclick='() => SetDateRange("SixMonths")'>6M</button>
                     <button class="btn @(GetDateRangeButtonClass("YearToDate"))" @onclick='() => SetDateRange("YearToDate")'>YTD</button>
                     <button class="btn @(GetDateRangeButtonClass("OneYear"))" @onclick='() => SetDateRange("OneYear")'>1Y</button>
                     <button class="btn @(GetDateRangeButtonClass("FiveYear"))" @onclick='() => SetDateRange("FiveYear")'>5Y</button>
@@ -53,6 +55,20 @@
                     @foreach (var account in Accounts)
                     {
                         <option value="@account.Id">@account.Name</option>
+                    }
+                </select>
+            </div>
+        }
+
+        @if (ShowSymbolFilter)
+        {
+            <div class="filter-group">
+                <label class="form-label-sm">Symbol</label>
+                <select class="form-select form-select-sm" value="@FilterState.SelectedSymbol" @onchange="OnSymbolChanged">
+                    <option value="">All Symbols</option>
+                    @foreach (var symbol in Symbols)
+                    {
+                        <option value="@symbol">@symbol</option>
                     }
                 </select>
             </div>
