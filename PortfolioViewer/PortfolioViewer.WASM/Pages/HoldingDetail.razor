@@ -1,5 +1,7 @@
 @page "/holding/{symbol}"
+@using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@attribute [Authorize]
 
 <PageTitle>@Symbol - Holding Details</PageTitle>
 

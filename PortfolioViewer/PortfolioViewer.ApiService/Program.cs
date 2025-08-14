@@ -1,6 +1,7 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
+using GhostfolioSidekick.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
@@ -27,6 +28,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 
 			// Register configuration helper
 			builder.Services.AddSingleton<IConfigurationHelper, ConfigurationHelper>();
+
+			// Register ApplicationSettings
+			builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 
 			builder.Services.AddCors(options =>
 			{
@@ -76,9 +80,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Map gRPC services
 			app.MapGrpcService<SyncGrpcService>().EnableGrpcWeb();
 
+			// Map API controllers BEFORE fallback routes
 			app.MapControllers();
 			app.MapDefaultEndpoints();
 
+			// Static files and fallback should come last
 			app.UseStaticFiles(new StaticFileOptions
 			{
 				FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),

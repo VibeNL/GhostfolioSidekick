@@ -1,3 +1,5 @@
-﻿@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+﻿@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@attribute [Authorize]
 
 sortColumn == "Symbol" ? (sortAscending ? "↑" : "↓") : ""

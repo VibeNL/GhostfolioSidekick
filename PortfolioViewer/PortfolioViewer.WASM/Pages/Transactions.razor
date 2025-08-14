@@ -1,6 +1,8 @@
 @page "/transactions"
+@using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
 @inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+@attribute [Authorize]
 
 <PageTitle>Transactions</PageTitle>
 

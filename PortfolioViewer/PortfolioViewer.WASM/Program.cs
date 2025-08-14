@@ -4,6 +4,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.AI;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
@@ -48,12 +49,12 @@ public static class Program
 			}
 		});
 
-		builder.Services.AddOidcAuthentication(options =>
-		{
-			// Configure your authentication provider options here.
-			// For more information, see https://aka.ms/blazor-standalone-auth
-			builder.Configuration.Bind("Local", options.ProviderOptions);
-		});
+		// Configure custom authentication
+		builder.Services.AddAuthorizationCore();
+		builder.Services.AddScoped<ITokenValidationService, TokenValidationService>();
+		builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+		builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+		builder.Services.AddCascadingAuthenticationState();
 
 		builder.Services.AddSingleton<SqlitePersistence>();
 		

@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 {
@@ -9,7 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 
         protected override void OnInitialized()
         {
-            Navigation.NavigateToLogin("authentication/login");
+            Navigation.NavigateTo("/login", replace: true);
         }
     }
 }

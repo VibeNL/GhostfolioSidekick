@@ -1,0 +1,109 @@
+@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Services
+@inject IAuthenticationService AuthenticationService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Login</PageTitle>
+
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100">
+        <div class="col-md-6 col-lg-4 mx-auto">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Portfolio Viewer</h2>
+                    <h5 class="card-subtitle text-center text-muted mb-4">Please login to continue</h5>
+                    
+                    <EditForm Model="@_loginModel" OnValidSubmit="@HandleLogin">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-3">
+                            <label for="accessToken" class="form-label">Access Token</label>
+                            <InputText id="accessToken" 
+                                     class="form-control" 
+                                     @bind-Value="_loginModel.AccessToken" 
+                                     type="password"
+                                     placeholder="Enter your access token" />
+                            <ValidationMessage For="@(() => _loginModel.AccessToken)" class="text-danger" />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(_errorMessage))
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                @_errorMessage
+                            </div>
+                        }
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" disabled="@_isLoading">
+                                @if (_isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Signing in...</span>
+                                }
+                                else
+                                {
+                                    <span>Sign In</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly LoginModel _loginModel = new();
+    private string _errorMessage = string.Empty;
+    private bool _isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is already authenticated
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            Navigation.NavigateTo("/", replace: true);
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        _isLoading = true;
+        _errorMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            var success = await AuthenticationService.LoginAsync(_loginModel.AccessToken);
+            
+            if (success)
+            {
+                Navigation.NavigateTo("/", replace: true);
+            }
+            else
+            {
+                _errorMessage = "Invalid access token. Please check your token and try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Login failed: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private class LoginModel
+    {
+        [Required(ErrorMessage = "Access token is required")]
+        public string AccessToken { get; set; } = string.Empty;
+    }
+}
