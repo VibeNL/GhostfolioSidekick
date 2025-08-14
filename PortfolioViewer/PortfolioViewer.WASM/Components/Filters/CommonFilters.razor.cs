@@ -63,6 +63,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             {
                 _currentDateRange = "LastMonth";
             }
+            else if (FilterState.StartDate.Date == today.AddMonths(-3) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "ThreeMonths";
+            }
+            else if (FilterState.StartDate.Date == today.AddMonths(-6) && FilterState.EndDate.Date == today)
+            {
+                _currentDateRange = "SixMonths";
+            }
             else if (FilterState.StartDate.Date == today.AddYears(-1) && FilterState.EndDate.Date == today)
             {
                 _currentDateRange = "OneYear";
@@ -96,6 +104,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                     break;
                 case "LastMonth":
                     FilterState.StartDate = today.AddMonths(-1);
+                    FilterState.EndDate = today;
+                    break;
+                case "ThreeMonths":
+                    FilterState.StartDate = today.AddMonths(-3);
+                    FilterState.EndDate = today;
+                    break;
+                case "SixMonths":
+                    FilterState.StartDate = today.AddMonths(-6);
                     FilterState.EndDate = today;
                     break;
                 case "YearToDate":

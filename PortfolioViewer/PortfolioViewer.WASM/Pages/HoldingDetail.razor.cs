@@ -4,20 +4,32 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
+using System.ComponentModel;
 using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
-    public partial class HoldingDetail
+    public partial class HoldingDetail : IDisposable
     {
         [Parameter]
         public string Symbol { get; set; } = string.Empty;
+
+        [Inject]
+        private IHoldingsDataService? HoldingsDataService { get; set; }
+
+        [Inject]
+        private ITestContextService? TestContextService { get; set; }
+
+        [Inject]
+        private NavigationManager? Navigation { get; set; }
+
+        [CascadingParameter]
+        private FilterState FilterState { get; set; } = new();
 
         // State
         private bool IsLoading { get; set; } = true;
         private bool HasError { get; set; } = false;
         private string ErrorMessage { get; set; } = string.Empty;
-        private string TimeRange { get; set; } = "6M";
 
         // Data
         private HoldingDisplayModel? HoldingInfo { get; set; }
@@ -28,16 +40,86 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private Plotly.Blazor.Layout plotLayout = new();
         private IList<ITrace> plotData = new List<ITrace>();
 
+        private FilterState? _previousFilterState;
+
         protected override async Task OnInitializedAsync()
         {
+            // Set default date range to 6 months for holding detail if not already set
+            if (FilterState.StartDate == new DateTime(DateTime.Today.Year, 1, 1) && 
+                FilterState.EndDate == DateTime.Today)
+            {
+                // If we're on the default YTD range, change to 6M for better holding detail view
+                FilterState.StartDate = DateTime.Today.AddMonths(-6);
+                FilterState.EndDate = DateTime.Today;
+            }
+
+            // Subscribe to filter changes
+            if (FilterState != null)
+            {
+                FilterState.PropertyChanged += OnFilterStateChanged;
+            }
+            
             await LoadHoldingDataAsync();
         }
 
         protected override async Task OnParametersSetAsync()
         {
+            // Check if filter state has changed
+            if (_previousFilterState == null || HasFilterStateChanged())
+            {
+                // Unsubscribe from old filter state
+                if (_previousFilterState != null)
+                {
+                    _previousFilterState.PropertyChanged -= OnFilterStateChanged;
+                }
+                
+                // Subscribe to new filter state
+                if (FilterState != null)
+                {
+                    FilterState.PropertyChanged += OnFilterStateChanged;
+                }
+                
+                _previousFilterState = FilterState;
+            }
+
             if (!string.IsNullOrEmpty(Symbol))
             {
                 await LoadHoldingDataAsync();
+            }
+        }
+
+        private bool HasFilterStateChanged()
+        {
+            if (_previousFilterState == null) return true;
+            
+            return _previousFilterState.StartDate != FilterState.StartDate ||
+                   _previousFilterState.EndDate != FilterState.EndDate ||
+                   _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency;
+        }
+
+        private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            Console.WriteLine($"HoldingDetail OnFilterStateChanged - Property: {e.PropertyName}");
+            
+            // React to date and currency changes
+            if (e.PropertyName == nameof(FilterState.StartDate) || 
+                e.PropertyName == nameof(FilterState.EndDate) ||
+                e.PropertyName == nameof(FilterState.SelectedCurrency))
+            {
+                await InvokeAsync(async () =>
+                {
+                    if (e.PropertyName == nameof(FilterState.SelectedCurrency))
+                    {
+                        // Reload holding data if currency changed
+                        await LoadHoldingDataAsync();
+                    }
+                    else
+                    {
+                        // Just reload price history if dates changed
+                        await LoadPriceHistoryAsync();
+                    }
+                    StateHasChanged();
+                });
             }
         }
 
@@ -57,8 +139,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                     throw new InvalidOperationException("HoldingsDataService is not initialized.");
                 }
 
+                // Use the selected currency from FilterState
+                var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
+                
                 // Load all holdings to find the specific one
-                var allHoldings = await HoldingsDataService.GetHoldingsAsync(Currency.EUR);
+                var allHoldings = await HoldingsDataService.GetHoldingsAsync(currency);
                 HoldingInfo = allHoldings.FirstOrDefault(h => 
                     string.Equals(h.Symbol, Symbol, StringComparison.OrdinalIgnoreCase));
 
@@ -87,11 +172,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 if (HoldingsDataService == null || HoldingInfo == null)
                     return;
 
-                var (startDate, endDate) = GetDateRangeFromTimeRange();
+                // Use dates from FilterState instead of local TimeRange
                 PriceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
                     Symbol, 
-                    startDate, 
-                    endDate);
+                    FilterState.StartDate, 
+                    FilterState.EndDate);
 
                 await PrepareChartData();
             }
@@ -103,31 +188,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             }
         }
 
-        private async Task SetTimeRange(string timeRange)
-        {
-            TimeRange = timeRange;
-            await LoadPriceHistoryAsync();
-        }
-
         private async Task RefreshDataAsync()
         {
             await LoadHoldingDataAsync();
-        }
-
-        private (DateTime startDate, DateTime endDate) GetDateRangeFromTimeRange()
-        {
-            var endDate = DateTime.Today;
-            var startDate = TimeRange switch
-            {
-                "1M" => endDate.AddMonths(-1),
-                "3M" => endDate.AddMonths(-3),
-                "6M" => endDate.AddMonths(-6),
-                "1Y" => endDate.AddYears(-1),
-                "ALL" => new DateTime(2020, 1, 1), // Default start date for "all" data
-                _ => endDate.AddMonths(-6)
-            };
-
-            return (startDate, endDate);
         }
 
         private async Task PrepareChartData()
@@ -172,10 +235,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
                 plotData = new List<ITrace> { priceTrace, averagePriceTrace };
 
-                var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? "USD";
+                var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? FilterState.SelectedCurrency;
+                var dateRangeText = $"{FilterState.StartDate:yyyy-MM-dd} to {FilterState.EndDate:yyyy-MM-dd}";
+                
                 plotLayout = new Plotly.Blazor.Layout
                 {
-                    Title = new Plotly.Blazor.LayoutLib.Title { Text = $"{Symbol} Price History ({TimeRange})" },
+                    Title = new Plotly.Blazor.LayoutLib.Title { Text = $"{Symbol} Price History ({dateRangeText})" },
                     XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> 
                     { 
                         new Plotly.Blazor.LayoutLib.XAxis 
@@ -205,6 +270,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
                 plotConfig = new Config { Responsive = true };
             });
+        }
+
+        public void Dispose()
+        {
+            if (FilterState != null)
+            {
+                FilterState.PropertyChanged -= OnFilterStateChanged;
+            }
+            if (_previousFilterState != null)
+            {
+                _previousFilterState.PropertyChanged -= OnFilterStateChanged;
+            }
         }
     }
 }
