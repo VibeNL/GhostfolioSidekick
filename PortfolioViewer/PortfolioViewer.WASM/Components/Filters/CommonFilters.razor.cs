@@ -34,9 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         private int _currentSelectedAccountId = 0;
         
         // Track when we're in the middle of updating to prevent parameter override
-        private bool _isUpdatingCurrency = false;
-        private bool _isUpdatingDates = false;
-        private bool _isUpdatingAccount = false;
+        private bool _isUpdating = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -54,28 +52,48 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
         }
 
-        protected override async Task OnParametersSetAsync()
+        protected override void OnParametersSet()
         {
-            Console.WriteLine($"OnParametersSetAsync - Parameter: {SelectedCurrency}, Local: {_currentSelectedCurrency}, IsUpdating: {_isUpdatingCurrency}");
+            Console.WriteLine($"OnParametersSetAsync - Parameter: {SelectedCurrency}, Local: {_currentSelectedCurrency}, IsUpdating: {_isUpdating}");
             
-            // Only update local fields if we're not in the middle of an update and the values have changed
-            if (!_isUpdatingDates && (StartDate != _currentStartDate || EndDate != _currentEndDate))
+            // Only update local fields if we're not in the middle of an update to prevent circular updates
+            if (!_isUpdating)
             {
-                Console.WriteLine($"Updating dates from parameters - Start: {StartDate}, End: {EndDate}");
-                _currentStartDate = StartDate;
-                _currentEndDate = EndDate;
-            }
-            
-            if (!_isUpdatingCurrency && SelectedCurrency != _currentSelectedCurrency)
-            {
-                Console.WriteLine($"Currency parameter changed from {_currentSelectedCurrency} to {SelectedCurrency} - UPDATING LOCAL FIELD");
-                _currentSelectedCurrency = SelectedCurrency;
-            }
-            
-            if (!_isUpdatingAccount && SelectedAccountId != _currentSelectedAccountId)
-            {
-                Console.WriteLine($"AccountId changed from {_currentSelectedAccountId} to {SelectedAccountId}");
-                _currentSelectedAccountId = SelectedAccountId;
+                bool hasChanges = false;
+                
+                if (StartDate != _currentStartDate)
+                {
+                    Console.WriteLine($"Updating start date from parameters - New: {StartDate}");
+                    _currentStartDate = StartDate;
+                    hasChanges = true;
+                }
+                
+                if (EndDate != _currentEndDate)
+                {
+                    Console.WriteLine($"Updating end date from parameters - New: {EndDate}");
+                    _currentEndDate = EndDate;
+                    hasChanges = true;
+                }
+                
+                if (SelectedCurrency != _currentSelectedCurrency)
+                {
+                    Console.WriteLine($"Currency parameter changed from {_currentSelectedCurrency} to {SelectedCurrency} - UPDATING LOCAL FIELD");
+                    _currentSelectedCurrency = SelectedCurrency;
+                    hasChanges = true;
+                }
+                
+                if (SelectedAccountId != _currentSelectedAccountId)
+                {
+                    Console.WriteLine($"AccountId changed from {_currentSelectedAccountId} to {SelectedAccountId}");
+                    _currentSelectedAccountId = SelectedAccountId;
+                    hasChanges = true;
+                }
+
+                if (hasChanges)
+                {
+                    // Clear date range selection if parameters changed externally
+                    _currentDateRange = null;
+                }
             }
         }
 
@@ -122,54 +140,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                     return; // Unknown range, don't change anything
             }
 
-            _isUpdatingDates = true;
-            try
-            {
-                // Update local fields and parameters
-                _currentStartDate = newStartDate;
-                _currentEndDate = newEndDate;
-                StartDate = newStartDate;
-                EndDate = newEndDate;
-                
-                // Notify parent components in the correct sequence
-                await StartDateChanged.InvokeAsync(StartDate);
-                await EndDateChanged.InvokeAsync(EndDate);
-                
-                // Give a small delay to ensure the two-way binding has propagated
-                await Task.Yield();
-                
-                // Now notify that all filters have changed
-                await OnFiltersChanged.InvokeAsync();
-                
-                // Force UI update
-                StateHasChanged();
-            }
-            finally
-            {
-                _isUpdatingDates = false;
-            }
+            await UpdateDateParameters(newStartDate, newEndDate);
         }
 
         private async Task OnStartDateChanged(ChangeEventArgs e)
         {
             if (DateTime.TryParse(e.Value?.ToString(), out var newDate))
             {
-                _isUpdatingDates = true;
-                try
-                {
-                    _currentStartDate = newDate;
-                    StartDate = newDate;
-                    _currentDateRange = null; // Clear quick date selection
-                    
-                    await StartDateChanged.InvokeAsync(StartDate);
-                    await Task.Yield(); // Ensure two-way binding completes
-                    await OnFiltersChanged.InvokeAsync();
-                    StateHasChanged();
-                }
-                finally
-                {
-                    _isUpdatingDates = false;
-                }
+                _currentDateRange = null; // Clear quick date selection
+                await UpdateDateParameters(newDate, _currentEndDate);
             }
         }
 
@@ -177,54 +156,56 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         {
             if (DateTime.TryParse(e.Value?.ToString(), out var newDate))
             {
-                _isUpdatingDates = true;
-                try
-                {
-                    _currentEndDate = newDate;
-                    EndDate = newDate;
-                    _currentDateRange = null; // Clear quick date selection
-                    
-                    await EndDateChanged.InvokeAsync(EndDate);
-                    await Task.Yield(); // Ensure two-way binding completes
-                    await OnFiltersChanged.InvokeAsync();
-                    StateHasChanged();
-                }
-                finally
-                {
-                    _isUpdatingDates = false;
-                }
+                _currentDateRange = null; // Clear quick date selection
+                await UpdateDateParameters(_currentStartDate, newDate);
+            }
+        }
+
+        private async Task UpdateDateParameters(DateTime newStartDate, DateTime newEndDate)
+        {
+            _isUpdating = true;
+            try
+            {
+                // Update local fields first
+                _currentStartDate = newStartDate;
+                _currentEndDate = newEndDate;
+                
+                // Notify parent components
+                await StartDateChanged.InvokeAsync(newStartDate);
+                await EndDateChanged.InvokeAsync(newEndDate);
+                await OnFiltersChanged.InvokeAsync();
+                
+                StateHasChanged();
+            }
+            finally
+            {
+                _isUpdating = false;
             }
         }
 
         private async Task OnCurrencyChangedHandler(ChangeEventArgs e)
         {
             var newCurrency = e.Value?.ToString() ?? "EUR";
-            Console.WriteLine($"OnCurrencyChangedHandler - New currency: {newCurrency}, Current local: {_currentSelectedCurrency}, Current parameter: {SelectedCurrency}");
+            Console.WriteLine($"OnCurrencyChangedHandler - New currency: {newCurrency}, Current local: {_currentSelectedCurrency}");
             
-            _isUpdatingCurrency = true;
+            _isUpdating = true;
             try
             {
                 _currentSelectedCurrency = newCurrency;
-                SelectedCurrency = newCurrency;
                 
-                Console.WriteLine($"Before EventCallbacks - Local: {_currentSelectedCurrency}, Parameter: {SelectedCurrency}");
+                Console.WriteLine($"Before EventCallbacks - Local: {_currentSelectedCurrency}");
                 
-                await SelectedCurrencyChanged.InvokeAsync(SelectedCurrency);
-                await Task.Yield(); // Ensure two-way binding completes
-                
-                Console.WriteLine($"After SelectedCurrencyChanged - Local: {_currentSelectedCurrency}, Parameter: {SelectedCurrency}");
-                
+                await SelectedCurrencyChanged.InvokeAsync(newCurrency);
                 await OnFiltersChanged.InvokeAsync();
+                
                 StateHasChanged();
                 
-                Console.WriteLine($"After OnFiltersChanged - Local: {_currentSelectedCurrency}, Parameter: {SelectedCurrency}");
+                Console.WriteLine($"After EventCallbacks - Local: {_currentSelectedCurrency}");
             }
             finally
             {
-                // Add a delay before resetting the flag to prevent immediate parameter override
-                await Task.Delay(100);
-                _isUpdatingCurrency = false;
-                Console.WriteLine($"_isUpdatingCurrency set to false");
+                _isUpdating = false;
+                Console.WriteLine($"_isUpdating set to false");
             }
         }
 
@@ -232,20 +213,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         {
             if (int.TryParse(e.Value?.ToString(), out var accountId))
             {
-                _isUpdatingAccount = true;
+                _isUpdating = true;
                 try
                 {
                     _currentSelectedAccountId = accountId;
-                    SelectedAccountId = accountId;
                     
-                    await SelectedAccountIdChanged.InvokeAsync(SelectedAccountId);
-                    await Task.Yield(); // Ensure two-way binding completes
+                    await SelectedAccountIdChanged.InvokeAsync(accountId);
                     await OnFiltersChanged.InvokeAsync();
                     StateHasChanged();
                 }
                 finally
                 {
-                    _isUpdatingAccount = false;
+                    _isUpdating = false;
                 }
             }
         }
