@@ -30,9 +30,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
         {
             // Initialize the filter state with current global values
             _filterState.UpdateAll(GlobalStartDate, GlobalEndDate, GlobalSelectedCurrency, GlobalSelectedAccountId);
+            Console.WriteLine($"MainLayout OnInitialized - FilterState currency: {_filterState.SelectedCurrency}");
             
             // Subscribe to navigation changes
             Navigation.LocationChanged += OnLocationChanged;
+        }
+
+        protected override void OnParametersSet()
+        {
+            Console.WriteLine($"MainLayout OnParametersSet - Global currency: {GlobalSelectedCurrency}");
         }
 
         private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
@@ -41,13 +47,46 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
             InvokeAsync(StateHasChanged);
         }
 
+        // Individual parameter change handlers that will be called by NavMenu EventCallbacks
+        private async Task OnStartDateChanged(DateTime newStartDate)
+        {
+            Console.WriteLine($"MainLayout OnStartDateChanged - Old: {GlobalStartDate}, New: {newStartDate}");
+            GlobalStartDate = newStartDate;
+            await UpdateFilterStateAndNotify();
+        }
+
+        private async Task OnEndDateChanged(DateTime newEndDate)
+        {
+            Console.WriteLine($"MainLayout OnEndDateChanged - Old: {GlobalEndDate}, New: {newEndDate}");
+            GlobalEndDate = newEndDate;
+            await UpdateFilterStateAndNotify();
+        }
+
+        private async Task OnSelectedCurrencyChanged(string newCurrency)
+        {
+            Console.WriteLine($"MainLayout OnSelectedCurrencyChanged - Old: {GlobalSelectedCurrency}, New: {newCurrency}");
+            GlobalSelectedCurrency = newCurrency;
+            await UpdateFilterStateAndNotify();
+        }
+
+        private async Task OnSelectedAccountIdChanged(int newAccountId)
+        {
+            Console.WriteLine($"MainLayout OnSelectedAccountIdChanged - Old: {GlobalSelectedAccountId}, New: {newAccountId}");
+            GlobalSelectedAccountId = newAccountId;
+            await UpdateFilterStateAndNotify();
+        }
+
         private async Task OnGlobalFiltersChanged()
         {
-            // This method is called when filters in NavMenu/CommonFilters change
-            // The global variables are already updated through two-way binding
-            
+            Console.WriteLine($"OnGlobalFiltersChanged called - Global currency: {GlobalSelectedCurrency}, FilterState currency: {_filterState.SelectedCurrency}");
+            await UpdateFilterStateAndNotify();
+        }
+
+        private async Task UpdateFilterStateAndNotify()
+        {
             // Update the FilterState object to match the new global values
             _filterState.UpdateAll(GlobalStartDate, GlobalEndDate, GlobalSelectedCurrency, GlobalSelectedAccountId);
+            Console.WriteLine($"After UpdateAll - FilterState currency: {_filterState.SelectedCurrency}");
             
             // Force a complete re-render
             await InvokeAsync(StateHasChanged);
@@ -57,6 +96,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
             
             // Trigger another state change to ensure all components are updated
             await InvokeAsync(StateHasChanged);
+            
+            Console.WriteLine($"UpdateFilterStateAndNotify complete - Final FilterState currency: {_filterState.SelectedCurrency}");
         }
 
         public void Dispose()

@@ -80,9 +80,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
 		{
+			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current currency: {FilterState.SelectedCurrency}");
+			
 			// Only react to currency changes for Holdings page
 			if (e.PropertyName == nameof(FilterState.SelectedCurrency))
 			{
+				Console.WriteLine($"Currency change detected in Holdings - New currency: {FilterState.SelectedCurrency}");
 				await InvokeAsync(async () =>
 				{
 					await LoadPortfolioDataAsync();
@@ -126,6 +129,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			try
 			{
 				var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
+				Console.WriteLine($"LoadRealPortfolioDataAsync - Using currency: {FilterState.SelectedCurrency} ({currency})");
 				return await HoldingsDataService?.GetHoldingsAsync(currency) ?? new List<HoldingDisplayModel>();
 			}
 			catch (Exception ex)

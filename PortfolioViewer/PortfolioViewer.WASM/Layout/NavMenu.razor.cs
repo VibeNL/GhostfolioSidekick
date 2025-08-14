@@ -24,6 +24,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 
         private string? NavMenuCssClass => collapseNavMenu ? "collapse" : "collapse show";
 
+        protected override void OnInitialized()
+        {
+            Console.WriteLine($"NavMenu OnInitialized - Currency: {SelectedCurrency}");
+        }
+
+        protected override void OnParametersSet()
+        {
+            Console.WriteLine($"NavMenu OnParametersSet - Currency: {SelectedCurrency}");
+        }
+
         private void ToggleNavMenu()
         {
             collapseNavMenu = !collapseNavMenu;

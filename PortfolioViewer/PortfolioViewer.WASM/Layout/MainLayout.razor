@@ -5,10 +5,14 @@
 
 <div class="page">
     <header>
-        <NavMenu @bind-StartDate="@GlobalStartDate"
-                 @bind-EndDate="@GlobalEndDate"
-                 @bind-SelectedCurrency="@GlobalSelectedCurrency" 
-                 @bind-SelectedAccountId="@GlobalSelectedAccountId"
+        <NavMenu StartDate="@GlobalStartDate"
+                 EndDate="@GlobalEndDate"
+                 SelectedCurrency="@GlobalSelectedCurrency" 
+                 SelectedAccountId="@GlobalSelectedAccountId"
+                 StartDateChanged="@OnStartDateChanged"
+                 EndDateChanged="@OnEndDateChanged"
+                 SelectedCurrencyChanged="@OnSelectedCurrencyChanged"
+                 SelectedAccountIdChanged="@OnSelectedAccountIdChanged"
                  ShowFilters="@ShouldShowFilters"
                  ShowDateFilters="@ShouldShowDateFilters"
                  ShowCurrencyFilter="@ShouldShowCurrencyFilter"
