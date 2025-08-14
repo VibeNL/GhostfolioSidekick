@@ -34,12 +34,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         public void Holdings_ShowsErrorState_WhenHasErrorIsTrue()
         {
             var mockService = new Mock<IHoldingsDataService>();
+            // Make the service throw an exception to trigger the error state naturally
+            mockService.Setup(s => s.GetHoldingsAsync(It.IsAny<Currency>(), It.IsAny<CancellationToken>()))
+                       .ThrowsAsync(new InvalidOperationException("Test error!"));
+            
             Services.AddSingleton(mockService.Object);
             var cut = RenderComponent<Holdings>();
-            cut.Instance.GetType().GetProperty("HasError", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.SetValue(cut.Instance, true);
-            cut.Instance.GetType().GetProperty("ErrorMessage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.SetValue(cut.Instance, "Test error!");
-            cut.Render();
-            Assert.Contains("Error Loading Data", cut.Markup);
+            
+            // Wait for the async operation to complete and the error state to be set
+            cut.WaitForAssertion(() => Assert.Contains("Error Loading Data", cut.Markup), TimeSpan.FromSeconds(5));
             Assert.Contains("Test error!", cut.Markup);
             Assert.Contains("Try Again", cut.Markup);
         }
