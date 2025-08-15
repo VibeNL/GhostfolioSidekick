@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
                 _logger.LogWarning("API validation failed: {Message}", ex.Message);
             }
 
-			return false;
+        return false;
         }
     }
 }
