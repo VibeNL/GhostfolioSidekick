@@ -52,14 +52,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				options.UseSqlite(connectionString);
 			});
 
-			// Configure routing to be case-insensitive and lowercase URLs
-			builder.Services.Configure<RouteOptions>(options =>
-			{
-				options.LowercaseUrls = true;
-				options.LowercaseQueryStrings = true;
-				options.AppendTrailingSlash = false;
-			});
-
 			builder.Services.AddControllers(options =>
 			{
 				options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
@@ -72,25 +64,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 
 			// Configure the HTTP request pipeline.
 			app.UseExceptionHandler();
-
-			// Add custom middleware for case-insensitive routing
-			app.Use(async (context, next) =>
-			{
-				var path = context.Request.Path.Value;
-				if (!string.IsNullOrEmpty(path))
-				{
-					// Convert the path to lowercase for case-insensitive matching
-					var lowercasePath = path.ToLowerInvariant();
-					if (path != lowercasePath)
-					{
-						context.Request.Path = lowercasePath;
-					}
-				}
-				await next();
-			});
-
-			// Add routing middleware to handle case-insensitive routing
-			app.UseRouting();
 
 			//if (app.Environment.IsDevelopment())
 			{

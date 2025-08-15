@@ -24,14 +24,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
                 _logger.LogDebug("Attempting API token validation...");
                 
                 // Try health check first to see if API is reachable
-                var healthRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/health");
+                var healthRequest = new HttpRequestMessage(HttpMethod.Get, "/api/Auth/health");
                 var healthResponse = await _httpClient.SendAsync(healthRequest);
                 
                 if (healthResponse.IsSuccessStatusCode)
                 {
                     _logger.LogDebug("API service is reachable, proceeding with token validation");
                     
-                    var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/validate");
+                    var request = new HttpRequestMessage(HttpMethod.Post, "/api/Auth/validate");
                     request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                     
                     var response = await _httpClient.SendAsync(request);
