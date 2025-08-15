@@ -57,21 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
                 _logger.LogWarning("API validation failed: {Message}", ex.Message);
             }
 
-            // Fallback to client-side validation
-            _logger.LogDebug("Falling back to client-side token validation");
-            
-            var configuredToken = _configuration["GhostfolioAccessToken"];
-            
-            if (string.IsNullOrEmpty(configuredToken))
-            {
-                _logger.LogWarning("No GhostfolioAccessToken configured in client settings");
-                // If no token is configured, accept any non-empty token for development
-                return !string.IsNullOrWhiteSpace(token);
-            }
-
-            var isValid = string.Equals(token, configuredToken, StringComparison.Ordinal);
-            _logger.LogDebug("Client-side token validation result: {IsValid}", isValid);
-            return isValid;
+			return false;
         }
     }
 }
