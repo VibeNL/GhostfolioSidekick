@@ -24,14 +24,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
                 _logger.LogDebug("Attempting API token validation...");
                 
                 // Try health check first to see if API is reachable
-                var healthRequest = new HttpRequestMessage(HttpMethod.Get, "/api/auth/health");
+                var healthRequest = new HttpRequestMessage(HttpMethod.Get, "/api/Auth/health");
                 var healthResponse = await _httpClient.SendAsync(healthRequest);
                 
                 if (healthResponse.IsSuccessStatusCode)
                 {
                     _logger.LogDebug("API service is reachable, proceeding with token validation");
                     
-                    var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/validate");
+                    var request = new HttpRequestMessage(HttpMethod.Post, "/api/Auth/validate");
                     request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                     
                     var response = await _httpClient.SendAsync(request);
@@ -57,21 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
                 _logger.LogWarning("API validation failed: {Message}", ex.Message);
             }
 
-            // Fallback to client-side validation
-            _logger.LogDebug("Falling back to client-side token validation");
-            
-            var configuredToken = _configuration["GhostfolioAccessToken"];
-            
-            if (string.IsNullOrEmpty(configuredToken))
-            {
-                _logger.LogWarning("No GhostfolioAccessToken configured in client settings");
-                // If no token is configured, accept any non-empty token for development
-                return !string.IsNullOrWhiteSpace(token);
-            }
-
-            var isValid = string.Equals(token, configuredToken, StringComparison.Ordinal);
-            _logger.LogDebug("Client-side token validation result: {IsValid}", isValid);
-            return isValid;
+        return false;
         }
     }
 }

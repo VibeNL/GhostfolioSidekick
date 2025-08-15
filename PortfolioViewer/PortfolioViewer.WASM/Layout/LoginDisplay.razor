@@ -2,10 +2,24 @@
 
 <AuthorizeView>
     <Authorized>
-        Hello, @context.User.Identity?.Name!
-        <button class="nav-link btn btn-link" @onclick="BeginLogOut">Log out</button>
+        <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-1"></i>@context.User.Identity?.Name
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                <li>
+                    <button class="dropdown-item" @onclick="BeginLogOut">
+                        <i class="bi bi-box-arrow-right me-1"></i>Log out
+                    </button>
+                </li>
+            </ul>
+        </div>
     </Authorized>
     <NotAuthorized>
-        <a href="/login">Log in</a>
+        <div class="nav-item">
+            <a class="nav-link" href="/login">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Log in
+            </a>
+        </div>
     </NotAuthorized>
 </AuthorizeView>

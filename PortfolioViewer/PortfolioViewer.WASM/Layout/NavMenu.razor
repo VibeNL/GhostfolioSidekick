@@ -37,10 +37,15 @@
                 </li>
             </ul>
 
+            <!-- User Authentication Section -->
+            <div class="navbar-nav ms-auto">
+                <LoginDisplay />
+            </div>
+
             <!-- Simplified Filters Section -->
             @if (ShowFilters)
             {
-                <div class="navbar-filters ms-auto">
+                <div class="navbar-filters ms-2">
                     <CommonFilters 
                         ShowDateFilters="ShowDateFilters"
                         ShowCurrencyFilter="ShowCurrencyFilter"
