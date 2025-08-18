@@ -16,6 +16,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private int TotalRecords = 0;
         private int TotalPages = 0;
         private const int PageSize = 250;
+        
+        // Add column filters
+        private Dictionary<string, string> ColumnFilters = new();
+        private bool _filtersApplied = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -37,6 +41,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         {
             if (!string.IsNullOrEmpty(SelectedTable))
             {
+                // Reset page to 1 when loading a new table
+                page = 1;
+                ColumnFilters.Clear();
+                _filtersApplied = false;
                 await LoadTableDataAsync(SelectedTable);
             }
         }
@@ -45,23 +53,39 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         {
             try
             {
-                // Get total record count
-                TotalRecords = await RawQuery.GetTableCount(DbContext, tableName);
+                // Get active filters (only non-empty values)
+                var activeFilters = ColumnFilters.Where(f => !string.IsNullOrWhiteSpace(f.Value))
+                                                .ToDictionary(f => f.Key, f => f.Value);
+
+                // Get total record count with filters applied
+                TotalRecords = await RawQuery.GetTableCount(DbContext, tableName, activeFilters.Any() ? activeFilters : null);
                 TotalPages = (int)Math.Ceiling((double)TotalRecords / PageSize);
 
-                var result = await RawQuery.ReadTable(DbContext, tableName, page, PageSize);
+                var result = await RawQuery.ReadTable(DbContext, tableName, page, PageSize, activeFilters.Any() ? activeFilters : null);
 
                 if (result == null || result.Count == 0)
                 {
                     TableData.Columns = Array.Empty<string>();
                     TableData.Rows = new();
-                    TotalRecords = 0;
-                    TotalPages = 0;
+                    if (!activeFilters.Any())
+                    {
+                        TotalRecords = 0;
+                        TotalPages = 0;
+                    }
                     return;
                 }
 
                 TableData.Columns = result.First().Keys.ToArray();
                 TableData.Rows = result.Select(x => x.Values.ToArray()).ToList();
+                
+                // Initialize column filters for new columns
+                foreach (var column in TableData.Columns)
+                {
+                    if (!ColumnFilters.ContainsKey(column))
+                    {
+                        ColumnFilters[column] = string.Empty;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -70,6 +94,43 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 TableData.Rows = new List<object[]> { new object[] { ex.Message } };
                 TotalRecords = 0;
                 TotalPages = 0;
+            }
+        }
+
+        private async Task OnFilterChanged(string columnName, string filterValue)
+        {
+            ColumnFilters[columnName] = filterValue;
+            
+            // Reset to page 1 when filters change
+            page = 1;
+            _filtersApplied = ColumnFilters.Any(f => !string.IsNullOrWhiteSpace(f.Value));
+            
+            if (!string.IsNullOrEmpty(SelectedTable))
+            {
+                await LoadTableDataAsync(SelectedTable);
+                StateHasChanged();
+            }
+        }
+
+        private async Task ClearAllFilters()
+        {
+            ColumnFilters.Clear();
+            _filtersApplied = false;
+            page = 1;
+            
+            if (!string.IsNullOrEmpty(SelectedTable))
+            {
+                await LoadTableDataAsync(SelectedTable);
+                StateHasChanged();
+            }
+        }
+
+        private async Task OnPageChanged()
+        {
+            if (!string.IsNullOrEmpty(SelectedTable))
+            {
+                await LoadTableDataAsync(SelectedTable);
+                StateHasChanged();
             }
         }
 

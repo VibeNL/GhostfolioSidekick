@@ -6,52 +6,131 @@
 
 <h1>Table Viewer</h1>
 
-<select @bind="SelectedTable">
-    <option value="">-- Select a Table --</option>
-    @foreach (var tableName in TableNames)
-    {
-        <option value="@tableName">@tableName</option>
-    }
-</select>
-<input type="number" @bind="page" min="1" max="100" />
-<button @onclick="LoadSelectedTableData">Load Data</button>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label for="tableSelect" class="form-label">Select Table:</label>
+        <select id="tableSelect" class="form-select" @bind="SelectedTable">
+            <option value="">-- Select a Table --</option>
+            @foreach (var tableName in TableNames)
+            {
+                <option value="@tableName">@tableName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label for="pageInput" class="form-label">Page:</label>
+        <input id="pageInput" type="number" class="form-control" @bind="page" @bind:after="OnPageChanged" min="1" max="@TotalPages" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">&nbsp;</label>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="LoadSelectedTableData">Load Data</button>
+            @if (_filtersApplied)
+            {
+                <button class="btn btn-outline-secondary" @onclick="ClearAllFilters">Clear Filters</button>
+            }
+        </div>
+    </div>
+</div>
 
 @if (!string.IsNullOrEmpty(SelectedTable) && TotalRecords > 0)
 {
-    <div>
-        <b>Total Records:</b> @TotalRecords &nbsp; <b>Total Pages:</b> @TotalPages
+    <div class="alert alert-info">
+        <strong>Total Records:</strong> @TotalRecords.ToString("N0") &nbsp; 
+        <strong>Total Pages:</strong> @TotalPages &nbsp;
+        <strong>Current Page:</strong> @(page) &nbsp;
+        @if (_filtersApplied)
+        {
+            <span class="badge bg-warning">Filters Applied</span>
+        }
     </div>
 }
 
 @if (!string.IsNullOrEmpty(SelectedTable))
 {
     <h3>Data for @SelectedTable</h3>
-    @if (TableData != null)
+    @if (TableData != null && TableData.Columns.Any())
     {
-        <table class="table">
-            <thead>
-                <tr>
-                    @foreach (var column in TableData.Columns)
-                    {
-                        <th>@column</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var row in TableData.Rows)
-                {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
                     <tr>
-                        @foreach (var cell in row)
+                        @foreach (var column in TableData.Columns)
                         {
-                            <td>@cell</td>
+                            <th style="min-width: 150px;">
+                                <div class="mb-1">@column</div>
+                                <input type="text" 
+                                       class="form-control form-control-sm" 
+                                       placeholder="Filter..."
+                                       @bind="ColumnFilters[column]"
+                                       @bind:after="@(async () => await OnFilterChanged(column, ColumnFilters[column]))"
+                                       style="font-weight: normal;" />
+                            </th>
                         }
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (TableData.Rows.Any())
+                    {
+                        @foreach (var row in TableData.Rows)
+                        {
+                            <tr>
+                                @foreach (var cell in row)
+                                {
+                                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                                        title="@(cell?.ToString() ?? "")">
+                                        @(cell?.ToString() ?? "")
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="@TableData.Columns.Length" class="text-center text-muted">
+                                No data found matching the current filters.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (TotalPages > 1)
+        {
+            <nav aria-label="Table pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(page <= 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="async () => { page = Math.Max(1, page - 1); await OnPageChanged(); }" disabled="@(page <= 1)">
+                            Previous
+                        </button>
+                    </li>
+                    
+                    @for (int i = Math.Max(1, page - 2); i <= Math.Min(TotalPages, page + 2); i++)
+                    {
+                        var pageNumber = i;
+                        <li class="page-item @(pageNumber == page ? "active" : "")">
+                            <button class="page-link" @onclick="async () => { page = pageNumber; await OnPageChanged(); }">
+                                @pageNumber
+                            </button>
+                        </li>
+                    }
+                    
+                    <li class="page-item @(page >= TotalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="async () => { page = Math.Min(TotalPages, page + 1); await OnPageChanged(); }" disabled="@(page >= TotalPages)">
+                            Next
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        }
     }
-    else
+    else if (TableData != null)
     {
-        <p>Loading data...</p>
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Loading data...
+        </div>
     }
 }
