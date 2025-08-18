@@ -20,6 +20,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         // Add column filters
         private Dictionary<string, string> ColumnFilters = new();
         private bool _filtersApplied = false;
+        private bool _isLoading = false;
 
         protected override async Task OnInitializedAsync()
         {
@@ -35,6 +36,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 .OrderBy(name => name)
                 .ToList();
             return Task.CompletedTask;
+        }
+
+        private async Task OnTableSelectionChanged()
+        {
+            if (!string.IsNullOrEmpty(SelectedTable))
+            {
+                // Reset page to 1 when loading a new table
+                page = 1;
+                ColumnFilters.Clear();
+                _filtersApplied = false;
+                await LoadTableDataAsync(SelectedTable);
+            }
+            else
+            {
+                // Clear data when no table is selected
+                TableData = new TableDataRecord();
+                TotalRecords = 0;
+                TotalPages = 0;
+                ColumnFilters.Clear();
+                _filtersApplied = false;
+            }
         }
 
         private async Task LoadSelectedTableData()
@@ -53,6 +75,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         {
             try
             {
+                _isLoading = true;
+                StateHasChanged();
+
                 // Get active filters (only non-empty values)
                 var activeFilters = ColumnFilters.Where(f => !string.IsNullOrWhiteSpace(f.Value))
                                                 .ToDictionary(f => f.Key, f => f.Value);
@@ -65,25 +90,54 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
                 if (result == null || result.Count == 0)
                 {
-                    TableData.Columns = Array.Empty<string>();
-                    TableData.Rows = new();
-                    if (!activeFilters.Any())
+                    // If we have an existing table structure but no data due to filters, preserve column structure
+                    if (activeFilters.Any() && TableData.Columns.Any())
                     {
-                        TotalRecords = 0;
-                        TotalPages = 0;
+                        TableData.Rows = new();
                     }
-                    return;
-                }
-
-                TableData.Columns = result.First().Keys.ToArray();
-                TableData.Rows = result.Select(x => x.Values.ToArray()).ToList();
-                
-                // Initialize column filters for new columns
-                foreach (var column in TableData.Columns)
-                {
-                    if (!ColumnFilters.ContainsKey(column))
+                    else
                     {
-                        ColumnFilters[column] = string.Empty;
+                        // First load or no filters - get column structure even with no data
+                        var columnResult = await RawQuery.ReadTable(DbContext, tableName, 1, 1, null);
+                        if (columnResult != null && columnResult.Count > 0)
+                        {
+                            TableData.Columns = columnResult.First().Keys.ToArray();
+                            TableData.Rows = new();
+                            
+                            // Initialize column filters for new columns
+                            foreach (var column in TableData.Columns)
+                            {
+                                if (!ColumnFilters.ContainsKey(column))
+                                {
+                                    ColumnFilters[column] = string.Empty;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            TableData.Columns = Array.Empty<string>();
+                            TableData.Rows = new();
+                        }
+                        
+                        if (!activeFilters.Any())
+                        {
+                            TotalRecords = 0;
+                            TotalPages = 0;
+                        }
+                    }
+                }
+                else
+                {
+                    TableData.Columns = result.First().Keys.ToArray();
+                    TableData.Rows = result.Select(x => x.Values.ToArray()).ToList();
+                    
+                    // Initialize column filters for new columns
+                    foreach (var column in TableData.Columns)
+                    {
+                        if (!ColumnFilters.ContainsKey(column))
+                        {
+                            ColumnFilters[column] = string.Empty;
+                        }
                     }
                 }
             }
@@ -94,6 +148,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 TableData.Rows = new List<object[]> { new object[] { ex.Message } };
                 TotalRecords = 0;
                 TotalPages = 0;
+            }
+            finally
+            {
+                _isLoading = false;
             }
         }
 
