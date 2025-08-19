@@ -154,7 +154,7 @@
                                                     Account @(sortColumn == "AccountName" ? (sortAscending ? "?" : "?") : "")
                                                 </button>
                                             </th>
-                                            <th scope="col">Symbol Identifiers</th>
+                                            <th scope="col">Partial Identifiers</th>
                                             <th scope="col" class="text-end">Quantity</th>
                                             <th scope="col" class="text-end">Unit Price</th>
                                             <th scope="col" class="text-end">Amount</th>
@@ -184,9 +184,33 @@
                                                     <span class="badge bg-secondary">@issue.AccountName</span>
                                                 </td>
                                                 <td>
-                                                    @if (!string.IsNullOrEmpty(issue.SymbolIdentifiers))
+                                                    @if (issue.PartialIdentifiers.Any())
                                                     {
-                                                        <code class="text-primary">@issue.SymbolIdentifiers</code>
+                                                        <div class="partial-identifiers">
+                                                            @foreach (var identifier in issue.PartialIdentifiers)
+                                                            {
+                                                                <div class="partial-identifier-item mb-1">
+                                                                    <code class="text-primary">@identifier.Identifier</code>
+                                                                    @if (identifier.AllowedAssetClasses?.Any() == true || identifier.AllowedAssetSubClasses?.Any() == true)
+                                                                    {
+                                                                        <div class="small text-muted">
+                                                                            @if (identifier.AllowedAssetClasses?.Any() == true)
+                                                                            {
+                                                                                <span class="badge badge-outline-secondary me-1">
+                                                                                    AC: @string.Join(", ", identifier.AllowedAssetClasses)
+                                                                                </span>
+                                                                            }
+                                                                            @if (identifier.AllowedAssetSubClasses?.Any() == true)
+                                                                            {
+                                                                                <span class="badge badge-outline-secondary">
+                                                                                    ASC: @string.Join(", ", identifier.AllowedAssetSubClasses)
+                                                                                </span>
+                                                                            }
+                                                                        </div>
+                                                                    }
+                                                                </div>
+                                                            }
+                                                        </div>
                                                     }
                                                     else
                                                     {
@@ -335,6 +359,10 @@
                         <li>Activities represent cash transactions that don't need holdings (deposits, withdrawals, fees)</li>
                         <li>Data parsing issues resulted in incomplete symbol information</li>
                     </ul>
+                    <p class="mb-3">
+                        <strong>Partial Identifiers</strong> show the symbol identifiers extracted from the activity along with their allowed asset classes (AC) and asset subclasses (ASC). 
+                        This information helps debug why symbol matching failed - the identifiers may be missing, incorrectly formatted, or the asset class constraints may be too restrictive.
+                    </p>
                     <p class="mb-0">
                         <strong>Error</strong> severity indicates activities that typically require holdings (Buy/Sell, Dividends) and may affect portfolio calculations.
                         <strong>Warning</strong> severity indicates activities that might benefit from holdings but can function without them.
@@ -374,9 +402,34 @@
         transition: background-color 0.15s ease-in-out;
     }
 
+    .table td:nth-child(5) {
+        max-width: 250px;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
     .table td:nth-child(10) {
         max-width: 200px;
         white-space: normal;
         word-wrap: break-word;
+    }
+
+    .partial-identifiers .partial-identifier-item {
+        border-left: 3px solid #007bff;
+        padding-left: 8px;
+        margin-bottom: 4px;
+    }
+
+    .badge-outline-secondary {
+        color: #6c757d;
+        border: 1px solid #6c757d;
+        background-color: transparent;
+        font-size: 0.7em;
+        padding: 2px 6px;
+    }
+
+    .partial-identifier-item .small {
+        font-size: 0.75em;
+        line-height: 1.2;
     }
 </style>

@@ -21,9 +21,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					.ToListAsync(cancellationToken);
 
 				// Only IActivityWithQuantityAndUnitPrice activities can have quantity and unit price
-				activitiesWithoutHoldings = activitiesWithoutHoldings
-					.Where(a => a is IActivityWithPartialIdentifier)
-					.ToList();
+				activitiesWithoutHoldings = [.. activitiesWithoutHoldings.Where(a => a is IActivityWithPartialIdentifier)];
 
 				var dataIssues = new List<DataIssueDisplayModel>();
 
@@ -38,7 +36,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 						ActivityType = GetActivityTypeDisplayName(activity),
 						TransactionId = activity.TransactionId,
 						ActivityDescription = activity.Description,
-						Severity = DetermineSeverityByTypeName(activity)
+						Severity = DetermineSeverityByTypeName(activity),
+						Id = activity.Id,
 					};
 
 					dataIssues.Add(dataIssue);
@@ -73,11 +72,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			try
 			{
-				// Get activities with their full data for enrichment
-				var activityIds = dataIssues.Select(d => long.TryParse(d.TransactionId.Split('_')[0], out var id) ? id : 0)
-					.Where(id => id > 0).ToList();
+				var activityIds = dataIssues.Select(d => d.Id).ToList();
 
-				if (activityIds.Count == 0) return;
+				if (activityIds.Count == 0)
+				{
+					return;
+				}
 
 				var detailedActivities = await databaseContext.Activities
 					.Where(a => activityIds.Contains(a.Id))
@@ -85,13 +85,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 				foreach (var dataIssue in dataIssues)
 				{
-					if (long.TryParse(dataIssue.TransactionId.Split('_')[0], out var activityId))
+					var activity = detailedActivities.FirstOrDefault(a => a.Id == dataIssue.Id);
+					if (activity != null)
 					{
-						var activity = detailedActivities.FirstOrDefault(a => a.Id == activityId);
-						if (activity != null)
-						{
-							await EnrichDataIssueWithActivityDetails(dataIssue, activity);
-						}
+						await EnrichDataIssueWithActivityDetails(dataIssue, activity);
 					}
 				}
 			}
@@ -108,6 +105,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				// Try to get symbol identifiers if the activity has them
 				if (activity is IActivityWithPartialIdentifier activityWithIdentifiers)
 				{
+					dataIssue.PartialIdentifiers = activityWithIdentifiers.PartialSymbolIdentifiers.ToList();
 					dataIssue.SymbolIdentifiers = string.Join(", ", activityWithIdentifiers.PartialSymbolIdentifiers.Select(i => i.Identifier));
 				}
 
