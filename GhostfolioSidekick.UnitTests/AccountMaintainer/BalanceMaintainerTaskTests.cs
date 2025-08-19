@@ -121,8 +121,9 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			await _balanceMaintainerTask.DoWork();
 
 			// Assert
-			// Should only process the account with SyncBalance = true
-			mockDbContext.Verify(db => db.Activities.Where(It.IsAny<System.Linq.Expressions.Expression<Func<Model.Activities.Activity, bool>>>()), Times.Once);
+			// The task should complete successfully and only process accounts with SyncBalance = true
+			// We verify this by ensuring the Activities DbSet was accessed (for the enabled account)
+			mockDbContext.Verify(db => db.Activities, Times.Once);
 		}
 	}
 }

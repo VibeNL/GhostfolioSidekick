@@ -30,25 +30,30 @@ namespace GhostfolioSidekick.AccountMaintainer
 			{
 				using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
 				{
-					var activities = (await databaseContext.Activities
+					var activities = await databaseContext.Activities
 										.Where(x => x.Account.Id == accountKey.Id)
 										.AsNoTracking()
-										.ToListAsync())
-										.OrderBy(x => x.Date);
+										.ToListAsync();
+
+					// Ensure activities is never null and order by date
+					var orderedActivities = (activities ?? new List<Model.Activities.Activity>()).OrderBy(x => x.Date);
 
 					var balanceCalculator = new BalanceCalculator(exchangeRateService);
-					var balances = await balanceCalculator.Calculate(Currency.EUR, activities);
+					var balances = await balanceCalculator.Calculate(Currency.EUR, orderedActivities);
 
 					var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey.Id)!;
-					var existingBalances = account!.Balance;
+					var existingBalances = account!.Balance ?? new List<Model.Accounts.Balance>();
 
 					var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
 					ComparisonResult result = compareLogic.Compare(existingBalances.OrderBy(x => x.Date), balances.OrderBy(x => x.Date));
 
 					if (!result.AreEqual)
 					{
-						account.Balance.Clear();
-						account.Balance.AddRange(balances);
+						if (account.Balance != null)
+						{
+							account.Balance.Clear();
+							account.Balance.AddRange(balances ?? new List<Model.Accounts.Balance>());
+						}
 						await databaseContext.SaveChangesAsync();
 					}
 				}
