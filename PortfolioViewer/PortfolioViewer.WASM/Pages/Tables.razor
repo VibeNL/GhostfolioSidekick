@@ -6,52 +6,200 @@
 
 <h1>Table Viewer</h1>
 
-<select @bind="SelectedTable">
-    <option value="">-- Select a Table --</option>
-    @foreach (var tableName in TableNames)
-    {
-        <option value="@tableName">@tableName</option>
-    }
-</select>
-<input type="number" @bind="page" min="1" max="100" />
-<button @onclick="LoadSelectedTableData">Load Data</button>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label for="tableSelect" class="form-label">Select Table:</label>
+        <select id="tableSelect" class="form-select" @bind="SelectedTable" @bind:after="OnTableSelectionChanged">
+            <option value="">-- Select a Table --</option>
+            @foreach (var tableName in TableNames)
+            {
+                <option value="@tableName">@tableName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label for="pageInput" class="form-label">Page:</label>
+        <input id="pageInput" type="number" class="form-control" @bind="page" @bind:after="OnPageChanged" min="1" max="@TotalPages" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">&nbsp;</label>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="LoadSelectedTableData">Reload Data</button>
+            @if (_filtersApplied)
+            {
+                <button class="btn btn-outline-secondary" @onclick="ClearAllFilters">Clear Filters</button>
+            }
+        </div>
+    </div>
+</div>
 
 @if (!string.IsNullOrEmpty(SelectedTable) && TotalRecords > 0)
 {
-    <div>
-        <b>Total Records:</b> @TotalRecords &nbsp; <b>Total Pages:</b> @TotalPages
+    <div class="alert alert-info">
+        <strong>Total Records:</strong> @TotalRecords.ToString("N0") &nbsp; 
+        <strong>Total Pages:</strong> @TotalPages &nbsp;
+        <strong>Current Page:</strong> @(page) &nbsp;
+        @if (_filtersApplied)
+        {
+            <span class="badge bg-warning">Filters Applied</span>
+        }
+        @if (!string.IsNullOrEmpty(_sortColumn))
+        {
+            <span class="badge bg-info">Sorted by @_sortColumn (@_sortDirection.ToUpper())</span>
+        }
     </div>
 }
 
 @if (!string.IsNullOrEmpty(SelectedTable))
 {
     <h3>Data for @SelectedTable</h3>
-    @if (TableData != null)
+    
+    @if (_isLoading)
     {
-        <table class="table">
-            <thead>
-                <tr>
-                    @foreach (var column in TableData.Columns)
-                    {
-                        <th>@column</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var row in TableData.Rows)
-                {
+        <div class="alert alert-info">
+            <i class="bi bi-hourglass-split me-2"></i>
+            Loading data...
+        </div>
+    }
+    else if (TableData != null && TableData.Columns.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
                     <tr>
-                        @foreach (var cell in row)
+                        @foreach (var column in TableData.Columns)
                         {
-                            <td>@cell</td>
+                            <th style="min-width: 150px;" class="@GetSortClass(column)">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="column-header" @onclick="@(async () => await OnColumnHeaderClick(column))" style="cursor: pointer; user-select: none;">
+                                        @column
+                                        <i class="bi @GetSortIcon(column) ms-1"></i>
+                                    </span>
+                                </div>
+                                <input type="text" 
+                                       class="form-control form-control-sm" 
+                                       placeholder="Filter..."
+                                       @bind="ColumnFilters[column]"
+                                       @bind:after="@(async () => await OnFilterChanged(column, ColumnFilters[column]))"
+                                       style="font-weight: normal;" />
+                            </th>
                         }
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @if (TableData.Rows.Any())
+                    {
+                        @foreach (var row in TableData.Rows)
+                        {
+                            <tr>
+                                @foreach (var cell in row)
+                                {
+                                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                                        title="@(cell?.ToString() ?? "")">
+                                        @(cell?.ToString() ?? "")
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="@TableData.Columns.Length" class="text-center text-muted">
+                                @if (_filtersApplied)
+                                {
+                                    <span>No data found matching the current filters.</span>
+                                }
+                                else
+                                {
+                                    <span>No data available in this table.</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (TotalPages > 1)
+        {
+            <nav aria-label="Table pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(page <= 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="async () => { page = Math.Max(1, page - 1); await OnPageChanged(); }" disabled="@(page <= 1)">
+                            Previous
+                        </button>
+                    </li>
+                    
+                    @for (int i = Math.Max(1, page - 2); i <= Math.Min(TotalPages, page + 2); i++)
+                    {
+                        var pageNumber = i;
+                        <li class="page-item @(pageNumber == page ? "active" : "")">
+                            <button class="page-link" @onclick="async () => { page = pageNumber; await OnPageChanged(); }">
+                                @pageNumber
+                            </button>
+                        </li>
+                    }
+                    
+                    <li class="page-item @(page >= TotalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="async () => { page = Math.Min(TotalPages, page + 1); await OnPageChanged(); }" disabled="@(page >= TotalPages)">
+                            Next
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        }
     }
-    else
+    else if (!_isLoading)
     {
-        <p>Loading data...</p>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            @if (_filtersApplied)
+            {
+                <span>No data found matching the current filters for table @SelectedTable.</span>
+            }
+            else
+            {
+                <span>Table @SelectedTable appears to be empty or could not be loaded.</span>
+            }
+        </div>
     }
 }
+
+<style>
+    /* Sorted column styling for dark table headers */
+    .table-dark .sorted-column {
+        background-color: rgba(13, 110, 253, 0.3) !important; /* Bootstrap primary blue with transparency */
+        border-left: 3px solid #0d6efd; /* Subtle left border indicator */
+    }
+    
+    /* Hover effect for column headers in dark tables */
+    .table-dark .column-header:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    
+    /* Default column header styling */
+    .column-header {
+        transition: background-color 0.2s ease;
+        display: inline-block;
+    }
+    
+    /* Sort icon styling */
+    .column-header i {
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+    
+    .sorted-column .column-header i {
+        opacity: 1;
+        color: #0d6efd;
+    }
+    
+    /* Ensure good contrast for sorted column text */
+    .table-dark .sorted-column,
+    .table-dark .sorted-column .column-header {
+        color: #ffffff !important;
+    }
+</style>
