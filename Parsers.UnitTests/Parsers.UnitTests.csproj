@@ -542,6 +542,9 @@
 		<None Update="TestFiles\Trading212\SellOrders\single_sell_euro.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Trading212\Specials\single_dividend_adjustment.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Trading212\Specials\single_stock_dividend.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

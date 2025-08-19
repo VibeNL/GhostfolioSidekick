@@ -42,6 +42,11 @@
 			};
 		}
 
+		public static PartialSymbolIdentifier[] CreateStockAndETF(params string?[] ids)
+		{
+			return [.. ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => CreateStockAndETF(x!))];
+		}
+
 		public static PartialSymbolIdentifier CreateStockBondAndETF(string id)
 		{
 			return new PartialSymbolIdentifier(id)
