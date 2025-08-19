@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 	{
 		public string DataSource => Datasource.MANUAL;
 
-		public DateOnly MinDate => throw new NotImplementedException();
+		public DateOnly MinDate => DateOnly.MinValue;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{

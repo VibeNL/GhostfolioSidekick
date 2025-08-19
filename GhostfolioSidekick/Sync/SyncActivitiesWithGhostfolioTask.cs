@@ -20,7 +20,6 @@ namespace GhostfolioSidekick.Sync
 			var allActivities = await databaseContext.Activities
 				.Include(x => x.Holding)
 				.Include(x => x.Account)
-				.Where(x => x.Account.SyncActivities)
 				.ToListAsync();
 				
 			await ghostfolioSync.SyncAllActivities(allActivities);
