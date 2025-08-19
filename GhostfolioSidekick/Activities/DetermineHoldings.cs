@@ -69,9 +69,10 @@ namespace GhostfolioSidekick.Activities
 				return;
 			}
 
+			var found = false;
 			foreach (var symbolMatcher in symbolMatchers)
 			{
-                var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
+				var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
 				if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))
 				{
 					symbolProfile = await symbolMatcher.MatchSymbol([.. partialIdentifiers]).ConfigureAwait(false);
@@ -91,7 +92,6 @@ namespace GhostfolioSidekick.Activities
 
 				if (symbolProfile == null)
 				{
-					logger.LogTrace("CreateOrUpdateHolding: No symbol profile found for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
 					continue;
 				}
 
@@ -102,6 +102,7 @@ namespace GhostfolioSidekick.Activities
 					continue;
 				}
 
+				found = true;
 				holding = holdings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
 				if (holding != null)
 				{
@@ -121,6 +122,11 @@ namespace GhostfolioSidekick.Activities
 				holding.MergeIdentifiers(partialIdentifiers);
 				holdings.Add(holding);
 				databaseContext.Holdings.Add(holding);
+			}
+
+			if (!found)
+			{
+				logger.LogWarning("CreateOrUpdateHolding: No symbol profile found for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
 			}
 		}
 	}
