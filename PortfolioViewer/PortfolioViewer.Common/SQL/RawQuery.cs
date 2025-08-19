@@ -165,13 +165,18 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 				throw new ArgumentException("Invalid table name.");
 			}
 
-			// Check if the table exists in the database
-			var query = $"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{entity}'";
+			// Check if the table exists in the database using parameterized query
+			var query = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@tableName";
 			
 			using var connection = context.Database.GetDbConnection();
 			await connection.OpenAsync();
 			using var command = connection.CreateCommand();
 			command.CommandText = query;
+			
+			var param = command.CreateParameter();
+			param.ParameterName = "@tableName";
+			param.Value = entity;
+			command.Parameters.Add(param);
 			
 			var result = await command.ExecuteScalarAsync();
 			var tableExists = Convert.ToInt32(result) > 0;
@@ -193,6 +198,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			}
 
 			// Check if the column exists in the table
+			// Note: PRAGMA statements cannot be parameterized, but entity is already validated
 			var query = $"PRAGMA table_info({entity})";
 			
 			using var connection = context.Database.GetDbConnection();
