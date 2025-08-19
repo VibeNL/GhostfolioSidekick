@@ -61,8 +61,10 @@ namespace GhostfolioSidekick.AccountMaintainer
 				{
 					await CreateAccount(accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
 				}
-
-				// TODO Update account
+				else
+				{
+					await UpdateAccount(databaseContext, account, accountConfig, platforms?.SingleOrDefault(x => x.Name == accountConfig.Platform));
+				}
 			}
 		}
 
@@ -75,8 +77,48 @@ namespace GhostfolioSidekick.AccountMaintainer
 			{
 				Comment = accountConfig.Comment,
 				Platform = platform,
+				SyncActivities = accountConfig.SyncActivities,
+				SyncBalance = accountConfig.SyncBalance
 			});
 			await databaseContext.SaveChangesAsync();
+		}
+
+		private async Task UpdateAccount(DatabaseContext databaseContext, Account account, AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
+		{
+			bool hasChanges = false;
+
+			// Update sync settings
+			if (account.SyncActivities != accountConfig.SyncActivities)
+			{
+				account.SyncActivities = accountConfig.SyncActivities;
+				hasChanges = true;
+			}
+
+			if (account.SyncBalance != accountConfig.SyncBalance)
+			{
+				account.SyncBalance = accountConfig.SyncBalance;
+				hasChanges = true;
+			}
+
+			// Update comment if different
+			if (account.Comment != accountConfig.Comment)
+			{
+				account.Comment = accountConfig.Comment;
+				hasChanges = true;
+			}
+
+			// Update platform if different
+			var platform = await CreateOrUpdatePlatform(databaseContext, platformConfiguration);
+			if (account.Platform?.Name != platform?.Name)
+			{
+				account.Platform = platform;
+				hasChanges = true;
+			}
+
+			if (hasChanges)
+			{
+				await databaseContext.SaveChangesAsync();
+			}
 		}
 
 		private async Task<Platform?> CreateOrUpdatePlatform(DatabaseContext databaseContext, PlatformConfiguration? platformConfiguration)

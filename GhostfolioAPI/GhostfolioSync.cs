@@ -36,9 +36,17 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				logger.LogDebug("Account {AccountName} created", account.Name);
 			}
 
-			logger.LogDebug("Updating account {AccountName}", account.Name);
-			await apiWrapper.UpdateAccount(account);
-			logger.LogDebug("Account {AccountName} updated", account.Name);
+			// Only update account (which includes balance sync) if SyncBalance is enabled
+			if (account.SyncBalance)
+			{
+				logger.LogDebug("Updating account {AccountName}", account.Name);
+				await apiWrapper.UpdateAccount(account);
+				logger.LogDebug("Account {AccountName} updated", account.Name);
+			}
+			else
+			{
+				logger.LogDebug("Skipping account balance update for {AccountName} (SyncBalance is disabled)", account.Name);
+			}
 		}
 
 		public async Task SyncAllActivities(IEnumerable<Activity> allActivities)
@@ -48,7 +56,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			allActivities = ConvertBondRepay(allActivities);
 
 			logger.LogDebug("Syncing activities");
-			await apiWrapper.SyncAllActivities([.. allActivities]);
+
+			var allactivitiesList = allActivities.Where(x => x.Account.SyncActivities).ToList();
+
+			await apiWrapper.SyncAllActivities([.. allactivitiesList]);
 			logger.LogDebug("activities synced");
 		}
 

@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task SyncAllActivities_ShouldSyncAllActivities()
 		{
 			// Arrange
-			var activities = new List<Activity> { new BuySellActivity() };
+			var activities = new List<Activity> { new BuySellActivity() { Account = new Account() } };
 			_apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>())).Returns(Task.CompletedTask);
 
 			// Act

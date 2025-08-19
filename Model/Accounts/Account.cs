@@ -24,6 +24,10 @@
 
 		public virtual Platform? Platform { get; set; }
 
+		public bool SyncActivities { get; set; } = true;
+
+		public bool SyncBalance { get; set; } = true;
+
 		public override string ToString()
 		{
 			return Name;

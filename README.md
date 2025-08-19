@@ -6,6 +6,8 @@
 
 [![Shield: Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-Support-yellow?logo=buymeacoffee)](https://www.buymeacoffee.com/vibenl)
 
+[Deep Wiki](https://deepwiki.com/VibeNL/GhostfolioSidekick)
+
 A continuous running Docker container (a sidecar) to automatically import files from several brokers & crypto exchanges. 
 The program checks every hour if any new transactions are found and inserts them in [ghostfolio](https://github.com/ghostfolio/ghostfolio). 
 It can also correct & remove transactions in case they have changed (for example a different exchange rate) or the source file was deleted.
@@ -70,7 +72,7 @@ Also allows the following symbol settings
 		{ "name": "De Giro", "url":"https://www.degiro.nl/" }
 	],
 	"accounts":[
-		{ "name": "De Giro", "currency":"EUR", "platform":"De Giro" }
+		{ "name": "De Giro", "currency":"EUR", "platform":"De Giro", "sync-activities": true, "sync-balance": false } // sync-activities is true by default, sync-balance is true by default
 	],
 	"mappings":[
 		{ "type":"currency", "source":"GBX", "target":"GBp"},

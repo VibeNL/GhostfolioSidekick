@@ -15,5 +15,11 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("platform")]
 		public string? Platform { get; set; }
+
+		[JsonPropertyName("sync-activities")]
+		public bool SyncActivities { get; set; } = true;
+
+		[JsonPropertyName("sync-balance")]
+		public bool SyncBalance { get; set; } = true;
 	}
 }
