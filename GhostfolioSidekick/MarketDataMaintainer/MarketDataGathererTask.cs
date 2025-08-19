@@ -57,25 +57,43 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 				}
 
+				// Determine the earliest date we should get the data for
 				if (symbol.MarketData.Count != 0)
 				{
 					var minDate = symbol.MarketData.Min(x => x.Date);
 					var maxDate = symbol.MarketData.Max(x => x.Date);
 
+					// If any data corruption is detected, we will re-fetch all data if possible
+					var hasDataCorruption = symbol.MarketData.Any(x => 
+						x.Close.Amount == 0 // Close price is not set
+						) && symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close.Amount).LastOrDefault() != 0;
+					if (hasDataCorruption)
+					{
+						logger.LogWarning($"Data corruption detected for {symbol.Symbol} from {symbol.DataSource}. Re-fetching all data.");
+					}
 					// Only get new data since our earliest date is inside the database
 					// Or we cannot get data ealiers than we already have
-					if (date >= minDate || minDate <= stockPriceRepository.MinDate)
+					else
 					{
-						date = maxDate;
-					}
+						if (date >= minDate)
+						{
+							date = maxDate;
+						}
 
-					// TODO
-					if (maxDate >= DateOnly.FromDateTime(DateTime.Today))
-					{
-						// For now skip today
-						logger.LogDebug($"Market data for {symbol.Symbol} from {symbol.DataSource} is up to date");
-						continue;
+						// skip the current day
+						if (maxDate >= DateOnly.FromDateTime(DateTime.Today))
+						{
+							// For now skip today
+							logger.LogDebug($"Market data for {symbol.Symbol} from {symbol.DataSource} is up to date");
+							continue;
+						}
 					}
+				}
+
+				// If the repository does not support data before a certain date, set it to that date
+				if (date < stockPriceRepository.MinDate)
+				{
+					date = stockPriceRepository.MinDate;
 				}
 
 				var list = await stockPriceRepository.GetStockMarketData(symbol, date);
