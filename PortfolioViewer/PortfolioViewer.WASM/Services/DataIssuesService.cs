@@ -145,7 +145,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			var fullTypeName = activity.GetType().FullName ?? string.Empty;
 			var activityName = fullTypeName.Split('.').LastOrDefault() ?? fullTypeName;
-			return activityName.Replace("Activity", "");
+			return activityName.Replace("Activity", "").Replace("Proxy", "");
 		}
 
 		private static string GetActivityTypeName(Activity activity)

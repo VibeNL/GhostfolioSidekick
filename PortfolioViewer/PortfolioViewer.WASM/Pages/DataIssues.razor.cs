@@ -16,6 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool IsLoading { get; set; } = true;
 		private bool HasError { get; set; } = false;
 		private string ErrorMessage { get; set; } = string.Empty;
+		private bool IsListExpanded { get; set; } = false; // Collapsed by default
 
 		// Data
 		private List<DataIssueDisplayModel> DataIssuesList = new();
@@ -177,6 +178,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				"Interest" => "bg-secondary",
 				_ => "bg-light text-dark"
 			};
+		}
+
+		private void ToggleListExpansion()
+		{
+			IsListExpanded = !IsListExpanded;
+			StateHasChanged();
 		}
 
 		public void Dispose()
