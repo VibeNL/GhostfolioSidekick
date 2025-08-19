@@ -56,7 +56,14 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		public async Task AddOrUpdateAccountsAndPlatforms_ShouldCreateAccountIfNotExists()
 		{
 			// Arrange
-			var accountConfig = new AccountConfiguration { Name = "TestAccount", Platform = "TestPlatform", Currency = Currency.USD.ToString() };
+			var accountConfig = new AccountConfiguration
+			{
+				Name = "TestAccount",
+				Platform = "TestPlatform",
+				Currency = Currency.USD.ToString(),
+				SyncActivities = false,
+				SyncBalance = true
+			};
 			var platformConfig = new PlatformConfiguration { Name = "TestPlatform" };
 			var configurationInstance = new ConfigurationInstance
 			{
@@ -65,16 +72,62 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			};
 
 			mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
+			mockApplicationSettings.Setup(x => x.AllowAdminCalls).Returns(true);
 
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(x => x.Accounts).ReturnsDbSet([]);
+			mockDbContext.Setup(x => x.Platforms).ReturnsDbSet([]);
 			mockDbContextFactory.Setup(x => x.CreateDbContext()).Returns(mockDbContext.Object);
 
 			// Act
 			await accountMaintainerTask.DoWork();
 
 			// Assert
-			mockDbContext.Verify(x => x.Accounts.AddAsync(It.IsAny<Account>(), default), Times.Once);
+			mockDbContext.Verify(x => x.Accounts.AddAsync(It.Is<Account>(a =>
+				a.Name == "TestAccount" &&
+				!a.SyncActivities &&
+				a.SyncBalance), default), Times.Once);
+			mockDbContext.Verify(x => x.SaveChangesAsync(default), Times.AtLeastOnce);
+		}
+
+		[Fact]
+		public async Task AddOrUpdateAccountsAndPlatforms_ShouldUpdateAccountIfExists()
+		{
+			// Arrange
+			var existingAccount = new Account("TestAccount")
+			{
+				Id = 1,
+				SyncActivities = true,
+				SyncBalance = true
+			};
+			var accountConfig = new AccountConfiguration
+			{
+				Name = "TestAccount",
+				Currency = Currency.USD.ToString(),
+				SyncActivities = false,
+				SyncBalance = false,
+				Comment = "Updated comment"
+			};
+			var configurationInstance = new ConfigurationInstance
+			{
+				Accounts = [accountConfig],
+				Platforms = []
+			};
+
+			mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
+
+			var mockDbContext = new Mock<DatabaseContext>();
+			mockDbContext.Setup(x => x.Accounts).ReturnsDbSet([existingAccount]);
+			mockDbContext.Setup(x => x.Platforms).ReturnsDbSet([]);
+			mockDbContextFactory.Setup(x => x.CreateDbContext()).Returns(mockDbContext.Object);
+
+			// Act
+			await accountMaintainerTask.DoWork();
+
+			// Assert
+			existingAccount.SyncActivities.Should().BeFalse();
+			existingAccount.SyncBalance.Should().BeFalse();
+			existingAccount.Comment.Should().Be("Updated comment");
 			mockDbContext.Verify(x => x.SaveChangesAsync(default), Times.Once);
 		}
 	}

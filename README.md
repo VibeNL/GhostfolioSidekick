@@ -70,7 +70,7 @@ Also allows the following symbol settings
 		{ "name": "De Giro", "url":"https://www.degiro.nl/" }
 	],
 	"accounts":[
-		{ "name": "De Giro", "currency":"EUR", "platform":"De Giro" }
+		{ "name": "De Giro", "currency":"EUR", "platform":"De Giro", "sync-activities": true, "sync-balance": false } // sync-activities is true by default, sync-balance is true by default
 	],
 	"mappings":[
 		{ "type":"currency", "source":"GBX", "target":"GBp"},

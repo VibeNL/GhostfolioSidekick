@@ -10,12 +10,16 @@
 		{
 			"name": "TestAccount1",
 			"currency": "EUR",
-			"platform": ""
+			"platform": "",
+			"sync-activities": true,
+			"sync-balance": true
 		},
 		{
 			"name": "TestAccount2",
 			"currency": "EUR",
-			"platform": ""
+			"platform": "",
+			"sync-activities": false,
+			"sync-balance": true
 		}
 	],
 	"mappings": [

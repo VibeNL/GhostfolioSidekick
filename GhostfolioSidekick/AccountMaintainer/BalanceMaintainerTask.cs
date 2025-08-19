@@ -19,7 +19,11 @@ namespace GhostfolioSidekick.AccountMaintainer
 			List<AccountKey> accountKeys;
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
 			{
-				accountKeys = await databaseContext.Accounts.Select(x => new AccountKey { Name = x.Name, Id = x.Id }).ToListAsync();
+				// Only process accounts that have SyncBalance enabled
+				accountKeys = await databaseContext.Accounts
+					.Where(x => x.SyncBalance)
+					.Select(x => new AccountKey { Name = x.Name, Id = x.Id })
+					.ToListAsync();
 			}
 
 			foreach (var accountKey in accountKeys)

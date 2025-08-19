@@ -15,7 +15,14 @@ namespace GhostfolioSidekick.Sync
 		public async Task DoWork()
 		{
 			await using var databaseContext = databaseContextFactory.CreateDbContext();
-			var allActivities = await databaseContext.Activities.Include(x => x.Holding).ToListAsync();
+			
+			// Only sync activities for accounts that have SyncActivities enabled
+			var allActivities = await databaseContext.Activities
+				.Include(x => x.Holding)
+				.Include(x => x.Account)
+				.Where(x => x.Account.SyncActivities)
+				.ToListAsync();
+				
 			await ghostfolioSync.SyncAllActivities(allActivities);
 		}
 	}
