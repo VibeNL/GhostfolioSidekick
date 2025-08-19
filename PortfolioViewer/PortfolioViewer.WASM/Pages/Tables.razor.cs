@@ -21,6 +21,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private Dictionary<string, string> ColumnFilters = new();
         private bool _filtersApplied = false;
         private bool _isLoading = false;
+        
+        // Add sorting state
+        private string? _sortColumn = null;
+        private string _sortDirection = "asc";
 
         protected override async Task OnInitializedAsync()
         {
@@ -46,6 +50,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 page = 1;
                 ColumnFilters.Clear();
                 _filtersApplied = false;
+                _sortColumn = null;
+                _sortDirection = "asc";
                 await LoadTableDataAsync(SelectedTable);
             }
             else
@@ -56,6 +62,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 TotalPages = 0;
                 ColumnFilters.Clear();
                 _filtersApplied = false;
+                _sortColumn = null;
+                _sortDirection = "asc";
             }
         }
 
@@ -67,8 +75,50 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 page = 1;
                 ColumnFilters.Clear();
                 _filtersApplied = false;
+                _sortColumn = null;
+                _sortDirection = "asc";
                 await LoadTableDataAsync(SelectedTable);
             }
+        }
+
+        private async Task OnColumnHeaderClick(string columnName)
+        {
+            if (_sortColumn == columnName)
+            {
+                // Toggle sort direction if clicking the same column
+                _sortDirection = _sortDirection == "asc" ? "desc" : "asc";
+            }
+            else
+            {
+                // Set new sort column and default to ascending
+                _sortColumn = columnName;
+                _sortDirection = "asc";
+            }
+
+            // Reset to page 1 when sorting changes
+            page = 1;
+
+            if (!string.IsNullOrEmpty(SelectedTable))
+            {
+                await LoadTableDataAsync(SelectedTable);
+                StateHasChanged();
+            }
+        }
+
+        private string GetSortIcon(string columnName)
+        {
+            if (_sortColumn != columnName)
+                return "bi-arrow-down-up"; // Unsorted icon
+
+            return _sortDirection == "asc" ? "bi-sort-up" : "bi-sort-down";
+        }
+
+        private string GetSortClass(string columnName)
+        {
+            if (_sortColumn == columnName)
+                return "sorted-column";
+            
+            return "";
         }
 
         private async Task LoadTableDataAsync(string tableName)
@@ -86,7 +136,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 TotalRecords = await RawQuery.GetTableCount(DbContext, tableName, activeFilters.Any() ? activeFilters : null);
                 TotalPages = (int)Math.Ceiling((double)TotalRecords / PageSize);
 
-                var result = await RawQuery.ReadTable(DbContext, tableName, page, PageSize, activeFilters.Any() ? activeFilters : null);
+                var result = await RawQuery.ReadTable(DbContext, tableName, page, PageSize, activeFilters.Any() ? activeFilters : null, _sortColumn, _sortDirection);
 
                 if (result == null || result.Count == 0)
                 {
@@ -98,7 +148,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                     else
                     {
                         // First load or no filters - get column structure even with no data
-                        var columnResult = await RawQuery.ReadTable(DbContext, tableName, 1, 1, null);
+                        var columnResult = await RawQuery.ReadTable(DbContext, tableName, 1, 1, null, _sortColumn, _sortDirection);
                         if (columnResult != null && columnResult.Count > 0)
                         {
                             TableData.Columns = columnResult.First().Keys.ToArray();

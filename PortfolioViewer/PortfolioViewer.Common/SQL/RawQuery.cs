@@ -7,10 +7,15 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 	{
 		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize)
 		{
-			return await ReadTable(databaseContext, entity, page, pageSize, null);
+			return await ReadTable(databaseContext, entity, page, pageSize, null, null, null);
 		}
 
 		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters)
+		{
+			return await ReadTable(databaseContext, entity, page, pageSize, columnFilters, null, null);
+		}
+
+		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters, string? sortColumn, string? sortDirection)
 		{
 			// Calculate the offset for pagination
 			var offset = (page - 1) * pageSize;
@@ -42,7 +47,21 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 				}
 			}
 
-			sqlQuery += " ORDER BY 1 LIMIT @pageSize OFFSET @offset";
+			// Add ORDER BY clause
+			if (!string.IsNullOrWhiteSpace(sortColumn))
+			{
+				// Validate the sort column name
+				var validatedSortColumn = await ValidateColumnNameAsync(databaseContext, entity, sortColumn);
+				var direction = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase) ? "DESC" : "ASC";
+				sqlQuery += $" ORDER BY {validatedSortColumn} {direction}";
+			}
+			else
+			{
+				// Default sort by first column
+				sqlQuery += " ORDER BY 1";
+			}
+
+			sqlQuery += " LIMIT @pageSize OFFSET @offset";
 
 			// Execute the raw SQL query
 			using var connection = databaseContext.Database.GetDbConnection();

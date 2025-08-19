@@ -43,6 +43,10 @@
         {
             <span class="badge bg-warning">Filters Applied</span>
         }
+        @if (!string.IsNullOrEmpty(_sortColumn))
+        {
+            <span class="badge bg-info">Sorted by @_sortColumn (@_sortDirection.ToUpper())</span>
+        }
     </div>
 }
 
@@ -65,8 +69,13 @@
                     <tr>
                         @foreach (var column in TableData.Columns)
                         {
-                            <th style="min-width: 150px;">
-                                <div class="mb-1">@column</div>
+                            <th style="min-width: 150px;" class="@GetSortClass(column)">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="column-header" @onclick="@(async () => await OnColumnHeaderClick(column))" style="cursor: pointer; user-select: none;">
+                                        @column
+                                        <i class="bi @GetSortIcon(column) ms-1"></i>
+                                    </span>
+                                </div>
                                 <input type="text" 
                                        class="form-control form-control-sm" 
                                        placeholder="Filter..."
@@ -156,3 +165,19 @@
         </div>
     }
 }
+
+<style>
+    .sorted-column {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .column-header:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+    
+    .column-header {
+        transition: background-color 0.2s ease;
+    }
+</style>
