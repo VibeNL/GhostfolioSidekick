@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Activities
 			this.databaseContextFactory = databaseContextFactory;
 			this.memoryCache = memoryCache;
 
-			this.mappings = settings.ConfigurationInstance.Mappings ?? [];
+			this.mappings = settings?.ConfigurationInstance?.Mappings ?? [];
 		}
 
 		public TaskPriority Priority => TaskPriority.DetermineHoldings;
