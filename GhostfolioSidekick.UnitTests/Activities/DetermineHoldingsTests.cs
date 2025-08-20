@@ -120,6 +120,86 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
 		}
 
+		[Fact]
+		public async Task DoWork_ShouldLogHoldingAlreadyExistsForSymbol_WhenSymbolHoldingDictionaryContainsSymbol()
+		{
+			// Arrange - This test targets line 119
+			var dbContextMock = new Mock<DatabaseContext>();
+			var symbolProfile = new SymbolProfile 
+			{ 
+				Symbol = "TEST", 
+				DataSource = "TestSource",
+				Currency = Currency.USD,
+				Name = "Test Symbol"
+			};
+			
+			var activities = new List<Activity>
+			{
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST1")] },
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST2")] }
+			};
+			var holdings = new List<Holding>();
+
+			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
+			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+
+			// Return the same symbol profile for both partial identifiers
+			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(symbolProfile);
+
+			// Act
+			await _determineHoldings.DoWork();
+
+			// Assert
+			// Verify that the log message for "holding already exists for symbol" was called
+			_loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Trace,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: Holding already exists for") && 
+													v.ToString()!.Contains("TEST") &&
+													v.ToString()!.Contains("with")),
+					It.IsAny<Exception?>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+				Times.Once);
+		}
+
+		[Fact]
+		public async Task DoWork_ShouldLogNoSymbolProfileFound_WhenNoSymbolMatcherReturnsSymbol()
+		{
+			// Arrange - This test targets line 148
+			var dbContextMock = new Mock<DatabaseContext>();
+			var activities = new List<Activity>
+			{
+				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("UNKNOWN")] }
+			};
+			var holdings = new List<Holding>();
+
+			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
+			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+
+			// Return null for all symbol matches
+			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync((SymbolProfile?)null);
+
+			// Act
+			await _determineHoldings.DoWork();
+
+			// Assert
+			// Verify that the log warning for "no symbol profile found" was called
+			_loggerMock.Verify(
+				x => x.Log(
+					LogLevel.Warning,
+					It.IsAny<EventId>(),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: No symbol profile found for") && 
+													v.ToString()!.Contains("UNKNOWN")),
+					It.IsAny<Exception?>(),
+					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+				Times.Once);
+		}
+
 		private record TestActivity : ActivityWithQuantityAndUnitPrice
 		{
 			public TestActivity()
