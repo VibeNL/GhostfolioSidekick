@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -51,12 +52,12 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		public async Task SyncAllActivities(IEnumerable<Activity> allActivities)
 		{
+			logger.LogDebug("Syncing activities");
+						
 			allActivities = ConvertSendAndRecievesToBuyAndSells(allActivities);
 			allActivities = ConvertGiftsToInterestOrBuy(allActivities);
 			allActivities = ConvertBondRepay(allActivities);
-
-			logger.LogDebug("Syncing activities");
-
+			allActivities = SettleNegativeDividends(allActivities);
 			var allactivitiesList = allActivities.Where(x => x.Account.SyncActivities).ToList();
 
 			await apiWrapper.SyncAllActivities([.. allactivitiesList]);
@@ -160,6 +161,32 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						activity.Date,
 						-quantity,
 						price,
+						activity.TransactionId,
+						activity.SortingPriority,
+						activity.Description)
+					{
+					};
+				}
+				else
+				{
+					yield return activity;
+				}
+			}
+		}
+
+		private IEnumerable<Activity> SettleNegativeDividends(IEnumerable<Activity> activities)
+		{
+			foreach (var activity in activities)
+			{
+				if (activity is DividendActivity divided && divided.Amount.Amount < 0)
+				{
+					// If the dividend is negative, we assume it is a correction of aprevious dividend.
+					// See for now mark it as a fee activity.
+					yield return new FeeActivity(
+						activity.Account,
+						activity.Holding,
+						activity.Date,
+						divided.Amount.Times(-1),
 						activity.TransactionId,
 						activity.SortingPriority,
 						activity.Description)
