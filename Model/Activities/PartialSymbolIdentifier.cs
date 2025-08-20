@@ -33,6 +33,11 @@
 			return new PartialSymbolIdentifier(id);
 		}
 
+		public static PartialSymbolIdentifier[] CreateGeneric(params string?[] ids)
+		{
+			return [.. ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => CreateGeneric(x!))];
+		}
+
 		public static PartialSymbolIdentifier CreateStockAndETF(string id)
 		{
 			return new PartialSymbolIdentifier(id)
