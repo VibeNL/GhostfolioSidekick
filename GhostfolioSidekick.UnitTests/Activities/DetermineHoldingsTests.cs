@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Activities;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
@@ -29,12 +30,14 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_memoryCacheMock = new MemoryCache(new MemoryCacheOptions());
 			_symbolMatcherMock = new Mock<ISymbolMatcher>();
 			_symbolMatchers = new List<ISymbolMatcher> { _symbolMatcherMock.Object };
+			var _mockApplicationSettings = new Mock<IApplicationSettings>();
 
 			_determineHoldings = new DetermineHoldings(
 				_loggerMock.Object,
 				[.. _symbolMatchers],
 				_dbContextFactoryMock.Object,
-				_memoryCacheMock);
+				_memoryCacheMock,
+				_mockApplicationSettings.Object);
 		}
 
 		[Fact]

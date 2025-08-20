@@ -1,22 +1,40 @@
-﻿using GhostfolioSidekick.Database;
+﻿using GhostfolioSidekick.Activities.Comparer;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using GhostfolioSidekick.Model.Symbols;
-using Microsoft.Extensions.Caching.Memory;
 using GhostfolioSidekick.GhostfolioAPI.API;
-using GhostfolioSidekick.Activities.Comparer;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Activities
 {
-	public class DetermineHoldings(
-			ILogger<DetermineHoldings> logger,
-			ISymbolMatcher[] symbolMatchers,
-			IDbContextFactory<DatabaseContext> databaseContextFactory,
-			IMemoryCache memoryCache) : IScheduledWork
+	public class DetermineHoldings : IScheduledWork
 	{
+		private readonly ILogger<DetermineHoldings> logger;
+		private readonly ISymbolMatcher[] symbolMatchers;
+		private readonly IDbContextFactory<DatabaseContext> databaseContextFactory;
+		private readonly IMemoryCache memoryCache;
+		private readonly Mapping[] mappings;
+
+		public DetermineHoldings(
+				ILogger<DetermineHoldings> logger,
+				ISymbolMatcher[] symbolMatchers,
+				IDbContextFactory<DatabaseContext> databaseContextFactory,
+				IMemoryCache memoryCache,
+				IApplicationSettings settings)
+		{
+			this.logger = logger;
+			this.symbolMatchers = symbolMatchers;
+			this.databaseContextFactory = databaseContextFactory;
+			this.memoryCache = memoryCache;
+
+			this.mappings = settings.ConfigurationInstance.Mappings ?? [];
+		}
+
 		public TaskPriority Priority => TaskPriority.DetermineHoldings;
 
 		public TimeSpan ExecutionFrequency => Frequencies.Daily;
@@ -42,7 +60,8 @@ namespace GhostfolioSidekick.Activities
 					.Select(x => x.PartialSymbolIdentifiers)
 					.OrderBy(x => x[0].Identifier))
 			{
-				await CreateOrUpdateHolding(databaseContext, symbolHoldingDictionary, currentHoldings, partialIdentifiers).ConfigureAwait(false);
+				var ids = GetIds(partialIdentifiers);
+				await CreateOrUpdateHolding(databaseContext, symbolHoldingDictionary, currentHoldings, ids).ConfigureAwait(false);
 			}
 
 			// Remove holdings that are no longer relevant
@@ -59,7 +78,7 @@ namespace GhostfolioSidekick.Activities
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
-		private async Task CreateOrUpdateHolding(DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary, List<Holding> holdings, List<PartialSymbolIdentifier> partialIdentifiers)
+		private async Task CreateOrUpdateHolding(DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary, IList<Holding> holdings, IList<PartialSymbolIdentifier> partialIdentifiers)
 		{
 			var holding = holdings.FirstOrDefault(x => x.HasPartialSymbolIdentifier(partialIdentifiers));
 			if (holding != null && holding.SymbolProfiles.Count != 0)
@@ -128,6 +147,22 @@ namespace GhostfolioSidekick.Activities
 			{
 				logger.LogWarning("CreateOrUpdateHolding: No symbol profile found for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
 			}
+		}
+
+		private IList<PartialSymbolIdentifier> GetIds(IList<PartialSymbolIdentifier> partialSymbolIdentifiers)
+		{
+			var ids = new List<PartialSymbolIdentifier>();
+			foreach (var partialIdentifier in partialSymbolIdentifiers)
+			{
+				ids.Add(partialIdentifier);
+
+				if (mappings.FirstOrDefault(x => x.Source == partialIdentifier.Identifier) is Mapping mapping)
+				{
+					ids.Add(partialIdentifier with { Identifier = mapping.Target });
+				}
+			}
+
+			return [.. ids.DistinctBy(x => x.Identifier)];
 		}
 	}
 }

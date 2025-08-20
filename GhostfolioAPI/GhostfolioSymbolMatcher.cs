@@ -13,7 +13,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	{
 		private readonly IApiWrapper apiWrapper;
 		private readonly MemoryCache memoryCache;
-		private readonly Mapping[] mappings;
 
 		public GhostfolioSymbolMatcher(IApplicationSettings settings, IApiWrapper apiWrapper, MemoryCache memoryCache)
 		{
@@ -21,7 +20,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
 			this.memoryCache = memoryCache;
 
-			this.mappings = settings.ConfigurationInstance.Mappings ?? [];
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 		}
 
@@ -141,12 +139,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		private bool MatchId(SymbolProfile x, string id)
 		{
 			if (string.Equals(x.ISIN, id, StringComparison.InvariantCultureIgnoreCase))
-			{
-				return true;
-			}
-
-			var mapping = mappings.FirstOrDefault(x => x.Source == id);
-			if (mapping != null)
 			{
 				return true;
 			}
