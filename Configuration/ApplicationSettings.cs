@@ -21,10 +21,6 @@ namespace GhostfolioSidekick.Configuration
 			catch (Exception ex)
 			{
 				logger.LogCritical("No (valid) configuration file found at {Configfile}. Using default configuration. Error was {Message}", Environment.GetEnvironmentVariable(CONFIGURATIONFILE), ex.Message);
-
-				// Wait for 1 minute to make the point!
-				Thread.Sleep(60000);
-
 				configuration = new ConfigurationInstance();
 			}
 		}
