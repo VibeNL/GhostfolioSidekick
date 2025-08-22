@@ -75,12 +75,12 @@ namespace GhostfolioSidekick.Activities
 
 			if (matchingHoldings.Count > 1)
 			{
-                logger.LogWarning("Multiple holdings found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
+				logger.LogWarning("Multiple holdings found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
 				return;
 			}
 
 			var holding = matchingHoldings.SingleOrDefault();
-			
+
 			if (holding != null)
 			{
 				activity.Holding = holding;
@@ -103,7 +103,7 @@ namespace GhostfolioSidekick.Activities
 
 			if (symbols.Count == 0)
 			{
-                logger.LogWarning("No symbol found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
+				logger.LogWarning("No symbol found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
 				return;
 
 			}
@@ -118,12 +118,8 @@ namespace GhostfolioSidekick.Activities
 			// Create new holding if not found, should not happen
 			if (holding == null)
 			{
-                logger.LogWarning("No holding found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
+				logger.LogWarning("No holding found for {Identifiers}", string.Join(",", ids.Select(x => x.Identifier)));
 				return;
-				////holding = new Holding();
-				////holding.MergeIdentifiers(ids);
-				////databaseContext.Holdings.Add(holding);
-				////currentHoldings.Add(holding);
 			}
 
 			foreach (var symbol in symbols)

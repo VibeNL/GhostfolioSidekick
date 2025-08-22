@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateBuy(
 						strategy.GetCurrency(record, currencyMapper),
 						recordDate,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Product),
 						strategy.GetQuantity(record),
 						strategy.GetUnitPrice(record),
 						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					break;
 				case PartialActivityType.Dividend:
 					partialActivity = PartialActivity.CreateDividend(currencyRecord, recordDate,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)], recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
+						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!, record.Product), recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
 					break;
 				case PartialActivityType.Fee:
 					partialActivity = PartialActivity.CreateFee(currencyRecord, recordDate, recordTotal, new Money(currencyRecord, recordTotal), record.TransactionId!);
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 					partialActivity = PartialActivity.CreateSell(
 						strategy.GetCurrency(record, currencyMapper),
 						recordDate,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Product),
 						strategy.GetQuantity(record),
 						strategy.GetUnitPrice(record),
 						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 			return recordTotal;
 		}
-				
+
 		protected override CsvConfiguration GetConfig()
 		{
 			return new CsvConfiguration(CultureInfo.InvariantCulture)
