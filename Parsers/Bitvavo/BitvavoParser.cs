@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 				yield break;
 			}
 
-			DateTime dateTime = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
+			DateTime dateTime = record.Date.ToDateTime(record.Time, DateTimeKind.Utc);
 
 			var currency = Currency.EUR;
 			var isFiat = currencyMapper.Map(record.Currency).IsFiat();

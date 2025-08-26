@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			// detect headers
 			var headers = new List<MultiWordToken>();
-			DateTime? dateTime = null;
+			DateOnly? dateOnly = null;
 			bool inHeader = false;
 
 			for (int i = 0; i < words.Count; i++)
@@ -105,10 +105,10 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				var word = words[i];
 
 				// Detect first date
-				if (word.Text == DATE && dateTime == null)
+				if (word.Text == DATE && dateOnly == null)
 				{
 					var date = words[i + 1].Text;
-					dateTime = DateTime.ParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+					dateOnly = DateOnly.ParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture);
 					i += 1;
 				}
 
@@ -119,13 +119,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				if (!inHeader && headers.Count == 4 && !hasMainActivityParsed) // parsing rows buys and sells
 				{
-					i = ParseSecurityRecord(words, i, dateTime.GetValueOrDefault(), headers, activities);
+					i = ParseSecurityRecord(words, i, dateOnly.GetValueOrDefault(), headers, activities);
 					hasMainActivityParsed = true;
 				}
 
 				if (!inHeader && headers.Count == 2) // parsing fees
 				{
-					i = ParseFeeRecords(words, i, dateTime.GetValueOrDefault(), activities);
+					i = ParseFeeRecords(words, i, dateOnly.GetValueOrDefault(), activities);
 				}
 
 				if (Keyword_Position == word.Text || Keyword_Number == word.Text) // start of header
@@ -189,7 +189,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return false;
 		}
 
-		private int ParseFeeRecords(List<SingleWordToken> words, int i, DateTime dateTime, List<PartialActivity> activities)
+		private int ParseFeeRecords(List<SingleWordToken> words, int i, DateOnly dateTime, List<PartialActivity> activities)
 		{
 			int skip;
 			if (IsCheckWords(ACCRUED_INTEREST, words, i))
@@ -215,7 +215,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			activities.Add(PartialActivity.CreateFee(
 					currency,
-					dateTime,
+					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					price,
 					new Money(currency, price),
 					string.Empty));
@@ -223,7 +223,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return i + skip + 1;
 		}
 
-		private int ParseSecurityRecord(List<SingleWordToken> words, int i, DateTime dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
+		private int ParseSecurityRecord(List<SingleWordToken> words, int i, DateOnly dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
 		{
 			var headerStrings = headers.Select(h => h.KeyWord).ToList();
 			if (headerStrings.Contains(Keyword_Quantity) && (Keyword_Price.Any(x => headerStrings.Contains(x)) || headerStrings.Contains(Keyword_AverageRate))) // Stocks
@@ -235,7 +235,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				activities.Add(PartialActivity.CreateBuy(
 					Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text),
-					dateTime,
+					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					Parse(words[i + 1].Text),
 					Parse(words[i + 2 + incrementDueToPiecesText].Text),
@@ -254,7 +254,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				activities.Add(PartialActivity.CreateBuy(
 					Currency.GetCurrency(words[i + 6].Text),
-					dateTime,
+					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					Parse(words[i + 1].Text),
 					Parse(words[i + 3].Text) / 100,
@@ -271,7 +271,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				activities.Add(PartialActivity.CreateDividend(
 					Currency.GetCurrency(words[i + 6].Text),
-					dateTime,
+					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					Parse(words[i + 5].Text	),
 					new Money(Currency.GetCurrency(words[i + 6].Text), Parse(words[i + 5].Text)),
@@ -288,7 +288,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				activities.Add(PartialActivity.CreateBondRepay(
 					Currency.GetCurrency(words[i + 2].Text),
-					dateTime,
+					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					Parse(words[i + 1].Text),
 					new Money(Currency.GetCurrency(words[i + 2].Text), Parse(words[i + 1].Text)),
@@ -299,9 +299,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			throw new NotSupportedException("Unknown security type");
 
-			static string GetId(DateTime dateTime, string isin)
+			static string GetId(DateOnly dateTime, string isin)
 			{
-				return $"Trade_Republic_{isin}_{dateTime.ToInvariantDateOnlyString()}";
+				return $"Trade_Republic_{isin}_{dateTime:yyyy-MM-dd}";
 			}
 		}
 

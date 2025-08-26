@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		protected override IEnumerable<PartialActivity> ParseRow(DeGiroRecord record, int rowNumber)
 		{
-			var recordDate = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
+			var recordDate = record.Date.ToDateTime(record.Time, DateTimeKind.Utc);
 
 			var knownBalance = PartialActivity.CreateKnownBalance(
 				currencyMapper.Map(record.BalanceCurrency),
