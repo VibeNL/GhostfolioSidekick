@@ -138,11 +138,12 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 				foreach (var accountId in accountIds)
 				{
+					ICollection<Activity> activitiesForAccount = [.. activities.Where(x => x.AccountId == accountId).Select(x => x.Activity)];
 					var lst = await CalculateSnapShots(
 						defaultSymbolProfile.Currency, 
 						accountId,
-						symbolProfiles, 
-						activities.Where(x => x.AccountId == accountId).Select(x => x.Activity).ToList(), 
+						symbolProfiles,
+						activitiesForAccount, 
 						allMarketData).ConfigureAwait(false);
 					snapshots.AddRange(lst);
 				}
@@ -230,7 +231,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, activity.Quantity);
 						snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
-						snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal.Times(Math.Sign(activity.Quantity)));
+						snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
 					}
 				}
 
