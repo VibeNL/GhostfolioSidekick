@@ -1,6 +1,7 @@
 @page "/data-issues"
 @using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @using static GhostfolioSidekick.PortfolioViewer.WASM.Models.CurrencyDisplay
 @attribute [Authorize]
 
@@ -135,24 +136,32 @@
                                     <thead class="table-dark">
                                         <tr>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("Date"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Date @(sortColumn == "Date" ? (sortAscending ? "?" : "?") : "")
-                                                </button>
+                                                <SortableTableHeader Column="Date" 
+                                                                   DisplayName="Date" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("Severity"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Severity @(sortColumn == "Severity" ? (sortAscending ? "?" : "?") : "")
-                                                </button>
+                                                <SortableTableHeader Column="Severity" 
+                                                                   DisplayName="Severity" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("ActivityType"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Activity Type @(sortColumn == "ActivityType" ? (sortAscending ? "?" : "?") : "")
-                                                </button>
+                                                <SortableTableHeader Column="ActivityType" 
+                                                                   DisplayName="Activity Type" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("AccountName"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Account @(sortColumn == "AccountName" ? (sortAscending ? "?" : "?") : "")
-                                                </button>
+                                                <SortableTableHeader Column="AccountName" 
+                                                                   DisplayName="Account" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">Partial Identifiers</th>
                                             <th scope="col" class="text-end">Quantity</th>

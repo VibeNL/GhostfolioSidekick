@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
+using GhostfolioSidekick.PortfolioViewer.WASM.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 
@@ -240,6 +241,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 await LoadTableDataAsync(SelectedTable);
                 StateHasChanged();
             }
+        }
+
+        private async Task OnFilterChangedWrapper(GhostfolioSidekick.PortfolioViewer.WASM.Components.FilterableSortableTableHeader.FilterChangeArgs args)
+        {
+            await OnFilterChanged(args.Column, args.Value);
         }
 
         private class TableDataRecord

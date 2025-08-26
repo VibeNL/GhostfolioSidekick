@@ -1,6 +1,7 @@
 ﻿@page "/holdings"
 @using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
 @attribute [Authorize]
 
@@ -112,59 +113,81 @@
                                     <thead class="table-dark">
                                         <tr>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("Symbol"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Symbol @(sortColumn == "Symbol" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="Symbol" 
+                                                                   DisplayName="Symbol" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("Name"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Name @(sortColumn == "Name" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="Name" 
+                                                                   DisplayName="Name" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("Quantity"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Quantity @(sortColumn == "Quantity" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="Quantity" 
+                                                                   DisplayName="Quantity" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("AveragePrice"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Avg Price @(sortColumn == "AveragePrice" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="AveragePrice" 
+                                                                   DisplayName="Avg Price" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("CurrentPrice"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Current Price @(sortColumn == "CurrentPrice" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="CurrentPrice" 
+                                                                   DisplayName="Current Price" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col" class="text-end">
-                                                <button type="button" @onclick="@(() => SortBy("CurrentValue"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Current Value @(sortColumn == "CurrentValue" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="CurrentValue" 
+                                                                   DisplayName="Current Value" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col" class="text-end">
-                                                <button type="button" @onclick="@(() => SortBy("GainLoss"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Gain/Loss @(sortColumn == "GainLoss" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="GainLoss" 
+                                                                   DisplayName="Gain/Loss" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col" class="text-end">
-                                                <button type="button" @onclick="@(() => SortBy("GainLossPercentage"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    % @(sortColumn == "GainLossPercentage" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="GainLossPercentage" 
+                                                                   DisplayName="%" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col" class="text-end">
-                                                <button type="button" @onclick="@(() => SortBy("Weight"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Weight @(sortColumn == "Weight" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="Weight" 
+                                                                   DisplayName="Weight" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("Sector"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Sector @(sortColumn == "Sector" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="Sector" 
+                                                                   DisplayName="Sector" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("AssetClass"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Asset Class @(sortColumn == "AssetClass" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="AssetClass" 
+                                                                   DisplayName="Asset Class" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                         </tr>
                                     </thead>
