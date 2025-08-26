@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="CoinGecko.Net" Version="4.6.0" />
+	  <PackageReference Include="CoinGecko.Net" Version="4.7.0" />
 	  <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
 	  <PackageReference Include="Polly" Version="8.6.3" />
 	  <PackageReference Include="YahooFinanceApiNext" Version="2.3.10" />
