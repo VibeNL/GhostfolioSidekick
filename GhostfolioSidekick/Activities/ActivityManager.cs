@@ -98,6 +98,7 @@ namespace GhostfolioSidekick.Activities
 			string? description)
 		{
 			totalTransactionAmount = totalTransactionAmount ?? new Money(money.Currency, amount * money.Amount);
+			partialSymbolIdentifiers = partialSymbolIdentifiers.Distinct().ToArray();
 
 			switch (activityType)
 			{

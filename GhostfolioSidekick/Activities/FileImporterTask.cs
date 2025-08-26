@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 using System.Diagnostics.CodeAnalysis;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Activities
 {
@@ -188,7 +189,12 @@ namespace GhostfolioSidekick.Activities
 					{
 						MaxDifferences = int.MaxValue,
 						IgnoreObjectTypes = true,
-						MembersToIgnore = [nameof(Activity.Id), nameof(BuySellActivity.AdjustedQuantity), nameof(BuySellActivity.AdjustedUnitPrice), nameof(BuySellActivity.AdjustedUnitPriceSource)]
+						MembersToIgnore = [
+							nameof(Activity.Id), 
+							nameof(BuySellActivity.AdjustedQuantity),
+							nameof(BuySellActivity.AdjustedUnitPrice),
+							nameof(BuySellActivity.AdjustedUnitPriceSource),
+							nameof(BuySellActivityFee.ActivityId)]
 					}
 				};
 				ComparisonResult result = compareLogic.Compare(existingActivity, newActivity);
