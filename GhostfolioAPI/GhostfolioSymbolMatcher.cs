@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 				if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
 				{
-					ids.Add($"{identifier}USD");
+					ids.Add($"{identifier.Identifier}USD");
 					ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
 				}
 				
