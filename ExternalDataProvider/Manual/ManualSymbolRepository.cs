@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 			for (var date = minDate; date < DateTime.Today; date = date.AddDays(1))
 			{
 				var fromActivity = activities.Last(x => x.Date.Date <= date);
-				var toActivity = activities.FirstOrDefault(x => x.Date > date);
+				var toActivity = activities.FirstOrDefault(x => x.Date.Date > date);
 				var expectedPrice = await CalculateExpectedPrice(profile.Currency, fromActivity, toActivity, date);
 				list.Add(new MarketData
 				{

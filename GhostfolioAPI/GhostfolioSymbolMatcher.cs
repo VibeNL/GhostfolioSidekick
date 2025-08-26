@@ -6,6 +6,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
+using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
@@ -49,10 +50,15 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			foreach (var identifier in symbolIdentifiers)
 			{
-				string[] ids = [.. new[] {
-					identifier.Identifier,
-					identifier.Identifier + "USD", // Add USD for Yahoo crypto
-					CryptoMapper.Instance.GetFullname(identifier.Identifier) }.Distinct()];
+				var ids = new List<string> { identifier.Identifier };
+
+				if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
+				{
+					ids.Add($"{identifier}USD");
+					ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
+				}
+				
+				ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
 
 				var symbol = await FindByDataProvider(
 					ids,
