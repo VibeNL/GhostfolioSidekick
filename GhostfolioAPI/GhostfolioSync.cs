@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			}
 		}
 
-		private IEnumerable<Activity> SettleNegativeDividends(IEnumerable<Activity> activities)
+		private static IEnumerable<Activity> SettleNegativeDividends(IEnumerable<Activity> activities)
 		{
 			foreach (var activity in activities)
 			{

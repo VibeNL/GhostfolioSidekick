@@ -6,7 +6,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Caching.Memory;
-using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {
@@ -142,7 +141,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			return x;
 		}
 
-		private bool MatchId(SymbolProfile x, string id)
+		private static bool MatchId(SymbolProfile x, string id)
 		{
 			if (string.Equals(x.ISIN, id, StringComparison.InvariantCultureIgnoreCase))
 			{
