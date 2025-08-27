@@ -38,10 +38,16 @@ namespace GhostfolioSidekick.AccountMaintainer
 				// write a switch on the type of activity
 				switch (activity)
 				{
-					case BuySellActivity buySellActivity:
-						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TotalTransactionAmount.Times(-1 * Math.Sign(buySellActivity.Quantity))));
+					case BuyActivity buySellActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TotalTransactionAmount));
 						break;
-					case CashDepositWithdrawalActivity cashDepositWithdrawalActivity:
+					case SellActivity buySellActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(buySellActivity.Date, buySellActivity.TotalTransactionAmount));
+						break;
+					case CashDepositActivity cashDepositWithdrawalActivity:
+						moneyTrail.Add(new Tuple<DateTime, Money>(cashDepositWithdrawalActivity.Date, cashDepositWithdrawalActivity.Amount));
+						break;
+					case CashWithdrawalActivity cashDepositWithdrawalActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(cashDepositWithdrawalActivity.Date, cashDepositWithdrawalActivity.Amount));
 						break;
 					case DividendActivity dividendActivity:
@@ -59,9 +65,10 @@ namespace GhostfolioSidekick.AccountMaintainer
 					case GiftFiatActivity giftFiatActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(giftFiatActivity.Date, giftFiatActivity.Amount));
 						break;
-					case GiftAssetActivity giftActivity:
-					case LiabilityActivity liabilityActivity:
-					case SendAndReceiveActivity sendAndReceiveActivity:
+					case GiftAssetActivity:
+					case LiabilityActivity:
+					case ReceiveActivity:
+					case SendActivity:
 					case StakingRewardActivity:
 					case ValuableActivity:
 						// No change

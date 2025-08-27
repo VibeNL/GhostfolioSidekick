@@ -257,10 +257,10 @@ namespace GhostfolioSidekick.Activities
 					IgnoreObjectTypes = true,
 					MembersToIgnore = [
 						nameof(Activity.Id), 
-						nameof(BuySellActivity.AdjustedQuantity),
-						nameof(BuySellActivity.AdjustedUnitPrice),
-						nameof(BuySellActivity.AdjustedUnitPriceSource),
-						nameof(BuySellActivityFee.ActivityId)]
+						nameof(ActivityWithQuantityAndUnitPrice.AdjustedQuantity),
+						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice),
+						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPriceSource),
+						nameof(BuyActivityFee.ActivityId)]
 				}
 			};
 			
