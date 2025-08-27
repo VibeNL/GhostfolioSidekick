@@ -27,11 +27,14 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			_fixture.Customize<DateOnly>(o => o.FromFactory((DateTime dt) => DateOnly.FromDateTime(dt)));
 			_fixture.Customize<TimeOnly>(o => o.FromFactory((DateTime dt) => TimeOnly.FromDateTime(dt)));
 
-			_fixture.Customize<BuySellActivityFee>(o => o.FromFactory(() => new BuySellActivityFee(new Money(Currency.USD, 100m))));
-			_fixture.Customize<BuySellActivityTax>(o => o.FromFactory(() => new BuySellActivityTax(new Money(Currency.USD, 100m))));
+			_fixture.Customize<BuyActivityFee>(o => o.FromFactory(() => new BuyActivityFee(new Money(Currency.USD, 100m))));
+			_fixture.Customize<BuyActivityTax>(o => o.FromFactory(() => new BuyActivityTax(new Money(Currency.USD, 100m))));
+			_fixture.Customize<SellActivityFee>(o => o.FromFactory(() => new SellActivityFee(new Money(Currency.USD, 100m))));
+			_fixture.Customize<SellActivityTax>(o => o.FromFactory(() => new SellActivityTax(new Money(Currency.USD, 100m))));
 			_fixture.Customize<DividendActivityFee>(o => o.FromFactory(() => new DividendActivityFee(new Money(Currency.USD, 100m))));
 			_fixture.Customize<DividendActivityTax>(o => o.FromFactory(() => new DividendActivityTax(new Money(Currency.USD, 100m))));
-			_fixture.Customize<SendAndReceiveActivityFee>(o => o.FromFactory(() => new SendAndReceiveActivityFee(new Money(Currency.USD, 100m))));
+			_fixture.Customize<ReceiveActivityFee>(o => o.FromFactory(() => new ReceiveActivityFee(new Money(Currency.USD, 100m))));
+			_fixture.Customize<SellActivityFee>(o => o.FromFactory(() => new SellActivityFee(new Money(Currency.USD, 100m))));
 
 			_exchangeRateServiceMock = new Mock<ICurrencyExchange>();
 		}
@@ -40,7 +43,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapBuySellActivityCorrectly()
 		{
 			// Arrange
-			var buyActivity = _fixture.Build<BuySellActivity>().Without(x => x.Holding).Create();
+			var buyActivity = _fixture.Build<BuyActivity>().Without(x => x.Holding).Create();
 			var symbolProfile = _fixture.Create<SymbolProfile>();
 			var account = _fixture.Create<Account>();
 
@@ -69,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapSendAndReceiveActivityCorrectly()
 		{
 			// Arrange
-			var sendAndReceiveActivity = _fixture.Build<SendAndReceiveActivity>().Without(x => x.Holding).Create();
+			var sendAndReceiveActivity = _fixture.Build<ReceiveActivity>().Without(x => x.Holding).Create();
 			var symbolProfile = _fixture.Create<SymbolProfile>();
 			var account = _fixture.Create<Account>();
 
