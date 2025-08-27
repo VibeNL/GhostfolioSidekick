@@ -10,17 +10,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 	public static class ServiceCollectionExtentions
 	{
 		private const string modelid = "Qwen3-4B-q4f32_1-MLC";
+		private const string wllamaModelUrl = "https://huggingface.co/ngxson/tinyllama_v0/resolve/main/tinyllama-1.1b-chat-v0.3.Q5_K_M.gguf";
 
 		public static void AddWebChatClient(this IServiceCollection services)
 		{
-			services.AddSingleton<IWebChatClient>((s) => new WebLLMChatClient(
+			services.AddSingleton<IWebChatClient>((s) => new FallbackChatClient(
 				s.GetRequiredService<IJSRuntime>(),
-				s.GetRequiredService<ILogger<WebLLMChatClient>>(),
+				s.GetRequiredService<ILoggerFactory>(),
 				new Dictionary<ChatMode, string> {
 					{ ChatMode.Chat, modelid },
 					{ ChatMode.ChatWithThinking, modelid },
 					{ ChatMode.FunctionCalling, modelid },
-				}
+				},
+				wllamaModelUrl
 			));
 
 			services.AddSingleton<AgentLogger>();

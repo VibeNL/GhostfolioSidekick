@@ -1,10 +1,14 @@
 {
     "compilerOptions": {
         "typeRoots": [ "./types", "node_modules/@types" ],
-        "target": "ES2015", // Or "ES6", "ES2017", etc.
-        "module": "ESNext", // Optional, depending on your module system
-        "lib": [ "DOM", "ES2018" ], // Include ES2015 for Promise support
+        "target": "ES2015",
+        "module": "ESNext",
+        "lib": [ "DOM", "ES2018" ],
         "strict": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "skipLibCheck": true
     }
 }

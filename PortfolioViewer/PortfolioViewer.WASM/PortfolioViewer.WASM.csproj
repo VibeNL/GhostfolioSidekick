@@ -24,6 +24,7 @@
 	
 	<ItemGroup>
 	  <Content Remove="wwwroot\js\site.ts" />
+	  <Content Remove="wwwroot\js\dist\wllama.interop.ts" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -63,6 +64,9 @@
 	  <Content Update="wwwroot\js\dist\webllm.types.js">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
+	  <Content Update="wwwroot\js\dist\wllama.interop.js">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -78,6 +82,10 @@
 
 	<ItemGroup>
 		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Components\Pages\" />
 	</ItemGroup>
 
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">

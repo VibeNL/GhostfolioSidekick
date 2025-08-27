@@ -126,6 +126,62 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
+		[HttpGet("download")]
+		public async Task<IActionResult> DownloadFile([FromQuery] string url)
+		{
+			try
+			{
+				// Validate the URL to prevent abuse
+				if (!IsValidModelUrl(url))
+				{
+					return BadRequest("Invalid URL provided");
+				}
+
+				// Download the file
+				var response = await _httpClient.GetAsync(url);
+				response.EnsureSuccessStatusCode();
+
+				var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+
+				// Stream the content back to the client
+				var stream = await response.Content.ReadAsStreamAsync();
+
+				return File(stream, contentType, enableRangeProcessing: true);
+			}
+			catch (HttpRequestException ex)
+			{
+				return BadRequest($"Failed to download file: {ex.Message}");
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(500, "Internal server error");
+			}
+		}
+
+		private static bool IsValidModelUrl(string url)
+		{
+			// Basic validation - you can make this more restrictive
+			if (string.IsNullOrWhiteSpace(url))
+				return false;
+
+			if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+				return false;
+
+			// Allow common model hosting sites
+			var allowedHosts = new[]
+			{
+				"huggingface.co",
+				"github.com",
+				"raw.githubusercontent.com",
+				"cdn-lfs.huggingface.co",
+				"cdn-lfs-us-1.huggingface.co",
+				"models.silero.ai",
+				// Add other trusted model hosting sites as needed
+			};
+
+			return allowedHosts.Any(host => uri.Host.EndsWith(host, StringComparison.OrdinalIgnoreCase));
+		}
+
 		private void CleanHtml(HtmlDocument htmlDoc)
 		{
 			// Remove script tags

@@ -25,5 +25,9 @@
 	  <ProjectReference Include="..\..\Database\Database.csproj" />
 	  <ProjectReference Include="..\..\ExternalDataProvider\ExternalDataProvider.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Services\" />
+	</ItemGroup>
 	
 </Project>
