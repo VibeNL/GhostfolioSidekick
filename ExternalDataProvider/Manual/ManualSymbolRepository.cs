@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 				SymbolProfile profile)
 		{
 			var activities = await databaseContext.Activities
-				.OfType<BuySellActivity>()
+				.OfType<ActivityWithQuantityAndUnitPrice>()
 				.Where(x => x.Holding != null && x.Holding.SymbolProfiles.Contains(profile))
 				.OrderBy(x => x.Date)
 				.ToListAsync();
@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 			return list;
 		}
 
-		private async Task<decimal> CalculateExpectedPrice(Model.Currency currency, BuySellActivity fromActivity, BuySellActivity? toActivity, DateTime date)
+		private async Task<decimal> CalculateExpectedPrice(Model.Currency currency, ActivityWithQuantityAndUnitPrice fromActivity, ActivityWithQuantityAndUnitPrice? toActivity, DateTime date)
 		{
 			var a = (decimal)(date - fromActivity.Date).TotalDays;
 			var b = (decimal)((toActivity?.Date ?? DateTime.Today.AddDays(1)) - date).TotalDays;

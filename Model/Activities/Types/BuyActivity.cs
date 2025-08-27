@@ -26,7 +26,5 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		public virtual ICollection<BuyActivityFee> Fees { get; set; } = [];
 
 		public virtual ICollection<BuyActivityTax> Taxes { get; set; } = [];
-
-		public Money TotalTransactionAmount { get; set; } = new Money();
 	}
 }

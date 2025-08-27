@@ -184,7 +184,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			var snapshots = new List<CalculatedSnapshot>(dayCount);
 
 			var activitiesByDate = activities
-				.OfType<BuySellActivity>()
+				.OfType<ActivityWithQuantityAndUnitPrice>()
 				.GroupBy(x => DateOnly.FromDateTime(x.Date))
 				.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
 
