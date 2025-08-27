@@ -78,9 +78,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		{
 			foreach (var activity in activities)
 			{
-				if (activity is SendAndReceiveActivity sendAndReceiveActivity)
+				if (activity is ReceiveActivity sendAndReceiveActivity)
 				{
-					yield return new BuySellActivity(
+					yield return new BuyActivity(
 						activity.Account,
 						activity.Holding,
 						sendAndReceiveActivity.PartialSymbolIdentifiers,
@@ -93,6 +93,22 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					{
 					};
 				}
+				if (activity is SendActivity sendActivity)
+				{
+					yield return new SellActivity(
+						activity.Account,
+						activity.Holding,
+						sendActivity.PartialSymbolIdentifiers,
+						activity.Date,
+						sendActivity.AdjustedQuantity != 0 ? sendActivity.AdjustedQuantity : sendActivity.Quantity,
+						sendActivity.AdjustedUnitPrice.Amount != 0 ? sendActivity.AdjustedUnitPrice : sendActivity.UnitPrice,
+						activity.TransactionId,
+						activity.SortingPriority,
+						activity.Description)
+					{
+					};
+				}
+
 				else
 				{
 					yield return activity;
@@ -119,7 +135,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				}
 				else if (activity is GiftAssetActivity giftAssetActivity)
 				{
-					yield return new BuySellActivity(
+					yield return new BuyActivity(
 						giftAssetActivity.Account,
 						giftAssetActivity.Holding,
 						giftAssetActivity.PartialSymbolIdentifiers,
@@ -151,15 +167,15 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						continue;
 					}
 
-					var quantity = repayBondActivity.Holding!.Activities.OfType<BuySellActivity>().Sum(x => x.Quantity);
+					var quantity = repayBondActivity.Holding!.Activities.OfType<SellActivity>().Sum(x => x.Quantity);
 					var price = repayBondActivity.TotalRepayAmount.SafeDivide(quantity);
 
-					yield return new BuySellActivity(
+					yield return new SellActivity(
 						activity.Account,
 						activity.Holding,
 						repayBondActivity.PartialSymbolIdentifiers,
 						activity.Date,
-						-quantity,
+						quantity,
 						price,
 						activity.TransactionId,
 						activity.SortingPriority,
