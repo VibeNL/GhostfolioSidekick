@@ -1,13 +1,13 @@
 ﻿namespace GhostfolioSidekick.Model.Activities.Types.MoneyLists
 {
-	public record SendAndReceiveActivityFee
+	public record BuyActivityTax
 	{
-		public SendAndReceiveActivityFee() : base()
+		public BuyActivityTax() : base()
 		{
 			Money = default!;
 		}
 
-		public SendAndReceiveActivityFee(Money money)
+		public BuyActivityTax(Money money)
 		{
 			Money = money;
 		}
