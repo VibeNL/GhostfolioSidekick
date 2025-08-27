@@ -12,8 +12,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 	internal class ActivityTypeConfiguration :
 		IEntityTypeConfiguration<Activity>,
 		IEntityTypeConfiguration<ActivityWithQuantityAndUnitPrice>,
-		IEntityTypeConfiguration<BuySellActivity>,
-		IEntityTypeConfiguration<CashDepositWithdrawalActivity>,
+		IEntityTypeConfiguration<BuyActivity>,
+		IEntityTypeConfiguration<SellActivity>,
+		IEntityTypeConfiguration<CashDepositActivity>,
+		IEntityTypeConfiguration<CashWithdrawalActivity>,
 		IEntityTypeConfiguration<DividendActivity>,
 		IEntityTypeConfiguration<FeeActivity>,
 		IEntityTypeConfiguration<GiftFiatActivity>,
@@ -22,25 +24,25 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		IEntityTypeConfiguration<KnownBalanceActivity>,
 		IEntityTypeConfiguration<LiabilityActivity>,
 		IEntityTypeConfiguration<RepayBondActivity>,
-		IEntityTypeConfiguration<SendAndReceiveActivity>,
+		IEntityTypeConfiguration<SendActivity>,
+		IEntityTypeConfiguration<ReceiveActivity>,
 		IEntityTypeConfiguration<StakingRewardActivity>,
 		IEntityTypeConfiguration<ValuableActivity>,
 
-		IEntityTypeConfiguration<BuySellActivityFee>,
-		IEntityTypeConfiguration<BuySellActivityTax>,
+		IEntityTypeConfiguration<BuyActivityFee>,
+		IEntityTypeConfiguration<SellActivityFee>,
+		IEntityTypeConfiguration<BuyActivityTax>,
+		IEntityTypeConfiguration<SellActivityTax>,
 		IEntityTypeConfiguration<DividendActivityFee>,
 		IEntityTypeConfiguration<DividendActivityTax>,
-		IEntityTypeConfiguration<SendAndReceiveActivityFee>,
+		IEntityTypeConfiguration<SendActivityFee>,
+		IEntityTypeConfiguration<ReceiveActivityFee>,
 
 		IEntityTypeConfiguration<CalculatedPriceTrace>
 	{
-		private readonly JsonSerializerOptions serializationOptions;
-
 		public ActivityTypeConfiguration()
 		{
 			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
-			serializationOptions = new JsonSerializerOptions();
-			serializationOptions.Converters.Add(stringEnumConverter);
 		}
 
 		public void Configure(EntityTypeBuilder<Activity> builder)
@@ -66,10 +68,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.OnDelete(DeleteBehavior.Cascade);
 		}
 
-		public void Configure(EntityTypeBuilder<BuySellActivity> builder)
+		public void Configure(EntityTypeBuilder<BuyActivity> builder)
 		{
-			MapMoney(builder, x => x.UnitPrice, nameof(BuySellActivity.UnitPrice));
-			MapMoney(builder, x => x.TotalTransactionAmount, nameof(BuySellActivity.TotalTransactionAmount));
+			MapMoney(builder, x => x.UnitPrice, nameof(BuyActivity.UnitPrice));
+			MapMoney(builder, x => x.TotalTransactionAmount, nameof(BuyActivity.TotalTransactionAmount));
 			builder.HasMany(x => x.Fees)
 				.WithOne()
 				.HasForeignKey(x => x.ActivityId)
@@ -80,9 +82,28 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.OnDelete(DeleteBehavior.Cascade);
 		}
 
-		public void Configure(EntityTypeBuilder<CashDepositWithdrawalActivity> builder)
+		public void Configure(EntityTypeBuilder<SellActivity> builder)
 		{
-			MapMoney(builder, x => x.Amount, nameof(CashDepositWithdrawalActivity.Amount));
+			MapMoney(builder, x => x.UnitPrice, nameof(SellActivity.UnitPrice));
+			MapMoney(builder, x => x.TotalTransactionAmount, nameof(SellActivity.TotalTransactionAmount));
+			builder.HasMany(x => x.Fees)
+				.WithOne()
+				.HasForeignKey(x => x.ActivityId)
+				.OnDelete(DeleteBehavior.Cascade);
+			builder.HasMany(x => x.Taxes)
+				.WithOne()
+				.HasForeignKey(x => x.ActivityId)
+				.OnDelete(DeleteBehavior.Cascade);
+		}
+
+		public void Configure(EntityTypeBuilder<CashDepositActivity> builder)
+		{
+			MapMoney(builder, x => x.Amount, nameof(CashDepositActivity.Amount));
+		}
+
+		public void Configure(EntityTypeBuilder<CashWithdrawalActivity> builder)
+		{
+			MapMoney(builder, x => x.Amount, nameof(CashWithdrawalActivity.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<DividendActivity> builder)
@@ -135,7 +156,15 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
-		public void Configure(EntityTypeBuilder<SendAndReceiveActivity> builder)
+		public void Configure(EntityTypeBuilder<SendActivity> builder)
+		{
+			builder.HasMany(x => x.Fees)
+				.WithOne()
+				.HasForeignKey(x => x.ActivityId)
+				.OnDelete(DeleteBehavior.Cascade);
+		}
+
+		public void Configure(EntityTypeBuilder<ReceiveActivity> builder)
 		{
 			builder.HasMany(x => x.Fees)
 				.WithOne()
@@ -153,37 +182,58 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
-		public void Configure(EntityTypeBuilder<BuySellActivityFee> builder)
+		public void Configure(EntityTypeBuilder<BuyActivityFee> builder)
 		{
-			builder.ToTable("BuySellActivityFees");
+			builder.ToTable(nameof(BuyActivityFee)+"s");
 			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(BuySellActivityFee.Money));
+			MapMoney(builder, x => x.Money, nameof(BuyActivityFee.Money));
 		}
 
-		public void Configure(EntityTypeBuilder<BuySellActivityTax> builder)
+		public void Configure(EntityTypeBuilder<SellActivityFee> builder)
 		{
-			builder.ToTable("BuySellActivityTaxes");
+			builder.ToTable(nameof(SellActivityFee) + "s");
 			builder.HasKey(a => a.Id);
-			MapMoney(builder, x => x.Money, nameof(BuySellActivityTax.Money));
+			MapMoney(builder, x => x.Money, nameof(SellActivityFee.Money));
+		}
+
+		public void Configure(EntityTypeBuilder<BuyActivityTax> builder)
+		{
+			builder.ToTable(nameof(BuyActivityTax) + "es");
+			builder.HasKey(a => a.Id);
+			MapMoney(builder, x => x.Money, nameof(BuyActivityTax.Money));
+		}
+
+		public void Configure(EntityTypeBuilder<SellActivityTax> builder)
+		{
+			builder.ToTable(nameof(SellActivityTax) + "es");
+			builder.HasKey(a => a.Id);
+			MapMoney(builder, x => x.Money, nameof(SellActivityTax.Money));
 		}
 
 		public void Configure(EntityTypeBuilder<DividendActivityFee> builder)
 		{
-			builder.ToTable("DividendActivityFees");
+			builder.ToTable(nameof(DividendActivityFee) + "s");
 			builder.HasKey(a => a.Id);
 			MapMoney(builder, x => x.Money, nameof(DividendActivityFee.Money));
 		}
 
 		public void Configure(EntityTypeBuilder<DividendActivityTax> builder)
 		{
-			builder.ToTable("DividendActivityTaxes");
+			builder.ToTable(nameof(DividendActivityTax) + "es");
 			builder.HasKey(a => a.Id);
 			MapMoney(builder, x => x.Money, nameof(DividendActivityTax.Money));
 		}
 
-		public void Configure(EntityTypeBuilder<SendAndReceiveActivityFee> builder)
+		public void Configure(EntityTypeBuilder<SendActivityFee> builder)
 		{
-			builder.ToTable("SendAndReceiveActivityFees");
+			builder.ToTable(nameof(SendActivityFee) + "s");
+			builder.HasKey(a => a.Id);
+			MapMoney(builder, x => x.Money, nameof(DividendActivityTax.Money));
+		}
+
+		public void Configure(EntityTypeBuilder<ReceiveActivityFee> builder)
+		{
+			builder.ToTable(nameof(ReceiveActivityFee) + "s");
 			builder.HasKey(a => a.Id);
 			MapMoney(builder, x => x.Money, nameof(DividendActivityTax.Money));
 		}
