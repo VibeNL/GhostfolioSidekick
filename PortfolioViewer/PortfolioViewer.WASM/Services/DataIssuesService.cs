@@ -124,9 +124,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				{
 					dataIssue.Amount = feeActivity.Amount;
 				}
-				else if (activity is CashDepositWithdrawalActivity cashActivity)
+				else if (activity is CashDepositActivity cashActivity)
 				{
 					dataIssue.Amount = cashActivity.Amount;
+				}
+				else if (activity is CashWithdrawalActivity cashWithdrawal)
+				{
+					dataIssue.Amount = cashWithdrawal.Amount;
 				}
 
 				// Update activity type and severity based on actual activity
@@ -150,12 +154,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			return activity switch
 			{
-				BuySellActivity buySell => buySell.Quantity > 0 ? "Buy" : "Sell",
+				BuyActivity => "Buy",
+				SellActivity => "Sell",
 				DividendActivity => "Dividend",
-				CashDepositWithdrawalActivity cash => cash.Amount.Amount > 0 ? "Deposit" : "Withdrawal",
+				CashDepositActivity => "Deposit",
+				CashWithdrawalActivity => "Withdrawal",
 				FeeActivity => "Fee",
 				InterestActivity => "Interest",
-				SendAndReceiveActivity sendReceive => sendReceive.Quantity > 0 ? "Receive" : "Send",
+				ReceiveActivity => "Receive",
+				SendActivity => "Send",
 				StakingRewardActivity => "Staking Reward",
 				GiftAssetActivity => "Gift",
 				GiftFiatActivity => "Gift Cash",
@@ -189,12 +196,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			// Activities that typically need holdings are more severe
 			return activity switch
 			{
-				BuySellActivity => "Error",
+				BuyActivity => "Error",
+				SellActivity => "Error",
 				DividendActivity => "Error",
-				SendAndReceiveActivity => "Error",
+				ReceiveActivity => "Error",
+				SendActivity => "Error",
 				StakingRewardActivity => "Error",
 				GiftAssetActivity => "Error",
-				CashDepositWithdrawalActivity => "Info",
+				CashDepositActivity => "Info",
+				CashWithdrawalActivity => "Info",
 				FeeActivity => "Warning",
 				InterestActivity => "Info",
 				_ => "Warning"

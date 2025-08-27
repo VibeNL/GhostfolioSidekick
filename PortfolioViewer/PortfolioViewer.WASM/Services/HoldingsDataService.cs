@@ -340,60 +340,71 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			// Map specific activity types
 			switch (activity)
 			{
-				case BuySellActivity buySell:
-					baseModel.Quantity = Math.Abs(buySell.Quantity);
+				case BuyActivity buySell:
+					baseModel.Quantity = buySell.Quantity;
 					baseModel.UnitPrice = await ConvertMoney(buySell.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(buySell.UnitPrice.Times(Math.Abs(buySell.Quantity)), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Amount = await ConvertMoney(buySell.UnitPrice.Times(buySell.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = await ConvertMoney(buySell.TotalTransactionAmount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Fee = await SumAndConvertFees(buySell.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Tax = await SumAndConvertFees(buySell.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					break;
-
+				case SellActivity buySell:
+					baseModel.Quantity = buySell.Quantity;
+					baseModel.UnitPrice = await ConvertMoney(buySell.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Amount = await ConvertMoney(buySell.UnitPrice.Times(buySell.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.TotalValue = await ConvertMoney(buySell.TotalTransactionAmount, targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Fee = await SumAndConvertFees(buySell.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Tax = await SumAndConvertFees(buySell.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					break;
 				case DividendActivity dividend:
 					baseModel.Amount = await ConvertMoney(dividend.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					baseModel.Fee = await SumAndConvertFees(dividend.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Tax = await SumAndConvertFees(dividend.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					break;
-
-				case CashDepositWithdrawalActivity cash:
-					baseModel.Amount = await ConvertMoney(cash.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
+				case CashDepositActivity deposit:
+					baseModel.Amount = await ConvertMoney(deposit.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					break;
-
+				case CashWithdrawalActivity withdrawal:
+					baseModel.Amount = await ConvertMoney(withdrawal.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.TotalValue = baseModel.Amount;
+					break;
 				case FeeActivity fee:
 					baseModel.Amount = await ConvertMoney(fee.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					baseModel.Fee = baseModel.Amount;
 					break;
-
 				case InterestActivity interest:
 					baseModel.Amount = await ConvertMoney(interest.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					break;
-
-				case SendAndReceiveActivity sendReceive:
-					baseModel.Quantity = Math.Abs(sendReceive.Quantity);
+				case ReceiveActivity sendReceive:
+					baseModel.Quantity = sendReceive.Quantity;
 					baseModel.UnitPrice = await ConvertMoney(sendReceive.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(sendReceive.UnitPrice.Times(Math.Abs(sendReceive.Quantity)), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Amount = await ConvertMoney(sendReceive.UnitPrice.Times(sendReceive.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					baseModel.Fee = await SumAndConvertFees(sendReceive.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					break;
-
+				case SendActivity sendReceive:
+					baseModel.Quantity = sendReceive.Quantity;
+					baseModel.UnitPrice = await ConvertMoney(sendReceive.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Amount = await ConvertMoney(sendReceive.UnitPrice.Times(sendReceive.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.TotalValue = baseModel.Amount;
+					baseModel.Fee = await SumAndConvertFees(sendReceive.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					break;
 				case StakingRewardActivity staking:
 					baseModel.Quantity = staking.Quantity;
 					baseModel.UnitPrice = await ConvertMoney(staking.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Amount = await ConvertMoney(staking.UnitPrice.Times(staking.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					break;
-
 				case GiftAssetActivity gift:
 					baseModel.Quantity = gift.Quantity;
 					baseModel.UnitPrice = await ConvertMoney(gift.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Amount = await ConvertMoney(gift.UnitPrice.Times(gift.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					break;
-
 				default:
 					// For other activity types, just return the basic info
 					break;
@@ -406,12 +417,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			return activity switch
 			{
-				BuySellActivity buySell => buySell.Quantity > 0 ? "Buy" : "Sell",
+				BuyActivity => "Buy",
+				SellActivity => "Sell",
 				DividendActivity => "Dividend",
-				CashDepositWithdrawalActivity cash => cash.Amount.Amount > 0 ? "Deposit" : "Withdrawal",
+				CashDepositActivity => "Deposit",
+				CashWithdrawalActivity => "Withdrawal",
 				FeeActivity => "Fee",
 				InterestActivity => "Interest",
-				SendAndReceiveActivity sendReceive => sendReceive.Quantity > 0 ? "Receive" : "Send",
+				ReceiveActivity => "Receive",
+				SendActivity => "Send",
 				StakingRewardActivity => "Staking Reward",
 				GiftAssetActivity => "Gift",
 				GiftFiatActivity => "Gift Cash",
