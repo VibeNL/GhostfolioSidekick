@@ -147,24 +147,25 @@ namespace GhostfolioSidekick.Activities
 			await databaseContext.SaveChangesAsync();
 		}
 
-		private static async Task UpdatePartialSymbolIdentifiers(DatabaseContext databaseContext, IEnumerable<Activity> activities)
-		{
-			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+        private static async Task UpdatePartialSymbolIdentifiers(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+        {
+            var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
 
-			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
-			{
-				foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers)
-				{
-					if (!existingPartialSymbolIdentifiers.Any(x => x == partialSymbolIdentifier))
-					{
-						await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
-						existingPartialSymbolIdentifiers.Add(partialSymbolIdentifier);
-					}
-				}
+            foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
+            {
+                var newPartialSymbolIdentifiers = activity.PartialSymbolIdentifiers
+                    .Where(partialSymbolIdentifier => !existingPartialSymbolIdentifiers.Any(x => x == partialSymbolIdentifier))
+                    .ToList();
 
-				activity.PartialSymbolIdentifiers = [.. activity.PartialSymbolIdentifiers.Select(x => existingPartialSymbolIdentifiers.FirstOrDefault(y => y == x) ?? x)];
-			}
-		}
+                if (newPartialSymbolIdentifiers.Count > 0)
+                {
+                    await databaseContext.PartialSymbolIdentifiers.AddRangeAsync(newPartialSymbolIdentifiers);
+                    existingPartialSymbolIdentifiers.AddRange(newPartialSymbolIdentifiers);
+                }
+
+                activity.PartialSymbolIdentifiers = [.. activity.PartialSymbolIdentifiers.Select(x => existingPartialSymbolIdentifiers.FirstOrDefault(y => y == x) ?? x)];
+            }
+        }
 
 		private static async Task SyncActivities(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
