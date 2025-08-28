@@ -60,6 +60,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(ActivityWithQuantityAndUnitPrice.UnitPrice));
 			MapMoney(builder, x => x.AdjustedUnitPrice, nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice));
+			MapMoney(builder, x => x.TotalTransactionAmount, nameof(ActivityWithQuantityAndUnitPrice.TotalTransactionAmount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 
 			builder.HasMany(x => x.AdjustedUnitPriceSource)
@@ -71,7 +72,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<BuyActivity> builder)
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(BuyActivity.UnitPrice));
-			MapMoney(builder, x => x.TotalTransactionAmount, nameof(BuyActivity.TotalTransactionAmount));
 			builder.HasMany(x => x.Fees)
 				.WithOne()
 				.HasForeignKey(x => x.ActivityId)
@@ -85,7 +85,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<SellActivity> builder)
 		{
 			MapMoney(builder, x => x.UnitPrice, nameof(SellActivity.UnitPrice));
-			MapMoney(builder, x => x.TotalTransactionAmount, nameof(SellActivity.TotalTransactionAmount));
 			builder.HasMany(x => x.Fees)
 				.WithOne()
 				.HasForeignKey(x => x.ActivityId)

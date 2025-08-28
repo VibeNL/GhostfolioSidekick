@@ -9,11 +9,6 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 {
 	public class DatabaseContextTests
 	{
-		public DatabaseContextTests()
-		{
-
-		}
-
 		[Fact]
 		public async Task CanApplyMigrations()
 		{
@@ -60,7 +55,7 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 				DataSource = "TEST",
 				AssetClass = AssetClass.Equity,
 				ActivityCount = 1,
-				CalculatedSnapshots = 
+				CalculatedSnapshots =
 				{
 					new CalculatedSnapshot(
 						0, 0,
@@ -84,7 +79,7 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 
 			retrieved.Should().NotBeNull();
 			retrieved!.CalculatedSnapshots.Should().HaveCount(1);
-			
+
 			var snapshot = retrieved.CalculatedSnapshots.First();
 			snapshot.Date.Should().Be(DateOnly.FromDateTime(DateTime.Today));
 			snapshot.Quantity.Should().Be(100m);
