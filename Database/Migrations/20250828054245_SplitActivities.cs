@@ -10,7 +10,9 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+			migrationBuilder.Sql("DELETE FROM Activities");
+
+			migrationBuilder.DropTable(
                 name: "BuySellActivityFees");
 
             migrationBuilder.DropTable(
