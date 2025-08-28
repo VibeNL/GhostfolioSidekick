@@ -273,29 +273,89 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			string symbol,
 			CancellationToken cancellationToken = default)
 		{
-			// Build the query with filters
-			var query = databaseContext.Activities
+			// Build the base query with simple includes first
+			var baseQuery = databaseContext.Activities
 				.Include(a => a.Account)
 				.Include(a => a.Holding)
-					.ThenInclude(h => h.SymbolProfiles)
 				.Where(a => a.Date >= startDate && a.Date <= endDate);
 
 			// Apply account filter
 			if (accountId > 0)
 			{
-				query = query.Where(a => a.Account.Id == accountId);
+				baseQuery = baseQuery.Where(a => a.Account.Id == accountId);
 			}
 
-			// Apply symbol filter
-			if (!string.IsNullOrEmpty(symbol))
-			{
-				query = query.Where(a => a.Holding!.SymbolProfiles.Any(sp => sp.Symbol == symbol));
-			}
-
-			var activities = await query
+			// Execute the base query first without symbol filtering
+			var activities = await baseQuery
 				.OrderByDescending(a => a.Date)
 				.ThenBy(a => a.Id)
 				.ToListAsync(cancellationToken);
+
+			// Apply symbol filter in memory after loading the basic data
+			if (!string.IsNullOrEmpty(symbol))
+			{
+				// Load symbol profiles separately for activities with holdings
+				var holdingIds = activities
+					.Where(a => a.Holding != null)
+					.Select(a => a.Holding!.Id)
+					.Distinct()
+					.ToList();
+
+				if (holdingIds.Count > 0)
+				{
+					var holdingsWithSymbols = await databaseContext.Holdings
+						.Where(h => holdingIds.Contains(h.Id))
+						.Include(h => h.SymbolProfiles)
+						.ToDictionaryAsync(h => h.Id, h => h.SymbolProfiles, cancellationToken);
+
+					// Filter activities by symbol in memory
+					activities = activities
+						.Where(a => a.Holding != null &&
+							       (holdingsWithSymbols.TryGetValue(a.Holding.Id, out var symbolProfiles) && 
+							        symbolProfiles.Any(sp => sp.Symbol == symbol)))
+						.ToList();
+
+					// Populate the SymbolProfiles navigation property for filtered activities
+					foreach (var activity in activities.Where(a => a.Holding != null))
+					{
+						if (holdingsWithSymbols.TryGetValue(activity.Holding!.Id, out var symbolProfiles))
+						{
+							activity.Holding.SymbolProfiles = symbolProfiles.ToList();
+						}
+					}
+				}
+				else
+				{
+					// No holdings found, filter out all activities that require holdings
+					activities = activities.Where(a => a.Holding == null).ToList();
+				}
+			}
+			else
+			{
+				// Load symbol profiles for all holdings if no symbol filter is applied
+				var holdingIds = activities
+					.Where(a => a.Holding != null)
+					.Select(a => a.Holding!.Id)
+					.Distinct()
+					.ToList();
+
+				if (holdingIds.Count > 0)
+				{
+					var holdingsWithSymbols = await databaseContext.Holdings
+						.Where(h => holdingIds.Contains(h.Id))
+						.Include(h => h.SymbolProfiles)
+						.ToDictionaryAsync(h => h.Id, h => h.SymbolProfiles, cancellationToken);
+
+					// Populate the SymbolProfiles navigation property
+					foreach (var activity in activities.Where(a => a.Holding != null))
+					{
+						if (holdingsWithSymbols.TryGetValue(activity.Holding!.Id, out var symbolProfiles))
+						{
+							activity.Holding.SymbolProfiles = symbolProfiles.ToList();
+						}
+					}
+				}
+			}
 
 			var transactions = new List<TransactionDisplayModel>();
 
