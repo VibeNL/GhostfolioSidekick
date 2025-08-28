@@ -38,6 +38,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         private bool _accountsLoadFailed = false;
         private bool _symbolsLoadFailed = false;
 
+        // Track previous parameter state to detect changes
+        private bool _previousShowAccountFilter = false;
+        private bool _previousShowSymbolFilter = false;
+        private bool _isFirstLoad = true;
+
         protected override async Task OnInitializedAsync()
         {
             // Initialize pending state from current filter state
@@ -45,6 +50,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             {
                 _pendingFilterState = PendingFilterState.FromFilterState(FilterState);
             }
+            
+            // Store initial parameter state
+            _previousShowAccountFilter = ShowAccountFilter;
+            _previousShowSymbolFilter = ShowSymbolFilter;
+            _isFirstLoad = true;
             
             // Load filter data
             await LoadFilterDataAsync();
@@ -60,12 +70,72 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             {
                 _pendingFilterState = PendingFilterState.FromFilterState(FilterState);
             }
+
+            // Check if filter visibility has changed (indicating page switch)
+            bool filterVisibilityChanged = false;
+            if (!_isFirstLoad)
+            {
+                if (_previousShowAccountFilter != ShowAccountFilter)
+                {
+                    filterVisibilityChanged = true;
+                    Logger?.LogInformation("Account filter visibility changed from {Previous} to {Current}", _previousShowAccountFilter, ShowAccountFilter);
+                }
+                
+                if (_previousShowSymbolFilter != ShowSymbolFilter)
+                {
+                    filterVisibilityChanged = true;
+                    Logger?.LogInformation("Symbol filter visibility changed from {Previous} to {Current}", _previousShowSymbolFilter, ShowSymbolFilter);
+                }
+            }
+
+            // Reset inactive filters if visibility changed (page switch detected)
+            if (filterVisibilityChanged && FilterState != null)
+            {
+                await ResetInactiveFilters();
+            }
+
+            // Update previous state for next comparison
+            _previousShowAccountFilter = ShowAccountFilter;
+            _previousShowSymbolFilter = ShowSymbolFilter;
+            _isFirstLoad = false;
             
             // Re-detect the current date range when parameters change
             DetectCurrentDateRange();
             
             // Reload filter data if the filter requirements have changed
             await LoadFilterDataAsync();
+        }
+
+        private async Task ResetInactiveFilters()
+        {
+            if (FilterState == null) return;
+
+            bool hasChanges = false;
+
+            // Reset account filter if it's not shown on current page
+            if (!ShowAccountFilter && FilterState.SelectedAccountId != 0)
+            {
+                FilterState.SelectedAccountId = 0;
+                _pendingFilterState.SelectedAccountId = 0;
+                hasChanges = true;
+                Logger?.LogInformation("Reset account filter to 'All Accounts' (not shown on current page)");
+            }
+
+            // Reset symbol filter if it's not shown on current page
+            if (!ShowSymbolFilter && !string.IsNullOrEmpty(FilterState.SelectedSymbol))
+            {
+                FilterState.SelectedSymbol = "";
+                _pendingFilterState.SelectedSymbol = "";
+                hasChanges = true;
+                Logger?.LogInformation("Reset symbol filter to 'All Symbols' (not shown on current page)");
+            }
+
+            if (hasChanges)
+            {
+                // Update filtered options after resetting
+                await UpdateFilteredOptionsAsync();
+                StateHasChanged();
+            }
         }
 
         private async Task LoadFilterDataAsync()
@@ -430,7 +500,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             {
                 _pendingFilterState.SelectedAccountId = accountId;
                 
-                // Update available symbols based on selected account
+                // Update available Symbols based on selected account
                 await UpdateFilteredOptionsAsync();
                 StateHasChanged();
                 
