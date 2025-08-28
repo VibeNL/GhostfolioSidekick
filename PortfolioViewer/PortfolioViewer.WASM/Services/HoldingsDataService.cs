@@ -251,6 +251,69 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 		}
 
+		public async Task<List<string>> GetSymbolsByAccountAsync(int accountId)
+		{
+			try
+			{
+				logger.LogInformation("Loading symbols for account {AccountId} from database...", accountId);
+				
+				// Ensure database is available and connection is working
+				if (!await databaseContext.Database.CanConnectAsync())
+				{
+					logger.LogError("Cannot connect to database when loading symbols by account");
+					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
+				}
+				
+				var symbols = await databaseContext.Activities
+					.Where(a => a.Account.Id == accountId && a.Holding != null)
+					.SelectMany(a => a.Holding!.SymbolProfiles)
+					.Select(sp => sp.Symbol)
+					.Distinct()
+					.OrderBy(s => s)
+					.AsNoTracking()
+					.ToListAsync();
+				
+				logger.LogInformation("Successfully loaded {Count} unique symbols for account {AccountId}", symbols.Count, accountId);
+				return symbols;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load symbols for account {AccountId} from database", accountId);
+				throw new InvalidOperationException($"Failed to load symbols for account {accountId}. Please try again later.", ex);
+			}
+		}
+
+		public async Task<List<Account>> GetAccountsBySymbolAsync(string symbol)
+		{
+			try
+			{
+				logger.LogInformation("Loading accounts for symbol {Symbol} from database...", symbol);
+				
+				// Ensure database is available and connection is working
+				if (!await databaseContext.Database.CanConnectAsync())
+				{
+					logger.LogError("Cannot connect to database when loading accounts by symbol");
+					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
+				}
+				
+				var accounts = await databaseContext.Activities
+					.Where(a => a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol == symbol))
+					.Select(a => a.Account)
+					.Distinct()
+					.OrderBy(a => a.Name)
+					.AsNoTracking()
+					.ToListAsync();
+				
+				logger.LogInformation("Successfully loaded {Count} accounts for symbol {Symbol}", accounts.Count, symbol);
+				return accounts;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load accounts for symbol {Symbol} from database", symbol);
+				throw new InvalidOperationException($"Failed to load accounts for symbol {symbol}. Please try again later.", ex);
+			}
+		}
+
 		public async Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
 			string symbol,
 			DateTime startDate,

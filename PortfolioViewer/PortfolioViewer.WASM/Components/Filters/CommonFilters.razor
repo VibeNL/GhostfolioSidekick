@@ -21,13 +21,13 @@
                     <div class="date-input">
                         <label class="form-label-sm">From</label>
                         <input type="date" class="form-control form-control-sm" 
-                               value="@FilterState.StartDate.ToString("yyyy-MM-dd")" 
+                               value="@_pendingFilterState.StartDate.ToString("yyyy-MM-dd")" 
                                @onchange="OnStartDateChanged" />
                     </div>
                     <div class="date-input">
                         <label class="form-label-sm">To</label>
                         <input type="date" class="form-control form-control-sm" 
-                               value="@FilterState.EndDate.ToString("yyyy-MM-dd")" 
+                               value="@_pendingFilterState.EndDate.ToString("yyyy-MM-dd")" 
                                @onchange="OnEndDateChanged" />
                     </div>
                 </div>
@@ -38,7 +38,7 @@
         {
             <div class="filter-group">
                 <label class="form-label-sm">Currency</label>
-                <select class="form-select form-select-sm" value="@FilterState.SelectedCurrency" @onchange="OnCurrencyChanged">
+                <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedCurrency" @onchange="OnCurrencyChanged">
                     <option value="EUR">EUR</option>
                     <option value="USD">USD</option>
                     <option value="GBP">GBP</option>
@@ -74,7 +74,7 @@
                 }
                 else
                 {
-                    <select class="form-select form-select-sm" value="@FilterState.SelectedAccountId" @onchange="OnAccountChanged">
+                    <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedAccountId" @onchange="OnAccountChanged">
                         <option value="0">All Accounts</option>
                         @foreach (var account in Accounts)
                         {
@@ -113,13 +113,39 @@
                 }
                 else
                 {
-                    <select class="form-select form-select-sm" value="@FilterState.SelectedSymbol" @onchange="OnSymbolChanged">
+                    <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedSymbol" @onchange="OnSymbolChanged">
                         <option value="">All Symbols</option>
                         @foreach (var symbol in Symbols)
                         {
                             <option value="@symbol">@symbol</option>
                         }
                     </select>
+                }
+            </div>
+        }
+
+        @if (ShowApplyButton)
+        {
+            <div class="filter-group filter-actions">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" 
+                            @onclick="ApplyFilters" 
+                            disabled="@(!HasPendingChanges)"
+                            title="Apply filter changes">
+                        <i class="bi bi-check-circle me-1"></i>Apply Filters
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" 
+                            @onclick="ResetFilters" 
+                            disabled="@(!HasPendingChanges)"
+                            title="Reset to current filter state">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Reset
+                    </button>
+                </div>
+                @if (HasPendingChanges)
+                {
+                    <small class="text-muted d-block mt-1">
+                        <i class="bi bi-info-circle me-1"></i>You have unsaved filter changes
+                    </small>
                 }
             </div>
         }

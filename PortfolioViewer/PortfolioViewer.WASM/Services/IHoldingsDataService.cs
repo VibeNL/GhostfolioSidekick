@@ -83,5 +83,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         /// </summary>
         /// <returns>List of symbol names</returns>
         Task<List<string>> GetSymbolsAsync();
+
+        /// <summary>
+        /// Loads symbols available in a specific account
+        /// </summary>
+        /// <param name="accountId">Account ID to filter by</param>
+        /// <returns>List of symbol names available in the account</returns>
+        Task<List<string>> GetSymbolsByAccountAsync(int accountId);
+
+        /// <summary>
+        /// Loads accounts that have activities for a specific symbol
+        /// </summary>
+        /// <param name="symbol">Symbol to filter by</param>
+        /// <returns>List of accounts that have the specified symbol</returns>
+        Task<List<Account>> GetAccountsBySymbolAsync(string symbol);
     }
 }
