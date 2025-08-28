@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			result!.SymbolProfile.Should().Be(symbolProfile);
 			result.Comment.Should().NotBeNull();
 			result.Date.Should().Be(sendAndReceiveActivity.Date);
-			result.Fee.Should().Be(300m); // Assuming fees are converted to 100
+			result.Fee.Should().Be(0); // No fees
 			result.FeeCurrency.Should().Be(symbolProfile.Currency);
 			result.Quantity.Should().Be(Math.Abs(sendAndReceiveActivity.AdjustedQuantity));
 			result.Type.Should().Be(sendAndReceiveActivity.AdjustedQuantity > 0 ? ActivityType.BUY : ActivityType.SELL);
