@@ -50,6 +50,25 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.ToTable("Activities");
 			builder.UseTphMappingStrategy();
 
+			// Configure custom discriminator values
+			builder.HasDiscriminator<string>("Discriminator")
+				.HasValue<BuyActivity>("Buy")
+				.HasValue<SellActivity>("Sell")
+				.HasValue<CashDepositActivity>("CashDeposit")
+				.HasValue<CashWithdrawalActivity>("CashWithdrawal")
+				.HasValue<DividendActivity>("Dividend")
+				.HasValue<FeeActivity>("Fee")
+				.HasValue<GiftFiatActivity>("GiftFiat")
+				.HasValue<GiftAssetActivity>("GiftAsset")
+				.HasValue<InterestActivity>("Interest")
+				.HasValue<KnownBalanceActivity>("KnownBalance")
+				.HasValue<LiabilityActivity>("Liability")
+				.HasValue<RepayBondActivity>("RepayBond")
+				.HasValue<SendActivity>("Send")
+				.HasValue<ReceiveActivity>("Receive")
+				.HasValue<StakingRewardActivity>("StakingReward")
+				.HasValue<ValuableActivity>("Valuable");
+
 			builder.HasKey(a => a.Id);
 
 			var type = typeof(Activity);
@@ -183,7 +202,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<BuyActivityFee> builder)
 		{
-			builder.ToTable(nameof(BuyActivityFee)+"s");
+			builder.ToTable(nameof(BuyActivityFee) + "s");
 			builder.HasKey(a => a.Id);
 			MapMoney(builder, x => x.Money, nameof(BuyActivityFee.Money));
 		}
