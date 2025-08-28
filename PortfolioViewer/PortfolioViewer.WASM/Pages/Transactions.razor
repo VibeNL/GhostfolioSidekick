@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
 @using GhostfolioSidekick.PortfolioViewer.WASM.Components
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 @inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
 @attribute [Authorize]
 
@@ -12,6 +13,24 @@
         <div class="col-12">
             <h1 class="display-4">Portfolio Transactions</h1>
             <p class="text-muted">View and filter your portfolio transactions</p>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Filters</h6>
+                </div>
+                <div class="card-body">
+                    <CommonFilters 
+                        ShowDateFilters="true"
+                        ShowCurrencyFilter="true"
+                        ShowAccountFilter="true"
+                        ShowSymbolFilter="true" />
+                </div>
+            </div>
         </div>
     </div>
 
@@ -292,6 +311,13 @@
                             <div class="d-flex justify-content-between">
                                 <span>Filtered Symbol:</span>
                                 <strong>@FilterState.SelectedSymbol</strong>
+                            </div>
+                        }
+                        @if (FilterState.SelectedAccountId > 0)
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>Filtered Account:</span>
+                                <strong>Account ID: @FilterState.SelectedAccountId</strong>
                             </div>
                         }
                     </div>

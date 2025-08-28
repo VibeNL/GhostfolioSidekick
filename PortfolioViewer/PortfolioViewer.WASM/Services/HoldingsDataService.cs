@@ -7,11 +7,12 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
-	public class HoldingsDataService(DatabaseContext databaseContext, ICurrencyExchange currencyExchange) : IHoldingsDataService
+	public class HoldingsDataService(DatabaseContext databaseContext, ICurrencyExchange currencyExchange, ILogger<HoldingsDataService> logger) : IHoldingsDataService
 	{
 		public async Task<List<HoldingDisplayModel>> GetHoldingsAsync(
 			Currency targetCurrency,
@@ -194,7 +195,60 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 		public async Task<List<Account>> GetAccountsAsync()
 		{
-			return await databaseContext.Accounts.ToListAsync();
+			try
+			{
+				logger.LogInformation("Loading accounts from database...");
+				
+				// Ensure database is available and connection is working
+				if (!await databaseContext.Database.CanConnectAsync())
+				{
+					logger.LogError("Cannot connect to database when loading accounts");
+					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
+				}
+				
+				var accounts = await databaseContext.Accounts
+					.AsNoTracking() // Optimize for read-only operations
+					.OrderBy(a => a.Name)
+					.ToListAsync();
+				
+				logger.LogInformation("Successfully loaded {Count} accounts", accounts.Count);
+				return accounts;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load accounts from database");
+				throw new InvalidOperationException("Failed to load accounts. Please try again later.", ex);
+			}
+		}
+
+		public async Task<List<string>> GetSymbolsAsync()
+		{
+			try
+			{
+				logger.LogInformation("Loading symbols from database...");
+				
+				// Ensure database is available and connection is working
+				if (!await databaseContext.Database.CanConnectAsync())
+				{
+					logger.LogError("Cannot connect to database when loading symbols");
+					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
+				}
+				
+				var symbols = await databaseContext.SymbolProfiles
+					.AsNoTracking() // Optimize for read-only operations
+					.Select(sp => sp.Symbol)
+					.Distinct()
+					.OrderBy(s => s)
+					.ToListAsync();
+				
+				logger.LogInformation("Successfully loaded {Count} unique symbols", symbols.Count);
+				return symbols;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load symbols from database");
+				throw new InvalidOperationException("Failed to load symbols. Please try again later.", ex);
+			}
 		}
 
 		public async Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
@@ -369,15 +423,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 
 			return transactions;
-		}
-
-		public async Task<List<string>> GetSymbolsAsync()
-		{
-			return await databaseContext.SymbolProfiles
-				.Select(sp => sp.Symbol)
-				.Distinct()
-				.OrderBy(s => s)
-				.ToListAsync();
 		}
 
 		private async Task<TransactionDisplayModel?> MapActivityToTransactionDisplayModel(Activity activity, Currency targetCurrency)
