@@ -433,7 +433,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var activities = new Activity[]
 			{
 				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
-				CreateSellActivity(account, sellDate, -150, new Money(Currency.USD, 160), "T2") // Oversell
+				CreateSellActivity(account, sellDate, 150, new Money(Currency.USD, 160), "T2") // Oversell
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -533,7 +533,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var activities = new[]
 			{
 				// Sell activity before any buy (edge case that could cause division by zero)
-				CreateSellActivity(account, DateTime.Today.AddDays(-5), -50, new Money(Currency.USD, 160), "T1") 
+				CreateSellActivity(account, DateTime.Today.AddDays(-5), 50, new Money(Currency.USD, 160), "T1") 
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
