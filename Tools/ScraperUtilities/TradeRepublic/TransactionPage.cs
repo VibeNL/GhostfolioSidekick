@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 				return new ActivityWithSymbol
 				{
-					Activity = new CashDepositWithdrawalActivity
+					Activity = new CashDepositActivity
 					{
 						Amount = await ParseMoneyFromHeader(headerText),
 						Date = parsedTime,
@@ -171,7 +171,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			{
 				return new ActivityWithSymbol
 				{
-					Activity = new CashDepositWithdrawalActivity
+					Activity = new CashWithdrawalActivity
 					{
 						Amount = (await ParseMoneyFromHeader(headerText)).Times(-1),
 						Date = parsedTime,

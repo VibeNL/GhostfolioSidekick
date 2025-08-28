@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var account = CreateAccount("Test Account");
 			var activities = new[]
 			{
-				CreateBuySellActivity(account, DateTime.Today.AddDays(-10), 100, new Money(Currency.USD, 150), "T1")
+				CreateBuyActivity(account, DateTime.Today.AddDays(-10), 100, new Money(Currency.USD, 150), "T1")
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -150,7 +150,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var buyDate = DateTime.Today.AddDays(-5);
 			var activities = new[]
 			{
-				CreateBuySellActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1")
+				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1")
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -200,8 +200,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			
 			var activities = new[]
 			{
-				CreateBuySellActivity(account, firstBuyDate, 100, new Money(Currency.USD, 150), "T1"),
-				CreateBuySellActivity(account, secondBuyDate, 50, new Money(Currency.USD, 160), "T2")
+				CreateBuyActivity(account, firstBuyDate, 100, new Money(Currency.USD, 150), "T1"),
+				CreateBuyActivity(account, secondBuyDate, 50, new Money(Currency.USD, 160), "T2")
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -269,10 +269,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var buyDate = DateTime.Today.AddDays(-10);
 			var sellDate = DateTime.Today.AddDays(-5);
 			
-			var activities = new[]
+			var activities = new Activity[]
 			{
-				CreateBuySellActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
-				CreateBuySellActivity(account, sellDate, -30, new Money(Currency.USD, 160), "T2") // Sell 30 shares
+				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
+				CreateSellActivity(account, sellDate, 30, new Money(Currency.USD, 160), "T2") // Sell 30 shares
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -325,7 +325,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var buyDate = DateTime.Today.AddDays(-5);
 			var activities = new[]
 			{
-				CreateBuySellActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1")
+				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1")
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -364,7 +364,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var account = CreateAccount("Test Account");
 			var activities = new[]
 			{
-				CreateBuySellActivity(account, DateTime.Today, 100, new Money(Currency.USD, 150), "T1") // Activity in USD
+				CreateBuyActivity(account, DateTime.Today, 100, new Money(Currency.USD, 150), "T1") // Activity in USD
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -401,10 +401,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var buyDate = DateTime.Today.AddDays(-5);
 			var sellDate = DateTime.Today.AddDays(-3);
 			
-			var activities = new[]
+			var activities = new Activity[]
 			{
-				CreateBuySellActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
-				CreateBuySellActivity(account, sellDate, -100, new Money(Currency.USD, 160), "T2")
+				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
+				CreateSellActivity(account, sellDate, -100, new Money(Currency.USD, 160), "T2")
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -430,10 +430,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var sellDate = DateTime.Today.AddDays(-3);
 			
 			// Sell more than owned (potential bug scenario)
-			var activities = new[]
+			var activities = new Activity[]
 			{
-				CreateBuySellActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
-				CreateBuySellActivity(account, sellDate, -150, new Money(Currency.USD, 160), "T2") // Oversell
+				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
+				CreateSellActivity(account, sellDate, 150, new Money(Currency.USD, 160), "T2") // Oversell
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -461,7 +461,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var account = CreateAccount("Test Account");
 			var activities = new[]
 			{
-				CreateBuySellActivity(account, DateTime.Today, 100, new Money(Currency.USD, 150), "T1")
+				CreateBuyActivity(account, DateTime.Today, 100, new Money(Currency.USD, 150), "T1")
 			};
 			var holding = CreateHolding([symbolProfile1, symbolProfile2], activities);
 
@@ -501,7 +501,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			
 			var activities = new Activity[]
 			{
-				CreateBuySellActivity(account, DateTime.Today.AddDays(-5), 100, new Money(Currency.USD, 150), "T1"),
+				CreateBuyActivity(account, DateTime.Today.AddDays(-5), 100, new Money(Currency.USD, 150), "T1"),
 				dividendActivity
 			};
 			var holding = CreateHolding([symbolProfile], activities);
@@ -533,7 +533,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var activities = new[]
 			{
 				// Sell activity before any buy (edge case that could cause division by zero)
-				CreateBuySellActivity(account, DateTime.Today.AddDays(-5), -50, new Money(Currency.USD, 160), "T1") 
+				CreateSellActivity(account, DateTime.Today.AddDays(-5), 50, new Money(Currency.USD, 160), "T1") 
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -607,9 +607,9 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			};
 		}
 
-		private static BuySellActivity CreateBuySellActivity(Account account, DateTime date, decimal quantity, Money unitPrice, string transactionId)
+		private static BuyActivity CreateBuyActivity(Account account, DateTime date, decimal quantity, Money unitPrice, string transactionId)
 		{
-			var activity = new BuySellActivity(
+			var activity = new BuyActivity(
 				account,
 				null,
 				[],
@@ -627,6 +627,29 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Set TotalTransactionAmount to quantity * unitPrice (for testing purposes)
 			activity.TotalTransactionAmount = new Money(unitPrice.Currency, Math.Abs(quantity) * unitPrice.Amount);
 			
+			return activity;
+		}
+
+		private static SellActivity CreateSellActivity(Account account, DateTime date, decimal quantity, Money unitPrice, string transactionId)
+		{
+			var activity = new SellActivity(
+				account,
+				null,
+				[],
+				date,
+				quantity,
+				unitPrice,
+				transactionId,
+				null,
+				null)
+			{
+				AdjustedQuantity = quantity,
+				AdjustedUnitPrice = unitPrice
+			};
+
+			// Set TotalTransactionAmount to quantity * unitPrice (for testing purposes)
+			activity.TotalTransactionAmount = new Money(unitPrice.Currency, Math.Abs(quantity) * unitPrice.Amount);
+
 			return activity;
 		}
 
@@ -656,10 +679,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var buyDate = DateTime.Today.AddDays(-10);
 			var sellDate = DateTime.Today.AddDays(-5);
 			
-			var activities = new[]
+			var activities = new Activity[]
 			{
-				CreateBuySellActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
-				CreateBuySellActivity(account, sellDate, -30, new Money(Currency.USD, 160), "T2") // Sell 30 shares
+				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
+				CreateSellActivity(account, sellDate, 30, new Money(Currency.USD, 160), "T2") // Sell 30 shares
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 

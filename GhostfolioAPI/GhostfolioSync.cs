@@ -74,30 +74,56 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			await apiWrapper.SyncMarketData(profile, list);
 		}
 
+		// Refactored to reduce cognitive complexity by extracting logic for ReceiveActivity and SendActivity to helper methods.
 		private static IEnumerable<Activity> ConvertSendAndRecievesToBuyAndSells(IEnumerable<Activity> activities)
 		{
 			foreach (var activity in activities)
 			{
-				if (activity is SendAndReceiveActivity sendAndReceiveActivity)
+				if (activity is ReceiveActivity receiveActivity)
 				{
-					yield return new BuySellActivity(
-						activity.Account,
-						activity.Holding,
-						sendAndReceiveActivity.PartialSymbolIdentifiers,
-						activity.Date,
-						sendAndReceiveActivity.AdjustedQuantity != 0 ? sendAndReceiveActivity.AdjustedQuantity : sendAndReceiveActivity.Quantity,
-						sendAndReceiveActivity.AdjustedUnitPrice.Amount != 0 ? sendAndReceiveActivity.AdjustedUnitPrice : sendAndReceiveActivity.UnitPrice,
-						activity.TransactionId,
-						activity.SortingPriority,
-						activity.Description)
-					{
-					};
+					yield return ConvertReceiveToBuy(receiveActivity);
+				}
+				else if (activity is SendActivity sendActivity)
+				{
+					yield return ConvertSendToSell(sendActivity);
 				}
 				else
 				{
 					yield return activity;
 				}
 			}
+		}
+
+		private static BuyActivity ConvertReceiveToBuy(ReceiveActivity receiveActivity)
+		{
+			return new BuyActivity(
+				receiveActivity.Account,
+				receiveActivity.Holding,
+				receiveActivity.PartialSymbolIdentifiers,
+				receiveActivity.Date,
+				receiveActivity.AdjustedQuantity != 0 ? receiveActivity.AdjustedQuantity : receiveActivity.Quantity,
+				receiveActivity.AdjustedUnitPrice.Amount != 0 ? receiveActivity.AdjustedUnitPrice : receiveActivity.UnitPrice,
+				receiveActivity.TransactionId,
+				receiveActivity.SortingPriority,
+				receiveActivity.Description)
+			{
+			};
+		}
+
+		private static SellActivity ConvertSendToSell(SendActivity sendActivity)
+		{
+			return new SellActivity(
+				sendActivity.Account,
+				sendActivity.Holding,
+				sendActivity.PartialSymbolIdentifiers,
+				sendActivity.Date,
+				sendActivity.AdjustedQuantity != 0 ? sendActivity.AdjustedQuantity : sendActivity.Quantity,
+				sendActivity.AdjustedUnitPrice.Amount != 0 ? sendActivity.AdjustedUnitPrice : sendActivity.UnitPrice,
+				sendActivity.TransactionId,
+				sendActivity.SortingPriority,
+				sendActivity.Description)
+			{
+			};
 		}
 
 		private static IEnumerable<Activity> ConvertGiftsToInterestOrBuy(IEnumerable<Activity> activities)
@@ -119,7 +145,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 				}
 				else if (activity is GiftAssetActivity giftAssetActivity)
 				{
-					yield return new BuySellActivity(
+					yield return new BuyActivity(
 						giftAssetActivity.Account,
 						giftAssetActivity.Holding,
 						giftAssetActivity.PartialSymbolIdentifiers,
@@ -151,15 +177,18 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						continue;
 					}
 
-					var quantity = repayBondActivity.Holding!.Activities.OfType<BuySellActivity>().Sum(x => x.Quantity);
+					var buyQuantity = repayBondActivity.Holding!.Activities.OfType<BuyActivity>().Sum(x => x.Quantity);
+					var sellQuantity = repayBondActivity.Holding!.Activities.OfType<SellActivity>().Sum(x => x.Quantity);
+					var quantity = buyQuantity - sellQuantity;
+
 					var price = repayBondActivity.TotalRepayAmount.SafeDivide(quantity);
 
-					yield return new BuySellActivity(
+					yield return new SellActivity(
 						activity.Account,
 						activity.Holding,
 						repayBondActivity.PartialSymbolIdentifiers,
 						activity.Date,
-						-quantity,
+						quantity,
 						price,
 						activity.TransactionId,
 						activity.SortingPriority,

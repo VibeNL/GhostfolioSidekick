@@ -129,7 +129,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var activities = new List<Activity> { new BuySellActivity(account, null, [], DateTime.Now, 10, new Money(Currency.USD, 100), "tx1", null, null) };
+			var activities = new List<Activity> { new BuyActivity(account, null, [], DateTime.Now, 10, new Money(Currency.USD, 100), "tx1", null, null) };
 			_apiWrapperMock.Setup(x => x.SyncAllActivities(It.IsAny<List<Activity>>())).Returns(Task.CompletedTask);
 
 			// Act
@@ -147,8 +147,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var noSyncAccount = new Account { Name = "NoSyncAccount", SyncActivities = false };
 			var activities = new List<Activity> 
 			{ 
-				new BuySellActivity(syncAccount, null, [], DateTime.Now, 10, new Money(Currency.USD, 100), "tx1", null, null),
-				new BuySellActivity(noSyncAccount, null, [], DateTime.Now, 5, new Money(Currency.USD, 50), "tx2", null, null)
+				new BuyActivity(syncAccount, null, [], DateTime.Now, 10, new Money(Currency.USD, 100), "tx1", null, null),
+				new BuyActivity(noSyncAccount, null, [], DateTime.Now, 5, new Money(Currency.USD, 50), "tx2", null, null)
 			};
 
 			List<Activity> capturedActivities = [];
@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var sendReceiveActivity = new SendAndReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null);
+			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null);
 			sendReceiveActivity.UnitPrice = new Money(Currency.USD, 100);
 			var activities = new List<Activity> { sendReceiveActivity };
 
@@ -183,8 +183,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			Assert.Single(capturedActivities);
-			Assert.IsType<BuySellActivity>(capturedActivities[0]);
-			var buySellActivity = (BuySellActivity)capturedActivities[0];
+			Assert.IsType<BuyActivity>(capturedActivities[0]);
+			var buySellActivity = (BuyActivity)capturedActivities[0];
 			Assert.Equal(10, buySellActivity.Quantity);
 			Assert.Equal(100, buySellActivity.UnitPrice.Amount);
 		}
@@ -231,8 +231,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			Assert.Single(capturedActivities);
-			Assert.IsType<BuySellActivity>(capturedActivities[0]);
-			var buySellActivity = (BuySellActivity)capturedActivities[0];
+			Assert.IsType<BuyActivity>(capturedActivities[0]);
+			var buySellActivity = (BuyActivity)capturedActivities[0];
 			Assert.Equal(10, buySellActivity.Quantity);
 		}
 
@@ -242,7 +242,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
 			var holding = new Holding();
-			var buyActivity = new BuySellActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now.AddDays(-1), 100, new Money(Currency.USD, 10), "tx0", null, null);
+			var buyActivity = new BuyActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now.AddDays(-1), 100, new Money(Currency.USD, 10), "tx0", null, null);
 			holding.Activities = [buyActivity];
 			
 			var repayBondActivity = new RepayBondActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, new Money(Currency.USD, 1200), "tx1", null, null);
@@ -258,9 +258,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			Assert.Single(capturedActivities);
-			Assert.IsType<BuySellActivity>(capturedActivities[0]);
-			var buySellActivity = (BuySellActivity)capturedActivities[0];
-			Assert.Equal(-100, buySellActivity.Quantity); // Negative quantity for sell
+			Assert.IsType<SellActivity>(capturedActivities[0]);
+			var buySellActivity = (SellActivity)capturedActivities[0];
+			Assert.Equal(100, buySellActivity.Quantity);
 			Assert.Equal(12, buySellActivity.UnitPrice.Amount); // 1200 / 100
 		}
 
@@ -335,7 +335,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var sendReceiveActivity = new SendAndReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null);
+			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null);
 			sendReceiveActivity.UnitPrice = new Money(Currency.USD, 100);
 			sendReceiveActivity.AdjustedQuantity = 20;
 			sendReceiveActivity.AdjustedUnitPrice = new Money(Currency.USD, 200);
@@ -351,8 +351,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			Assert.Single(capturedActivities);
-			Assert.IsType<BuySellActivity>(capturedActivities[0]);
-			var buySellActivity = (BuySellActivity)capturedActivities[0];
+			Assert.IsType<BuyActivity>(capturedActivities[0]);
+			var buySellActivity = (BuyActivity)capturedActivities[0];
 			Assert.Equal(20, buySellActivity.Quantity); // Uses adjusted quantity
 			Assert.Equal(200, buySellActivity.UnitPrice.Amount); // Uses adjusted unit price
 		}
