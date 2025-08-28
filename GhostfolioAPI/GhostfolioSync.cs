@@ -167,7 +167,10 @@ namespace GhostfolioSidekick.GhostfolioAPI
 						continue;
 					}
 
-					var quantity = repayBondActivity.Holding!.Activities.OfType<SellActivity>().Sum(x => x.Quantity);
+					var buyQuantity = repayBondActivity.Holding!.Activities.OfType<BuyActivity>().Sum(x => x.Quantity);
+					var sellQuantity = repayBondActivity.Holding!.Activities.OfType<SellActivity>().Sum(x => x.Quantity);
+					var quantity = buyQuantity - sellQuantity;
+
 					var price = repayBondActivity.TotalRepayAmount.SafeDivide(quantity);
 
 					yield return new SellActivity(

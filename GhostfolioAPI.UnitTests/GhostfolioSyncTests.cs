@@ -258,9 +258,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Assert
 			Assert.Single(capturedActivities);
-			Assert.IsType<BuyActivity>(capturedActivities[0]);
-			var buySellActivity = (BuyActivity)capturedActivities[0];
-			Assert.Equal(-100, buySellActivity.Quantity); // Negative quantity for sell
+			Assert.IsType<SellActivity>(capturedActivities[0]);
+			var buySellActivity = (SellActivity)capturedActivities[0];
+			Assert.Equal(100, buySellActivity.Quantity);
 			Assert.Equal(12, buySellActivity.UnitPrice.Amount); // 1200 / 100
 		}
 
