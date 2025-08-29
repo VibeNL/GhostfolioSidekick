@@ -73,28 +73,17 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
 			}
 
-			// TODO implement the mapping when needed
-			switch (rawActivity.Type)
+			return rawActivity.Type switch
 			{
-				case Contract.ActivityType.BUY:
-					return new BuySellActivity();
-				case Contract.ActivityType.SELL:
-					return new BuySellActivity();
-				case Contract.ActivityType.DIVIDEND:
-					return new DividendActivity();
-				case Contract.ActivityType.INTEREST:
-					return new InterestActivity();
-				case Contract.ActivityType.FEE:
-					return new FeeActivity();
-				case Contract.ActivityType.ITEM:
-					return new ValuableActivity();
-				case Contract.ActivityType.LIABILITY:
-					return new LiabilityActivity();
-				case Contract.ActivityType.IGNORE:
-				default:
-					throw new NotSupportedException();
-			}
-
+				Contract.ActivityType.BUY => new BuyActivity(),
+				Contract.ActivityType.SELL => new SellActivity(),
+				Contract.ActivityType.DIVIDEND => new DividendActivity(),
+				Contract.ActivityType.INTEREST => new InterestActivity(),
+				Contract.ActivityType.FEE => new FeeActivity(),
+				Contract.ActivityType.ITEM => new ValuableActivity(),
+				Contract.ActivityType.LIABILITY => new LiabilityActivity(),
+				_ => throw new NotSupportedException(),
+			};
 			throw new NotSupportedException();
 		}
 	}

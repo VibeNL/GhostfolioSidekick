@@ -83,14 +83,14 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var existingActivities = new List<Activity>
 			{
-				new BuySellActivity { TransactionId = "T1" },
-				new BuySellActivity { TransactionId = "T2" }
+				new BuyActivity { TransactionId = "T1" },
+				new BuyActivity { TransactionId = "T2" }
 			};
 
 			var newActivities = new List<Activity>
 			{
-				new BuySellActivity { TransactionId = "T2" },
-				new BuySellActivity { TransactionId = "T3" }
+				new BuyActivity { TransactionId = "T2" },
+				new BuyActivity { TransactionId = "T3" }
 			};
 
 			var options = new DbContextOptionsBuilder<DatabaseContext>()

@@ -7,6 +7,7 @@ using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
@@ -64,7 +65,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money m, Currency c, DateOnly d) => m);
 
-			var service = new HoldingsDataService(context, currencyExchangeMock.Object);
+			var loggerMock = new Mock<ILogger<HoldingsDataService>>();
+			var service = new HoldingsDataService(context, currencyExchangeMock.Object, loggerMock.Object);
 
 			// Act
 			var result = await service.GetHoldingsAsync(targetCurrency);
@@ -109,7 +111,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money m, Currency c, DateOnly d) => m);
 
-			var service = new HoldingsDataService(context, currencyExchangeMock.Object);
+			var loggerMock = new Mock<ILogger<HoldingsDataService>>();
+			var service = new HoldingsDataService(context, currencyExchangeMock.Object, loggerMock.Object);
 
 			// Act
 			var result = await service.GetHoldingsAsync(targetCurrency);
@@ -146,7 +149,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), targetCurrency, It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money m, Currency c, DateOnly d) => new Money(targetCurrency, m.Amount * 2));
 
-			var service = new HoldingsDataService(context, currencyExchangeMock.Object);
+			var loggerMock = new Mock<ILogger<HoldingsDataService>>();
+			var service = new HoldingsDataService(context, currencyExchangeMock.Object, loggerMock.Object);
 
 			// Use reflection to call private method
 			var method = typeof(HoldingsDataService).GetMethod("ConvertToTargetCurrency", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;

@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void GetComment_WithTransactionIdAndSymbolProfile_ShouldReturnFormattedComment()
 		{
 			// Arrange
-			var activity = new BuySellActivity
+			var activity = new BuyActivity
 			{
 				TransactionId = "12345"
 			};
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void GetComment_WithTransactionIdAndNullSymbolProfile_ShouldReturnFormattedCommentWithEmptySymbol()
 		{
 			// Arrange
-			var activity = new BuySellActivity
+			var activity = new BuyActivity
 			{
 				TransactionId = "12345"
 			};
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void GetComment_WithNullTransactionIdAndSymbolProfile_ShouldReturnEmptyString()
 		{
 			// Arrange
-			var activity = new BuySellActivity
+			var activity = new BuyActivity
 			{
 				TransactionId = null!
 			};
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void GetComment_WithEmptyTransactionIdAndSymbolProfile_ShouldReturnEmptyString()
 		{
 			// Arrange
-			var activity = new BuySellActivity
+			var activity = new BuyActivity
 			{
 				TransactionId = string.Empty
 			};
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void GetComment_WithTransactionId_ShouldReturnFormattedComment()
 		{
 			// Arrange
-			var activity = new BuySellActivity
+			var activity = new BuyActivity
 			{
 				TransactionId = "12345"
 			};
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void GetComment_WithNullTransactionId_ShouldReturnEmptyString()
 		{
 			// Arrange
-			var activity = new BuySellActivity
+			var activity = new BuyActivity
 			{
 				TransactionId = null!
 			};
@@ -120,7 +120,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void GetComment_WithEmptyTransactionId_ShouldReturnEmptyString()
 		{
 			// Arrange
-			var activity = new BuySellActivity
+			var activity = new BuyActivity
 			{
 				TransactionId = string.Empty
 			};

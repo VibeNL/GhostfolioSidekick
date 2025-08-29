@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			}
 
 			var currency = currencyMapper.Map(record.Currency);
-			var dateTime = DateTime.SpecifyKind(record.Date.ToDateTime(record.Time), DateTimeKind.Utc);
+			var dateTime = record.Date.ToDateTime(record.Time, DateTimeKind.Utc);
 			
 			switch (record.Type)
 			{

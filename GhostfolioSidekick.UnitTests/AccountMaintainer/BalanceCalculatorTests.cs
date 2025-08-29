@@ -36,8 +36,8 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			// Assert
 			result.Should().HaveCount(1);
-			result.First().Money.Amount.Should().Be(100);
-			result.First().Money.Currency.Should().Be(baseCurrency);
+			result[0].Money.Amount.Should().Be(100);
+			result[0].Money.Currency.Should().Be(baseCurrency);
 		}
 
 		[Fact]
@@ -45,13 +45,13 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		{
 			// Arrange
 			var baseCurrency = Currency.USD;
-			var buySellActivity = new BuySellActivity
+			var buySellActivity = new BuyActivity
 			{
 				Date = DateTime.UtcNow,
 				TotalTransactionAmount = new Money(baseCurrency, 50),
 				Quantity = 1
 			};
-			var cashDepositActivity = new CashDepositWithdrawalActivity
+			var cashDepositActivity = new CashDepositActivity
 			{
 				Date = DateTime.UtcNow.AddDays(-1),
 				Amount = new Money(baseCurrency, 100)
@@ -67,8 +67,8 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			// Assert
 			result.Should().HaveCount(2);
-			result.First().Money.Amount.Should().Be(100);
-			result.Last().Money.Amount.Should().Be(50);
+			result[0].Money.Amount.Should().Be(100);
+			result[1].Money.Amount.Should().Be(50);
 		}
 
 		[Fact]

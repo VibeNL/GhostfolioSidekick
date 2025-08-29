@@ -7,11 +7,12 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
-	public class HoldingsDataService(DatabaseContext databaseContext, ICurrencyExchange currencyExchange) : IHoldingsDataService
+	public class HoldingsDataService(DatabaseContext databaseContext, ICurrencyExchange currencyExchange, ILogger<HoldingsDataService> logger) : IHoldingsDataService
 	{
 		public async Task<List<HoldingDisplayModel>> GetHoldingsAsync(
 			Currency targetCurrency,
@@ -194,7 +195,123 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 		public async Task<List<Account>> GetAccountsAsync()
 		{
-			return await databaseContext.Accounts.ToListAsync();
+			try
+			{
+				logger.LogInformation("Loading accounts from database...");
+				
+				// Ensure database is available and connection is working
+				if (!await databaseContext.Database.CanConnectAsync())
+				{
+					logger.LogError("Cannot connect to database when loading accounts");
+					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
+				}
+				
+				var accounts = await databaseContext.Accounts
+					.AsNoTracking() // Optimize for read-only operations
+					.OrderBy(a => a.Name)
+					.ToListAsync();
+				
+				logger.LogInformation("Successfully loaded {Count} accounts", accounts.Count);
+				return accounts;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load accounts from database");
+				throw new InvalidOperationException("Failed to load accounts. Please try again later.", ex);
+			}
+		}
+
+		public async Task<List<string>> GetSymbolsAsync()
+		{
+			try
+			{
+				logger.LogInformation("Loading symbols from database...");
+				
+				// Ensure database is available and connection is working
+				if (!await databaseContext.Database.CanConnectAsync())
+				{
+					logger.LogError("Cannot connect to database when loading symbols");
+					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
+				}
+				
+				var symbols = await databaseContext.SymbolProfiles
+					.AsNoTracking() // Optimize for read-only operations
+					.Select(sp => sp.Symbol)
+					.Distinct()
+					.OrderBy(s => s)
+					.ToListAsync();
+				
+				logger.LogInformation("Successfully loaded {Count} unique symbols", symbols.Count);
+				return symbols;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load symbols from database");
+				throw new InvalidOperationException("Failed to load symbols. Please try again later.", ex);
+			}
+		}
+
+		public async Task<List<string>> GetSymbolsByAccountAsync(int accountId)
+		{
+			try
+			{
+				logger.LogInformation("Loading symbols for account {AccountId} from database...", accountId);
+				
+				// Ensure database is available and connection is working
+				if (!await databaseContext.Database.CanConnectAsync())
+				{
+					logger.LogError("Cannot connect to database when loading symbols by account");
+					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
+				}
+				
+				var symbols = await databaseContext.Activities
+					.Where(a => a.Account.Id == accountId && a.Holding != null)
+					.SelectMany(a => a.Holding!.SymbolProfiles)
+					.Select(sp => sp.Symbol)
+					.Distinct()
+					.OrderBy(s => s)
+					.AsNoTracking()
+					.ToListAsync();
+				
+				logger.LogInformation("Successfully loaded {Count} unique symbols for account {AccountId}", symbols.Count, accountId);
+				return symbols;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load symbols for account {AccountId} from database", accountId);
+				throw new InvalidOperationException($"Failed to load symbols for account {accountId}. Please try again later.", ex);
+			}
+		}
+
+		public async Task<List<Account>> GetAccountsBySymbolAsync(string symbol)
+		{
+			try
+			{
+				logger.LogInformation("Loading accounts for symbol {Symbol} from database...", symbol);
+				
+				// Ensure database is available and connection is working
+				if (!await databaseContext.Database.CanConnectAsync())
+				{
+					logger.LogError("Cannot connect to database when loading accounts by symbol");
+					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
+				}
+				
+				var accounts = await databaseContext.Activities
+					.Where(a => a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol == symbol))
+					.Select(a => a.Account)
+					.Distinct()
+					.OrderBy(a => a.Name)
+					.AsNoTracking()
+					.ToListAsync();
+				
+				logger.LogInformation("Successfully loaded {Count} accounts for symbol {Symbol}", accounts.Count, symbol);
+				return accounts;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load accounts for symbol {Symbol} from database", symbol);
+				throw new InvalidOperationException($"Failed to load accounts for symbol {symbol}. Please try again later.", ex);
+			}
 		}
 
 		public async Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
@@ -273,29 +390,89 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			string symbol,
 			CancellationToken cancellationToken = default)
 		{
-			// Build the query with filters
-			var query = databaseContext.Activities
+			// Build the base query with simple includes first
+			var baseQuery = databaseContext.Activities
 				.Include(a => a.Account)
 				.Include(a => a.Holding)
-					.ThenInclude(h => h.SymbolProfiles)
 				.Where(a => a.Date >= startDate && a.Date <= endDate);
 
 			// Apply account filter
 			if (accountId > 0)
 			{
-				query = query.Where(a => a.Account.Id == accountId);
+				baseQuery = baseQuery.Where(a => a.Account.Id == accountId);
 			}
 
-			// Apply symbol filter
-			if (!string.IsNullOrEmpty(symbol))
-			{
-				query = query.Where(a => a.Holding!.SymbolProfiles.Any(sp => sp.Symbol == symbol));
-			}
-
-			var activities = await query
+			// Execute the base query first without symbol filtering
+			var activities = await baseQuery
 				.OrderByDescending(a => a.Date)
 				.ThenBy(a => a.Id)
 				.ToListAsync(cancellationToken);
+
+			// Apply symbol filter in memory after loading the basic data
+			if (!string.IsNullOrEmpty(symbol))
+			{
+				// Load symbol profiles separately for activities with holdings
+				var holdingIds = activities
+					.Where(a => a.Holding != null)
+					.Select(a => a.Holding!.Id)
+					.Distinct()
+					.ToList();
+
+				if (holdingIds.Count > 0)
+				{
+					var holdingsWithSymbols = await databaseContext.Holdings
+						.Where(h => holdingIds.Contains(h.Id))
+						.Include(h => h.SymbolProfiles)
+						.ToDictionaryAsync(h => h.Id, h => h.SymbolProfiles, cancellationToken);
+
+					// Filter activities by symbol in memory
+					activities = activities
+						.Where(a => a.Holding != null &&
+							       (holdingsWithSymbols.TryGetValue(a.Holding.Id, out var symbolProfiles) && 
+							        symbolProfiles.Any(sp => sp.Symbol == symbol)))
+						.ToList();
+
+					// Populate the SymbolProfiles navigation property for filtered activities
+					foreach (var activity in activities.Where(a => a.Holding != null))
+					{
+						if (holdingsWithSymbols.TryGetValue(activity.Holding!.Id, out var symbolProfiles))
+						{
+							activity.Holding.SymbolProfiles = symbolProfiles.ToList();
+						}
+					}
+				}
+				else
+				{
+					// No holdings found, filter out all activities that require holdings
+					activities = activities.Where(a => a.Holding == null).ToList();
+				}
+			}
+			else
+			{
+				// Load symbol profiles for all holdings if no symbol filter is applied
+				var holdingIds = activities
+					.Where(a => a.Holding != null)
+					.Select(a => a.Holding!.Id)
+					.Distinct()
+					.ToList();
+
+				if (holdingIds.Count > 0)
+				{
+					var holdingsWithSymbols = await databaseContext.Holdings
+						.Where(h => holdingIds.Contains(h.Id))
+						.Include(h => h.SymbolProfiles)
+						.ToDictionaryAsync(h => h.Id, h => h.SymbolProfiles, cancellationToken);
+
+					// Populate the SymbolProfiles navigation property
+					foreach (var activity in activities.Where(a => a.Holding != null))
+					{
+						if (holdingsWithSymbols.TryGetValue(activity.Holding!.Id, out var symbolProfiles))
+						{
+							activity.Holding.SymbolProfiles = symbolProfiles.ToList();
+						}
+					}
+				}
+			}
 
 			var transactions = new List<TransactionDisplayModel>();
 
@@ -309,15 +486,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 
 			return transactions;
-		}
-
-		public async Task<List<string>> GetSymbolsAsync()
-		{
-			return await databaseContext.SymbolProfiles
-				.Select(sp => sp.Symbol)
-				.Distinct()
-				.OrderBy(s => s)
-				.ToListAsync();
 		}
 
 		private async Task<TransactionDisplayModel?> MapActivityToTransactionDisplayModel(Activity activity, Currency targetCurrency)
@@ -340,60 +508,71 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			// Map specific activity types
 			switch (activity)
 			{
-				case BuySellActivity buySell:
-					baseModel.Quantity = Math.Abs(buySell.Quantity);
+				case BuyActivity buySell:
+					baseModel.Quantity = buySell.Quantity;
 					baseModel.UnitPrice = await ConvertMoney(buySell.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(buySell.UnitPrice.Times(Math.Abs(buySell.Quantity)), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Amount = await ConvertMoney(buySell.UnitPrice.Times(buySell.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = await ConvertMoney(buySell.TotalTransactionAmount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Fee = await SumAndConvertFees(buySell.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Tax = await SumAndConvertFees(buySell.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					break;
-
+				case SellActivity buySell:
+					baseModel.Quantity = buySell.Quantity;
+					baseModel.UnitPrice = await ConvertMoney(buySell.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Amount = await ConvertMoney(buySell.UnitPrice.Times(buySell.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.TotalValue = await ConvertMoney(buySell.TotalTransactionAmount, targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Fee = await SumAndConvertFees(buySell.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Tax = await SumAndConvertFees(buySell.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					break;
 				case DividendActivity dividend:
 					baseModel.Amount = await ConvertMoney(dividend.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					baseModel.Fee = await SumAndConvertFees(dividend.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Tax = await SumAndConvertFees(dividend.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					break;
-
-				case CashDepositWithdrawalActivity cash:
-					baseModel.Amount = await ConvertMoney(cash.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
+				case CashDepositActivity deposit:
+					baseModel.Amount = await ConvertMoney(deposit.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					break;
-
+				case CashWithdrawalActivity withdrawal:
+					baseModel.Amount = await ConvertMoney(withdrawal.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.TotalValue = baseModel.Amount;
+					break;
 				case FeeActivity fee:
 					baseModel.Amount = await ConvertMoney(fee.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					baseModel.Fee = baseModel.Amount;
 					break;
-
 				case InterestActivity interest:
 					baseModel.Amount = await ConvertMoney(interest.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					break;
-
-				case SendAndReceiveActivity sendReceive:
-					baseModel.Quantity = Math.Abs(sendReceive.Quantity);
+				case ReceiveActivity sendReceive:
+					baseModel.Quantity = sendReceive.Quantity;
 					baseModel.UnitPrice = await ConvertMoney(sendReceive.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(sendReceive.UnitPrice.Times(Math.Abs(sendReceive.Quantity)), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Amount = await ConvertMoney(sendReceive.UnitPrice.Times(sendReceive.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					baseModel.Fee = await SumAndConvertFees(sendReceive.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					break;
-
+				case SendActivity sendReceive:
+					baseModel.Quantity = sendReceive.Quantity;
+					baseModel.UnitPrice = await ConvertMoney(sendReceive.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.Amount = await ConvertMoney(sendReceive.UnitPrice.Times(sendReceive.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					baseModel.TotalValue = baseModel.Amount;
+					baseModel.Fee = await SumAndConvertFees(sendReceive.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
+					break;
 				case StakingRewardActivity staking:
 					baseModel.Quantity = staking.Quantity;
 					baseModel.UnitPrice = await ConvertMoney(staking.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Amount = await ConvertMoney(staking.UnitPrice.Times(staking.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					break;
-
 				case GiftAssetActivity gift:
 					baseModel.Quantity = gift.Quantity;
 					baseModel.UnitPrice = await ConvertMoney(gift.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.Amount = await ConvertMoney(gift.UnitPrice.Times(gift.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
 					baseModel.TotalValue = baseModel.Amount;
 					break;
-
 				default:
 					// For other activity types, just return the basic info
 					break;
@@ -406,12 +585,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			return activity switch
 			{
-				BuySellActivity buySell => buySell.Quantity > 0 ? "Buy" : "Sell",
+				BuyActivity => "Buy",
+				SellActivity => "Sell",
 				DividendActivity => "Dividend",
-				CashDepositWithdrawalActivity cash => cash.Amount.Amount > 0 ? "Deposit" : "Withdrawal",
+				CashDepositActivity => "Deposit",
+				CashWithdrawalActivity => "Withdrawal",
 				FeeActivity => "Fee",
 				InterestActivity => "Interest",
-				SendAndReceiveActivity sendReceive => sendReceive.Quantity > 0 ? "Receive" : "Send",
+				ReceiveActivity => "Receive",
+				SendActivity => "Send",
 				StakingRewardActivity => "Staking Reward",
 				GiftAssetActivity => "Gift",
 				GiftFiatActivity => "Gift Cash",

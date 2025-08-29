@@ -26,7 +26,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				.Distinct()
 				.ToListAsync()).Union(
 					await databaseContext.Activities
-					.OfType<CashDepositWithdrawalActivity>()
+					.OfType<CashDepositActivity>()
+					.AsNoTracking()
+					.Select(x => new { x.Amount!.Currency, x.Date })
+					.Distinct()
+					.ToListAsync()
+				).Union(
+					await databaseContext.Activities
+					.OfType<CashWithdrawalActivity>()
 					.AsNoTracking()
 					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
@@ -66,7 +73,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.Select(x => new { x.TotalRepayAmount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync()
-				) // TODO Refactor and include all activity types and fees and taxes
+				)
 				.Where(x => x.Currency != null)
 				.GroupBy(x => x.Currency)
 				.Select(x => x.OrderBy(y => y.Date).First());

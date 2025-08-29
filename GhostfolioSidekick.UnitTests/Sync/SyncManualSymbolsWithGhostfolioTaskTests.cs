@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			var holding = new Holding
 			{
 				SymbolProfiles = [symbol],
-				Activities = [new BuySellActivity {
+				Activities = [new BuyActivity {
 						Date = DateTime.Today.AddDays(-100),
 						UnitPrice = new Money(Currency.USD, 100),
 						TransactionId = "A",

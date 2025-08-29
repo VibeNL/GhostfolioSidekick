@@ -167,6 +167,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             {
                 return Task.FromResult(new List<string> { "AAPL", "MSFT", "GOOGL" });
             }
+
+            public Task<List<string>> GetSymbolsByAccountAsync(int accountId)
+            {
+                // Return filtered symbols based on account for testing
+                return Task.FromResult(new List<string> { "AAPL", "MSFT" });
+            }
+
+            public Task<List<Account>> GetAccountsBySymbolAsync(string symbol)
+            {
+                // Return filtered accounts based on symbol for testing
+                return Task.FromResult(new List<Account>
+                {
+                    new Account { Id = 1, Name = "Test Account 1" },
+                    new Account { Id = 2, Name = "Test Account 2" }
+                });
+            }
         }
 
         [Fact]

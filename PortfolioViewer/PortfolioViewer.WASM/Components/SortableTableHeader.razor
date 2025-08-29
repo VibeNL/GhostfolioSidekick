@@ -1,0 +1,22 @@
+@using Microsoft.AspNetCore.Components
+
+<button type="button" @onclick="@(() => OnSort.InvokeAsync(Column))" 
+        class="btn btn-link text-white text-decoration-none p-0 d-flex align-items-center gap-1">
+    <span>@DisplayName</span>
+    @if (CurrentSortColumn == Column)
+    {
+        <i class="bi @(IsAscending ? "bi-arrow-up" : "bi-arrow-down")"></i>
+    }
+    else
+    {
+        <i class="bi bi-arrow-up-down text-muted opacity-50"></i>
+    }
+</button>
+
+@code {
+    [Parameter] public string Column { get; set; } = string.Empty;
+    [Parameter] public string DisplayName { get; set; } = string.Empty;
+    [Parameter] public string CurrentSortColumn { get; set; } = string.Empty;
+    [Parameter] public bool IsAscending { get; set; } = true;
+    [Parameter] public EventCallback<string> OnSort { get; set; }
+}

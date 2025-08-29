@@ -1,6 +1,7 @@
 ﻿@page "/portfolio-timeseries"
 @using Microsoft.AspNetCore.Authorization
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @attribute [Authorize]
 
 <PageTitle>Portfolio Time Series</PageTitle>
@@ -82,29 +83,39 @@
                                     <thead class="table-dark">
                                         <tr>
                                             <th scope="col">
-                                                <button type="button" @onclick="@(() => SortBy("Date"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Date @(sortColumn == "Date" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="Date" 
+                                                                   DisplayName="Date" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col" class="text-end">
-                                                <button type="button" @onclick="@(() => SortBy("TotalValue"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Portfolio Value @(sortColumn == "TotalValue" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="TotalValue" 
+                                                                   DisplayName="Portfolio Value" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col" class="text-end">
-                                                <button type="button" @onclick="@(() => SortBy("TotalInvested"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Total Invested @(sortColumn == "TotalInvested" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="TotalInvested" 
+                                                                   DisplayName="Total Invested" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col" class="text-end">
-                                                <button type="button" @onclick="@(() => SortBy("GainLoss"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    Gain/Loss @(sortColumn == "GainLoss" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="GainLoss" 
+                                                                   DisplayName="Gain/Loss" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                             <th scope="col" class="text-end">
-                                                <button type="button" @onclick="@(() => SortBy("GainLossPercentage"))" class="btn btn-link text-white text-decoration-none p-0">
-                                                    % @(sortColumn == "GainLossPercentage" ? (sortAscending ? "↑" : "↓") : "")
-                                                </button>
+                                                <SortableTableHeader Column="GainLossPercentage" 
+                                                                   DisplayName="%" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
                                             </th>
                                         </tr>
                                     </thead>

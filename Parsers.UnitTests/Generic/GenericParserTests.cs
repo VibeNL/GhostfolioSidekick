@@ -53,17 +53,17 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 					PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateGeneric("US67066G1040")],
+						PartialSymbolIdentifier.CreateGeneric("NVDA", "NVIDIA", "US67066G1040"),
 						0.0267001000M,
 						453.33M,
 						new Money(Currency.USD,  12.103956333M),
-						"Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02"),
+						"Buy_NVDA_2023-08-07_0.0267001000_USD_0.02"),
 					PartialActivity.CreateFee(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 0, 0, 0, DateTimeKind.Utc),
 						0.02M,
 						new Money(Currency.USD, 0.02M),
-						"Buy_US67066G1040_2023-08-07_0.0267001000_USD_0.02")
+						"Buy_NVDA_2023-08-07_0.0267001000_USD_0.02")
 				]);
 		}
 

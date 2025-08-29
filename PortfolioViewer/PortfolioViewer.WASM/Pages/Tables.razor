@@ -1,5 +1,6 @@
 ﻿@page "/tables"
 @using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @attribute [Authorize]
 
 <PageTitle>Table Viewer</PageTitle>
@@ -69,19 +70,13 @@
                     <tr>
                         @foreach (var column in TableData.Columns)
                         {
-                            <th style="min-width: 150px;" class="@GetSortClass(column)">
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <span class="column-header" @onclick="@(async () => await OnColumnHeaderClick(column))" style="cursor: pointer; user-select: none;">
-                                        @column
-                                        <i class="bi @GetSortIcon(column) ms-1"></i>
-                                    </span>
-                                </div>
-                                <input type="text" 
-                                       class="form-control form-control-sm" 
-                                       placeholder="Filter..."
-                                       @bind="ColumnFilters[column]"
-                                       @bind:after="@(async () => await OnFilterChanged(column, ColumnFilters[column]))"
-                                       style="font-weight: normal;" />
+                            <th>
+                                <FilterableSortableTableHeader Column="@column"
+                                                             CurrentSortColumn="@_sortColumn"
+                                                             SortDirection="@_sortDirection"
+                                                             FilterValue="@(ColumnFilters.GetValueOrDefault(column, string.Empty))"
+                                                             OnSort="OnColumnHeaderClick"
+                                                             OnFilterChanged="OnFilterChangedWrapper" />
                             </th>
                         }
                     </tr>
@@ -165,41 +160,3 @@
         </div>
     }
 }
-
-<style>
-    /* Sorted column styling for dark table headers */
-    .table-dark .sorted-column {
-        background-color: rgba(13, 110, 253, 0.3) !important; /* Bootstrap primary blue with transparency */
-        border-left: 3px solid #0d6efd; /* Subtle left border indicator */
-    }
-    
-    /* Hover effect for column headers in dark tables */
-    .table-dark .column-header:hover {
-        background-color: rgba(255, 255, 255, 0.15);
-        padding: 2px 6px;
-        border-radius: 4px;
-    }
-    
-    /* Default column header styling */
-    .column-header {
-        transition: background-color 0.2s ease;
-        display: inline-block;
-    }
-    
-    /* Sort icon styling */
-    .column-header i {
-        opacity: 0.7;
-        transition: opacity 0.2s ease;
-    }
-    
-    .sorted-column .column-header i {
-        opacity: 1;
-        color: #0d6efd;
-    }
-    
-    /* Ensure good contrast for sorted column text */
-    .table-dark .sorted-column,
-    .table-dark .sorted-column .column-header {
-        color: #ffffff !important;
-    }
-</style>

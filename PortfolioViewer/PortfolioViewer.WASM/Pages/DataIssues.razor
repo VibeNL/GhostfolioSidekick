@@ -1,0 +1,441 @@
+@page "/data-issues"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
+@using static GhostfolioSidekick.PortfolioViewer.WASM.Models.CurrencyDisplay
+@attribute [Authorize]
+
+<PageTitle>Data Issues</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h1 class="display-4">Data Issues</h1>
+            <p class="text-muted">Review potential data quality issues in your portfolio</p>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <!-- Loading State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Analyzing Data Quality...</h5>
+                        <p class="text-muted mb-0">Please wait while we scan for data issues.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <!-- Error State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!DataIssuesList.Any())
+    {
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                        <h5 class="text-success mt-3">No Data Issues Found</h5>
+                        <p class="text-muted mb-3">Great! Your portfolio data looks clean. All activities are properly associated with holdings.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Issue Type Filter -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Filter Issues</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="severityFilter" class="form-label">Severity</label>
+                                <select id="severityFilter" class="form-select" @bind="SelectedSeverity" @bind:after="FilterDataIssues">
+                                    <option value="">All Severities</option>
+                                    <option value="Error">Error</option>
+                                    <option value="Warning">Warning</option>
+                                    <option value="Info">Info</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="activityTypeFilter" class="form-label">Activity Type</label>
+                                <select id="activityTypeFilter" class="form-select" @bind="SelectedActivityType" @bind:after="FilterDataIssues">
+                                    <option value="">All Types</option>
+                                    @foreach (var activityType in ActivityTypes)
+                                    {
+                                        <option value="@activityType">@activityType</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="accountFilter" class="form-label">Account</label>
+                                <select id="accountFilter" class="form-select" @bind="SelectedAccount" @bind:after="FilterDataIssues">
+                                    <option value="">All Accounts</option>
+                                    @foreach (var account in Accounts)
+                                    {
+                                        <option value="@account">@account</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Activities Without Holdings (@FilteredDataIssuesList.Count)</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary" @onclick="ToggleListExpansion">
+                                <i class="bi @(IsListExpanded ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                                @(IsListExpanded ? "Collapse" : "Expand") List
+                            </button>
+                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@IsLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    @if (IsListExpanded)
+                    {
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="Date" 
+                                                                   DisplayName="Date" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="Severity" 
+                                                                   DisplayName="Severity" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="ActivityType" 
+                                                                   DisplayName="Activity Type" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="AccountName" 
+                                                                   DisplayName="Account" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col">Partial Identifiers</th>
+                                            <th scope="col" class="text-end">Quantity</th>
+                                            <th scope="col" class="text-end">Unit Price</th>
+                                            <th scope="col" class="text-end">Amount</th>
+                                            <th scope="col">Transaction ID</th>
+                                            <th scope="col">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var issue in FilteredDataIssuesList)
+                                        {
+                                            <tr class="issue-row" title="@issue.Description">
+                                                <td>
+                                                    <strong>@issue.Date.ToString("yyyy-MM-dd")</strong>
+                                                    <br>
+                                                    <small class="text-muted">@issue.Date.ToString("HH:mm")</small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge @GetSeverityClass(issue.Severity)">
+                                                        <i class="@GetSeverityIcon(issue.Severity)"></i>
+                                                        @issue.Severity
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge @GetActivityTypeClass(issue.ActivityType)">@issue.ActivityType</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">@issue.AccountName</span>
+                                                </td>
+                                                <td>
+                                                    @if (issue.PartialIdentifiers.Any())
+                                                    {
+                                                        <div class="partial-identifiers">
+                                                            @foreach (var identifier in issue.PartialIdentifiers)
+                                                            {
+                                                                <div class="partial-identifier-item mb-1">
+                                                                    <code class="text-primary">@identifier.Identifier</code>
+                                                                    @if (identifier.AllowedAssetClasses?.Any() == true || identifier.AllowedAssetSubClasses?.Any() == true)
+                                                                    {
+                                                                        <div class="small text-muted">
+                                                                            @if (identifier.AllowedAssetClasses?.Any() == true)
+                                                                            {
+                                                                                <span class="badge badge-outline-secondary me-1">
+                                                                                    AC: @string.Join(", ", identifier.AllowedAssetClasses)
+                                                                                </span>
+                                                                            }
+                                                                            @if (identifier.AllowedAssetSubClasses?.Any() == true)
+                                                                            {
+                                                                                <span class="badge badge-outline-secondary">
+                                                                                    ASC: @string.Join(", ", identifier.AllowedAssetSubClasses)
+                                                                                </span>
+                                                                            }
+                                                                        </div>
+                                                                    }
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td class="text-end">
+                                                    @if (issue.Quantity.HasValue)
+                                                    {
+                                                        @issue.Quantity.Value.ToString("N4")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td class="text-end">
+                                                    @if (issue.UnitPrice != null)
+                                                    {
+                                                        @DisplaySignAndAmount(issue.UnitPrice)
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td class="text-end">
+                                                    @if (issue.Amount != null)
+                                                    {
+                                                        <strong>@DisplaySignAndAmount(issue.Amount)</strong>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <small class="text-monospace">@issue.TransactionId</small>
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(issue.ActivityDescription))
+                                                    {
+                                                        <small>@issue.ActivityDescription</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="card-body text-center py-4 text-muted">
+                            <i class="bi bi-eye-slash" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">Data issues list is collapsed. Click "Expand List" to view details.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Issue Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <span>Total Issues:</span>
+                            <strong>@DataIssuesList.Count</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Filtered:</span>
+                            <strong>@FilteredDataIssuesList.Count</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Severity Breakdown</h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var severityGroup in SeverityBreakdown.OrderBy(x => GetSeverityOrder(x.Key)))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span class="badge @GetSeverityClass(severityGroup.Key) me-2">@severityGroup.Key</span>
+                                <strong>@severityGroup.Value</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Activity Types</h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var typeGroup in ActivityTypeBreakdown.OrderByDescending(x => x.Value).Take(5))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>@typeGroup.Key:</span>
+                                <strong>@typeGroup.Value</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Account Breakdown</h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var accountGroup in AccountBreakdown.OrderByDescending(x => x.Value).Take(5))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>@accountGroup.Key:</span>
+                                <strong>@accountGroup.Value</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information Panel -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    <h5 class="alert-heading"><i class="bi bi-info-circle-fill"></i> About Data Issues</h5>
+                    <p><strong>Activities Without Holdings</strong> indicates activities that are not associated with any portfolio holding. This can happen when:</p>
+                    <ul class="mb-3">
+                        <li>Symbol identifiers in the imported data couldn't be matched to known securities</li>
+                        <li>Manual symbol mapping is required for custom or unlisted securities</li>
+                        <li>Activities represent cash transactions that don't need holdings (deposits, withdrawals, fees)</li>
+                        <li>Data parsing issues resulted in incomplete symbol information</li>
+                    </ul>
+                    <p class="mb-3">
+                        <strong>Partial Identifiers</strong> show the symbol identifiers extracted from the activity along with their allowed asset classes (AC) and asset subclasses (ASC). 
+                        This information helps debug why symbol matching failed - the identifiers may be missing, incorrectly formatted, or the asset class constraints may be too restrictive.
+                    </p>
+                    <p class="mb-0">
+                        <strong>Error</strong> severity indicates activities that typically require holdings (Buy/Sell, Dividends) and may affect portfolio calculations.
+                        <strong>Warning</strong> severity indicates activities that might benefit from holdings but can function without them.
+                        <strong>Info</strong> severity indicates activities that normally don't require holdings (Cash deposits, interest payments).
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        width: 100%;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .table td, .table th {
+        white-space: nowrap;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .issue-row:hover {
+        background-color: #f8f9fa !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .issue-row {
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .table td:nth-child(5) {
+        max-width: 250px;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+    .table td:nth-child(10) {
+        max-width: 200px;
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+    .partial-identifiers .partial-identifier-item {
+        border-left: 3px solid #007bff;
+        padding-left: 8px;
+        margin-bottom: 4px;
+    }
+
+    .badge-outline-secondary {
+        color: #6c757d;
+        border: 1px solid #6c757d;
+        background-color: transparent;
+        font-size: 0.7em;
+        padding: 2px 6px;
+    }
+
+    .partial-identifier-item .small {
+        font-size: 0.75em;
+        line-height: 1.2;
+    }
+</style>

@@ -13,7 +13,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 	{
 		private readonly IApiWrapper apiWrapper;
 		private readonly MemoryCache memoryCache;
-		private readonly Mapping[] mappings;
 
 		public GhostfolioSymbolMatcher(IApplicationSettings settings, IApiWrapper apiWrapper, MemoryCache memoryCache)
 		{
@@ -21,7 +20,6 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
 			this.memoryCache = memoryCache;
 
-			this.mappings = settings.ConfigurationInstance.Mappings ?? [];
 			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
 		}
 
@@ -51,10 +49,15 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 			foreach (var identifier in symbolIdentifiers)
 			{
-				string[] ids = [.. new[] {
-					identifier.Identifier,
-					identifier.Identifier + "USD", // Add USD for Yahoo crypto
-					CryptoMapper.Instance.GetFullname(identifier.Identifier) }.Distinct()];
+				var ids = new List<string> { identifier.Identifier };
+
+				if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
+				{
+					ids.Add($"{identifier.Identifier}USD");
+					ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
+				}
+				
+				ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
 
 				var symbol = await FindByDataProvider(
 					ids,
@@ -138,15 +141,9 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			return x;
 		}
 
-		private bool MatchId(SymbolProfile x, string id)
+		private static bool MatchId(SymbolProfile x, string id)
 		{
 			if (string.Equals(x.ISIN, id, StringComparison.InvariantCultureIgnoreCase))
-			{
-				return true;
-			}
-
-			var mapping = mappings.FirstOrDefault(x => x.Source == id);
-			if (mapping != null)
 			{
 				return true;
 			}

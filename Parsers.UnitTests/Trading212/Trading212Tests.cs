@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US67066G1040")],
+						PartialSymbolIdentifier.CreateStockAndETF("US67066G1040", "NVDA", "NVIDIA"),
 						0.0267001M,
 						453.33M,
 						new Money(Currency.EUR, 11.02M),
@@ -224,7 +224,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2023, 08, 7, 19, 56, 2, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US67066G1040")],
+						PartialSymbolIdentifier.CreateStockAndETF("US67066G1040", "NVDA", "NVIDIA"),
 						0.0267001M,
 						453.33M,
 						new Money(Currency.EUR, 11.02M),
@@ -252,7 +252,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.GBX,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("GB0007188757")],
+						PartialSymbolIdentifier.CreateStockAndETF("GB0007188757", "RIO", "Rio Tinto"),
 						0.18625698M,
 						4947.00M,
 						new Money(Currency.EUR, 10.75M),
@@ -286,10 +286,30 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateDividend(
 						Currency.USD,
 						new DateTime(2023, 08, 17, 10, 49, 49, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US0378331005")],
+						PartialSymbolIdentifier.CreateStockAndETF("US0378331005", "AAPL", "Apple"),
 						0.025583540000M,
 						new Money(Currency.EUR, 0.02M),
 						"Dividend (Dividends paid by us corporations)_US0378331005_2023-08-17_0.02_USD")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleDividendAdjustment_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/Specials/single_dividend_adjustment.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2025, 04, 25, 11, 09, 30, 186, DateTimeKind.Utc),
+						0.01m,
+						new Money(Currency.EUR, 0.01m),
+						"3851d8fa-f982-4b7b-9fa2-26827ee302da")
 				]);
 		}
 
@@ -307,7 +327,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateDividend(
 						Currency.GBX,
 						new DateTime(2024, 01, 12, 13, 25, 07, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("GG00BYZSSY63")],
+						PartialSymbolIdentifier.CreateStockAndETF("GG00BYZSSY63", "DUKE", "Duke Royalty"),
 						478.496796400000M,
 						new Money(Currency.EUR, 5.57M),
 						"Dividend (Dividend)_GG00BYZSSY63_2024-01-12_5.57_GBX")
@@ -328,7 +348,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.GBX,
 						new DateTime(2023, 08, 9, 15, 25, 8, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("GB0007188757")],
+						PartialSymbolIdentifier.CreateStockAndETF("GB0007188757", "RIO", "Rio Tinto"),
 						0.18625698M,
 						4947.00M,
 						new Money(Currency.EUR, 10.75M),
@@ -382,7 +402,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("FR0010828137")],
+						PartialSymbolIdentifier.CreateStockAndETF("FR0010828137", "CARM", "Carmila"),
 						14.7252730000M,
 						13.88M,
 						new Money(Currency.EUR, 205),
@@ -410,7 +430,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 10, 9, 14, 28, 20, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("FR0010828137")],
+						PartialSymbolIdentifier.CreateStockAndETF("FR0010828137", "CARM", "Carmila"),
 						14.7252730000M,
 						13.88M,
 						new Money(Currency.EUR, 205),
@@ -438,7 +458,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateSell(
 						Currency.USD,
 						new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US7561091049")],
+						PartialSymbolIdentifier.CreateStockAndETF("US7561091049", "O", "Realty Income"),
 						0.2534760000M,
 						50.38M,
 						new Money(Currency.EUR, 12.08M),
@@ -466,7 +486,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateSell(
 						Currency.USD,
 						new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US7561091049")],
+						PartialSymbolIdentifier.CreateStockAndETF("US7561091049", "O", "Realty Income"),
 						0.2534760000M,
 						50.38M,
 						new Money(Currency.EUR, 12.08M),
@@ -494,7 +514,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateSell(
 						Currency.USD,
 						new DateTime(2023, 10, 9, 14, 26, 43, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US7561091049")],
+						PartialSymbolIdentifier.CreateStockAndETF("US7561091049", "O", "Realty Income"),
 						0.2534760000M,
 						50.38M,
 						new Money(Currency.EUR, 12.08M),
@@ -522,7 +542,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 					PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2024, 11, 07, 13, 20, 27, 947, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US84265V1052")],
+						PartialSymbolIdentifier.CreateStockAndETF("US84265V1052", "SCCO", "Southern Copper"),
 						0.0119387200M,
 						0M,
 						new Money(Currency.EUR, 0M),

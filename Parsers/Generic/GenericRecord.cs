@@ -9,6 +9,12 @@ namespace GhostfolioSidekick.Parsers.Generic
 
 		public string? Symbol { get; set; }
 
+		[Optional]
+		public string? ISIN { get; set; }
+
+		[Optional]
+		public string? Name { get; set; }
+
 		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]
 		public DateTime Date { get; set; }
 

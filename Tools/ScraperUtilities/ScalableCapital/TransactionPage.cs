@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				return null;
 			}
 
-			if (generatedTransaction is CashDepositWithdrawalActivity)
+			if (generatedTransaction is CashDepositActivity || generatedTransaction is CashWithdrawalActivity)
 			{
 				return new ActivityWithSymbol
 				{
@@ -144,7 +144,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			{
 				var dateDeposit = await GetHistoryDate("Deposit settled");
 
-				return new CashDepositWithdrawalActivity
+				return new CashDepositActivity
 				{
 					Amount = await GetMoneyField("Amount"),
 					Date = dateDeposit,
@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			{
 				var dateWithdrawal = await GetHistoryDate("Withdrawal settled");
 
-				return new CashDepositWithdrawalActivity
+				return new CashWithdrawalActivity
 				{
 					Amount = (await GetMoneyField("Amount")).Times(-1),
 					Date = dateWithdrawal,
@@ -179,12 +179,25 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 					fee = await GetMoneyField("Order fee");
 				}
 
-				return new BuySellActivity
+				if (isSell)
 				{
-					Quantity = (isSell ? -1 : 1) * await GetField<decimal>("Executed quantity"),
+					return new SellActivity
+					{
+						Quantity = (isSell ? -1 : 1) * await GetField<decimal>("Executed quantity"),
+						UnitPrice = await GetMoneyField("Execution price"),
+						TotalTransactionAmount = await GetMoneyField("Market valuation"),
+						Fees = fee != null ? [new SellActivityFee(fee)] : [],
+						Date = date,
+						TransactionId = await GetField<string>("Transaction reference"),
+					};
+				}
+
+				return new BuyActivity
+				{
+					Quantity = await GetField<decimal>("Executed quantity"),
 					UnitPrice = await GetMoneyField("Execution price"),
 					TotalTransactionAmount = await GetMoneyField("Market valuation"),
-					Fees = fee != null ? [new BuySellActivityFee(fee)] : [],
+					Fees = fee != null ? [new BuyActivityFee(fee)] : [],
 					Date = date,
 					TransactionId = await GetField<string>("Transaction reference"),
 				};
