@@ -22,16 +22,38 @@ namespace GhostfolioSidekick.Performance
 
 			if (holdings == null || !holdings.Any())
 			{
+				// If no holdings are calculated, remove all existing holdings
+				await DeleteAllHoldings();
 				return;
+			}
+
+			// Get all existing holdings from database
+			var existingHoldings = await databaseContext.HoldingAggregateds
+				.Include(h => h.CalculatedSnapshots)
+				.ToListAsync();
+
+			// Create lookup for new holdings by their key (Symbol, AssetClass, AssetSubClass)
+			var newHoldingKeys = holdings
+				.Select(h => new { h.Symbol, h.AssetClass, h.AssetSubClass })
+				.ToHashSet();
+
+			// Find obsolete holdings that should be deleted
+			var obsoleteHoldings = existingHoldings
+				.Where(existing => !newHoldingKeys.Contains(new { existing.Symbol, existing.AssetClass, existing.AssetSubClass }))
+				.ToList();
+
+			// Delete obsolete holdings
+			if (obsoleteHoldings.Any())
+			{
+				databaseContext.HoldingAggregateds.RemoveRange(obsoleteHoldings);
 			}
 
 			// Update holdings and their snapshots
 			foreach (var holding in holdings)
 			{
 				// Try to find existing entity with its snapshots
-				var existing = await databaseContext.HoldingAggregateds
-					.Include(h => h.CalculatedSnapshots)
-					.FirstOrDefaultAsync(h =>
+				var existing = existingHoldings
+					.FirstOrDefault(h =>
 						h.Symbol == holding.Symbol &&
 						h.AssetClass == holding.AssetClass &&
 						h.AssetSubClass == holding.AssetSubClass);
@@ -47,6 +69,16 @@ namespace GhostfolioSidekick.Performance
 			}
 
 			await databaseContext.SaveChangesAsync();
+		}
+
+		private async Task DeleteAllHoldings()
+		{
+			var allHoldings = await databaseContext.HoldingAggregateds.ToListAsync();
+			if (allHoldings.Any())
+			{
+				databaseContext.HoldingAggregateds.RemoveRange(allHoldings);
+				await databaseContext.SaveChangesAsync();
+			}
 		}
 
 		private static void UpdateExistingHolding(HoldingAggregated existing, HoldingAggregated holding)

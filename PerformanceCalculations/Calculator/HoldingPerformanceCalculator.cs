@@ -280,13 +280,15 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				{
 					case BuyActivity:
 					case ReceiveActivity:
+					case GiftAssetActivity:
+					case StakingRewardActivity:
 						sign = 1;
 						break;
 					case SellActivity:
-						case SendActivity:
+					case SendActivity:
 						sign = -1;
 						break;
-						default:
+					default:
 						throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}");
 				}
 
