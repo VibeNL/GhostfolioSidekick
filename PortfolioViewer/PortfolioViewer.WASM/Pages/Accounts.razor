@@ -1,0 +1,289 @@
+@page "/accounts"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+@attribute [Authorize]
+
+<PageTitle>Accounts</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h1 class="display-4">Account Values Over Time</h1>
+            <p class="text-muted">View the value progression of each account over time</p>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <!-- Loading State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Account Data...</h5>
+                        <p class="text-muted mb-0">Please wait while we fetch your account value information.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <!-- Error State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
+                        <i class="bi bi-arrow-clockwise"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!AccountsData.Any())
+    {
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-bank text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">No Account Data Found</h5>
+                        <p class="text-muted mb-3">No account value data found for your current date range.</p>
+                        <button class="btn btn-primary" @onclick="RefreshDataAsync">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Main Content -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Account Value History (@AccountsData.Count records)</h5>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn @(ViewMode == "chart" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => ViewMode = "chart")">
+                                    <i class="bi bi-bar-chart-line"></i> Chart
+                                </button>
+                                <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => ViewMode = "table")">
+                                    <i class="bi bi-table"></i> Table
+                                </button>
+                            </div>
+                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@IsLoading">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewMode == "chart")
+                        {
+                            <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="Date" 
+                                                                   DisplayName="Date" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="Account" 
+                                                                   DisplayName="Account" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="Value" 
+                                                                   DisplayName="Total Value" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="Invested" 
+                                                                   DisplayName="Total Invested" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="Balance" 
+                                                                   DisplayName="Cash Balance" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="GainLoss" 
+                                                                   DisplayName="Gain/Loss" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="GainLossPercentage" 
+                                                                   DisplayName="%" 
+                                                                   CurrentSortColumn="@sortColumn" 
+                                                                   IsAscending="@sortAscending" 
+                                                                   OnSort="SortBy" />
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var account in AccountDisplayData)
+                                        {
+                                            <tr class="account-row">
+                                                <td>
+                                                    <strong>@account.Date.ToString("yyyy-MM-dd")</strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">@account.AccountName</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@account.Value)</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    @CurrencyDisplay.DisplaySignAndAmount(@account.Invested)
+                                                </td>
+                                                <td class="text-end">
+                                                    @CurrencyDisplay.DisplaySignAndAmount(@account.Balance)
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(account.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                        @CurrencyDisplay.DisplaySignAndAmount(@account.GainLoss)
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(account.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                        @account.GainLossPercentage.ToString("P2")
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Date Range</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <span>From:</span>
+                            <strong>@FilterState.StartDate.ToString("yyyy-MM-dd")</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>To:</span>
+                            <strong>@FilterState.EndDate.ToString("yyyy-MM-dd")</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Total Records:</span>
+                            <strong>@AccountsData.Count</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Accounts Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var accountGroup in AccountBreakdown.OrderByDescending(x => x.Value))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>@accountGroup.Key:</span>
+                                <strong>@accountGroup.Value</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">Latest Values</h6>
+                    </div>
+                    <div class="card-body">
+                        @if (LatestAccountValues.Any())
+                        {
+                            @foreach (var latest in LatestAccountValues.Take(5))
+                            {
+                                <div class="d-flex justify-content-between">
+                                    <span>@latest.AccountName:</span>
+                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)</strong>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">No data available</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        width: 100%;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .table td, .table th {
+        white-space: nowrap;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .account-row:hover {
+        background-color: #f8f9fa !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .account-row {
+        transition: background-color 0.15s ease-in-out;
+    }
+</style>

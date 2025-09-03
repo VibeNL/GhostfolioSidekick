@@ -183,6 +183,42 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                     new Account { Id = 2, Name = "Test Account 2" }
                 });
             }
+
+            public Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
+                Currency targetCurrency,
+                DateTime startDate,
+                DateTime endDate,
+                CancellationToken cancellationToken = default)
+            {
+                // Return fake account value history for testing
+                var history = new List<AccountValueHistoryPoint>();
+                var currentDate = DateOnly.FromDateTime(startDate);
+                var endDateOnly = DateOnly.FromDateTime(endDate);
+                var accounts = new[]
+                {
+                    new Account { Id = 1, Name = "Test Account 1" },
+                    new Account { Id = 2, Name = "Test Account 2" }
+                };
+
+                foreach (var account in accounts)
+                {
+                    var date = currentDate;
+                    while (date <= endDateOnly && history.Count < 100) // Limit to prevent too much test data
+                    {
+                        history.Add(new AccountValueHistoryPoint
+                        {
+                            Date = date,
+                            Account = account,
+                            Value = new Money(targetCurrency, 1000m + (account.Id * 500m) + (date.DayNumber % 100)),
+                            Invested = new Money(targetCurrency, 800m + (account.Id * 400m) + (date.DayNumber % 80)),
+                            Balance = new Money(targetCurrency, 100m + (account.Id * 50m))
+                        });
+                        date = date.AddDays(7); // Weekly data for testing
+                    }
+                }
+
+                return Task.FromResult(history);
+            }
         }
 
         [Fact]

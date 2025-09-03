@@ -97,5 +97,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         /// <param name="symbol">Symbol to filter by</param>
         /// <returns>List of accounts that have the specified symbol</returns>
         Task<List<Account>> GetAccountsBySymbolAsync(string symbol);
+
+        /// <summary>
+        /// Loads account value history for all accounts over time
+        /// </summary>
+        /// <param name="targetCurrency">Currency to convert values to</param>
+        /// <param name="startDate">Start date for the time series</param>
+        /// <param name="endDate">End date for the time series</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>List of account value history points</returns>
+        Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
+            Currency targetCurrency,
+            DateTime startDate,
+            DateTime endDate,
+            CancellationToken cancellationToken = default);
     }
 }

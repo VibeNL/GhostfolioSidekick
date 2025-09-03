@@ -91,21 +91,63 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				{
 					// Calculate quantity-weighted average prices and sum total values
 					var firstCurrency = latestSnapshots.First().CurrentUnitPrice.Currency;
-					var totalValueAtCurrentPrice = Money.Zero(firstCurrency);
-					var totalValueAtAveragePrice = Money.Zero(firstCurrency);
-					aggregatedTotalValue = Money.Zero(firstCurrency);
-					aggregatedTotalInvested = Money.Zero(firstCurrency);
+					
+					decimal totalValueAtCurrentPriceAmount = 0;
+					decimal totalValueAtAveragePriceAmount = 0;
+					decimal aggregatedTotalValueAmount = 0;
+					decimal aggregatedTotalInvestedAmount = 0;
 					
 					foreach (var snapshot in latestSnapshots)
 					{
 						var valueAtCurrentPrice = snapshot.CurrentUnitPrice.Times(snapshot.Quantity);
 						var valueAtAveragePrice = snapshot.AverageCostPrice.Times(snapshot.Quantity);
 						
-						totalValueAtCurrentPrice = totalValueAtCurrentPrice.Add(valueAtCurrentPrice);
-						totalValueAtAveragePrice = totalValueAtAveragePrice.Add(valueAtAveragePrice);
-						aggregatedTotalValue = aggregatedTotalValue.Add(snapshot.TotalValue);
-						aggregatedTotalInvested = aggregatedTotalInvested.Add(snapshot.TotalInvested);
+						// Convert to first currency if needed and sum amounts
+						if (valueAtCurrentPrice.Currency == firstCurrency)
+						{
+							totalValueAtCurrentPriceAmount += valueAtCurrentPrice.Amount;
+						}
+						else
+						{
+							var converted = await currencyExchange.ConvertMoney(valueAtCurrentPrice, firstCurrency, latestDate);
+							totalValueAtCurrentPriceAmount += converted.Amount;
+						}
+						
+						if (valueAtAveragePrice.Currency == firstCurrency)
+						{
+							totalValueAtAveragePriceAmount += valueAtAveragePrice.Amount;
+						}
+						else
+						{
+							var converted = await currencyExchange.ConvertMoney(valueAtAveragePrice, firstCurrency, latestDate);
+							totalValueAtAveragePriceAmount += converted.Amount;
+						}
+						
+						if (snapshot.TotalValue.Currency == firstCurrency)
+						{
+							aggregatedTotalValueAmount += snapshot.TotalValue.Amount;
+						}
+						else
+						{
+							var converted = await currencyExchange.ConvertMoney(snapshot.TotalValue, firstCurrency, latestDate);
+							aggregatedTotalValueAmount += converted.Amount;
+						}
+						
+						if (snapshot.TotalInvested.Currency == firstCurrency)
+						{
+							aggregatedTotalInvestedAmount += snapshot.TotalInvested.Amount;
+						}
+						else
+						{
+							var converted = await currencyExchange.ConvertMoney(snapshot.TotalInvested, firstCurrency, latestDate);
+							aggregatedTotalInvestedAmount += converted.Amount;
+						}
 					}
+					
+					var totalValueAtCurrentPrice = new Money(firstCurrency, totalValueAtCurrentPriceAmount);
+					var totalValueAtAveragePrice = new Money(firstCurrency, totalValueAtAveragePriceAmount);
+					aggregatedTotalValue = new Money(firstCurrency, aggregatedTotalValueAmount);
+					aggregatedTotalInvested = new Money(firstCurrency, aggregatedTotalInvestedAmount);
 					
 					aggregatedCurrentPrice = totalValueAtCurrentPrice.SafeDivide(totalQuantity);
 					aggregatedAveragePrice = totalValueAtAveragePrice.SafeDivide(totalQuantity);
@@ -314,6 +356,155 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 		}
 
+		public async Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
+			Currency targetCurrency,
+			DateTime startDate,
+			DateTime endDate,
+			CancellationToken cancellationToken = default)
+		{
+			try
+			{
+				logger.LogInformation("Loading account value history from {StartDate} to {EndDate} in {Currency}...", 
+					startDate, endDate, targetCurrency.Symbol);
+
+				var startDateOnly = DateOnly.FromDateTime(startDate);
+				var endDateOnly = DateOnly.FromDateTime(endDate);
+
+				// Get all accounts first
+				var accounts = await databaseContext.Accounts
+					.AsNoTracking()
+					.OrderBy(a => a.Name)
+					.ToListAsync(cancellationToken);
+
+				if (!accounts.Any())
+				{
+					logger.LogInformation("No accounts found");
+					return new List<AccountValueHistoryPoint>();
+				}
+
+				// Optimization 1: Bulk query for all snapshots and balances
+				var allSnapshots = await databaseContext.CalculatedSnapshots
+					.Where(s => s.Date >= startDateOnly && s.Date <= endDateOnly)
+					.OrderBy(s => s.Date)
+					.AsNoTracking()
+					.ToListAsync(cancellationToken);
+
+				var allBalances = await databaseContext.Set<Balance>()
+					.Where(b => b.Date >= startDateOnly && b.Date <= endDateOnly)
+					.OrderBy(b => b.Date)
+					.AsNoTracking()
+					.ToListAsync(cancellationToken);
+
+				// Group data by account for processing
+				var snapshotsByAccount = allSnapshots.GroupBy(s => s.AccountId).ToDictionary(g => g.Key, g => g.ToList());
+				var balancesByAccount = allBalances.GroupBy(b => b.AccountId).ToDictionary(g => g.Key, g => g.ToList());
+
+				// Filter accounts that have data
+				var accountsWithData = accounts.Where(a => 
+					snapshotsByAccount.ContainsKey(a.Id) || balancesByAccount.ContainsKey(a.Id)).ToList();
+
+				if (!accountsWithData.Any())
+				{
+					logger.LogInformation("No account data found for the specified date range");
+					return new List<AccountValueHistoryPoint>();
+				}
+
+				// Optimization 2: Currency conversion caching
+				var currencyConversionCache = new Dictionary<string, Money>();
+				
+				var result = new List<AccountValueHistoryPoint>();
+
+				// Process each account
+				foreach (var account in accountsWithData)
+				{
+					var accountSnapshots = snapshotsByAccount.GetValueOrDefault(account.Id, new List<CalculatedSnapshot>());
+					var accountBalances = balancesByAccount.GetValueOrDefault(account.Id, new List<Balance>());
+
+					// Group snapshots by date for faster lookups
+					var snapshotsByDate = accountSnapshots.GroupBy(s => s.Date).ToDictionary(g => g.Key, g => g.ToList());
+					var balancesByDate = accountBalances.ToDictionary(b => b.Date, b => b);
+
+					// Get all dates that have data for this account
+					var accountDates = accountSnapshots.Select(s => s.Date)
+						.Union(accountBalances.Select(b => b.Date))
+						.Distinct()
+						.OrderBy(d => d);
+
+					foreach (var date in accountDates)
+					{
+						decimal totalValueAmount = 0;
+						decimal totalInvestedAmount = 0;
+						decimal accountBalanceAmount = 0;
+
+						// Process snapshots for this date
+						if (snapshotsByDate.TryGetValue(date, out var dateSnapshots))
+						{
+							// Group by currency to minimize conversions
+							var snapshotsByCurrency = dateSnapshots.GroupBy(s => s.TotalValue.Currency).ToList();
+
+							foreach (var currencyGroup in snapshotsByCurrency)
+							{
+								var currency = currencyGroup.Key;
+								var totalValueInCurrency = currencyGroup.Sum(s => s.TotalValue.Amount);
+								var totalInvestedInCurrency = currencyGroup.Sum(s => s.TotalInvested.Amount);
+
+								// Use cache for currency conversion
+								var cacheKey = $"{currency.Symbol}_{date:yyyy-MM-dd}";
+								if (!currencyConversionCache.TryGetValue(cacheKey, out var conversionRate))
+								{
+									conversionRate = await currencyExchange.ConvertMoney(
+										new Money(currency, 1), targetCurrency, date);
+									currencyConversionCache[cacheKey] = conversionRate;
+								}
+
+								totalValueAmount += totalValueInCurrency * conversionRate.Amount;
+								totalInvestedAmount += totalInvestedInCurrency * conversionRate.Amount;
+							}
+						}
+
+						// Process balance for this date (get most recent balance up to this date)
+						var relevantBalance = accountBalances
+							.Where(b => b.Date <= date)
+							.OrderByDescending(b => b.Date)
+							.FirstOrDefault();
+
+						if (relevantBalance != null)
+						{
+							var cacheKey = $"{relevantBalance.Money.Currency.Symbol}_{date:yyyy-MM-dd}";
+							if (!currencyConversionCache.TryGetValue(cacheKey, out var conversionRate))
+							{
+								conversionRate = await currencyExchange.ConvertMoney(
+									new Money(relevantBalance.Money.Currency, 1), targetCurrency, date);
+								currencyConversionCache[cacheKey] = conversionRate;
+							}
+
+							accountBalanceAmount = relevantBalance.Money.Amount * conversionRate.Amount;
+						}
+
+						// Create the result point
+						result.Add(new AccountValueHistoryPoint
+						{
+							Date = date,
+							Account = account,
+							Value = new Money(targetCurrency, totalValueAmount + accountBalanceAmount),
+							Invested = new Money(targetCurrency, totalInvestedAmount),
+							Balance = new Money(targetCurrency, accountBalanceAmount)
+						});
+					}
+				}
+
+				logger.LogInformation("Successfully loaded account value history for {AccountCount} accounts across {PointCount} data points using optimized query", 
+					accountsWithData.Count, result.Count);
+				
+				return result.OrderBy(r => r.Date).ThenBy(r => r.Account.Name).ToList();
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load account value history from database");
+				throw new InvalidOperationException("Failed to load account value history. Please try again later.", ex);
+			}
+		}
+
 		public async Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
 			string symbol,
 			DateTime startDate,
@@ -355,17 +546,40 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				else
 				{
 					// Calculate quantity-weighted average prices
-					var totalValueAtCurrentPrice = Money.Zero(snapshotGroup.Snapshots.First().CurrentUnitPrice.Currency);
-					var totalValueAtAveragePrice = Money.Zero(snapshotGroup.Snapshots.First().AverageCostPrice.Currency);
+					var firstCurrency = snapshotGroup.Snapshots.First().CurrentUnitPrice.Currency;
+					
+					decimal totalValueAtCurrentPriceAmount = 0;
+					decimal totalValueAtAveragePriceAmount = 0;
 					
 					foreach (var snapshot in snapshotGroup.Snapshots)
 					{
 						var valueAtCurrentPrice = snapshot.CurrentUnitPrice.Times(snapshot.Quantity);
 						var valueAtAveragePrice = snapshot.AverageCostPrice.Times(snapshot.Quantity);
 						
-						totalValueAtCurrentPrice = totalValueAtCurrentPrice.Add(valueAtCurrentPrice);
-						totalValueAtAveragePrice = totalValueAtAveragePrice.Add(valueAtAveragePrice);
+						// Convert to first currency if needed and sum amounts
+						if (valueAtCurrentPrice.Currency == firstCurrency)
+						{
+							totalValueAtCurrentPriceAmount += valueAtCurrentPrice.Amount;
+						}
+						else
+						{
+							var converted = await currencyExchange.ConvertMoney(valueAtCurrentPrice, firstCurrency, snapshotGroup.Date);
+							totalValueAtCurrentPriceAmount += converted.Amount;
+						}
+						
+						if (valueAtAveragePrice.Currency == firstCurrency)
+						{
+							totalValueAtAveragePriceAmount += valueAtAveragePrice.Amount;
+						}
+						else
+						{
+							var converted = await currencyExchange.ConvertMoney(valueAtAveragePrice, firstCurrency, snapshotGroup.Date);
+							totalValueAtAveragePriceAmount += converted.Amount;
+						}
 					}
+					
+					var totalValueAtCurrentPrice = new Money(firstCurrency, totalValueAtCurrentPriceAmount);
+					var totalValueAtAveragePrice = new Money(firstCurrency, totalValueAtAveragePriceAmount);
 					
 					aggregatedCurrentPrice = totalValueAtCurrentPrice.SafeDivide(totalQuantity);
 					aggregatedAveragePrice = totalValueAtAveragePrice.SafeDivide(totalQuantity);

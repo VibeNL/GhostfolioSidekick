@@ -10,6 +10,8 @@ namespace GhostfolioSidekick.Configuration
 		private const string DATABASEPATH = "DATABASE_PATH";
 		private const string CONFIGURATIONFILE = "CONFIGURATIONFILE_PATH";
 		private const string TROTTLETIMEOUT = "TROTTLE_WAITINSECONDS";
+		private const string DATABASE_QUERY_TIMEOUT = "DATABASE_QUERY_TIMEOUT_SECONDS";
+		private const string ENABLE_DATABASE_PERFORMANCE_LOGGING = "ENABLE_DATABASE_PERFORMANCE_LOGGING";
 
 		public ApplicationSettings(ILogger<ApplicationSettings> logger)
 		{
@@ -63,7 +65,18 @@ namespace GhostfolioSidekick.Configuration
 				return url;
 			}
 		}
+		
 		public int TrottleTimeout => GetTimeout();
+
+		/// <summary>
+		/// Database query timeout in seconds for complex queries. Default is 120 seconds.
+		/// </summary>
+		public int DatabaseQueryTimeoutSeconds => GetDatabaseQueryTimeout();
+
+		/// <summary>
+		/// Whether to enable detailed database performance logging. Default is false.
+		/// </summary>
+		public bool EnableDatabasePerformanceLogging => GetDatabasePerformanceLogging();
 
 		private static int GetTimeout()
 		{
@@ -73,6 +86,26 @@ namespace GhostfolioSidekick.Configuration
 			}
 
 			return 0;
+		}
+
+		private static int GetDatabaseQueryTimeout()
+		{
+			if (int.TryParse(Environment.GetEnvironmentVariable(DATABASE_QUERY_TIMEOUT), out int timeoutInSeconds))
+			{
+				return timeoutInSeconds;
+			}
+
+			return 120; // Default 2 minutes for complex portfolio queries
+		}
+
+		private static bool GetDatabasePerformanceLogging()
+		{
+			if (bool.TryParse(Environment.GetEnvironmentVariable(ENABLE_DATABASE_PERFORMANCE_LOGGING), out bool enabled))
+			{
+				return enabled;
+			}
+
+			return false; // Default disabled
 		}
 
 		public ConfigurationInstance ConfigurationInstance
