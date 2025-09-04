@@ -218,7 +218,7 @@
 			{
 				Amount = source.Amount
 			};
-			yield return new PartialActivity(PartialActivityType.CashDeposit, date, target.Currency, totalTransactionAmount, transactionId + "[CurrencyConvertSource]")
+			yield return new PartialActivity(PartialActivityType.CashDeposit, date, target.Currency, totalTransactionAmount, transactionId + "[CurrencyConvertTarget]")
 			{
 				Amount = target.Amount
 			};

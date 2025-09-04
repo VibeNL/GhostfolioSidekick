@@ -373,18 +373,18 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 			// Assert
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
-					PartialActivity.CreateCashDeposit(
-						Currency.EUR,
-						new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc),
-						0.01M,
-						new Money(Currency.GBP, 0),
-						"RBLF1WQUEL4OG5D3"),
 					PartialActivity.CreateCashWithdrawal(
 						Currency.GBP,
 						new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc),
 						0.01M,
 						new Money(Currency.GBP, 0),
-						"RBLF1WQUEL4OG5D3")
+						"RBLF1WQUEL4OG5D3[CurrencyConvertSource]"),
+					PartialActivity.CreateCashDeposit(
+						Currency.EUR,
+						new DateTime(2023, 09, 25, 17, 31, 38, 897, DateTimeKind.Utc),
+						0.01M,
+						new Money(Currency.GBP, 0),
+						"RBLF1WQUEL4OG5D3[CurrencyConvertTarget]")
 				]);
 		}
 
