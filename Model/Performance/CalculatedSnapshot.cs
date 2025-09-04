@@ -44,5 +44,10 @@
 		}
 
 		public static CalculatedSnapshot Empty(Currency currency, int accountId) => new(0, accountId, DateOnly.MinValue, 0, Money.Zero(currency), Money.Zero(currency), Money.Zero(currency), Money.Zero(currency));
+
+		public override string ToString()
+		{
+			return $"CalculatedSnapshot(Id={Id}, AccountId={AccountId}, Date={Date}, Quantity={Quantity}, AverageCostPrice={AverageCostPrice}, CurrentUnitPrice={CurrentUnitPrice}, TotalInvested={TotalInvested}, TotalValue={TotalValue})";
+		}
 	}
 }

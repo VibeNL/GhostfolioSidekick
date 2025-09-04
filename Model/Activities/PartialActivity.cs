@@ -274,17 +274,15 @@
 			decimal? targetUnitprice,
 			string transactionId)
 		{
-			yield return new PartialActivity(PartialActivityType.Send, date, Currency.USD, new Money(Currency.EUR, 0), transactionId)
+			yield return new PartialActivity(PartialActivityType.Send, date, Currency.USD, new Money(Currency.USD, 0), transactionId)
 			{
 				SymbolIdentifiers = source,
-				Amount = sourceAmount,
-				UnitPrice = sourceUnitprice
+				Amount = sourceAmount
 			};
-			yield return new PartialActivity(PartialActivityType.Receive, date, Currency.USD, new Money(Currency.EUR, 0), transactionId)
+			yield return new PartialActivity(PartialActivityType.Receive, date, Currency.USD, new Money(Currency.USD, 0), transactionId)
 			{
 				SymbolIdentifiers = target,
-				Amount = targetAmount,
-				UnitPrice = targetUnitprice
+				Amount = targetAmount
 			};
 		}
 

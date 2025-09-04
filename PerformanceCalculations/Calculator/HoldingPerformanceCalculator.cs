@@ -217,19 +217,19 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				};
 
 				await ApplyActivitiesForDateAsync(
-				activitiesByDate,
-				date,
-				snapshot,
-				targetCurrency,
-				currencyExchange
+					activitiesByDate,
+					date,
+					snapshot,
+					targetCurrency,
+					currencyExchange
 				).ConfigureAwait(false);
 
 				var marketPrice = marketData.TryGetValue(date, out var closePrice) ? closePrice : lastKnownMarketPrice;
 				lastKnownMarketPrice = marketPrice;
 				var marketPriceConverted = await currencyExchange.ConvertMoney(
-				marketPrice,
-				targetCurrency,
-				date).ConfigureAwait(false);
+					marketPrice,
+					targetCurrency,
+					date).ConfigureAwait(false);
 				snapshot.CurrentUnitPrice = marketPriceConverted;
 				snapshot.TotalValue = marketPriceConverted.Times(snapshot.Quantity);
 
