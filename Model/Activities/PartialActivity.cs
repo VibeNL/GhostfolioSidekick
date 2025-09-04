@@ -214,11 +214,11 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			yield return new PartialActivity(PartialActivityType.CashWithdrawal, date, source.Currency, totalTransactionAmount, transactionId)
+			yield return new PartialActivity(PartialActivityType.CashWithdrawal, date, source.Currency, totalTransactionAmount, transactionId + "[CurrencyConvertSource]")
 			{
 				Amount = source.Amount
 			};
-			yield return new PartialActivity(PartialActivityType.CashDeposit, date, target.Currency, totalTransactionAmount, transactionId)
+			yield return new PartialActivity(PartialActivityType.CashDeposit, date, target.Currency, totalTransactionAmount, transactionId + "[CurrencyConvertSource]")
 			{
 				Amount = target.Amount
 			};
