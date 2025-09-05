@@ -19,6 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         [Parameter] public bool ShowAccountFilter { get; set; } = false;
         [Parameter] public bool ShowSymbolFilter { get; set; } = false;
         [Parameter] public bool ShowApplyButton { get; set; } = true;
+        [Parameter] public EventCallback OnFiltersApplied { get; set; }
 
         // Pending filter state that holds changes before applying
         private PendingFilterState _pendingFilterState = new();
@@ -536,6 +537,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             {
                 _pendingFilterState.ApplyTo(FilterState);
                 Logger?.LogInformation("Applied filter changes to FilterState");
+                
+                // Trigger the callback to collapse the hamburger menu
+                if (OnFiltersApplied.HasDelegate)
+                {
+                    await OnFiltersApplied.InvokeAsync();
+                }
             }
         }
 
