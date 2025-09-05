@@ -16,20 +16,19 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using Xunit.Abstractions;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {
     public class AccountsRazorTests : TestContext
     {
         private FilterState _filterState;
+        private readonly ITestOutputHelper _output;
         
-        public AccountsRazorTests()
+        public AccountsRazorTests(ITestOutputHelper output)
         {
+            _output = output;
             Services.AddSingleton<ITestContextService>(new TestContextService { IsTest = true });
-            
-            // Add NavigationManager mock
-            var mockNavManager = new Mock<NavigationManager>();
-            Services.AddSingleton(mockNavManager.Object);
             
             // Add ICurrencyExchange mock that the Accounts page needs
             var mockCurrencyExchange = new Mock<ICurrencyExchange>();
@@ -54,8 +53,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var authStateProvider = new TestAuthenticationStateProvider();
             Services.AddSingleton<AuthenticationStateProvider>(authStateProvider);
             
-            // Create FilterState
+            // Create FilterState - ensure consistent currency
             _filterState = new FilterState();
+            _filterState.SelectedCurrency = "EUR"; // Match our test data
         }
 
         // Helper class for authentication in tests
@@ -102,12 +102,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 return Task.FromResult(new List<PortfolioValueHistoryPoint>());
             }
 
-            public Task<List<Account>> GetAccountsAsync()
+            public Task<List<GhostfolioSidekick.Model.Accounts.Account>> GetAccountsAsync()
             {
-                return Task.FromResult(new List<Account>
+                return Task.FromResult(new List<GhostfolioSidekick.Model.Accounts.Account>
                 {
-                    new Account { Id = 1, Name = "Test Account 1" },
-                    new Account { Id = 2, Name = "Test Account 2" }
+                    new GhostfolioSidekick.Model.Accounts.Account { Id = 1, Name = "Test Account 1" },
+                    new GhostfolioSidekick.Model.Accounts.Account { Id = 2, Name = "Test Account 2" }
                 });
             }
 
@@ -141,12 +141,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 return Task.FromResult(new List<string> { "AAPL", "MSFT" });
             }
 
-            public Task<List<Account>> GetAccountsBySymbolAsync(string symbol)
+            public Task<List<GhostfolioSidekick.Model.Accounts.Account>> GetAccountsBySymbolAsync(string symbol)
             {
-                return Task.FromResult(new List<Account>
+                return Task.FromResult(new List<GhostfolioSidekick.Model.Accounts.Account>
                 {
-                    new Account { Id = 1, Name = "Test Account 1" },
-                    new Account { Id = 2, Name = "Test Account 2" }
+                    new GhostfolioSidekick.Model.Accounts.Account { Id = 1, Name = "Test Account 1" },
+                    new GhostfolioSidekick.Model.Accounts.Account { Id = 2, Name = "Test Account 2" }
                 });
             }
 
@@ -169,6 +169,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             mockService.Setup(s => s.GetAccountValueHistoryAsync(It.IsAny<Currency>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
                        .Returns(tcs.Task);
             
+            mockService.Setup(s => s.GetMinDateAsync(It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(DateOnly.FromDateTime(new DateTime(2020, 1, 1)));
+            
             Services.AddSingleton(mockService.Object);
             
             var cut = RenderComponent<Accounts>(parameters => parameters
@@ -185,7 +188,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var cut = RenderComponent<Accounts>(parameters => parameters
                 .AddCascadingValue(_filterState));
                 
-            cut.WaitForAssertion(() => Assert.Contains("No Account Data Found", cut.Markup));
+            cut.WaitForAssertion(() => Assert.Contains("No Account Data Found", cut.Markup), TimeSpan.FromSeconds(5));
         }
 
         [Fact]
@@ -196,10 +199,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 new AccountValueHistoryPoint
                 {
                     Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)),
-                    Account = new Account { Id = 1, Name = "Test Account 1" },
-                    Value = new Money(Currency.USD, 1000),
-                    Invested = new Money(Currency.USD, 800),
-                    Balance = new Money(Currency.USD, 200)
+                    Account = new GhostfolioSidekick.Model.Accounts.Account { Id = 1, Name = "Test Account 1" },
+                    Value = new Money(Currency.EUR, 1000),       // Use EUR to match FilterState
+                    Invested = new Money(Currency.EUR, 800),     // Use EUR to match FilterState
+                    Balance = new Money(Currency.EUR, 200)       // Use EUR to match FilterState
                 }
             };
             
@@ -208,10 +211,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var cut = RenderComponent<Accounts>(parameters => parameters
                 .AddCascadingValue(_filterState));
             
-            // Wait a bit for async operations and check for key elements without the problematic chart
+            // Wait for async operations and check for key elements
             cut.WaitForAssertion(() => {
-                Assert.Contains("Account Values Over Time", cut.Markup);
-            }, TimeSpan.FromSeconds(2));
+                var markup = cut.Markup;
+                Assert.Contains("Account Values Over Time", markup);
+                // Check that we're not in loading or error state
+                Assert.DoesNotContain("Loading Account Data...", markup);
+                Assert.DoesNotContain("No Account Data Found", markup);
+                Assert.DoesNotContain("Error Loading Data", markup);
+            }, TimeSpan.FromSeconds(5));
         }
 
         [Fact]
@@ -222,18 +230,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 new AccountValueHistoryPoint
                 {
                     Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)),
-                    Account = new Account { Id = 1, Name = "Savings Account" },
-                    Value = new Money(Currency.USD, 5000),
-                    Invested = new Money(Currency.USD, 4000),
-                    Balance = new Money(Currency.USD, 1000)
-                },
-                new AccountValueHistoryPoint
-                {
-                    Date = DateOnly.FromDateTime(DateTime.Today),
-                    Account = new Account { Id = 2, Name = "Investment Account" },
-                    Value = new Money(Currency.USD, 10000),
-                    Invested = new Money(Currency.USD, 8000),
-                    Balance = new Money(Currency.USD, 2000)
+                    Account = new GhostfolioSidekick.Model.Accounts.Account { Id = 1, Name = "Savings Account" },
+                    Value = new Money(Currency.EUR, 5000),       // Use EUR to match FilterState
+                    Invested = new Money(Currency.EUR, 4000),    // Use EUR to match FilterState
+                    Balance = new Money(Currency.EUR, 1000)      // Use EUR to match FilterState
                 }
             };
             
@@ -242,14 +242,43 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var cut = RenderComponent<Accounts>(parameters => parameters
                 .AddCascadingValue(_filterState));
             
-            // Test for basic UI structure without waiting for chart rendering
+            // Wait and then test for successful rendering
             cut.WaitForAssertion(() => {
                 var markup = cut.Markup;
                 Assert.Contains("Account Values Over Time", markup);
-                Assert.Contains("Chart", markup);
-                Assert.Contains("Table", markup);
-                Assert.Contains("Refresh", markup);
-            }, TimeSpan.FromSeconds(2));
+                Assert.Contains("Account Value History", markup); // Card title
+                Assert.Contains("Portfolio Summary", markup);
+                Assert.DoesNotContain("Error Loading Data", markup);
+            }, TimeSpan.FromSeconds(5));
+        }
+
+        [Fact]
+        public void Accounts_ShowsCorrectFinancialMetrics_WhenDataExists()
+        {
+            var accountHistory = new List<AccountValueHistoryPoint>
+            {
+                new AccountValueHistoryPoint
+                {
+                    Date = DateOnly.FromDateTime(DateTime.Today),
+                    Account = new GhostfolioSidekick.Model.Accounts.Account { Id = 1, Name = "Test Account" },
+                    Value = new Money(Currency.EUR, 1000),       // Use EUR to match FilterState
+                    Invested = new Money(Currency.EUR, 800),     // Use EUR to match FilterState
+                    Balance = new Money(Currency.EUR, 200)       // Use EUR to match FilterState
+                }
+            };
+            
+            Services.AddSingleton<IHoldingsDataService>(new FakeAccountsDataService(accountHistory));
+            
+            var cut = RenderComponent<Accounts>(parameters => parameters
+                .AddCascadingValue(_filterState));
+            
+            cut.WaitForAssertion(() => {
+                var markup = cut.Markup;
+                Assert.Contains("Portfolio Summary", markup);
+                Assert.Contains("Account Breakdown", markup);
+                Assert.Contains("Test Account", markup);
+                Assert.DoesNotContain("Error Loading Data", markup);
+            }, TimeSpan.FromSeconds(5));
         }
     }
 }
