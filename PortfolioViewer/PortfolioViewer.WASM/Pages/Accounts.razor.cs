@@ -52,6 +52,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         protected Dictionary<string, int> AccountBreakdown { get; set; } = new();
         protected List<AccountValueDisplayModel> LatestAccountValues { get; set; } = new();
 
+        // Financial metrics
+        protected Money TotalPortfolioValue { get; set; } = Money.Zero(Currency.EUR);
+        protected Money TotalAssetValue { get; set; } = Money.Zero(Currency.EUR);
+        protected Money TotalCashPosition { get; set; } = Money.Zero(Currency.EUR);
+
         private FilterState? _previousFilterState;
 
         protected override async Task OnInitializedAsync()
@@ -256,6 +261,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 .Select(g => g.OrderByDescending(a => a.Date).First())
                 .OrderByDescending(a => a.Value.Amount)
                 .ToList();
+
+            // Calculate financial metrics from latest values
+            var currency = Currency.GetCurrency(SelectedCurrency);
+            TotalPortfolioValue = LatestAccountValues.Aggregate(Money.Zero(currency), (sum, account) => sum.Add(account.Value));
+            TotalCashPosition = LatestAccountValues.Aggregate(Money.Zero(currency), (sum, account) => sum.Add(account.Balance));
+            TotalAssetValue = TotalPortfolioValue.Subtract(TotalCashPosition);
         }
 
         private void SortBy(string column)
