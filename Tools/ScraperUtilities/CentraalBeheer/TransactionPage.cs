@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 					{
 						return new CashWithdrawalActivity
 						{
-							Amount = amount.Times(-1),
+							Amount = amount,
 							Date = await GetDateField($"div[qa-id='verwerkingsdatum-{counter}']"),
 							TransactionId = Guid.NewGuid().ToString(),
 						};
@@ -146,7 +146,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 
 					return new SellActivity
 					{
-						Quantity = -1 * await GetField<decimal>($"div[qa-id='participaties-{counter}']"),
+						Quantity = await GetField<decimal>($"div[qa-id='participaties-{counter}']"),
 						UnitPrice = await GetMoneyField($"div[qa-id='koers-{counter}']"),
 						TotalTransactionAmount = await GetMoneyField($"div[qa-id='brutoBedrag-{counter}']"),
 						Fees = [],

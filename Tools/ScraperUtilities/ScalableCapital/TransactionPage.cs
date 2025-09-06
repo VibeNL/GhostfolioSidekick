@@ -158,7 +158,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 				return new CashWithdrawalActivity
 				{
-					Amount = (await GetMoneyField("Amount")).Times(-1),
+					Amount = (await GetMoneyField("Amount")),
 					Date = dateWithdrawal,
 					TransactionId = await GetField<string>("Transaction reference"),
 				};
@@ -183,7 +183,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				{
 					return new SellActivity
 					{
-						Quantity = (isSell ? -1 : 1) * await GetField<decimal>("Executed quantity"),
+						Quantity = await GetField<decimal>("Executed quantity"),
 						UnitPrice = await GetMoneyField("Execution price"),
 						TotalTransactionAmount = await GetMoneyField("Market valuation"),
 						Fees = fee != null ? [new SellActivityFee(fee)] : [],

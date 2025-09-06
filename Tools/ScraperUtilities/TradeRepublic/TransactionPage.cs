@@ -173,7 +173,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				{
 					Activity = new CashWithdrawalActivity
 					{
-						Amount = (await ParseMoneyFromHeader(headerText)).Times(-1),
+						Amount = (await ParseMoneyFromHeader(headerText)),
 						Date = parsedTime,
 						TransactionId = GenerateTransactionId(time, table),
 						Description = headerText,
