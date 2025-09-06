@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
                     Symbol = activity.Symbol,
                     Date = sellActivity.Date,
                     Currency = sellActivity.UnitPrice.Currency.Symbol,
-                    Quantity = sellActivity.Quantity * -1,
+                    Quantity = sellActivity.Quantity,
                     UnitPrice = sellActivity.UnitPrice.Amount,
                     Fee = Sum(sellActivity.Fees.Select(x => x.Money)),
                     Tax = Sum(sellActivity.Taxes.Select(x => x.Money)),
