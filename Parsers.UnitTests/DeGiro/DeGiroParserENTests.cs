@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						PartialActivity.CreateBuy(
 							Currency.USD,
 							new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
-							[PartialSymbolIdentifier.CreateStockAndETF("US40434L1052")],
+							PartialSymbolIdentifier.CreateStockAndETF("US40434L1052", "HP INC"),
 							5,
 							21.31m,
 							new Money(Currency.USD, 106.55M),
@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						PartialActivity.CreateBuy(
 							Currency.GBP,
 							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
-							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", "MORGAN STANLEY GBP LIQUIDITY FUND"),
 							0.5m,
 							1m,
 							new Money(Currency.GBP, 0.5M),
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						PartialActivity.CreateSell(
 							Currency.GBP,
 							new DateTime(2024, 08, 07, 15, 30, 0, DateTimeKind.Utc),
-							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", "MORGAN STANLEY GBP LIQUIDITY FUND"),
 							0.02m,
 							1m,
 							new Money(Currency.GBP, 0.02M),
@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateDividend(
 						Currency.USD,
 						new DateTime(2024, 07, 04, 7, 40, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("US40434L1052")],
+						PartialSymbolIdentifier.CreateStockAndETF("US40434L1052", "HP INC"),
 						1.38M,
 						new Money(Currency.USD, 1.38M),
 						transactionId!),
@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						PartialActivity.CreateDividend(
 							Currency.GBP,
 							new DateTime(2024, 08, 08, 15, 27, 0, DateTimeKind.Utc),
-							[PartialSymbolIdentifier.CreateStockAndETF("LU0904784781")],
+							PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", "MORGAN STANLEY GBP LIQUIDITY FUND"),
 							0.5m,
 							new Money(Currency.GBP, 0.5M),
 							"Dividend_2024-08-08 15:27:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_GBP")

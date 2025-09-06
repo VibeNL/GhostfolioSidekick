@@ -39,6 +39,8 @@ namespace GhostfolioSidekick.Model.Activities
 
 		public Money AdjustedUnitPrice { get; set; }
 
+		public Money TotalTransactionAmount { get; set; } = new Money();
+
 		public virtual List<CalculatedPriceTrace> AdjustedUnitPriceSource { get; set; } = [];
 	}
 }

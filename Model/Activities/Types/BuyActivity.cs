@@ -3,14 +3,14 @@ using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class BuySellActivity : ActivityWithQuantityAndUnitPrice
+	public record class BuyActivity : ActivityWithQuantityAndUnitPrice
 	{
-		public BuySellActivity()
+		public BuyActivity()
 		{
 			// EF Core
 		}
 
-		public BuySellActivity(
+		public BuyActivity(
 			Account account,
 			Holding? holding,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
@@ -23,10 +23,8 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		{
 		}
 
-		public virtual ICollection<BuySellActivityFee> Fees { get; set; } = [];
+		public virtual ICollection<BuyActivityFee> Fees { get; set; } = [];
 
-		public virtual ICollection<BuySellActivityTax> Taxes { get; set; } = [];
-
-		public Money TotalTransactionAmount { get; set; } = new Money();
+		public virtual ICollection<BuyActivityTax> Taxes { get; set; } = [];
 	}
 }

@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Activities.Strategies
 				var splitFactor = split.BeforeSplit / split.AfterSplit;
 				var inverseSplitFactor = split.AfterSplit / split.BeforeSplit;
 
-				foreach (var activity in holding.Activities.Where(x => x.Date < split.Date.ToDateTime(TimeOnly.MinValue)).OfType<ActivityWithQuantityAndUnitPrice>())
+				foreach (var activity in holding.Activities.Where(x => x.Date < split.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)).OfType<ActivityWithQuantityAndUnitPrice>())
 				{
 					activity.AdjustedUnitPrice = activity!.AdjustedUnitPrice.Times(splitFactor);
 					activity.AdjustedQuantity = activity!.AdjustedQuantity * inverseSplitFactor;

@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
                 MarketData = new List<MarketData> { marketData }
             };
 
-            var activity = new SendAndReceiveActivity
+            var activity = new ReceiveActivity
             {
                 Date = activityDate,
                 AdjustedQuantity = 10
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
                 MarketData = new List<MarketData> { marketData }
             };
 
-            var activity = new BuySellActivity
+            var activity = new BuyActivity
             {
                 Date = activityDate,
                 AdjustedQuantity = 10

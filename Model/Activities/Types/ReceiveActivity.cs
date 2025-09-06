@@ -3,14 +3,14 @@ using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record SendAndReceiveActivity : ActivityWithQuantityAndUnitPrice
+	public record ReceiveActivity : ActivityWithQuantityAndUnitPrice
 	{
-		public SendAndReceiveActivity()
+		public ReceiveActivity()
 		{
 			// EF Core
 		}
 
-		public SendAndReceiveActivity(
+		public ReceiveActivity(
 			Account account,
 			Holding? holding,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
@@ -22,6 +22,6 @@ namespace GhostfolioSidekick.Model.Activities.Types
 		{
 		}
 
-		public virtual ICollection<SendAndReceiveActivityFee> Fees { get; set; } = [];
+		public virtual ICollection<ReceiveActivityFee> Fees { get; set; } = [];
 	}
 }
