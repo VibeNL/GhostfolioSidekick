@@ -158,7 +158,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 				return new CashWithdrawalActivity
 				{
-					Amount = (await GetMoneyField("Amount")),
+					Amount = (await GetMoneyField("Amount")).Times(-1),
 					Date = dateWithdrawal,
 					TransactionId = await GetField<string>("Transaction reference"),
 				};
