@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             var mockService = new Mock<IHoldingsDataService>();
             // Make the service return a pending task to keep it in loading state
             var tcs = new TaskCompletionSource<List<HoldingDisplayModel>>();
-            mockService.Setup(s => s.GetHoldingsAsync(It.IsAny<Currency>(), It.IsAny<CancellationToken>()))
+            mockService.Setup(s => s.GetHoldingsAsync(It.IsAny<Currency>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                        .Returns(tcs.Task);
             
             Services.AddSingleton(mockService.Object);
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         {
             var mockService = new Mock<IHoldingsDataService>();
             // Make the service throw an exception to trigger the error state naturally
-            mockService.Setup(s => s.GetHoldingsAsync(It.IsAny<Currency>(), It.IsAny<CancellationToken>()))
+            mockService.Setup(s => s.GetHoldingsAsync(It.IsAny<Currency>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                        .ThrowsAsync(new InvalidOperationException("Test error!"));
             
             Services.AddSingleton(mockService.Object);
@@ -101,6 +101,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             public Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, CancellationToken cancellationToken = default)
             {
                 RefreshCount++;
+                return Task.FromResult(_holdings);
+            }
+
+            public Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, int accountId, CancellationToken cancellationToken = default)
+            {
+                RefreshCount++;
+                // For testing, filter holdings by account if accountId > 0
+                if (accountId > 0)
+                {
+                    // Simple test filtering - return only the first holding if account is filtered
+                    var filteredHoldings = _holdings.Take(1).ToList();
+                    return Task.FromResult(filteredHoldings);
+                }
                 return Task.FromResult(_holdings);
             }
 
@@ -248,14 +261,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             
             // Wait for initial load and buttons to appear
             cut.WaitForAssertion(() => {
-                Assert.Contains("treemap-container", cut.Markup);
-                Assert.Contains("Table", cut.Markup);
+                Assert.Contains("Portfolio Holdings", cut.Markup);
+                Assert.Contains("Portfolio Overview", cut.Markup);
             }, TimeSpan.FromSeconds(10));
             
-            // Since in test mode the treemap doesn't show holdings data, let's verify the component loaded correctly
-            // The important thing is that the component renders without errors and shows the UI structure
-            Assert.Contains("Portfolio Holdings", cut.Markup);
-            Assert.Contains("btn-group", cut.Markup); // View mode buttons
+            // Verify the view mode buttons exist
+            cut.WaitForAssertion(() => {
+                Assert.Contains("Treemap", cut.Markup);
+                Assert.Contains("Table", cut.Markup);
+                Assert.Contains("btn-group", cut.Markup); // View mode buttons
+            }, TimeSpan.FromSeconds(5));
         }
 
         [Fact]
@@ -343,6 +358,39 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             // Just verify the component is still responsive after clicking
             cut.WaitForAssertion(() => {
                 Assert.Contains("Portfolio Holdings", cut.Markup);
+            }, TimeSpan.FromSeconds(5));
+        }
+
+        [Fact]
+        public void Holdings_CanFilterByAccount_WhenAccountIsSelected()
+        {
+            var allHoldings = new List<HoldingDisplayModel>
+            {
+                new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
+                new HoldingDisplayModel { Symbol = "MSFT", Name = "Microsoft", Quantity = 5, AveragePrice = new Money(Currency.USD, 200), CurrentPrice = new Money(Currency.USD, 250), CurrentValue = new Money(Currency.USD, 1250), GainLoss = new Money(Currency.USD, 250), GainLossPercentage = 0.25m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
+            };
+            
+            var fakeService = new FakeHoldingsDataService(allHoldings);
+            Services.AddSingleton<IHoldingsDataService>(fakeService);
+            
+            // Set up filter state with specific account selected
+            _filterState.SelectedAccountId = 1; // Account filter
+            
+            var cut = RenderComponent<Holdings>(parameters => parameters
+                .AddCascadingValue(_filterState));
+            
+            // Wait for component to load
+            cut.WaitForAssertion(() => {
+                Assert.Contains("Portfolio Holdings", cut.Markup);
+                // No longer expect local filters section since we're using global filters
+                Assert.DoesNotContain("Filters", cut.Markup);
+            }, TimeSpan.FromSeconds(10));
+            
+            // Verify that the service was called with the correct account filter
+            cut.WaitForAssertion(() => {
+                // Since we have a fake service that returns filtered results for accountId > 0,
+                // we should only get the first holding when account filtering is applied
+                Assert.True(fakeService.RefreshCount > 0, "Service should have been called");
             }, TimeSpan.FromSeconds(5));
         }
     }

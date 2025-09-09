@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
         private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowCurrencyFilter || ShouldShowAccountFilters || ShouldShowSymbolFilter;
         private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage || IsTransactionsPage || IsAccountsPage);
         private bool ShouldShowCurrencyFilter => CurrentPageSupportsFilters;
-        private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage);
+        private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage || IsHoldingsPage);
         private bool ShouldShowSymbolFilter => CurrentPageSupportsFilters && IsTransactionsPage;
         
         private bool CurrentPageSupportsFilters => IsTimeSeriesPage || IsHoldingDetailPage || IsHoldingsPage || IsTransactionsPage || IsAccountsPage;

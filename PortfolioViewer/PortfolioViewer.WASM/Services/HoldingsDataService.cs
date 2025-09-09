@@ -18,9 +18,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			Currency targetCurrency,
 			CancellationToken cancellationToken = default)
 		{
+			return await GetHoldingsAsync(targetCurrency, 0, cancellationToken);
+		}
+
+		public async Task<List<HoldingDisplayModel>> GetHoldingsAsync(
+			Currency targetCurrency,
+			int accountId,
+			CancellationToken cancellationToken = default)
+		{
 			// Step 1: Get all holdings with their basic information (simple query that SQLite can handle)
-			var holdings = await databaseContext
+			var holdingsQuery = databaseContext
 				.HoldingAggregateds
+				.AsQueryable();
+
+			// If accountId is specified, filter holdings to only those that have snapshots for that account
+			if (accountId > 0)
+			{
+				holdingsQuery = holdingsQuery
+					.Where(h => h.CalculatedSnapshots.Any(s => s.AccountId == accountId));
+			}
+
+			var holdings = await holdingsQuery
 				.Select(h => new
 				{
 					Id = h.Id,
@@ -36,8 +54,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			foreach (var holding in holdings)
 			{
 				// Step 2: Get the latest date for this specific holding using EF.Property for shadow property
-				var latestDate = await databaseContext.CalculatedSnapshots
-					.Where(s => EF.Property<long>(s, "HoldingAggregatedId") == holding.Id)
+				var latestDateQuery = databaseContext.CalculatedSnapshots
+					.Where(s => EF.Property<long>(s, "HoldingAggregatedId") == holding.Id);
+
+				// Filter by account if specified
+				if (accountId > 0)
+				{
+					latestDateQuery = latestDateQuery.Where(s => s.AccountId == accountId);
+				}
+
+				var latestDate = await latestDateQuery
 					.OrderByDescending(s => s.Date)
 					.Select(s => s.Date)
 					.FirstOrDefaultAsync(cancellationToken);
@@ -66,11 +92,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				}
 
 				// Step 3: Get all snapshots for the latest date for this holding
-				var latestSnapshots = await databaseContext.CalculatedSnapshots
-					.Where(s => EF.Property<long>(s, "HoldingAggregatedId") == holding.Id && s.Date == latestDate)
-					.ToListAsync(cancellationToken);
+				var latestSnapshotsQuery = databaseContext.CalculatedSnapshots
+					.Where(s => EF.Property<long>(s, "HoldingAggregatedId") == holding.Id && s.Date == latestDate);
 
-				// Aggregate all snapshots for the latest date across all accounts
+				// Filter by account if specified
+				if (accountId > 0)
+				{
+					latestSnapshotsQuery = latestSnapshotsQuery.Where(s => s.AccountId == accountId);
+				}
+
+				var latestSnapshots = await latestSnapshotsQuery.ToListAsync(cancellationToken);
+
+				// Aggregate all snapshots for the latest date across filtered accounts
 				var totalQuantity = latestSnapshots.Sum(s => s.Quantity);
 				
 				Money aggregatedCurrentPrice;

@@ -74,18 +74,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (_previousFilterState == null) return true;
 			
-			// For Holdings, we only care about currency changes
-			return _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency;
+			// For Holdings, we care about currency and account changes
+			return _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency ||
+				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
 		{
-			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current currency: {FilterState.SelectedCurrency}");
+			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current currency: {FilterState.SelectedCurrency}, Current accountId: {FilterState.SelectedAccountId}");
 			
-			// Only react to currency changes for Holdings page
-			if (e.PropertyName == nameof(FilterState.SelectedCurrency))
+			// React to currency and account changes for Holdings page
+			if (e.PropertyName == nameof(FilterState.SelectedCurrency) ||
+				e.PropertyName == nameof(FilterState.SelectedAccountId))
 			{
-				Console.WriteLine($"Currency change detected in Holdings - New currency: {FilterState.SelectedCurrency}");
+				Console.WriteLine($"Filter change detected in Holdings - Currency: {FilterState.SelectedCurrency}, AccountId: {FilterState.SelectedAccountId}");
 				await InvokeAsync(async () =>
 				{
 					await LoadPortfolioDataAsync();
@@ -129,8 +131,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			try
 			{
 				var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
-				Console.WriteLine($"LoadRealPortfolioDataAsync - Using currency: {FilterState.SelectedCurrency} ({currency})");
-				return await HoldingsDataService?.GetHoldingsAsync(currency) ?? new List<HoldingDisplayModel>();
+				Console.WriteLine($"LoadRealPortfolioDataAsync - Using currency: {FilterState.SelectedCurrency} ({currency}), AccountId: {FilterState.SelectedAccountId}");
+				return await HoldingsDataService?.GetHoldingsAsync(currency, FilterState.SelectedAccountId) ?? new List<HoldingDisplayModel>();
 			}
 			catch (Exception ex)
 			{

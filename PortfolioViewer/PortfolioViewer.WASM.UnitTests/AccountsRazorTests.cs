@@ -87,6 +87,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 return Task.FromResult(new List<HoldingDisplayModel>());
             }
 
+            public Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, int accountId, CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(new List<HoldingDisplayModel>());
+            }
+
             public Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(DateOnly.FromDateTime(new DateTime(2020, 1, 1)));
