@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				{
 					dataIssue.Quantity = quantityActivity.Quantity;
 					dataIssue.UnitPrice = quantityActivity.UnitPrice;
-					dataIssue.Amount = quantityActivity.UnitPrice.Times(Math.Abs(quantityActivity.Quantity));
+					dataIssue.Amount = quantityActivity.UnitPrice.Times(quantityActivity.Quantity);
 				}
 				else if (activity is InterestActivity interestActivity)
 				{
