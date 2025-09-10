@@ -30,7 +30,7 @@
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.1" />
 		<PackageReference Include="AwesomeAssertions" Version="9.1.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Polly" Version="8.6.3" />
