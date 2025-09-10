@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 				return null;
 			}
 
-			if (generatedTransaction is CashDepositWithdrawalActivity)
+			if (generatedTransaction is CashDepositActivity || generatedTransaction is CashWithdrawalActivity)
 			{
 				return new ActivityWithSymbol
 				{
@@ -106,30 +106,50 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			switch (type)
 			{
 				case "Overboeking":
-					return new CashDepositWithdrawalActivity
+					var amount = await GetMoneyField($"div[qa-id='bedrag-{counter}']");	
+
+					if (amount.Amount < 0)
 					{
-						Amount = await GetMoneyField($"div[qa-id='brutoBedrag-{counter}']"),
+						return new CashWithdrawalActivity
+						{
+							Amount = amount,
+							Date = await GetDateField($"div[qa-id='verwerkingsdatum-{counter}']"),
+							TransactionId = Guid.NewGuid().ToString(),
+						};
+					}
+					
+					return new CashDepositActivity
+					{
+						Amount = amount,
 						Date = await GetDateField($"div[qa-id='verwerkingsdatum-{counter}']"),
 						TransactionId = Guid.NewGuid().ToString(),
 					};
 
 				case "Aankoop":
-				case "Verkoop":
-
-					var isSell = type == "Verkoop";
-					BuySellActivityFee[] fees = [];
-
+					BuyActivityFee[] fees = [];
 					if (await HasField($"div[qa-id='aankoopkosten-{counter}']"))
 					{
-						fees = [new BuySellActivityFee(await GetMoneyField($"div[qa-id='aankoopkosten-{counter}']"))];
+						fees = [new BuyActivityFee(await GetMoneyField($"div[qa-id='aankoopkosten-{counter}']"))];
 					}
 
-					return new BuySellActivity
+					return new BuyActivity
 					{
-						Quantity = (isSell ? -1 : 1) * await GetField<decimal>($"div[qa-id='participaties-{counter}']"),
+						Quantity = await GetField<decimal>($"div[qa-id='participaties-{counter}']"),
 						UnitPrice = await GetMoneyField($"div[qa-id='koers-{counter}']"),
 						TotalTransactionAmount = await GetMoneyField($"div[qa-id='brutoBedrag-{counter}']"),
 						Fees = fees,
+						Date = await GetDateField($"div[qa-id='verwerkingsdatum-{counter}']"),
+						TransactionId = Guid.NewGuid().ToString(),
+					};
+
+				case "Verkoop":
+
+					return new SellActivity
+					{
+						Quantity = await GetField<decimal>($"div[qa-id='participaties-{counter}']"),
+						UnitPrice = await GetMoneyField($"div[qa-id='koers-{counter}']"),
+						TotalTransactionAmount = await GetMoneyField($"div[qa-id='brutoBedrag-{counter}']"),
+						Fees = [],
 						Date = await GetDateField($"div[qa-id='verwerkingsdatum-{counter}']"),
 						TransactionId = Guid.NewGuid().ToString(),
 					};

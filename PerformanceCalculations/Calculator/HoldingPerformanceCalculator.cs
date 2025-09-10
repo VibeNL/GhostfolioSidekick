@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Performance;
@@ -139,11 +138,12 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 				foreach (var accountId in accountIds)
 				{
+					ICollection<Activity> activitiesForAccount = [.. activities.Where(x => x.AccountId == accountId).Select(x => x.Activity)];
 					var lst = await CalculateSnapShots(
 						defaultSymbolProfile.Currency, 
 						accountId,
-						symbolProfiles, 
-						activities.Where(x => x.AccountId == accountId).Select(x => x.Activity).ToList(), 
+						symbolProfiles,
+						activitiesForAccount, 
 						allMarketData).ConfigureAwait(false);
 					snapshots.AddRange(lst);
 				}
@@ -166,11 +166,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 		}
 
 		private async Task<ICollection<CalculatedSnapshot>> CalculateSnapShots(
-			Currency targetCurrency,
-			int accountId,
-			IList<SymbolProfile> symbolProfiles,
-			ICollection<Activity> activities,
-			Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, Money>> preLoadedMarketData)
+		Currency targetCurrency,
+		int accountId,
+		IList<SymbolProfile> symbolProfiles,
+		ICollection<Activity> activities,
+		Dictionary<(string Symbol, string DataSource), Dictionary<DateOnly, Money>> preLoadedMarketData)
 		{
 			if (activities.Count == 0)
 			{
@@ -179,14 +179,14 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 			var minDate = DateOnly.FromDateTime(activities.Min(x => x.Date));
 			var maxDate = DateOnly.FromDateTime(DateTime.Today);
-			
+
 			var dayCount = maxDate.DayNumber - minDate.DayNumber + 1;
 			var snapshots = new List<CalculatedSnapshot>(dayCount);
 
 			var activitiesByDate = activities
-				.OfType<BuySellActivity>()
-				.GroupBy(x => DateOnly.FromDateTime(x.Date))
-				.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
+			.OfType<ActivityWithQuantityAndUnitPrice>()
+			.GroupBy(x => DateOnly.FromDateTime(x.Date))
+			.ToDictionary(g => g.Key, g => g.OrderBy(x => x.Date).ToList());
 
 			var previousSnapshot = new CalculatedSnapshot(0, accountId, minDate.AddDays(-1), 0, Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency), Money.Zero(targetCurrency));
 
@@ -204,10 +204,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 
 			var lastKnownMarketPrice = marketData
-				.Where(x => x.Key <= minDate)
-				.OrderByDescending(x => x.Key)
-				.Select(x => x.Value)
-				.FirstOrDefault() ?? Money.Zero(targetCurrency);
+			.Where(x => x.Key <= minDate)
+			.OrderByDescending(x => x.Key)
+			.Select(x => x.Value)
+			.FirstOrDefault() ?? Money.Zero(targetCurrency);
 
 			for (var date = minDate; date <= maxDate; date = date.AddDays(1))
 			{
@@ -216,31 +216,20 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					Date = date,
 				};
 
-				if (activitiesByDate.TryGetValue(date, out var dayActivities))
-				{
-					foreach (var activity in dayActivities)
-					{
-						var convertedAdjustedUnitPrice = await currencyExchange.ConvertMoney(
-							activity.AdjustedUnitPrice,
-							targetCurrency,
-							date).ConfigureAwait(false);
-						var convertedTotal = await currencyExchange.ConvertMoney(
-							activity.TotalTransactionAmount,
-							targetCurrency,
-							date).ConfigureAwait(false);
-
-						snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, activity.Quantity);
-						snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
-						snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal.Times(Math.Sign(activity.Quantity)));
-					}
-				}
+				await ApplyActivitiesForDateAsync(
+					activitiesByDate,
+					date,
+					snapshot,
+					targetCurrency,
+					currencyExchange
+				).ConfigureAwait(false);
 
 				var marketPrice = marketData.TryGetValue(date, out var closePrice) ? closePrice : lastKnownMarketPrice;
 				lastKnownMarketPrice = marketPrice;
 				var marketPriceConverted = await currencyExchange.ConvertMoney(
-							marketPrice,
-							targetCurrency,
-							date).ConfigureAwait(false);
+					marketPrice,
+					targetCurrency,
+					date).ConfigureAwait(false);
 				snapshot.CurrentUnitPrice = marketPriceConverted;
 				snapshot.TotalValue = marketPriceConverted.Times(snapshot.Quantity);
 
@@ -261,15 +250,77 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			return snapshots;
 		}
 
+		private async Task ApplyActivitiesForDateAsync(
+		Dictionary<DateOnly, List<ActivityWithQuantityAndUnitPrice>> activitiesByDate,
+		DateOnly date,
+		CalculatedSnapshot snapshot,
+		Currency targetCurrency,
+		ICurrencyExchange currencyExchange)
+		{
+			if (!activitiesByDate.TryGetValue(date, out var dayActivities))
+			{
+				return;
+			}
+
+			foreach (var activity in dayActivities)
+			{
+				var convertedAdjustedUnitPrice = await currencyExchange.ConvertMoney(
+				activity.AdjustedUnitPrice,
+				targetCurrency,
+				date).ConfigureAwait(false);
+				var convertedTotal = await currencyExchange.ConvertMoney(
+				activity.TotalTransactionAmount,
+				targetCurrency,
+				date).ConfigureAwait(false);
+
+				var sign = 0;
+				switch (activity)
+				{
+					case BuyActivity:
+					case ReceiveActivity:
+					case GiftAssetActivity:
+					case StakingRewardActivity:
+						sign = 1;
+						break;
+					case SellActivity:
+					case SendActivity:
+						sign = -1;
+						break;
+					default:
+						throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}");
+				}
+
+				if (sign == 1)
+				{
+					// For buy/receive/gift/staking, add the invested amount and update average cost price
+					snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
+					snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
+					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, 0); // quantity already added above
+				}
+				else
+				{
+					// For sell/send, first calculate cost basis reduction using current average cost price
+					var costBasisReduction = snapshot.AverageCostPrice.Times(activity.AdjustedQuantity);
+					snapshot.TotalInvested = snapshot.TotalInvested.Subtract(costBasisReduction);
+					snapshot.Quantity = snapshot.Quantity - activity.AdjustedQuantity;
+					
+					// Average cost price remains the same after a sell (unless quantity becomes zero)
+					if (snapshot.Quantity <= 0)
+					{
+						snapshot.AverageCostPrice = Money.Zero(targetCurrency);
+					}
+				}
+			}
+		}
+
 		private static Money CalculateAverageCostPrice(CalculatedSnapshot snapshot, Money unitPriceActivity, decimal quantityActivity)
 		{
 			if (snapshot.Quantity == 0)
 			{
-				return unitPriceActivity;
+				return Money.Zero(snapshot.TotalInvested.Currency);
 			}
 
-			return snapshot.TotalInvested.Add(unitPriceActivity.Times(quantityActivity))
-				.SafeDivide(snapshot.Quantity + quantityActivity);
+			return snapshot.TotalInvested.SafeDivide(snapshot.Quantity);
 		}
 	}
 }

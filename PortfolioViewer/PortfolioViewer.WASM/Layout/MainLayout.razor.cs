@@ -11,16 +11,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
         
         // Determine which filters to show based on current page
         private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowCurrencyFilter || ShouldShowAccountFilters || ShouldShowSymbolFilter;
-        private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage || IsTransactionsPage);
+        private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage || IsTransactionsPage || IsAccountsPage);
         private bool ShouldShowCurrencyFilter => CurrentPageSupportsFilters;
-        private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage);
+        private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage || IsHoldingsPage);
         private bool ShouldShowSymbolFilter => CurrentPageSupportsFilters && IsTransactionsPage;
         
-        private bool CurrentPageSupportsFilters => IsTimeSeriesPage || IsHoldingDetailPage || IsHoldingsPage || IsTransactionsPage;
+        private bool CurrentPageSupportsFilters => IsTimeSeriesPage || IsHoldingDetailPage || IsHoldingsPage || IsTransactionsPage || IsAccountsPage;
         private bool IsTimeSeriesPage => Navigation.Uri.Contains("/portfolio-timeseries");
         private bool IsHoldingDetailPage => Navigation.Uri.Contains("/holding/");
         private bool IsHoldingsPage => Navigation.Uri.Contains("/holdings");
         private bool IsTransactionsPage => Navigation.Uri.Contains("/transactions");
+        private bool IsAccountsPage => Navigation.Uri.Contains("/accounts");
 
         protected override void OnInitialized()
         {

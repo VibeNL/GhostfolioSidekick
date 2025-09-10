@@ -6,7 +6,9 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Pages;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using Microsoft.AspNetCore.Components;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,8 +38,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void HoldingDetail_ShowsNotFound_WhenHoldingDoesNotExist()
         {
-            var holdings = new List<HoldingDisplayModel>();
-            var fakeService = new FakeHoldingDetailDataService(holdings);
+            var priceHistory = new List<HoldingPriceHistoryPoint>();
+            var fakeService = new FakeHoldingDetailDataService(priceHistory);
             Services.AddSingleton<IHoldingsDataService>(fakeService);
             Services.AddSingleton<NavigationManager>(new MockNavigationManager());
             
@@ -49,25 +51,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void HoldingDetail_ShowsHoldingInfo_WhenHoldingExists()
         {
-            var holdings = new List<HoldingDisplayModel>
-            {
-                new HoldingDisplayModel 
-                { 
-                    Symbol = "AAPL", 
-                    Name = "Apple Inc.", 
-                    Quantity = 10, 
-                    AveragePrice = new Money(Currency.USD, 100), 
-                    CurrentPrice = new Money(Currency.USD, 150), 
-                    CurrentValue = new Money(Currency.USD, 1500), 
-                    GainLoss = new Money(Currency.USD, 500), 
-                    GainLossPercentage = 0.5m, 
-                    Weight = 1, 
-                    Sector = "Tech", 
-                    AssetClass = "Equity", 
-                    Currency = "USD"
-                }
+            var holding = new HoldingDisplayModel 
+            { 
+                Symbol = "AAPL", 
+                Name = "Apple Inc.", 
+                Quantity = 10, 
+                AveragePrice = new Money(Currency.USD, 100), 
+                CurrentPrice = new Money(Currency.USD, 150), 
+                CurrentValue = new Money(Currency.USD, 1500), 
+                GainLoss = new Money(Currency.USD, 500), 
+                GainLossPercentage = 0.5m, 
+                Weight = 1, 
+                Sector = "Tech", 
+                AssetClass = "Equity", 
+                Currency = "USD"
             };
-            var fakeService = new FakeHoldingDetailDataService(holdings);
+            var priceHistory = new List<HoldingPriceHistoryPoint>();
+            var fakeService = new FakeHoldingDetailDataService(priceHistory, holding);
             Services.AddSingleton<IHoldingsDataService>(fakeService);
             Services.AddSingleton<NavigationManager>(new MockNavigationManager());
             
@@ -85,25 +85,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void HoldingDetail_ShowsPriceHistory_WhenAvailable()
         {
-            var holdings = new List<HoldingDisplayModel>
+            var holding = new HoldingDisplayModel 
+            { 
+                Symbol = "AAPL", 
+                Name = "Apple Inc.", 
+                Quantity = 10, 
+                AveragePrice = new Money(Currency.USD, 100), 
+                CurrentPrice = new Money(Currency.USD, 150), 
+                CurrentValue = new Money(Currency.USD, 1500), 
+                GainLoss = new Money(Currency.USD, 500), 
+                GainLossPercentage = 0.5m, 
+                Weight = 1, 
+                Sector = "Tech", 
+                AssetClass = "Equity", 
+                Currency = "USD"
+            };
+            var priceHistory = new List<HoldingPriceHistoryPoint>
             {
-                new HoldingDisplayModel 
-                { 
-                    Symbol = "AAPL", 
-                    Name = "Apple Inc.", 
-                    Quantity = 10, 
-                    AveragePrice = new Money(Currency.USD, 100), 
-                    CurrentPrice = new Money(Currency.USD, 150), 
-                    CurrentValue = new Money(Currency.USD, 1500), 
-                    GainLoss = new Money(Currency.USD, 500), 
-                    GainLossPercentage = 0.5m, 
-                    Weight = 1, 
-                    Sector = "Tech", 
-                    AssetClass = "Equity", 
-                    Currency = "USD"
+                new HoldingPriceHistoryPoint
+                {
+                    Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)),
+                    Price = new Money(Currency.USD, 150)
                 }
             };
-            var fakeService = new FakeHoldingDetailDataService(holdings);
+            var fakeService = new FakeHoldingDetailDataService(priceHistory, holding);
             Services.AddSingleton<IHoldingsDataService>(fakeService);
             Services.AddSingleton<NavigationManager>(new MockNavigationManager());
             
@@ -119,19 +124,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 
         private class FakeHoldingDetailDataService : IHoldingsDataService
         {
-            private List<HoldingDisplayModel> _holdings;
+            private readonly List<HoldingPriceHistoryPoint> _priceHistory;
+            private readonly HoldingDisplayModel? _holding;
 
-            public FakeHoldingDetailDataService(List<HoldingDisplayModel> holdings) => _holdings = holdings;
+            public FakeHoldingDetailDataService(List<HoldingPriceHistoryPoint> priceHistory, HoldingDisplayModel? holding = null)
+            {
+                _priceHistory = priceHistory;
+                _holding = holding;
+            }
 
             public Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, CancellationToken cancellationToken = default)
             {
-                return Task.FromResult(_holdings);
+                var result = _holding != null ? new List<HoldingDisplayModel> { _holding } : new List<HoldingDisplayModel>();
+                return Task.FromResult(result);
             }
 
-            public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
+            public Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, int accountId, CancellationToken cancellationToken = default)
             {
-                await Task.Delay(10);
-                return DateOnly.FromDateTime(new DateTime(2020, 1, 1));
+                var result = _holding != null ? new List<HoldingDisplayModel> { _holding } : new List<HoldingDisplayModel>();
+                return Task.FromResult(result);
+            }
+
+            public Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(DateOnly.FromDateTime(new DateTime(2020, 1, 1)));
             }
 
             public Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
@@ -144,9 +160,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 return Task.FromResult(new List<PortfolioValueHistoryPoint>());
             }
 
-            public Task<List<GhostfolioSidekick.Model.Accounts.Account>> GetAccountsAsync()
+            public Task<List<Account>> GetAccountsAsync()
             {
-                return Task.FromResult(new List<GhostfolioSidekick.Model.Accounts.Account>());
+                return Task.FromResult(new List<Account>());
             }
 
             public Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
@@ -155,24 +171,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 DateTime endDate,
                 CancellationToken cancellationToken = default)
             {
-                // Return fake price history data for testing
-                var priceHistory = new List<HoldingPriceHistoryPoint>();
-                var currentDate = DateOnly.FromDateTime(startDate);
-                var endDateOnly = DateOnly.FromDateTime(endDate);
-                var basePrice = 100m;
-                var baseAveragePrice = 95m; // Slightly lower average price
-
-                for (int i = 0; i < 5; i++) // Just 5 data points for testing
-                {
-                    priceHistory.Add(new HoldingPriceHistoryPoint
-                    {
-                        Date = currentDate.AddDays(i),
-                        Price = new Money(Currency.USD, basePrice + i * 5),
-                        AveragePrice = new Money(Currency.USD, baseAveragePrice + i * 2)
-                    });
-                }
-
-                return Task.FromResult(priceHistory);
+                return Task.FromResult(_priceHistory);
             }
 
             public Task<List<TransactionDisplayModel>> GetTransactionsAsync(
@@ -189,6 +188,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             public Task<List<string>> GetSymbolsAsync()
             {
                 return Task.FromResult(new List<string> { "AAPL", "MSFT", "GOOGL" });
+            }
+
+            public Task<List<string>> GetSymbolsByAccountAsync(int accountId)
+            {
+                return Task.FromResult(new List<string> { "AAPL", "MSFT" });
+            }
+
+            public Task<List<Account>> GetAccountsBySymbolAsync(string symbol)
+            {
+                return Task.FromResult(new List<Account>
+                {
+                    new Account { Id = 1, Name = "Test Account 1" },
+                    new Account { Id = 2, Name = "Test Account 2" }
+                });
+            }
+
+            public Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
+                Currency targetCurrency,
+                DateTime startDate,
+                DateTime endDate,
+                CancellationToken cancellationToken = default)
+            {
+                // Return empty list for testing
+                return Task.FromResult(new List<AccountValueHistoryPoint>());
             }
         }
 

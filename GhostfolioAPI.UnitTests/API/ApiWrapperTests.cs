@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Assert
 			result.Should().NotBeNull();
 			result.Should().HaveCount(1);
-			result.First().Symbol.Should().Be(identifier);
+			result[0].Symbol.Should().Be(identifier);
 		}
 
 		[Fact]
@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
 
 			var modelActivities = new List<Model.Activities.Activity> {
-				new Model.Activities.Types.BuySellActivity {
+				new Model.Activities.Types.BuyActivity {
 					Holding = new Model.Holding {
 						SymbolProfiles = [new Model.Symbols.SymbolProfile { 
 							Symbol = identifier, 

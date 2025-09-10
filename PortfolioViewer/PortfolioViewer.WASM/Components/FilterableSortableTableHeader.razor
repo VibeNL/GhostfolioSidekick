@@ -1,0 +1,47 @@
+@using Microsoft.AspNetCore.Components
+
+<div style="min-width: 150px;" class="@GetSortClass()">
+    <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="column-header" @onclick="@(() => OnSort.InvokeAsync(Column))" style="cursor: pointer; user-select: none;">
+            @Column
+            <i class="bi @GetSortIcon() ms-1"></i>
+        </span>
+    </div>
+    <input type="text" 
+           class="form-control form-control-sm" 
+           placeholder="Filter..."
+           @bind="FilterValue"
+           @bind:after="@(() => OnFilterChanged.InvokeAsync(new FilterChangeArgs { Column = Column, Value = FilterValue }))"
+           style="font-weight: normal;" />
+</div>
+
+@code {
+    [Parameter] public string Column { get; set; } = string.Empty;
+    [Parameter] public string? CurrentSortColumn { get; set; }
+    [Parameter] public string SortDirection { get; set; } = "asc";
+    [Parameter] public string FilterValue { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> OnSort { get; set; }
+    [Parameter] public EventCallback<FilterChangeArgs> OnFilterChanged { get; set; }
+
+    private string GetSortIcon()
+    {
+        if (CurrentSortColumn != Column)
+            return "bi-arrow-down-up"; // Unsorted icon
+
+        return SortDirection == "asc" ? "bi-arrow-up" : "bi-arrow-down";
+    }
+
+    private string GetSortClass()
+    {
+        if (CurrentSortColumn == Column)
+            return "sorted-column";
+        
+        return "";
+    }
+
+    public class FilterChangeArgs
+    {
+        public string Column { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
+    }
+}

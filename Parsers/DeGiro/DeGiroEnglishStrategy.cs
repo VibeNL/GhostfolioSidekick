@@ -71,6 +71,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			{
 				mutation = dividendText;
 				activity = PartialActivityType.Dividend;
+				recordDate = recordDate.Date; // for dividends we dont want the time part
 			}
 
 			record.TransactionId = $"{activity}_{recordDate.ToInvariantString()}_{record.Product}_{record.ISIN}_{mutation}";

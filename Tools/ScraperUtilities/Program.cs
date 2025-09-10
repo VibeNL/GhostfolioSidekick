@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 
 			private static GenericRecord Transform(ActivityWithSymbol activity)
 			{
-				if (activity.Activity is BuySellActivity buyActivity && buyActivity.Quantity > 0)
+				if (activity.Activity is BuyActivity buyActivity)
 				{
 					return new GenericRecord
 					{
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					};
 				}
 
-				if (activity.Activity is BuySellActivity sellActivity && sellActivity.Quantity < 0)
+				if (activity.Activity is SellActivity sellActivity)
 				{
 					return new GenericRecord
 					{
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 						Symbol = activity.Symbol,
 						Date = sellActivity.Date,
 						Currency = sellActivity.UnitPrice.Currency.Symbol,
-						Quantity = sellActivity.Quantity * -1,
+						Quantity = sellActivity.Quantity,
 						UnitPrice = sellActivity.UnitPrice.Amount,
 						Fee = Sum(sellActivity.Fees.Select(x => x.Money)),
 						Tax = Sum(sellActivity.Taxes.Select(x => x.Money)),
@@ -144,7 +144,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					};
 				}
 
-				if (activity.Activity is CashDepositWithdrawalActivity deposit && deposit.Amount.Amount > 0)
+				if (activity.Activity is CashDepositActivity deposit)
 				{
 					return new GenericRecord
 					{
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					};
 				}
 
-				if (activity.Activity is CashDepositWithdrawalActivity withdrawal && withdrawal.Amount.Amount < 0)
+				if (activity.Activity is CashWithdrawalActivity withdrawal)
 				{
 					return new GenericRecord
 					{
@@ -168,7 +168,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 						Date = withdrawal.Date,
 						Currency = withdrawal.Amount.Currency.Symbol,
 						Quantity = 1,
-						UnitPrice = withdrawal.Amount.Amount * -1,
+						UnitPrice = withdrawal.Amount.Amount,
 						Fee = 0,
 						Tax = 0,
 					};

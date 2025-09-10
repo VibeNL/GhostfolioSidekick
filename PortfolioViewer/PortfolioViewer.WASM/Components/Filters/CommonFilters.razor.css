@@ -20,6 +20,21 @@
     min-width: 300px;
 }
 
+.filter-group.filter-actions {
+    min-width: 160px;
+    align-items: flex-start;
+    margin-left: auto; /* Push to the right */
+}
+
+.filter-actions .d-flex {
+    align-items: center;
+}
+
+.filter-actions small {
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
 .date-input {
     display: flex;
     flex-direction: column;
@@ -38,6 +53,23 @@
     padding: 0.25rem 0.5rem;
 }
 
+/* Visual indication for pending changes */
+.filter-group select:has-changed,
+.filter-group input:has-changed {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+/* Highlight apply button when changes are pending */
+.btn-primary:not(:disabled) {
+    animation: pulse-subtle 2s infinite;
+}
+
+@keyframes pulse-subtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+}
+
 @media (max-width: 768px) {
     .filters-container {
         flex-direction: column;
@@ -50,5 +82,14 @@
     
     .filter-group.date-filters {
         min-width: 100%;
+    }
+    
+    .filter-group.filter-actions {
+        margin-left: 0;
+        align-items: stretch;
+    }
+    
+    .filter-actions .d-flex {
+        justify-content: center;
     }
 }

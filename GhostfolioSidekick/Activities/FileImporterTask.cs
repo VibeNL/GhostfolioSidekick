@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 using System.Diagnostics.CodeAnalysis;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Activities
 {
@@ -58,6 +59,7 @@ namespace GhostfolioSidekick.Activities
 			logger.LogDebug("{Name} Done", nameof(FileImporterTask));
 		}
 
+		[SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Linear logic")]
 		private static async Task ParseFiles(ILogger<FileImporterTask> logger, IEnumerable<IFileImporter> importers, string[] directories, ActivityManager activityManager, List<string> accountNames)
 		{
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))
@@ -140,67 +142,138 @@ namespace GhostfolioSidekick.Activities
 		[SuppressMessage("Major Code Smell", "S3267:Loops should be simplified using the \"Where\" LINQ method", Justification = "Complex database operations with async calls require explicit loops")]
 		public static async Task StoreAll(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
-			// Change to database partialsymbolidentifiers
-			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+			await UpdatePartialSymbolIdentifiers(databaseContext, activities);
+			await SyncActivities(databaseContext, activities);
+			await databaseContext.SaveChangesAsync();
+		}
 
-			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
-			{
-				// If missing from the database, add it
-				foreach (var partialSymbolIdentifier in activity.PartialSymbolIdentifiers)
-				{
-					if (!existingPartialSymbolIdentifiers.Any(x => x == partialSymbolIdentifier))
-					{
-						await databaseContext.PartialSymbolIdentifiers.AddAsync(partialSymbolIdentifier);
-						existingPartialSymbolIdentifiers.Add(partialSymbolIdentifier);
-					}
-				}
+        private static async Task UpdatePartialSymbolIdentifiers(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+        {
+            var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
 
-				activity.PartialSymbolIdentifiers = [.. activity.PartialSymbolIdentifiers.Select(x => existingPartialSymbolIdentifiers.FirstOrDefault(y => y == x) ?? x)];
-			}
+            foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
+            {
+                var newPartialSymbolIdentifiers = activity.PartialSymbolIdentifiers
+                    .Where(partialSymbolIdentifier => !existingPartialSymbolIdentifiers.Any(x => x == partialSymbolIdentifier))
+                    .ToList();
 
+                if (newPartialSymbolIdentifiers.Count > 0)
+                {
+                    await databaseContext.PartialSymbolIdentifiers.AddRangeAsync(newPartialSymbolIdentifiers);
+                    existingPartialSymbolIdentifiers.AddRange(newPartialSymbolIdentifiers);
+                }
 
-			// Deduplicate entities
+                activity.PartialSymbolIdentifiers = [.. activity.PartialSymbolIdentifiers.Select(x => existingPartialSymbolIdentifiers.FirstOrDefault(y => y == x) ?? x)];
+            }
+        }
+
+		private static async Task SyncActivities(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+		{
 			var existingActivities = await databaseContext.Activities.ToListAsync();
-			var existingTransactionIds = existingActivities.Select(x => x.TransactionId).ToList();
-			var newTransactionIds = activities.Select(x => x.TransactionId).ToList();
+			
+			var existingTransactionKeys = GetTransactionKeys(existingActivities);
+			var newTransactionKeys = GetTransactionKeys(activities);
 
-			// Delete activities that are not in the new list
-			foreach (var deletedTransaction in existingTransactionIds.Except(newTransactionIds))
+			DeleteRemovedActivities(databaseContext, existingActivities, existingTransactionKeys, newTransactionKeys);
+			await AddNewActivities(databaseContext, activities, existingTransactionKeys, newTransactionKeys);
+			await UpdateExistingActivities(databaseContext, existingActivities, activities, existingTransactionKeys, newTransactionKeys);
+		}
+
+		private static List<(string TransactionId, int AccountId)> GetTransactionKeys(IEnumerable<Activity> activities)
+		{
+			return [.. activities
+				.Select(x => (x.TransactionId, x.Account.Id))
+				.Distinct()];
+		}
+
+		private static void DeleteRemovedActivities(
+			DatabaseContext databaseContext, 
+			List<Activity> existingActivities,
+			List<(string TransactionId, int AccountId)> existingKeys,
+			List<(string TransactionId, int AccountId)> newKeys)
+		{
+			var deletedKeys = existingKeys.Except(newKeys);
+			foreach (var (TransactionId, AccountId) in deletedKeys)
 			{
-				databaseContext.Activities.RemoveRange(existingActivities.Where(x => x.TransactionId == deletedTransaction));
+				var activitiesToDelete = existingActivities.Where(x => 
+					x.TransactionId == TransactionId && 
+					x.Account.Id == AccountId);
+				databaseContext.Activities.RemoveRange(activitiesToDelete);
 			}
+		}
 
-			// Add activities that are not in the existing list
-			foreach (var addedTransaction in newTransactionIds.Except(existingTransactionIds))
+		private static async Task AddNewActivities(
+			DatabaseContext databaseContext,
+			IEnumerable<Activity> activities,
+			List<(string TransactionId, int AccountId)> existingKeys,
+			List<(string TransactionId, int AccountId)> newKeys)
+		{
+			var addedKeys = newKeys.Except(existingKeys);
+			foreach (var (TransactionId, AccountId) in addedKeys)
 			{
-				await databaseContext.Activities.AddRangeAsync(activities.Where(x => x.TransactionId == addedTransaction));
+				var activitiesToAdd = activities.Where(x => 
+					x.TransactionId == TransactionId && 
+					x.Account.Id == AccountId);
+				await databaseContext.Activities.AddRangeAsync(activitiesToAdd);
 			}
+		}
 
-			// Update activities that are in both lists
-			foreach (var updatedTransaction in existingTransactionIds.Intersect(newTransactionIds))
+		private static async Task UpdateExistingActivities(
+			DatabaseContext databaseContext,
+			List<Activity> existingActivities,
+			IEnumerable<Activity> activities,
+			List<(string TransactionId, int AccountId)> existingKeys,
+			List<(string TransactionId, int AccountId)> newKeys)
+		{
+			var updatedKeys = existingKeys.Intersect(newKeys);
+			foreach (var (TransactionId, AccountId) in updatedKeys)
 			{
-				var existingActivity = existingActivities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
-				var newActivity = activities.Where(x => x.TransactionId == updatedTransaction).OrderBy(x => x.SortingPriority).ThenBy(x => x.Description);
+				var existingActivity = existingActivities
+					.Where(x => x.TransactionId == TransactionId && 
+								x.Account.Id == AccountId)
+					.OrderBy(x => x.SortingPriority)
+					.ThenBy(x => x.Description);
 
-				var compareLogic = new CompareLogic()
-				{
-					Config = new ComparisonConfig
-					{
-						MaxDifferences = int.MaxValue,
-						IgnoreObjectTypes = true,
-						MembersToIgnore = [nameof(Activity.Id), nameof(BuySellActivity.AdjustedQuantity), nameof(BuySellActivity.AdjustedUnitPrice), nameof(BuySellActivity.AdjustedUnitPriceSource)]
-					}
-				};
-				ComparisonResult result = compareLogic.Compare(existingActivity, newActivity);
+				var newActivity = activities
+					.Where(x => x.TransactionId == TransactionId && 
+								x.Account.Id == AccountId)
+					.OrderBy(x => x.SortingPriority)
+					.ThenBy(x => x.Description);
 
-				if (!result.AreEqual)
+				if (!AreActivitiesEqual(existingActivity, newActivity))
 				{
 					databaseContext.Activities.RemoveRange(existingActivity);
 					await databaseContext.Activities.AddRangeAsync(newActivity);
 				}
 			}
+		}
 
-			await databaseContext.SaveChangesAsync();
+		private static bool AreActivitiesEqual(IEnumerable<Activity> existing, IEnumerable<Activity> newActivities)
+		{
+			var compareLogic = new CompareLogic()
+			{
+				Config = new ComparisonConfig
+				{
+					MaxDifferences = int.MaxValue,
+					IgnoreObjectTypes = true,
+					MembersToIgnore = [
+						nameof(Activity.Id), 
+						nameof(ActivityWithQuantityAndUnitPrice.AdjustedQuantity),
+						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice),
+						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPriceSource),
+						nameof(BuyActivityFee.ActivityId),
+						nameof(SellActivityFee.ActivityId),
+						nameof(BuyActivityTax.ActivityId),
+						nameof(SellActivityTax.ActivityId),
+						nameof(ReceiveActivityFee.ActivityId),
+						nameof(SendActivityFee.ActivityId),
+						nameof(DividendActivityFee.ActivityId),
+						nameof(DividendActivityTax.ActivityId)
+					]
+				}
+			};
+			
+			return compareLogic.Compare(existing, newActivities).AreEqual;
 		}
 	}
 }

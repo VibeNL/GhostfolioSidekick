@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
             // Assert
             activities.Should().HaveCount(1);
-            activities.First().Should().BeOfType<BuySellActivity>();
+            activities.First().Should().BeOfType<BuyActivity>();
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
             // Assert
             activities.Should().HaveCount(1);
-            var activity = activities.First() as BuySellActivity;
+            var activity = activities.First() as BuyActivity;
             activity.Should().NotBeNull();
             activity!.Fees.Should().HaveCount(1);
         }

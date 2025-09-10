@@ -77,6 +77,9 @@ public static class Program
 		builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
 
+		// Data Issues Service
+		builder.Services.AddScoped<IDataIssuesService, DataIssuesService>();
+
 		var app = builder.Build();
 
 		// Initialize the database after building the app

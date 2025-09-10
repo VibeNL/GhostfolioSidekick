@@ -62,8 +62,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 				},
 				Activities = new List<Activity>
 				{
-					new BuySellActivity(),
-					new BuySellActivity()
+					new BuyActivity(),
+					new SellActivity()
 				}
 			};
 

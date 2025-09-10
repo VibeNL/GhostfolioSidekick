@@ -18,5 +18,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
         {
             collapseNavMenu = !collapseNavMenu;
         }
+
+        private void CollapseNavMenu()
+        {
+            collapseNavMenu = true;
+        }
     }
 }

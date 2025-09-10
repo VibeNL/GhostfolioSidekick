@@ -120,7 +120,6 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
 			var holdings = new List<Holding>();
-			var activities = new List<Activity>();
 
 			var mockDbContext1 = new Mock<DatabaseContext>();
 			var mockDbContext2 = new Mock<DatabaseContext>();
@@ -165,7 +164,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
 				Activities = new List<Activity> 
 				{
-					new BuySellActivity { Date = DateTime.Today.AddDays(-30) }
+					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
 				}
 			};
 			var holdings = new List<Holding> { holding };
@@ -215,7 +214,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
 				Activities = new List<Activity> 
 				{
-					new BuySellActivity { Date = DateTime.Today.AddDays(-30) }
+					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
 				}
 			};
 			var holdings = new List<Holding> { holding };
@@ -265,7 +264,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
 				Activities = new List<Activity> 
 				{
-					new BuySellActivity { Date = DateTime.Today.AddDays(-30) }
+					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
 				}
 			};
 			var holdings = new List<Holding> { holding };
@@ -335,7 +334,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
 				Activities = new List<Activity> 
 				{
-					new BuySellActivity { Date = DateTime.Today.AddDays(-30) }
+					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
 				}
 			};
 			var holdings = new List<Holding> { holding };
@@ -394,7 +393,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
 				Activities = new List<Activity> 
 				{
-					new BuySellActivity { Date = DateTime.Today.AddDays(-30) }
+					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
 				}
 			};
 			var holdings = new List<Holding> { holding };
@@ -454,7 +453,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
 				Activities = new List<Activity> 
 				{
-					new BuySellActivity { Date = activityDate }
+					new BuyActivity { Date = activityDate }
 				}
 			};
 			var holdings = new List<Holding> { holding };
@@ -512,7 +511,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = new List<SymbolProfile> { symbolProfile1 },
 				Activities = new List<Activity> 
 				{
-					new BuySellActivity { Date = DateTime.Today.AddDays(-30) }
+					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
 				}
 			};
 			var holding2 = new Holding 
@@ -520,7 +519,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				SymbolProfiles = new List<SymbolProfile> { symbolProfile2 },
 				Activities = new List<Activity> 
 				{
-					new BuySellActivity { Date = DateTime.Today.AddDays(-25) }
+					new BuyActivity { Date = DateTime.Today.AddDays(-25) }
 				}
 			};
 			var holdings = new List<Holding> { holding1, holding2 };

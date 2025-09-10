@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 			switch (activity)
 			{
-				case BuySellActivity buyActivity:
+				case BuyActivity buyActivity:
 					if (symbolProfile == null)
 					{
 						return null;
@@ -40,12 +40,50 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Fee = await CalculateFeeAndTaxes(buyActivity.Fees.Select(x => x.Money), buyActivity.Taxes.Select(x => x.Money), symbolProfile!.Currency, activity.Date),
 						FeeCurrency = symbolProfile.Currency,
 						Quantity = Math.Abs(buyActivity.AdjustedQuantity),
-						Type = buyActivity.AdjustedQuantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
+						Type = Contract.ActivityType.BUY,
 						UnitPrice = await ConvertPrice(exchangeRateService, buyActivity.AdjustedUnitPrice, symbolProfile.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 						AccountId = account?.Id
 					};
-				case SendAndReceiveActivity sendAndReceiveActivity:
+				case SellActivity sellActivity:
+					if (symbolProfile == null)
+					{
+						return null;
+					}
+
+					return new Contract.Activity
+					{
+						SymbolProfile = symbolProfile!,
+						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
+						Date = activity.Date,
+						Fee = await CalculateFeeAndTaxes(sellActivity.Fees.Select(x => x.Money), sellActivity.Taxes.Select(x => x.Money), symbolProfile!.Currency, activity.Date),
+						FeeCurrency = symbolProfile.Currency,
+						Quantity = Math.Abs(sellActivity.AdjustedQuantity),
+						Type = Contract.ActivityType.SELL,
+						UnitPrice = await ConvertPrice(exchangeRateService, sellActivity.AdjustedUnitPrice, symbolProfile.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+						AccountId = account?.Id
+					};
+				case ReceiveActivity receiveActivity:
+					if (symbolProfile == null)
+					{
+						return null;
+					}
+
+					return new Contract.Activity
+					{
+						SymbolProfile = symbolProfile!,
+						Comment = TransactionReferenceUtilities.GetComment(activity, symbolProfile),
+						Date = activity.Date,
+						Fee = await CalculateFeeAndTaxes([], [], symbolProfile!.Currency, activity.Date),
+						FeeCurrency = symbolProfile.Currency,
+						Quantity = Math.Abs(receiveActivity.AdjustedQuantity),
+						Type = Contract.ActivityType.BUY,
+						UnitPrice = await ConvertPrice(exchangeRateService, receiveActivity.AdjustedUnitPrice, symbolProfile.Currency, activity.Date),
+						ReferenceCode = activity.TransactionId,
+						AccountId = account?.Id
+					};
+				case SendActivity sendAndReceiveActivity:
 					if (symbolProfile == null)
 					{
 						return null;
@@ -59,7 +97,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						Fee = await CalculateFeeAndTaxes(sendAndReceiveActivity.Fees.Select(x => x.Money), [], symbolProfile!.Currency, activity.Date),
 						FeeCurrency = symbolProfile.Currency,
 						Quantity = Math.Abs(sendAndReceiveActivity.AdjustedQuantity),
-						Type = sendAndReceiveActivity.AdjustedQuantity > 0 ? Contract.ActivityType.BUY : Contract.ActivityType.SELL,
+						Type = Contract.ActivityType.SELL,
 						UnitPrice = await ConvertPrice(exchangeRateService, sendAndReceiveActivity.AdjustedUnitPrice, symbolProfile.Currency, activity.Date),
 						ReferenceCode = activity.TransactionId,
 						AccountId = account?.Id
@@ -132,7 +170,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 						AccountId = account?.Id
 					};
 				case KnownBalanceActivity:
-				case CashDepositWithdrawalActivity:
+				case CashDepositActivity:
+				case CashWithdrawalActivity:
 				case StakingRewardActivity:
 					return null;
 			}

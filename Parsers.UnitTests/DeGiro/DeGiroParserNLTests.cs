@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")],
+						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
 						77.30M,
 						new Money(Currency.EUR, 77.3M),
@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")],
+						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
 						77.30M,
 						new Money(Currency.EUR, 77.3M),
@@ -189,7 +189,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")],
+						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
 						77M,
 						new Money(Currency.EUR, 77.3M),
@@ -227,7 +227,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateBuy(
 						Currency.USD,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")],
+						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
 						77.3M,
 						new Money(Currency.USD, 77.3M),
@@ -265,7 +265,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")],
+						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
 						77.3M,
 						new Money(Currency.EUR, 77.3M),
@@ -303,7 +303,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateSell(
 						Currency.USD,
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09")],
+						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
 						77.3M,
 						new Money(Currency.USD, 77.3M),
@@ -346,7 +346,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("NL0011794037")],
+						PartialSymbolIdentifier.CreateStockAndETF("NL0011794037", "AHOLD DELHAIZE"),
 						34,
 						26.88M,
 						new Money(Currency.EUR, 913.92M),
@@ -354,7 +354,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("NL0011794037")],
+						PartialSymbolIdentifier.CreateStockAndETF("NL0011794037", "AHOLD DELHAIZE"),
 						4,
 						26.88M,
 						new Money(Currency.EUR, 107.52M),
@@ -394,7 +394,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("NL0009690239")],
+						PartialSymbolIdentifier.CreateStockAndETF("NL0009690239", "VANECK GLOBAL REAL ESTATE UCITS ETF"),
 						9.57M,
 						new Money(Currency.EUR, 9.57M),
 						transactionId!),
@@ -426,10 +426,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 					PartialActivity.CreateDividend(
 						Currency.EUR,
 						new DateTime(2023, 09, 14, 6, 32, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("NL0009690239")],
+						PartialSymbolIdentifier.CreateStockAndETF("NL0009690239", "VANECK GLOBAL REAL ESTATE UCITS ETF"),
 						9.57M,
 						new Money(Currency.EUR, 9.57M),
-						"Dividend_2023-09-14 06:32:00:+00:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),
+						"Dividend_2023-09-14 00:00:00:+00:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),
 				]);
 		}
 

@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Activities
 			return Task.FromResult<IEnumerable<Activity>>(activities);
 		}
 
-		private void DetermineActivity(List<Activity> activities, Account account, List<PartialActivity> transactions)
+		private static void DetermineActivity(List<Activity> activities, Account account, List<PartialActivity> transactions)
 		{
 			var sourceTransaction = transactions.Find(x => x.SymbolIdentifiers.Count != 0) ?? transactions[0];
 
@@ -98,32 +98,33 @@ namespace GhostfolioSidekick.Activities
 			string? description)
 		{
 			totalTransactionAmount = totalTransactionAmount ?? new Money(money.Currency, amount * money.Amount);
+			partialSymbolIdentifiers = partialSymbolIdentifiers.Distinct().ToArray();
 
 			switch (activityType)
 			{
 				case PartialActivityType.Buy:
-					return new BuySellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
+					return new BuyActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 					{
-						Taxes = [.. taxes.Select(x => new BuySellActivityTax(x))],
-						Fees = [.. fees.Select(x => new BuySellActivityFee(x))],
+						Taxes = [.. taxes.Select(x => new BuyActivityTax(x))],
+						Fees = [.. fees.Select(x => new BuyActivityFee(x))],
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Sell:
-					return new BuySellActivity(account, null, partialSymbolIdentifiers, date, -amount, money, transactionId, sortingPriority, description)
+					return new SellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
 					{
-						Taxes = [.. taxes.Select(x => new BuySellActivityTax(x))],
-						Fees = [.. fees.Select(x => new BuySellActivityFee(x))],
+						Taxes = [.. taxes.Select(x => new SellActivityTax(x))],
+						Fees = [.. fees.Select(x => new SellActivityFee(x))],
 						TotalTransactionAmount = totalTransactionAmount,
 					};
 				case PartialActivityType.Receive:
-					return new SendAndReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
+					return new ReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 					{
-						Fees = [.. fees.Select(x => new SendAndReceiveActivityFee(x))],
+						Fees = [.. fees.Select(x => new ReceiveActivityFee(x))],
 					};
 				case PartialActivityType.Send:
-					return new SendAndReceiveActivity(account, null, partialSymbolIdentifiers, date, -amount, transactionId, sortingPriority, description)
+					return new SendActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
 					{
-						Fees = [.. fees.Select(x => new SendAndReceiveActivityFee(x))],
+						Fees = [.. fees.Select(x => new SendActivityFee(x))],
 					};
 				case PartialActivityType.Dividend:
 					return new DividendActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
@@ -136,9 +137,9 @@ namespace GhostfolioSidekick.Activities
 				case PartialActivityType.Fee:
 					return new FeeActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.CashDeposit:
-					return new CashDepositWithdrawalActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
+					return new CashDepositActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.CashWithdrawal:
-					return new CashDepositWithdrawalActivity(account, null, date, totalTransactionAmount.Times(-1), transactionId, sortingPriority, description);
+					return new CashWithdrawalActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
 				case PartialActivityType.KnownBalance:
 					return new KnownBalanceActivity(account, null, date, money.Times(amount), transactionId, sortingPriority, description);
 				case PartialActivityType.Valuable:

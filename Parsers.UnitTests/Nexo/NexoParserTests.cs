@@ -361,5 +361,29 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						"NXT59tKUFomL7Gww59SZk9eQK")
 				]);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleExchange_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Nexo/Specials/single_exchange.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSend(
+						new DateTime(2024, 02, 10, 20, 47, 49, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("BTC")],
+						0.00707603m,
+						"NXT3vH2lxWtke3GkY2ymoERBO[AssetConvertSource]"),
+					PartialActivity.CreateReceive(
+						new DateTime(2024, 02, 10, 20, 47, 49, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("USDT")],
+						339.64944000m,
+						"NXT3vH2lxWtke3GkY2ymoERBO[AssetConvertTarget]")
+				]);
+		}
 	}
 }

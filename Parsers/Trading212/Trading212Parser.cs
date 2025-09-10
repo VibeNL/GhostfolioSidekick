@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateBuy(
 						currency,
 						record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
 						record.NumberOfShares.GetValueOrDefault(),
 						record.Price.GetValueOrDefault(),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
@@ -82,7 +82,8 @@ namespace GhostfolioSidekick.Parsers.Trading212
 				case "Market sell":
 					lst.Add(PartialActivity.CreateSell(
 						currency,
-						record.Time, [PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						record.Time,
+						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
 						record.NumberOfShares.GetValueOrDefault(),
 						record.Price.GetValueOrDefault(),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
@@ -92,9 +93,17 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateBuy(
 						currency,
 						record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
 						record.NumberOfShares.GetValueOrDefault(),
 						0,
+						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
+						record.Id));
+					break;
+				case "Dividend adjustment":
+					lst.Add(PartialActivity.CreateCashDeposit(
+						currency,
+						record.Time,
+						Math.Abs(record.Total.GetValueOrDefault()),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
@@ -102,7 +111,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					lst.Add(PartialActivity.CreateDividend(
 						currency,
 						record.Time,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.ISIN!)],
+						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
 						record.Price!.GetValueOrDefault() * record.NumberOfShares.GetValueOrDefault(),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));

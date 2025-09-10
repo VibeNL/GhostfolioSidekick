@@ -214,11 +214,11 @@
 			Money totalTransactionAmount,
 			string transactionId)
 		{
-			yield return new PartialActivity(PartialActivityType.CashWithdrawal, date, source.Currency, totalTransactionAmount, transactionId)
+			yield return new PartialActivity(PartialActivityType.CashWithdrawal, date, source.Currency, totalTransactionAmount, transactionId + "[CurrencyConvertSource]")
 			{
 				Amount = source.Amount
 			};
-			yield return new PartialActivity(PartialActivityType.CashDeposit, date, target.Currency, totalTransactionAmount, transactionId)
+			yield return new PartialActivity(PartialActivityType.CashDeposit, date, target.Currency, totalTransactionAmount, transactionId + "[CurrencyConvertTarget]")
 			{
 				Amount = target.Amount
 			};
@@ -263,7 +263,7 @@
 			};
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "<Pending>")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "TODO")]
 		public static IEnumerable<PartialActivity> CreateAssetConvert(
 			DateTime date,
 			ICollection<PartialSymbolIdentifier> source,
@@ -274,17 +274,15 @@
 			decimal? targetUnitprice,
 			string transactionId)
 		{
-			yield return new PartialActivity(PartialActivityType.Send, date, Currency.USD, new Money(Currency.EUR, 0), transactionId)
+			yield return new PartialActivity(PartialActivityType.Send, date, Currency.USD, new Money(Currency.USD, 0), transactionId + "[AssetConvertSource]")
 			{
 				SymbolIdentifiers = source,
-				Amount = sourceAmount,
-				UnitPrice = sourceUnitprice
+				Amount = sourceAmount
 			};
-			yield return new PartialActivity(PartialActivityType.Receive, date, Currency.USD, new Money(Currency.EUR, 0), transactionId)
+			yield return new PartialActivity(PartialActivityType.Receive, date, Currency.USD, new Money(Currency.USD, 0), transactionId + "[AssetConvertTarget]")
 			{
 				SymbolIdentifiers = target,
-				Amount = targetAmount,
-				UnitPrice = targetUnitprice
+				Amount = targetAmount
 			};
 		}
 
@@ -333,6 +331,11 @@
 				SymbolIdentifiers = symbolIdentifiers,
 				UnitPrice = unitPrice
 			};
+		}
+
+		public override string ToString()
+		{
+			return $"{ActivityType} {Date.ToInvariantString()} {Amount} {Currency} {string.Join(",", SymbolIdentifiers.Select(x => x.Identifier))} {UnitPrice} {TotalTransactionAmount} {TransactionId}";
 		}
 	}
 }

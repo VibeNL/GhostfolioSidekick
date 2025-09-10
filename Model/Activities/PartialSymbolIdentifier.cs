@@ -33,6 +33,11 @@
 			return new PartialSymbolIdentifier(id);
 		}
 
+		public static PartialSymbolIdentifier[] CreateGeneric(params string?[] ids)
+		{
+			return [.. ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => CreateGeneric(x!))];
+		}
+
 		public static PartialSymbolIdentifier CreateStockAndETF(string id)
 		{
 			return new PartialSymbolIdentifier(id)
@@ -40,6 +45,11 @@
 				AllowedAssetClasses = [AssetClass.Equity],
 				AllowedAssetSubClasses = [AssetSubClass.Etf, AssetSubClass.Stock]
 			};
+		}
+
+		public static PartialSymbolIdentifier[] CreateStockAndETF(params string?[] ids)
+		{
+			return [.. ids.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => CreateStockAndETF(x!))];
 		}
 
 		public static PartialSymbolIdentifier CreateStockBondAndETF(string id)
@@ -64,7 +74,7 @@
 		public override int GetHashCode()
 		{
 			var hash = new HashCode();
-			hash.Add(Identifier.Trim());
+			hash.Add(StringComparer.OrdinalIgnoreCase.GetHashCode(Identifier.Trim()));
 			hash.Add(GetListHashCode(AllowedAssetClasses));
 			hash.Add(GetListHashCode(AllowedAssetSubClasses));
 			return hash.ToHashCode();
