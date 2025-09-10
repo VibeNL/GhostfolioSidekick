@@ -273,8 +273,6 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				targetCurrency,
 				date).ConfigureAwait(false);
 
-				snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, activity.Quantity);
-
 				var sign = 0;
 				switch (activity)
 				{
@@ -292,17 +290,25 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 						throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}");
 				}
 
-				snapshot.Quantity = snapshot.Quantity + (sign * activity.AdjustedQuantity);
 				if (sign == 1)
 				{
-					// For buy/receive/gift/staking, add the invested amount
+					// For buy/receive/gift/staking, add the invested amount and update average cost price
 					snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
+					snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
+					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, 0); // quantity already added above
 				}
-				else if (sign == -1)
+				else
 				{
-					// For sell/send, reduce invested amount by cost basis of sold quantity
+					// For sell/send, first calculate cost basis reduction using current average cost price
 					var costBasisReduction = snapshot.AverageCostPrice.Times(activity.AdjustedQuantity);
 					snapshot.TotalInvested = snapshot.TotalInvested.Subtract(costBasisReduction);
+					snapshot.Quantity = snapshot.Quantity - activity.AdjustedQuantity;
+					
+					// Average cost price remains the same after a sell (unless quantity becomes zero)
+					if (snapshot.Quantity <= 0)
+					{
+						snapshot.AverageCostPrice = Money.Zero(targetCurrency);
+					}
 				}
 			}
 		}
@@ -311,11 +317,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 		{
 			if (snapshot.Quantity == 0)
 			{
-				return unitPriceActivity;
+				return Money.Zero(snapshot.TotalInvested.Currency);
 			}
 
-			return snapshot.TotalInvested.Add(unitPriceActivity.Times(quantityActivity))
-				.SafeDivide(snapshot.Quantity + quantityActivity);
+			return snapshot.TotalInvested.SafeDivide(snapshot.Quantity);
 		}
 	}
 }

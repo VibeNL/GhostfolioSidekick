@@ -310,8 +310,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holdingAggregated = result.First();
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(70); // 100 - 30
-			// TotalInvested: buy 100*150 = 15000, sell reduces by (-30)*160 = -4800, total = 10200
-			finalSnapshot.TotalInvested.Amount.Should().Be(10200);
+			// TotalInvested: buy 100*150 = 15000, sell reduces by cost basis of 30*150 = 4500, total = 10500
+			finalSnapshot.TotalInvested.Amount.Should().Be(10500);
 		}
 
 		[Fact]
@@ -730,12 +730,12 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 				.FirstOrDefault(s => s.Date == DateOnly.FromDateTime(sellDate));
 			sellSnapshot.Should().NotBeNull();
 			sellSnapshot!.Quantity.Should().Be(70); // 100 - 30
-			sellSnapshot.TotalInvested.Amount.Should().Be(10200); // 15000 - (30 * 160) = 10200
+			sellSnapshot.TotalInvested.Amount.Should().Be(10500); // 15000 - (30 * 150) = 10500 (cost basis reduction using average cost)
 			
 			// Check final snapshot
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(70); // 100 - 30
-			finalSnapshot.TotalInvested.Amount.Should().Be(10200); // Should remain the same
+			finalSnapshot.TotalInvested.Amount.Should().Be(10500); // Should remain the same
 		}
 	}
 }
