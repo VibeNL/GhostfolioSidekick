@@ -429,7 +429,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						PartialSymbolIdentifier.CreateStockAndETF("NL0009690239", "VANECK GLOBAL REAL ESTATE UCITS ETF"),
 						9.57M,
 						new Money(Currency.EUR, 9.57M),
-						"Dividend_2023-09-14 06:32:00:+00:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),
+						"Dividend_2023-09-14 00:00:00:+00:00_VANECK GLOBAL REAL ESTATE UCITS ETF_NL0009690239_Dividend"),
 				]);
 		}
 
