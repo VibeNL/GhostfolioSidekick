@@ -84,7 +84,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				Contract.ActivityType.LIABILITY => new LiabilityActivity(),
 				_ => throw new NotSupportedException(),
 			};
-			throw new NotSupportedException();
 		}
 	}
 }
