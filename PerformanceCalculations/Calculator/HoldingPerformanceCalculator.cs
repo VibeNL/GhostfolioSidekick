@@ -293,8 +293,17 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				}
 
 				snapshot.Quantity = snapshot.Quantity + (sign * activity.AdjustedQuantity);
-				snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal.Times(sign));
-			}
+				if (sign == 1)
+				{
+					// For buy/receive/gift/staking, add the invested amount
+					snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
+				}
+				else if (sign == -1)
+				{
+					// For sell/send, reduce invested amount by cost basis of sold quantity
+					var costBasisReduction = snapshot.AverageCostPrice.Times(activity.AdjustedQuantity);
+					snapshot.TotalInvested = snapshot.TotalInvested.Subtract(costBasisReduction);
+				}
 		}
 
 		private static Money CalculateAverageCostPrice(CalculatedSnapshot snapshot, Money unitPriceActivity, decimal quantityActivity)
