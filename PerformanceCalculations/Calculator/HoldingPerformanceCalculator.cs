@@ -304,6 +304,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					var costBasisReduction = snapshot.AverageCostPrice.Times(activity.AdjustedQuantity);
 					snapshot.TotalInvested = snapshot.TotalInvested.Subtract(costBasisReduction);
 				}
+			}
 		}
 
 		private static Money CalculateAverageCostPrice(CalculatedSnapshot snapshot, Money unitPriceActivity, decimal quantityActivity)
