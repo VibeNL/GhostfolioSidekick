@@ -261,7 +261,11 @@ namespace GhostfolioSidekick.Activities
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedQuantity),
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice),
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPriceSource),
-						nameof(BuyActivityFee.ActivityId)]
+						nameof(BuyActivityFee.ActivityId),
+						nameof(SellActivityFee.ActivityId),
+						nameof(ReceiveActivityFee.ActivityId),
+						nameof(TransferActivityFee.ActivityId),
+						nameof(DividendActivityFee.ActivityId)]
 				}
 			};
 			
