@@ -24,8 +24,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task StartSync()
 		{
+			await StartSync(false);
+		}
+
+		private async Task StartFullSync()
+		{
+			await StartSync(true);
+		}
+
+		private async Task StartSync(bool forceFullSync)
+		{
 			IsSyncing = true;
-			CurrentAction = "Starting sync...";
+			CurrentAction = forceFullSync ? "Starting full sync..." : "Starting sync...";
 			Progress = 0;
 
 			var progress = new Progress<(string action, int progress)>(update =>
@@ -37,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			try
 			{
-				await PortfolioClient.SyncPortfolio(progress);
+				await PortfolioClient.SyncPortfolio(progress, forceFullSync);
 				
 				// Update the last sync time after successful completion
 				var now = DateTime.Now;

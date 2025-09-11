@@ -46,17 +46,38 @@ else
 	</div>
 </div>
 
-<button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">
-	@if (IsSyncing)
+<div class="d-flex gap-2 flex-wrap">
+	<button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">
+		@if (IsSyncing)
+		{
+			<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+		}
+		else
+		{
+			<i class="bi bi-arrow-repeat me-2"></i>
+		}
+		@GetSyncButtonText()
+	</button>
+
+	@if (LastSyncTime.HasValue && !IsSyncing)
 	{
-		<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+		<div class="btn-group" role="group">
+			<button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+				<i class="bi bi-gear me-1"></i>
+				Options
+			</button>
+			<ul class="dropdown-menu">
+				<li>
+					<button class="dropdown-item" @onclick="StartFullSync">
+						<i class="bi bi-arrow-clockwise me-2"></i>
+						Force Full Sync
+						<small class="text-muted d-block">Download all data (slower but complete)</small>
+					</button>
+				</li>
+			</ul>
+		</div>
 	}
-	else
-	{
-		<i class="bi bi-arrow-repeat me-2"></i>
-	}
-	@GetSyncButtonText()
-</button>
+</div>
 
 @code {
 	private string GetTimeSinceLastSync()

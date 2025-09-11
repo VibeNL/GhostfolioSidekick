@@ -29,6 +29,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
+			await SyncPortfolio(progress, false, cancellationToken);
+		}
+
+		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)
+		{
 			try
 			{
 				// Step 0: Ensure Database is Up-to-Date
@@ -41,26 +46,34 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				var grpcClient = GetGrpcClient();
 
-				// Check if we should do a partial sync
-				var lastSyncTime = await syncTrackingService.GetLastSyncTimeAsync();
-				var hasEverSynced = await syncTrackingService.HasEverSyncedAsync();
-
-				if (hasEverSynced && lastSyncTime.HasValue)
+				// Check if we should do a partial sync (only if not forced to do full sync)
+				if (!forceFullSync)
 				{
-					progress?.Report(("Checking for partial sync possibility...", 0));
-					
-					// Try partial sync first
-					var partialSyncSuccess = await TryPartialSync(grpcClient, lastSyncTime.Value, progress, cancellationToken);
-					if (partialSyncSuccess)
+					var lastSyncTime = await syncTrackingService.GetLastSyncTimeAsync();
+					var hasEverSynced = await syncTrackingService.HasEverSyncedAsync();
+
+					if (hasEverSynced && lastSyncTime.HasValue)
 					{
-						progress?.Report(("Partial sync completed successfully.", 100));
-						return;
+						progress?.Report(("Checking for partial sync possibility...", 0));
+						
+						// Try partial sync first
+						var partialSyncSuccess = await TryPartialSync(grpcClient, lastSyncTime.Value, progress, cancellationToken);
+						if (partialSyncSuccess)
+						{
+							progress?.Report(("Partial sync completed successfully.", 100));
+							return;
+						}
+						else
+						{
+							progress?.Report(("Partial sync not possible, falling back to full sync...", 0));
+							logger.LogInformation("Partial sync failed or not beneficial, performing full sync");
+						}
 					}
-					else
-					{
-						progress?.Report(("Partial sync not possible, falling back to full sync...", 0));
-						logger.LogInformation("Partial sync failed or not beneficial, performing full sync");
-					}
+				}
+				else
+				{
+					logger.LogInformation("Full sync requested by user, skipping partial sync check");
+					progress?.Report(("Performing full sync as requested...", 0));
 				}
 
 				// Perform full sync
