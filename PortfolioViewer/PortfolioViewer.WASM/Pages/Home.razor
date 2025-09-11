@@ -13,12 +13,27 @@
 	<div class="alert alert-info mb-3">
 		<strong>Last sync:</strong> @LastSyncTime.Value.ToString("dd/MM/yyyy HH:mm:ss")
 		<small class="text-muted ms-2">(@GetTimeSinceLastSync())</small>
+		@if (!IsSyncing && GetDaysSinceLastSync() <= 7)
+		{
+			<div class="mt-2">
+				<small class="text-info">
+					<i class="bi bi-lightning-fill me-1"></i>
+					Next sync will be fast (partial sync - only missing days)
+				</small>
+			</div>
+		}
 	</div>
 }
 else
 {
 	<div class="alert alert-warning mb-3">
 		<strong>No sync yet:</strong> Please perform your first sync to get started.
+		<div class="mt-2">
+			<small class="text-muted">
+				<i class="bi bi-info-circle me-1"></i>
+				First sync downloads all data and may take longer
+			</small>
+		</div>
 	</div>
 }
 
@@ -31,7 +46,17 @@ else
 	</div>
 </div>
 
-<button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">Start Sync</button>
+<button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">
+	@if (IsSyncing)
+	{
+		<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+	}
+	else
+	{
+		<i class="bi bi-arrow-repeat me-2"></i>
+	}
+	@GetSyncButtonText()
+</button>
 
 @code {
 	private string GetTimeSinceLastSync()
@@ -49,5 +74,25 @@ else
 			return $"{(int)timeSince.TotalHours} hour{((int)timeSince.TotalHours != 1 ? "s" : "")} ago";
 		else
 			return $"{(int)timeSince.TotalDays} day{((int)timeSince.TotalDays != 1 ? "s" : "")} ago";
+	}
+
+	private int GetDaysSinceLastSync()
+	{
+		if (!LastSyncTime.HasValue)
+			return int.MaxValue;
+
+		return (int)(DateTime.Now - LastSyncTime.Value).TotalDays;
+	}
+
+	private string GetSyncButtonText()
+	{
+		if (IsSyncing)
+			return "Syncing...";
+
+		if (!LastSyncTime.HasValue)
+			return "Start Initial Sync";
+
+		var daysSince = GetDaysSinceLastSync();
+		return daysSince <= 7 ? "Quick Sync" : "Start Sync";
 	}
 }

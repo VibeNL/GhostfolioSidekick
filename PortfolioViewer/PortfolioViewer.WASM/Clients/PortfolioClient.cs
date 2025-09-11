@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,18 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, SqlitePersistence sqlitePersistence, IDbContextFactory<DatabaseContext> dbContextFactory, ILogger<PortfolioClient> logger) : IDisposable
+	public class PortfolioClient(HttpClient httpClient, SqlitePersistence sqlitePersistence, IDbContextFactory<DatabaseContext> dbContextFactory, ISyncTrackingService syncTrackingService, ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 
 		const int pageSize = 10_000;
+		const int PartialSyncBufferDays = 1; // Buffer to ensure we don't miss any data
+
+		// Tables that support date-based partial sync
+		private readonly HashSet<string> _tablesWithDateSupport = new()
+		{
+			"Activities", "MarketData", "Balances", "CalculatedSnapshots", "CurrencyExchangeRate", "StockSplits"
+		};
 
 		private GrpcChannel? _grpcChannel;
 		private SyncService.SyncServiceClient? _grpcClient;
@@ -33,83 +41,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				var grpcClient = GetGrpcClient();
 
-				// Step 1: Retrieve Table Names and Row Counts
-				progress?.Report(("Retrieving table names and row counts...", 0));
-				var tableNamesResponse = await grpcClient.GetTableNamesAsync(new GetTableNamesRequest(), cancellationToken: cancellationToken);
-				var tableNames = tableNamesResponse.TableNames.ToList();
-				var totalRows = tableNamesResponse.TotalRows.ToList();
+				// Check if we should do a partial sync
+				var lastSyncTime = await syncTrackingService.GetLastSyncTimeAsync();
+				var hasEverSynced = await syncTrackingService.HasEverSyncedAsync();
 
-				if (tableNames.Count == 0)
+				if (hasEverSynced && lastSyncTime.HasValue)
 				{
-					progress?.Report(("No tables found in the database.", 100));
-					return;
-				}
-
-				var recordsWritten = 0;
-				var totalRecordsToSync = totalRows.Sum();
-
-				int totalSteps = tableNames.Count; // Clearing + Syncing
-
-				// Step 2: Clear Tables
-				// Disable contraints on DB
-				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
-				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
-				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
-				await databaseContext.ExecutePragma("PRAGMA cache_size =1000000;");
-				await databaseContext.ExecutePragma("PRAGMA locking_mode=EXCLUSIVE;");
-				await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
-				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
-
-				for (int i = 0; i < tableNames.Count; i++)
-				{
-					var tableName = tableNames[i];
-					if (!TablesToIgnore.Contains(tableName))
+					progress?.Report(("Checking for partial sync possibility...", 0));
+					
+					// Try partial sync first
+					var partialSyncSuccess = await TryPartialSync(grpcClient, lastSyncTime.Value, progress, cancellationToken);
+					if (partialSyncSuccess)
 					{
-						var rowCount = totalRows[i];
-						progress?.Report(($"Clearing table: {tableName} ({rowCount} rows)...", 0));
-						var deleteSql = $"DELETE FROM {tableName}";
-						await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+						progress?.Report(("Partial sync completed successfully.", 100));
+						return;
+					}
+					else
+					{
+						progress?.Report(("Partial sync not possible, falling back to full sync...", 0));
+						logger.LogInformation("Partial sync failed or not beneficial, performing full sync");
 					}
 				}
 
-				// Step 3: Sync Data for Each Table
-				for (int i = 0; i < tableNames.Count; i++)
-				{
-					var tableName = tableNames[i];
-					if (!TablesToIgnore.Contains(tableName))
-					{
-						var expectedRowCount = totalRows[i];
-						var totalWrittenTable = 0;
-						progress?.Report(($"Syncing data for table: {tableName} ({expectedRowCount} rows)...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-
-						await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
-						{
-							progress?.Report(($"Inserting data into table: {tableName} ({totalWrittenTable}/{expectedRowCount})...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-							await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
-							totalWrittenTable += dataChunk.Count;
-							recordsWritten += dataChunk.Count;
-							progress?.Report(($"Inserted {totalWrittenTable}/{expectedRowCount} records into table: {tableName}...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-						}
-
-						logger.LogInformation("Completed syncing table {TableName}: {ActualRows}/{ExpectedRows} records",
-							tableName, totalWrittenTable, expectedRowCount);
-					}
-				}
-
-				// Step 4: Enable constraints on DB
-				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
-				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
-				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
-				await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
-
-				// Step 5: Finalize sync
-				await databaseContext.ExecutePragma("PRAGMA journal_mode = DELETE;"); // Use simpler journaling mode
-				await databaseContext.ExecutePragma("PRAGMA synchronous = FULL;"); // Force immediate writes
-				await databaseContext.ExecutePragma("PRAGMA cache_size = -2000;"); // Limit cache size to force writes
-
-				await sqlitePersistence.SaveChangesAsync(cancellationToken);
-
-				progress?.Report(("Sync completed successfully.", 100));
+				// Perform full sync
+				await PerformFullSync(grpcClient, progress, cancellationToken);
 
 			}
 			catch (Exception ex)
@@ -118,6 +73,282 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(($"Error: {ex.Message}", 100));
 				throw;
 			}
+		}
+
+		private async Task<bool> TryPartialSync(SyncService.SyncServiceClient grpcClient, DateTime lastSyncTime, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		{
+			try
+			{
+				// Add buffer days to ensure we don't miss any data
+				var sinceDate = lastSyncTime.Date.AddDays(-PartialSyncBufferDays);
+				var sinceDateString = sinceDate.ToString("yyyy-MM-dd");
+				
+				progress?.Report(($"Checking data since {sinceDateString}...", 5));
+
+				// Get latest dates from server
+				var latestDatesResponse = await grpcClient.GetLatestDatesAsync(new GetLatestDatesRequest(), cancellationToken: cancellationToken);
+				
+				// Check if partial sync would be beneficial
+				var recordsToSync = 0;
+				var tablesToSync = new List<string>();
+
+				foreach (var table in _tablesWithDateSupport)
+				{
+					if (latestDatesResponse.LatestDates.ContainsKey(table))
+					{
+						var latestDateStr = latestDatesResponse.LatestDates[table];
+						if (DateTime.TryParse(latestDateStr, out var latestDate) && latestDate >= sinceDate)
+						{
+							tablesToSync.Add(table);
+							// For simplicity, we'll proceed with partial sync for tables with new data
+							recordsToSync += 1000; // Estimate
+						}
+					}
+				}
+
+				// If no tables need syncing, we're up to date
+				if (tablesToSync.Count == 0)
+				{
+					progress?.Report(("No new data found, sync complete.", 100));
+					return true;
+				}
+
+				progress?.Report(($"Performing partial sync for {tablesToSync.Count} tables since {sinceDateString}...", 10));
+
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+
+				// Enable performance optimizations
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
+
+				var totalProgress = 0;
+				var progressStep = 80 / tablesToSync.Count; // Reserve 20% for cleanup
+
+				foreach (var tableName in tablesToSync)
+				{
+					progress?.Report(($"Syncing new data for table: {tableName}...", 10 + totalProgress));
+					
+					// Delete existing data since the sync date to avoid duplicates
+					var deleteRecordsCount = await DeleteRecordsSinceDate(databaseContext, tableName, sinceDateString, cancellationToken);
+					logger.LogInformation("Deleted {RecordCount} existing records from {TableName} since {SinceDate}", deleteRecordsCount, tableName, sinceDateString);
+
+					// Sync new data
+					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, progress, cancellationToken);
+					
+					totalProgress += progressStep;
+				}
+
+				// Re-enable constraints and finalize
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
+				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+
+				await sqlitePersistence.SaveChangesAsync(cancellationToken);
+
+				logger.LogInformation("Partial sync completed successfully for tables: {Tables}", string.Join(", ", tablesToSync));
+				return true;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Partial sync failed: {Message}", ex.Message);
+				return false;
+			}
+		}
+
+		private async Task<int> DeleteRecordsSinceDate(DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
+		{
+			var dateColumn = GetDateColumnForTable(tableName);
+			if (string.IsNullOrEmpty(dateColumn))
+			{
+				return 0;
+			}
+
+			var deleteSql = $"DELETE FROM {tableName} WHERE {dateColumn} >= @sinceDate";
+			
+			using var connection = databaseContext.Database.GetDbConnection();
+			await connection.OpenAsync(cancellationToken);
+			using var command = connection.CreateCommand();
+			command.CommandText = deleteSql;
+			
+			var sinceDateParam = command.CreateParameter();
+			sinceDateParam.ParameterName = "@sinceDate";
+			sinceDateParam.Value = sinceDateString;
+			command.Parameters.Add(sinceDateParam);
+
+			return await command.ExecuteNonQueryAsync(cancellationToken);
+		}
+
+		private string? GetDateColumnForTable(string tableName)
+		{
+			return tableName switch
+			{
+				"Activities" => "Date",
+				"MarketData" => "Date", 
+				"Balances" => "Date",
+				"CalculatedSnapshots" => "Date",
+				"CurrencyExchangeRate" => "Date",
+				"StockSplits" => "Date",
+				_ => null
+			};
+		}
+
+		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		{
+			await foreach (var dataChunk in FetchDataSinceAsync(grpcClient, tableName, sinceDateString, cancellationToken))
+			{
+				await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
+			}
+		}
+
+		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataSinceAsync(SyncService.SyncServiceClient grpcClient, string tableName, string sinceDateString, [EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			int page = 1;
+			bool hasMore = true;
+
+			logger.LogInformation("Starting to fetch data for table: {TableName} since {SinceDate}", tableName, sinceDateString);
+
+			while (hasMore)
+			{
+				logger.LogDebug("Fetching page {Page} for table {TableName} since {SinceDate} with page size {PageSize}", page, tableName, sinceDateString, pageSize);
+
+				var request = new GetEntityDataSinceRequest
+				{
+					Entity = tableName,
+					Page = page,
+					PageSize = pageSize,
+					SinceDate = sinceDateString
+				};
+
+				using var call = grpcClient.GetEntityDataSince(request, cancellationToken: cancellationToken);
+
+				bool receivedData = false;
+				while (await call.ResponseStream.MoveNext(cancellationToken))
+				{
+					var response = call.ResponseStream.Current;
+					receivedData = true;
+
+					logger.LogDebug("Received {RecordCount} records for page {Page} of table {TableName}, HasMore: {HasMore}",
+						response.Records.Count, page, tableName, response.HasMore);
+
+					if (response.Records.Count == 0)
+					{
+						yield break;
+					}
+
+					// Pre-allocate the list with known capacity for better performance
+					var data = new List<Dictionary<string, object>>(response.Records.Count);
+
+					// Convert gRPC response to the expected format with optimized loop
+					foreach (var record in response.Records)
+					{
+						var dictionary = new Dictionary<string, object>(record.Fields.Count);
+						foreach (var field in record.Fields)
+						{
+							// Convert string back to appropriate type
+							dictionary[field.Key] = ConvertStringToValue(field.Value);
+						}
+
+						data.Add(dictionary);
+					}
+
+					yield return data;
+
+					// Check if there's more data based on the response
+					hasMore = response.HasMore;
+				}
+
+				if (!receivedData)
+				{
+					logger.LogDebug("No data received for page {Page} of table {TableName} since {SinceDate}", page, tableName, sinceDateString);
+					hasMore = false;
+				}
+
+				page++;
+			}
+
+			logger.LogInformation("Completed fetching data for table: {TableName} since {SinceDate}, total pages: {TotalPages}", tableName, sinceDateString, page - 1);
+		}
+
+		private async Task PerformFullSync(SyncService.SyncServiceClient grpcClient, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		{
+			// Step 1: Retrieve Table Names and Row Counts
+			progress?.Report(("Retrieving table names and row counts...", 0));
+			var tableNamesResponse = await grpcClient.GetTableNamesAsync(new GetTableNamesRequest(), cancellationToken: cancellationToken);
+			var tableNames = tableNamesResponse.TableNames.ToList();
+			var totalRows = tableNamesResponse.TotalRows.ToList();
+
+			if (tableNames.Count == 0)
+			{
+				progress?.Report(("No tables found in the database.", 100));
+				return;
+			}
+
+			var recordsWritten = 0;
+			var totalRecordsToSync = totalRows.Sum();
+
+			await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+
+			// Step 2: Clear Tables
+			// Disable contraints on DB
+			await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
+			await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
+			await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
+			await databaseContext.ExecutePragma("PRAGMA cache_size =1000000;");
+			await databaseContext.ExecutePragma("PRAGMA locking_mode=EXCLUSIVE;");
+			await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
+			await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
+
+			for (int i = 0; i < tableNames.Count; i++)
+			{
+				var tableName = tableNames[i];
+				if (!TablesToIgnore.Contains(tableName))
+				{
+					var rowCount = totalRows[i];
+					progress?.Report(($"Clearing table: {tableName} ({rowCount} rows)...", 0));
+					var deleteSql = $"DELETE FROM {tableName}";
+					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+				}
+			}
+
+			// Step 3: Sync Data for Each Table
+			for (int i = 0; i < tableNames.Count; i++)
+			{
+				var tableName = tableNames[i];
+				if (!TablesToIgnore.Contains(tableName))
+				{
+					var expectedRowCount = totalRows[i];
+					var totalWrittenTable = 0;
+					progress?.Report(($"Syncing data for table: {tableName} ({expectedRowCount} rows)...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+
+					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
+					{
+						progress?.Report(($"Inserting data into table: {tableName} ({totalWrittenTable}/{expectedRowCount})...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+						await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
+						totalWrittenTable += dataChunk.Count;
+						recordsWritten += dataChunk.Count;
+						progress?.Report(($"Inserted {totalWrittenTable}/{expectedRowCount} records into table: {tableName}...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+					}
+
+					logger.LogInformation("Completed syncing table {TableName}: {ActualRows}/{ExpectedRows} records",
+						tableName, totalWrittenTable, expectedRowCount);
+				}
+			}
+
+			// Step 4: Enable constraints on DB
+			await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
+			await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
+			await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+			await databaseContext.ExecutePragma("PRAGMA auto_vacuum=FULL;");
+
+			// Step 5: Finalize sync
+			await databaseContext.ExecutePragma("PRAGMA journal_mode = DELETE;"); // Use simpler journaling mode
+			await databaseContext.ExecutePragma("PRAGMA synchronous = FULL;"); // Force immediate writes
+			await databaseContext.ExecutePragma("PRAGMA cache_size = -2000;"); // Limit cache size to force writes
+
+			await sqlitePersistence.SaveChangesAsync(cancellationToken);
+
+			progress?.Report(("Full sync completed successfully.", 100));
 		}
 
 		private SyncService.SyncServiceClient GetGrpcClient()

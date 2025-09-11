@@ -11,6 +11,12 @@ service SyncService {
   
   // Gets table names
   rpc GetTableNames (GetTableNamesRequest) returns (GetTableNamesResponse);
+  
+  // Gets entity data with date filtering for partial sync
+  rpc GetEntityDataSince (GetEntityDataSinceRequest) returns (stream GetEntityDataResponse);
+  
+  // Gets the latest date in each date-enabled table
+  rpc GetLatestDates (GetLatestDatesRequest) returns (GetLatestDatesResponse);
 }
 
 // Request message for getting entity data
@@ -18,6 +24,14 @@ message GetEntityDataRequest {
   string entity = 1;
   int32 page = 2;
   int32 page_size = 3;
+}
+
+// Request message for getting entity data since a specific date
+message GetEntityDataSinceRequest {
+  string entity = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string since_date = 4; // ISO date string (YYYY-MM-DD)
 }
 
 // Response message for entity data (streamed)
@@ -31,10 +45,19 @@ message GetEntityDataResponse {
 message GetTableNamesRequest {
 }
 
+// Request message for getting latest dates
+message GetLatestDatesRequest {
+}
+
 // Response message for table names
 message GetTableNamesResponse {
   repeated string table_names = 1;
   repeated int64 total_rows = 2;
+}
+
+// Response message for latest dates in each table
+message GetLatestDatesResponse {
+  map<string, string> latest_dates = 1; // table_name -> latest_date (ISO string)
 }
 
 // Represents a single record from the database

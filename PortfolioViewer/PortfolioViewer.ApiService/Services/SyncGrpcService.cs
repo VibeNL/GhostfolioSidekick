@@ -11,6 +11,17 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 		private readonly DatabaseContext _context;
 		private readonly ILogger<SyncGrpcService> _logger;
 		private readonly string[] _tablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
+		
+		// Tables that have date columns for partial sync
+		private readonly Dictionary<string, string> _tablesWithDates = new()
+		{
+			{ "Activities", "Date" },
+			{ "MarketData", "Date" },
+			{ "Balances", "Date" },
+			{ "CalculatedSnapshots", "Date" },
+			{ "CurrencyExchangeRate", "Date" },
+			{ "StockSplits", "Date" }
+		};
 
 		public SyncGrpcService(DatabaseContext context, ILogger<SyncGrpcService> logger)
 		{
@@ -74,20 +85,87 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 
 		public override async Task GetEntityData(GetEntityDataRequest request, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context)
 		{
-			if (request.Page <= 0 || request.PageSize <= 0)
+			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, null, responseStream, context);
+		}
+
+		public override async Task GetEntityDataSince(GetEntityDataSinceRequest request, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context)
+		{
+			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, request.SinceDate, responseStream, context);
+		}
+
+		public override async Task<GetLatestDatesResponse> GetLatestDates(GetLatestDatesRequest request, ServerCallContext context)
+		{
+			try
+			{
+				var response = new GetLatestDatesResponse();
+				
+				using var connection = _context.Database.GetDbConnection();
+				await connection.OpenAsync(context.CancellationToken);
+
+				foreach (var tableInfo in _tablesWithDates)
+				{
+					var tableName = tableInfo.Key;
+					var dateColumn = tableInfo.Value;
+					
+					try
+					{
+						using var command = connection.CreateCommand();
+						command.CommandText = $"SELECT MAX({dateColumn}) FROM {tableName}";
+						
+						var result = await command.ExecuteScalarAsync(context.CancellationToken);
+						if (result != null && result != DBNull.Value)
+						{
+							response.LatestDates[tableName] = result.ToString() ?? string.Empty;
+							_logger.LogDebug("Latest date in {TableName}: {LatestDate}", tableName, result);
+						}
+						else
+						{
+							_logger.LogDebug("No data found in {TableName}", tableName);
+						}
+					}
+					catch (Exception ex)
+					{
+						_logger.LogWarning(ex, "Failed to get latest date for table {TableName}", tableName);
+					}
+				}
+
+				return response;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error getting latest dates");
+				throw new RpcException(new Status(StatusCode.Internal, ex.Message));
+			}
+		}
+
+		private async Task GetEntityDataInternal(string entity, int page, int pageSize, string? sinceDate, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context)
+		{
+			if (page <= 0 || pageSize <= 0)
 			{
 				throw new RpcException(new Status(StatusCode.InvalidArgument, "Page and pageSize must be greater than 0."));
 			}
 
 			try
 			{
-				_logger.LogDebug("Getting entity data for {Entity}, page {Page}, page size {PageSize}", 
-					request.Entity, request.Page, request.PageSize);
+				_logger.LogDebug("Getting entity data for {Entity}, page {Page}, page size {PageSize}, since date {SinceDate}", 
+					entity, page, pageSize, sinceDate ?? "all");
 
-				var result = await RawQuery.ReadTable(_context, request.Entity, request.Page, request.PageSize);
+				List<Dictionary<string, object>> result;
+				string? dateColumn = null;
+				
+				if (!string.IsNullOrEmpty(sinceDate) && _tablesWithDates.TryGetValue(entity, out dateColumn))
+				{
+					// Use date filtering
+					result = await GetEntityDataWithDateFilter(entity, dateColumn, sinceDate, page, pageSize);
+				}
+				else
+				{
+					// Use regular method
+					result = await RawQuery.ReadTable(_context, entity, page, pageSize);
+				}
 
 				_logger.LogDebug("Retrieved {RecordCount} records for {Entity}, page {Page}", 
-					result.Count, request.Entity, request.Page);
+					result.Count, entity, page);
 
 				// Convert the data to protobuf format with proper null handling
 				var records = result.Select(record =>
@@ -110,30 +188,86 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 
 				// Check if there are more records by trying to get the next page with a limit of 1
 				bool hasMore = false;
-				if (records.Count == request.PageSize)
+				if (records.Count == pageSize)
 				{
-					var nextPageResult = await RawQuery.ReadTable(_context, request.Entity, request.Page + 1, 1);
+					List<Dictionary<string, object>> nextPageResult;
+					if (!string.IsNullOrEmpty(sinceDate) && dateColumn != null)
+					{
+						nextPageResult = await GetEntityDataWithDateFilter(entity, dateColumn, sinceDate, page + 1, 1);
+					}
+					else
+					{
+						nextPageResult = await RawQuery.ReadTable(_context, entity, page + 1, 1);
+					}
 					hasMore = nextPageResult.Count > 0;
-					_logger.LogDebug("Checked next page for {Entity}: hasMore = {HasMore}", request.Entity, hasMore);
+					_logger.LogDebug("Checked next page for {Entity}: hasMore = {HasMore}", entity, hasMore);
 				}
 
 				var response = new GetEntityDataResponse
 				{
-					CurrentPage = request.Page,
+					CurrentPage = page,
 					HasMore = hasMore
 				};
 				response.Records.AddRange(records);
 
 				_logger.LogDebug("Sending response for {Entity}, page {Page}: {RecordCount} records, hasMore: {HasMore}", 
-					request.Entity, request.Page, records.Count, hasMore);
+					entity, page, records.Count, hasMore);
 
 				await responseStream.WriteAsync(response);
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error getting entity data for {Entity}", request.Entity);
+				_logger.LogError(ex, "Error getting entity data for {Entity}", entity);
 				throw new RpcException(new Status(StatusCode.Internal, ex.Message));
 			}
+		}
+
+		private async Task<List<Dictionary<string, object>>> GetEntityDataWithDateFilter(string entity, string dateColumn, string sinceDate, int page, int pageSize)
+		{
+			var offset = (page - 1) * pageSize;
+			
+			// Validate table and column names to prevent SQL injection
+			if (!_tablesWithDates.ContainsKey(entity))
+			{
+				throw new ArgumentException($"Table {entity} is not supported for date filtering");
+			}
+			
+			var sqlQuery = $"SELECT * FROM {entity} WHERE {dateColumn} >= @sinceDate ORDER BY {dateColumn} LIMIT @pageSize OFFSET @offset";
+
+			using var connection = _context.Database.GetDbConnection();
+			await connection.OpenAsync();
+			using var command = connection.CreateCommand();
+			command.CommandText = sqlQuery;
+
+			var sinceDateParam = command.CreateParameter();
+			sinceDateParam.ParameterName = "@sinceDate";
+			sinceDateParam.Value = sinceDate;
+			command.Parameters.Add(sinceDateParam);
+
+			var pageSizeParam = command.CreateParameter();
+			pageSizeParam.ParameterName = "@pageSize";
+			pageSizeParam.Value = pageSize;
+			command.Parameters.Add(pageSizeParam);
+
+			var offsetParam = command.CreateParameter();
+			offsetParam.ParameterName = "@offset";
+			offsetParam.Value = offset;
+			command.Parameters.Add(offsetParam);
+
+			using var reader = await command.ExecuteReaderAsync();
+
+			var result = new List<Dictionary<string, object>>();
+			while (await reader.ReadAsync())
+			{
+				var row = new Dictionary<string, object>();
+				for (var i = 0; i < reader.FieldCount; i++)
+				{
+					row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+				}
+				result.Add(row);
+			}
+
+			return result;
 		}
 	}
 }
