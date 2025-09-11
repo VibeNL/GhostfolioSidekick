@@ -44,8 +44,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
-			
-			await LoadPortfolioDataAsync();
 		}
 
 		protected override async Task OnParametersSetAsync()
@@ -88,11 +86,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				e.PropertyName == nameof(FilterState.SelectedAccountId))
 			{
 				Console.WriteLine($"Filter change detected in Holdings - Currency: {FilterState.SelectedCurrency}, AccountId: {FilterState.SelectedAccountId}");
-				await InvokeAsync(async () =>
-				{
-					await LoadPortfolioDataAsync();
-					StateHasChanged();
-				});
+				await LoadPortfolioDataAsync();
 			}
 		}
 
@@ -104,15 +98,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				HasError = false;
 				ErrorMessage = string.Empty;
 				StateHasChanged(); // Update UI to show loading state
-
-				// Yield control to allow UI to update
-				await Task.Yield();
+				await Task.Delay(0);
 
 				HoldingsList = await LoadRealPortfolioDataAsync();
 				SortHoldings(); // Sort after loading
 
 				// Prepare chart data after loading
-				await Task.Run(() => PrepareTreemapData());
+				await Task.Run(PrepareTreemapData);
 			}
 			catch (Exception ex)
 			{
