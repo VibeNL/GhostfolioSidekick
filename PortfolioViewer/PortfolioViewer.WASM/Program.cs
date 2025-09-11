@@ -68,6 +68,9 @@ public static class Program
 		// Register PortfolioClient for DI
 		builder.Services.AddScoped<Clients.PortfolioClient>();
 
+		// Register SyncTrackingService for DI
+		builder.Services.AddScoped<ISyncTrackingService, SyncTrackingService>();
+
 		builder.Services.AddSingleton<ITestContextService, TestContextService>();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);

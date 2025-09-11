@@ -6,11 +6,21 @@
 
 <h1>Start page</h1>
 
-@* <div class="alert alert-warning" role="alert">
-    Before authentication will function correctly, you must configure your provider details in <code>Program.cs</code>
-</div> *@
-
 <p>Before use, please sync the data with a copy of the server</p>
+
+@if (LastSyncTime.HasValue)
+{
+	<div class="alert alert-info mb-3">
+		<strong>Last sync:</strong> @LastSyncTime.Value.ToString("dd/MM/yyyy HH:mm:ss")
+		<small class="text-muted ms-2">(@GetTimeSinceLastSync())</small>
+	</div>
+}
+else
+{
+	<div class="alert alert-warning mb-3">
+		<strong>No sync yet:</strong> Please perform your first sync to get started.
+	</div>
+}
 
 <div>
 	<p>@CurrentAction</p>
@@ -23,23 +33,21 @@
 
 <button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">Start Sync</button>
 
-@* <div>
-	<pre class="mermaid">
-		graph LR
-		A --- B
-		B-->C[fa:fa-ban forbidden]
-		B-->D(fa:fa-spinner);
-	</pre>
-</div>
+@code {
+	private string GetTimeSinceLastSync()
+	{
+		if (!LastSyncTime.HasValue)
+			return string.Empty;
 
-<div class="mermaid">
-	journey
-	title My working day
-	section Go to work
-	Make tea: 5: Me
-	Go upstairs: 3: Me
-	Do work: 1: Me, Cat
-	section Go home
-	Go downstairs: 5: Me
-	Sit down: 5: Me
-</div> *@
+		var timeSince = DateTime.Now - LastSyncTime.Value;
+		
+		if (timeSince.TotalMinutes < 1)
+			return "just now";
+		else if (timeSince.TotalHours < 1)
+			return $"{(int)timeSince.TotalMinutes} minute{((int)timeSince.TotalMinutes != 1 ? "s" : "")} ago";
+		else if (timeSince.TotalDays < 1)
+			return $"{(int)timeSince.TotalHours} hour{((int)timeSince.TotalHours != 1 ? "s" : "")} ago";
+		else
+			return $"{(int)timeSince.TotalDays} day{((int)timeSince.TotalDays != 1 ? "s" : "")} ago";
+	}
+}
