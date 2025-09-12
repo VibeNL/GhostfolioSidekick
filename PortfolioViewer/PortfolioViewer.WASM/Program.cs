@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -67,6 +68,9 @@ public static class Program
 
 		// Register PortfolioClient for DI
 		builder.Services.AddScoped<Clients.PortfolioClient>();
+
+		// Register SyncTrackingService for DI
+		builder.Services.AddScoped<ISyncTrackingService, SyncTrackingService>();
 
 		builder.Services.AddSingleton<ITestContextService, TestContextService>();
 

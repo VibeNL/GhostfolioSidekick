@@ -3,7 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.Model.Accounts;
 using System;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
     /// <summary>
     /// Interface for portfolio data services. Implement this interface to provide real data to the Holdings page.
