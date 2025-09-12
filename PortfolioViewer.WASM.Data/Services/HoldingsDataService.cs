@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class HoldingsDataService(DatabaseContext databaseContext, ICurrencyExchange currencyExchange, ILogger<HoldingsDataService> logger) : IHoldingsDataService
 	{
@@ -41,11 +41,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			var holdings = await holdingsQuery
 				.Select(h => new
 				{
-					Id = h.Id,
-					AssetClass = h.AssetClass,
-					Name = h.Name,
-					Symbol = h.Symbol,
-					SectorWeights = h.SectorWeights
+					h.Id,
+					h.AssetClass,
+					h.Name,
+					h.Symbol,
+					h.SectorWeights
 				})
 				.ToListAsync(cancellationToken);
 
@@ -675,8 +675,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					// Filter activities by symbol in memory
 					activities = activities
 						.Where(a => a.Holding != null &&
-							       (holdingsWithSymbols.TryGetValue(a.Holding.Id, out var symbolProfiles) && 
-							        symbolProfiles.Any(sp => sp.Symbol == symbol)))
+							       holdingsWithSymbols.TryGetValue(a.Holding.Id, out var symbolProfiles) && 
+							        symbolProfiles.Any(sp => sp.Symbol == symbol))
 						.ToList();
 
 					// Populate the SymbolProfiles navigation property for filtered activities

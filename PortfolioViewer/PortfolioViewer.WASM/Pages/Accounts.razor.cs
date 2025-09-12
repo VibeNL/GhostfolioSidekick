@@ -8,6 +8,8 @@ using System.Globalization;
 using System.Collections.Generic;
 using GhostfolioSidekick.Database.Repository;
 using System.ComponentModel;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {

@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using Xunit.Abstractions;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {

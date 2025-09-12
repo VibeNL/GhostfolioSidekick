@@ -4,7 +4,7 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class DataIssuesService(DatabaseContext databaseContext) : IDataIssuesService
 	{
