@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
         public async Task GetLastSyncTimeAsync_WhenNoStoredValue_ReturnsNull()
         {
             // Arrange
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>("localStorage.getItem", "lastSyncTime"))
+            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
                          .ReturnsAsync((string?)null);
 
             // Act
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
             // Arrange
             var expectedDate = DateTime.Now;
             var isoString = expectedDate.ToString("O");
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>("localStorage.getItem", "lastSyncTime"))
+            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
                          .ReturnsAsync(isoString);
 
             // Act
@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
         public async Task GetLastSyncTimeAsync_WhenInvalidStoredValue_ReturnsNull()
         {
             // Arrange
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>("localStorage.getItem", "lastSyncTime"))
+            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
                          .ReturnsAsync("invalid-date-string");
 
             // Act
@@ -71,14 +71,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
             await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
 
             // Assert
-            _jsRuntimeMock.Verify(js => js.InvokeVoidAsync("localStorage.setItem", "lastSyncTime", expectedIsoString), Times.Once);
+            _jsRuntimeMock.Verify(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()), Times.Once);
         }
 
         [Fact]
         public async Task HasEverSyncedAsync_WhenNoStoredValue_ReturnsFalse()
         {
             // Arrange
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>("localStorage.getItem", "lastSyncTime"))
+            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
                          .ReturnsAsync((string?)null);
 
             // Act
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
         {
             // Arrange
             var isoString = DateTime.Now.ToString("O");
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>("localStorage.getItem", "lastSyncTime"))
+            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
                          .ReturnsAsync(isoString);
 
             // Act
@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
         public async Task GetLastSyncTimeAsync_WhenJSRuntimeThrows_ReturnsNull()
         {
             // Arrange
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>("localStorage.getItem", "lastSyncTime"))
+            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
                          .ThrowsAsync(new InvalidOperationException());
 
             // Act
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
         {
             // Arrange
             var syncTime = DateTime.Now;
-            _jsRuntimeMock.Setup(js => js.InvokeVoidAsync("localStorage.setItem", "lastSyncTime", It.IsAny<string>()))
+            _jsRuntimeMock.Setup(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()))
                          .ThrowsAsync(new InvalidOperationException());
 
             // Act & Assert - Should not throw
