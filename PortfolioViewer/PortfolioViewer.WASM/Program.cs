@@ -78,7 +78,7 @@ public static class Program
 
 		// Performance Calculations
 		builder.Services.AddMemoryCache();
-		builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
+		builder.Services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
 
 		// Data Issues Service

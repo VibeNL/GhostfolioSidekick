@@ -7,10 +7,25 @@ namespace GhostfolioSidekick.Database.Repository
 {
 	public class CurrencyExchange(
 			IDbContextFactory<DatabaseContext> databaseContextFactory,
-			IMemoryCache memoryCache,
+			MemoryCache memoryCache,
 			ILogger<CurrencyExchange> logger) : ICurrencyExchange
 	{
 		private readonly SemaphoreSlim _preloadSemaphore = new(1, 1);
+
+		public Task ClearCache()
+		{
+			// Remove all entries from the memory cache
+			var keys = memoryCache.Keys
+				.Where(kvp => kvp is ExchangeRateKey)
+				.ToList();
+
+			foreach (var key in keys)
+			{
+				memoryCache.Remove(key);
+			}
+
+			return Task.CompletedTask;
+		}
 
 		public async Task<Money> ConvertMoney(Money money, Currency currency, DateOnly date)
 		{
@@ -83,7 +98,7 @@ namespace GhostfolioSidekick.Database.Repository
 			return 1m; // Default to 1 if no rate is found
 		}
 
-		private async Task PreloadAllExchangeRates()
+		public async Task PreloadAllExchangeRates()
 		{
 			await _preloadSemaphore.WaitAsync();
 			try

@@ -1,4 +1,5 @@
 ﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Grpc.Net.Client;
@@ -10,7 +11,13 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
-	public class PortfolioClient(HttpClient httpClient, SqlitePersistence sqlitePersistence, IDbContextFactory<DatabaseContext> dbContextFactory, ISyncTrackingService syncTrackingService, ILogger<PortfolioClient> logger) : IDisposable
+	public class PortfolioClient(
+		HttpClient httpClient, 
+		SqlitePersistence sqlitePersistence,
+		ICurrencyExchange currencyExchange,
+		IDbContextFactory<DatabaseContext> dbContextFactory, 
+		ISyncTrackingService syncTrackingService, 
+		ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 
@@ -60,6 +67,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						var partialSyncSuccess = await TryPartialSync(grpcClient, lastSyncTime.Value, progress, cancellationToken);
 						if (partialSyncSuccess)
 						{
+							await ReloadCached();
 							progress?.Report(("Partial sync completed successfully.", 100));
 							return;
 						}
@@ -78,7 +86,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				// Perform full sync
 				await PerformFullSync(grpcClient, progress, cancellationToken);
-
+				await ReloadCached();
 			}
 			catch (Exception ex)
 			{
@@ -86,6 +94,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(($"Error: {ex.Message}", 100));
 				throw;
 			}
+		}
+
+		private async Task ReloadCached()
+		{
+			await currencyExchange.ClearCache();
+			await currencyExchange.PreloadAllExchangeRates();
 		}
 
 		private async Task<bool> TryPartialSync(SyncService.SyncServiceClient grpcClient, DateTime lastSyncTime, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
