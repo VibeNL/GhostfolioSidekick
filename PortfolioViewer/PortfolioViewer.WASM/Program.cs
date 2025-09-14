@@ -1,12 +1,13 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
-using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -77,7 +78,9 @@ public static class Program
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
 		// Performance Calculations
-		builder.Services.AddMemoryCache();
+		builder.Services.AddSingleton<MemoryCache, MemoryCache>();
+		builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+
 		builder.Services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
 
