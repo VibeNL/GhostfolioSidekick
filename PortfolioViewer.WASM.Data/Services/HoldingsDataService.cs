@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					CurrentValue = await ConvertMoney(x.LastSnapshot?.TotalValue, targetCurrency, x.LastSnapshot?.Date),
 					Name = x.Holding.Name ?? x.Holding.Symbol,
 					Quantity = x.LastSnapshot?.Quantity ?? 0,
-					Sector = x.Holding.SectorWeights.FirstOrDefault()?.ToString() ?? string.Empty,
+					Sector = x.Holding.SectorWeights.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
 					Symbol = x.Holding.Symbol,
 				});
 			}
