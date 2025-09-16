@@ -9,18 +9,27 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Concurrent;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
-	public class HoldingsDataService(DatabaseContext databaseContext, ICurrencyExchange currencyExchange, ILogger<HoldingsDataService> logger) : IHoldingsDataService
+	/// <summary>
+	/// Service for managing portfolio holdings data with optimized performance for Blazor WebAssembly.
+	/// Implements caching, bulk operations, and parallel processing for improved performance.
+	/// </summary>
+	public class HoldingsDataService(
+		DatabaseContext databaseContext, 
+		ICurrencyExchange currencyExchange, 
+		ILogger<HoldingsDataService> logger) : IHoldingsDataService
 	{
+		private const int DefaultCacheExpirationMinutes = 5;
+		
 		// Currency conversion cache to reduce redundant conversions
 		private readonly ConcurrentDictionary<string, Money> _currencyConversionCache = new();
-		private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
 		private readonly ConcurrentDictionary<string, DateTime> _cacheTimestamps = new();
+		private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(DefaultCacheExpirationMinutes);
 
+		/// <inheritdoc />
 		public async Task<List<HoldingDisplayModel>> GetHoldingsAsync(
 			Currency targetCurrency,
 			CancellationToken cancellationToken = default)
@@ -28,102 +37,361 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return await GetHoldingsAsync(targetCurrency, 0, cancellationToken);
 		}
 
+		/// <inheritdoc />
 		public async Task<List<HoldingDisplayModel>> GetHoldingsAsync(
 			Currency targetCurrency,
 			int accountId,
 			CancellationToken cancellationToken = default)
 		{
-			// **OPTIMIZATION 1: Single bulk query with joins instead of N+1 queries**
-			var holdingsWithLatestSnapshots = await GetHoldingsWithLatestSnapshotsAsync(accountId, cancellationToken);
-			
-			if (!holdingsWithLatestSnapshots.Any())
+			try
 			{
-				return new List<HoldingDisplayModel>();
-			}
+				logger.LogInformation("Loading holdings for account {AccountId} in currency {Currency}", 
+					accountId, targetCurrency.Symbol);
 
-			// **OPTIMIZATION 2: Batch currency conversions by grouping same currencies**
-			var currencyGroups = holdingsWithLatestSnapshots
-				.SelectMany(h => h.Snapshots)
-				.GroupBy(s => s.TotalValue.Currency)
-				.ToDictionary(g => g.Key, g => g.First().Date);
-
-			// Pre-cache all needed currency conversions
-			await PreCacheCurrencyConversionsAsync(currencyGroups.Keys, targetCurrency, currencyGroups.Values);
-
-			var result = new List<HoldingDisplayModel>(holdingsWithLatestSnapshots.Count);
-
-			// **OPTIMIZATION 3: Process holdings in parallel for CPU-bound operations**
-			var tasks = holdingsWithLatestSnapshots.Select(async holding =>
-			{
-				if (!holding.Snapshots.Any())
+				// Step 1: Get holdings with their latest snapshots in optimized bulk queries
+				var holdingsWithSnapshots = await GetHoldingsWithLatestSnapshotsAsync(accountId, cancellationToken);
+				
+				if (!holdingsWithSnapshots.Any())
 				{
-					// Create empty snapshot for holdings with no data
-					var emptySnapshot = CalculatedSnapshot.Empty(targetCurrency, 0);
-					return new HoldingDisplayModel
-					{
-						AssetClass = holding.AssetClass.ToString(),
-						AveragePrice = emptySnapshot.AverageCostPrice,
-						Currency = targetCurrency.Symbol.ToString(),
-						CurrentValue = emptySnapshot.TotalValue,
-						CurrentPrice = emptySnapshot.CurrentUnitPrice,
-						GainLoss = Money.Zero(targetCurrency),
-						GainLossPercentage = 0,
-						Name = holding.Name ?? string.Empty,
-						Quantity = 0,
-						Symbol = holding.Symbol,
-						Sector = holding.SectorWeights.Count != 0 ? string.Join(",", holding.SectorWeights.Select(x => x.Name)) : "Undefined",
-						Weight = 0,
-					};
+					logger.LogInformation("No holdings found for account {AccountId}", accountId);
+					return new List<HoldingDisplayModel>();
 				}
 
-				// **OPTIMIZATION 4: Aggregate calculations optimized for minimal object allocation**
-				var aggregatedSnapshot = await AggregateSnapshotsOptimized(holding.Snapshots, targetCurrency);
-				var convertedSnapshot = await ConvertToTargetCurrencyOptimized(targetCurrency, aggregatedSnapshot);
+				// Step 2: Pre-cache currency conversions to minimize API calls
+				await PreCacheCurrencyConversionsAsync(holdingsWithSnapshots, targetCurrency);
+
+				// Step 3: Process holdings in parallel for better performance
+				var holdingTasks = holdingsWithSnapshots.Select(holding => 
+					ProcessHoldingAsync(holding, targetCurrency));
+				var processedHoldings = await Task.WhenAll(holdingTasks);
+
+				// Step 4: Calculate portfolio weights
+				var result = processedHoldings.ToList();
+				CalculateHoldingWeights(result);
+
+				logger.LogInformation("Successfully loaded {Count} holdings for account {AccountId}", 
+					result.Count, accountId);
 				
-				var gainLoss = convertedSnapshot.TotalValue.Subtract(convertedSnapshot.TotalInvested);
-				var gainLossPercentage = convertedSnapshot.TotalInvested.Amount == 0 ? 0 : 
-					gainLoss.Amount / convertedSnapshot.TotalInvested.Amount;
+				return result;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load holdings for account {AccountId}", accountId);
+				throw new InvalidOperationException($"Failed to load holdings for account {accountId}. Please try again later.", ex);
+			}
+		}
 
-				return new HoldingDisplayModel
+		/// <inheritdoc />
+		public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
+		{
+			var minDate = await databaseContext.CalculatedSnapshots
+				.OrderBy(s => s.Date)
+				.Select(s => s.Date)
+				.FirstOrDefaultAsync(cancellationToken);
+			return minDate;
+		}
+
+		/// <inheritdoc />
+		public async Task<List<Account>> GetAccountsAsync()
+		{
+			return await ExecuteWithErrorHandlingAsync(
+				"Loading accounts from database...",
+				"Failed to load accounts from database",
+				"Failed to load accounts. Please try again later.",
+				async () =>
 				{
-					AssetClass = holding.AssetClass.ToString(),
-					AveragePrice = convertedSnapshot.AverageCostPrice,
-					Currency = targetCurrency.Symbol.ToString(),
-					CurrentValue = convertedSnapshot.TotalValue,
-					CurrentPrice = convertedSnapshot.CurrentUnitPrice,
-					GainLoss = gainLoss,
-					GainLossPercentage = gainLossPercentage,
-					Name = holding.Name ?? string.Empty,
-					Quantity = convertedSnapshot.Quantity,
-					Symbol = holding.Symbol,
-					Sector = holding.SectorWeights.Count != 0 ? string.Join(",", holding.SectorWeights.Select(x => x.Name)) : "Undefined",
-					Weight = 0,
-				};
-			});
+					await EnsureDatabaseConnectionAsync();
+					
+					var accounts = await databaseContext.Accounts
+						.AsNoTracking()
+						.OrderBy(a => a.Name)
+						.ToListAsync();
+					
+					logger.LogInformation("Successfully loaded {Count} accounts", accounts.Count);
+					return accounts;
+				});
+		}
 
-			var holdings = await Task.WhenAll(tasks);
-			result.AddRange(holdings);
+		/// <inheritdoc />
+		public async Task<List<string>> GetSymbolsAsync()
+		{
+			return await ExecuteWithErrorHandlingAsync(
+				"Loading symbols from database...",
+				"Failed to load symbols from database",
+				"Failed to load symbols. Please try again later.",
+				async () =>
+				{
+					await EnsureDatabaseConnectionAsync();
+					
+					var symbols = await databaseContext.SymbolProfiles
+						.AsNoTracking()
+						.Select(sp => sp.Symbol)
+						.Distinct()
+						.OrderBy(s => s)
+						.ToListAsync();
+					
+					logger.LogInformation("Successfully loaded {Count} unique symbols", symbols.Count);
+					return symbols;
+				});
+		}
 
-			// Calculate weights in a single pass
-			var totalValue = result.Sum(x => x.CurrentValue.Amount);
+		/// <inheritdoc />
+		public async Task<List<string>> GetSymbolsByAccountAsync(int accountId)
+		{
+			return await ExecuteWithErrorHandlingAsync(
+				$"Loading symbols for account {accountId} from database...",
+				$"Failed to load symbols for account {accountId} from database",
+				$"Failed to load symbols for account {accountId}. Please try again later.",
+				async () =>
+				{
+					await EnsureDatabaseConnectionAsync();
+					
+					var symbols = await databaseContext.Activities
+						.Where(a => a.Account.Id == accountId && a.Holding != null)
+						.SelectMany(a => a.Holding!.SymbolProfiles)
+						.Select(sp => sp.Symbol)
+						.Distinct()
+						.OrderBy(s => s)
+						.AsNoTracking()
+						.ToListAsync();
+					
+					logger.LogInformation("Successfully loaded {Count} unique symbols for account {AccountId}", 
+						symbols.Count, accountId);
+					return symbols;
+				});
+		}
+
+		/// <inheritdoc />
+		public async Task<List<Account>> GetAccountsBySymbolAsync(string symbol)
+		{
+			return await ExecuteWithErrorHandlingAsync(
+				$"Loading accounts for symbol {symbol} from database...",
+				$"Failed to load accounts for symbol {symbol} from database",
+				$"Failed to load accounts for symbol {symbol}. Please try again later.",
+				async () =>
+				{
+					await EnsureDatabaseConnectionAsync();
+					
+					var accounts = await databaseContext.Activities
+						.Where(a => a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol == symbol))
+						.Select(a => a.Account)
+						.Distinct()
+						.OrderBy(a => a.Name)
+						.AsNoTracking()
+						.ToListAsync();
+					
+					logger.LogInformation("Successfully loaded {Count} accounts for symbol {Symbol}", 
+						accounts.Count, symbol);
+					return accounts;
+				});
+		}
+
+		/// <inheritdoc />
+		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
+			Currency targetCurrency,
+			DateTime startDate,
+			DateTime endDate,
+			int accountId,
+			CancellationToken cancellationToken = default)
+		{
+			var query = BuildPortfolioValueQuery(startDate, endDate, accountId);
+			
+			var resultQuery = query
+				.GroupBy(s => s.Date)
+				.OrderBy(g => g.Key)
+				.Select(g => new PortfolioValueHistoryPoint
+				{
+					Date = g.Key,
+					Value = Money.SumPerCurrency(g.Select(x => x.TotalValue)),
+					Invested = Money.SumPerCurrency(g.Select(x => x.TotalInvested)),
+				})
+				.AsSplitQuery();
+
+			return await resultQuery.ToListAsync(cancellationToken);
+		}
+
+		/// <inheritdoc />
+		public async Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
+			Currency targetCurrency,
+			DateTime startDate,
+			DateTime endDate,
+			CancellationToken cancellationToken = default)
+		{
+			try
+			{
+				logger.LogInformation("Loading account value history from {StartDate} to {EndDate} in {Currency}...", 
+					startDate, endDate, targetCurrency.Symbol);
+
+				var (accounts, snapshots, balances) = await LoadAccountHistoryDataAsync(startDate, endDate, cancellationToken);
+				
+				if (!accounts.Any())
+				{
+					logger.LogInformation("No accounts found");
+					return new List<AccountValueHistoryPoint>();
+				}
+
+				var result = await ProcessAccountHistoryAsync(accounts, snapshots, balances, targetCurrency);
+
+				logger.LogInformation("Successfully loaded account value history for {AccountCount} accounts across {PointCount} data points", 
+					accounts.Count, result.Count);
+				
+				return result.OrderBy(r => r.Date).ThenBy(r => r.Account.Name).ToList();
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Failed to load account value history from database");
+				throw new InvalidOperationException("Failed to load account value history. Please try again later.", ex);
+			}
+		}
+
+		/// <inheritdoc />
+		public async Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
+			string symbol,
+			DateTime startDate,
+			DateTime endDate,
+			CancellationToken cancellationToken = default)
+		{
+			var snapshots = await databaseContext.HoldingAggregateds
+				.Where(h => h.Symbol == symbol)
+				.SelectMany(h => h.CalculatedSnapshots)
+				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) &&
+						   s.Date <= DateOnly.FromDateTime(endDate))
+				.GroupBy(s => s.Date)
+				.OrderBy(g => g.Key)
+				.Select(g => new { Date = g.Key, Snapshots = g.ToList() })
+				.ToListAsync(cancellationToken);
+
+			var priceHistory = new List<HoldingPriceHistoryPoint>();
+			
+			foreach (var snapshotGroup in snapshots)
+			{
+				var (currentPrice, averagePrice) = await CalculateAggregatedPricesAsync(snapshotGroup.Snapshots, snapshotGroup.Date);
+				
+				priceHistory.Add(new HoldingPriceHistoryPoint
+				{
+					Date = snapshotGroup.Date,
+					Price = currentPrice,
+					AveragePrice = averagePrice
+				});
+			}
+
+			return priceHistory;
+		}
+
+		/// <inheritdoc />
+		public async Task<List<TransactionDisplayModel>> GetTransactionsAsync(
+			Currency targetCurrency,
+			DateTime startDate,
+			DateTime endDate,
+			int accountId,
+			string symbol,
+			CancellationToken cancellationToken = default)
+		{
+			var activities = await LoadActivitiesAsync(startDate, endDate, accountId, symbol, cancellationToken);
+			
+			var transactions = new List<TransactionDisplayModel>();
+			foreach (var activity in activities)
+			{
+				var transaction = await MapActivityToTransactionDisplayModel(activity, targetCurrency);
+				if (transaction != null)
+				{
+					transactions.Add(transaction);
+				}
+			}
+
+			return transactions;
+		}
+
+		/// <summary>
+		/// Processes a single holding to create a display model with optimized calculations.
+		/// </summary>
+		private async Task<HoldingDisplayModel> ProcessHoldingAsync(HoldingWithSnapshots holding, Currency targetCurrency)
+		{
+			if (!holding.Snapshots.Any())
+			{
+				return CreateEmptyHoldingDisplayModel(holding, targetCurrency);
+			}
+
+			var aggregatedSnapshot = await AggregateSnapshotsOptimized(holding.Snapshots, targetCurrency);
+			var convertedSnapshot = await ConvertToTargetCurrencyOptimized(targetCurrency, aggregatedSnapshot);
+			
+			var gainLoss = convertedSnapshot.TotalValue.Subtract(convertedSnapshot.TotalInvested);
+			var gainLossPercentage = convertedSnapshot.TotalInvested.Amount == 0 ? 0 : 
+				gainLoss.Amount / convertedSnapshot.TotalInvested.Amount;
+
+			return new HoldingDisplayModel
+			{
+				AssetClass = holding.AssetClass.ToString(),
+				AveragePrice = convertedSnapshot.AverageCostPrice,
+				Currency = targetCurrency.Symbol.ToString(),
+				CurrentValue = convertedSnapshot.TotalValue,
+				CurrentPrice = convertedSnapshot.CurrentUnitPrice,
+				GainLoss = gainLoss,
+				GainLossPercentage = gainLossPercentage,
+				Name = holding.Name ?? string.Empty,
+				Quantity = convertedSnapshot.Quantity,
+				Symbol = holding.Symbol,
+				Sector = GetSectorDisplay(holding.SectorWeights),
+				Weight = 0, // Will be calculated after all holdings are processed
+			};
+		}
+
+		/// <summary>
+		/// Creates an empty holding display model for holdings with no snapshot data.
+		/// </summary>
+		private static HoldingDisplayModel CreateEmptyHoldingDisplayModel(HoldingWithSnapshots holding, Currency targetCurrency)
+		{
+			var emptySnapshot = CalculatedSnapshot.Empty(targetCurrency, 0);
+			return new HoldingDisplayModel
+			{
+				AssetClass = holding.AssetClass.ToString(),
+				AveragePrice = emptySnapshot.AverageCostPrice,
+				Currency = targetCurrency.Symbol.ToString(),
+				CurrentValue = emptySnapshot.TotalValue,
+				CurrentPrice = emptySnapshot.CurrentUnitPrice,
+				GainLoss = Money.Zero(targetCurrency),
+				GainLossPercentage = 0,
+				Name = holding.Name ?? string.Empty,
+				Quantity = 0,
+				Symbol = holding.Symbol,
+				Sector = GetSectorDisplay(holding.SectorWeights),
+				Weight = 0,
+			};
+		}
+
+		/// <summary>
+		/// Calculates portfolio weights for all holdings based on their total values.
+		/// </summary>
+		private static void CalculateHoldingWeights(List<HoldingDisplayModel> holdings)
+		{
+			var totalValue = holdings.Sum(x => x.CurrentValue.Amount);
 			if (totalValue > 0)
 			{
-				foreach (var holding in result)
+				foreach (var holding in holdings)
 				{
 					holding.Weight = holding.CurrentValue.Amount / totalValue;
 				}
 			}
-
-			return result;
 		}
 
-		// **NEW: Optimized method to get holdings with their latest snapshots in a single query**
+		/// <summary>
+		/// Gets the sector display string from sector weights.
+		/// </summary>
+		private static string GetSectorDisplay(IList<SectorWeight> sectorWeights)
+		{
+			return sectorWeights.Count != 0 
+				? string.Join(",", sectorWeights.Select(x => x.Name)) 
+				: "Undefined";
+		}
+
+		/// <summary>
+		/// Optimized method to get holdings with their latest snapshots using bulk queries.
+		/// </summary>
 		private async Task<List<HoldingWithSnapshots>> GetHoldingsWithLatestSnapshotsAsync(int accountId, CancellationToken cancellationToken)
 		{
 			// Step 1: Get all holdings with basic info
-			var holdingsQuery = databaseContext.HoldingAggregateds.AsNoTracking();
-
-			var holdings = await holdingsQuery
+			var holdings = await databaseContext.HoldingAggregateds
+				.AsNoTracking()
 				.Select(h => new HoldingBasicInfo
 				{
 					Id = h.Id,
@@ -140,45 +408,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			}
 
 			// Step 2: Get latest dates for all holdings in one query
-			var latestDatesQuery = databaseContext.CalculatedSnapshots
-				.Where(s => holdings.Select(h => h.Id).Contains(EF.Property<long>(s, "HoldingAggregatedId")))
-				.AsNoTracking();
-
-			if (accountId > 0)
-			{
-				latestDatesQuery = latestDatesQuery.Where(s => s.AccountId == accountId);
-			}
-
-			var latestDates = await latestDatesQuery
-				.GroupBy(s => EF.Property<long>(s, "HoldingAggregatedId"))
-				.Select(g => new { HoldingId = g.Key, LatestDate = g.Max(s => s.Date) })
-				.ToDictionaryAsync(x => x.HoldingId, x => x.LatestDate, cancellationToken);
+			var latestDates = await GetLatestSnapshotDatesAsync(holdings.Select(h => h.Id), accountId, cancellationToken);
 
 			// Step 3: Get all latest snapshots in one query
-			var latestSnapshotsQuery = from snapshot in databaseContext.CalculatedSnapshots
-									   where latestDates.Keys.Contains(EF.Property<long>(snapshot, "HoldingAggregatedId")) &&
-											 latestDates.Values.Contains(snapshot.Date)
-									   select new { 
-										   Snapshot = snapshot, 
-										   HoldingId = EF.Property<long>(snapshot, "HoldingAggregatedId") 
-									   };
+			var snapshotsByHolding = await GetLatestSnapshotsGroupedAsync(latestDates, accountId, cancellationToken);
 
-			if (accountId > 0)
-			{
-				latestSnapshotsQuery = latestSnapshotsQuery.Where(x => x.Snapshot.AccountId == accountId);
-			}
-
-			var allLatestSnapshots = await latestSnapshotsQuery
-				.AsNoTracking()
-				.ToListAsync(cancellationToken);
-
-			// Step 4: Group snapshots by holding and filter by latest date
-			var snapshotsByHolding = allLatestSnapshots
-				.Where(x => latestDates.TryGetValue(x.HoldingId, out var latestDate) && x.Snapshot.Date == latestDate)
-				.GroupBy(x => x.HoldingId)
-				.ToDictionary(g => g.Key, g => g.Select(x => x.Snapshot).ToList());
-
-			// Step 5: Combine holdings with their snapshots
+			// Step 4: Combine holdings with their snapshots
 			return holdings.Select(h => new HoldingWithSnapshots
 			{
 				Id = h.Id,
@@ -190,19 +425,217 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			}).ToList();
 		}
 
-		// **NEW: Pre-cache currency conversions to reduce redundant API calls**
-		private async Task PreCacheCurrencyConversionsAsync(
-			IEnumerable<Currency> fromCurrencies, 
-			Currency targetCurrency, 
-			IEnumerable<DateOnly> dates)
+		/// <summary>
+		/// Gets the latest snapshot dates for all holdings.
+		/// </summary>
+		private async Task<Dictionary<long, DateOnly>> GetLatestSnapshotDatesAsync(
+			IEnumerable<long> holdingIds, 
+			int accountId, 
+			CancellationToken cancellationToken)
 		{
-			var uniquePairs = fromCurrencies
-				.Where(c => c != targetCurrency)
-				.SelectMany(c => dates.Select(d => new { Currency = c, Date = d }))
+			var query = databaseContext.CalculatedSnapshots
+				.Where(s => holdingIds.Contains(EF.Property<long>(s, "HoldingAggregatedId")))
+				.AsNoTracking();
+
+			if (accountId > 0)
+			{
+				query = query.Where(s => s.AccountId == accountId);
+			}
+
+			return await query
+				.GroupBy(s => EF.Property<long>(s, "HoldingAggregatedId"))
+				.Select(g => new { HoldingId = g.Key, LatestDate = g.Max(s => s.Date) })
+				.ToDictionaryAsync(x => x.HoldingId, x => x.LatestDate, cancellationToken);
+		}
+
+		/// <summary>
+		/// Gets the latest snapshots grouped by holding.
+		/// </summary>
+		private async Task<Dictionary<long, List<CalculatedSnapshot>>> GetLatestSnapshotsGroupedAsync(
+			Dictionary<long, DateOnly> latestDates, 
+			int accountId, 
+			CancellationToken cancellationToken)
+		{
+			var query = from snapshot in databaseContext.CalculatedSnapshots
+						where latestDates.Keys.Contains(EF.Property<long>(snapshot, "HoldingAggregatedId")) &&
+							  latestDates.Values.Contains(snapshot.Date)
+						select new { 
+							Snapshot = snapshot, 
+							HoldingId = EF.Property<long>(snapshot, "HoldingAggregatedId") 
+						};
+
+			if (accountId > 0)
+			{
+				query = query.Where(x => x.Snapshot.AccountId == accountId);
+			}
+
+			var allLatestSnapshots = await query
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			return allLatestSnapshots
+				.Where(x => latestDates.TryGetValue(x.HoldingId, out var latestDate) && x.Snapshot.Date == latestDate)
+				.GroupBy(x => x.HoldingId)
+				.ToDictionary(g => g.Key, g => g.Select(x => x.Snapshot).ToList());
+		}
+
+		/// <summary>
+		/// Loads account history data (accounts, snapshots, balances) in bulk queries.
+		/// </summary>
+		private async Task<(List<Account> accounts, List<CalculatedSnapshot> snapshots, List<Balance> balances)> 
+			LoadAccountHistoryDataAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+		{
+			var startDateOnly = DateOnly.FromDateTime(startDate);
+			var endDateOnly = DateOnly.FromDateTime(endDate);
+
+			var accountsTask = databaseContext.Accounts
+				.AsNoTracking()
+				.OrderBy(a => a.Name)
+				.ToListAsync(cancellationToken);
+
+			var snapshotsTask = databaseContext.CalculatedSnapshots
+				.Where(s => s.Date >= startDateOnly && s.Date <= endDateOnly)
+				.OrderBy(s => s.Date)
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			var balancesTask = databaseContext.Set<Balance>()
+				.Where(b => b.Date >= startDateOnly && b.Date <= endDateOnly)
+				.OrderBy(b => b.Date)
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			await Task.WhenAll(accountsTask, snapshotsTask, balancesTask);
+			
+			return (await accountsTask, await snapshotsTask, await balancesTask);
+		}
+
+		/// <summary>
+		/// Loads activities with optional filtering by account and symbol.
+		/// </summary>
+		private async Task<List<Activity>> LoadActivitiesAsync(
+			DateTime startDate, 
+			DateTime endDate, 
+			int accountId, 
+			string symbol, 
+			CancellationToken cancellationToken)
+		{
+			var baseQuery = databaseContext.Activities
+				.Include(a => a.Account)
+				.Include(a => a.Holding)
+				.Where(a => a.Date >= startDate && a.Date <= endDate);
+
+			if (accountId > 0)
+			{
+				baseQuery = baseQuery.Where(a => a.Account.Id == accountId);
+			}
+
+			var activities = await baseQuery
+				.OrderByDescending(a => a.Date)
+				.ThenBy(a => a.Id)
+				.ToListAsync(cancellationToken);
+
+			return await FilterActivitiesBySymbolAsync(activities, symbol, cancellationToken);
+		}
+
+		/// <summary>
+		/// Filters activities by symbol if specified, loading symbol profiles as needed.
+		/// </summary>
+		private async Task<List<Activity>> FilterActivitiesBySymbolAsync(
+			List<Activity> activities, 
+			string symbol, 
+			CancellationToken cancellationToken)
+		{
+			if (string.IsNullOrEmpty(symbol))
+			{
+				return await PopulateSymbolProfilesAsync(activities, cancellationToken);
+			}
+
+			var holdingIds = activities
+				.Where(a => a.Holding != null)
+				.Select(a => a.Holding!.Id)
 				.Distinct()
 				.ToList();
 
-			var tasks = uniquePairs.Select(async pair =>
+			if (!holdingIds.Any())
+			{
+				return activities.Where(a => a.Holding == null).ToList();
+			}
+
+			var holdingsWithSymbols = await databaseContext.Holdings
+				.Where(h => holdingIds.Contains(h.Id))
+				.Include(h => h.SymbolProfiles)
+				.ToDictionaryAsync(h => h.Id, h => h.SymbolProfiles, cancellationToken);
+
+			var filteredActivities = activities
+				.Where(a => a.Holding != null &&
+						   holdingsWithSymbols.TryGetValue(a.Holding.Id, out var symbolProfiles) && 
+						   symbolProfiles.Any(sp => sp.Symbol == symbol))
+				.ToList();
+
+			// Populate symbol profiles for filtered activities
+			foreach (var activity in filteredActivities.Where(a => a.Holding != null))
+			{
+				if (holdingsWithSymbols.TryGetValue(activity.Holding!.Id, out var symbolProfiles))
+				{
+					activity.Holding.SymbolProfiles = symbolProfiles.ToList();
+				}
+			}
+
+			return filteredActivities;
+		}
+
+		/// <summary>
+		/// Populates symbol profiles for all activities with holdings.
+		/// </summary>
+		private async Task<List<Activity>> PopulateSymbolProfilesAsync(List<Activity> activities, CancellationToken cancellationToken)
+		{
+			var holdingIds = activities
+				.Where(a => a.Holding != null)
+				.Select(a => a.Holding!.Id)
+				.Distinct()
+				.ToList();
+
+			if (!holdingIds.Any())
+			{
+				return activities;
+			}
+
+			var holdingsWithSymbols = await databaseContext.Holdings
+				.Where(h => holdingIds.Contains(h.Id))
+				.Include(h => h.SymbolProfiles)
+				.ToDictionaryAsync(h => h.Id, h => h.SymbolProfiles, cancellationToken);
+
+			foreach (var activity in activities.Where(a => a.Holding != null))
+			{
+				if (holdingsWithSymbols.TryGetValue(activity.Holding!.Id, out var symbolProfiles))
+				{
+					activity.Holding.SymbolProfiles = symbolProfiles.ToList();
+				}
+			}
+
+			return activities;
+		}
+
+		/// <summary>
+		/// Pre-caches currency conversions to reduce redundant API calls.
+		/// </summary>
+		private async Task PreCacheCurrencyConversionsAsync(
+			List<HoldingWithSnapshots> holdings, 
+			Currency targetCurrency)
+		{
+			var currencyGroups = holdings
+				.SelectMany(h => h.Snapshots)
+				.GroupBy(s => s.TotalValue.Currency)
+				.ToDictionary(g => g.Key, g => g.First().Date);
+
+			var uniquePairs = currencyGroups.Keys
+				.Where(c => c != targetCurrency)
+				.SelectMany(c => currencyGroups.Values.Select(d => new { Currency = c, Date = d }))
+				.Distinct()
+				.ToList();
+
+			var cachingTasks = uniquePairs.Select(async pair =>
 			{
 				var cacheKey = GetCacheKey(pair.Currency, targetCurrency, pair.Date);
 				if (!IsCacheValid(cacheKey))
@@ -222,10 +655,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				}
 			});
 
-			await Task.WhenAll(tasks);
+			await Task.WhenAll(cachingTasks);
 		}
 
-		// **NEW: Optimized snapshot aggregation with minimal allocations**
+		/// <summary>
+		/// Optimized snapshot aggregation with minimal allocations.
+		/// </summary>
 		private async Task<CalculatedSnapshot> AggregateSnapshotsOptimized(
 			List<CalculatedSnapshot> snapshots, 
 			Currency targetCurrency)
@@ -245,19 +680,36 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			if (totalQuantity == 0)
 			{
-				var firstSnapshot = snapshots[0];
-				return new CalculatedSnapshot
-				{
-					Date = latestDate,
-					AverageCostPrice = firstSnapshot.AverageCostPrice,
-					CurrentUnitPrice = firstSnapshot.CurrentUnitPrice,
-					TotalInvested = Money.Zero(firstSnapshot.TotalValue.Currency),
-					TotalValue = Money.Zero(firstSnapshot.TotalValue.Currency),
-					Quantity = 0,
-				};
+				return CreateZeroQuantitySnapshot(snapshots[0], latestDate);
 			}
 
-			// Use the first currency as base for aggregation
+			return await CalculateAggregatedSnapshot(snapshots, latestDate, totalQuantity);
+		}
+
+		/// <summary>
+		/// Creates a snapshot for zero quantity holdings.
+		/// </summary>
+		private static CalculatedSnapshot CreateZeroQuantitySnapshot(CalculatedSnapshot firstSnapshot, DateOnly latestDate)
+		{
+			return new CalculatedSnapshot
+			{
+				Date = latestDate,
+				AverageCostPrice = firstSnapshot.AverageCostPrice,
+				CurrentUnitPrice = firstSnapshot.CurrentUnitPrice,
+				TotalInvested = Money.Zero(firstSnapshot.TotalValue.Currency),
+				TotalValue = Money.Zero(firstSnapshot.TotalValue.Currency),
+				Quantity = 0,
+			};
+		}
+
+		/// <summary>
+		/// Calculates aggregated snapshot values with currency conversion.
+		/// </summary>
+		private async Task<CalculatedSnapshot> CalculateAggregatedSnapshot(
+			List<CalculatedSnapshot> snapshots, 
+			DateOnly latestDate, 
+			decimal totalQuantity)
+		{
 			var baseCurrency = snapshots[0].CurrentUnitPrice.Currency;
 			
 			decimal totalCurrentValue = 0;
@@ -267,31 +719,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			foreach (var snapshot in snapshots)
 			{
-				var currentValueAmount = snapshot.CurrentUnitPrice.Amount * snapshot.Quantity;
-				var averageCostValueAmount = snapshot.AverageCostPrice.Amount * snapshot.Quantity;
+				var (currentValue, averageCostValue, investedValue, valueValue) = 
+					await ConvertSnapshotValuesAsync(snapshot, baseCurrency, latestDate);
 
-				if (snapshot.CurrentUnitPrice.Currency == baseCurrency)
-				{
-					totalCurrentValue += currentValueAmount;
-					totalAverageCostValue += averageCostValueAmount;
-					totalInvestedValue += snapshot.TotalInvested.Amount;
-					totalValueValue += snapshot.TotalValue.Amount;
-				}
-				else
-				{
-					// Use cached conversion
-					var currentConversion = await ConvertMoneyOptimized(
-						new Money(snapshot.CurrentUnitPrice.Currency, currentValueAmount), baseCurrency, latestDate);
-					var averageConversion = await ConvertMoneyOptimized(
-						new Money(snapshot.AverageCostPrice.Currency, averageCostValueAmount), baseCurrency, latestDate);
-					var investedConversion = await ConvertMoneyOptimized(snapshot.TotalInvested, baseCurrency, latestDate);
-					var valueConversion = await ConvertMoneyOptimized(snapshot.TotalValue, baseCurrency, latestDate);
-
-					totalCurrentValue += currentConversion.Amount;
-					totalAverageCostValue += averageConversion.Amount;
-					totalInvestedValue += investedConversion.Amount;
-					totalValueValue += valueConversion.Amount;
-				}
+				totalCurrentValue += currentValue;
+				totalAverageCostValue += averageCostValue;
+				totalInvestedValue += investedValue;
+				totalValueValue += valueValue;
 			}
 
 			return new CalculatedSnapshot
@@ -305,7 +739,34 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			};
 		}
 
-		// **NEW: Optimized currency conversion with caching**
+		/// <summary>
+		/// Converts snapshot values to base currency.
+		/// </summary>
+		private async Task<(decimal currentValue, decimal averageCostValue, decimal investedValue, decimal valueValue)> 
+			ConvertSnapshotValuesAsync(CalculatedSnapshot snapshot, Currency baseCurrency, DateOnly date)
+		{
+			var currentValueAmount = snapshot.CurrentUnitPrice.Amount * snapshot.Quantity;
+			var averageCostValueAmount = snapshot.AverageCostPrice.Amount * snapshot.Quantity;
+
+			if (snapshot.CurrentUnitPrice.Currency == baseCurrency)
+			{
+				return (currentValueAmount, averageCostValueAmount, snapshot.TotalInvested.Amount, snapshot.TotalValue.Amount);
+			}
+
+			// Use cached conversion
+			var currentConversion = await ConvertMoneyOptimized(
+				new Money(snapshot.CurrentUnitPrice.Currency, currentValueAmount), baseCurrency, date);
+			var averageConversion = await ConvertMoneyOptimized(
+				new Money(snapshot.AverageCostPrice.Currency, averageCostValueAmount), baseCurrency, date);
+			var investedConversion = await ConvertMoneyOptimized(snapshot.TotalInvested, baseCurrency, date);
+			var valueConversion = await ConvertMoneyOptimized(snapshot.TotalValue, baseCurrency, date);
+
+			return (currentConversion.Amount, averageConversion.Amount, investedConversion.Amount, valueConversion.Amount);
+		}
+
+		/// <summary>
+		/// Optimized currency conversion with caching.
+		/// </summary>
 		private async Task<Money> ConvertMoneyOptimized(Money money, Currency targetCurrency, DateOnly date)
 		{
 			if (money.Currency == targetCurrency)
@@ -318,10 +779,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				return new Money(targetCurrency, money.Amount * cachedRate.Amount);
 			}
 
-			// Fall back to regular conversion
+			// Fall back to regular conversion and cache the result
 			var converted = await currencyExchange.ConvertMoney(money, targetCurrency, date);
 			
-			// Cache the rate for future use
 			var rate = money.Amount == 0 ? Money.Zero(targetCurrency) : 
 				new Money(targetCurrency, converted.Amount / money.Amount);
 			_currencyConversionCache[cacheKey] = rate;
@@ -330,7 +790,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return converted;
 		}
 
-		// **NEW: Optimized currency conversion for snapshots**
+		/// <summary>
+		/// Optimized currency conversion for snapshots.
+		/// </summary>
 		private async Task<CalculatedSnapshot> ConvertToTargetCurrencyOptimized(Currency targetCurrency, CalculatedSnapshot calculatedSnapshot)
 		{
 			if (calculatedSnapshot.CurrentUnitPrice.Currency == targetCurrency)
@@ -349,36 +811,224 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			};
 		}
 
-		// **NEW: Cache management methods**
-		private string GetCacheKey(Currency fromCurrency, Currency toCurrency, DateOnly date)
+		/// <summary>
+		/// Calculates aggregated prices for holding price history.
+		/// </summary>
+		private async Task<(Money currentPrice, Money averagePrice)> CalculateAggregatedPricesAsync(
+			List<CalculatedSnapshot> snapshots, 
+			DateOnly date)
 		{
-			return $"{fromCurrency.Symbol}_{toCurrency.Symbol}_{date:yyyy-MM-dd}";
+			var totalQuantity = snapshots.Sum(s => s.Quantity);
+			
+			if (totalQuantity == 0)
+			{
+				var firstSnapshot = snapshots.First();
+				return (firstSnapshot.CurrentUnitPrice, firstSnapshot.AverageCostPrice);
+			}
+
+			var firstCurrency = snapshots.First().CurrentUnitPrice.Currency;
+			decimal totalValueAtCurrentPriceAmount = 0;
+			decimal totalValueAtAveragePriceAmount = 0;
+			
+			foreach (var snapshot in snapshots)
+			{
+				var valueAtCurrentPrice = snapshot.CurrentUnitPrice.Times(snapshot.Quantity);
+				var valueAtAveragePrice = snapshot.AverageCostPrice.Times(snapshot.Quantity);
+				
+				if (valueAtCurrentPrice.Currency == firstCurrency)
+				{
+					totalValueAtCurrentPriceAmount += valueAtCurrentPrice.Amount;
+					totalValueAtAveragePriceAmount += valueAtAveragePrice.Amount;
+				}
+				else
+				{
+					var currentConverted = await currencyExchange.ConvertMoney(valueAtCurrentPrice, firstCurrency, date);
+					var averageConverted = await currencyExchange.ConvertMoney(valueAtAveragePrice, firstCurrency, date);
+					
+					totalValueAtCurrentPriceAmount += currentConverted.Amount;
+					totalValueAtAveragePriceAmount += averageConverted.Amount;
+				}
+			}
+			
+			var totalValueAtCurrentPrice = new Money(firstCurrency, totalValueAtCurrentPriceAmount);
+			var totalValueAtAveragePrice = new Money(firstCurrency, totalValueAtAveragePriceAmount);
+			
+			return (
+				totalValueAtCurrentPrice.SafeDivide(totalQuantity),
+				totalValueAtAveragePrice.SafeDivide(totalQuantity)
+			);
 		}
 
-		private bool IsCacheValid(string cacheKey)
+		/// <summary>
+		/// Processes account history data to create value history points.
+		/// </summary>
+		private async Task<List<AccountValueHistoryPoint>> ProcessAccountHistoryAsync(
+			List<Account> accounts,
+			List<CalculatedSnapshot> allSnapshots,
+			List<Balance> allBalances,
+			Currency targetCurrency)
 		{
-			return _cacheTimestamps.TryGetValue(cacheKey, out var timestamp) &&
-				   DateTime.UtcNow - timestamp < _cacheExpiration;
+			var snapshotsByAccount = allSnapshots.GroupBy(s => s.AccountId).ToDictionary(g => g.Key, g => g.ToList());
+			var balancesByAccount = allBalances.GroupBy(b => b.AccountId).ToDictionary(g => g.Key, g => g.ToList());
+
+			var accountsWithData = accounts.Where(a => 
+				snapshotsByAccount.ContainsKey(a.Id) || balancesByAccount.ContainsKey(a.Id)).ToList();
+
+			if (!accountsWithData.Any())
+			{
+				logger.LogInformation("No account data found for the specified date range");
+				return new List<AccountValueHistoryPoint>();
+			}
+
+			var currencyConversionCache = new Dictionary<string, Money>();
+			var result = new List<AccountValueHistoryPoint>();
+
+			foreach (var account in accountsWithData)
+			{
+				var accountPoints = await ProcessSingleAccountHistoryAsync(
+					account, 
+					snapshotsByAccount.GetValueOrDefault(account.Id, new List<CalculatedSnapshot>()), 
+					balancesByAccount.GetValueOrDefault(account.Id, new List<Balance>()), 
+					targetCurrency, 
+					currencyConversionCache);
+				
+				result.AddRange(accountPoints);
+			}
+
+			return result;
 		}
 
-		public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
-		{
-			// Get the earliest date from the snapshots
-			var minDate = await databaseContext.CalculatedSnapshots
-				.OrderBy(s => s.Date)
-				.Select(s => s.Date)
-				.FirstOrDefaultAsync(cancellationToken);
-			return minDate;
-		}
-
-		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
+		/// <summary>
+		/// Processes history for a single account.
+		/// </summary>
+		private async Task<List<AccountValueHistoryPoint>> ProcessSingleAccountHistoryAsync(
+			Account account,
+			List<CalculatedSnapshot> accountSnapshots,
+			List<Balance> accountBalances,
 			Currency targetCurrency,
-			DateTime startDate,
-			DateTime endDate,
-			int accountId,
-			CancellationToken cancellationToken = default)
+			Dictionary<string, Money> currencyConversionCache)
 		{
-			// Query snapshots in date range and filter by account
+			var snapshotsByDate = accountSnapshots.GroupBy(s => s.Date).ToDictionary(g => g.Key, g => g.ToList());
+			var balancesByDate = accountBalances.ToDictionary(b => b.Date, b => b);
+
+			var accountDates = accountSnapshots.Select(s => s.Date)
+				.Union(accountBalances.Select(b => b.Date))
+				.Distinct()
+				.OrderBy(d => d);
+
+			var result = new List<AccountValueHistoryPoint>();
+
+			foreach (var date in accountDates)
+			{
+				var (totalValueAmount, totalInvestedAmount) = await ProcessSnapshotsForDate(
+					snapshotsByDate.GetValueOrDefault(date, new List<CalculatedSnapshot>()), 
+					targetCurrency, 
+					currencyConversionCache, 
+					date);
+
+				var accountBalanceAmount = await ProcessBalanceForDate(
+					accountBalances, 
+					date, 
+					targetCurrency, 
+					currencyConversionCache);
+
+				result.Add(new AccountValueHistoryPoint
+				{
+					Date = date,
+					Account = account,
+					Value = new Money(targetCurrency, totalValueAmount + accountBalanceAmount),
+					Invested = new Money(targetCurrency, totalInvestedAmount),
+					Balance = new Money(targetCurrency, accountBalanceAmount)
+				});
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Processes snapshots for a specific date.
+		/// </summary>
+		private async Task<(decimal totalValue, decimal totalInvested)> ProcessSnapshotsForDate(
+			List<CalculatedSnapshot> dateSnapshots,
+			Currency targetCurrency,
+			Dictionary<string, Money> currencyConversionCache,
+			DateOnly date)
+		{
+			if (!dateSnapshots.Any())
+			{
+				return (0, 0);
+			}
+
+			decimal totalValueAmount = 0;
+			decimal totalInvestedAmount = 0;
+
+			var snapshotsByCurrency = dateSnapshots.GroupBy(s => s.TotalValue.Currency).ToList();
+
+			foreach (var currencyGroup in snapshotsByCurrency)
+			{
+				var currency = currencyGroup.Key;
+				var totalValueInCurrency = currencyGroup.Sum(s => s.TotalValue.Amount);
+				var totalInvestedInCurrency = currencyGroup.Sum(s => s.TotalInvested.Amount);
+
+				var conversionRate = await GetOrCacheConversionRate(currency, targetCurrency, date, currencyConversionCache);
+
+				totalValueAmount += totalValueInCurrency * conversionRate.Amount;
+				totalInvestedAmount += totalInvestedInCurrency * conversionRate.Amount;
+			}
+
+			return (totalValueAmount, totalInvestedAmount);
+		}
+
+		/// <summary>
+		/// Processes balance for a specific date.
+		/// </summary>
+		private async Task<decimal> ProcessBalanceForDate(
+			List<Balance> accountBalances,
+			DateOnly date,
+			Currency targetCurrency,
+			Dictionary<string, Money> currencyConversionCache)
+		{
+			var relevantBalance = accountBalances
+				.Where(b => b.Date <= date)
+				.OrderByDescending(b => b.Date)
+				.FirstOrDefault();
+
+			if (relevantBalance == null)
+			{
+				return 0;
+			}
+
+			var conversionRate = await GetOrCacheConversionRate(
+				relevantBalance.Money.Currency, targetCurrency, date, currencyConversionCache);
+
+			return relevantBalance.Money.Amount * conversionRate.Amount;
+		}
+
+		/// <summary>
+		/// Gets or caches currency conversion rate.
+		/// </summary>
+		private async Task<Money> GetOrCacheConversionRate(
+			Currency fromCurrency,
+			Currency targetCurrency,
+			DateOnly date,
+			Dictionary<string, Money> currencyConversionCache)
+		{
+			var cacheKey = $"{fromCurrency.Symbol}_{date:yyyy-MM-dd}";
+			if (!currencyConversionCache.TryGetValue(cacheKey, out var conversionRate))
+			{
+				conversionRate = await currencyExchange.ConvertMoney(
+					new Money(fromCurrency, 1), targetCurrency, date);
+				currencyConversionCache[cacheKey] = conversionRate;
+			}
+
+			return conversionRate;
+		}
+
+		/// <summary>
+		/// Builds the portfolio value query with optional account filtering.
+		/// </summary>
+		private IQueryable<CalculatedSnapshot> BuildPortfolioValueQuery(DateTime startDate, DateTime endDate, int accountId)
+		{
 			var query = databaseContext.CalculatedSnapshots
 				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) && s.Date <= DateOnly.FromDateTime(endDate));
 
@@ -387,487 +1037,62 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				query = query.Where(s => s.AccountId == accountId);
 			}
 
-			var resultQuery = query
-				.GroupBy(s => s.Date)
-				.OrderBy(g => g.Key)
-				.Select(g => new PortfolioValueHistoryPoint
-				{
-					Date = g.Key,
-					Value = Money.SumPerCurrency(g.Select(x => x.TotalValue)),
-					Invested = Money.SumPerCurrency(g.Select(x => x.TotalInvested)),
-				})
-				.AsSplitQuery();
-
-			return await resultQuery.ToListAsync(cancellationToken);
+			return query;
 		}
 
-		public async Task<List<Account>> GetAccountsAsync()
+		/// <summary>
+		/// Executes a database operation with consistent error handling.
+		/// </summary>
+		private async Task<T> ExecuteWithErrorHandlingAsync<T>(
+			string startMessage,
+			string errorMessage,
+			string userErrorMessage,
+			Func<Task<T>> operation)
 		{
 			try
 			{
-				logger.LogInformation("Loading accounts from database...");
-				
-				// Ensure database is available and connection is working
-				if (!await databaseContext.Database.CanConnectAsync())
-				{
-					logger.LogError("Cannot connect to database when loading accounts");
-					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
-				}
-				
-				var accounts = await databaseContext.Accounts
-					.AsNoTracking() // Optimize for read-only operations
-					.OrderBy(a => a.Name)
-					.ToListAsync();
-				
-				logger.LogInformation("Successfully loaded {Count} accounts", accounts.Count);
-				return accounts;
+				logger.LogInformation(startMessage);
+				return await operation();
 			}
 			catch (Exception ex)
 			{
-				logger.LogError(ex, "Failed to load accounts from database");
-				throw new InvalidOperationException("Failed to load accounts. Please try again later.", ex);
+				logger.LogError(ex, errorMessage);
+				throw new InvalidOperationException(userErrorMessage, ex);
 			}
 		}
 
-		public async Task<List<string>> GetSymbolsAsync()
+		/// <summary>
+		/// Ensures database connection is available.
+		/// </summary>
+		private async Task EnsureDatabaseConnectionAsync()
 		{
-			try
+			if (!await databaseContext.Database.CanConnectAsync())
 			{
-				logger.LogInformation("Loading symbols from database...");
-				
-				// Ensure database is available and connection is working
-				if (!await databaseContext.Database.CanConnectAsync())
-				{
-					logger.LogError("Cannot connect to database when loading symbols");
-					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
-				}
-				
-				var symbols = await databaseContext.SymbolProfiles
-					.AsNoTracking() // Optimize for read-only operations
-					.Select(sp => sp.Symbol)
-					.Distinct()
-					.OrderBy(s => s)
-					.ToListAsync();
-				
-				logger.LogInformation("Successfully loaded {Count} unique symbols", symbols.Count);
-				return symbols;
-			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex, "Failed to load symbols from database");
-				throw new InvalidOperationException("Failed to load symbols. Please try again later.", ex);
+				logger.LogError("Cannot connect to database");
+				throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
 			}
 		}
 
-		public async Task<List<string>> GetSymbolsByAccountAsync(int accountId)
+		/// <summary>
+		/// Gets cache key for currency conversion.
+		/// </summary>
+		private static string GetCacheKey(Currency fromCurrency, Currency toCurrency, DateOnly date)
 		{
-			try
-			{
-				logger.LogInformation("Loading symbols for account {AccountId} from database...", accountId);
-				
-				// Ensure database is available and connection is working
-				if (!await databaseContext.Database.CanConnectAsync())
-				{
-					logger.LogError("Cannot connect to database when loading symbols by account");
-					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
-				}
-				
-				var symbols = await databaseContext.Activities
-					.Where(a => a.Account.Id == accountId && a.Holding != null)
-					.SelectMany(a => a.Holding!.SymbolProfiles)
-					.Select(sp => sp.Symbol)
-					.Distinct()
-					.OrderBy(s => s)
-					.AsNoTracking()
-					.ToListAsync();
-				
-				logger.LogInformation("Successfully loaded {Count} unique symbols for account {AccountId}", symbols.Count, accountId);
-				return symbols;
-			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex, "Failed to load symbols for account {AccountId} from database", accountId);
-				throw new InvalidOperationException($"Failed to load symbols for account {accountId}. Please try again later.", ex);
-			}
+			return $"{fromCurrency.Symbol}_{toCurrency.Symbol}_{date:yyyy-MM-dd}";
 		}
 
-		public async Task<List<Account>> GetAccountsBySymbolAsync(string symbol)
+		/// <summary>
+		/// Checks if cache entry is still valid.
+		/// </summary>
+		private bool IsCacheValid(string cacheKey)
 		{
-			try
-			{
-				logger.LogInformation("Loading accounts for symbol {Symbol} from database...", symbol);
-				
-				// Ensure database is available and connection is working
-				if (!await databaseContext.Database.CanConnectAsync())
-				{
-					logger.LogError("Cannot connect to database when loading accounts by symbol");
-					throw new InvalidOperationException("Database connection failed. Please check your database configuration.");
-				}
-				
-				var accounts = await databaseContext.Activities
-					.Where(a => a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol == symbol))
-					.Select(a => a.Account)
-					.Distinct()
-					.OrderBy(a => a.Name)
-					.AsNoTracking()
-					.ToListAsync();
-				
-				logger.LogInformation("Successfully loaded {Count} accounts for symbol {Symbol}", accounts.Count, symbol);
-				return accounts;
-			}
-			catch (Exception ex)
-			{
-			logger.LogError(ex, "Failed to load accounts for symbol {Symbol} from database", symbol);
-				throw new InvalidOperationException($"Failed to load accounts for symbol {symbol}. Please try again later.", ex);
-			}
+			return _cacheTimestamps.TryGetValue(cacheKey, out var timestamp) &&
+				   DateTime.UtcNow - timestamp < _cacheExpiration;
 		}
 
-		public async Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
-			Currency targetCurrency,
-			DateTime startDate,
-			DateTime endDate,
-			CancellationToken cancellationToken = default)
-		{
-			try
-			{
-				logger.LogInformation("Loading account value history from {StartDate} to {EndDate} in {Currency}...", 
-					startDate, endDate, targetCurrency.Symbol);
-
-				var startDateOnly = DateOnly.FromDateTime(startDate);
-				var endDateOnly = DateOnly.FromDateTime(endDate);
-
-				// Get all accounts first
-				var accounts = await databaseContext.Accounts
-					.AsNoTracking()
-					.OrderBy(a => a.Name)
-					.ToListAsync(cancellationToken);
-
-				if (!accounts.Any())
-				{
-					logger.LogInformation("No accounts found");
-					return new List<AccountValueHistoryPoint>();
-				}
-
-				// Optimization 1: Bulk query for all snapshots and balances
-				var allSnapshots = await databaseContext.CalculatedSnapshots
-					.Where(s => s.Date >= startDateOnly && s.Date <= endDateOnly)
-					.OrderBy(s => s.Date)
-					.AsNoTracking()
-					.ToListAsync(cancellationToken);
-
-				var allBalances = await databaseContext.Set<Balance>()
-					.Where(b => b.Date >= startDateOnly && b.Date <= endDateOnly)
-					.OrderBy(b => b.Date)
-					.AsNoTracking()
-					.ToListAsync(cancellationToken);
-
-				// Group data by account for processing
-				var snapshotsByAccount = allSnapshots.GroupBy(s => s.AccountId).ToDictionary(g => g.Key, g => g.ToList());
-				var balancesByAccount = allBalances.GroupBy(b => b.AccountId).ToDictionary(g => g.Key, g => g.ToList());
-
-				// Filter accounts that have data
-				var accountsWithData = accounts.Where(a => 
-					snapshotsByAccount.ContainsKey(a.Id) || balancesByAccount.ContainsKey(a.Id)).ToList();
-
-				if (!accountsWithData.Any())
-				{
-					logger.LogInformation("No account data found for the specified date range");
-					return new List<AccountValueHistoryPoint>();
-				}
-
-				// Optimization 2: Currency conversion caching
-				var currencyConversionCache = new Dictionary<string, Money>();
-				
-				var result = new List<AccountValueHistoryPoint>();
-
-				// Process each account
-				foreach (var account in accountsWithData)
-				{
-					var accountSnapshots = snapshotsByAccount.GetValueOrDefault(account.Id, new List<CalculatedSnapshot>());
-					var accountBalances = balancesByAccount.GetValueOrDefault(account.Id, new List<Balance>());
-
-					// Group snapshots by date for faster lookups
-					var snapshotsByDate = accountSnapshots.GroupBy(s => s.Date).ToDictionary(g => g.Key, g => g.ToList());
-					var balancesByDate = accountBalances.ToDictionary(b => b.Date, b => b);
-
-					// Get all dates that have data for this account
-					var accountDates = accountSnapshots.Select(s => s.Date)
-						.Union(accountBalances.Select(b => b.Date))
-						.Distinct()
-						.OrderBy(d => d);
-
-					foreach (var date in accountDates)
-					{
-						decimal totalValueAmount = 0;
-						decimal totalInvestedAmount = 0;
-						decimal accountBalanceAmount = 0;
-
-						// Process snapshots for this date
-						if (snapshotsByDate.TryGetValue(date, out var dateSnapshots))
-						{
-							// Group by currency to minimize conversions
-							var snapshotsByCurrency = dateSnapshots.GroupBy(s => s.TotalValue.Currency).ToList();
-
-							foreach (var currencyGroup in snapshotsByCurrency)
-							{
-								var currency = currencyGroup.Key;
-								var totalValueInCurrency = currencyGroup.Sum(s => s.TotalValue.Amount);
-								var totalInvestedInCurrency = currencyGroup.Sum(s => s.TotalInvested.Amount);
-
-								// Use cache for currency conversion
-								var cacheKey = $"{currency.Symbol}_{date:yyyy-MM-dd}";
-								if (!currencyConversionCache.TryGetValue(cacheKey, out var conversionRate))
-								{
-									conversionRate = await currencyExchange.ConvertMoney(
-										new Money(currency, 1), targetCurrency, date);
-									currencyConversionCache[cacheKey] = conversionRate;
-								}
-
-								totalValueAmount += totalValueInCurrency * conversionRate.Amount;
-								totalInvestedAmount += totalInvestedInCurrency * conversionRate.Amount;
-							}
-						}
-
-						// Process balance for this date (get most recent balance up to this date)
-						var relevantBalance = accountBalances
-							.Where(b => b.Date <= date)
-							.OrderByDescending(b => b.Date)
-							.FirstOrDefault();
-
-						if (relevantBalance != null)
-						{
-							var cacheKey = $"{relevantBalance.Money.Currency.Symbol}_{date:yyyy-MM-dd}";
-							if (!currencyConversionCache.TryGetValue(cacheKey, out var conversionRate))
-							{
-								conversionRate = await currencyExchange.ConvertMoney(
-									new Money(relevantBalance.Money.Currency, 1), targetCurrency, date);
-								currencyConversionCache[cacheKey] = conversionRate;
-							}
-
-							accountBalanceAmount = relevantBalance.Money.Amount * conversionRate.Amount;
-						}
-
-						// Create the result point
-						result.Add(new AccountValueHistoryPoint
-						{
-							Date = date,
-							Account = account,
-							Value = new Money(targetCurrency, totalValueAmount + accountBalanceAmount),
-							Invested = new Money(targetCurrency, totalInvestedAmount),
-							Balance = new Money(targetCurrency, accountBalanceAmount)
-						});
-					}
-				}
-
-				logger.LogInformation("Successfully loaded account value history for {AccountCount} accounts across {PointCount} data points using optimized query", 
-					accountsWithData.Count, result.Count);
-				
-				return result.OrderBy(r => r.Date).ThenBy(r => r.Account.Name).ToList();
-			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex, "Failed to load account value history from database");
-				throw new InvalidOperationException("Failed to load account value history. Please try again later.", ex);
-			}
-		}
-
-		public async Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
-			string symbol,
-			DateTime startDate,
-			DateTime endDate,
-			CancellationToken cancellationToken = default)
-		{
-			// Get price history from the holding's calculated snapshots
-			var snapshots = await databaseContext.HoldingAggregateds
-				.Where(h => h.Symbol == symbol)
-				.SelectMany(h => h.CalculatedSnapshots)
-				.Where(s => s.Date >= DateOnly.FromDateTime(startDate) &&
-						   s.Date <= DateOnly.FromDateTime(endDate))
-				.GroupBy(s => s.Date)
-				.OrderBy(g => g.Key)
-				.Select(g => new
-				{
-					Date = g.Key,
-					Snapshots = g.ToList()
-				})
-				.ToListAsync(cancellationToken);
-
-			var priceHistory = new List<HoldingPriceHistoryPoint>();
-			
-			foreach (var snapshotGroup in snapshots)
-			{
-				// Calculate quantity-weighted average for current unit price and average cost price
-				var totalQuantity = snapshotGroup.Snapshots.Sum(s => s.Quantity);
-				
-				Money aggregatedCurrentPrice;
-				Money aggregatedAveragePrice;
-				
-				if (totalQuantity == 0)
-				{
-					// If total quantity is zero, use the first snapshot's prices
-					var firstSnapshot = snapshotGroup.Snapshots.First();
-					aggregatedCurrentPrice = firstSnapshot.CurrentUnitPrice;
-					aggregatedAveragePrice = firstSnapshot.AverageCostPrice;
-				}
-				else
-				{
-					// Calculate quantity-weighted average prices
-					var firstCurrency = snapshotGroup.Snapshots.First().CurrentUnitPrice.Currency;
-					
-					decimal totalValueAtCurrentPriceAmount = 0;
-					decimal totalValueAtAveragePriceAmount = 0;
-					
-					foreach (var snapshot in snapshotGroup.Snapshots)
-					{
-						var valueAtCurrentPrice = snapshot.CurrentUnitPrice.Times(snapshot.Quantity);
-						var valueAtAveragePrice = snapshot.AverageCostPrice.Times(snapshot.Quantity);
-						
-						// Convert to first currency if needed and sum amounts
-						if (valueAtCurrentPrice.Currency == firstCurrency)
-						{
-							totalValueAtCurrentPriceAmount += valueAtCurrentPrice.Amount;
-						}
-						else
-						{
-							var converted = await currencyExchange.ConvertMoney(valueAtCurrentPrice, firstCurrency, snapshotGroup.Date);
-							totalValueAtCurrentPriceAmount += converted.Amount;
-						}
-						
-						if (valueAtAveragePrice.Currency == firstCurrency)
-						{
-							totalValueAtAveragePriceAmount += valueAtAveragePrice.Amount;
-						}
-						else
-						{
-							var converted = await currencyExchange.ConvertMoney(valueAtAveragePrice, firstCurrency, snapshotGroup.Date);
-							totalValueAtAveragePriceAmount += converted.Amount;
-						}
-					}
-					
-					var totalValueAtCurrentPrice = new Money(firstCurrency, totalValueAtCurrentPriceAmount);
-					var totalValueAtAveragePrice = new Money(firstCurrency, totalValueAtAveragePriceAmount);
-					
-					aggregatedCurrentPrice = totalValueAtCurrentPrice.SafeDivide(totalQuantity);
-					aggregatedAveragePrice = totalValueAtAveragePrice.SafeDivide(totalQuantity);
-				}
-
-				priceHistory.Add(new HoldingPriceHistoryPoint
-				{
-					Date = snapshotGroup.Date,
-					Price = aggregatedCurrentPrice,
-					AveragePrice = aggregatedAveragePrice
-				});
-			}
-
-			return priceHistory;
-		}
-
-		public async Task<List<TransactionDisplayModel>> GetTransactionsAsync(
-			Currency targetCurrency,
-			DateTime startDate,
-			DateTime endDate,
-			int accountId,
-			string symbol,
-			CancellationToken cancellationToken = default)
-		{
-			// Build the base query with simple includes first
-			var baseQuery = databaseContext.Activities
-				.Include(a => a.Account)
-				.Include(a => a.Holding)
-				.Where(a => a.Date >= startDate && a.Date <= endDate);
-
-			// Apply account filter
-			if (accountId > 0)
-			{
-				baseQuery = baseQuery.Where(a => a.Account.Id == accountId);
-			}
-
-			// Execute the base query first without symbol filtering
-			var activities = await baseQuery
-				.OrderByDescending(a => a.Date)
-				.ThenBy(a => a.Id)
-				.ToListAsync(cancellationToken);
-
-			// Apply symbol filter in memory after loading the basic data
-			if (!string.IsNullOrEmpty(symbol))
-			{
-				// Load symbol profiles separately for activities with holdings
-				var holdingIds = activities
-					.Where(a => a.Holding != null)
-					.Select(a => a.Holding!.Id)
-					.Distinct()
-					.ToList();
-
-				if (holdingIds.Count > 0)
-				{
-					var holdingsWithSymbols = await databaseContext.Holdings
-						.Where(h => holdingIds.Contains(h.Id))
-						.Include(h => h.SymbolProfiles)
-						.ToDictionaryAsync(h => h.Id, h => h.SymbolProfiles, cancellationToken);
-
-					// Filter activities by symbol in memory
-					activities = activities
-						.Where(a => a.Holding != null &&
-								   holdingsWithSymbols.TryGetValue(a.Holding.Id, out var symbolProfiles) && 
-								    symbolProfiles.Any(sp => sp.Symbol == symbol))
-						.ToList();
-
-					// Populate the SymbolProfiles navigation property for filtered activities
-					foreach (var activity in activities.Where(a => a.Holding != null))
-					{
-						if (holdingsWithSymbols.TryGetValue(activity.Holding!.Id, out var symbolProfiles))
-						{
-							activity.Holding.SymbolProfiles = symbolProfiles.ToList();
-						}
-					}
-				}
-				else
-				{
-					// No holdings found, filter out all activities that require holdings
-					activities = activities.Where(a => a.Holding == null).ToList();
-				}
-			}
-			else
-			{
-				// Load symbol profiles for all holdings if no symbol filter is applied
-				var holdingIds = activities
-					.Where(a => a.Holding != null)
-					.Select(a => a.Holding!.Id)
-					.Distinct()
-					.ToList();
-
-				if (holdingIds.Count > 0)
-				{
-					var holdingsWithSymbols = await databaseContext.Holdings
-						.Where(h => holdingIds.Contains(h.Id))
-						.Include(h => h.SymbolProfiles)
-						.ToDictionaryAsync(h => h.Id, h => h.SymbolProfiles, cancellationToken);
-
-					// Populate the SymbolProfiles navigation property
-					foreach (var activity in activities.Where(a => a.Holding != null))
-					{
-						if (holdingsWithSymbols.TryGetValue(activity.Holding!.Id, out var symbolProfiles))
-						{
-							activity.Holding.SymbolProfiles = symbolProfiles.ToList();
-						}
-					}
-				}
-			}
-
-			var transactions = new List<TransactionDisplayModel>();
-
-			foreach (var activity in activities)
-			{
-				var transaction = await MapActivityToTransactionDisplayModel(activity, targetCurrency);
-				if (transaction != null)
-				{
-					transactions.Add(transaction);
-				}
-			}
-
-			return transactions;
-		}
-
+		/// <summary>
+		/// Maps an activity to a transaction display model.
+		/// </summary>
 		private async Task<TransactionDisplayModel?> MapActivityToTransactionDisplayModel(Activity activity, Currency targetCurrency)
 		{
 			var symbolProfile = activity.Holding?.SymbolProfiles?.FirstOrDefault();
@@ -885,82 +1110,141 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				Currency = targetCurrency.Symbol.ToString()
 			};
 
-			// Map specific activity types
-			switch (activity)
-			{
-				case BuyActivity buySell:
-					baseModel.Quantity = buySell.Quantity;
-					baseModel.UnitPrice = await ConvertMoney(buySell.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(buySell.UnitPrice.Times(buySell.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = await ConvertMoney(buySell.TotalTransactionAmount, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Fee = await SumAndConvertFees(buySell.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Tax = await SumAndConvertFees(buySell.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					break;
-				case SellActivity buySell:
-					baseModel.Quantity = buySell.Quantity;
-					baseModel.UnitPrice = await ConvertMoney(buySell.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(buySell.UnitPrice.Times(buySell.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = await ConvertMoney(buySell.TotalTransactionAmount, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Fee = await SumAndConvertFees(buySell.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Tax = await SumAndConvertFees(buySell.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					break;
-				case DividendActivity dividend:
-					baseModel.Amount = await ConvertMoney(dividend.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					baseModel.Fee = await SumAndConvertFees(dividend.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Tax = await SumAndConvertFees(dividend.Taxes.Select(t => t.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					break;
-				case CashDepositActivity deposit:
-					baseModel.Amount = await ConvertMoney(deposit.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					break;
-				case CashWithdrawalActivity withdrawal:
-					baseModel.Amount = await ConvertMoney(withdrawal.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					break;
-				case FeeActivity fee:
-					baseModel.Amount = await ConvertMoney(fee.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					baseModel.Fee = baseModel.Amount;
-					break;
-				case InterestActivity interest:
-					baseModel.Amount = await ConvertMoney(interest.Amount, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					break;
-				case ReceiveActivity sendReceive:
-					baseModel.Quantity = sendReceive.Quantity;
-					baseModel.UnitPrice = await ConvertMoney(sendReceive.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(sendReceive.UnitPrice.Times(sendReceive.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					baseModel.Fee = await SumAndConvertFees(sendReceive.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					break;
-				case SendActivity sendReceive:
-					baseModel.Quantity = sendReceive.Quantity;
-					baseModel.UnitPrice = await ConvertMoney(sendReceive.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(sendReceive.UnitPrice.Times(sendReceive.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					baseModel.Fee = await SumAndConvertFees(sendReceive.Fees.Select(f => f.Money), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					break;
-				case StakingRewardActivity staking:
-					baseModel.Quantity = staking.Quantity;
-					baseModel.UnitPrice = await ConvertMoney(staking.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(staking.UnitPrice.Times(staking.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					break;
-				case GiftAssetActivity gift:
-					baseModel.Quantity = gift.Quantity;
-					baseModel.UnitPrice = await ConvertMoney(gift.UnitPrice, targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.Amount = await ConvertMoney(gift.UnitPrice.Times(gift.Quantity), targetCurrency, DateOnly.FromDateTime(activity.Date));
-					baseModel.TotalValue = baseModel.Amount;
-					break;
-				default:
-					// For other activity types, just return the basic info
-					break;
-			}
-
+			await MapActivitySpecificPropertiesAsync(activity, baseModel, targetCurrency);
 			return baseModel;
 		}
 
+		/// <summary>
+		/// Maps activity-specific properties to the transaction display model.
+		/// </summary>
+		private async Task MapActivitySpecificPropertiesAsync(Activity activity, TransactionDisplayModel model, Currency targetCurrency)
+		{
+			var date = DateOnly.FromDateTime(activity.Date);
+
+			switch (activity)
+			{
+				case BuyActivity buy:
+					await MapBuySellActivityAsync(buy, model, targetCurrency, date);
+					break;
+				case SellActivity sell:
+					await MapSellActivityAsync(sell, model, targetCurrency, date);
+					break;
+				case DividendActivity dividend:
+					await MapDividendActivityAsync(dividend, model, targetCurrency, date);
+					break;
+				case CashDepositActivity deposit:
+					await MapCashActivityAsync(deposit.Amount, model, targetCurrency, date);
+					break;
+				case CashWithdrawalActivity withdrawal:
+					await MapCashActivityAsync(withdrawal.Amount, model, targetCurrency, date);
+					break;
+				case FeeActivity fee:
+					model.Amount = await ConvertMoney(fee.Amount, targetCurrency, date);
+					model.TotalValue = model.Amount;
+					model.Fee = model.Amount;
+					break;
+				case InterestActivity interest:
+					await MapCashActivityAsync(interest.Amount, model, targetCurrency, date);
+					break;
+				case ReceiveActivity receive:
+					await MapReceiveActivityAsync(receive, model, targetCurrency, date);
+					break;
+				case SendActivity send:
+					await MapSendActivityAsync(send, model, targetCurrency, date);
+					break;
+				case StakingRewardActivity staking:
+					await MapStakingGiftActivityAsync(staking.Quantity, staking.UnitPrice, model, targetCurrency, date);
+					break;
+				case GiftAssetActivity gift:
+					await MapStakingGiftActivityAsync(gift.Quantity, gift.UnitPrice, model, targetCurrency, date);
+					break;
+			}
+		}
+
+		/// <summary>
+		/// Maps buy/sell activity properties.
+		/// </summary>
+		private async Task MapBuySellActivityAsync(BuyActivity buySell, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
+		{
+			model.Quantity = buySell.Quantity;
+			model.UnitPrice = await ConvertMoney(buySell.UnitPrice, targetCurrency, date);
+			model.Amount = await ConvertMoney(buySell.UnitPrice.Times(buySell.Quantity), targetCurrency, date);
+			model.TotalValue = await ConvertMoney(buySell.TotalTransactionAmount, targetCurrency, date);
+			model.Fee = await SumAndConvertFees(buySell.Fees.Select(f => f.Money), targetCurrency, date);
+			model.Tax = await SumAndConvertFees(buySell.Taxes.Select(t => t.Money), targetCurrency, date);
+		}
+
+		/// <summary>
+		/// Maps sell activity properties.
+		/// </summary>
+		private async Task MapSellActivityAsync(SellActivity sell, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
+		{
+			model.Quantity = sell.Quantity;
+			model.UnitPrice = await ConvertMoney(sell.UnitPrice, targetCurrency, date);
+			model.Amount = await ConvertMoney(sell.UnitPrice.Times(sell.Quantity), targetCurrency, date);
+			model.TotalValue = await ConvertMoney(sell.TotalTransactionAmount, targetCurrency, date);
+			model.Fee = await SumAndConvertFees(sell.Fees.Select(f => f.Money), targetCurrency, date);
+			model.Tax = await SumAndConvertFees(sell.Taxes.Select(t => t.Money), targetCurrency, date);
+		}
+
+		/// <summary>
+		/// Maps dividend activity properties.
+		/// </summary>
+		private async Task MapDividendActivityAsync(DividendActivity dividend, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
+		{
+			model.Amount = await ConvertMoney(dividend.Amount, targetCurrency, date);
+			model.TotalValue = model.Amount;
+			model.Fee = await SumAndConvertFees(dividend.Fees.Select(f => f.Money), targetCurrency, date);
+			model.Tax = await SumAndConvertFees(dividend.Taxes.Select(t => t.Money), targetCurrency, date);
+		}
+
+		/// <summary>
+		/// Maps cash activity properties.
+		/// </summary>
+		private async Task MapCashActivityAsync(Money amount, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
+		{
+			model.Amount = await ConvertMoney(amount, targetCurrency, date);
+			model.TotalValue = model.Amount;
+		}
+
+		/// <summary>
+		/// Maps receive activity properties.
+		/// </summary>
+		private async Task MapReceiveActivityAsync(ReceiveActivity receive, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
+		{
+			model.Quantity = receive.Quantity;
+			model.UnitPrice = await ConvertMoney(receive.UnitPrice, targetCurrency, date);
+			model.Amount = await ConvertMoney(receive.UnitPrice.Times(receive.Quantity), targetCurrency, date);
+			model.TotalValue = model.Amount;
+			model.Fee = await SumAndConvertFees(receive.Fees.Select(f => f.Money), targetCurrency, date);
+		}
+
+		/// <summary>
+		/// Maps send activity properties.
+		/// </summary>
+		private async Task MapSendActivityAsync(SendActivity send, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
+		{
+			model.Quantity = send.Quantity;
+			model.UnitPrice = await ConvertMoney(send.UnitPrice, targetCurrency, date);
+			model.Amount = await ConvertMoney(send.UnitPrice.Times(send.Quantity), targetCurrency, date);
+			model.TotalValue = model.Amount;
+			model.Fee = await SumAndConvertFees(send.Fees.Select(f => f.Money), targetCurrency, date);
+		}
+
+		/// <summary>
+		/// Maps staking/gift activity properties.
+		/// </summary>
+		private async Task MapStakingGiftActivityAsync(decimal quantity, Money unitPrice, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
+		{
+			model.Quantity = quantity;
+			model.UnitPrice = await ConvertMoney(unitPrice, targetCurrency, date);
+			model.Amount = await ConvertMoney(unitPrice.Times(quantity), targetCurrency, date);
+			model.TotalValue = model.Amount;
+		}
+
+		/// <summary>
+		/// Gets display type for an activity.
+		/// </summary>
 		private static string GetDisplayType(Activity activity)
 		{
 			return activity switch
@@ -985,21 +1269,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			};
 		}
 
+		/// <summary>
+		/// Sums and converts fees to target currency.
+		/// </summary>
 		private async Task<Money?> SumAndConvertFees(IEnumerable<Money> fees, Currency targetCurrency, DateOnly date)
 		{
 			var feeList = fees.ToList();
-			if (feeList.Count == 0)
+			if (!feeList.Any())
 				return null;
 
-			var convertedFees = new List<Money>();
-			foreach (var fee in feeList)
-			{
-				convertedFees.Add(await ConvertMoney(fee, targetCurrency, date));
-			}
-
+			var convertedFees = await Task.WhenAll(feeList.Select(fee => ConvertMoney(fee, targetCurrency, date)));
 			return Money.Sum(convertedFees);
 		}
 
+		/// <summary>
+		/// Converts money to target currency (non-optimized version for backward compatibility).
+		/// </summary>
 		private async Task<Money> ConvertMoney(Money money, Currency targetCurrency, DateOnly date)
 		{
 			if (money.Currency == targetCurrency)
@@ -1008,6 +1293,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return await currencyExchange.ConvertMoney(money, targetCurrency, date);
 		}
 
+		/// <summary>
+		/// Converts snapshot to target currency (non-optimized version for backward compatibility).
+		/// </summary>
 		private async Task<CalculatedSnapshot> ConvertToTargetCurrency(Currency targetCurrency, CalculatedSnapshot calculatedSnapshot)
 		{
 			if (calculatedSnapshot.CurrentUnitPrice.Currency == targetCurrency)
@@ -1026,7 +1314,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			};
 		}
 
-		// **NEW: Helper classes for optimized data structures**
+		/// <summary>
+		/// Basic holding information for optimized queries.
+		/// </summary>
 		private class HoldingBasicInfo
 		{
 			public long Id { get; set; }
@@ -1036,6 +1326,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			public IList<SectorWeight> SectorWeights { get; set; } = new List<SectorWeight>();
 		}
 
+		/// <summary>
+		/// Holding with its associated snapshots for optimized processing.
+		/// </summary>
 		private class HoldingWithSnapshots : HoldingBasicInfo
 		{
 			public List<CalculatedSnapshot> Snapshots { get; set; } = new();
