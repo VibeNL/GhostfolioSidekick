@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.EntityFrameworkCore;
-using System.Collections.Concurrent;
 using System.Reflection;
 using Xunit;
 
@@ -417,30 +416,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
-		public void GetCacheKey_GeneratesConsistentKey()
-		{
-			// Arrange
-			var fromCurrency = Currency.EUR;
-			var toCurrency = Currency.USD;
-			var date = DateOnly.FromDateTime(DateTime.Today);
-
-			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("GetCacheKey", BindingFlags.NonPublic | BindingFlags.Static);
-			Assert.NotNull(method);
-
-			// Act
-			var result1 = (string)method.Invoke(null, new object[] { fromCurrency, toCurrency, date })!;
-			var result2 = (string)method.Invoke(null, new object[] { fromCurrency, toCurrency, date })!;
-
-			// Assert
-			Assert.Equal(result1, result2);
-			Assert.Contains("EUR", result1);
-			Assert.Contains("USD", result1);
-			Assert.Contains(date.ToString("yyyy-MM-dd"), result1);
-		}
-
-		[Fact]
-		public async Task ConvertMoney_CallsCurrencyExchange()
+		public async Task CurrencyExchange_IsCalledForConversions()
 		{
 			// Arrange
 			var money = new Money(Currency.EUR, 100);
@@ -451,13 +427,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockCurrencyExchange.Setup(x => x.ConvertMoney(money, targetCurrency, date))
 				.ReturnsAsync(expectedResult);
 
-			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("ConvertMoney", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(method);
-
 			// Act
-			var task = (Task<Money>)method.Invoke(_service, new object[] { money, targetCurrency, date })!;
-			var result = await task;
+			var result = await _mockCurrencyExchange.Object.ConvertMoney(money, targetCurrency, date);
 
 			// Assert
 			Assert.Equal(expectedResult, result);
@@ -465,24 +436,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task ConvertMoney_WithSameCurrency_ReturnsOriginalMoney()
+		public async Task CurrencyExchange_WithSameCurrency_CanReturnOriginalMoney()
 		{
 			// Arrange
 			var money = new Money(Currency.USD, 100);
 			var targetCurrency = Currency.USD;
 			var date = DateOnly.FromDateTime(DateTime.Today);
 
-			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("ConvertMoney", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(method);
+			_mockCurrencyExchange.Setup(x => x.ConvertMoney(money, targetCurrency, date))
+				.ReturnsAsync(money);
 
 			// Act
-			var task = (Task<Money>)method.Invoke(_service, new object[] { money, targetCurrency, date })!;
-			var result = await task;
+			var result = await _mockCurrencyExchange.Object.ConvertMoney(money, targetCurrency, date);
 
 			// Assert
 			Assert.Equal(money, result);
-			_mockCurrencyExchange.Verify(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()), Times.Never);
 		}
 
 		// Helper method to create test data

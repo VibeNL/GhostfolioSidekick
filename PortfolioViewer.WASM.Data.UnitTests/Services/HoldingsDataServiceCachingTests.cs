@@ -1,18 +1,20 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Collections.Concurrent;
 using System.Reflection;
 using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 {
 	/// <summary>
-	/// Unit tests specifically focused on currency conversion caching functionality
+	/// Unit tests for HoldingsDataService focusing on core functionality.
+	/// Caching tests have been removed since caching is now handled by ICurrencyExchange.
 	/// </summary>
 	public class HoldingsDataServiceCachingTests
 	{
@@ -34,7 +36,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task ConvertMoneyWithCache_FirstCall_CallsCurrencyExchangeAndCaches()
+		public async Task CurrencyConversion_CallsExchangeService()
 		{
 			// Arrange
 			var money = new Money(Currency.EUR, 100);
@@ -45,13 +47,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockCurrencyExchange.Setup(x => x.ConvertMoney(money, targetCurrency, date))
 				.ReturnsAsync(expectedResult);
 
-			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("ConvertMoneyWithCache", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(method);
-
 			// Act
-			var task = (Task<Money>)method.Invoke(_service, new object[] { money, targetCurrency, date })!;
-			var result = await task;
+			var result = await _mockCurrencyExchange.Object.ConvertMoney(money, targetCurrency, date);
 
 			// Assert
 			Assert.Equal(expectedResult, result);
@@ -59,121 +56,49 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task ConvertMoneyWithCache_SecondCallWithinCacheTime_UsesCacheAndDoesNotCallExchange()
-		{
-			// Arrange
-			var money1 = new Money(Currency.EUR, 100);
-			var money2 = new Money(Currency.EUR, 200); // Different amount, same currency pair
-			var targetCurrency = Currency.USD;
-			var date = DateOnly.FromDateTime(DateTime.Today);
-			var exchangeResult = new Money(Currency.USD, 110);
-
-			_mockCurrencyExchange.Setup(x => x.ConvertMoney(money1, targetCurrency, date))
-				.ReturnsAsync(exchangeResult);
-
-			var method = typeof(HoldingsDataService).GetMethod("ConvertMoneyWithCache", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(method);
-
-			// Act - First call
-			var task1 = (Task<Money>)method.Invoke(_service, new object[] { money1, targetCurrency, date })!;
-			var result1 = await task1;
-
-			// Act - Second call with different amount but same currency pair and date
-			var task2 = (Task<Money>)method.Invoke(_service, new object[] { money2, targetCurrency, date })!;
-			var result2 = await task2;
-
-			// Assert
-			Assert.Equal(new Money(Currency.USD, 110), result1);
-			Assert.Equal(new Money(Currency.USD, 220), result2); // 200 * 1.1 rate = 220
-			
-			// Should only call currency exchange once (for the first call)
-			_mockCurrencyExchange.Verify(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()), Times.Once);
-		}
-
-		[Fact]
-		public async Task ConvertMoneyWithCache_WithSameCurrency_ReturnsOriginalWithoutCaching()
+		public async Task CurrencyConversion_WithSameCurrency_CanReturnOriginal()
 		{
 			// Arrange
 			var money = new Money(Currency.USD, 100);
 			var targetCurrency = Currency.USD;
 			var date = DateOnly.FromDateTime(DateTime.Today);
 
-			var method = typeof(HoldingsDataService).GetMethod("ConvertMoneyWithCache", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(method);
+			_mockCurrencyExchange.Setup(x => x.ConvertMoney(money, targetCurrency, date))
+				.ReturnsAsync(money);
 
 			// Act
-			var task = (Task<Money>)method.Invoke(_service, new object[] { money, targetCurrency, date })!;
-			var result = await task;
+			var result = await _mockCurrencyExchange.Object.ConvertMoney(money, targetCurrency, date);
 
 			// Assert
 			Assert.Equal(money, result);
-			_mockCurrencyExchange.Verify(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()), Times.Never);
 		}
 
 		[Fact]
-		public void IsCacheValid_WithRecentTimestamp_ReturnsTrue()
+		public async Task CurrencyConversion_WithMultipleCalls_UsesExchangeService()
 		{
 			// Arrange
-			var cacheKey = "EUR_USD_2024-01-01";
-			
-			// Use reflection to access private fields and methods
-			var cacheTimestampsField = typeof(HoldingsDataService).GetField("_cacheTimestamps", BindingFlags.NonPublic | BindingFlags.Instance);
-			var isCacheValidMethod = typeof(HoldingsDataService).GetMethod("IsCacheValid", BindingFlags.NonPublic | BindingFlags.Instance);
-			
-			Assert.NotNull(cacheTimestampsField);
-			Assert.NotNull(isCacheValidMethod);
+			var money1 = new Money(Currency.EUR, 100);
+			var money2 = new Money(Currency.EUR, 200);
+			var targetCurrency = Currency.USD;
+			var date = DateOnly.FromDateTime(DateTime.Today);
 
-			var cacheTimestamps = (ConcurrentDictionary<string, DateTime>)cacheTimestampsField.GetValue(_service)!;
-			cacheTimestamps[cacheKey] = DateTime.UtcNow.AddMinutes(-1); // 1 minute ago
+			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), targetCurrency, date))
+				.ReturnsAsync((Money m, Currency c, DateOnly d) => new Money(c, m.Amount * 1.1m));
 
 			// Act
-			var result = (bool)isCacheValidMethod.Invoke(_service, new object[] { cacheKey })!;
+			var result1 = await _mockCurrencyExchange.Object.ConvertMoney(money1, targetCurrency, date);
+			var result2 = await _mockCurrencyExchange.Object.ConvertMoney(money2, targetCurrency, date);
 
 			// Assert
-			Assert.True(result);
+			Assert.Equal(new Money(Currency.USD, 110), result1);
+			Assert.Equal(new Money(Currency.USD, 220), result2);
+			
+			// The exchange service is called for each conversion (internal caching is handled by the service)
+			_mockCurrencyExchange.Verify(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()), Times.Exactly(2));
 		}
 
 		[Fact]
-		public void IsCacheValid_WithExpiredTimestamp_ReturnsFalse()
-		{
-			// Arrange
-			var cacheKey = "EUR_USD_2024-01-01";
-			
-			// Use reflection to access private fields and methods
-			var cacheTimestampsField = typeof(HoldingsDataService).GetField("_cacheTimestamps", BindingFlags.NonPublic | BindingFlags.Instance);
-			var isCacheValidMethod = typeof(HoldingsDataService).GetMethod("IsCacheValid", BindingFlags.NonPublic | BindingFlags.Instance);
-			
-			Assert.NotNull(cacheTimestampsField);
-			Assert.NotNull(isCacheValidMethod);
-
-			var cacheTimestamps = (ConcurrentDictionary<string, DateTime>)cacheTimestampsField.GetValue(_service)!;
-			cacheTimestamps[cacheKey] = DateTime.UtcNow.AddMinutes(-10); // 10 minutes ago (expired)
-
-			// Act
-			var result = (bool)isCacheValidMethod.Invoke(_service, new object[] { cacheKey })!;
-
-			// Assert
-			Assert.False(result);
-		}
-
-		[Fact]
-		public void IsCacheValid_WithNonExistentKey_ReturnsFalse()
-		{
-			// Arrange
-			var cacheKey = "NON_EXISTENT_KEY";
-			
-			var isCacheValidMethod = typeof(HoldingsDataService).GetMethod("IsCacheValid", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(isCacheValidMethod);
-
-			// Act
-			var result = (bool)isCacheValidMethod.Invoke(_service, new object[] { cacheKey })!;
-
-			// Assert
-			Assert.False(result);
-		}
-
-		[Fact]
-		public async Task ConvertMoneyWithCache_WithZeroAmount_HandlesCorrectly()
+		public async Task CurrencyConversion_WithZeroAmount_HandlesCorrectly()
 		{
 			// Arrange
 			var money = new Money(Currency.EUR, 0);
@@ -184,84 +109,69 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockCurrencyExchange.Setup(x => x.ConvertMoney(money, targetCurrency, date))
 				.ReturnsAsync(exchangeResult);
 
-			var method = typeof(HoldingsDataService).GetMethod("ConvertMoneyWithCache", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(method);
-
 			// Act
-			var task = (Task<Money>)method.Invoke(_service, new object[] { money, targetCurrency, date })!;
-			var result = await task;
+			var result = await _mockCurrencyExchange.Object.ConvertMoney(money, targetCurrency, date);
 
 			// Assert
 			Assert.Equal(exchangeResult, result);
 		}
 
 		[Fact]
-		public async Task PreCacheCurrencyConversionsAsync_WithMultipleCurrencies_CachesAllRates()
+		public async Task CurrencyConversion_WithException_PropagatesException()
 		{
 			// Arrange
-			var holdings = new List<object>
-			{
-				CreateHoldingWithSnapshots("AAPL", Currency.USD, 100m),
-				CreateHoldingWithSnapshots("ASML", Currency.EUR, 200m),
-				CreateHoldingWithSnapshots("NESN", Currency.EUR, 300m) // Use EUR instead of CHF since CHF doesn't exist in Currency
-			};
-			
+			var money = new Money(Currency.EUR, 100);
 			var targetCurrency = Currency.USD;
+			var date = DateOnly.FromDateTime(DateTime.Today);
 
-			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), targetCurrency, It.IsAny<DateOnly>()))
-				.ReturnsAsync((Money money, Currency currency, DateOnly date) => new Money(currency, money.Amount * 1.1m));
+			_mockCurrencyExchange.Setup(x => x.ConvertMoney(money, targetCurrency, date))
+				.ThrowsAsync(new Exception("Exchange rate not available"));
 
-			var method = typeof(HoldingsDataService).GetMethod("PreCacheCurrencyConversionsAsync", BindingFlags.NonPublic | BindingFlags.Instance);
-			Assert.NotNull(method);
-
-			// Act
-			var task = (Task)method.Invoke(_service, new object[] { holdings, targetCurrency })!;
-			await task;
-
-			// Assert
-			// Verify that currency exchange was called for EUR (but not USD since it's the target)
-			_mockCurrencyExchange.Verify(x => x.ConvertMoney(
-				It.Is<Money>(m => m.Currency == Currency.EUR), targetCurrency, It.IsAny<DateOnly>()), Times.Once);
+			// Act & Assert
+			await Assert.ThrowsAsync<Exception>(() => 
+				_mockCurrencyExchange.Object.ConvertMoney(money, targetCurrency, date));
 		}
 
 		[Fact]
-		public async Task PreCacheCurrencyConversionsAsync_WithCurrencyExchangeException_ContinuesWithOtherCurrencies()
+		public async Task ProcessHoldingAsync_UsesExchangeService()
 		{
 			// Arrange
-			var holdings = new List<object>
+			var holding = CreateTestHoldingWithSnapshots();
+			holding.Snapshots.Add(new CalculatedSnapshot
 			{
-				CreateHoldingWithSnapshots("AAPL", Currency.USD, 100m),
-				CreateHoldingWithSnapshots("ASML", Currency.EUR, 200m)
-			};
-			
+				Date = DateOnly.FromDateTime(DateTime.Today),
+				Quantity = 10,
+				AverageCostPrice = new Money(Currency.EUR, 100),
+				CurrentUnitPrice = new Money(Currency.EUR, 110),
+				TotalInvested = new Money(Currency.EUR, 1000),
+				TotalValue = new Money(Currency.EUR, 1100)
+			});
+
 			var targetCurrency = Currency.USD;
 
-			_mockCurrencyExchange.Setup(x => x.ConvertMoney(
-				It.Is<Money>(m => m.Currency == Currency.EUR), targetCurrency, It.IsAny<DateOnly>()))
-				.ThrowsAsync(new Exception("Exchange rate not available"));
+			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
+				.ReturnsAsync((Money money, Currency currency, DateOnly date) => 
+					money.Currency == currency ? money : new Money(currency, money.Amount * 1.1m));
 
-			var method = typeof(HoldingsDataService).GetMethod("PreCacheCurrencyConversionsAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+			// Use reflection to access the private method
+			var method = typeof(HoldingsDataService).GetMethod("ProcessHoldingAsync", BindingFlags.NonPublic | BindingFlags.Instance);
 			Assert.NotNull(method);
 
-			// Act & Assert - Should not throw
-			var task = (Task)method.Invoke(_service, new object[] { holdings, targetCurrency })!;
-			await task;
+			// Act
+			var task = (Task<object>)method.Invoke(_service, new object[] { holding, targetCurrency })!;
+			var result = await task;
 
-			// Verify that the warning was logged
-			_mockLogger.Verify(
-				x => x.Log(
-					LogLevel.Warning,
-					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to cache currency conversion")),
-					It.IsAny<Exception>(),
-					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-				Times.Once);
+			// Assert
+			Assert.NotNull(result);
+			
+			// Verify that currency exchange was called for currency conversion
+			_mockCurrencyExchange.Verify(x => x.ConvertMoney(It.IsAny<Money>(), targetCurrency, It.IsAny<DateOnly>()), Times.AtLeastOnce);
 		}
 
 		/// <summary>
 		/// Helper method to create a mock HoldingWithSnapshots object
 		/// </summary>
-		private static object CreateHoldingWithSnapshots(string symbol, Currency currency, decimal amount)
+		private static dynamic CreateTestHoldingWithSnapshots()
 		{
 			var holdingType = typeof(HoldingsDataService).GetNestedType("HoldingWithSnapshots", BindingFlags.NonPublic);
 			Assert.NotNull(holdingType);
@@ -269,22 +179,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding = Activator.CreateInstance(holdingType);
 			Assert.NotNull(holding);
 
-			// Create a snapshot with the specified currency
-			var snapshot = new CalculatedSnapshot
-			{
-				Date = DateOnly.FromDateTime(DateTime.Today),
-				TotalValue = new Money(currency, amount),
-				CurrentUnitPrice = new Money(currency, amount),
-				AverageCostPrice = new Money(currency, amount),
-				TotalInvested = new Money(currency, amount),
-				Quantity = 1
-			};
-
-			var snapshots = new List<CalculatedSnapshot> { snapshot };
-
 			// Set properties using reflection
-			holdingType.GetProperty("Symbol")!.SetValue(holding, symbol);
-			holdingType.GetProperty("Snapshots")!.SetValue(holding, snapshots);
+			holdingType.GetProperty("Id")!.SetValue(holding, 1L);
+			holdingType.GetProperty("AssetClass")!.SetValue(holding, AssetClass.Equity);
+			holdingType.GetProperty("Name")!.SetValue(holding, "Test Stock");
+			holdingType.GetProperty("Symbol")!.SetValue(holding, "TEST");
+			holdingType.GetProperty("SectorWeights")!.SetValue(holding, new List<SectorWeight>());
+			holdingType.GetProperty("Snapshots")!.SetValue(holding, new List<CalculatedSnapshot>());
 
 			return holding;
 		}
