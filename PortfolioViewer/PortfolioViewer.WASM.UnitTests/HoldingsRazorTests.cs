@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void Holdings_ShowsLoadingState_WhenIsLoadingIsTrue()
         {
-            var mockService = new Mock<IHoldingsDataServiceOLD>();
+            var mockService = new Mock<IHoldingsDataService>();
             // Make the service return a pending task to keep it in loading state
             var tcs = new TaskCompletionSource<List<HoldingDisplayModel>>();
             mockService.Setup(s => s.GetHoldingsAsync(It.IsAny<Currency>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void Holdings_ShowsErrorState_WhenHasErrorIsTrue()
         {
-            var mockService = new Mock<IHoldingsDataServiceOLD>();
+            var mockService = new Mock<IHoldingsDataService>();
             // Make the service throw an exception to trigger the error state naturally
             mockService.Setup(s => s.GetHoldingsAsync(It.IsAny<Currency>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                        .ThrowsAsync(new InvalidOperationException("Test error!"));
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             Assert.Contains("Try Again", cut.Markup);
         }
 
-        private class FakeHoldingsDataService : IHoldingsDataServiceOLD
+        private class FakeHoldingsDataService : IHoldingsDataService
         {
             private List<HoldingDisplayModel> _holdings;
             public int RefreshCount { get; private set; } = 0;
@@ -238,7 +238,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void Holdings_ShowsEmptyState_WhenHoldingsListIsEmpty()
         {
-            Services.AddSingleton<IHoldingsDataServiceOLD>(new FakeHoldingsDataService(new List<HoldingDisplayModel>()));
+            Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(new List<HoldingDisplayModel>()));
             
             var cut = RenderComponent<Holdings>(parameters => parameters
                 .AddCascadingValue(_filterState));
@@ -255,7 +255,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                     Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD"
                 }
             };
-            Services.AddSingleton<IHoldingsDataServiceOLD>(new FakeHoldingsDataService(holdings));
+            Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
             
             var cut = RenderComponent<Holdings>(parameters => parameters
                 .AddCascadingValue(_filterState));
@@ -282,7 +282,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 1, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
             };
             var fakeService = new FakeHoldingsDataService(holdings);
-            Services.AddSingleton<IHoldingsDataServiceOLD>(fakeService);
+            Services.AddSingleton<IHoldingsDataService>(fakeService);
             
             var cut = RenderComponent<Holdings>(parameters => parameters
                 .AddCascadingValue(_filterState));
@@ -311,7 +311,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 new HoldingDisplayModel { Symbol = "MSFT", Name = "Microsoft", Quantity = 5, AveragePrice = new Money(Currency.USD, 200), CurrentPrice = new Money(Currency.USD, 250), CurrentValue = new Money(Currency.USD, 1250), GainLoss = new Money(Currency.USD, 250), GainLossPercentage = 0.25m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
                 new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 0.5m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" }
             };
-            Services.AddSingleton<IHoldingsDataServiceOLD>(new FakeHoldingsDataService(holdings));
+            Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
             
             var cut = RenderComponent<Holdings>(parameters => parameters
                 .AddCascadingValue(_filterState));
@@ -336,7 +336,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 new HoldingDisplayModel { Symbol = "AAPL", Name = "Apple Inc.", Quantity = 10, AveragePrice = new Money(Currency.USD, 100), CurrentPrice = new Money(Currency.USD, 150), CurrentValue = new Money(Currency.USD, 1500), GainLoss = new Money(Currency.USD, 500), GainLossPercentage = 0.5m, Weight = 0.4m, Sector = "Tech", AssetClass = "Equity", Currency = "USD" },
                 new HoldingDisplayModel { Symbol = "TSLA", Name = "Tesla", Quantity = 1, AveragePrice = new Money(Currency.USD, 700), CurrentPrice = new Money(Currency.USD, 800), CurrentValue = new Money(Currency.USD, 800), GainLoss = new Money(Currency.USD, 100), GainLossPercentage = 0.125m, Weight = 0.3m, Sector = "Auto", AssetClass = "Equity", Currency = "USD" }
             };
-            Services.AddSingleton<IHoldingsDataServiceOLD>(new FakeHoldingsDataService(holdings));
+            Services.AddSingleton<IHoldingsDataService>(new FakeHoldingsDataService(holdings));
             
             var cut = RenderComponent<Holdings>(parameters => parameters
                 .AddCascadingValue(_filterState));
@@ -372,7 +372,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             };
             
             var fakeService = new FakeHoldingsDataService(allHoldings);
-            Services.AddSingleton<IHoldingsDataServiceOLD>(fakeService);
+            Services.AddSingleton<IHoldingsDataService>(fakeService);
             
             // Set up filter state with specific account selected
             _filterState.SelectedAccountId = 1; // Account filter
