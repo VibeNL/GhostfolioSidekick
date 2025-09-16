@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void HoldingDetail_ShowsLoadingState_WhenIsLoadingIsTrue()
         {
-            var mockService = new Mock<IHoldingsDataService>();
+            var mockService = new Mock<IHoldingsDataServiceOLD>();
             Services.AddSingleton(mockService.Object);
             Services.AddSingleton<NavigationManager>(new MockNavigationManager());
             
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         {
             var priceHistory = new List<HoldingPriceHistoryPoint>();
             var fakeService = new FakeHoldingDetailDataService(priceHistory);
-            Services.AddSingleton<IHoldingsDataService>(fakeService);
+            Services.AddSingleton<IHoldingsDataServiceOLD>(fakeService);
             Services.AddSingleton<NavigationManager>(new MockNavigationManager());
             
             var cut = RenderComponent<HoldingDetail>(parameters => parameters.Add(p => p.Symbol, "NOTFOUND"));
@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             };
             var priceHistory = new List<HoldingPriceHistoryPoint>();
             var fakeService = new FakeHoldingDetailDataService(priceHistory, holding);
-            Services.AddSingleton<IHoldingsDataService>(fakeService);
+            Services.AddSingleton<IHoldingsDataServiceOLD>(fakeService);
             Services.AddSingleton<NavigationManager>(new MockNavigationManager());
             
             var cut = RenderComponent<HoldingDetail>(parameters => parameters.Add(p => p.Symbol, "AAPL"));
@@ -110,7 +110,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 }
             };
             var fakeService = new FakeHoldingDetailDataService(priceHistory, holding);
-            Services.AddSingleton<IHoldingsDataService>(fakeService);
+            Services.AddSingleton<IHoldingsDataServiceOLD>(fakeService);
             Services.AddSingleton<NavigationManager>(new MockNavigationManager());
             
             var cut = RenderComponent<HoldingDetail>(parameters => parameters.Add(p => p.Symbol, "AAPL"));
@@ -123,7 +123,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             });
         }
 
-        private class FakeHoldingDetailDataService : IHoldingsDataService
+        private class FakeHoldingDetailDataService : IHoldingsDataServiceOLD
         {
             private readonly List<HoldingPriceHistoryPoint> _priceHistory;
             private readonly HoldingDisplayModel? _holding;

@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 {
     public partial class CommonFilters : ComponentBase
     {
-        [Inject] private IHoldingsDataService HoldingsDataService { get; set; } = default!;
+        [Inject] private IHoldingsDataServiceOLD HoldingsDataService { get; set; } = default!;
         [Inject] private ILogger<CommonFilters>? Logger { get; set; }
         
         [CascadingParameter] private FilterState? FilterState { get; set; }

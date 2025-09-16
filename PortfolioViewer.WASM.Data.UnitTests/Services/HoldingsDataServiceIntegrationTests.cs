@@ -22,8 +22,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
 		private readonly DatabaseContext _dbContext;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
-		private readonly Mock<ILogger<HoldingsDataService>> _mockLogger;
-		private readonly HoldingsDataService _service;
+		private readonly Mock<ILogger<HoldingsDataServiceOLD>> _mockLogger;
+		private readonly HoldingsDataServiceOLD _service;
 		private readonly string _databaseFilePath;
 
 		public HoldingsDataServiceIntegrationTests()
@@ -36,13 +36,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 
 			_dbContext = new DatabaseContext(_dbContextOptions);
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
-			_mockLogger = new Mock<ILogger<HoldingsDataService>>();
+			_mockLogger = new Mock<ILogger<HoldingsDataServiceOLD>>();
 
 			// Setup currency exchange to return 1:1 conversion for simplicity in tests
 			_mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money money, Currency target, DateOnly date) => new Money(target, money.Amount));
 
-			_service = new HoldingsDataService(_dbContext, _mockCurrencyExchange.Object, _mockLogger.Object);
+			_service = new HoldingsDataServiceOLD(_dbContext, _mockCurrencyExchange.Object, _mockLogger.Object);
 		}
 
 		[Fact]

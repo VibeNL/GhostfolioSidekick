@@ -69,8 +69,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money m, Currency c, DateOnly d) => m);
 
-			var loggerMock = new Mock<ILogger<HoldingsDataService>>();
-			var service = new HoldingsDataService(context, currencyExchangeMock.Object, loggerMock.Object);
+			var loggerMock = new Mock<ILogger<HoldingsDataServiceOLD>>();
+			var service = new HoldingsDataServiceOLD(context, currencyExchangeMock.Object, loggerMock.Object);
 
 			// Act
 			var result = await service.GetHoldingsAsync(targetCurrency);
@@ -115,8 +115,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money m, Currency c, DateOnly d) => m);
 
-			var loggerMock = new Mock<ILogger<HoldingsDataService>>();
-			var service = new HoldingsDataService(context, currencyExchangeMock.Object, loggerMock.Object);
+			var loggerMock = new Mock<ILogger<HoldingsDataServiceOLD>>();
+			var service = new HoldingsDataServiceOLD(context, currencyExchangeMock.Object, loggerMock.Object);
 
 			// Act
 			var result = await service.GetHoldingsAsync(targetCurrency);
@@ -154,11 +154,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			currencyExchangeMock.Setup(x => x.ConvertMoney(It.IsAny<Money>(), targetCurrency, It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money m, Currency c, DateOnly d) => new Money(targetCurrency, m.Amount * 2));
 
-			var loggerMock = new Mock<ILogger<HoldingsDataService>>();
-			var service = new HoldingsDataService(context, currencyExchangeMock.Object, loggerMock.Object);
+			var loggerMock = new Mock<ILogger<HoldingsDataServiceOLD>>();
+			var service = new HoldingsDataServiceOLD(context, currencyExchangeMock.Object, loggerMock.Object);
 
 			// Use reflection to call private method
-			var method = typeof(HoldingsDataService).GetMethod("ConvertSnapshotToTargetCurrency", BindingFlags.NonPublic | BindingFlags.Instance);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("ConvertSnapshotToTargetCurrency", BindingFlags.NonPublic | BindingFlags.Instance);
 			Assert.NotNull(method); // Ensure method exists
 			
 			var task = (Task<CalculatedSnapshot>)method.Invoke(service, new object[] { targetCurrency, snapshot })!;
@@ -223,8 +223,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			await context.SaveChangesAsync();
 
 			var currencyExchangeMock = new Mock<ICurrencyExchange>();
-			var loggerMock = new Mock<ILogger<HoldingsDataService>>();
-			var service = new HoldingsDataService(context, currencyExchangeMock.Object, loggerMock.Object);
+			var loggerMock = new Mock<ILogger<HoldingsDataServiceOLD>>();
+			var service = new HoldingsDataServiceOLD(context, currencyExchangeMock.Object, loggerMock.Object);
 
 			// Act
 			var result = await service.GetMinDateAsync();
@@ -248,8 +248,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			await context.SaveChangesAsync();
 
 			var currencyExchangeMock = new Mock<ICurrencyExchange>();
-			var loggerMock = new Mock<ILogger<HoldingsDataService>>();
-			var service = new HoldingsDataService(context, currencyExchangeMock.Object, loggerMock.Object);
+			var loggerMock = new Mock<ILogger<HoldingsDataServiceOLD>>();
+			var service = new HoldingsDataServiceOLD(context, currencyExchangeMock.Object, loggerMock.Object);
 
 			// Act
 			var result = await service.GetAccountsAsync();

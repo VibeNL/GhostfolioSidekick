@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         public string Symbol { get; set; } = string.Empty;
 
         [Inject]
-        private IHoldingsDataService? HoldingsDataService { get; set; }
+        private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
 
         [Inject]
         private ITestContextService? TestContextService { get; set; }

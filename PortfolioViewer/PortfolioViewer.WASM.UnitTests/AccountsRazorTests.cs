@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
             }
         }
 
-        private class FakeAccountsDataService : IHoldingsDataService
+        private class FakeAccountsDataService : IHoldingsDataServiceOLD
         {
             private readonly List<AccountValueHistoryPoint> _accountHistory;
 
@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void Accounts_ShowsLoadingState_WhenIsLoadingIsTrue()
         {
-            var mockService = new Mock<IHoldingsDataService>();
+            var mockService = new Mock<IHoldingsDataServiceOLD>();
             // Make the service return a pending task to keep it in loading state
             var tcs = new TaskCompletionSource<List<AccountValueHistoryPoint>>();
             mockService.Setup(s => s.GetAccountValueHistoryAsync(It.IsAny<Currency>(), It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
@@ -189,7 +189,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
         [Fact]
         public void Accounts_ShowsEmptyState_WhenNoAccountDataExists()
         {
-            Services.AddSingleton<IHoldingsDataService>(new FakeAccountsDataService(new List<AccountValueHistoryPoint>()));
+            Services.AddSingleton<IHoldingsDataServiceOLD>(new FakeAccountsDataService(new List<AccountValueHistoryPoint>()));
             
             var cut = RenderComponent<Accounts>(parameters => parameters
                 .AddCascadingValue(_filterState));
@@ -212,7 +212,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 }
             };
             
-            Services.AddSingleton<IHoldingsDataService>(new FakeAccountsDataService(accountHistory));
+            Services.AddSingleton<IHoldingsDataServiceOLD>(new FakeAccountsDataService(accountHistory));
             
             var cut = RenderComponent<Accounts>(parameters => parameters
                 .AddCascadingValue(_filterState));
@@ -243,7 +243,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 }
             };
             
-            Services.AddSingleton<IHoldingsDataService>(new FakeAccountsDataService(accountHistory));
+            Services.AddSingleton<IHoldingsDataServiceOLD>(new FakeAccountsDataService(accountHistory));
             
             var cut = RenderComponent<Accounts>(parameters => parameters
                 .AddCascadingValue(_filterState));
@@ -273,7 +273,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
                 }
             };
             
-            Services.AddSingleton<IHoldingsDataService>(new FakeAccountsDataService(accountHistory));
+            Services.AddSingleton<IHoldingsDataServiceOLD>(new FakeAccountsDataService(accountHistory));
             
             var cut = RenderComponent<Accounts>(parameters => parameters
                 .AddCascadingValue(_filterState));

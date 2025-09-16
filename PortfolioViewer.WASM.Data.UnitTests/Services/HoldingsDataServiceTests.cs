@@ -21,8 +21,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
 		private readonly DatabaseContext _dbContext;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
-		private readonly Mock<ILogger<HoldingsDataService>> _mockLogger;
-		private readonly HoldingsDataService _service;
+		private readonly Mock<ILogger<HoldingsDataServiceOLD>> _mockLogger;
+		private readonly HoldingsDataServiceOLD _service;
 		private readonly string _databaseFilePath;
 
 		public HoldingsDataServiceTests()
@@ -35,9 +35,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 
 			_dbContext = new DatabaseContext(_dbContextOptions);
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
-			_mockLogger = new Mock<ILogger<HoldingsDataService>>();
+			_mockLogger = new Mock<ILogger<HoldingsDataServiceOLD>>();
 			
-			_service = new HoldingsDataService(
+			_service = new HoldingsDataServiceOLD(
 				_dbContext,
 				_mockCurrencyExchange.Object,
 				_mockLogger.Object);
@@ -248,7 +248,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			var targetCurrency = Currency.USD;
 
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("ProcessHoldingAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("ProcessHoldingAsync", BindingFlags.NonPublic | BindingFlags.Instance);
 			Assert.NotNull(method);
 
 			// Act
@@ -287,7 +287,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 				.ReturnsAsync((Money money, Currency currency, DateOnly date) => money);
 
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("ProcessHoldingAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("ProcessHoldingAsync", BindingFlags.NonPublic | BindingFlags.Instance);
 			Assert.NotNull(method);
 
 			// Act
@@ -313,7 +313,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		public void GetDisplayType_ReturnsCorrectDisplayType(string activityTypeName, string expectedDisplayType)
 		{
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("GetDisplayType", BindingFlags.NonPublic | BindingFlags.Static);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("GetDisplayType", BindingFlags.NonPublic | BindingFlags.Static);
 			Assert.NotNull(method);
 
 			var testAccount = new Account("Test");
@@ -354,7 +354,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("CalculateHoldingWeights", BindingFlags.NonPublic | BindingFlags.Static);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("CalculateHoldingWeights", BindingFlags.NonPublic | BindingFlags.Static);
 			Assert.NotNull(method);
 
 			// Act
@@ -377,7 +377,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("CalculateHoldingWeights", BindingFlags.NonPublic | BindingFlags.Static);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("CalculateHoldingWeights", BindingFlags.NonPublic | BindingFlags.Static);
 			Assert.NotNull(method);
 
 			// Act
@@ -400,7 +400,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("GetSectorDisplay", BindingFlags.NonPublic | BindingFlags.Static);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("GetSectorDisplay", BindingFlags.NonPublic | BindingFlags.Static);
 			Assert.NotNull(method);
 
 			// Act
@@ -417,7 +417,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			var sectorWeights = new List<SectorWeight>();
 
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("GetSectorDisplay", BindingFlags.NonPublic | BindingFlags.Static);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("GetSectorDisplay", BindingFlags.NonPublic | BindingFlags.Static);
 			Assert.NotNull(method);
 
 			// Act
@@ -469,7 +469,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		private static dynamic CreateTestHoldingWithSnapshots()
 		{
 			// Create an instance of the private HoldingWithSnapshots class using reflection
-			var holdingWithSnapshotsType = typeof(HoldingsDataService).GetNestedType("HoldingWithSnapshots", BindingFlags.NonPublic);
+			var holdingWithSnapshotsType = typeof(HoldingsDataServiceOLD).GetNestedType("HoldingWithSnapshots", BindingFlags.NonPublic);
 			Assert.NotNull(holdingWithSnapshotsType);
 
 			var instance = Activator.CreateInstance(holdingWithSnapshotsType);

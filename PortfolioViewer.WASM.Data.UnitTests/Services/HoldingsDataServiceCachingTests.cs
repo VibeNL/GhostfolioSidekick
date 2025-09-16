@@ -25,8 +25,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
 		private readonly DatabaseContext _dbContext;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
-		private readonly Mock<ILogger<HoldingsDataService>> _mockLogger;
-		private readonly HoldingsDataService _service;
+		private readonly Mock<ILogger<HoldingsDataServiceOLD>> _mockLogger;
+		private readonly HoldingsDataServiceOLD _service;
 		private readonly string _databaseFilePath;
 
 		public HoldingsDataServiceCachingTests()
@@ -39,9 +39,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 
 			_dbContext = new DatabaseContext(_dbContextOptions);
 			_mockCurrencyExchange = new Mock<ICurrencyExchange>();
-			_mockLogger = new Mock<ILogger<HoldingsDataService>>();
+			_mockLogger = new Mock<ILogger<HoldingsDataServiceOLD>>();
 			
-			_service = new HoldingsDataService(
+			_service = new HoldingsDataServiceOLD(
 				_dbContext,
 				_mockCurrencyExchange.Object,
 				_mockLogger.Object);
@@ -171,7 +171,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 					money.Currency == currency ? money : new Money(currency, money.Amount * 1.1m));
 
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("ProcessHoldingAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("ProcessHoldingAsync", BindingFlags.NonPublic | BindingFlags.Instance);
 			Assert.NotNull(method);
 
 			// Act
@@ -325,7 +325,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 				.ReturnsAsync((Money money, Currency currency, DateOnly date) => new Money(currency, money.Amount * 1.1m));
 
 			// Use reflection to access the private method
-			var method = typeof(HoldingsDataService).GetMethod("ConvertSnapshotToTargetCurrency", BindingFlags.NonPublic | BindingFlags.Instance);
+			var method = typeof(HoldingsDataServiceOLD).GetMethod("ConvertSnapshotToTargetCurrency", BindingFlags.NonPublic | BindingFlags.Instance);
 			Assert.NotNull(method);
 
 			// Act
@@ -468,7 +468,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		/// </summary>
 		private static dynamic CreateTestHoldingWithSnapshots()
 		{
-			var holdingType = typeof(HoldingsDataService).GetNestedType("HoldingWithSnapshots", BindingFlags.NonPublic);
+			var holdingType = typeof(HoldingsDataServiceOLD).GetNestedType("HoldingWithSnapshots", BindingFlags.NonPublic);
 			Assert.NotNull(holdingType);
 
 			var holding = Activator.CreateInstance(holdingType);

@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class PortfolioTimeSeries : ComponentBase, IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
 
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
