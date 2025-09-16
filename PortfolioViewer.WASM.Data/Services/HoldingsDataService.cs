@@ -9,26 +9,18 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	/// <summary>
 	/// Service for managing portfolio holdings data with optimized performance for Blazor WebAssembly.
-	/// Implements caching, bulk operations, and parallel processing for improved performance.
+	/// Implements bulk operations and parallel processing for improved performance.
 	/// </summary>
 	public class HoldingsDataService(
 		DatabaseContext databaseContext, 
 		ICurrencyExchange currencyExchange, 
 		ILogger<HoldingsDataService> logger) : IHoldingsDataService
 	{
-		private const int DefaultCacheExpirationMinutes = 5;
-		
-		// Currency conversion cache to reduce redundant conversions
-		private readonly ConcurrentDictionary<string, Money> _currencyConversionCache = new();
-		private readonly ConcurrentDictionary<string, DateTime> _cacheTimestamps = new();
-		private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(DefaultCacheExpirationMinutes);
-
 		/// <inheritdoc />
 		public async Task<List<HoldingDisplayModel>> GetHoldingsAsync(
 			Currency targetCurrency,
@@ -57,15 +49,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					return new List<HoldingDisplayModel>();
 				}
 
-				// Step 2: Pre-cache currency conversions to minimize API calls
-				await PreCacheCurrencyConversionsAsync(holdingsWithSnapshots, targetCurrency);
-
-				// Step 3: Process holdings in parallel for better performance
+				// Step 2: Process holdings in parallel for better performance
 				var holdingTasks = holdingsWithSnapshots.Select(holding => 
 					ProcessHoldingAsync(holding, targetCurrency));
 				var processedHoldings = await Task.WhenAll(holdingTasks);
 
-				// Step 4: Calculate portfolio weights
+				// Step 3: Calculate portfolio weights
 				var result = processedHoldings.ToList();
 				CalculateHoldingWeights(result);
 
@@ -618,47 +607,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		}
 
 		/// <summary>
-		/// Pre-caches currency conversions to reduce redundant API calls.
-		/// </summary>
-		private async Task PreCacheCurrencyConversionsAsync(
-			List<HoldingWithSnapshots> holdings, 
-			Currency targetCurrency)
-		{
-			var currencyGroups = holdings
-				.SelectMany(h => h.Snapshots)
-				.GroupBy(s => s.TotalValue.Currency)
-				.ToDictionary(g => g.Key, g => g.First().Date);
-
-			var uniquePairs = currencyGroups.Keys
-				.Where(c => c != targetCurrency)
-				.SelectMany(c => currencyGroups.Values.Select(d => new { Currency = c, Date = d }))
-				.Distinct()
-				.ToList();
-
-			var cachingTasks = uniquePairs.Select(async pair =>
-			{
-				var cacheKey = GetCacheKey(pair.Currency, targetCurrency, pair.Date);
-				if (!IsCacheValid(cacheKey))
-				{
-					try
-					{
-						var converted = await currencyExchange.ConvertMoney(
-							new Money(pair.Currency, 1m), targetCurrency, pair.Date);
-						_currencyConversionCache[cacheKey] = converted;
-						_cacheTimestamps[cacheKey] = DateTime.UtcNow;
-					}
-					catch (Exception ex)
-					{
-						logger.LogWarning(ex, "Failed to cache currency conversion for {From} to {To} on {Date}", 
-							pair.Currency.Symbol, targetCurrency.Symbol, pair.Date);
-					}
-				}
-			});
-
-			await Task.WhenAll(cachingTasks);
-		}
-
-		/// <summary>
 		/// Optimized snapshot aggregation with minimal allocations.
 		/// </summary>
 		private async Task<CalculatedSnapshot> AggregateSnapshotsOptimized(
@@ -753,46 +701,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				return (currentValueAmount, averageCostValueAmount, snapshot.TotalInvested.Amount, snapshot.TotalValue.Amount);
 			}
 
-			// Use cached conversion
-			var currentConversion = await ConvertMoneyWithCache(
+			// Use the currency exchange service directly (it has its own caching)
+			var currentConversion = await currencyExchange.ConvertMoney(
 				new Money(snapshot.CurrentUnitPrice.Currency, currentValueAmount), baseCurrency, date);
-			var averageConversion = await ConvertMoneyWithCache(
+			var averageConversion = await currencyExchange.ConvertMoney(
 				new Money(snapshot.AverageCostPrice.Currency, averageCostValueAmount), baseCurrency, date);
-			var investedConversion = await ConvertMoneyWithCache(snapshot.TotalInvested, baseCurrency, date);
-			var valueConversion = await ConvertMoneyWithCache(snapshot.TotalValue, baseCurrency, date);
+			var investedConversion = await currencyExchange.ConvertMoney(snapshot.TotalInvested, baseCurrency, date);
+			var valueConversion = await currencyExchange.ConvertMoney(snapshot.TotalValue, baseCurrency, date);
 
 			return (currentConversion.Amount, averageConversion.Amount, investedConversion.Amount, valueConversion.Amount);
 		}
 
 		/// <summary>
-		/// Converts money to target currency with caching optimization.
-		/// This is the centralized currency conversion method that handles caching.
-		/// </summary>
-		private async Task<Money> ConvertMoneyWithCache(Money money, Currency targetCurrency, DateOnly date)
-		{
-			if (money.Currency == targetCurrency)
-				return money;
-
-			var cacheKey = GetCacheKey(money.Currency, targetCurrency, date);
-			
-			if (IsCacheValid(cacheKey) && _currencyConversionCache.TryGetValue(cacheKey, out var cachedRate))
-			{
-				return new Money(targetCurrency, money.Amount * cachedRate.Amount);
-			}
-
-			// Fall back to regular conversion and cache the result
-			var converted = await currencyExchange.ConvertMoney(money, targetCurrency, date);
-			
-			var rate = money.Amount == 0 ? Money.Zero(targetCurrency) : 
-				new Money(targetCurrency, converted.Amount / money.Amount);
-			_currencyConversionCache[cacheKey] = rate;
-			_cacheTimestamps[cacheKey] = DateTime.UtcNow;
-
-			return converted;
-		}
-
-		/// <summary>
-		/// Converts snapshot to target currency using the centralized conversion method.
+		/// Converts snapshot to target currency using the currency exchange service.
 		/// </summary>
 		private async Task<CalculatedSnapshot> ConvertSnapshotToTargetCurrency(Currency targetCurrency, CalculatedSnapshot calculatedSnapshot)
 		{
@@ -804,10 +725,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return new CalculatedSnapshot
 			{
 				Date = calculatedSnapshot.Date,
-				AverageCostPrice = await ConvertMoneyWithCache(calculatedSnapshot.AverageCostPrice, targetCurrency, calculatedSnapshot.Date),
-				CurrentUnitPrice = await ConvertMoneyWithCache(calculatedSnapshot.CurrentUnitPrice, targetCurrency, calculatedSnapshot.Date),
-				TotalInvested = await ConvertMoneyWithCache(calculatedSnapshot.TotalInvested, targetCurrency, calculatedSnapshot.Date),
-				TotalValue = await ConvertMoneyWithCache(calculatedSnapshot.TotalValue, targetCurrency, calculatedSnapshot.Date),
+				AverageCostPrice = await currencyExchange.ConvertMoney(calculatedSnapshot.AverageCostPrice, targetCurrency, calculatedSnapshot.Date),
+				CurrentUnitPrice = await currencyExchange.ConvertMoney(calculatedSnapshot.CurrentUnitPrice, targetCurrency, calculatedSnapshot.Date),
+				TotalInvested = await currencyExchange.ConvertMoney(calculatedSnapshot.TotalInvested, targetCurrency, calculatedSnapshot.Date),
+				TotalValue = await currencyExchange.ConvertMoney(calculatedSnapshot.TotalValue, targetCurrency, calculatedSnapshot.Date),
 				Quantity = calculatedSnapshot.Quantity,
 			};
 		}
@@ -881,7 +802,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				return new List<AccountValueHistoryPoint>();
 			}
 
-			var currencyConversionCache = new Dictionary<string, Money>();
 			var result = new List<AccountValueHistoryPoint>();
 
 			foreach (var account in accountsWithData)
@@ -890,8 +810,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					account, 
 					snapshotsByAccount.GetValueOrDefault(account.Id, new List<CalculatedSnapshot>()), 
 					balancesByAccount.GetValueOrDefault(account.Id, new List<Balance>()), 
-					targetCurrency, 
-					currencyConversionCache);
+					targetCurrency);
 				
 				result.AddRange(accountPoints);
 			}
@@ -906,8 +825,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			Account account,
 			List<CalculatedSnapshot> accountSnapshots,
 			List<Balance> accountBalances,
-			Currency targetCurrency,
-			Dictionary<string, Money> currencyConversionCache)
+			Currency targetCurrency)
 		{
 			var snapshotsByDate = accountSnapshots.GroupBy(s => s.Date).ToDictionary(g => g.Key, g => g.ToList());
 			var balancesByDate = accountBalances.ToDictionary(b => b.Date, b => b);
@@ -924,14 +842,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				var (totalValueAmount, totalInvestedAmount) = await ProcessSnapshotsForDate(
 					snapshotsByDate.GetValueOrDefault(date, new List<CalculatedSnapshot>()), 
 					targetCurrency, 
-					currencyConversionCache, 
 					date);
 
 				var accountBalanceAmount = await ProcessBalanceForDate(
 					accountBalances, 
 					date, 
-					targetCurrency, 
-					currencyConversionCache);
+					targetCurrency);
 
 				result.Add(new AccountValueHistoryPoint
 				{
@@ -952,7 +868,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task<(decimal totalValue, decimal totalInvested)> ProcessSnapshotsForDate(
 			List<CalculatedSnapshot> dateSnapshots,
 			Currency targetCurrency,
-			Dictionary<string, Money> currencyConversionCache,
 			DateOnly date)
 		{
 			if (!dateSnapshots.Any())
@@ -971,10 +886,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				var totalValueInCurrency = currencyGroup.Sum(s => s.TotalValue.Amount);
 				var totalInvestedInCurrency = currencyGroup.Sum(s => s.TotalInvested.Amount);
 
-				var conversionRate = await GetOrCacheConversionRate(currency, targetCurrency, date, currencyConversionCache);
+				var valueConversion = await currencyExchange.ConvertMoney(
+					new Money(currency, totalValueInCurrency), targetCurrency, date);
+				var investedConversion = await currencyExchange.ConvertMoney(
+					new Money(currency, totalInvestedInCurrency), targetCurrency, date);
 
-				totalValueAmount += totalValueInCurrency * conversionRate.Amount;
-				totalInvestedAmount += totalInvestedInCurrency * conversionRate.Amount;
+				totalValueAmount += valueConversion.Amount;
+				totalInvestedAmount += investedConversion.Amount;
 			}
 
 			return (totalValueAmount, totalInvestedAmount);
@@ -986,8 +904,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task<decimal> ProcessBalanceForDate(
 			List<Balance> accountBalances,
 			DateOnly date,
-			Currency targetCurrency,
-			Dictionary<string, Money> currencyConversionCache)
+			Currency targetCurrency)
 		{
 			var relevantBalance = accountBalances
 				.Where(b => b.Date <= date)
@@ -999,30 +916,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				return 0;
 			}
 
-			var conversionRate = await GetOrCacheConversionRate(
-				relevantBalance.Money.Currency, targetCurrency, date, currencyConversionCache);
+			var converted = await currencyExchange.ConvertMoney(
+				relevantBalance.Money, targetCurrency, date);
 
-			return relevantBalance.Money.Amount * conversionRate.Amount;
-		}
-
-		/// <summary>
-		/// Gets or caches currency conversion rate using a local cache (for account history processing).
-		/// </summary>
-		private async Task<Money> GetOrCacheConversionRate(
-			Currency fromCurrency,
-			Currency targetCurrency,
-			DateOnly date,
-			Dictionary<string, Money> currencyConversionCache)
-		{
-			var cacheKey = $"{fromCurrency.Symbol}_{date:yyyy-MM-dd}";
-			if (!currencyConversionCache.TryGetValue(cacheKey, out var conversionRate))
-			{
-				conversionRate = await currencyExchange.ConvertMoney(
-					new Money(fromCurrency, 1), targetCurrency, date);
-				currencyConversionCache[cacheKey] = conversionRate;
-			}
-
-			return conversionRate;
+			return converted.Amount;
 		}
 
 		/// <summary>
@@ -1075,23 +972,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		}
 
 		/// <summary>
-		/// Gets cache key for currency conversion.
-		/// </summary>
-		private static string GetCacheKey(Currency fromCurrency, Currency toCurrency, DateOnly date)
-		{
-			return $"{fromCurrency.Symbol}_{toCurrency.Symbol}_{date:yyyy-MM-dd}";
-		}
-
-		/// <summary>
-		/// Checks if cache entry is still valid.
-		/// </summary>
-		private bool IsCacheValid(string cacheKey)
-		{
-			return _cacheTimestamps.TryGetValue(cacheKey, out var timestamp) &&
-				   DateTime.UtcNow - timestamp < _cacheExpiration;
-		}
-
-		/// <summary>
 		/// Maps an activity to a transaction display model.
 		/// </summary>
 		private async Task<TransactionDisplayModel?> MapActivityToTransactionDisplayModel(Activity activity, Currency targetCurrency)
@@ -1140,7 +1020,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					await MapCashActivityAsync(withdrawal.Amount, model, targetCurrency, date);
 					break;
 				case FeeActivity fee:
-					model.Amount = await ConvertMoney(fee.Amount, targetCurrency, date);
+					model.Amount = await currencyExchange.ConvertMoney(fee.Amount, targetCurrency, date);
 					model.TotalValue = model.Amount;
 					model.Fee = model.Amount;
 					break;
@@ -1168,9 +1048,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task MapBuyActivityAsync(BuyActivity buy, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
 		{
 			model.Quantity = buy.Quantity;
-			model.UnitPrice = await ConvertMoney(buy.UnitPrice, targetCurrency, date);
-			model.Amount = await ConvertMoney(buy.UnitPrice.Times(buy.Quantity), targetCurrency, date);
-			model.TotalValue = await ConvertMoney(buy.TotalTransactionAmount, targetCurrency, date);
+			model.UnitPrice = await currencyExchange.ConvertMoney(buy.UnitPrice, targetCurrency, date);
+			model.Amount = await currencyExchange.ConvertMoney(buy.UnitPrice.Times(buy.Quantity), targetCurrency, date);
+			model.TotalValue = await currencyExchange.ConvertMoney(buy.TotalTransactionAmount, targetCurrency, date);
 			model.Fee = await SumAndConvertFees(buy.Fees.Select(f => f.Money), targetCurrency, date);
 			model.Tax = await SumAndConvertFees(buy.Taxes.Select(t => t.Money), targetCurrency, date);
 		}
@@ -1181,9 +1061,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task MapSellActivityAsync(SellActivity sell, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
 		{
 			model.Quantity = sell.Quantity;
-			model.UnitPrice = await ConvertMoney(sell.UnitPrice, targetCurrency, date);
-			model.Amount = await ConvertMoney(sell.UnitPrice.Times(sell.Quantity), targetCurrency, date);
-			model.TotalValue = await ConvertMoney(sell.TotalTransactionAmount, targetCurrency, date);
+			model.UnitPrice = await currencyExchange.ConvertMoney(sell.UnitPrice, targetCurrency, date);
+			model.Amount = await currencyExchange.ConvertMoney(sell.UnitPrice.Times(sell.Quantity), targetCurrency, date);
+			model.TotalValue = await currencyExchange.ConvertMoney(sell.TotalTransactionAmount, targetCurrency, date);
 			model.Fee = await SumAndConvertFees(sell.Fees.Select(f => f.Money), targetCurrency, date);
 			model.Tax = await SumAndConvertFees(sell.Taxes.Select(t => t.Money), targetCurrency, date);
 		}
@@ -1193,7 +1073,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// </summary>
 		private async Task MapDividendActivityAsync(DividendActivity dividend, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
 		{
-			model.Amount = await ConvertMoney(dividend.Amount, targetCurrency, date);
+			model.Amount = await currencyExchange.ConvertMoney(dividend.Amount, targetCurrency, date);
 			model.TotalValue = model.Amount;
 			model.Fee = await SumAndConvertFees(dividend.Fees.Select(f => f.Money), targetCurrency, date);
 			model.Tax = await SumAndConvertFees(dividend.Taxes.Select(t => t.Money), targetCurrency, date);
@@ -1204,7 +1084,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// </summary>
 		private async Task MapCashActivityAsync(Money amount, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
 		{
-			model.Amount = await ConvertMoney(amount, targetCurrency, date);
+			model.Amount = await currencyExchange.ConvertMoney(amount, targetCurrency, date);
 			model.TotalValue = model.Amount;
 		}
 
@@ -1214,8 +1094,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task MapReceiveActivityAsync(ReceiveActivity receive, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
 		{
 			model.Quantity = receive.Quantity;
-			model.UnitPrice = await ConvertMoney(receive.UnitPrice, targetCurrency, date);
-			model.Amount = await ConvertMoney(receive.UnitPrice.Times(receive.Quantity), targetCurrency, date);
+			model.UnitPrice = await currencyExchange.ConvertMoney(receive.UnitPrice, targetCurrency, date);
+			model.Amount = await currencyExchange.ConvertMoney(receive.UnitPrice.Times(receive.Quantity), targetCurrency, date);
 			model.TotalValue = model.Amount;
 			model.Fee = await SumAndConvertFees(receive.Fees.Select(f => f.Money), targetCurrency, date);
 		}
@@ -1226,8 +1106,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task MapSendActivityAsync(SendActivity send, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
 		{
 			model.Quantity = send.Quantity;
-			model.UnitPrice = await ConvertMoney(send.UnitPrice, targetCurrency, date);
-			model.Amount = await ConvertMoney(send.UnitPrice.Times(send.Quantity), targetCurrency, date);
+			model.UnitPrice = await currencyExchange.ConvertMoney(send.UnitPrice, targetCurrency, date);
+			model.Amount = await currencyExchange.ConvertMoney(send.UnitPrice.Times(send.Quantity), targetCurrency, date);
 			model.TotalValue = model.Amount;
 			model.Fee = await SumAndConvertFees(send.Fees.Select(f => f.Money), targetCurrency, date);
 		}
@@ -1238,8 +1118,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task MapStakingGiftActivityAsync(decimal quantity, Money unitPrice, TransactionDisplayModel model, Currency targetCurrency, DateOnly date)
 		{
 			model.Quantity = quantity;
-			model.UnitPrice = await ConvertMoney(unitPrice, targetCurrency, date);
-			model.Amount = await ConvertMoney(unitPrice.Times(quantity), targetCurrency, date);
+			model.UnitPrice = await currencyExchange.ConvertMoney(unitPrice, targetCurrency, date);
+			model.Amount = await currencyExchange.ConvertMoney(unitPrice.Times(quantity), targetCurrency, date);
 			model.TotalValue = model.Amount;
 		}
 
@@ -1279,19 +1159,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			if (!feeList.Any())
 				return null;
 
-			var convertedFees = await Task.WhenAll(feeList.Select(fee => ConvertMoney(fee, targetCurrency, date)));
+			var convertedFees = await Task.WhenAll(feeList.Select(fee => currencyExchange.ConvertMoney(fee, targetCurrency, date)));
 			return Money.Sum(convertedFees);
-		}
-
-		/// <summary>
-		/// Converts money to target currency (non-cached version for backward compatibility).
-		/// </summary>
-		private async Task<Money> ConvertMoney(Money money, Currency targetCurrency, DateOnly date)
-		{
-			if (money.Currency == targetCurrency)
-				return money;
-
-			return await currencyExchange.ConvertMoney(money, targetCurrency, date);
 		}
 
 		/// <summary>
