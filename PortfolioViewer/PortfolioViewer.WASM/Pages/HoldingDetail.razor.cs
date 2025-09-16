@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         public string Symbol { get; set; } = string.Empty;
 
         [Inject]
-        private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
+        private IHoldingsDataService? HoldingsDataService { get; set; }
 
         [Inject]
         private ITestContextService? TestContextService { get; set; }
@@ -46,12 +46,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         protected override async Task OnInitializedAsync()
         {
             // Set default date range to 6 months for holding detail if not already set
-            if (FilterState.StartDate == new DateTime(DateTime.Today.Year, 1, 1) && 
-                FilterState.EndDate == DateTime.Today)
+            if (FilterState.StartDate == DateOnly.FromDateTime(new DateTime(DateTime.Today.Year, 1, 1)) && 
+                FilterState.EndDate == DateOnly.FromDateTime(DateTime.Today))
             {
                 // If we're on the default YTD range, change to 6M for better holding detail view
-                FilterState.StartDate = DateTime.Today.AddMonths(-6);
-                FilterState.EndDate = DateTime.Today;
+                FilterState.StartDate = DateOnly.FromDateTime(DateTime.Today.AddMonths(-6));
+                FilterState.EndDate = DateOnly.FromDateTime(DateTime.Today);
             }
 
             // Subscribe to filter changes
@@ -175,7 +175,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
                 // Use dates from FilterState instead of local TimeRange
                 PriceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
-                    Symbol, 
+                    Symbol, 					
                     FilterState.StartDate, 
                     FilterState.EndDate);
 

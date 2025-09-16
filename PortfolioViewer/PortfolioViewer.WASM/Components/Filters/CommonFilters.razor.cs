@@ -357,39 +357,39 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         {
             if (_pendingFilterState == null) return;
 
-            var today = DateTime.Today;
-            var startOfYear = new DateTime(today.Year, 1, 1);
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var startOfYear = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1));
 
             // Check if current dates match predefined ranges
-            if (_pendingFilterState.StartDate.Date == startOfYear && _pendingFilterState.EndDate.Date == today)
+            if (_pendingFilterState.StartDate == startOfYear && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "YearToDate";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddDays(-7) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddDays(-7) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "LastWeek";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddMonths(-1) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddMonths(-1) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "LastMonth";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddMonths(-3) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddMonths(-3) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "ThreeMonths";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddMonths(-6) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddMonths(-6) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "SixMonths";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddYears(-1) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddYears(-1) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "OneYear";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddYears(-5) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddYears(-5) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "FiveYear";
             }
-            else if (_pendingFilterState.StartDate.Date == new DateTime(2020, 1, 1) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == DateOnly.FromDateTime(new DateTime(2020, 1, 1)) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "Max";
             }
@@ -401,7 +401,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 
         private async Task SetDateRange(string range)
         {
-            var today = DateTime.Today;
+            var today = DateOnly.FromDateTime(DateTime.Today);
             _currentDateRange = range;
 
             switch (range)
@@ -423,7 +423,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                     _pendingFilterState.EndDate = today;
                     break;
                 case "YearToDate":
-                    _pendingFilterState.StartDate = new DateTime(today.Year, 1, 1);
+                    _pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1));
                     _pendingFilterState.EndDate = today;
                     break;
                 case "OneYear":
@@ -435,7 +435,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                     _pendingFilterState.EndDate = today;
                     break;
                 case "Max":
-                    _pendingFilterState.StartDate = new DateTime(2020, 1, 1);
+                    _pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(2020, 1, 1));
                     _pendingFilterState.EndDate = today;
                     break;
             }
@@ -454,7 +454,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 
         private async Task OnStartDateChanged(ChangeEventArgs e)
         {
-            if (DateTime.TryParse(e.Value?.ToString(), out var date))
+            if (DateOnly.TryParse(e.Value?.ToString(), out var date))
             {
                 _pendingFilterState.StartDate = date;
                 _currentDateRange = null; // Clear predefined range when custom date is set
@@ -469,7 +469,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 
         private async Task OnEndDateChanged(ChangeEventArgs e)
         {
-            if (DateTime.TryParse(e.Value?.ToString(), out var date))
+            if (DateOnly.TryParse(e.Value?.ToString(), out var date))
             {
                 _pendingFilterState.EndDate = date;
                 _currentDateRange = null; // Clear predefined range when custom date is set

@@ -28,8 +28,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         protected string ViewMode { get; set; } = "chart";
 
         // Properties that read from cascaded filter state
-        protected DateTime StartDate => FilterState.StartDate;
-        protected DateTime EndDate => FilterState.EndDate;
+        protected DateOnly StartDate => FilterState.StartDate;
+        protected DateOnly EndDate => FilterState.EndDate;
         protected string SelectedCurrency => FilterState.SelectedCurrency;
 
         protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);

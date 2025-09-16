@@ -45,8 +45,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// <returns>List of portfolio value history points</returns>
 		Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
             Currency targetCurrency,
-            DateTime startDate,
-            DateTime endDate,
+			DateOnly startDate,
+			DateOnly endDate,
             int accountId,
             CancellationToken cancellationToken = default);
 
@@ -66,8 +66,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
         /// <returns>List of price history points</returns>
         Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
             string symbol,
-            DateTime startDate,
-            DateTime endDate,
+            DateOnly startDate,
+            DateOnly endDate,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -82,8 +82,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
         /// <returns>List of transaction display models</returns>
         Task<List<TransactionDisplayModel>> GetTransactionsAsync(
             Currency targetCurrency,
-            DateTime startDate,
-            DateTime endDate,
+            DateOnly startDate,
+            DateOnly endDate,
             int accountId,
             string symbol,
             CancellationToken cancellationToken = default);
@@ -118,8 +118,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
         /// <returns>List of account value history points</returns>
         Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
             Currency targetCurrency,
-            DateTime startDate,
-            DateTime endDate,
+			DateOnly startDate,
+			DateOnly endDate,
             CancellationToken cancellationToken = default);
     }
 }

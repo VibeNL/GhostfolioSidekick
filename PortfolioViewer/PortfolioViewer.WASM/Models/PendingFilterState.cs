@@ -6,8 +6,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
     /// </summary>
     public class PendingFilterState
     {
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public string SelectedCurrency { get; set; } = "EUR";
         public int SelectedAccountId { get; set; } = 0;
         public string SelectedSymbol { get; set; } = "";

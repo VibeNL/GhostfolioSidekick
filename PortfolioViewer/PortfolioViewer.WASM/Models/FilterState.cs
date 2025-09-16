@@ -4,13 +4,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {
     public class FilterState : INotifyPropertyChanged
     {
-        private DateTime _startDate = new DateTime(DateTime.Today.Year, 1, 1);  // YTD start - January 1st of current year
-        private DateTime _endDate = DateTime.Today;
+        private DateOnly _startDate = DateOnly.FromDateTime(new DateTime(DateTime.Today.Year, 1, 1));  // YTD start - January 1st of current year
+        private DateOnly _endDate = DateOnly.FromDateTime(DateTime.Today);
         private string _selectedCurrency = "EUR";
         private int _selectedAccountId = 0;
         private string _selectedSymbol = ""; // Add symbol filter
 
-        public DateTime StartDate 
+        public DateOnly StartDate 
         { 
             get => _startDate; 
             set 
@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
             } 
         }
 
-        public DateTime EndDate 
+        public DateOnly EndDate 
         { 
             get => _endDate; 
             set 

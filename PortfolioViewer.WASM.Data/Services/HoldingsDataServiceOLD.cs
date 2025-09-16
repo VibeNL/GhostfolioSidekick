@@ -178,8 +178,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// <inheritdoc />
 		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
 			Currency targetCurrency,
-			DateTime startDate,
-			DateTime endDate,
+			DateOnly startDate,
+			DateOnly endDate,
 			int accountId,
 			CancellationToken cancellationToken = default)
 		{
@@ -189,8 +189,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToListAsync(cancellationToken);
 
 			// Filter in memory
-			var startDateOnly = DateOnly.FromDateTime(startDate);
-			var endDateOnly = DateOnly.FromDateTime(endDate);
+			var startDateOnly = startDate;
+			var endDateOnly = endDate;
 			
 			var filteredSnapshots = allSnapshots
 				.Where(s => s.Date >= startDateOnly && s.Date <= endDateOnly)
@@ -222,8 +222,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// <inheritdoc />
 		public async Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
 			Currency targetCurrency,
-			DateTime startDate,
-			DateTime endDate,
+			DateOnly startDate,
+			DateOnly endDate,
 			CancellationToken cancellationToken = default)
 		{
 			try
@@ -256,8 +256,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// <inheritdoc />
 		public async Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
 			string symbol,
-			DateTime startDate,
-			DateTime endDate,
+			DateOnly startDate,
+			DateOnly endDate,
 			CancellationToken cancellationToken = default)
 		{
 			// Simplified approach to avoid EF Core in-memory issues
@@ -270,8 +270,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToListAsync(cancellationToken);
 
 			// Filter in memory
-			var startDateOnly = DateOnly.FromDateTime(startDate);
-			var endDateOnly = DateOnly.FromDateTime(endDate);
+			var startDateOnly = startDate;
+			var endDateOnly = endDate;
 
 			var relevantHoldings = allHoldings.Where(h => h.Symbol == symbol).ToList();
 			if (!relevantHoldings.Any())
@@ -313,8 +313,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// <inheritdoc />
 		public async Task<List<TransactionDisplayModel>> GetTransactionsAsync(
 			Currency targetCurrency,
-			DateTime startDate,
-			DateTime endDate,
+			DateOnly startDate,
+			DateOnly endDate,
 			int accountId,
 			string symbol,
 			CancellationToken cancellationToken = default)
@@ -471,10 +471,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// Loads account history data (accounts, snapshots, balances) in bulk queries.
 		/// </summary>
 		private async Task<(List<Account> accounts, List<CalculatedSnapshot> snapshots, List<Balance> balances)> 
-			LoadAccountHistoryDataAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+			LoadAccountHistoryDataAsync(DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
 		{
-			var startDateOnly = DateOnly.FromDateTime(startDate);
-			var endDateOnly = DateOnly.FromDateTime(endDate);
+			var startDateOnly = startDate;
+			var endDateOnly = endDate;
 
 			// Load everything in memory to avoid EF Core in-memory provider issues
 			var accountsTask = databaseContext.Accounts
@@ -513,8 +513,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// Loads activities with optional filtering by account and symbol.
 		/// </summary>
 		private async Task<List<Activity>> LoadActivitiesAsync(
-			DateTime startDate, 
-			DateTime endDate, 
+			DateOnly startDate, 
+			DateOnly endDate, 
 			int accountId, 
 			string symbol, 
 			CancellationToken cancellationToken)
@@ -522,7 +522,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			var baseQuery = databaseContext.Activities
 				.Include(a => a.Account)
 				.Include(a => a.Holding)
-				.Where(a => a.Date >= startDate && a.Date <= endDate);
+				.Where(a => a.Date >= startDate.ToDateTime(TimeOnly.MinValue) && a.Date <= endDate.ToDateTime(TimeOnly.MinValue));
 
 			if (accountId > 0)
 			{

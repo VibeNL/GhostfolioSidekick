@@ -29,6 +29,59 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return GetHoldingsInternallyAsync(targetCurrency, accountId == 0 ? null : accountId, cancellationToken);
 		}
 
+		public async Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
+			string symbol,
+			DateOnly startDate,
+			DateOnly endDate,
+			CancellationToken cancellationToken = default)
+		{
+			var snapShots = await databaseContext.CalculatedSnapshots
+				.Where(x => x.Date >= startDate &&
+							x.Date <= endDate)
+				.GroupBy(x => x.Date)
+				.Select(g => new HoldingPriceHistoryPoint
+				{
+					Date = g.Key,
+					Price = g.Min(x => x.CurrentUnitPrice),
+					AveragePrice = new Money(g.First().AverageCostPrice.Currency, g.Sum(x => x.AverageCostPrice.Amount * x.Quantity) / g.Sum(x => x.Quantity)),
+				})
+				.OrderBy(x => x.Date)
+				.ToListAsync(cancellationToken);
+			
+			return snapShots;
+		}
+
+		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
+			Currency targetCurrency,
+			DateOnly startDate, 
+			DateOnly endDate, 
+			int? accountId, 
+			CancellationToken cancellationToken = default)
+		{
+			var snapShots = await databaseContext.CalculatedSnapshots
+				.Where(x => (accountId == 0 || x.AccountId == accountId) && 
+							x.Date >= startDate && 
+							x.Date <= endDate)
+				.GroupBy(x => x.Date)
+				.Select(g => new PortfolioValueHistoryPoint
+				{
+					Date = g.Key,
+					Value = g.Select(x => x.TotalValue).ToArray(),
+					Invested = g.Select(x => x.TotalInvested).ToArray()
+				})
+				.OrderBy(x => x.Date)
+				.ToListAsync(cancellationToken);
+
+			// Convert values to target currency
+			foreach (var point in snapShots)
+			{
+				point.Value = await Task.WhenAll(point.Value.Select(x => ConvertMoney(x, targetCurrency, point.Date)));
+				point.Invested = await Task.WhenAll(point.Invested.Select(x => ConvertMoney(x, targetCurrency, point.Date)));
+			}
+
+			return snapShots;
+		}
+
 		private async Task<List<HoldingDisplayModel>> GetHoldingsInternallyAsync(Currency targetCurrency, int? accountId, CancellationToken cancellationToken)
 		{
 			if (accountId == null)
@@ -39,8 +92,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				logger.LogDebug("Loading holdings for account {AccountId} in target currency {TargetCurrency}", accountId, targetCurrency);
 			}
-
-			var holdingsQuery = databaseContext.HoldingAggregateds.AsQueryable();
 
 			var list = await databaseContext.HoldingAggregateds
 				.Select(x => new { Holding = x, LastSnapshot = x.CalculatedSnapshots.Where(x => x.AccountId == accountId || accountId == null).OrderByDescending(x => x.Date).FirstOrDefault() })
