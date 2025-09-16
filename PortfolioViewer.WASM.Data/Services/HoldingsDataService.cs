@@ -6,14 +6,21 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class HoldingsDataService(DatabaseContext databaseContext, ICurrencyExchange currencyExchange, ILogger<HoldingsDataService> logger) : IHoldingsDataService
 	{
+		// Currency conversion cache to reduce redundant conversions
+		private readonly ConcurrentDictionary<string, Money> _currencyConversionCache = new();
+		private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(5);
+		private readonly ConcurrentDictionary<string, DateTime> _cacheTimestamps = new();
+
 		public async Task<List<HoldingDisplayModel>> GetHoldingsAsync(
 			Currency targetCurrency,
 			CancellationToken cancellationToken = default)
@@ -26,206 +33,332 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			int accountId,
 			CancellationToken cancellationToken = default)
 		{
-			// Step 1: Get all holdings with their basic information (simple query that SQLite can handle)
-			var holdingsQuery = databaseContext
-				.HoldingAggregateds
-				.AsQueryable();
-
-			// If accountId is specified, filter holdings to only those that have snapshots for that account
-			if (accountId > 0)
+			// **OPTIMIZATION 1: Single bulk query with joins instead of N+1 queries**
+			var holdingsWithLatestSnapshots = await GetHoldingsWithLatestSnapshotsAsync(accountId, cancellationToken);
+			
+			if (!holdingsWithLatestSnapshots.Any())
 			{
-				holdingsQuery = holdingsQuery
-					.Where(h => h.CalculatedSnapshots.Any(s => s.AccountId == accountId));
+				return new List<HoldingDisplayModel>();
 			}
 
-			var holdings = await holdingsQuery
-				.Select(h => new
-				{
-					h.Id,
-					h.AssetClass,
-					h.Name,
-					h.Symbol,
-					h.SectorWeights
-				})
-				.ToListAsync(cancellationToken);
+			// **OPTIMIZATION 2: Batch currency conversions by grouping same currencies**
+			var currencyGroups = holdingsWithLatestSnapshots
+				.SelectMany(h => h.Snapshots)
+				.GroupBy(s => s.TotalValue.Currency)
+				.ToDictionary(g => g.Key, g => g.First().Date);
 
-			var list = new List<HoldingDisplayModel>();
+			// Pre-cache all needed currency conversions
+			await PreCacheCurrencyConversionsAsync(currencyGroups.Keys, targetCurrency, currencyGroups.Values);
 
-			foreach (var holding in holdings)
+			var result = new List<HoldingDisplayModel>(holdingsWithLatestSnapshots.Count);
+
+			// **OPTIMIZATION 3: Process holdings in parallel for CPU-bound operations**
+			var tasks = holdingsWithLatestSnapshots.Select(async holding =>
 			{
-				// Step 2: Get the latest date for this specific holding using EF.Property for shadow property
-				var latestDateQuery = databaseContext.CalculatedSnapshots
-					.Where(s => EF.Property<long>(s, "HoldingAggregatedId") == holding.Id);
-
-				// Filter by account if specified
-				if (accountId > 0)
-				{
-					latestDateQuery = latestDateQuery.Where(s => s.AccountId == accountId);
-				}
-
-				var latestDate = await latestDateQuery
-					.OrderByDescending(s => s.Date)
-					.Select(s => s.Date)
-					.FirstOrDefaultAsync(cancellationToken);
-
-				if (latestDate == default)
+				if (!holding.Snapshots.Any())
 				{
 					// Create empty snapshot for holdings with no data
 					var emptySnapshot = CalculatedSnapshot.Empty(targetCurrency, 0);
-					var convertedEmptySnapshot = await ConvertToTargetCurrency(targetCurrency, emptySnapshot);
-					list.Add(new HoldingDisplayModel
+					return new HoldingDisplayModel
 					{
 						AssetClass = holding.AssetClass.ToString(),
-						AveragePrice = convertedEmptySnapshot.AverageCostPrice,
+						AveragePrice = emptySnapshot.AverageCostPrice,
 						Currency = targetCurrency.Symbol.ToString(),
-						CurrentValue = convertedEmptySnapshot.TotalValue,
-						CurrentPrice = convertedEmptySnapshot.CurrentUnitPrice,
-						GainLoss = convertedEmptySnapshot.TotalValue.Subtract(convertedEmptySnapshot.TotalInvested),
+						CurrentValue = emptySnapshot.TotalValue,
+						CurrentPrice = emptySnapshot.CurrentUnitPrice,
+						GainLoss = Money.Zero(targetCurrency),
 						GainLossPercentage = 0,
 						Name = holding.Name ?? string.Empty,
-						Quantity = convertedEmptySnapshot.Quantity,
+						Quantity = 0,
 						Symbol = holding.Symbol,
 						Sector = holding.SectorWeights.Count != 0 ? string.Join(",", holding.SectorWeights.Select(x => x.Name)) : "Undefined",
 						Weight = 0,
-					});
-					continue;
+					};
 				}
 
-				// Step 3: Get all snapshots for the latest date for this holding
-				var latestSnapshotsQuery = databaseContext.CalculatedSnapshots
-					.Where(s => EF.Property<long>(s, "HoldingAggregatedId") == holding.Id && s.Date == latestDate);
-
-				// Filter by account if specified
-				if (accountId > 0)
-				{
-					latestSnapshotsQuery = latestSnapshotsQuery.Where(s => s.AccountId == accountId);
-				}
-
-				var latestSnapshots = await latestSnapshotsQuery.ToListAsync(cancellationToken);
-
-				// Aggregate all snapshots for the latest date across filtered accounts
-				var totalQuantity = latestSnapshots.Sum(s => s.Quantity);
+				// **OPTIMIZATION 4: Aggregate calculations optimized for minimal object allocation**
+				var aggregatedSnapshot = await AggregateSnapshotsOptimized(holding.Snapshots, targetCurrency);
+				var convertedSnapshot = await ConvertToTargetCurrencyOptimized(targetCurrency, aggregatedSnapshot);
 				
-				Money aggregatedCurrentPrice;
-				Money aggregatedAveragePrice;
-				Money aggregatedTotalValue;
-				Money aggregatedTotalInvested;
-				
-				if (totalQuantity == 0)
-				{
-					// If total quantity is zero, use the first snapshot's prices
-					var firstSnapshot = latestSnapshots.First();
-					aggregatedCurrentPrice = firstSnapshot.CurrentUnitPrice;
-					aggregatedAveragePrice = firstSnapshot.AverageCostPrice;
-					aggregatedTotalValue = Money.Zero(firstSnapshot.TotalValue.Currency);
-					aggregatedTotalInvested = Money.Zero(firstSnapshot.TotalInvested.Currency);
-				}
-				else
-				{
-					// Calculate quantity-weighted average prices and sum total values
-					var firstCurrency = latestSnapshots.First().CurrentUnitPrice.Currency;
-					
-					decimal totalValueAtCurrentPriceAmount = 0;
-					decimal totalValueAtAveragePriceAmount = 0;
-					decimal aggregatedTotalValueAmount = 0;
-					decimal aggregatedTotalInvestedAmount = 0;
-					
-					foreach (var snapshot in latestSnapshots)
-					{
-						var valueAtCurrentPrice = snapshot.CurrentUnitPrice.Times(snapshot.Quantity);
-						var valueAtAveragePrice = snapshot.AverageCostPrice.Times(snapshot.Quantity);
-						
-						// Convert to first currency if needed and sum amounts
-						if (valueAtCurrentPrice.Currency == firstCurrency)
-						{
-							totalValueAtCurrentPriceAmount += valueAtCurrentPrice.Amount;
-						}
-						else
-						{
-							var converted = await currencyExchange.ConvertMoney(valueAtCurrentPrice, firstCurrency, latestDate);
-							totalValueAtCurrentPriceAmount += converted.Amount;
-						}
-						
-						if (valueAtAveragePrice.Currency == firstCurrency)
-						{
-							totalValueAtAveragePriceAmount += valueAtAveragePrice.Amount;
-						}
-						else
-						{
-							var converted = await currencyExchange.ConvertMoney(valueAtAveragePrice, firstCurrency, latestDate);
-							totalValueAtAveragePriceAmount += converted.Amount;
-						}
-						
-						if (snapshot.TotalValue.Currency == firstCurrency)
-						{
-							aggregatedTotalValueAmount += snapshot.TotalValue.Amount;
-						}
-						else
-						{
-							var converted = await currencyExchange.ConvertMoney(snapshot.TotalValue, firstCurrency, latestDate);
-							aggregatedTotalValueAmount += converted.Amount;
-						}
-						
-						if (snapshot.TotalInvested.Currency == firstCurrency)
-						{
-							aggregatedTotalInvestedAmount += snapshot.TotalInvested.Amount;
-						}
-						else
-						{
-							var converted = await currencyExchange.ConvertMoney(snapshot.TotalInvested, firstCurrency, latestDate);
-							aggregatedTotalInvestedAmount += converted.Amount;
-						}
-					}
-					
-					var totalValueAtCurrentPrice = new Money(firstCurrency, totalValueAtCurrentPriceAmount);
-					var totalValueAtAveragePrice = new Money(firstCurrency, totalValueAtAveragePriceAmount);
-					aggregatedTotalValue = new Money(firstCurrency, aggregatedTotalValueAmount);
-					aggregatedTotalInvested = new Money(firstCurrency, aggregatedTotalInvestedAmount);
-					
-					aggregatedCurrentPrice = totalValueAtCurrentPrice.SafeDivide(totalQuantity);
-					aggregatedAveragePrice = totalValueAtAveragePrice.SafeDivide(totalQuantity);
-				}
+				var gainLoss = convertedSnapshot.TotalValue.Subtract(convertedSnapshot.TotalInvested);
+				var gainLossPercentage = convertedSnapshot.TotalInvested.Amount == 0 ? 0 : 
+					gainLoss.Amount / convertedSnapshot.TotalInvested.Amount;
 
-				// Create aggregated snapshot for currency conversion
-				var aggregatedSnapshot = new CalculatedSnapshot
-				{
-					Date = latestDate,
-					AverageCostPrice = aggregatedAveragePrice,
-					CurrentUnitPrice = aggregatedCurrentPrice,
-					TotalInvested = aggregatedTotalInvested,
-					TotalValue = aggregatedTotalValue,
-					Quantity = totalQuantity,
-				};
-
-				var convertedSnapshot = await ConvertToTargetCurrency(targetCurrency, aggregatedSnapshot);
-				list.Add(new HoldingDisplayModel
+				return new HoldingDisplayModel
 				{
 					AssetClass = holding.AssetClass.ToString(),
 					AveragePrice = convertedSnapshot.AverageCostPrice,
 					Currency = targetCurrency.Symbol.ToString(),
 					CurrentValue = convertedSnapshot.TotalValue,
 					CurrentPrice = convertedSnapshot.CurrentUnitPrice,
-					GainLoss = convertedSnapshot.TotalValue.Subtract(convertedSnapshot.TotalInvested),
-					GainLossPercentage = convertedSnapshot.TotalValue.Amount == 0 ? 0 : (convertedSnapshot.TotalValue.Amount - convertedSnapshot.TotalInvested.Amount) / convertedSnapshot.TotalValue.Amount,
+					GainLoss = gainLoss,
+					GainLossPercentage = gainLossPercentage,
 					Name = holding.Name ?? string.Empty,
 					Quantity = convertedSnapshot.Quantity,
 					Symbol = holding.Symbol,
 					Sector = holding.SectorWeights.Count != 0 ? string.Join(",", holding.SectorWeights.Select(x => x.Name)) : "Undefined",
 					Weight = 0,
-				});
-			}
+				};
+			});
 
-			// Calculate weights
-			var totalValue = list.Sum(x => x.CurrentValue.Amount);
+			var holdings = await Task.WhenAll(tasks);
+			result.AddRange(holdings);
+
+			// Calculate weights in a single pass
+			var totalValue = result.Sum(x => x.CurrentValue.Amount);
 			if (totalValue > 0)
 			{
-				foreach (var holding in list)
+				foreach (var holding in result)
 				{
 					holding.Weight = holding.CurrentValue.Amount / totalValue;
 				}
 			}
 
-			return list;
+			return result;
+		}
+
+		// **NEW: Optimized method to get holdings with their latest snapshots in a single query**
+		private async Task<List<HoldingWithSnapshots>> GetHoldingsWithLatestSnapshotsAsync(int accountId, CancellationToken cancellationToken)
+		{
+			// Step 1: Get all holdings with basic info
+			var holdingsQuery = databaseContext.HoldingAggregateds.AsNoTracking();
+
+			var holdings = await holdingsQuery
+				.Select(h => new HoldingBasicInfo
+				{
+					Id = h.Id,
+					AssetClass = h.AssetClass,
+					Name = h.Name,
+					Symbol = h.Symbol,
+					SectorWeights = h.SectorWeights.ToList()
+				})
+				.ToListAsync(cancellationToken);
+
+			if (!holdings.Any())
+			{
+				return new List<HoldingWithSnapshots>();
+			}
+
+			// Step 2: Get latest dates for all holdings in one query
+			var latestDatesQuery = databaseContext.CalculatedSnapshots
+				.Where(s => holdings.Select(h => h.Id).Contains(EF.Property<long>(s, "HoldingAggregatedId")))
+				.AsNoTracking();
+
+			if (accountId > 0)
+			{
+				latestDatesQuery = latestDatesQuery.Where(s => s.AccountId == accountId);
+			}
+
+			var latestDates = await latestDatesQuery
+				.GroupBy(s => EF.Property<long>(s, "HoldingAggregatedId"))
+				.Select(g => new { HoldingId = g.Key, LatestDate = g.Max(s => s.Date) })
+				.ToDictionaryAsync(x => x.HoldingId, x => x.LatestDate, cancellationToken);
+
+			// Step 3: Get all latest snapshots in one query
+			var latestSnapshotsQuery = from snapshot in databaseContext.CalculatedSnapshots
+									   where latestDates.Keys.Contains(EF.Property<long>(snapshot, "HoldingAggregatedId")) &&
+											 latestDates.Values.Contains(snapshot.Date)
+									   select new { 
+										   Snapshot = snapshot, 
+										   HoldingId = EF.Property<long>(snapshot, "HoldingAggregatedId") 
+									   };
+
+			if (accountId > 0)
+			{
+				latestSnapshotsQuery = latestSnapshotsQuery.Where(x => x.Snapshot.AccountId == accountId);
+			}
+
+			var allLatestSnapshots = await latestSnapshotsQuery
+				.AsNoTracking()
+				.ToListAsync(cancellationToken);
+
+			// Step 4: Group snapshots by holding and filter by latest date
+			var snapshotsByHolding = allLatestSnapshots
+				.Where(x => latestDates.TryGetValue(x.HoldingId, out var latestDate) && x.Snapshot.Date == latestDate)
+				.GroupBy(x => x.HoldingId)
+				.ToDictionary(g => g.Key, g => g.Select(x => x.Snapshot).ToList());
+
+			// Step 5: Combine holdings with their snapshots
+			return holdings.Select(h => new HoldingWithSnapshots
+			{
+				Id = h.Id,
+				AssetClass = h.AssetClass,
+				Name = h.Name,
+				Symbol = h.Symbol,
+				SectorWeights = h.SectorWeights,
+				Snapshots = snapshotsByHolding.GetValueOrDefault(h.Id, new List<CalculatedSnapshot>())
+			}).ToList();
+		}
+
+		// **NEW: Pre-cache currency conversions to reduce redundant API calls**
+		private async Task PreCacheCurrencyConversionsAsync(
+			IEnumerable<Currency> fromCurrencies, 
+			Currency targetCurrency, 
+			IEnumerable<DateOnly> dates)
+		{
+			var uniquePairs = fromCurrencies
+				.Where(c => c != targetCurrency)
+				.SelectMany(c => dates.Select(d => new { Currency = c, Date = d }))
+				.Distinct()
+				.ToList();
+
+			var tasks = uniquePairs.Select(async pair =>
+			{
+				var cacheKey = GetCacheKey(pair.Currency, targetCurrency, pair.Date);
+				if (!IsCacheValid(cacheKey))
+				{
+					try
+					{
+						var converted = await currencyExchange.ConvertMoney(
+							new Money(pair.Currency, 1m), targetCurrency, pair.Date);
+						_currencyConversionCache[cacheKey] = converted;
+						_cacheTimestamps[cacheKey] = DateTime.UtcNow;
+					}
+					catch (Exception ex)
+					{
+						logger.LogWarning(ex, "Failed to cache currency conversion for {From} to {To} on {Date}", 
+							pair.Currency.Symbol, targetCurrency.Symbol, pair.Date);
+					}
+				}
+			});
+
+			await Task.WhenAll(tasks);
+		}
+
+		// **NEW: Optimized snapshot aggregation with minimal allocations**
+		private async Task<CalculatedSnapshot> AggregateSnapshotsOptimized(
+			List<CalculatedSnapshot> snapshots, 
+			Currency targetCurrency)
+		{
+			if (!snapshots.Any())
+			{
+				return CalculatedSnapshot.Empty(targetCurrency, 0);
+			}
+
+			if (snapshots.Count == 1)
+			{
+				return snapshots[0];
+			}
+
+			var totalQuantity = snapshots.Sum(s => s.Quantity);
+			var latestDate = snapshots[0].Date;
+
+			if (totalQuantity == 0)
+			{
+				var firstSnapshot = snapshots[0];
+				return new CalculatedSnapshot
+				{
+					Date = latestDate,
+					AverageCostPrice = firstSnapshot.AverageCostPrice,
+					CurrentUnitPrice = firstSnapshot.CurrentUnitPrice,
+					TotalInvested = Money.Zero(firstSnapshot.TotalValue.Currency),
+					TotalValue = Money.Zero(firstSnapshot.TotalValue.Currency),
+					Quantity = 0,
+				};
+			}
+
+			// Use the first currency as base for aggregation
+			var baseCurrency = snapshots[0].CurrentUnitPrice.Currency;
+			
+			decimal totalCurrentValue = 0;
+			decimal totalAverageCostValue = 0;
+			decimal totalInvestedValue = 0;
+			decimal totalValueValue = 0;
+
+			foreach (var snapshot in snapshots)
+			{
+				var currentValueAmount = snapshot.CurrentUnitPrice.Amount * snapshot.Quantity;
+				var averageCostValueAmount = snapshot.AverageCostPrice.Amount * snapshot.Quantity;
+
+				if (snapshot.CurrentUnitPrice.Currency == baseCurrency)
+				{
+					totalCurrentValue += currentValueAmount;
+					totalAverageCostValue += averageCostValueAmount;
+					totalInvestedValue += snapshot.TotalInvested.Amount;
+					totalValueValue += snapshot.TotalValue.Amount;
+				}
+				else
+				{
+					// Use cached conversion
+					var currentConversion = await ConvertMoneyOptimized(
+						new Money(snapshot.CurrentUnitPrice.Currency, currentValueAmount), baseCurrency, latestDate);
+					var averageConversion = await ConvertMoneyOptimized(
+						new Money(snapshot.AverageCostPrice.Currency, averageCostValueAmount), baseCurrency, latestDate);
+					var investedConversion = await ConvertMoneyOptimized(snapshot.TotalInvested, baseCurrency, latestDate);
+					var valueConversion = await ConvertMoneyOptimized(snapshot.TotalValue, baseCurrency, latestDate);
+
+					totalCurrentValue += currentConversion.Amount;
+					totalAverageCostValue += averageConversion.Amount;
+					totalInvestedValue += investedConversion.Amount;
+					totalValueValue += valueConversion.Amount;
+				}
+			}
+
+			return new CalculatedSnapshot
+			{
+				Date = latestDate,
+				AverageCostPrice = new Money(baseCurrency, totalAverageCostValue / totalQuantity),
+				CurrentUnitPrice = new Money(baseCurrency, totalCurrentValue / totalQuantity),
+				TotalInvested = new Money(baseCurrency, totalInvestedValue),
+				TotalValue = new Money(baseCurrency, totalValueValue),
+				Quantity = totalQuantity,
+			};
+		}
+
+		// **NEW: Optimized currency conversion with caching**
+		private async Task<Money> ConvertMoneyOptimized(Money money, Currency targetCurrency, DateOnly date)
+		{
+			if (money.Currency == targetCurrency)
+				return money;
+
+			var cacheKey = GetCacheKey(money.Currency, targetCurrency, date);
+			
+			if (IsCacheValid(cacheKey) && _currencyConversionCache.TryGetValue(cacheKey, out var cachedRate))
+			{
+				return new Money(targetCurrency, money.Amount * cachedRate.Amount);
+			}
+
+			// Fall back to regular conversion
+			var converted = await currencyExchange.ConvertMoney(money, targetCurrency, date);
+			
+			// Cache the rate for future use
+			var rate = money.Amount == 0 ? Money.Zero(targetCurrency) : 
+				new Money(targetCurrency, converted.Amount / money.Amount);
+			_currencyConversionCache[cacheKey] = rate;
+			_cacheTimestamps[cacheKey] = DateTime.UtcNow;
+
+			return converted;
+		}
+
+		// **NEW: Optimized currency conversion for snapshots**
+		private async Task<CalculatedSnapshot> ConvertToTargetCurrencyOptimized(Currency targetCurrency, CalculatedSnapshot calculatedSnapshot)
+		{
+			if (calculatedSnapshot.CurrentUnitPrice.Currency == targetCurrency)
+			{
+				return calculatedSnapshot;
+			}
+
+			return new CalculatedSnapshot
+			{
+				Date = calculatedSnapshot.Date,
+				AverageCostPrice = await ConvertMoneyOptimized(calculatedSnapshot.AverageCostPrice, targetCurrency, calculatedSnapshot.Date),
+				CurrentUnitPrice = await ConvertMoneyOptimized(calculatedSnapshot.CurrentUnitPrice, targetCurrency, calculatedSnapshot.Date),
+				TotalInvested = await ConvertMoneyOptimized(calculatedSnapshot.TotalInvested, targetCurrency, calculatedSnapshot.Date),
+				TotalValue = await ConvertMoneyOptimized(calculatedSnapshot.TotalValue, targetCurrency, calculatedSnapshot.Date),
+				Quantity = calculatedSnapshot.Quantity,
+			};
+		}
+
+		// **NEW: Cache management methods**
+		private string GetCacheKey(Currency fromCurrency, Currency toCurrency, DateOnly date)
+		{
+			return $"{fromCurrency.Symbol}_{toCurrency.Symbol}_{date:yyyy-MM-dd}";
+		}
+
+		private bool IsCacheValid(string cacheKey)
+		{
+			return _cacheTimestamps.TryGetValue(cacheKey, out var timestamp) &&
+				   DateTime.UtcNow - timestamp < _cacheExpiration;
 		}
 
 		public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
@@ -384,7 +517,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			}
 			catch (Exception ex)
 			{
-				logger.LogError(ex, "Failed to load accounts for symbol {Symbol} from database", symbol);
+			logger.LogError(ex, "Failed to load accounts for symbol {Symbol} from database", symbol);
 				throw new InvalidOperationException($"Failed to load accounts for symbol {symbol}. Please try again later.", ex);
 			}
 		}
@@ -675,8 +808,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					// Filter activities by symbol in memory
 					activities = activities
 						.Where(a => a.Holding != null &&
-							       holdingsWithSymbols.TryGetValue(a.Holding.Id, out var symbolProfiles) && 
-							        symbolProfiles.Any(sp => sp.Symbol == symbol))
+								   holdingsWithSymbols.TryGetValue(a.Holding.Id, out var symbolProfiles) && 
+								    symbolProfiles.Any(sp => sp.Symbol == symbol))
 						.ToList();
 
 					// Populate the SymbolProfiles navigation property for filtered activities
@@ -891,6 +1024,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				TotalValue = await currencyExchange.ConvertMoney(calculatedSnapshot.TotalValue, targetCurrency, calculatedSnapshot.Date),
 				Quantity = calculatedSnapshot.Quantity,
 			};
+		}
+
+		// **NEW: Helper classes for optimized data structures**
+		private class HoldingBasicInfo
+		{
+			public long Id { get; set; }
+			public AssetClass AssetClass { get; set; }
+			public string? Name { get; set; }
+			public string Symbol { get; set; } = string.Empty;
+			public IList<SectorWeight> SectorWeights { get; set; } = new List<SectorWeight>();
+		}
+
+		private class HoldingWithSnapshots : HoldingBasicInfo
+		{
+			public List<CalculatedSnapshot> Snapshots { get; set; } = new();
 		}
 	}
 }
