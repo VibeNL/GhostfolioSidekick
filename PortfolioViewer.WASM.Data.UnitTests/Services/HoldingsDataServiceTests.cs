@@ -307,21 +307,45 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 		}
 
 		[Theory]
-		[InlineData(typeof(BuyActivity), "Buy")]
-		[InlineData(typeof(SellActivity), "Sell")]
-		[InlineData(typeof(DividendActivity), "Dividend")]
-		[InlineData(typeof(CashDepositActivity), "Deposit")]
-		[InlineData(typeof(CashWithdrawalActivity), "Withdrawal")]
-		[InlineData(typeof(FeeActivity), "Fee")]
-		[InlineData(typeof(InterestActivity), "Interest")]
-		public void GetDisplayType_ReturnsCorrectDisplayType(Type activityType, string expectedDisplayType)
+		[InlineData("BuyActivity", "Buy")]
+		[InlineData("SellActivity", "Sell")]
+		[InlineData("DividendActivity", "Dividend")]
+		[InlineData("CashDepositActivity", "Deposit")]
+		[InlineData("CashWithdrawalActivity", "Withdrawal")]
+		[InlineData("FeeActivity", "Fee")]
+		[InlineData("InterestActivity", "Interest")]
+		public void GetDisplayType_ReturnsCorrectDisplayType(string activityTypeName, string expectedDisplayType)
 		{
 			// Use reflection to access the private method
 			var method = typeof(HoldingsDataService).GetMethod("GetDisplayType", BindingFlags.NonPublic | BindingFlags.Static);
 			Assert.NotNull(method);
 
-			// Create a mock activity instance (this is simplified - in reality you'd need proper constructors)
-			var activity = (Activity)Activator.CreateInstance(activityType, true)!;
+			var testAccount = new Account("Test");
+			var testDate = DateTime.Now;
+			var testMoney = new Money(Currency.USD, 100m);
+			var testTransactionId = "TXN1";
+			var partialIdentifiers = new List<PartialSymbolIdentifier>();
+
+			// Create specific activity instances with proper constructors
+			Activity activity = activityTypeName switch
+			{
+				"BuyActivity" => new BuyActivity(),
+				"SellActivity" => new SellActivity(
+					testAccount, null, partialIdentifiers,
+					testDate, 1m, testMoney, testTransactionId, null, null),
+				"DividendActivity" => new DividendActivity(
+					testAccount, null, partialIdentifiers,
+					testDate, testMoney, testTransactionId, null, null),
+				"CashDepositActivity" => new CashDepositActivity(
+					testAccount, null, testDate, testMoney, testTransactionId, null, null),
+				"CashWithdrawalActivity" => new CashWithdrawalActivity(
+					testAccount, null, testDate, testMoney, testTransactionId, null, null),
+				"FeeActivity" => new FeeActivity(
+					testAccount, null, testDate, testMoney, testTransactionId, null, null),
+				"InterestActivity" => new InterestActivity(
+					testAccount, null, testDate, testMoney, testTransactionId, null, null),
+				_ => throw new ArgumentException($"Unknown activity type: {activityTypeName}")
+			};
 
 			// Act
 			var result = (string)method.Invoke(null, new object[] { activity })!;
