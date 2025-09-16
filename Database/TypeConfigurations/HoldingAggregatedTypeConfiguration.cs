@@ -71,6 +71,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.CurrentUnitPrice, nameof(CalculatedSnapshot.CurrentUnitPrice));
 			MapMoney(builder, x => x.TotalInvested, nameof(CalculatedSnapshot.TotalInvested));
 			MapMoney(builder, x => x.TotalValue, nameof(CalculatedSnapshot.TotalValue));
+
+			// Indexes
+			//builder.HasIndex(x => new { x.Date });
+			//builder.HasIndex(x => new { x.AccountId, x.Date });
 		}
 
 		private static void MapMoney<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, Money>> navigationExpression, string name) where TEntity : class

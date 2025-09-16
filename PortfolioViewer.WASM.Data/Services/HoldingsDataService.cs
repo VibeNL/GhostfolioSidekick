@@ -43,27 +43,46 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			var holdingsQuery = databaseContext.HoldingAggregateds.AsQueryable();
 
 			var list = await databaseContext.HoldingAggregateds
-				.Select(x => new { Holding = x, LastSnapshot = x.CalculatedSnapshots.Where(x => x.AccountId == accountId || accountId == null).OrderBy(x => x.Date).FirstOrDefault() })
+				.Select(x => new { Holding = x, LastSnapshot = x.CalculatedSnapshots.Where(x => x.AccountId == accountId || accountId == null).OrderByDescending(x => x.Date).FirstOrDefault() })
+				.OrderBy(x => x.Holding.Symbol)
 				.ToListAsync(cancellationToken);
 
 			var result = new List<HoldingDisplayModel>();
 			foreach (var x in list)
 			{
-					result.Add(new HoldingDisplayModel
+				result.Add(new HoldingDisplayModel
 				{
 					AssetClass = x.Holding.AssetClass.ToString(),
 					AveragePrice = await ConvertMoney(x.LastSnapshot?.AverageCostPrice, targetCurrency, x.LastSnapshot?.Date),
 					Currency = targetCurrency.Symbol,
 					CurrentPrice = await ConvertMoney(x.LastSnapshot?.CurrentUnitPrice, targetCurrency, x.LastSnapshot?.Date),
 					CurrentValue = await ConvertMoney(x.LastSnapshot?.TotalValue, targetCurrency, x.LastSnapshot?.Date),
-					//GainLoss = gainloss,
-					//GainLossPercentage = gainloss / x.LastSnapshot?.TotalValue,
-					Name = x.Holding.Name,
+					Name = x.Holding.Name ?? x.Holding.Symbol,
 					Quantity = x.LastSnapshot?.Quantity ?? 0,
-					Sector = x.Holding.SectorWeights.ToString() ?? string.Empty,
+					Sector = x.Holding.SectorWeights.FirstOrDefault()?.ToString() ?? string.Empty,
 					Symbol = x.Holding.Symbol,
-					// Weight
 				});
+			}
+
+			// Calculate weights and gain/loss
+			var totalValue = result.Sum(x => x.CurrentValue.Amount);
+			if (totalValue > 0)
+			{
+				foreach (var x in result)
+				{
+					x.Weight = x.CurrentValue.Amount / totalValue;
+					var gainloss = x.CurrentValue.Amount - (x.AveragePrice.Amount * x.Quantity);
+					x.GainLoss = new Money(targetCurrency, gainloss);
+
+					if (x.AveragePrice.Amount * x.Quantity == 0)
+					{
+						x.GainLossPercentage = 0;
+					}
+					else
+					{
+						x.GainLossPercentage = gainloss / (x.AveragePrice.Amount * x.Quantity);
+					}
+				}
 			}
 
 			return result;
