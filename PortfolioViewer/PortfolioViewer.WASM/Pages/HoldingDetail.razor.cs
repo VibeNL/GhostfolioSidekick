@@ -27,6 +27,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
+		private FilterState? PreviousFilterState { get; set; } = null;
+
 		// State
 		private bool IsLoading { get; set; } = true;
 		private bool HasError { get; set; } = false;
@@ -73,6 +75,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task LoadHoldingDataAsync()
 		{
+			// Add check to avoid duplicate loading
+			if (PreviousFilterState != null &&
+				PreviousFilterState.StartDate == FilterState.StartDate &&
+				PreviousFilterState.EndDate == FilterState.EndDate &&
+				PreviousFilterState.SelectedCurrency == FilterState.SelectedCurrency)
+			{
+				return;
+			}
+
+			PreviousFilterState = new FilterState();
+			PreviousFilterState.StartDate = FilterState.StartDate;
+			PreviousFilterState.EndDate = FilterState.EndDate;
+			PreviousFilterState.SelectedCurrency = FilterState.SelectedCurrency;
+
 			try
 			{
 				IsLoading = true;
@@ -136,11 +152,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				Console.WriteLine($"Failed to load price history for {Symbol}: {ex.Message}");
 				PriceHistory = new List<HoldingPriceHistoryPoint>();
 			}
-		}
-
-		private async Task RefreshDataAsync()
-		{
-			await LoadHoldingDataAsync();
 		}
 
 		private async Task PrepareChartData()
