@@ -58,16 +58,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				})
 				.ToListAsync(cancellationToken);
 
-			var join = from s in snapshotsConverted
-					   join b in balanceByAccount on new { s.Date, s.AccountId } equals new { b.Date, b.AccountId } into sb
-					   from b in sb.DefaultIfEmpty()
+			var join = from b in balanceByAccount
+					   join s in snapshotsConverted on new { b.Date, b.AccountId } equals new { s.Date, s.AccountId } into bs
+					   from s in bs.DefaultIfEmpty()
 					   select new
 					   {
-						   s.Date,
-						   s.Value,
-						   s.Invested,
-						   s.AccountId,
-						   Balance = b != null ? b.Value : Array.Empty<Money>()
+						   b.Date,
+						   Value = s?.Value ?? 0,
+						   Invested = s?.Invested ?? 0,
+						   b.AccountId,
+						   Balance = b.Value
 					   };
 
 			var result = join
