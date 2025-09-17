@@ -35,32 +35,39 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			DateOnly endDate,
 			CancellationToken cancellationToken = default)
 		{
-			var snapShots = await databaseContext.CalculatedSnapshots
+			var rawSnapShots = await databaseContext.HoldingAggregateds
+				.Where(x => x.Symbol == symbol)
+				.SelectMany(x => x.CalculatedSnapshots)
 				.Where(x => x.Date >= startDate &&
 							x.Date <= endDate)
 				.GroupBy(x => x.Date)
-				.Select(g => new HoldingPriceHistoryPoint
-				{
-					Date = g.Key,
-					Price = g.Min(x => x.CurrentUnitPrice),
-					AveragePrice = new Money(g.First().AverageCostPrice.Currency, g.Sum(x => x.AverageCostPrice.Amount * x.Quantity) / g.Sum(x => x.Quantity)),
-				})
-				.OrderBy(x => x.Date)
+				.AsNoTracking()
 				.ToListAsync(cancellationToken);
-			
+
+			var snapShots = new List<HoldingPriceHistoryPoint>();
+			foreach (var group in rawSnapShots)
+			{
+				snapShots.Add(new HoldingPriceHistoryPoint
+				{
+					Date = group.Key,
+					Price = group.Min(x => x.CurrentUnitPrice),
+					AveragePrice = Money.Sum(group.Select(x => x.AverageCostPrice.Times(x.Quantity))).SafeDivide(group.Sum(x => x.Quantity)),
+				});
+			}
+
 			return snapShots;
 		}
 
 		public async Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
 			Currency targetCurrency,
-			DateOnly startDate, 
-			DateOnly endDate, 
-			int? accountId, 
+			DateOnly startDate,
+			DateOnly endDate,
+			int? accountId,
 			CancellationToken cancellationToken = default)
 		{
 			var snapShots = await databaseContext.CalculatedSnapshots
-				.Where(x => (accountId == 0 || x.AccountId == accountId) && 
-							x.Date >= startDate && 
+				.Where(x => (accountId == 0 || x.AccountId == accountId) &&
+							x.Date >= startDate &&
 							x.Date <= endDate)
 				.GroupBy(x => x.Date)
 				.Select(g => new PortfolioValueHistoryPoint
