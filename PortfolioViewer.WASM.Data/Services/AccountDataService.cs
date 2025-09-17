@@ -36,15 +36,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					Currency = g.FirstOrDefault().TotalValue.Currency.Symbol
 				})
 				.ToListAsync(cancellationToken);
-			var snapshotsConverted = snapShotsRaw
-				.GroupBy(s => new { s.Date, s.AccountId })
-				.Select(s => new
-				{
-					s.Key.Date,
-					s.Key.AccountId,
-					Value = ToSingleCurrency(s.Select(x => new Money(Currency.GetCurrency(x.Currency), (decimal)x.Value)), currency).Amount,
-					Invested = ToSingleCurrency(s.Select(x => new Money(Currency.GetCurrency(x.Currency), (decimal)x.Invested)), currency).Amount,
-				});
+
+			var snapshotsConverted = new List<(DateOnly Date, int AccountId, decimal Value, decimal Invested)>();
+			foreach (var group in snapShotsRaw.GroupBy(s => new { s.Date, s.AccountId }))
+			{
+				var monies = group.Select(x => new Money(Currency.GetCurrency(x.Currency), (decimal)x.Value));
+				var investedMonies = group.Select(x => new Money(Currency.GetCurrency(x.Currency), (decimal)x.Invested));
+				
+				var convertedValue = await ToSingleCurrencyAsync(monies, currency);
+				var convertedInvested = await ToSingleCurrencyAsync(investedMonies, currency);
+				
+				snapshotsConverted.Add((group.Key.Date, group.Key.AccountId, convertedValue.Amount, convertedInvested.Amount));
+			}
 
 			var balanceByAccount = await databaseContext.Accounts
 				.SelectMany(x => x.Balance)
@@ -58,32 +61,35 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				})
 				.ToListAsync(cancellationToken);
 
+			var result = new List<AccountValueHistoryPoint>();
+			
 			var join = from b in balanceByAccount
 					   join s in snapshotsConverted on new { b.Date, b.AccountId } equals new { s.Date, s.AccountId } into bs
 					   from s in bs.DefaultIfEmpty()
 					   select new
 					   {
 						   b.Date,
-						   Value = s?.Value ?? 0,
-						   Invested = s?.Invested ?? 0,
+						   Value = s.Value,
+						   Invested = s.Invested,
 						   b.AccountId,
 						   Balance = b.Value
 					   };
 
-			var result = join
-				.Select(x => new AccountValueHistoryPoint
+			foreach (var item in join)
+			{
+				var balance = item.Balance.Any() ? await ToSingleCurrencyAsync(item.Balance, currency) : new Money(currency, 0);
+				
+				result.Add(new AccountValueHistoryPoint
 				{
-					Date = x.Date,
-					AccountId = x.AccountId,
-					TotalValue = new Money(currency, x.Value),
-					TotalInvested = new Money(currency, x.Invested),
-					Balance = x.Balance.Any() ? ToSingleCurrency(x.Balance, currency) : new Money(currency, 0),
-				})
-				.OrderBy(x => x.Date)
-				.ThenBy(x => x.AccountId)
-				.ToList();
+					Date = item.Date,
+					AccountId = item.AccountId,
+					TotalValue = new Money(currency, item.Value),
+					TotalInvested = new Money(currency, item.Invested),
+					Balance = balance,
+				});
+			}
 
-			return result;
+			return result.OrderBy(x => x.Date).ThenBy(x => x.AccountId).ToList();
 		}
 
 		public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
@@ -95,7 +101,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return minDate;
 		}
 
-		private Money ToSingleCurrency(IEnumerable<Money> monies, Currency targetCurrency)
+		private async Task<Money> ToSingleCurrencyAsync(IEnumerable<Money> monies, Currency targetCurrency)
 		{
 			Money total = new(targetCurrency, 0);
 			foreach (var money in monies)
@@ -106,7 +112,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				}
 				else
 				{
-					var converted = currencyExchange.ConvertMoney(money, targetCurrency, DateOnly.FromDateTime(DateTime.Now)).Result;
+					var converted = await currencyExchange.ConvertMoney(money, targetCurrency, DateOnly.FromDateTime(DateTime.Now));
 					total = total.Add(converted);
 				}
 			}
