@@ -76,18 +76,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private async Task LoadHoldingDataAsync()
 		{
 			// Add check to avoid duplicate loading
-			if (PreviousFilterState != null &&
-				PreviousFilterState.StartDate == FilterState.StartDate &&
-				PreviousFilterState.EndDate == FilterState.EndDate &&
-				PreviousFilterState.SelectedCurrency == FilterState.SelectedCurrency)
+			if (FilterState.IsEqual(PreviousFilterState))
 			{
 				return;
 			}
 
-			PreviousFilterState = new FilterState();
-			PreviousFilterState.StartDate = FilterState.StartDate;
-			PreviousFilterState.EndDate = FilterState.EndDate;
-			PreviousFilterState.SelectedCurrency = FilterState.SelectedCurrency;
+			PreviousFilterState = new FilterState(FilterState);
 
 			try
 			{
