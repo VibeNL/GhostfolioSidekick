@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			builder.HasMany(x => x.CalculatedSnapshots)
 				.WithOne()
-				.HasForeignKey("HoldingAggregatedId")
+				.HasForeignKey(x => x.HoldingAggregatedId)
 				.OnDelete(DeleteBehavior.Cascade);
 
 			builder.Property(e => e.SectorWeights)
@@ -58,9 +58,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.ValueGeneratedOnAdd()
 				.HasAnnotation("Key", 0);
 			builder.HasKey("Id");
-
-			// Add shadow property for foreign key
-			builder.Property<long>("HoldingAggregatedId");
 
 			// Configure simple properties
 			builder.Property(x => x.Date).IsRequired();
