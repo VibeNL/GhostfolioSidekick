@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				CurrentAction = $"Converting records to {_selectedCurrency}...";
 				StateHasChanged();
 
-				await PortfolioClient.SyncPortfolio(progress, forceFullSync);
+				await PortfolioClient.SyncPortfolio(progress, forceFullSync, targetCurrency);
 				
 				// Update the last sync time after successful completion
 				var now = DateTime.Now;

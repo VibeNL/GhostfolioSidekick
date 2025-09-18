@@ -1,10 +1,14 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Grpc.Net.Client;
 using Grpc.Net.Client.Web;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -12,11 +16,12 @@ using System.Text.Json;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
 	public class PortfolioClient(
-		HttpClient httpClient, 
+		HttpClient httpClient,
 		SqlitePersistence sqlitePersistence,
 		ICurrencyExchange currencyExchange,
-		IDbContextFactory<DatabaseContext> dbContextFactory, 
-		ISyncTrackingService syncTrackingService, 
+		IDbContextFactory<DatabaseContext> dbContextFactory,
+		ISyncTrackingService syncTrackingService,
+		ICurrencyConvertion currencyConvertion,
 		ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
@@ -34,12 +39,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed = false;
 
-		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
-		{
-			await SyncPortfolio(progress, false, cancellationToken);
-		}
-
-		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)
+		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, Currency targetCurrency, CancellationToken cancellationToken = default)
 		{
 			try
 			{
@@ -62,11 +62,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					if (hasEverSynced && lastSyncTime.HasValue)
 					{
 						progress?.Report(("Checking for partial sync possibility...", 0));
-						
+
 						// Try partial sync first
 						var partialSyncSuccess = await TryPartialSync(grpcClient, lastSyncTime.Value, progress, cancellationToken);
 						if (partialSyncSuccess)
 						{
+							await DoCurrencyConvertion(progress, targetCurrency);
 							await ReloadCached();
 							progress?.Report(("Partial sync completed successfully.", 100));
 							return;
@@ -86,6 +87,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				// Perform full sync
 				await PerformFullSync(grpcClient, progress, cancellationToken);
+				await DoCurrencyConvertion(progress, targetCurrency);
 				await ReloadCached();
 			}
 			catch (Exception ex)
@@ -94,6 +96,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(($"Error: {ex.Message}", 100));
 				throw;
 			}
+		}
+
+		private async Task DoCurrencyConvertion(IProgress<(string action, int progress)> progress, Currency targetCurrency)
+		{
+			progress?.Report(("Converting currencies", 99));
+			await currencyConvertion.ConvertAll(targetCurrency);
+			progress?.Report(("Currency conversion completed.", 99));
 		}
 
 		private async Task ReloadCached()
@@ -109,12 +118,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				// Add buffer days to ensure we don't miss any data
 				var sinceDate = lastSyncTime.Date.AddDays(-PartialSyncBufferDays);
 				var sinceDateString = sinceDate.ToString("yyyy-MM-dd");
-				
+
 				progress?.Report(($"Checking data since {sinceDateString}...", 5));
 
 				// Get latest dates from server
 				var latestDatesResponse = await grpcClient.GetLatestDatesAsync(new GetLatestDatesRequest(), cancellationToken: cancellationToken);
-				
+
 				// Check if partial sync would be beneficial
 				var recordsToSync = 0;
 				var tablesToSync = new List<string>();
@@ -155,14 +164,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				foreach (var tableName in tablesToSync)
 				{
 					progress?.Report(($"Syncing new data for table: {tableName}...", 10 + totalProgress));
-					
+
 					// Delete existing data since the sync date to avoid duplicates
 					var deleteRecordsCount = await DeleteRecordsSinceDate(databaseContext, tableName, sinceDateString, cancellationToken);
 					logger.LogInformation("Deleted {RecordCount} existing records from {TableName} since {SinceDate}", deleteRecordsCount, tableName, sinceDateString);
 
 					// Sync new data
 					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, progress, cancellationToken);
-					
+
 					totalProgress += progressStep;
 				}
 
@@ -192,12 +201,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 
 			var deleteSql = $"DELETE FROM {tableName} WHERE {dateColumn} >= @sinceDate";
-			
+
 			using var connection = databaseContext.Database.GetDbConnection();
 			await connection.OpenAsync(cancellationToken);
 			using var command = connection.CreateCommand();
 			command.CommandText = deleteSql;
-			
+
 			var sinceDateParam = command.CreateParameter();
 			sinceDateParam.ParameterName = "@sinceDate";
 			sinceDateParam.Value = sinceDateString;
@@ -211,7 +220,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return tableName switch
 			{
 				"Activities" => "Date",
-				"MarketData" => "Date", 
+				"MarketData" => "Date",
 				"Balances" => "Date",
 				"CalculatedSnapshots" => "Date",
 				"CurrencyExchangeRate" => "Date",
