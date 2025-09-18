@@ -16,7 +16,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         [CascadingParameter] private FilterState? FilterState { get; set; }
 
         [Parameter] public bool ShowDateFilters { get; set; } = false;
-        [Parameter] public bool ShowCurrencyFilter { get; set; } = false;
         [Parameter] public bool ShowAccountFilter { get; set; } = false;
         [Parameter] public bool ShowSymbolFilter { get; set; } = false;
         [Parameter] public bool ShowApplyButton { get; set; } = true;
@@ -478,20 +477,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 if (!ShowApplyButton && FilterState != null)
                 {
                     FilterState.EndDate = date;
-                }
-            }
-        }
-
-        private async Task OnCurrencyChanged(ChangeEventArgs e)
-        {
-            if (e.Value != null)
-            {
-                _pendingFilterState.SelectedCurrency = e.Value.ToString() ?? "EUR";
-                
-                // If apply button is not shown, apply changes immediately
-                if (!ShowApplyButton && FilterState != null)
-                {
-                    FilterState.SelectedCurrency = _pendingFilterState.SelectedCurrency;
                 }
             }
         }

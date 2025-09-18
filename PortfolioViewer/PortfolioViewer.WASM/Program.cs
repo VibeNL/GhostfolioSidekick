@@ -73,6 +73,9 @@ public static class Program
 		// Register SyncTrackingService for DI
 		builder.Services.AddScoped<ISyncTrackingService, SyncTrackingService>();
 
+		// Register SyncConfigurationService for DI
+		builder.Services.AddScoped<ISyncConfigurationService, SyncConfigurationService>();
+
 		builder.Services.AddSingleton<ITestContextService, TestContextService>();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);

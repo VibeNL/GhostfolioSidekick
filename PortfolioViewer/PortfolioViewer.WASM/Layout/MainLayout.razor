@@ -8,24 +8,12 @@
         <header>
             <NavMenu ShowFilters="@ShouldShowFilters"
                      ShowDateFilters="@ShouldShowDateFilters"
-                     ShowCurrencyFilter="@ShouldShowCurrencyFilter"
                      ShowAccountFilter="@ShouldShowAccountFilters"
                      ShowSymbolFilter="@ShouldShowSymbolFilter" />
         </header>
 
         <main class="content">
             <article class="content-body px-4">
-               @*  <!-- Debug info for filter state -->
-                <div style="background: #e3f2fd; padding: 0.5rem; margin-bottom: 1rem; font-size: 0.8rem; border-radius: 0.25rem;">
-                    <strong>Filter Debug:</strong> 
-                    Currency: @FilterStateInstance.SelectedCurrency | 
-                    Start: @FilterStateInstance.StartDate.ToString("yyyy-MM-dd") | 
-                    End: @FilterStateInstance.EndDate.ToString("yyyy-MM-dd") | 
-                    Account: @FilterStateInstance.SelectedAccountId |
-                    Symbol: @FilterStateInstance.SelectedSymbol |
-                    Page: @(IsTimeSeriesPage ? "TimeSeries" : IsHoldingsPage ? "Holdings" : IsTransactionsPage ? "Transactions" : "Other")
-                </div> *@
-                
                 @Body
             </article>
         </main>

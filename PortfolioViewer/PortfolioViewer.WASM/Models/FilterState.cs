@@ -6,7 +6,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 	{
 		private DateOnly _startDate = DateOnly.FromDateTime(new DateTime(DateTime.Today.Year, 1, 1));  // YTD start - January 1st of current year
 		private DateOnly _endDate = DateOnly.FromDateTime(DateTime.Today);
-		private string _selectedCurrency = "EUR";
 		private int _selectedAccountId = 0;
 		private string _selectedSymbol = ""; // Add symbol filter
 
@@ -19,7 +18,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		{
 			_startDate = source._startDate;
 			_endDate = source._endDate;
-			_selectedCurrency = source._selectedCurrency;
 			_selectedAccountId = source._selectedAccountId;
 			_selectedSymbol = source._selectedSymbol;
 		}
@@ -46,19 +44,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 				{
 					_endDate = value;
 					OnPropertyChanged(nameof(EndDate));
-				}
-			}
-		}
-
-		public string SelectedCurrency
-		{
-			get => _selectedCurrency;
-			set
-			{
-				if (_selectedCurrency != value)
-				{
-					_selectedCurrency = value ?? "EUR"; // Ensure non-null value
-					OnPropertyChanged(nameof(SelectedCurrency));
 				}
 			}
 		}
@@ -105,7 +90,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 
 			return StartDate == other.StartDate &&
 				   EndDate == other.EndDate &&
-				   SelectedCurrency == other.SelectedCurrency &&
 				   SelectedAccountId == other.SelectedAccountId &&
 				   SelectedSymbol == other.SelectedSymbol;
 		}
