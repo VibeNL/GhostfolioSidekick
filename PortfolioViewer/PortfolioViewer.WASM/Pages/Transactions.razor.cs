@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class Transactions : IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();

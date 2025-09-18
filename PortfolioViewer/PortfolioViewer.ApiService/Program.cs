@@ -30,9 +30,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 			builder.Services.AddSingleton<IConfigurationHelper, ConfigurationHelper>();
 
-			// Register ApplicationSettings
-			builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
-
 			builder.Services.AddCors(options =>
 			{
 				options.AddDefaultPolicy(policy =>

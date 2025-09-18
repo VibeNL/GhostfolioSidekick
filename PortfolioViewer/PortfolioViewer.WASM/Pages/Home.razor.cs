@@ -1,4 +1,5 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -11,16 +12,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
+		[Inject] private ISyncTrackingService SyncTrackingService { get; set; } = default!;
+
 		private IJSObjectReference? mermaidmodule;
+		private Timer? refreshTimer;
 
 		private string CurrentAction = "Idle";
 		private int Progress = 0;
 		private bool IsSyncing = false;
+		private DateTime? LastSyncTime = null;
 
 		private async Task StartSync()
 		{
+			await StartSync(false);
+		}
+
+		private async Task StartFullSync()
+		{
+			await StartSync(true);
+		}
+
+		private async Task StartSync(bool forceFullSync)
+		{
 			IsSyncing = true;
-			CurrentAction = "Starting sync...";
+			CurrentAction = forceFullSync ? "Starting full sync..." : "Starting sync...";
 			Progress = 0;
 
 			var progress = new Progress<(string action, int progress)>(update =>
@@ -32,12 +47,29 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			try
 			{
-				await PortfolioClient.SyncPortfolio(progress);
+				await PortfolioClient.SyncPortfolio(progress, forceFullSync);
+				
+				// Update the last sync time after successful completion
+				var now = DateTime.Now;
+				await SyncTrackingService.SetLastSyncTimeAsync(now);
+				LastSyncTime = now;
 			}
 			finally
 			{
 				IsSyncing = false;
 			}
+		}
+
+		protected override async Task OnInitializedAsync()
+		{
+			// Load the last sync time when the component initializes
+			LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
+			
+			// Start a timer to refresh the "time since last sync" display every minute
+			refreshTimer = new Timer(async _ =>
+			{
+				await InvokeAsync(StateHasChanged);
+			}, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
 		}
 
 		protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -74,6 +106,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		public void Dispose()
 		{
 			mermaidmodule?.DisposeAsync();
+			refreshTimer?.Dispose();
 		}
 	}
 }

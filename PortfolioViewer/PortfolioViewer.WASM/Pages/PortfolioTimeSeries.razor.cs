@@ -9,13 +9,14 @@ using System.Globalization;
 using System.Collections.Generic;
 using GhostfolioSidekick.Database.Repository;
 using System.ComponentModel;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
 	public partial class PortfolioTimeSeries : ComponentBase, IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
 
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
@@ -27,8 +28,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected string ViewMode { get; set; } = "chart";
 
 		// Properties that read from cascaded filter state
-		protected DateTime StartDate => FilterState.StartDate;
-		protected DateTime EndDate => FilterState.EndDate;
+		protected DateOnly StartDate => FilterState.StartDate;
+		protected DateOnly EndDate => FilterState.EndDate;
 		protected string SelectedCurrency => FilterState.SelectedCurrency;
 		protected int SelectedAccountId => FilterState.SelectedAccountId;
 

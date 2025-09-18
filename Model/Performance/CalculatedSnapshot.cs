@@ -4,6 +4,7 @@
 	{
 		public long Id { get; set; } // EF Core key
 		public int AccountId { get; set; } // Foreign key to Account, if needed
+		public long HoldingAggregatedId { get; set; } // Foreign key to Holding, if needed
 		public DateOnly Date { get; set; }
 		public decimal Quantity { get; set; }
 		public Money AverageCostPrice { get; set; } = Money.Zero(Currency.USD);
