@@ -12,6 +12,7 @@ using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 {
@@ -67,7 +68,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						var partialSyncSuccess = await TryPartialSync(grpcClient, lastSyncTime.Value, progress, cancellationToken);
 						if (partialSyncSuccess)
 						{
-							await DoCurrencyConvertion(progress, targetCurrency);
+							await DoCurrencyConvertion(progress, targetCurrency, cancellationToken);
 							await ReloadCached();
 							progress?.Report(("Partial sync completed successfully.", 100));
 							return;
@@ -87,7 +88,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				// Perform full sync
 				await PerformFullSync(grpcClient, progress, cancellationToken);
-				await DoCurrencyConvertion(progress, targetCurrency);
+				await DoCurrencyConvertion(progress, targetCurrency, cancellationToken);
 				await ReloadCached();
 			}
 			catch (Exception ex)
@@ -98,10 +99,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private async Task DoCurrencyConvertion(IProgress<(string action, int progress)> progress, Currency targetCurrency)
+		private async Task DoCurrencyConvertion(IProgress<(string action, int progress)> progress, Currency targetCurrency, CancellationToken cancellationToken)
 		{
 			progress?.Report(("Converting currencies", 99));
 			await currencyConvertion.ConvertAll(targetCurrency);
+			await sqlitePersistence.SaveChangesAsync(cancellationToken);
 			progress?.Report(("Currency conversion completed.", 99));
 		}
 
