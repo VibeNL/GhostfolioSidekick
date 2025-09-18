@@ -146,7 +146,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			foreach (var point in AccountsData)
 			{
-				var gainLoss = point.TotalValue.Subtract(point.TotalInvested);
+				var gainLoss = point.TotalAssetValue.Subtract(point.TotalInvested);
 				var gainLossPercentage = point.TotalInvested.Amount == 0 ? 0 : gainLoss.Amount / point.TotalInvested.Amount;
 
 				displayData.Add(new AccountValueDisplayModel
@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					AccountId = point.AccountId,
 					Value = point.TotalValue,
 					Invested = point.TotalInvested,
-					Balance = point.Balance,
+					Balance = point.CashBalance,
 					GainLoss = gainLoss,
 					GainLossPercentage = gainLossPercentage,
 					Currency = targetCurrency.Symbol.ToString()
@@ -187,7 +187,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var trace = new Scatter
 				{
 					X = accountData.Select(a => a.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
-					Y = accountData.Select(a => (object)a.TotalValue.Amount).ToArray(),
+					Y = accountData.Select(a => (object)a.TotalAssetValue.Amount).ToArray(),
 					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = accounts[accountGroup.Key].Name,
 					Line = new Plotly.Blazor.Traces.ScatterLib.Line { Width = 2 },

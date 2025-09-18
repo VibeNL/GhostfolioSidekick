@@ -9,10 +9,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
         
         public int AccountId { get; set; }
         
-        public Money TotalValue { get; set; }
+        public Money TotalAssetValue { get; set; }
         
         public Money TotalInvested { get; set; }
         
-        public Money Balance { get; set; }
-    }
+        public Money CashBalance { get; set; }
+		public Money TotalValue { get; internal set; }
+	}
 }

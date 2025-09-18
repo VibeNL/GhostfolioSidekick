@@ -83,9 +83,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				{
 					Date = item.Date,
 					AccountId = item.AccountId,
-					TotalValue = new Money(currency, item.Value),
+					TotalAssetValue = new Money(currency, item.Value),
 					TotalInvested = new Money(currency, item.Invested),
-					Balance = balance,
+					CashBalance = balance,
+					TotalValue = new Money(currency, item.Value).Add(balance)
 				});
 			}
 
