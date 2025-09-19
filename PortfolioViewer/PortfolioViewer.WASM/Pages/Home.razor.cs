@@ -61,9 +61,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var targetCurrency = Currency.GetCurrency(_selectedCurrency);
 				SyncConfigurationService.TargetCurrency = targetCurrency;
 
-				CurrentAction = $"Converting records to {_selectedCurrency}...";
+				CurrentAction = $"Syncing data with server-side currency conversion to {_selectedCurrency}...";
 				StateHasChanged();
 
+				// Currency conversion is now handled on the server side
 				await PortfolioClient.SyncPortfolio(progress, forceFullSync, targetCurrency);
 				
 				// Update the last sync time after successful completion
@@ -72,7 +73,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				LastSyncTime = now;
 				_lastSyncCurrency = _selectedCurrency;
 
-				_statusMessage = $"Sync completed successfully! All records converted to {_selectedCurrency}.";
+				_statusMessage = $"Sync completed successfully! All records converted to {_selectedCurrency} on the server.";
 				_isError = false;
 			}
 			catch (Exception ex)

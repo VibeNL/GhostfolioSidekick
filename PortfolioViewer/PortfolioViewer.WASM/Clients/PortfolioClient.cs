@@ -22,7 +22,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		ICurrencyExchange currencyExchange,
 		IDbContextFactory<DatabaseContext> dbContextFactory,
 		ISyncTrackingService syncTrackingService,
-		ICurrencyConvertion currencyConvertion,
 		ILogger<PortfolioClient> logger) : IDisposable
 	{
 		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
@@ -64,11 +63,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					{
 						progress?.Report(("Checking for partial sync possibility...", 0));
 
-						// Try partial sync first
-						var partialSyncSuccess = await TryPartialSync(grpcClient, lastSyncTime.Value, progress, cancellationToken);
+						// Try partial sync first (now with server-side currency conversion)
+						var partialSyncSuccess = await TryPartialSync(grpcClient, lastSyncTime.Value, targetCurrency, progress, cancellationToken);
 						if (partialSyncSuccess)
 						{
-							await DoCurrencyConvertion(progress, targetCurrency, cancellationToken);
 							await ReloadCached();
 							progress?.Report(("Partial sync completed successfully.", 100));
 							return;
@@ -86,9 +84,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					progress?.Report(("Performing full sync as requested...", 0));
 				}
 
-				// Perform full sync
-				await PerformFullSync(grpcClient, progress, cancellationToken);
-				await DoCurrencyConvertion(progress, targetCurrency, cancellationToken);
+				// Perform full sync (now with server-side currency conversion)
+				await PerformFullSync(grpcClient, targetCurrency, progress, cancellationToken);
 				await ReloadCached();
 			}
 			catch (Exception ex)
@@ -99,21 +96,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private async Task DoCurrencyConvertion(IProgress<(string action, int progress)> progress, Currency targetCurrency, CancellationToken cancellationToken)
-		{
-			progress?.Report(("Converting currencies", 99));
-			await currencyConvertion.ConvertAll(targetCurrency);
-			await sqlitePersistence.SaveChangesAsync(cancellationToken);
-			progress?.Report(("Currency conversion completed.", 99));
-		}
-
 		private async Task ReloadCached()
 		{
 			await currencyExchange.ClearCache();
 			await currencyExchange.PreloadAllExchangeRates();
 		}
 
-		private async Task<bool> TryPartialSync(SyncService.SyncServiceClient grpcClient, DateTime lastSyncTime, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task<bool> TryPartialSync(SyncService.SyncServiceClient grpcClient, DateTime lastSyncTime, Currency targetCurrency, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -171,8 +160,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					var deleteRecordsCount = await DeleteRecordsSinceDate(databaseContext, tableName, sinceDateString, cancellationToken);
 					logger.LogInformation("Deleted {RecordCount} existing records from {TableName} since {SinceDate}", deleteRecordsCount, tableName, sinceDateString);
 
-					// Sync new data
-					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, progress, cancellationToken);
+					// Sync new data with server-side currency conversion
+					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, targetCurrency, progress, cancellationToken);
 
 					totalProgress += progressStep;
 				}
@@ -231,20 +220,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			};
 		}
 
-		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, Currency targetCurrency, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
 		{
-			await foreach (var dataChunk in FetchDataSinceAsync(grpcClient, tableName, sinceDateString, cancellationToken))
+			await foreach (var dataChunk in FetchDataSinceAsync(grpcClient, tableName, sinceDateString, targetCurrency, cancellationToken))
 			{
 				await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
 			}
 		}
 
-		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataSinceAsync(SyncService.SyncServiceClient grpcClient, string tableName, string sinceDateString, [EnumeratorCancellation] CancellationToken cancellationToken)
+		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataSinceAsync(SyncService.SyncServiceClient grpcClient, string tableName, string sinceDateString, Currency targetCurrency, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
 			bool hasMore = true;
 
-			logger.LogInformation("Starting to fetch data for table: {TableName} since {SinceDate}", tableName, sinceDateString);
+			logger.LogInformation("Starting to fetch data for table: {TableName} since {SinceDate} with target currency {TargetCurrency}", tableName, sinceDateString, targetCurrency.Symbol);
 
 			while (hasMore)
 			{
@@ -255,7 +244,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					Entity = tableName,
 					Page = page,
 					PageSize = pageSize,
-					SinceDate = sinceDateString
+					SinceDate = sinceDateString,
+					TargetCurrency = targetCurrency.Symbol
 				};
 
 				using var call = grpcClient.GetEntityDataSince(request, cancellationToken: cancellationToken);
@@ -308,7 +298,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			logger.LogInformation("Completed fetching data for table: {TableName} since {SinceDate}, total pages: {TotalPages}", tableName, sinceDateString, page - 1);
 		}
 
-		private async Task PerformFullSync(SyncService.SyncServiceClient grpcClient, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task PerformFullSync(SyncService.SyncServiceClient grpcClient, Currency targetCurrency, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
 		{
 			// Step 1: Retrieve Table Names and Row Counts
 			progress?.Report(("Retrieving table names and row counts...", 0));
@@ -349,7 +339,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				}
 			}
 
-			// Step 3: Sync Data for Each Table
+			// Step 3: Sync Data for Each Table with server-side currency conversion
 			for (int i = 0; i < tableNames.Count; i++)
 			{
 				var tableName = tableNames[i];
@@ -359,7 +349,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					var totalWrittenTable = 0;
 					progress?.Report(($"Syncing data for table: {tableName} ({expectedRowCount} rows)...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
 
-					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
+					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, targetCurrency, cancellationToken))
 					{
 						progress?.Report(($"Inserting data into table: {tableName} ({totalWrittenTable}/{expectedRowCount})...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
 						await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
@@ -420,12 +410,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return _grpcClient;
 		}
 
-		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(SyncService.SyncServiceClient grpcClient, string tableName, [EnumeratorCancellation] CancellationToken cancellationToken)
+		private async IAsyncEnumerable<List<Dictionary<string, object>>> FetchDataAsync(SyncService.SyncServiceClient grpcClient, string tableName, Currency targetCurrency, [EnumeratorCancellation] CancellationToken cancellationToken)
 		{
 			int page = 1;
 			bool hasMore = true;
 
-			logger.LogInformation("Starting to fetch data for table: {TableName}", tableName);
+			logger.LogInformation("Starting to fetch data for table: {TableName} with target currency {TargetCurrency}", tableName, targetCurrency.Symbol);
 
 			while (hasMore)
 			{
@@ -435,7 +425,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				{
 					Entity = tableName,
 					Page = page,
-					PageSize = pageSize
+					PageSize = pageSize,
+					TargetCurrency = targetCurrency.Symbol
 				};
 
 				using var call = grpcClient.GetEntityData(request, cancellationToken: cancellationToken);
