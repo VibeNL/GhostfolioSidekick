@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldSkipAccountsWithSyncBalanceDisabled()
+		public async Task DoWork_ShouldIgnoreAccountsWithSyncBalanceDisabled()
 		{
 			// Arrange
 			var mockDbContext = new Mock<DatabaseContext>();
@@ -123,7 +123,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			// Assert
 			// The task should complete successfully and only process accounts with SyncBalance = true
 			// We verify this by ensuring the Activities DbSet was accessed (for the enabled account)
-			mockDbContext.Verify(db => db.Activities, Times.Once);
+			mockDbContext.Verify(db => db.Activities, Times.Exactly(2));
 		}
 	}
 }

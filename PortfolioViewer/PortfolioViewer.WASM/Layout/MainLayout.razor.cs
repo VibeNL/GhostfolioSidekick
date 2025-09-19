@@ -10,9 +10,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
         protected FilterState FilterStateInstance { get; set; } = new();
         
         // Determine which filters to show based on current page
-        private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowCurrencyFilter || ShouldShowAccountFilters || ShouldShowSymbolFilter;
+        private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowAccountFilters || ShouldShowSymbolFilter;
         private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage || IsTransactionsPage || IsAccountsPage);
-        private bool ShouldShowCurrencyFilter => CurrentPageSupportsFilters;
         private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage || IsHoldingsPage);
         private bool ShouldShowSymbolFilter => CurrentPageSupportsFilters && IsTransactionsPage;
         

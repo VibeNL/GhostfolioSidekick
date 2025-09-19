@@ -9,16 +9,20 @@ using System.Globalization;
 using System.Collections.Generic;
 using GhostfolioSidekick.Database.Repository;
 using System.ComponentModel;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
 	public partial class PortfolioTimeSeries : ComponentBase, IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
 
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
+
+		[Inject]
+		private ISyncConfigurationService? SyncConfigurationService { get; set; }
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -27,9 +31,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected string ViewMode { get; set; } = "chart";
 
 		// Properties that read from cascaded filter state
-		protected DateTime StartDate => FilterState.StartDate;
-		protected DateTime EndDate => FilterState.EndDate;
-		protected string SelectedCurrency => FilterState.SelectedCurrency;
+		protected DateOnly StartDate => FilterState.StartDate;
+		protected DateOnly EndDate => FilterState.EndDate;
+		protected string SelectedCurrency => SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR";
 		protected int SelectedAccountId => FilterState.SelectedAccountId;
 
 		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
@@ -85,6 +89,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				_previousFilterState = FilterState;
 				await LoadTimeSeriesAsync();
 			}
+
+			if (_previousFilterState != null &&
+				   _previousFilterState.StartDate == FilterState.StartDate &&
+				   _previousFilterState.EndDate == FilterState.EndDate)
+			{
+				return;
+			}
 		}
 
 		private bool HasFilterStateChanged()
@@ -93,7 +104,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			
 			return _previousFilterState.StartDate != FilterState.StartDate ||
 				   _previousFilterState.EndDate != FilterState.EndDate ||
-				   _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency ||
 				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
 		}
 

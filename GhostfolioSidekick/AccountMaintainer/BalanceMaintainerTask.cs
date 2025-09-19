@@ -19,9 +19,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 			List<AccountKey> accountKeys;
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
 			{
-				// Only process accounts that have SyncBalance enabled
 				accountKeys = await databaseContext.Accounts
-					.Where(x => x.SyncBalance)
 					.Select(x => new AccountKey { Name = x.Name, Id = x.Id })
 					.ToListAsync();
 			}
@@ -52,7 +50,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 						if (account.Balance != null)
 						{
 							account.Balance.Clear();
-							account.Balance.AddRange(balances ?? new List<Model.Accounts.Balance>());
+							account.Balance.AddRange(balances);
 						}
 						await databaseContext.SaveChangesAsync();
 					}

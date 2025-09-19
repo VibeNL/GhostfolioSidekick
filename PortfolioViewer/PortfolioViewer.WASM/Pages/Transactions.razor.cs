@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +10,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class Transactions : IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
+
+		[Inject]
+		private ISyncConfigurationService? SyncConfigurationService { get; set; }
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -41,23 +45,29 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected override async Task OnParametersSetAsync()
 		{
 			// Check if filter state has changed
-			if (_previousFilterState == null || HasFilterStateChanged())
+			if (_previousFilterState != null &&
+				   _previousFilterState.StartDate == FilterState.StartDate &&
+				   _previousFilterState.EndDate == FilterState.EndDate &&
+				   _previousFilterState.SelectedAccountId == FilterState.SelectedAccountId &&
+				   _previousFilterState.SelectedSymbol == FilterState.SelectedSymbol)
 			{
-				// Unsubscribe from old filter state
-				if (_previousFilterState != null)
-				{
-					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
-				}
-				
-				// Subscribe to new filter state
-				if (FilterState != null)
-				{
-					FilterState.PropertyChanged += OnFilterStateChanged;
-				}
-				
-				_previousFilterState = FilterState;
-				await LoadTransactionDataAsync();
+				return;
 			}
+			
+			// Unsubscribe from old filter state
+			if (_previousFilterState != null)
+			{
+				_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+			}
+			
+			// Subscribe to new filter state
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged += OnFilterStateChanged;
+			}
+			
+			_previousFilterState = FilterState;
+			await LoadTransactionDataAsync();
 		}
 
 		private bool HasFilterStateChanged()
@@ -66,7 +76,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			
 			return _previousFilterState.StartDate != FilterState.StartDate ||
 				   _previousFilterState.EndDate != FilterState.EndDate ||
-				   _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency ||
 				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId ||
 				   _previousFilterState.SelectedSymbol != FilterState.SelectedSymbol;
 		}
@@ -113,8 +122,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
-				Console.WriteLine($"LoadRealTransactionDataAsync - Using currency: {FilterState.SelectedCurrency} ({currency})");
+				var currency = Currency.GetCurrency(SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR");
 				return await HoldingsDataService?.GetTransactionsAsync(
 					currency,
 					FilterState.StartDate,

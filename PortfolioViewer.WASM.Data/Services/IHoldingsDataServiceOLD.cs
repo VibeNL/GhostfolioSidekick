@@ -3,12 +3,12 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.Model.Accounts;
 using System;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
     /// <summary>
     /// Interface for portfolio data services. Implement this interface to provide real data to the Holdings page.
     /// </summary>
-    public interface IHoldingsDataService
+    public interface IHoldingsDataServiceOLD
     {
         /// <summary>
         /// Loads all holdings for the current portfolio
@@ -45,8 +45,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		/// <returns>List of portfolio value history points</returns>
 		Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
             Currency targetCurrency,
-            DateTime startDate,
-            DateTime endDate,
+			DateOnly startDate,
+			DateOnly endDate,
             int accountId,
             CancellationToken cancellationToken = default);
 
@@ -66,8 +66,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         /// <returns>List of price history points</returns>
         Task<List<HoldingPriceHistoryPoint>> GetHoldingPriceHistoryAsync(
             string symbol,
-            DateTime startDate,
-            DateTime endDate,
+            DateOnly startDate,
+            DateOnly endDate,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -82,8 +82,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         /// <returns>List of transaction display models</returns>
         Task<List<TransactionDisplayModel>> GetTransactionsAsync(
             Currency targetCurrency,
-            DateTime startDate,
-            DateTime endDate,
+            DateOnly startDate,
+            DateOnly endDate,
             int accountId,
             string symbol,
             CancellationToken cancellationToken = default);
@@ -118,8 +118,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         /// <returns>List of account value history points</returns>
         Task<List<AccountValueHistoryPoint>> GetAccountValueHistoryAsync(
             Currency targetCurrency,
-            DateTime startDate,
-            DateTime endDate,
+			DateOnly startDate,
+			DateOnly endDate,
             CancellationToken cancellationToken = default);
     }
 }
