@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
 using Grpc.Core;
@@ -10,6 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 	{
 		private readonly DatabaseContext _context;
 		private readonly ILogger<SyncGrpcService> _logger;
+		private readonly IServerCurrencyConversion _currencyConversion;
 		private readonly string[] _tablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 		
 		// Tables that have date columns for partial sync
@@ -23,10 +25,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			{ "StockSplits", "Date" }
 		};
 
-		public SyncGrpcService(DatabaseContext context, ILogger<SyncGrpcService> logger)
+		public SyncGrpcService(DatabaseContext context, ILogger<SyncGrpcService> logger, IServerCurrencyConversion currencyConversion)
 		{
 			_context = context;
 			_logger = logger;
+			_currencyConversion = currencyConversion;
 		}
 
 		public override async Task<GetTableNamesResponse> GetTableNames(GetTableNamesRequest request, ServerCallContext context)
@@ -85,12 +88,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 
 		public override async Task GetEntityData(GetEntityDataRequest request, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context)
 		{
-			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, null, responseStream, context);
+			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, null, request.TargetCurrency, responseStream, context);
 		}
 
 		public override async Task GetEntityDataSince(GetEntityDataSinceRequest request, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context)
 		{
-			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, request.SinceDate, responseStream, context);
+			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, request.SinceDate, request.TargetCurrency, responseStream, context);
 		}
 
 		public override async Task<GetLatestDatesResponse> GetLatestDates(GetLatestDatesRequest request, ServerCallContext context)
@@ -138,7 +141,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			}
 		}
 
-		private async Task GetEntityDataInternal(string entity, int page, int pageSize, string? sinceDate, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context)
+		private async Task GetEntityDataInternal(string entity, int page, int pageSize, string? sinceDate, string? targetCurrency, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context)
 		{
 			if (page <= 0 || pageSize <= 0)
 			{
@@ -147,8 +150,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 
 			try
 			{
-				_logger.LogDebug("Getting entity data for {Entity}, page {Page}, page size {PageSize}, since date {SinceDate}", 
-					entity, page, pageSize, sinceDate ?? "all");
+				_logger.LogDebug("Getting entity data for {Entity}, page {Page}, page size {PageSize}, since date {SinceDate}, target currency {TargetCurrency}", 
+					entity, page, pageSize, sinceDate ?? "all", targetCurrency ?? "none");
 
 				List<Dictionary<string, object>> result;
 				string? dateColumn = null;
@@ -162,6 +165,22 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				{
 					// Use regular method
 					result = await RawQuery.ReadTable(_context, entity, page, pageSize);
+				}
+
+				// Apply server-side currency conversion if target currency is specified
+				if (!string.IsNullOrEmpty(targetCurrency))
+				{
+					try
+					{
+						var currency = Currency.GetCurrency(targetCurrency);
+						result = await _currencyConversion.ConvertCurrencyFields(result, entity, currency);
+						_logger.LogDebug("Applied currency conversion to {Entity} data for currency {TargetCurrency}", entity, targetCurrency);
+					}
+					catch (Exception ex)
+					{
+						_logger.LogWarning(ex, "Failed to apply currency conversion to {Entity} for currency {TargetCurrency}", entity, targetCurrency);
+						// Continue without conversion on error
+					}
 				}
 
 				_logger.LogDebug("Retrieved {RecordCount} records for {Entity}, page {Page}", 

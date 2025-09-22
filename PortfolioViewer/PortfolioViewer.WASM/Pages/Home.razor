@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.Model
 @attribute [Authorize]
 
 <PageTitle>Home</PageTitle>
@@ -22,6 +23,15 @@
 				</small>
 			</div>
 		}
+		@if (!string.IsNullOrEmpty(_lastSyncCurrency))
+		{
+			<div class="mt-1">
+				<small class="text-muted">
+					<i class="bi bi-currency-exchange me-1"></i>
+					Last sync currency: @_lastSyncCurrency
+				</small>
+			</div>
+		}
 	</div>
 }
 else
@@ -37,7 +47,34 @@ else
 	</div>
 }
 
-<div>
+<!-- Currency Selection Section -->
+<div class="row mb-4">
+	<div class="col-lg-6">
+		<div class="card">
+			<div class="card-header">
+				<h6 class="card-title mb-0">
+					<i class="bi bi-currency-exchange me-2"></i>Currency Configuration
+				</h6>
+			</div>
+			<div class="card-body">
+				<div class="mb-3">
+					<label class="form-label">Target Currency for Sync</label>
+					<select class="form-select" value="@_selectedCurrency" @onchange="OnCurrencyChanged" disabled="@IsSyncing">
+						<option value="EUR">EUR (Euro)</option>
+						<option value="USD">USD (US Dollar)</option>
+						<option value="GBP">GBP (British Pound)</option>
+					</select>
+					<div class="form-text">
+						All monetary values will be converted to this currency on the server during synchronization.
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Sync Progress Section -->
+<div class="mb-4">
 	<p>@CurrentAction</p>
 	<div class="progress">
 		<div class="progress-bar" role="progressbar" style="width: @Progress%;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100">
@@ -46,6 +83,7 @@ else
 	</div>
 </div>
 
+<!-- Sync Buttons Section -->
 <div class="d-flex gap-2 flex-wrap">
 	<button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">
 		@if (IsSyncing)
@@ -77,43 +115,16 @@ else
 			</ul>
 		</div>
 	}
+	
+	<button class="btn btn-outline-secondary" @onclick="ResetCurrency" disabled="@IsSyncing">
+		<i class="bi bi-arrow-clockwise me-1"></i>Reset Currency
+	</button>
 </div>
 
-@code {
-	private string GetTimeSinceLastSync()
-	{
-		if (!LastSyncTime.HasValue)
-			return string.Empty;
-
-		var timeSince = DateTime.Now - LastSyncTime.Value;
-		
-		if (timeSince.TotalMinutes < 1)
-			return "just now";
-		else if (timeSince.TotalHours < 1)
-			return $"{(int)timeSince.TotalMinutes} minute{((int)timeSince.TotalMinutes != 1 ? "s" : "")} ago";
-		else if (timeSince.TotalDays < 1)
-			return $"{(int)timeSince.TotalHours} hour{((int)timeSince.TotalHours != 1 ? "s" : "")} ago";
-		else
-			return $"{(int)timeSince.TotalDays} day{((int)timeSince.TotalDays != 1 ? "s" : "")} ago";
-	}
-
-	private int GetDaysSinceLastSync()
-	{
-		if (!LastSyncTime.HasValue)
-			return int.MaxValue;
-
-		return (int)(DateTime.Now - LastSyncTime.Value).TotalDays;
-	}
-
-	private string GetSyncButtonText()
-	{
-		if (IsSyncing)
-			return "Syncing...";
-
-		if (!LastSyncTime.HasValue)
-			return "Start Initial Sync";
-
-		var daysSince = GetDaysSinceLastSync();
-		return daysSince <= 7 ? "Quick Sync" : "Start Sync";
-	}
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+	<div class="alert @(_isError ? "alert-danger" : "alert-success") mt-3" role="alert">
+		<i class="bi @(_isError ? "bi-exclamation-triangle" : "bi-check-circle") me-2"></i>
+		@_statusMessage
+	</div>
 }

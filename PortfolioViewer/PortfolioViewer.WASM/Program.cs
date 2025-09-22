@@ -73,6 +73,9 @@ public static class Program
 		// Register SyncTrackingService for DI
 		builder.Services.AddScoped<ISyncTrackingService, SyncTrackingService>();
 
+		// Register SyncConfigurationService for DI
+		builder.Services.AddScoped<ISyncConfigurationService, SyncConfigurationService>();
+
 		builder.Services.AddSingleton<ITestContextService, TestContextService>();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
@@ -82,10 +85,11 @@ public static class Program
 		builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 
 		builder.Services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
+		//builder.Services.AddScoped<ICurrencyConvertion, CurrencyConvertion>();
 		builder.Services.AddScoped<IHoldingsDataServiceOLD, HoldingsDataServiceOLD>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
 		builder.Services.AddScoped<IAccountDataService, AccountDataService>();
-
+		
 		// Data Issues Service
 		builder.Services.AddScoped<IDataIssuesService, DataIssuesService>();
 

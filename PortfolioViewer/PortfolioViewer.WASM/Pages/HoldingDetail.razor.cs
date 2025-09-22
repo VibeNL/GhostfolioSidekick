@@ -24,6 +24,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private NavigationManager? Navigation { get; set; }
 
+		[Inject]
+		private ISyncConfigurationService? SyncConfigurationService { get; set; }
+
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
@@ -62,12 +65,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			Console.WriteLine($"HoldingDetail OnFilterStateChanged - Property: {e.PropertyName}");
 
-			// React to date and currency changes
+			// React to date changes
 			if (e.PropertyName == nameof(FilterState.StartDate) ||
-				e.PropertyName == nameof(FilterState.EndDate) ||
-				e.PropertyName == nameof(FilterState.SelectedCurrency))
+				e.PropertyName == nameof(FilterState.EndDate))
 			{
-				// Reload holding data if currency changed
 				await LoadHoldingDataAsync();
 				StateHasChanged();
 			}
@@ -98,7 +99,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 
 				// Use the selected currency from FilterState
-				var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
+				var currency = Currency.GetCurrency(SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR");
 
 				// Load all holdings to find the specific one
 				var allHoldings = await HoldingsDataService.GetHoldingsAsync(currency);
@@ -190,7 +191,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				plotData = new List<ITrace> { priceTrace, averagePriceTrace };
 
-				var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? FilterState.SelectedCurrency;
+				var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR";
 				var dateRangeText = $"{FilterState.StartDate:yyyy-MM-dd} to {FilterState.EndDate:yyyy-MM-dd}";
 
 				plotLayout = new Plotly.Blazor.Layout

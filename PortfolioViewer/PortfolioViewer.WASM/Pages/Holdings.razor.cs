@@ -1,6 +1,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
@@ -15,6 +16,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject]
 		private NavigationManager? Navigation { get; set; }
+
+		[Inject]
+		private ISyncConfigurationService? SyncConfigurationService { get; set; }
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -73,21 +77,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			if (_previousFilterState == null) return true;
 			
 			// For Holdings, we care about currency and account changes
-			return _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency ||
+			return _previousFilterState.StartDate != FilterState.StartDate ||
+				   _previousFilterState.EndDate != FilterState.EndDate ||
 				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
 		{
-			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current currency: {FilterState.SelectedCurrency}, Current accountId: {FilterState.SelectedAccountId}");
-			
-			// React to currency and account changes for Holdings page
-			if (e.PropertyName == nameof(FilterState.SelectedCurrency) ||
-				e.PropertyName == nameof(FilterState.SelectedAccountId))
+			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current accountId: {FilterState.SelectedAccountId}");
+
+			// Only reload when specific properties change
+			if (e.PropertyName == nameof(FilterState.SelectedAccountId) ||
+				e.PropertyName == nameof(FilterState.StartDate) ||
+				e.PropertyName == nameof(FilterState.EndDate))
 			{
-				Console.WriteLine($"Filter change detected in Holdings - Currency: {FilterState.SelectedCurrency}, AccountId: {FilterState.SelectedAccountId}");
-				await LoadPortfolioDataAsync();
+				Console.WriteLine($"Filter change detected in Holdings - AccountId: {FilterState.SelectedAccountId}");
+				await LoadRealPortfolioDataAsync();
 			}
+
+			StateHasChanged();
 		}
 
 		private async Task LoadPortfolioDataAsync()
@@ -122,8 +130,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
-				Console.WriteLine($"LoadRealPortfolioDataAsync - Using currency: {FilterState.SelectedCurrency} ({currency}), AccountId: {FilterState.SelectedAccountId}");
+				var currency = Currency.GetCurrency(SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR");
 				return await HoldingsDataService?.GetHoldingsAsync(currency, FilterState.SelectedAccountId) ?? new List<HoldingDisplayModel>();
 			}
 			catch (Exception ex)

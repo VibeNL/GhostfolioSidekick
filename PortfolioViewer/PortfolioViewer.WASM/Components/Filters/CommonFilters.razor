@@ -34,18 +34,6 @@
             </div>
         }
 
-        @if (ShowCurrencyFilter)
-        {
-            <div class="filter-group">
-                <label class="form-label-sm">Currency</label>
-                <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedCurrency" @onchange="OnCurrencyChanged">
-                    <option value="EUR">EUR</option>
-                    <option value="USD">USD</option>
-                    <option value="GBP">GBP</option>
-                </select>
-            </div>
-        }
-
         @if (ShowAccountFilter)
         {
             <div class="filter-group">

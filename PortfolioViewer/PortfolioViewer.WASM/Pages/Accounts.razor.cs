@@ -21,6 +21,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
 
+		[Inject]
+		private ISyncConfigurationService? SyncConfigurationService { get; set; }
+
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
@@ -30,7 +33,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		// Properties that read from cascaded filter state
 		protected DateOnly StartDate => FilterState.StartDate;
 		protected DateOnly EndDate => FilterState.EndDate;
-		protected string SelectedCurrency => FilterState.SelectedCurrency;
+		protected string SelectedCurrency => SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR";
 
 		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
 
