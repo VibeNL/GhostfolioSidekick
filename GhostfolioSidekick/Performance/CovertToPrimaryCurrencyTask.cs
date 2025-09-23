@@ -4,13 +4,15 @@ using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Performance
 {
 	internal class CovertToPrimaryCurrencyTask(
 		ICurrencyExchange currencyExchange,
 		DatabaseContext databaseContext,
-		IApplicationSettings applicationSettings
+		IApplicationSettings applicationSettings,
+		ILogger<CovertToPrimaryCurrencyTask> logger
 		) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.CovertToPrimaryCurrency;
@@ -25,6 +27,8 @@ namespace GhostfolioSidekick.Performance
 			var currency = Currency.GetCurrency(primaryCurrencySymbol);
 
 			await currencyExchange.PreloadAllExchangeRates();
+
+			logger.LogInformation("Converting all snapshots and balances to primary currency {Currency}", primaryCurrencySymbol);
 
 			var snapshots = databaseContext.CalculatedSnapshots.AsQueryable();
 
@@ -51,7 +55,11 @@ namespace GhostfolioSidekick.Performance
 				primarySnapshot.AccountId = snapshot.AccountId;
 			}
 
+			logger.LogInformation("Converted {Count} snapshots to primary currency {Currency}", await snapshots.CountAsync(), primaryCurrencySymbol);
+
 			await databaseContext.SaveChangesAsync();
+
+			logger.LogInformation("Converting all balances to primary currency {Currency}", primaryCurrencySymbol);
 
 			var balances = databaseContext.Balances.AsQueryable();
 
@@ -73,7 +81,49 @@ namespace GhostfolioSidekick.Performance
 				primaryBalance.Money = (await currencyExchange.ConvertMoney(balance.Money, currency, balance.Date)).Amount;
 			}
 
+			logger.LogInformation("Converted {Count} balances to primary currency {Currency}", await balances.CountAsync(), primaryCurrencySymbol);
+
 			await databaseContext.SaveChangesAsync();
+
+			logger.LogInformation("Cleanup unmatched primary currency records");
+
+			// Cleanup unmatched items
+			await CleanupUnmatchedItems();
+
+			logger.LogInformation("Completed conversion to primary currency {Currency}", primaryCurrencySymbol);
+		}
+
+		private async Task CleanupUnmatchedItems()
+		{
+			// Clean up CalculatedSnapshotPrimaryCurrency records that no longer have corresponding CalculatedSnapshot records
+			var orphanedPrimarySnapshots = await databaseContext.CalculatedSnapshotPrimaryCurrencies
+				.Where(ps => !databaseContext.CalculatedSnapshots
+					.Any(s => s.HoldingAggregatedId == ps.HoldingAggregatedId && 
+							  s.AccountId == ps.AccountId && 
+							  s.Date == ps.Date))
+				.ToListAsync();
+
+			if (orphanedPrimarySnapshots.Count > 0)
+			{
+				databaseContext.CalculatedSnapshotPrimaryCurrencies.RemoveRange(orphanedPrimarySnapshots);
+			}
+
+			// Clean up BalancePrimaryCurrency records that no longer have corresponding Balance records
+			var orphanedPrimaryBalances = await databaseContext.BalancePrimaryCurrencies
+				.Where(pb => !databaseContext.Balances
+					.Any(b => b.AccountId == pb.AccountId && b.Date == pb.Date))
+				.ToListAsync();
+
+			if (orphanedPrimaryBalances.Count > 0)
+			{
+				databaseContext.BalancePrimaryCurrencies.RemoveRange(orphanedPrimaryBalances);
+			}
+
+			// Save all cleanup changes
+			if (orphanedPrimarySnapshots.Count > 0 || orphanedPrimaryBalances.Count > 0)
+			{
+				await databaseContext.SaveChangesAsync();
+			}
 		}
 	}
 }
