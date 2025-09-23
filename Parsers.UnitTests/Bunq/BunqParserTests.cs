@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bunq
 		{
 			parser = new BunqParser();
 
-			var fixture = new Fixture();
+			var fixture = CustomFixture.New();
 			account = fixture
 				.Build<Account>()
 				.With(x => x.Balance, [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.EUR, 0))])
