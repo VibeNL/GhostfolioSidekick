@@ -65,7 +65,8 @@ Also allows the following symbol settings
 ```
 {
     "settings" : {
-	    "dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
+		"performance.primarycurrency": "USD", // default "EUR"
+		"dataprovider.preference.order": "COINGECKO,YAHOO", // default "YAHOO,COINGECKO"
 		"delete.unused.symbols": false // default is true. Note generated symbols like INTEREST and FEE are always deleted since they can't be reused.
 	},
 	"platforms":[

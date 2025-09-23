@@ -4,6 +4,7 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
+using static Grpc.Core.Metadata;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 {
@@ -22,7 +23,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			{ "Balances", "Date" },
 			{ "CalculatedSnapshots", "Date" },
 			{ "CurrencyExchangeRate", "Date" },
-			{ "StockSplits", "Date" }
+			{ "StockSplits", "Date" },
+			{ "CalculatedSnapshotPrimaryCurrency", "Date" },
+			{ "BalancesPrimaryCurrency", "Date" },
 		};
 
 		public SyncGrpcService(DatabaseContext context, ILogger<SyncGrpcService> logger, IServerCurrencyConversion currencyConversion)
@@ -109,7 +112,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				{
 					var tableName = tableInfo.Key;
 					var dateColumn = tableInfo.Value;
-					
+
+					tableName = await _currencyConversion.ConvertTableNameInCaseOfPrimaryCurrency(tableName);
+
 					try
 					{
 						using var command = connection.CreateCommand();
@@ -148,6 +153,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				throw new RpcException(new Status(StatusCode.InvalidArgument, "Page and pageSize must be greater than 0."));
 			}
 
+			entity = await _currencyConversion.ConvertTableNameInCaseOfPrimaryCurrency(entity);
+
 			try
 			{
 				_logger.LogDebug("Getting entity data for {Entity}, page {Page}, page size {PageSize}, since date {SinceDate}, target currency {TargetCurrency}", 
@@ -173,7 +180,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 					try
 					{
 						var currency = Currency.GetCurrency(targetCurrency);
-						result = await _currencyConversion.ConvertCurrencyFields(result, entity, currency);
+						result = await _currencyConversion.ConvertTableToPrimaryCurrencyTable(result, entity, currency);
 						_logger.LogDebug("Applied currency conversion to {Entity} data for currency {TargetCurrency}", entity, targetCurrency);
 					}
 					catch (Exception ex)

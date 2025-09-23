@@ -105,6 +105,7 @@ namespace GhostfolioSidekick.Database.Repository
 			{
 				logger.LogInformation("Starting preload of all exchange rates...");
 				await PreloadAllExchangeRatesInternal();
+				logger.LogInformation("Preloaded of all exchange rates...");
 			}
 			finally
 			{
