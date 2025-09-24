@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			try
 			{
 				return await HoldingsDataService?
-							.GetHoldingsAsync(ServerConfigurationService.PrimaryCurrency, FilterState.SelectedAccountId) ?? 
+							.GetHoldingsAsync(FilterState.SelectedAccountId) ?? 
 								[];
 			}
 			catch (Exception ex)

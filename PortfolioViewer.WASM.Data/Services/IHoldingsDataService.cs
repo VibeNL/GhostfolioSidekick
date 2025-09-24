@@ -1,7 +1,4 @@
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using GhostfolioSidekick.Model.Accounts;
-using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
@@ -16,7 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// <param name="targetCurrency">Currency to convert values to</param>
 		/// <param name="cancellationToken">Cancellation token for the async operation</param>
 		/// <returns>List of holdings with their current values and performance data</returns>
-		Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, CancellationToken cancellationToken = default);
+		Task<List<HoldingDisplayModel>> GetHoldingsAsync(CancellationToken cancellationToken = default);
 
 		/// <summary>
 		/// Loads holdings for the current portfolio with optional account filtering
@@ -25,7 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// <param name="accountId">Account filter</param>
 		/// <param name="cancellationToken">Cancellation token for the async operation</param>
 		/// <returns>List of holdings with their current values and performance data</returns>
-		Task<List<HoldingDisplayModel>> GetHoldingsAsync(Currency targetCurrency, int accountId, CancellationToken cancellationToken = default);
+		Task<List<HoldingDisplayModel>> GetHoldingsAsync(int accountId, CancellationToken cancellationToken = default);
 
 		/// <summary>
 		/// Loads price history for a specific holding
@@ -51,7 +48,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// <param name="cancellationToken">Cancellation token</param>
 		/// <returns>List of portfolio value history points</returns>
 		Task<List<PortfolioValueHistoryPoint>> GetPortfolioValueHistoryAsync(
-			Currency targetCurrency,
 			DateOnly startDate,
 			DateOnly endDate,
 			int? accountId,
