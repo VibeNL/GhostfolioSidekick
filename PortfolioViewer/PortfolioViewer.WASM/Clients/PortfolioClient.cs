@@ -44,7 +44,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync();
 				if (pendingMigrations.Any())
 				{
-					await databaseContext.Database.MigrateAsync();
+					try
+					{
+						await databaseContext.Database.MigrateAsync();
+					} catch
+					{
+						progress.Report(("Error applying database migrations. Forcing new database.", 0));
+						logger.LogWarning("Failed to apply migrations, forcing new database");
+						forceFullSync = true;
+
+						await databaseContext.Database.EnsureDeletedAsync();
+						await databaseContext.Database.MigrateAsync();
+					}
 				}
 
 				var grpcClient = GetGrpcClient();

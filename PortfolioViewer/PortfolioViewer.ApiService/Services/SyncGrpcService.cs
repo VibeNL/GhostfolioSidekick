@@ -22,8 +22,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			{ "CalculatedSnapshots", "Date" },
 			{ "CurrencyExchangeRate", "Date" },
 			{ "StockSplits", "Date" },
-			{ "CalculatedSnapshotPrimaryCurrency", "Date" },
-			{ "BalancesPrimaryCurrency", "Date" },
+			{ "CalculatedSnapshotPrimaryCurrencies", "Date" },
+			{ "BalancePrimaryCurrencies", "Date" },
 		};
 
 		public SyncGrpcService(DatabaseContext context, ILogger<SyncGrpcService> logger)
