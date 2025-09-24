@@ -3,7 +3,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
@@ -109,7 +108,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 
 				AccountsData = await AccountDataService.GetAccountValueHistoryAsync(
-					ServerConfigurationService.PrimaryCurrency,
 					StartDate,
 					EndDate
 				) ?? new List<AccountValueHistoryPoint>();

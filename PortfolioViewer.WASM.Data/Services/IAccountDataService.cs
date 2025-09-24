@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 	{
 		Task<List<Account>> GetAccountInfo();
 
-		Task<List<AccountValueHistoryPoint>?> GetAccountValueHistoryAsync(Currency currency, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken = default);
+		Task<List<AccountValueHistoryPoint>?> GetAccountValueHistoryAsync(DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken = default);
 
 		Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default);
 	}

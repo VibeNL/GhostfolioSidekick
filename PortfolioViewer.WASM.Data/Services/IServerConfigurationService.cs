@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public interface IServerConfigurationService
 	{
