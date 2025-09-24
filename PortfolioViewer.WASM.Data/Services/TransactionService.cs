@@ -51,8 +51,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					Quantity = a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).Quantity : (decimal?)null,
 					UnitPriceAmount = a is ActivityWithQuantityAndUnitPrice ? EF.Property<decimal?>(((ActivityWithQuantityAndUnitPrice)a).UnitPrice, "Amount") : null,
 					UnitPriceCurrencySymbol = a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).UnitPrice.Currency.Symbol : null,
-					Amount = a is ActivityWithAmount ? EF.Property<decimal?>(((ActivityWithAmount)a).Amount, "Amount") : null,
-					AmountCurrencySymbol = a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Currency.Symbol : null,
+					//Amount = a is ActivityWithAmount ? EF.Property<decimal?>(((ActivityWithAmount)a).Amount, "Amount") : null,
+					//AmountCurrencySymbol = a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Currency.Symbol : null,
 				})
 				.ToListAsync(cancellationToken);
 
@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				Id = data.ActivityId,
 				Date = data.ActivityDate,
-				Type = data.ActivityType.Replace("Proxy", ""),
+				Type = data.ActivityType.Replace("Proxy", "").Replace("Activity", ""),
 				Symbol = data.SymbolCode ?? "",
 				Name = data.SymbolName ?? "",
 				Description = data.ActivityDescription,
@@ -72,9 +72,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					? new Money(Currency.GetCurrency(data.UnitPriceCurrencySymbol), data.UnitPriceAmount.Value)
 					: null,
 				Currency = data.UnitPriceCurrencySymbol ?? "",
-				Amount = data.Amount.HasValue && !string.IsNullOrEmpty(data.AmountCurrencySymbol)
-					? new Money(Currency.GetCurrency(data.AmountCurrencySymbol), data.Amount.Value)
-					: null,
+				//Amount = data.Amount.HasValue && !string.IsNullOrEmpty(data.AmountCurrencySymbol)
+				//	? new Money(Currency.GetCurrency(data.AmountCurrencySymbol), data.Amount.Value)
+				//	: null,
 			}).ToList();
 
 			return result;
