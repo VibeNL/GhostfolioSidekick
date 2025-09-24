@@ -15,8 +15,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject] private ISyncTrackingService SyncTrackingService { get; set; } = default!;
 
-		[Inject] private ISyncConfigurationService SyncConfigurationService { get; set; } = default!;
-
 		private IJSObjectReference? mermaidmodule;
 		private Timer? refreshTimer;
 
@@ -25,9 +23,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool IsSyncing = false;
 		private DateTime? LastSyncTime = null;
 
-		// Currency-related fields
-		private string _selectedCurrency = "EUR";
-		private string _lastSyncCurrency = string.Empty;
 		private string _statusMessage = string.Empty;
 		private bool _isError = false;
 
@@ -57,23 +52,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			try
 			{
-				// Update the sync configuration service with selected currency
-				var targetCurrency = Currency.GetCurrency(_selectedCurrency);
-				SyncConfigurationService.TargetCurrency = targetCurrency;
-
-				CurrentAction = $"Syncing data with server-side currency conversion to {_selectedCurrency}...";
-				StateHasChanged();
-
 				// Currency conversion is now handled on the server side
-				await PortfolioClient.SyncPortfolio(progress, forceFullSync, targetCurrency);
-				
+				await PortfolioClient.SyncPortfolio(progress, forceFullSync);
+
 				// Update the last sync time after successful completion
 				var now = DateTime.Now;
 				await SyncTrackingService.SetLastSyncTimeAsync(now);
 				LastSyncTime = now;
-				_lastSyncCurrency = _selectedCurrency;
 
-				_statusMessage = $"Sync completed successfully! All records converted to {_selectedCurrency} on the server.";
 				_isError = false;
 			}
 			catch (Exception ex)
@@ -90,34 +76,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
-		private async Task OnCurrencyChanged(ChangeEventArgs e)
-		{
-			_selectedCurrency = e.Value?.ToString() ?? "EUR";
-			_statusMessage = $"Currency changed to {_selectedCurrency}. Changes will take effect on next sync.";
-			_isError = false;
-			StateHasChanged();
-			
-			// Clear message after 3 seconds
-			await Task.Delay(3000);
-			_statusMessage = string.Empty;
-			StateHasChanged();
-		}
-
-		private void ResetCurrency()
-		{
-			_selectedCurrency = "EUR";
-			_statusMessage = "Currency reset to EUR.";
-			_isError = false;
-			StateHasChanged();
-		}
-
 		private string GetTimeSinceLastSync()
 		{
 			if (!LastSyncTime.HasValue)
 				return string.Empty;
 
 			var timeSince = DateTime.Now - LastSyncTime.Value;
-			
+
 			if (timeSince.TotalMinutes < 1)
 				return "just now";
 			else if (timeSince.TotalHours < 1)
@@ -152,24 +117,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			// Load the last sync time when the component initializes
 			LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
-			
-			// Initialize currency from service
-			_selectedCurrency = SyncConfigurationService.TargetCurrency.Symbol;
-			
-			// Subscribe to currency changes
-			SyncConfigurationService.CurrencyChanged += OnServiceCurrencyChanged;
-			
-			// Start a timer to refresh the "time since last sync" display every minute
+
 			refreshTimer = new Timer(async _ =>
 			{
 				await InvokeAsync(StateHasChanged);
 			}, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
-		}
-
-		private void OnServiceCurrencyChanged(object? sender, Currency currency)
-		{
-			_selectedCurrency = currency.Symbol;
-			InvokeAsync(StateHasChanged);
 		}
 
 		protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -207,12 +159,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			mermaidmodule?.DisposeAsync();
 			refreshTimer?.Dispose();
-			
-			// Unsubscribe from currency changes
-			if (SyncConfigurationService != null)
-			{
-				SyncConfigurationService.CurrencyChanged -= OnServiceCurrencyChanged;
-			}
 		}
 	}
 }

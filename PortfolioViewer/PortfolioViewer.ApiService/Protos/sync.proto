@@ -24,7 +24,6 @@ message GetEntityDataRequest {
   string entity = 1;
   int32 page = 2;
   int32 page_size = 3;
-  string target_currency = 4; // Optional target currency for server-side conversion
 }
 
 // Request message for getting entity data since a specific date
@@ -33,7 +32,6 @@ message GetEntityDataSinceRequest {
   int32 page = 2;
   int32 page_size = 3;
   string since_date = 4; // ISO date string (YYYY-MM-DD)
-  string target_currency = 5; // Optional target currency for server-side conversion
 }
 
 // Response message for entity data (streamed)

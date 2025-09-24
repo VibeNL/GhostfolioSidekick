@@ -63,7 +63,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 						
 			// Register currency services as scoped to avoid singleton dependency issues
 			builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
-			builder.Services.AddScoped<IServerCurrencyConversion, ServerCurrencyConversion>();
 
 			builder.Services.AddControllers(options =>
 			{

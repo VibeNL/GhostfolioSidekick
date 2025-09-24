@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private NavigationManager? Navigation { get; set; }
 
 		[Inject]
-		private ISyncConfigurationService? SyncConfigurationService { get; set; }
+		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -98,11 +98,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					throw new InvalidOperationException("HoldingsDataService is not initialized.");
 				}
 
-				// Use the selected currency from FilterState
-				var currency = Currency.GetCurrency(SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR");
-
 				// Load all holdings to find the specific one
-				var allHoldings = await HoldingsDataService.GetHoldingsAsync(currency);
+				var allHoldings = await HoldingsDataService.GetHoldingsAsync(ServerConfigurationService.PrimaryCurrency);
 				HoldingInfo = allHoldings.FirstOrDefault(h =>
 					string.Equals(h.Symbol, Symbol, StringComparison.OrdinalIgnoreCase));
 
@@ -191,7 +188,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				plotData = new List<ITrace> { priceTrace, averagePriceTrace };
 
-				var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR";
+				var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? throw new NotSupportedException("Currency symbol not available");
 				var dateRangeText = $"{FilterState.StartDate:yyyy-MM-dd} to {FilterState.EndDate:yyyy-MM-dd}";
 
 				plotLayout = new Plotly.Blazor.Layout

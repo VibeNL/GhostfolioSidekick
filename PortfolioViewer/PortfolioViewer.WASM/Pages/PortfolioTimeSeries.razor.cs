@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private ICurrencyExchange? CurrencyExchange { get; set; }
 
 		[Inject]
-		private ISyncConfigurationService? SyncConfigurationService { get; set; }
+		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -33,7 +33,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		// Properties that read from cascaded filter state
 		protected DateOnly StartDate => FilterState.StartDate;
 		protected DateOnly EndDate => FilterState.EndDate;
-		protected string SelectedCurrency => SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR";
 		protected int SelectedAccountId => FilterState.SelectedAccountId;
 
 		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
@@ -130,9 +129,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					throw new InvalidOperationException("HoldingsDataService or CurrencyExchange is not initialized.");
 				}
 
-				var currency = Currency.GetCurrency(SelectedCurrency);
 				TimeSeriesData = await HoldingsDataService.GetPortfolioValueHistoryAsync(
-					currency,
+					ServerConfigurationService.PrimaryCurrency,
 					StartDate,
 					EndDate,
 					SelectedAccountId
@@ -162,7 +160,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 
 			var displayData = new List<TimeSeriesDisplayModel>();
-			var targetCurrency = Currency.GetCurrency(SelectedCurrency);
+			var targetCurrency = ServerConfigurationService.PrimaryCurrency;
 
 			foreach (var point in TimeSeriesData)
 			{
@@ -225,7 +223,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Portfolio Value Over Time" },
 				XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> { new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } } },
-				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({SelectedCurrency})" } } },
+				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({ServerConfigurationService.PrimaryCurrency.Symbol})" } } },
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 				AutoSize = true,
 				ShowLegend = true,
@@ -261,7 +259,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task<object> Sum(Money[] value, DateOnly date, ICurrencyExchange? currencyExchange)
 		{
-			var targetCurrency = Currency.GetCurrency(SelectedCurrency);
 			if (currencyExchange == null)
 			{
 				return 0;
@@ -275,7 +272,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			var convertedValues = new List<Money>(value.Length);
 			foreach (var v in value)
 			{
-				var converted = await currencyExchange.ConvertMoney(v, targetCurrency, date);
+				var converted = await currencyExchange.ConvertMoney(v, ServerConfigurationService.PrimaryCurrency, date);
 				convertedValues.Add(converted);
 			}
 

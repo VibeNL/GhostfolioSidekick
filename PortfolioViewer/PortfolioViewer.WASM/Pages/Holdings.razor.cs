@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private NavigationManager? Navigation { get; set; }
 
 		[Inject]
-		private ISyncConfigurationService? SyncConfigurationService { get; set; }
+		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -130,8 +130,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				var currency = Currency.GetCurrency(SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR");
-				return await HoldingsDataService?.GetHoldingsAsync(currency, FilterState.SelectedAccountId) ?? new List<HoldingDisplayModel>();
+				return await HoldingsDataService?
+							.GetHoldingsAsync(ServerConfigurationService.PrimaryCurrency, FilterState.SelectedAccountId) ?? 
+								[];
 			}
 			catch (Exception ex)
 			{

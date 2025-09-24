@@ -1,15 +1,14 @@
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
-using System.Globalization;
-using System.Collections.Generic;
-using GhostfolioSidekick.Database.Repository;
 using System.ComponentModel;
-using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
-using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
+using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -22,7 +21,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private ICurrencyExchange? CurrencyExchange { get; set; }
 
 		[Inject]
-		private ISyncConfigurationService? SyncConfigurationService { get; set; }
+		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -33,8 +32,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		// Properties that read from cascaded filter state
 		protected DateOnly StartDate => FilterState.StartDate;
 		protected DateOnly EndDate => FilterState.EndDate;
-		protected string SelectedCurrency => SyncConfigurationService?.TargetCurrency.Symbol ?? "EUR";
-
 		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
 
 		// State
@@ -111,9 +108,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					throw new InvalidOperationException("HoldingsDataService or CurrencyExchange is not initialized.");
 				}
 
-				var currency = Currency.GetCurrency(SelectedCurrency);
 				AccountsData = await AccountDataService.GetAccountValueHistoryAsync(
-					currency,
+					ServerConfigurationService.PrimaryCurrency,
 					StartDate,
 					EndDate
 				) ?? new List<AccountValueHistoryPoint>();
@@ -143,8 +139,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 
 			var displayData = new List<AccountValueDisplayModel>();
-			var targetCurrency = Currency.GetCurrency(SelectedCurrency);
-
+			
 			var accounts = (await AccountDataService!.GetAccountInfo()).ToDictionary(x => x.Id, x => x);
 
 			foreach (var point in AccountsData)
@@ -162,7 +157,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					Balance = point.CashBalance,
 					GainLoss = gainLoss,
 					GainLossPercentage = gainLossPercentage,
-					Currency = targetCurrency.Symbol.ToString()
+					Currency = ServerConfigurationService.PrimaryCurrency.Symbol
 				});
 			}
 
@@ -205,7 +200,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Account Values Over Time" },
 				XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> { new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } } },
-				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({SelectedCurrency})" } } },
+				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({ServerConfigurationService.PrimaryCurrency.Symbol})" } } },
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 				AutoSize = true,
 				ShowLegend = true,
@@ -237,7 +232,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				.ToList();
 
 			// Calculate financial metrics from latest values
-			var currency = Currency.GetCurrency(SelectedCurrency);
+			var currency = ServerConfigurationService.PrimaryCurrency;
 			TotalPortfolioValue = LatestAccountValues.Aggregate(Money.Zero(currency), (sum, account) => sum.Add(account.Value));
 			TotalCashPosition = LatestAccountValues.Aggregate(Money.Zero(currency), (sum, account) => sum.Add(account.Balance));
 			TotalAssetValue = TotalPortfolioValue.Subtract(TotalCashPosition);
