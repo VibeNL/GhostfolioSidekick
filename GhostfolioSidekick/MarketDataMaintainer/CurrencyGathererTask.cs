@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					await databaseContext.Activities
 					.OfType<RepayBondActivity>()
 					.AsNoTracking()
-					.Select(x => new { x.TotalRepayAmount!.Currency, x.Date })
+					.Select(x => new { x.Amount!.Currency, x.Date })
 					.Distinct()
 					.ToListAsync()
 				)

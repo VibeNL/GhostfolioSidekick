@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20250923100452_AddPrimaryCurrencyTables")]
+    [Migration("20250924090752_AddPrimaryCurrencyTables")]
     partial class AddPrimaryCurrencyTables
     {
         /// <inheritdoc />
@@ -1348,16 +1348,16 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Price", "GhostfolioSidekick.Model.Activities.Types.LiabilityActivity.Price#Money", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.LiabilityActivity.Amount#Money", b1 =>
                         {
                             b1.IsRequired();
 
                             b1.Property<decimal>("Amount")
                                 .ValueGeneratedOnUpdateSometimes()
                                 .HasColumnType("TEXT")
-                                .HasColumnName("Price");
+                                .HasColumnName("Amount");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.LiabilityActivity.Price#Money.Currency#Currency", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.LiabilityActivity.Amount#Money.Currency#Currency", b2 =>
                                 {
                                     b2.IsRequired();
 
@@ -1365,7 +1365,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                         .IsRequired()
                                         .ValueGeneratedOnUpdateSometimes()
                                         .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyPrice");
+                                        .HasColumnName("CurrencyAmount");
                                 });
                         });
 
@@ -1376,22 +1376,24 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
 
-                    b.ComplexProperty<Dictionary<string, object>>("TotalRepayAmount", "GhostfolioSidekick.Model.Activities.Types.RepayBondActivity.TotalRepayAmount#Money", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.RepayBondActivity.Amount#Money", b1 =>
                         {
                             b1.IsRequired();
 
                             b1.Property<decimal>("Amount")
+                                .ValueGeneratedOnUpdateSometimes()
                                 .HasColumnType("TEXT")
-                                .HasColumnName("TotalRepayAmount");
+                                .HasColumnName("Amount");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.RepayBondActivity.TotalRepayAmount#Money.Currency#Currency", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.RepayBondActivity.Amount#Money.Currency#Currency", b2 =>
                                 {
                                     b2.IsRequired();
 
                                     b2.Property<string>("Symbol")
                                         .IsRequired()
+                                        .ValueGeneratedOnUpdateSometimes()
                                         .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyTotalRepayAmount");
+                                        .HasColumnName("CurrencyAmount");
                                 });
                         });
 
@@ -1402,16 +1404,16 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Price", "GhostfolioSidekick.Model.Activities.Types.ValuableActivity.Price#Money", b1 =>
+                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.ValuableActivity.Amount#Money", b1 =>
                         {
                             b1.IsRequired();
 
                             b1.Property<decimal>("Amount")
                                 .ValueGeneratedOnUpdateSometimes()
                                 .HasColumnType("TEXT")
-                                .HasColumnName("Price");
+                                .HasColumnName("Amount");
 
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.ValuableActivity.Price#Money.Currency#Currency", b2 =>
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.ValuableActivity.Amount#Money.Currency#Currency", b2 =>
                                 {
                                     b2.IsRequired();
 
@@ -1419,7 +1421,7 @@ namespace GhostfolioSidekick.Database.Migrations
                                         .IsRequired()
                                         .ValueGeneratedOnUpdateSometimes()
                                         .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyPrice");
+                                        .HasColumnName("CurrencyAmount");
                                 });
                         });
 

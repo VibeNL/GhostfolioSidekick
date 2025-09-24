@@ -11,9 +11,27 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
+			migrationBuilder.Sql("DELETE FROM Activities");
+
+			migrationBuilder.DropIndex(
                 name: "IX_CalculatedSnapshots_HoldingAggregatedId",
                 table: "CalculatedSnapshots");
+
+            migrationBuilder.DropColumn(
+                name: "CurrencyPrice",
+                table: "Activities");
+
+            migrationBuilder.DropColumn(
+                name: "CurrencyTotalRepayAmount",
+                table: "Activities");
+
+            migrationBuilder.DropColumn(
+                name: "Price",
+                table: "Activities");
+
+            migrationBuilder.DropColumn(
+                name: "TotalRepayAmount",
+                table: "Activities");
 
             migrationBuilder.CreateTable(
                 name: "BalancePrimaryCurrencies",
@@ -121,6 +139,30 @@ namespace GhostfolioSidekick.Database.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_CalculatedSnapshots_HoldingAggregatedId_AccountId_Date",
                 table: "CalculatedSnapshots");
+
+            migrationBuilder.AddColumn<string>(
+                name: "CurrencyPrice",
+                table: "Activities",
+                type: "TEXT",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "CurrencyTotalRepayAmount",
+                table: "Activities",
+                type: "TEXT",
+                nullable: true);
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "Price",
+                table: "Activities",
+                type: "TEXT",
+                nullable: true);
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "TotalRepayAmount",
+                table: "Activities",
+                type: "TEXT",
+                nullable: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_CalculatedSnapshots_HoldingAggregatedId",

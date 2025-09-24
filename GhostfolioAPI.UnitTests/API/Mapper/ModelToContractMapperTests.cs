@@ -184,13 +184,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Currency.Should().Be(valuableActivity.Price.Currency.Symbol);
+			result!.SymbolProfile.Currency.Should().Be(valuableActivity.Amount.Currency.Symbol);
 			result.SymbolProfile.Name.Should().Be(valuableActivity.Description);
 			result.Comment.Should().NotBeNull();
 			result.Date.Should().Be(valuableActivity.Date);
 			result.Quantity.Should().Be(1);
 			result.Type.Should().Be(ActivityType.ITEM);
-			result.UnitPrice.Should().Be(valuableActivity.Price.Amount);
+			result.UnitPrice.Should().Be(valuableActivity.Amount.Amount);
 			result.ReferenceCode.Should().Be(valuableActivity.TransactionId);
 			result.AccountId.Should().Be(account.Id);
 		}
@@ -207,13 +207,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Currency.Should().Be(liabilityActivity.Price.Currency.Symbol);
+			result!.SymbolProfile.Currency.Should().Be(liabilityActivity.Amount.Currency.Symbol);
 			result.SymbolProfile.Name.Should().Be(liabilityActivity.Description);
 			result.Comment.Should().NotBeNull();
 			result.Date.Should().Be(liabilityActivity.Date);
 			result.Quantity.Should().Be(1);
 			result.Type.Should().Be(ActivityType.LIABILITY);
-			result.UnitPrice.Should().Be(liabilityActivity.Price.Amount);
+			result.UnitPrice.Should().Be(liabilityActivity.Amount.Amount);
 			result.ReferenceCode.Should().Be(liabilityActivity.TransactionId);
 			result.AccountId.Should().Be(account.Id);
 		}

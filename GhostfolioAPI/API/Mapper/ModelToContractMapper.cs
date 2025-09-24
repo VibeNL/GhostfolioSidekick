@@ -148,24 +148,24 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 				case ValuableActivity valuableActivity:
 					return new Contract.Activity
 					{
-						SymbolProfile = Contract.SymbolProfile.Empty(valuableActivity.Price.Currency, valuableActivity.Description),
+						SymbolProfile = Contract.SymbolProfile.Empty(valuableActivity.Amount.Currency, valuableActivity.Description),
 						Comment = TransactionReferenceUtilities.GetComment(activity),
 						Date = activity.Date,
 						Quantity = 1,
 						Type = Contract.ActivityType.ITEM,
-						UnitPrice = valuableActivity.Price.Amount,
+						UnitPrice = valuableActivity.Amount.Amount,
 						ReferenceCode = activity.TransactionId,
 						AccountId = account?.Id
 					};
 				case LiabilityActivity liabilityActivity:
 					return new Contract.Activity
 					{
-						SymbolProfile = Contract.SymbolProfile.Empty(liabilityActivity.Price.Currency, liabilityActivity.Description),
+						SymbolProfile = Contract.SymbolProfile.Empty(liabilityActivity.Amount.Currency, liabilityActivity.Description),
 						Comment = TransactionReferenceUtilities.GetComment(activity),
 						Date = activity.Date,
 						Quantity = 1,
 						Type = Contract.ActivityType.LIABILITY,
-						UnitPrice = liabilityActivity.Price.Amount,
+						UnitPrice = liabilityActivity.Amount.Amount,
 						ReferenceCode = activity.TransactionId,
 						AccountId = account?.Id
 					};

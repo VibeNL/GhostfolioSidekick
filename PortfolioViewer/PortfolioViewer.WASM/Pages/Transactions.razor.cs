@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class Transactions : IDisposable
 	{
 		[Inject]
-		private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
+		private ITransactionService? HoldingsDataService { get; set; }
 
 		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;

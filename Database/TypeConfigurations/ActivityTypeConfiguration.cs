@@ -164,13 +164,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<LiabilityActivity> builder)
 		{
-			MapMoney(builder, x => x.Price, nameof(LiabilityActivity.Price));
+			MapMoney(builder, x => x.Amount, nameof(LiabilityActivity.Amount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
 		public void Configure(EntityTypeBuilder<RepayBondActivity> builder)
 		{
-			MapMoney(builder, x => x.TotalRepayAmount, nameof(RepayBondActivity.TotalRepayAmount));
+			MapMoney(builder, x => x.Amount, nameof(RepayBondActivity.Amount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)
 		{
-			MapMoney(builder, x => x.Price, nameof(ValuableActivity.Price));
+			MapMoney(builder, x => x.Amount, nameof(ValuableActivity.Amount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 

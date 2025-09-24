@@ -87,7 +87,8 @@ public static class Program
 		builder.Services.AddScoped<IHoldingsDataServiceOLD, HoldingsDataServiceOLD>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
 		builder.Services.AddScoped<IAccountDataService, AccountDataService>();
-		
+		builder.Services.AddScoped<ITransactionService, TransactionService>();
+
 		// Data Issues Service
 		builder.Services.AddScoped<IDataIssuesService, DataIssuesService>();
 
