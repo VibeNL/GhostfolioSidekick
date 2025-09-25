@@ -122,22 +122,8 @@
                                                                OnSort="SortBy" />
                                         </th>
                                         <th scope="col" class="text-end">
-                                            <SortableTableHeader Column="Quantity" 
-                                                               DisplayName="Quantity" 
-                                                               CurrentSortColumn="@sortColumn" 
-                                                               IsAscending="@sortAscending" 
-                                                               OnSort="SortBy" />
-                                        </th>
-                                        <th scope="col" class="text-end">
                                             <SortableTableHeader Column="TotalValue" 
                                                                DisplayName="Total Value" 
-                                                               CurrentSortColumn="@sortColumn" 
-                                                               IsAscending="@sortAscending" 
-                                                               OnSort="SortBy" />
-                                        </th>
-                                        <th scope="col">
-                                            <SortableTableHeader Column="Description" 
-                                                               DisplayName="Description" 
                                                                CurrentSortColumn="@sortColumn" 
                                                                IsAscending="@sortAscending" 
                                                                OnSort="SortBy" />
@@ -181,31 +167,11 @@
                                                 <span class="badge bg-secondary">@transaction.AccountName</span>
                                             </td>
                                             <td class="text-end">
-                                                @if (transaction.Quantity.HasValue)
-                                                {
-                                                    @transaction.Quantity.Value.ToString("N4")
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td class="text-end">
                                                 @if (transaction.TotalValue != null)
                                                 {
                                                     <strong class="@GetValueClass(transaction.TotalValue, transaction.Type)">
                                                         @CurrencyDisplay.DisplaySignAndAmount(transaction.TotalValue)
                                                     </strong>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (!string.IsNullOrEmpty(transaction.Description))
-                                                {
-                                                    <small>@transaction.Description</small>
                                                 }
                                                 else
                                                 {

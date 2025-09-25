@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,7 +35,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			}
 
 			// Project to anonymous type with raw data only - avoid Money objects in server-side projection
-			var serverSideData = await baseQuery.OrderByDescending(a => a.Date)
+			var serverSideData = await baseQuery
+				.Where(x => !(x is KnownBalanceActivity)) // Exclude KnownBalanceActivity entries
+				.OrderByDescending(a => a.Date)
 				.ThenByDescending(a => a.Id)
 				.Select(a => new
 				{
@@ -55,6 +58,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					Amount = a is ActivityWithAmount ? EF.Property<decimal?>(((ActivityWithAmount)a).Amount, "Amount") : null,
 					AmountCurrencySymbol = a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Currency.Symbol : null,
 				})
+				.AsNoTracking()
 				.ToListAsync(cancellationToken);
 
 			// Transform to TransactionDisplayModel on client-side with safe Money construction
