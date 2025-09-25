@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
-		
+
 		private List<TransactionDisplayModel> TransactionsList = new();
 
 		// Loading state management
@@ -37,56 +37,24 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
-			
-			await LoadTransactionDataAsync();
 		}
 
 		protected override async Task OnParametersSetAsync()
 		{
 			// Check if filter state has changed
-			if (_previousFilterState != null &&
-				   _previousFilterState.StartDate == FilterState.StartDate &&
-				   _previousFilterState.EndDate == FilterState.EndDate &&
-				   _previousFilterState.SelectedAccountId == FilterState.SelectedAccountId &&
-				   _previousFilterState.SelectedSymbol == FilterState.SelectedSymbol &&
-				   _previousFilterState.SelectedTransactionType == FilterState.SelectedTransactionType &&
-				   _previousFilterState.SearchText == FilterState.SearchText)
+			if (FilterState.IsEqual(_previousFilterState))
 			{
 				return;
 			}
-			
-			// Unsubscribe from old filter state
-			if (_previousFilterState != null)
-			{
-				_previousFilterState.PropertyChanged -= OnFilterStateChanged;
-			}
-			
-			// Subscribe to new filter state
-			if (FilterState != null)
-			{
-				FilterState.PropertyChanged += OnFilterStateChanged;
-			}
-			
-			_previousFilterState = FilterState;
-			await LoadTransactionDataAsync();
-		}
 
-		private bool HasFilterStateChanged()
-		{
-			if (_previousFilterState == null) return true;
-			
-			return _previousFilterState.StartDate != FilterState.StartDate ||
-				   _previousFilterState.EndDate != FilterState.EndDate ||
-				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId ||
-				   _previousFilterState.SelectedSymbol != FilterState.SelectedSymbol ||
-				   _previousFilterState.SelectedTransactionType != FilterState.SelectedTransactionType ||
-				   _previousFilterState.SearchText != FilterState.SearchText;
+			_previousFilterState = new(FilterState);
+			await LoadTransactionDataAsync();
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
 		{
 			Console.WriteLine($"Transactions OnFilterStateChanged - Property: {e.PropertyName}");
-			
+
 			await InvokeAsync(async () =>
 			{
 				await LoadTransactionDataAsync();
@@ -155,7 +123,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			if (!string.IsNullOrEmpty(FilterState.SearchText))
 			{
 				var searchTerm = FilterState.SearchText.ToLower();
-				filtered = filtered.Where(t => 
+				filtered = filtered.Where(t =>
 					(t.Symbol?.ToLower().Contains(searchTerm) ?? false) ||
 					(t.Name?.ToLower().Contains(searchTerm) ?? false) ||
 					(t.Description?.ToLower().Contains(searchTerm) ?? false) ||
