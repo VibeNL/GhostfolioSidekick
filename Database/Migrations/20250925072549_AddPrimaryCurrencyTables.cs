@@ -11,9 +11,7 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-			migrationBuilder.Sql("DELETE FROM Activities");
-
-			migrationBuilder.DropIndex(
+            migrationBuilder.DropIndex(
                 name: "IX_CalculatedSnapshots_HoldingAggregatedId",
                 table: "CalculatedSnapshots");
 
@@ -97,6 +95,11 @@ namespace GhostfolioSidekick.Database.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Activities_Date",
+                table: "Activities",
+                column: "Date");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_BalancePrimaryCurrencies_AccountId_Date",
                 table: "BalancePrimaryCurrencies",
                 columns: new[] { "AccountId", "Date" },
@@ -139,6 +142,10 @@ namespace GhostfolioSidekick.Database.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_CalculatedSnapshots_HoldingAggregatedId_AccountId_Date",
                 table: "CalculatedSnapshots");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Activities_Date",
+                table: "Activities");
 
             migrationBuilder.AddColumn<string>(
                 name: "CurrencyPrice",

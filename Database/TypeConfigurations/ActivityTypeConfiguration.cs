@@ -74,6 +74,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			var type = typeof(Activity);
 			var types = type.Assembly.GetTypes().Where(type.IsAssignableFrom);
+
+			// Indexes
+			builder.HasIndex(a => a.Date);
+			builder.HasIndex("AccountId");
 		}
 
 		public void Configure(EntityTypeBuilder<ActivityWithQuantityAndUnitPrice> builder)
