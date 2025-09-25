@@ -11,7 +11,9 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
+			migrationBuilder.Sql("DELETE FROM Activities");
+
+			migrationBuilder.DropIndex(
                 name: "IX_CalculatedSnapshots_HoldingAggregatedId",
                 table: "CalculatedSnapshots");
 
