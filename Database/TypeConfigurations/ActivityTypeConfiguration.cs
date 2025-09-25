@@ -12,6 +12,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 	internal class ActivityTypeConfiguration :
 		IEntityTypeConfiguration<Activity>,
 		IEntityTypeConfiguration<ActivityWithQuantityAndUnitPrice>,
+		IEntityTypeConfiguration<ActivityWithAmount>,
 		IEntityTypeConfiguration<BuyActivity>,
 		IEntityTypeConfiguration<SellActivity>,
 		IEntityTypeConfiguration<CashDepositActivity>,
@@ -86,6 +87,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.WithOne()
 				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
+		}
+
+		public void Configure(EntityTypeBuilder<ActivityWithAmount> builder)
+		{
+			MapMoney(builder, x => x.Amount, nameof(ActivityWithAmount.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<BuyActivity> builder)
