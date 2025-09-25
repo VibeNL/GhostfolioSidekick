@@ -8,6 +8,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		private DateOnly _endDate = DateOnly.FromDateTime(DateTime.Today);
 		private int _selectedAccountId = 0;
 		private string _selectedSymbol = ""; // Add symbol filter
+		private string _selectedTransactionType = ""; // Add transaction type filter
+		private string _searchText = ""; // Add search text filter
 
 		public FilterState()
 		{
@@ -20,6 +22,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 			_endDate = source._endDate;
 			_selectedAccountId = source._selectedAccountId;
 			_selectedSymbol = source._selectedSymbol;
+			_selectedTransactionType = source._selectedTransactionType;
+			_searchText = source._searchText;
 		}
 
 		public DateOnly StartDate
@@ -74,6 +78,32 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 			}
 		}
 
+		public string SelectedTransactionType
+		{
+			get => _selectedTransactionType;
+			set
+			{
+				if (_selectedTransactionType != value)
+				{
+					_selectedTransactionType = value ?? "";
+					OnPropertyChanged(nameof(SelectedTransactionType));
+				}
+			}
+		}
+
+		public string SearchText
+		{
+			get => _searchText;
+			set
+			{
+				if (_searchText != value)
+				{
+					_searchText = value ?? "";
+					OnPropertyChanged(nameof(SearchText));
+				}
+			}
+		}
+
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		protected virtual void OnPropertyChanged(string propertyName)
@@ -91,7 +121,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 			return StartDate == other.StartDate &&
 				   EndDate == other.EndDate &&
 				   SelectedAccountId == other.SelectedAccountId &&
-				   SelectedSymbol == other.SelectedSymbol;
+				   SelectedSymbol == other.SelectedSymbol &&
+				   SelectedTransactionType == other.SelectedTransactionType &&
+				   SearchText == other.SearchText;
 		}
 	}
 }

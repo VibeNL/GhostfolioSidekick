@@ -48,7 +48,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				   _previousFilterState.StartDate == FilterState.StartDate &&
 				   _previousFilterState.EndDate == FilterState.EndDate &&
 				   _previousFilterState.SelectedAccountId == FilterState.SelectedAccountId &&
-				   _previousFilterState.SelectedSymbol == FilterState.SelectedSymbol)
+				   _previousFilterState.SelectedSymbol == FilterState.SelectedSymbol &&
+				   _previousFilterState.SelectedTransactionType == FilterState.SelectedTransactionType &&
+				   _previousFilterState.SearchText == FilterState.SearchText)
 			{
 				return;
 			}
@@ -76,7 +78,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return _previousFilterState.StartDate != FilterState.StartDate ||
 				   _previousFilterState.EndDate != FilterState.EndDate ||
 				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId ||
-				   _previousFilterState.SelectedSymbol != FilterState.SelectedSymbol;
+				   _previousFilterState.SelectedSymbol != FilterState.SelectedSymbol ||
+				   _previousFilterState.SelectedTransactionType != FilterState.SelectedTransactionType ||
+				   _previousFilterState.SearchText != FilterState.SearchText;
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
@@ -121,17 +125,44 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				return await HoldingsDataService?.GetTransactionsAsync(
+				var allTransactions = await HoldingsDataService?.GetTransactionsAsync(
 					ServerConfigurationService.PrimaryCurrency,
 					FilterState.StartDate,
 					FilterState.EndDate,
 					FilterState.SelectedAccountId,
 					FilterState.SelectedSymbol) ?? new List<TransactionDisplayModel>();
+
+				// Apply client-side filtering for transaction type and search text
+				return ApplyClientSideFilters(allTransactions);
 			}
 			catch (Exception ex)
 			{
 				throw new InvalidOperationException($"Failed to load transaction data: {ex.Message}", ex);
 			}
+		}
+
+		private List<TransactionDisplayModel> ApplyClientSideFilters(List<TransactionDisplayModel> transactions)
+		{
+			var filtered = transactions.AsEnumerable();
+
+			// Filter by transaction type
+			if (!string.IsNullOrEmpty(FilterState.SelectedTransactionType))
+			{
+				filtered = filtered.Where(t => t.Type.Equals(FilterState.SelectedTransactionType, StringComparison.OrdinalIgnoreCase));
+			}
+
+			// Filter by search text (searches in Symbol, Name, and Description)
+			if (!string.IsNullOrEmpty(FilterState.SearchText))
+			{
+				var searchTerm = FilterState.SearchText.ToLower();
+				filtered = filtered.Where(t => 
+					(t.Symbol?.ToLower().Contains(searchTerm) ?? false) ||
+					(t.Name?.ToLower().Contains(searchTerm) ?? false) ||
+					(t.Description?.ToLower().Contains(searchTerm) ?? false) ||
+					(t.TransactionId?.ToLower().Contains(searchTerm) ?? false));
+			}
+
+			return filtered.ToList();
 		}
 
 		// Add refresh method for manual data reload
@@ -147,6 +178,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private Dictionary<string, int> AccountBreakdown =>
 			TransactionsList.GroupBy(t => t.AccountName)
 				   .ToDictionary(g => g.Key, g => g.Count());
+
+		private List<string> AvailableTransactionTypes =>
+			TransactionsList?.Select(t => t.Type)
+				   .Distinct()
+				   .Where(t => !string.IsNullOrEmpty(t))
+				   .OrderBy(t => t)
+				   .ToList() ?? new List<string>();
 
 		private void SortBy(string column)
 		{

@@ -302,6 +302,20 @@
                                 <strong>Account ID: @FilterState.SelectedAccountId</strong>
                             </div>
                         }
+                        @if (!string.IsNullOrEmpty(FilterState.SelectedTransactionType))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>Filtered Type:</span>
+                                <strong>@FilterState.SelectedTransactionType</strong>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(FilterState.SearchText))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>Search:</span>
+                                <strong>"@FilterState.SearchText"</strong>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

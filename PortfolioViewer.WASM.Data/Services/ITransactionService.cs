@@ -22,5 +22,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			int accountId,
 			string symbol,
 			CancellationToken cancellationToken = default);
+
+		/// <summary>
+		/// Gets all available transaction types from the database
+		/// </summary>
+		/// <param name="cancellationToken">Cancellation token</param>
+		/// <returns>List of unique transaction types</returns>
+		Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default);
 	}
 }

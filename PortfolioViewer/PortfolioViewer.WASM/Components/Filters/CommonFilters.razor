@@ -112,6 +112,35 @@
             </div>
         }
 
+        @if (ShowTransactionTypeFilter)
+        {
+            <div class="filter-group">
+                <label class="form-label-sm">Transaction Type</label>
+                <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedTransactionType" @onchange="OnTransactionTypeChanged">
+                    <option value="">All Types</option>
+                    @if (TransactionTypes != null)
+                    {
+                        @foreach (var type in TransactionTypes)
+                        {
+                            <option value="@type">@type</option>
+                        }
+                    }
+                </select>
+            </div>
+        }
+
+        @if (ShowSearchFilter)
+        {
+            <div class="filter-group">
+                <label class="form-label-sm">Search</label>
+                <input type="text" class="form-control form-control-sm" 
+                       placeholder="Search symbol, name, or description..." 
+                       value="@_pendingFilterState.SearchText" 
+                       @onchange="OnSearchTextChanged"
+                       @oninput="OnSearchTextInput" />
+            </div>
+        }
+
         @if (ShowApplyButton)
         {
             <div class="filter-group filter-actions">

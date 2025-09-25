@@ -26,23 +26,94 @@
 }
 
 .navbar-filters {
-    min-width: 300px;
+    min-width: 600px;
+    max-width: 800px;
 }
 
 .navbar-filters .filters-container {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     margin-bottom: 0;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+}
+
+.navbar-filters .filter-group {
+    min-width: 120px;
+}
+
+.navbar-filters .filter-group.date-filters {
+    min-width: 200px;
 }
 
 .navbar-filters .form-label-sm {
     color: rgba(255, 255, 255, 0.8);
+    font-size: 0.75rem;
 }
 
 .navbar-filters .form-control,
 .navbar-filters .form-select {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 0.875rem;
+}
+
+/* Added focus styles for form controls in dark theme */
+.navbar-filters .form-control:focus,
+.navbar-filters .form-select:focus {
+    background: white;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.navbar-filters .btn-group .btn {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.375rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.navbar-filters .btn-group .btn-primary {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.navbar-filters .btn-group .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Compact mode for navbar */
+.navbar-filters .filters-container .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.navbar-filters .filters-container .date-filters .d-flex {
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+}
+
+.navbar-filters .filters-container .date-filters .btn-group .btn {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.375rem;
+}
+
+.navbar-filters .filters-container .filter-actions {
+    margin-left: 0;
+    min-width: 140px;
+}
+
+.navbar-filters .filters-container .filter-actions .d-flex {
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.navbar-filters .filters-container .filter-actions .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
 }
 
 /* Make sure the navbar is always visible on desktop */
@@ -66,6 +137,24 @@
 
     .navbar-filters {
         min-width: 100%;
+        max-width: 100%;
         margin-top: 1rem;
+    }
+
+    .navbar-filters .filters-container {
+        flex-direction: column;
+    }
+
+    .navbar-filters .filter-group {
+        min-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .navbar-filters .filter-group.date-filters {
+        min-width: 100%;
+    }
+
+    .navbar-filters .filters-container .date-filters .d-flex {
+        flex-wrap: wrap;
     }
 }

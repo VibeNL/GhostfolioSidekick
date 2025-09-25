@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 {
-    public partial class CommonFilters : ComponentBase
+    public partial class CommonFilters : ComponentBase, IDisposable
     {
         [Inject] private IHoldingsDataServiceOLD HoldingsDataService { get; set; } = default!;
         [Inject] private ILogger<CommonFilters>? Logger { get; set; }
@@ -18,8 +18,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         [Parameter] public bool ShowDateFilters { get; set; } = false;
         [Parameter] public bool ShowAccountFilter { get; set; } = false;
         [Parameter] public bool ShowSymbolFilter { get; set; } = false;
+        [Parameter] public bool ShowTransactionTypeFilter { get; set; } = false;
+        [Parameter] public bool ShowSearchFilter { get; set; } = false;
         [Parameter] public bool ShowApplyButton { get; set; } = true;
         [Parameter] public EventCallback OnFiltersApplied { get; set; }
+        [Parameter] public List<string>? TransactionTypes { get; set; } = null;
 
         // Pending filter state that holds changes before applying
         private PendingFilterState _pendingFilterState = new();
@@ -38,6 +41,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         private bool _isLoadingSymbols = false;
         private bool _accountsLoadFailed = false;
         private bool _symbolsLoadFailed = false;
+        
+        // Search debouncing
+        private Timer? _searchDebounceTimer;
 
         // Track previous parameter state to detect changes
         private bool _previousShowAccountFilter = false;
@@ -129,6 +135,24 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 _pendingFilterState.SelectedSymbol = "";
                 hasChanges = true;
                 Logger?.LogInformation("Reset symbol filter to 'All Symbols' (not shown on current page)");
+            }
+
+            // Reset transaction type filter if it's not shown on current page
+            if (!ShowTransactionTypeFilter && !string.IsNullOrEmpty(FilterState.SelectedTransactionType))
+            {
+                FilterState.SelectedTransactionType = "";
+                _pendingFilterState.SelectedTransactionType = "";
+                hasChanges = true;
+                Logger?.LogInformation("Reset transaction type filter to 'All Types' (not shown on current page)");
+            }
+
+            // Reset search filter if it's not shown on current page
+            if (!ShowSearchFilter && !string.IsNullOrEmpty(FilterState.SearchText))
+            {
+                FilterState.SearchText = "";
+                _pendingFilterState.SearchText = "";
+                hasChanges = true;
+                Logger?.LogInformation("Reset search filter (not shown on current page)");
             }
 
             if (hasChanges)
@@ -517,6 +541,60 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
         }
 
+        private async Task OnTransactionTypeChanged(ChangeEventArgs e)
+        {
+            if (e.Value != null)
+            {
+                _pendingFilterState.SelectedTransactionType = e.Value.ToString() ?? "";
+                
+                // If apply button is not shown, apply changes immediately
+                if (!ShowApplyButton && FilterState != null)
+                {
+                    FilterState.SelectedTransactionType = _pendingFilterState.SelectedTransactionType;
+                }
+            }
+        }
+
+        private async Task OnSearchTextChanged(ChangeEventArgs e)
+        {
+            if (e.Value != null)
+            {
+                _pendingFilterState.SearchText = e.Value.ToString() ?? "";
+                
+                // If apply button is not shown, apply changes immediately
+                if (!ShowApplyButton && FilterState != null)
+                {
+                    FilterState.SearchText = _pendingFilterState.SearchText;
+                }
+            }
+        }
+
+        private async Task OnSearchTextInput(ChangeEventArgs e)
+        {
+            if (e.Value != null)
+            {
+                var newSearchText = e.Value.ToString() ?? "";
+                _pendingFilterState.SearchText = newSearchText;
+                
+                // Debounce search when apply button is not shown (immediate mode)
+                if (!ShowApplyButton && FilterState != null)
+                {
+                    // Clear existing timer
+                    _searchDebounceTimer?.Dispose();
+                    
+                    // Set new timer for 300ms debounce
+                    _searchDebounceTimer = new Timer(async _ =>
+                    {
+                        await InvokeAsync(() =>
+                        {
+                            FilterState.SearchText = newSearchText;
+                            StateHasChanged();
+                        });
+                    }, null, 300, Timeout.Infinite);
+                }
+            }
+        }
+
         private async Task ApplyFilters()
         {
             if (FilterState != null)
@@ -545,5 +623,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         }
 
         private bool HasPendingChanges => FilterState != null && _pendingFilterState.HasChanges(FilterState);
+
+        public void Dispose()
+        {
+            _searchDebounceTimer?.Dispose();
+        }
     }
 }

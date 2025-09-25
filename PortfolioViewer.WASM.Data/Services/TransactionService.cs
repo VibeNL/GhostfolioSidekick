@@ -85,5 +85,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 			return result;
 		}
+
+		public async Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default)
+		{
+			var activityTypes = await databaseContext.Activities
+				.Select(a => a.GetType().Name)
+				.Distinct()
+				.OrderBy(name => name)
+				.ToListAsync(cancellationToken);
+
+			// Transform activity type names to display-friendly names
+			return activityTypes
+				.Select(name => name.Replace("Proxy", "").Replace("Activity", ""))
+				.Where(name => !string.IsNullOrEmpty(name))
+				.Distinct()
+				.OrderBy(name => name)
+				.ToList();
+		}
 	}
 }

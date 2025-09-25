@@ -10,6 +10,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
         [Parameter] public bool ShowDateFilters { get; set; } = false;
         [Parameter] public bool ShowAccountFilter { get; set; } = false;
         [Parameter] public bool ShowSymbolFilter { get; set; } = false;
+        [Parameter] public bool ShowTransactionTypeFilter { get; set; } = false;
+        [Parameter] public bool ShowSearchFilter { get; set; } = false;
+        [Parameter] public List<string>? TransactionTypes { get; set; } = null;
 
         private string? NavMenuCssClass => collapseNavMenu ? "collapse" : "collapse show";
 
