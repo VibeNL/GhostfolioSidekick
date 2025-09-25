@@ -85,12 +85,82 @@ namespace GhostfolioSidekick.Performance
 
 			await databaseContext.SaveChangesAsync();
 
+			logger.LogInformation("Adding missing days and extrapolating balances to today");
+
+			// Fill missing days and extrapolate to today for each account
+			await FillMissingDaysAndExtrapolate();
+
 			logger.LogInformation("Cleanup unmatched primary currency records");
 
-			// Cleanup unmatched items
+			// Cleanup unmatched items (but preserve extrapolated records)
 			await CleanupUnmatchedItems();
 
 			logger.LogInformation("Completed conversion to primary currency {Currency}", primaryCurrencySymbol);
+		}
+
+		private async Task FillMissingDaysAndExtrapolate()
+		{
+			var accountIds = await databaseContext.BalancePrimaryCurrencies
+				.Select(b => b.AccountId)
+				.Distinct()
+				.ToListAsync();
+
+			var today = DateOnly.FromDateTime(DateTime.Today);
+
+			foreach (var accountId in accountIds)
+			{
+				var existingBalances = await databaseContext.BalancePrimaryCurrencies
+					.Where(b => b.AccountId == accountId)
+					.OrderBy(b => b.Date)
+					.ToListAsync();
+
+				if (!existingBalances.Any())
+				{
+					continue;
+				}
+
+				var startDate = existingBalances.First().Date;
+				var lastKnownDate = existingBalances.Last().Date;
+				var lastKnownAmount = existingBalances.Last().Money;
+
+				// Create set of existing dates for quick lookup
+				var existingDates = existingBalances.Select(b => b.Date).ToHashSet();
+				var newBalances = new List<BalancePrimaryCurrency>();
+
+				// Fill missing days between first and last known dates
+				for (var date = startDate; date <= lastKnownDate; date = date.AddDays(1))
+				{
+					if (!existingDates.Contains(date))
+					{
+						var previousAmount = existingBalances.LastOrDefault(b => b.Date < date)?.Money ?? 0;
+						newBalances.Add(new BalancePrimaryCurrency
+						{
+							AccountId = accountId,
+							Date = date,
+							Money = previousAmount
+						});
+					}
+				}
+
+				// Extrapolate from last known date to today
+				for (var date = lastKnownDate.AddDays(1); date <= today; date = date.AddDays(1))
+				{
+					newBalances.Add(new BalancePrimaryCurrency
+					{
+						AccountId = accountId,
+						Date = date,
+						Money = lastKnownAmount
+					});
+				}
+
+				if (newBalances.Any())
+				{
+					databaseContext.BalancePrimaryCurrencies.AddRange(newBalances);
+					logger.LogInformation("Added {Count} missing balance records for account {AccountId}", newBalances.Count, accountId);
+				}
+			}
+
+			await databaseContext.SaveChangesAsync();
 		}
 
 		private async Task CleanupUnmatchedItems()
@@ -108,19 +178,32 @@ namespace GhostfolioSidekick.Performance
 				databaseContext.CalculatedSnapshotPrimaryCurrencies.RemoveRange(orphanedPrimarySnapshots);
 			}
 
-			// Clean up BalancePrimaryCurrency records that no longer have corresponding Balance records
+			// Only clean up BalancePrimaryCurrency records that don't have corresponding Balance records
+			// AND are before the first actual balance date (preserve filled-in and extrapolated records)
+			var firstActualBalanceDates = await databaseContext.Balances
+				.GroupBy(b => b.AccountId)
+				.Select(g => new { AccountId = g.Key, FirstDate = g.Min(b => b.Date) })
+				.ToListAsync();
+
+			var firstActualBalanceDateDict = firstActualBalanceDates.ToDictionary(x => x.AccountId, x => x.FirstDate);
+
 			var orphanedPrimaryBalances = await databaseContext.BalancePrimaryCurrencies
 				.Where(pb => !databaseContext.Balances
 					.Any(b => b.AccountId == pb.AccountId && b.Date == pb.Date))
 				.ToListAsync();
 
-			if (orphanedPrimaryBalances.Count > 0)
+			// Only remove records that are before the first actual balance date for each account
+			var balancesToRemove = orphanedPrimaryBalances
+				.Where(pb => firstActualBalanceDateDict.TryGetValue(pb.AccountId, out var firstActualDate) && pb.Date < firstActualDate)
+				.ToList();
+
+			if (balancesToRemove.Count > 0)
 			{
-				databaseContext.BalancePrimaryCurrencies.RemoveRange(orphanedPrimaryBalances);
+				databaseContext.BalancePrimaryCurrencies.RemoveRange(balancesToRemove);
 			}
 
 			// Save all cleanup changes
-			if (orphanedPrimarySnapshots.Count > 0 || orphanedPrimaryBalances.Count > 0)
+			if (orphanedPrimarySnapshots.Count > 0 || balancesToRemove.Count > 0)
 			{
 				await databaseContext.SaveChangesAsync();
 			}
