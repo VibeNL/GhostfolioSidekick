@@ -24,6 +24,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool HasError { get; set; } = false;
 		private string ErrorMessage { get; set; } = string.Empty;
 
+		// Modal state
+		private TransactionDisplayModel? SelectedTransaction { get; set; }
+
 		// Sorting state
 		private string sortColumn = "Date";
 		private bool sortAscending = false;
@@ -139,6 +142,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			await LoadTransactionDataAsync();
 		}
 
+		// Modal methods
+		private void ShowTransactionDetails(TransactionDisplayModel transaction)
+		{
+			SelectedTransaction = transaction;
+			StateHasChanged();
+		}
+
 		private Dictionary<string, int> TransactionTypeBreakdown =>
 			TransactionsList.GroupBy(t => t.Type)
 				   .ToDictionary(g => g.Key, g => g.Count());
@@ -190,17 +200,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				case "Quantity":
 					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Quantity ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.Quantity ?? 0).ToList();
 					break;
-				case "UnitPrice":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.UnitPrice?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.UnitPrice?.Amount ?? 0).ToList();
-					break;
 				case "TotalValue":
 					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.TotalValue?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.TotalValue?.Amount ?? 0).ToList();
-					break;
-				case "Fee":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Fee?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.Fee?.Amount ?? 0).ToList();
-					break;
-				case "Tax":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Tax?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.Tax?.Amount ?? 0).ToList();
 					break;
 				case "Description":
 					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Description).ToList() : TransactionsList.OrderByDescending(t => t.Description).ToList();
