@@ -1,6 +1,7 @@
 ﻿using AutoFixture;
 using AutoFixture.Kernel;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
@@ -25,6 +26,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 							.ToList()
 							.ForEach(b => fixture.Behaviors.Remove(b));
 			fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(Activity)));
 			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(Holding)));
 			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(BalancePrimaryCurrency)));
 			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(CalculatedSnapshotPrimaryCurrency)));
