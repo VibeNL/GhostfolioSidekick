@@ -18,14 +18,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 	{
 		private readonly Mock<DatabaseContext> _mockDatabaseContext;
 		private readonly Mock<IServerConfigurationService> _mockServerConfigurationService;
-		private readonly Mock<ILogger<HoldingsDataServiceOLD>> _mockLogger;
+		private readonly Mock<ILogger<HoldingsDataService>> _mockLogger;
 		private readonly HoldingsDataService _holdingsDataService;
 
 		public HoldingsDataServiceTests()
 		{
 			_mockDatabaseContext = new Mock<DatabaseContext>();
 			_mockServerConfigurationService = new Mock<IServerConfigurationService>();
-			_mockLogger = new Mock<ILogger<HoldingsDataServiceOLD>>();
+			_mockLogger = new Mock<ILogger<HoldingsDataService>>();
 
 			// Setup default primary currency
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.USD);

@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Model.Performance;
+﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Performance;
 
 namespace GhostfolioSidekick.Model.Accounts
 {
@@ -31,6 +32,8 @@ namespace GhostfolioSidekick.Model.Accounts
 		public bool SyncActivities { get; set; } = true;
 
 		public bool SyncBalance { get; set; } = true;
+
+		public virtual List<Activity> Activities { get; set; } = [];
 
 		public override string ToString()
 		{

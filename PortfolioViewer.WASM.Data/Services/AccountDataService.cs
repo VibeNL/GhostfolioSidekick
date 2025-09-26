@@ -21,6 +21,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToListAsync();
 		}
 
+		public Task<List<Account>> GetAccountsAsync(string? symbolFilter, CancellationToken cancellationToken = default)
+		{
+			var query = databaseContext.Accounts
+				.Include(a => a.Platform)
+				.AsNoTracking()
+				.OrderBy(a => a.Name)
+				.AsQueryable();
+			if (!string.IsNullOrWhiteSpace(symbolFilter))
+			{
+				query = query.Where(a => a.Activities.Any(h => h.Holding.SymbolProfiles.Any(s => s.Symbol == symbolFilter)));
+			}
+
+			return query.ToListAsync(cancellationToken);
+		}
+
 		public async Task<List<AccountValueHistoryPoint>?> GetAccountValueHistoryAsync(
 			DateOnly startDate,
 			DateOnly endDate,
@@ -80,13 +95,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return result.OrderBy(x => x.Date).ThenBy(x => x.AccountId).ToList();
 		}
 
-		public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
+		public Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
 		{
-			var minDate = await databaseContext.CalculatedSnapshots
-				.OrderBy(s => s.Date)
-				.Select(s => s.Date)
-				.FirstOrDefaultAsync(cancellationToken);
-			return minDate;
+			return databaseContext.CalculatedSnapshotPrimaryCurrencies
+				.MinAsync(s => s.Date, cancellationToken);
+		}
+
+		public Task<List<string>> GetSymbolProfilesAsync(int? accountFilter, CancellationToken cancellationToken = default)
+		{
+			if (!accountFilter.HasValue)
+			{
+				return databaseContext.SymbolProfiles
+					.OrderBy(s => s.Symbol)
+					.Select(s => s.Symbol)
+					.ToListAsync(cancellationToken);
+			}
+			
+			return databaseContext.Holdings
+				.Where(x => x.Activities.Any(y => y.Account.Id == accountFilter))
+				.SelectMany(x => x.SymbolProfiles)
+				.OrderBy(s => s.Symbol)
+				.Select(s => s.Symbol)
+				.ToListAsync(cancellationToken);
 		}
 	}
 }

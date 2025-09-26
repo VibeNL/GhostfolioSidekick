@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 	public class HoldingsDataService(
 		DatabaseContext databaseContext,
 		IServerConfigurationService serverConfigurationService,
-		ILogger<HoldingsDataServiceOLD> logger) : IHoldingsDataService
+		ILogger<HoldingsDataService> logger) : IHoldingsDataService
 	{
 
 		public Task<List<HoldingDisplayModel>> GetHoldingsAsync(CancellationToken cancellationToken = default)

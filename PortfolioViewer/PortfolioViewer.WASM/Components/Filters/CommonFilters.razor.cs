@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 {
     public partial class CommonFilters : ComponentBase, IDisposable
     {
-        [Inject] private IHoldingsDataServiceOLD HoldingsDataService { get; set; } = default!;
+        [Inject] private IAccountDataService AccountDataService { get; set; } = default!;
         [Inject] private ILogger<CommonFilters>? Logger { get; set; }
         
         [CascadingParameter] private FilterState? FilterState { get; set; }
@@ -197,7 +197,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 // Update accounts based on selected symbol in pending state
                 if (ShowAccountFilter && !string.IsNullOrEmpty(_pendingFilterState.SelectedSymbol))
                 {
-                    Accounts = await HoldingsDataService.GetAccountsBySymbolAsync(_pendingFilterState.SelectedSymbol);
+                    Accounts = await AccountDataService.GetAccountsAsync(_pendingFilterState.SelectedSymbol);
                     
                     // Check if currently selected account is still valid
                     if (_pendingFilterState.SelectedAccountId > 0 && !Accounts.Any(a => a.Id == _pendingFilterState.SelectedAccountId))
@@ -213,7 +213,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 // Update symbols based on selected account in pending state
                 if (ShowSymbolFilter && _pendingFilterState.SelectedAccountId > 0)
                 {
-                    Symbols = await HoldingsDataService.GetSymbolsByAccountAsync(_pendingFilterState.SelectedAccountId);
+                    Symbols = await AccountDataService.GetSymbolProfilesAsync(_pendingFilterState.SelectedAccountId);
                     
                     // Check if currently selected symbol is still valid
                     if (!string.IsNullOrEmpty(_pendingFilterState.SelectedSymbol) && !Symbols.Contains(_pendingFilterState.SelectedSymbol))
@@ -244,7 +244,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 
                 // Add timeout to prevent infinite loading
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                var accounts = await HoldingsDataService.GetAccountsAsync().WaitAsync(cts.Token);
+                var accounts = await AccountDataService.GetAccountsAsync(null, cts.Token);
                 
                 // Only update if we got a valid result
                 if (accounts != null)
@@ -306,7 +306,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 
                 // Add timeout to prevent infinite loading
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                var symbols = await HoldingsDataService.GetSymbolsAsync().WaitAsync(cts.Token);
+                var symbols = await AccountDataService.GetSymbolProfilesAsync(null, cts.Token);
                 
                 // Only update if we got a valid result
                 if (symbols != null)

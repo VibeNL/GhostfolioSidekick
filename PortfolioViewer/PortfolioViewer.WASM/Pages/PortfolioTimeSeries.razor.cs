@@ -1,11 +1,9 @@
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
 using System.Globalization;
-using System.Collections.Generic;
 using GhostfolioSidekick.Database.Repository;
 using System.ComponentModel;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
@@ -15,7 +13,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class PortfolioTimeSeries : ComponentBase, IDisposable
 	{
 		[Inject]
-		private IHoldingsDataServiceOLD? HoldingsDataService { get; set; }
+		private IHoldingsDataService HoldingsDataService { get; set; } = default!;
+
+		[Inject]
+		private IAccountDataService AccountDataService { get; set; } = default!;
 
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
@@ -56,7 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		protected override async Task OnInitializedAsync()
 		{
-			MinDate = await HoldingsDataService.GetMinDateAsync();
+			MinDate = await AccountDataService.GetMinDateAsync();
 			
 			// Subscribe to filter changes
 			if (FilterState != null)
@@ -129,7 +130,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 
 				TimeSeriesData = await HoldingsDataService.GetPortfolioValueHistoryAsync(
-					ServerConfigurationService.PrimaryCurrency,
 					StartDate,
 					EndDate,
 					SelectedAccountId

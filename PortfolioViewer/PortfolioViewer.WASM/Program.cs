@@ -84,7 +84,6 @@ public static class Program
 		builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 
 		builder.Services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
-		builder.Services.AddScoped<IHoldingsDataServiceOLD, HoldingsDataServiceOLD>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
 		builder.Services.AddScoped<IAccountDataService, AccountDataService>();
 		builder.Services.AddScoped<ITransactionService, TransactionService>();
