@@ -72,8 +72,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.Select(g => new PortfolioValueHistoryPoint
 				{
 					Date = g.Key,
-					Value = g.Select(x => new Money(serverConfigurationService.PrimaryCurrency, x.TotalValue)).ToArray(),
-					Invested = g.Select(x => new Money(serverConfigurationService.PrimaryCurrency, x.TotalInvested)).ToArray()
+					Value = g.Sum(x => x.TotalValue),
+					Invested = g.Sum(x => x.TotalInvested)
 				})
 				.OrderBy(x => x.Date)
 				.ToListAsync(cancellationToken);

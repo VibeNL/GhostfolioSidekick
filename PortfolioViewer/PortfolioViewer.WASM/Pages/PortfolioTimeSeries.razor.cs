@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
 			
-			await LoadTimeSeriesAsync();
+			//await LoadTimeSeriesAsync();
 		}
 
 		protected override async Task OnParametersSetAsync()
@@ -163,8 +163,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			foreach (var point in TimeSeriesData)
 			{
-				var totalValue = await SumMoney(point.Value, point.Date, targetCurrency);
-				var totalInvested = await SumMoney(point.Invested, point.Date, targetCurrency);
+				var totalValue = new Money(targetCurrency, point.Value);
+				var totalInvested = new Money(targetCurrency, point.Invested);
 				var gainLoss = totalValue.Subtract(totalInvested);
 				var gainLossPercentage = totalInvested.Amount == 0 ? 0 : gainLoss.Amount / totalInvested.Amount;
 
@@ -194,8 +194,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			List<object> investedList = new();
 			foreach (var p in TimeSeriesData)
 			{
-				valueList.Add(await Sum(p.Value, p.Date, CurrencyExchange));
-				investedList.Add(await Sum(p.Invested, p.Date, CurrencyExchange));
+				valueList.Add(p.Value);
+				investedList.Add(p.Invested);
 			}
 
 			var valueTrace = new Scatter
@@ -232,51 +232,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}]
 			};
 			plotConfig = new Config { Responsive = true };
-		}
-
-		private async Task<Money> SumMoney(Money[] values, DateOnly date, Currency targetCurrency)
-		{
-			if (CurrencyExchange == null)
-			{
-				return new Money(targetCurrency, 0);
-			}
-
-			if (values.Length == 0)
-			{
-				return new Money(targetCurrency, 0);
-			}
-
-			var convertedValues = new List<Money>(values.Length);
-			foreach (var v in values)
-			{
-				var converted = await CurrencyExchange.ConvertMoney(v, targetCurrency, date);
-				convertedValues.Add(converted);
-			}
-
-			return Money.Sum(convertedValues);
-		}
-
-		private async Task<object> Sum(Money[] value, DateOnly date, ICurrencyExchange? currencyExchange)
-		{
-			if (currencyExchange == null)
-			{
-				return 0;
-			}
-
-			if (value.Length == 0)
-			{
-				return 0;
-			}
-
-			var convertedValues = new List<Money>(value.Length);
-			foreach (var v in value)
-			{
-				var converted = await currencyExchange.ConvertMoney(v, ServerConfigurationService.PrimaryCurrency, date);
-				convertedValues.Add(converted);
-			}
-
-			var sum = Money.Sum(convertedValues);
-			return sum.Amount;
 		}
 
 		private void SortBy(string column)
