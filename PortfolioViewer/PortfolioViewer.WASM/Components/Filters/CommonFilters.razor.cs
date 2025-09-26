@@ -39,8 +39,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         // Track loading states
         private bool _isLoadingAccounts = false;
         private bool _isLoadingSymbols = false;
-        private bool _accountsLoadFailed = false;
-        private bool _symbolsLoadFailed = false;
         
         // Search debouncing
         private Timer? _searchDebounceTimer;
@@ -167,12 +165,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         {
             var tasks = new List<Task>();
             
-            if (ShowAccountFilter && _allAccounts.Count == 0 && !_isLoadingAccounts && !_accountsLoadFailed)
+            if (ShowAccountFilter && _allAccounts.Count == 0 && !_isLoadingAccounts)
             {
                 tasks.Add(LoadAccountsAsync());
             }
             
-            if (ShowSymbolFilter && _allSymbols.Count == 0 && !_isLoadingSymbols && !_symbolsLoadFailed)
+            if (ShowSymbolFilter && _allSymbols.Count == 0 && !_isLoadingSymbols)
             {
                 tasks.Add(LoadSymbolsAsync());
             }
@@ -239,7 +237,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             try
             {
                 _isLoadingAccounts = true;
-                _accountsLoadFailed = false;
                 Logger?.LogInformation("Loading accounts for filter...");
                 
                 // Add timeout to prevent infinite loading
@@ -262,7 +259,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
             catch (OperationCanceledException)
             {
-                _accountsLoadFailed = true;
                 Logger?.LogError("Timeout loading accounts for filter");
                 _allAccounts = new List<Account>();
                 Accounts = new List<Account>();
@@ -276,7 +272,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
             catch (Exception ex)
             {
-                _accountsLoadFailed = true;
                 Logger?.LogError(ex, "Failed to load accounts for filter");
                 _allAccounts = new List<Account>();
                 Accounts = new List<Account>();
@@ -301,7 +296,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             try
             {
                 _isLoadingSymbols = true;
-                _symbolsLoadFailed = false;
                 Logger?.LogInformation("Loading symbols for filter...");
                 
                 // Add timeout to prevent infinite loading
@@ -324,7 +318,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
             catch (OperationCanceledException)
             {
-                _symbolsLoadFailed = true;
                 Logger?.LogError("Timeout loading symbols for filter");
                 _allSymbols = new List<string>();
                 Symbols = new List<string>();
@@ -338,7 +331,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
             catch (Exception ex)
             {
-                _symbolsLoadFailed = true;
                 Logger?.LogError(ex, "Failed to load symbols for filter");
                 _allSymbols = new List<string>();
                 Symbols = new List<string>();
@@ -354,26 +346,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             {
                 _isLoadingSymbols = false;
             }
-        }
-
-        private async Task RetryLoadAccountsAsync()
-        {
-            Logger?.LogInformation("Retrying to load accounts...");
-            _accountsLoadFailed = false;
-            _allAccounts.Clear();
-            Accounts.Clear();
-            await LoadAccountsAsync();
-            StateHasChanged();
-        }
-
-        private async Task RetryLoadSymbolsAsync()
-        {
-            Logger?.LogInformation("Retrying to load symbols...");
-            _symbolsLoadFailed = false;
-            _allSymbols.Clear();
-            Symbols.Clear();
-            await LoadSymbolsAsync();
-            StateHasChanged();
         }
 
         private void DetectCurrentDateRange()

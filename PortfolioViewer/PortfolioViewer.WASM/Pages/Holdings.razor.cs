@@ -16,9 +16,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private NavigationManager? Navigation { get; set; }
 
-		[Inject]
-		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
-
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 		
@@ -91,7 +88,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				e.PropertyName == nameof(FilterState.EndDate))
 			{
 				Console.WriteLine($"Filter change detected in Holdings - AccountId: {FilterState.SelectedAccountId}");
-				await LoadRealPortfolioDataAsync();
+				await LoadPortfolioDataAsync();
 			}
 
 			StateHasChanged();

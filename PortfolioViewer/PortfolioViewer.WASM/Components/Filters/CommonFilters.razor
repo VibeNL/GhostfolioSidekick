@@ -49,17 +49,6 @@
                         </div>
                     </div>
                 }
-                else if (_accountsLoadFailed)
-                {
-                    <div class="d-flex align-items-center">
-                        <select class="form-select form-select-sm" disabled>
-                            <option>Failed to load accounts</option>
-                        </select>
-                        <button class="btn btn-outline-warning btn-sm ms-2" @onclick="RetryLoadAccountsAsync" title="Retry loading accounts">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                    </div>
-                }
                 else
                 {
                     <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedAccountId" @onchange="OnAccountChanged">
@@ -86,17 +75,6 @@
                         <div class="spinner-border spinner-border-sm ms-2" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                    </div>
-                }
-                else if (_symbolsLoadFailed)
-                {
-                    <div class="d-flex align-items-center">
-                        <select class="form-select form-select-sm" disabled>
-                            <option>Failed to load symbols</option>
-                        </select>
-                        <button class="btn btn-outline-warning btn-sm ms-2" @onclick="RetryLoadSymbolsAsync" title="Retry loading symbols">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
                     </div>
                 }
                 else

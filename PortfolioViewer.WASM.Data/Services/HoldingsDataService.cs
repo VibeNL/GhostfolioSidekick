@@ -84,6 +84,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		private async Task<List<HoldingDisplayModel>> GetHoldingsInternallyAsync(int? accountId, CancellationToken cancellationToken)
 		{
 			var list = await databaseContext.HoldingAggregateds
+				.Where(x => x.CalculatedSnapshotsPrimaryCurrency.Any(y => y.AccountId == accountId || accountId == null))
 				.Select(x => new { Holding = x, LastSnapshot = x.CalculatedSnapshotsPrimaryCurrency
 					.Where(x => x.AccountId == accountId || accountId == null)
 					.OrderByDescending(x => x.Date)
