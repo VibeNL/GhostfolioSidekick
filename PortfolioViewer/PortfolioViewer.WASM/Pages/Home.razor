@@ -1,45 +1,92 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.Model
 @attribute [Authorize]
 
 <PageTitle>Home</PageTitle>
 
 <h1>Start page</h1>
 
-@* <div class="alert alert-warning" role="alert">
-    Before authentication will function correctly, you must configure your provider details in <code>Program.cs</code>
-</div> *@
-
 <p>Before use, please sync the data with a copy of the server</p>
 
-<div>
-	<p>@CurrentAction</p>
-	<div class="progress">
-		<div class="progress-bar" role="progressbar" style="width: @Progress%;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100">
-			@Progress%
-		</div>
-	</div>
+@if (LastSyncTime.HasValue)
+{
+    <div class="alert alert-info mb-3">
+        <strong>Last sync:</strong> @LastSyncTime.Value.ToString("dd/MM/yyyy HH:mm:ss")
+        <small class="text-muted ms-2">(@GetTimeSinceLastSync())</small>
+        @if (!IsSyncing && GetDaysSinceLastSync() <= 7)
+        {
+            <div class="mt-2">
+                <small class="text-info">
+                    <i class="bi bi-lightning-fill me-1"></i>
+                    Next sync will be fast (partial sync - only missing days)
+                </small>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-warning mb-3">
+        <strong>No sync yet:</strong> Please perform your first sync to get started.
+        <div class="mt-2">
+            <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                First sync downloads all data and may take longer
+            </small>
+        </div>
+    </div>
+}
+
+<!-- Sync Progress Section -->
+<div class="mb-4">
+    <p>@CurrentAction</p>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: @Progress%;" aria-valuenow="@Progress" aria-valuemin="0" aria-valuemax="100">
+            @Progress%
+        </div>
+    </div>
 </div>
 
-<button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">Start Sync</button>
+<!-- Sync Buttons Section -->
+<div class="d-flex gap-2 flex-wrap">
+    <button class="btn btn-primary" @onclick="StartSync" disabled="@IsSyncing">
+        @if (IsSyncing)
+        {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        }
+        else
+        {
+            <i class="bi bi-arrow-repeat me-2"></i>
+        }
+        @GetSyncButtonText()
+    </button>
 
-@* <div>
-	<pre class="mermaid">
-		graph LR
-		A --- B
-		B-->C[fa:fa-ban forbidden]
-		B-->D(fa:fa-spinner);
-	</pre>
+    @if (LastSyncTime.HasValue && !IsSyncing)
+    {
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear me-1"></i>
+                Options
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <button class="dropdown-item" @onclick="StartFullSync">
+                        <i class="bi bi-arrow-clockwise me-2"></i>
+                        Force Full Sync
+                        <small class="text-muted d-block">Download all data (slower but complete)</small>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    }
+
 </div>
 
-<div class="mermaid">
-	journey
-	title My working day
-	section Go to work
-	Make tea: 5: Me
-	Go upstairs: 3: Me
-	Do work: 1: Me, Cat
-	section Go home
-	Go downstairs: 5: Me
-	Sit down: 5: Me
-</div> *@
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    <div class="alert @(_isError ? "alert-danger" : "alert-success") mt-3" role="alert">
+        <i class="bi @(_isError ? "bi-exclamation-triangle" : "bi-check-circle") me-2"></i>
+        @_statusMessage
+    </div>
+}

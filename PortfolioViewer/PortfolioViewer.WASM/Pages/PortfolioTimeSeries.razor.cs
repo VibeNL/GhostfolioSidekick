@@ -1,24 +1,28 @@
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
 using System.Globalization;
-using System.Collections.Generic;
 using GhostfolioSidekick.Database.Repository;
 using System.ComponentModel;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
 	public partial class PortfolioTimeSeries : ComponentBase, IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private IHoldingsDataService HoldingsDataService { get; set; } = default!;
+
+		[Inject]
+		private IAccountDataService AccountDataService { get; set; } = default!;
 
 		[Inject]
 		private ICurrencyExchange? CurrencyExchange { get; set; }
+
+		[Inject]
+		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -27,9 +31,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected string ViewMode { get; set; } = "chart";
 
 		// Properties that read from cascaded filter state
-		protected DateTime StartDate => FilterState.StartDate;
-		protected DateTime EndDate => FilterState.EndDate;
-		protected string SelectedCurrency => FilterState.SelectedCurrency;
+		protected DateOnly StartDate => FilterState.StartDate;
+		protected DateOnly EndDate => FilterState.EndDate;
 		protected int SelectedAccountId => FilterState.SelectedAccountId;
 
 		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
@@ -54,7 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		protected override async Task OnInitializedAsync()
 		{
-			MinDate = await HoldingsDataService.GetMinDateAsync();
+			MinDate = await AccountDataService.GetMinDateAsync();
 			
 			// Subscribe to filter changes
 			if (FilterState != null)
@@ -62,7 +65,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
 			
-			await LoadTimeSeriesAsync();
+			//await LoadTimeSeriesAsync();
 		}
 
 		protected override async Task OnParametersSetAsync()
@@ -85,6 +88,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				_previousFilterState = FilterState;
 				await LoadTimeSeriesAsync();
 			}
+
+			if (_previousFilterState != null &&
+				   _previousFilterState.StartDate == FilterState.StartDate &&
+				   _previousFilterState.EndDate == FilterState.EndDate)
+			{
+				return;
+			}
 		}
 
 		private bool HasFilterStateChanged()
@@ -93,7 +103,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			
 			return _previousFilterState.StartDate != FilterState.StartDate ||
 				   _previousFilterState.EndDate != FilterState.EndDate ||
-				   _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency ||
 				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
 		}
 
@@ -120,9 +129,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					throw new InvalidOperationException("HoldingsDataService or CurrencyExchange is not initialized.");
 				}
 
-				var currency = Currency.GetCurrency(SelectedCurrency);
 				TimeSeriesData = await HoldingsDataService.GetPortfolioValueHistoryAsync(
-					currency,
 					StartDate,
 					EndDate,
 					SelectedAccountId
@@ -152,12 +159,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 
 			var displayData = new List<TimeSeriesDisplayModel>();
-			var targetCurrency = Currency.GetCurrency(SelectedCurrency);
+			var targetCurrency = ServerConfigurationService.PrimaryCurrency;
 
 			foreach (var point in TimeSeriesData)
 			{
-				var totalValue = await SumMoney(point.Value, point.Date, targetCurrency);
-				var totalInvested = await SumMoney(point.Invested, point.Date, targetCurrency);
+				var totalValue = new Money(targetCurrency, point.Value);
+				var totalInvested = new Money(targetCurrency, point.Invested);
 				var gainLoss = totalValue.Subtract(totalInvested);
 				var gainLossPercentage = totalInvested.Amount == 0 ? 0 : gainLoss.Amount / totalInvested.Amount;
 
@@ -187,8 +194,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			List<object> investedList = new();
 			foreach (var p in TimeSeriesData)
 			{
-				valueList.Add(await Sum(p.Value, p.Date, CurrencyExchange));
-				investedList.Add(await Sum(p.Invested, p.Date, CurrencyExchange));
+				valueList.Add(p.Value);
+				investedList.Add(p.Invested);
 			}
 
 			var valueTrace = new Scatter
@@ -215,7 +222,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Portfolio Value Over Time" },
 				XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> { new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } } },
-				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({SelectedCurrency})" } } },
+				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({ServerConfigurationService.PrimaryCurrency.Symbol})" } } },
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 				AutoSize = true,
 				ShowLegend = true,
@@ -225,52 +232,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}]
 			};
 			plotConfig = new Config { Responsive = true };
-		}
-
-		private async Task<Money> SumMoney(Money[] values, DateOnly date, Currency targetCurrency)
-		{
-			if (CurrencyExchange == null)
-			{
-				return new Money(targetCurrency, 0);
-			}
-
-			if (values.Length == 0)
-			{
-				return new Money(targetCurrency, 0);
-			}
-
-			var convertedValues = new List<Money>(values.Length);
-			foreach (var v in values)
-			{
-				var converted = await CurrencyExchange.ConvertMoney(v, targetCurrency, date);
-				convertedValues.Add(converted);
-			}
-
-			return Money.Sum(convertedValues);
-		}
-
-		private async Task<object> Sum(Money[] value, DateOnly date, ICurrencyExchange? currencyExchange)
-		{
-			var targetCurrency = Currency.GetCurrency(SelectedCurrency);
-			if (currencyExchange == null)
-			{
-				return 0;
-			}
-
-			if (value.Length == 0)
-			{
-				return 0;
-			}
-
-			var convertedValues = new List<Money>(value.Length);
-			foreach (var v in value)
-			{
-				var converted = await currencyExchange.ConvertMoney(v, targetCurrency, date);
-				convertedValues.Add(converted);
-			}
-
-			var sum = Money.Sum(convertedValues);
-			return sum.Amount;
 		}
 
 		private void SortBy(string column)

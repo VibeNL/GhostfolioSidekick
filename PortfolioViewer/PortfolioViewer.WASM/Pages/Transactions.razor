@@ -122,47 +122,13 @@
                                                                OnSort="SortBy" />
                                         </th>
                                         <th scope="col" class="text-end">
-                                            <SortableTableHeader Column="Quantity" 
-                                                               DisplayName="Quantity" 
-                                                               CurrentSortColumn="@sortColumn" 
-                                                               IsAscending="@sortAscending" 
-                                                               OnSort="SortBy" />
-                                        </th>
-                                        <th scope="col" class="text-end">
-                                            <SortableTableHeader Column="UnitPrice" 
-                                                               DisplayName="Unit Price" 
-                                                               CurrentSortColumn="@sortColumn" 
-                                                               IsAscending="@sortAscending" 
-                                                               OnSort="SortBy" />
-                                        </th>
-                                        <th scope="col" class="text-end">
                                             <SortableTableHeader Column="TotalValue" 
                                                                DisplayName="Total Value" 
                                                                CurrentSortColumn="@sortColumn" 
                                                                IsAscending="@sortAscending" 
                                                                OnSort="SortBy" />
                                         </th>
-                                        <th scope="col" class="text-end">
-                                            <SortableTableHeader Column="Fee" 
-                                                               DisplayName="Fee" 
-                                                               CurrentSortColumn="@sortColumn" 
-                                                               IsAscending="@sortAscending" 
-                                                               OnSort="SortBy" />
-                                        </th>
-                                        <th scope="col" class="text-end">
-                                            <SortableTableHeader Column="Tax" 
-                                                               DisplayName="Tax" 
-                                                               CurrentSortColumn="@sortColumn" 
-                                                               IsAscending="@sortAscending" 
-                                                               OnSort="SortBy" />
-                                        </th>
-                                        <th scope="col">
-                                            <SortableTableHeader Column="Description" 
-                                                               DisplayName="Description" 
-                                                               CurrentSortColumn="@sortColumn" 
-                                                               IsAscending="@sortAscending" 
-                                                               OnSort="SortBy" />
-                                        </th>
+                                        <th scope="col" class="text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -201,26 +167,6 @@
                                                 <span class="badge bg-secondary">@transaction.AccountName</span>
                                             </td>
                                             <td class="text-end">
-                                                @if (transaction.Quantity.HasValue)
-                                                {
-                                                    @transaction.Quantity.Value.ToString("N4")
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td class="text-end">
-                                                @if (transaction.UnitPrice != null)
-                                                {
-                                                    @CurrencyDisplay.DisplaySignAndAmount(transaction.UnitPrice)
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td class="text-end">
                                                 @if (transaction.TotalValue != null)
                                                 {
                                                     <strong class="@GetValueClass(transaction.TotalValue, transaction.Type)">
@@ -232,35 +178,14 @@
                                                     <span class="text-muted">-</span>
                                                 }
                                             </td>
-                                            <td class="text-end">
-                                                @if (transaction.Fee != null)
-                                                {
-                                                    <span class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(transaction.Fee)</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td class="text-end">
-                                                @if (transaction.Tax != null)
-                                                {
-                                                    <span class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(transaction.Tax)</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (!string.IsNullOrEmpty(transaction.Description))
-                                                {
-                                                    <small>@transaction.Description</small>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
+                                            <td class="text-center">
+                                                <button type="button" 
+                                                        class="btn btn-outline-primary btn-sm" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#transactionDetailsModal"
+                                                        @onclick="@(() => ShowTransactionDetails(transaction))">
+                                                    <i class="bi bi-eye"></i> Details
+                                                </button>
                                             </td>
                                         </tr>
                                     }
@@ -302,6 +227,20 @@
                                 <strong>Account ID: @FilterState.SelectedAccountId</strong>
                             </div>
                         }
+                        @if (!string.IsNullOrEmpty(FilterState.SelectedTransactionType))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>Filtered Type:</span>
+                                <strong>@FilterState.SelectedTransactionType</strong>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(FilterState.SearchText))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <span>Search:</span>
+                                <strong>"@FilterState.SearchText"</strong>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -341,6 +280,209 @@
     }
 </div>
 
+<!-- Transaction Details Modal -->
+<div class="modal fade" id="transactionDetailsModal" tabindex="-1" aria-labelledby="transactionDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionDetailsModalLabel">
+                    <i class="bi bi-receipt"></i> Transaction Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (SelectedTransaction != null)
+                {
+                    <div class="row g-3">
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0"><i class="bi bi-info-circle"></i> Basic Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <strong>Date:</strong> 
+                                        @SelectedTransaction.Date.ToString("yyyy-MM-dd HH:mm")
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Type:</strong> 
+                                        <span class="badge @GetTypeClass(SelectedTransaction.Type)">@SelectedTransaction.Type</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Transaction ID:</strong> 
+                                        <code>@SelectedTransaction.TransactionId</code>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Account:</strong> 
+                                        <span class="badge bg-secondary">@SelectedTransaction.AccountName</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Information -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0"><i class="bi bi-graph-up"></i> Security Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <strong>Symbol:</strong> 
+                                        @if (!string.IsNullOrEmpty(SelectedTransaction.Symbol))
+                                        {
+                                            <strong>@SelectedTransaction.Symbol</strong>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Name:</strong> 
+                                        @if (!string.IsNullOrEmpty(SelectedTransaction.Name))
+                                        {
+                                            @SelectedTransaction.Name
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Quantity:</strong> 
+                                        @if (SelectedTransaction.Quantity.HasValue)
+                                        {
+                                            @SelectedTransaction.Quantity.Value.ToString("N4")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Currency:</strong> 
+                                        <span class="badge bg-info">@SelectedTransaction.Currency</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Financial Details -->
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0"><i class="bi bi-currency-dollar"></i> Financial Details</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="text-center p-3 border rounded">
+                                                <div class="text-muted small">Unit Price</div>
+                                                <div class="h5 mb-0">
+                                                    @if (SelectedTransaction.UnitPrice != null)
+                                                    {
+                                                        @CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.UnitPrice)
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="text-center p-3 border rounded">
+                                                <div class="text-muted small">Total Value</div>
+                                                <div class="h5 mb-0">
+                                                    @if (SelectedTransaction.TotalValue != null)
+                                                    {
+                                                        <strong class="@GetValueClass(SelectedTransaction.TotalValue, SelectedTransaction.Type)">
+                                                            @CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.TotalValue)
+                                                        </strong>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="text-center p-3 border rounded">
+                                                <div class="text-muted small">Fee</div>
+                                                <div class="h5 mb-0">
+                                                    @if (SelectedTransaction.Fee != null)
+                                                    {
+                                                        <span class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Fee)</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="text-center p-3 border rounded">
+                                                <div class="text-muted small">Tax</div>
+                                                <div class="h5 mb-0">
+                                                    @if (SelectedTransaction.Tax != null)
+                                                    {
+                                                        <span class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Tax)</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if (SelectedTransaction.Amount != null)
+                                    {
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <div class="text-center p-3 border rounded bg-light">
+                                                    <div class="text-muted small">Amount</div>
+                                                    <div class="h4 mb-0">
+                                                        <strong>@CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Amount)</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        @if (!string.IsNullOrEmpty(SelectedTransaction.Description))
+                        {
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0"><i class="bi bi-chat-left-text"></i> Description</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-0">@SelectedTransaction.Description</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     .table th {
         position: sticky;
@@ -369,9 +511,29 @@
         transition: background-color 0.15s ease-in-out;
     }
 
-    .table td:nth-child(11) {
+    .table td:nth-child(8) {
         max-width: 200px;
         white-space: normal;
         word-wrap: break-word;
+    }
+
+    /* Modal specific styles */
+    .modal-body .card {
+        border: 1px solid #dee2e6;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .modal-body .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .modal-body .border.rounded {
+        background-color: #ffffff;
+        transition: background-color 0.15s ease-in-out;
+    }
+    
+    .modal-body .border.rounded:hover {
+        background-color: #f8f9fa;
     }
 </style>

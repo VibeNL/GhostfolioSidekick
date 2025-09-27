@@ -3,7 +3,7 @@ using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class DividendActivity : Activity, IActivityWithPartialIdentifier
+	public record class DividendActivity : ActivityWithAmount, IActivityWithPartialIdentifier
 	{
 		public DividendActivity()
 		{
@@ -19,17 +19,14 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			Money amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, dateTime, amount, transactionId, sortingPriority, description)
 		{
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
-			Amount = amount;
 		}
 
 		public virtual ICollection<DividendActivityFee> Fees { get; set; } = [];
 
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
-
-		public Money Amount { get; set; }
 
 		public virtual ICollection<DividendActivityTax> Taxes { get; set; } = [];
 	}

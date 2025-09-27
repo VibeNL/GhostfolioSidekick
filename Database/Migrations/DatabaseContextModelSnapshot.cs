@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -166,6 +166,8 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("Date");
 
                     b.HasIndex("HoldingId");
 
@@ -782,6 +784,29 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.ToTable("StockSplits", (string)null);
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Performance.BalancePrimaryCurrency", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Money")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("BalancePrimaryCurrencies", (string)null);
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.CalculatedSnapshot", b =>
                 {
                     b.Property<long>("Id")
@@ -879,9 +904,57 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HoldingAggregatedId");
+                    b.HasIndex("Date");
+
+                    b.HasIndex("AccountId", "Date");
+
+                    b.HasIndex("HoldingAggregatedId", "AccountId", "Date")
+                        .IsUnique();
 
                     b.ToTable("CalculatedSnapshots", (string)null);
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Performance.CalculatedSnapshotPrimaryCurrency", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Key", 0);
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("AverageCostPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CurrentUnitPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("HoldingAggregatedId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TotalInvested")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TotalValue")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Date");
+
+                    b.HasIndex("AccountId", "Date");
+
+                    b.HasIndex("HoldingAggregatedId", "AccountId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("CalculatedSnapshotPrimaryCurrencies", (string)null);
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.HoldingAggregated", b =>
@@ -1004,6 +1077,34 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.ToTable("SymbolProfiles", (string)null);
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithAmount", b =>
+                {
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+
+                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.ActivityWithAmount.Amount#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .ValueGeneratedOnUpdateSometimes()
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Amount");
+
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.ActivityWithAmount.Amount#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .ValueGeneratedOnUpdateSometimes()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyAmount");
+                                });
+                        });
+
+                    b.HasDiscriminator().HasValue("ActivityWithAmount");
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
@@ -1074,62 +1175,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasDiscriminator().HasValue("ActivityWithQuantityAndUnitPrice");
                 });
 
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.CashDepositActivity", b =>
-                {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
-
-                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.CashDepositActivity.Amount#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Amount");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.CashDepositActivity.Amount#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .ValueGeneratedOnUpdateSometimes()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyAmount");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("CashDepositActivity");
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.CashWithdrawalActivity", b =>
-                {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
-
-                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.CashWithdrawalActivity.Amount#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Amount");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.CashWithdrawalActivity.Amount#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .ValueGeneratedOnUpdateSometimes()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyAmount");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("CashWithdrawalActivity");
-                });
-
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.DividendActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
@@ -1155,243 +1200,112 @@ namespace GhostfolioSidekick.Database.Migrations
                                 });
                         });
 
-                    b.HasDiscriminator().HasValue("DividendActivity");
+                    b.HasDiscriminator().HasValue("Dividend");
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.CashDepositActivity", b =>
+                {
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
+
+                    b.HasDiscriminator().HasValue("CashDeposit");
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.CashWithdrawalActivity", b =>
+                {
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
+
+                    b.HasDiscriminator().HasValue("CashWithdrawal");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.FeeActivity", b =>
                 {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.FeeActivity.Amount#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Amount");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.FeeActivity.Amount#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .ValueGeneratedOnUpdateSometimes()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyAmount");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("FeeActivity");
+                    b.HasDiscriminator().HasValue("Fee");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.GiftFiatActivity", b =>
                 {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.GiftFiatActivity.Amount#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Amount");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.GiftFiatActivity.Amount#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .ValueGeneratedOnUpdateSometimes()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyAmount");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("GiftFiatActivity");
+                    b.HasDiscriminator().HasValue("GiftFiat");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.InterestActivity", b =>
                 {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.InterestActivity.Amount#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Amount");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.InterestActivity.Amount#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .ValueGeneratedOnUpdateSometimes()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyAmount");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("InterestActivity");
+                    b.HasDiscriminator().HasValue("Interest");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.KnownBalanceActivity", b =>
                 {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Activities.Types.KnownBalanceActivity.Amount#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Amount");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.KnownBalanceActivity.Amount#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .ValueGeneratedOnUpdateSometimes()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyAmount");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("KnownBalanceActivity");
+                    b.HasDiscriminator().HasValue("KnownBalance");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.LiabilityActivity", b =>
                 {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Price", "GhostfolioSidekick.Model.Activities.Types.LiabilityActivity.Price#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Price");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.LiabilityActivity.Price#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .ValueGeneratedOnUpdateSometimes()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyPrice");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("LiabilityActivity");
+                    b.HasDiscriminator().HasValue("Liability");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.RepayBondActivity", b =>
                 {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
 
-                    b.ComplexProperty<Dictionary<string, object>>("TotalRepayAmount", "GhostfolioSidekick.Model.Activities.Types.RepayBondActivity.TotalRepayAmount#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("TotalRepayAmount");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.RepayBondActivity.TotalRepayAmount#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyTotalRepayAmount");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("RepayBondActivity");
+                    b.HasDiscriminator().HasValue("RepayBond");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.ValuableActivity", b =>
                 {
-                    b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
+                    b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithAmount");
 
-                    b.ComplexProperty<Dictionary<string, object>>("Price", "GhostfolioSidekick.Model.Activities.Types.ValuableActivity.Price#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Price");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Activities.Types.ValuableActivity.Price#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .ValueGeneratedOnUpdateSometimes()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyPrice");
-                                });
-                        });
-
-                    b.HasDiscriminator().HasValue("ValuableActivity");
+                    b.HasDiscriminator().HasValue("Valuable");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.BuyActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice");
 
-                    b.HasDiscriminator().HasValue("BuyActivity");
+                    b.HasDiscriminator().HasValue("Buy");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.GiftAssetActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice");
 
-                    b.HasDiscriminator().HasValue("GiftAssetActivity");
+                    b.HasDiscriminator().HasValue("GiftAsset");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.ReceiveActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice");
 
-                    b.HasDiscriminator().HasValue("ReceiveActivity");
+                    b.HasDiscriminator().HasValue("Receive");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.SellActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice");
 
-                    b.HasDiscriminator().HasValue("SellActivity");
+                    b.HasDiscriminator().HasValue("Sell");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.SendActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice");
 
-                    b.HasDiscriminator().HasValue("SendActivity");
+                    b.HasDiscriminator().HasValue("Send");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.Types.StakingRewardActivity", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice");
 
-                    b.HasDiscriminator().HasValue("StakingRewardActivity");
+                    b.HasDiscriminator().HasValue("StakingReward");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Database.TypeConfigurations.PartialSymbolIdentifierActivity", b =>
@@ -1569,10 +1483,28 @@ namespace GhostfolioSidekick.Database.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Performance.BalancePrimaryCurrency", b =>
+                {
+                    b.HasOne("GhostfolioSidekick.Model.Accounts.Account", null)
+                        .WithMany("BalancePrimaryCurrency")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.CalculatedSnapshot", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Performance.HoldingAggregated", null)
                         .WithMany("CalculatedSnapshots")
+                        .HasForeignKey("HoldingAggregatedId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Performance.CalculatedSnapshotPrimaryCurrency", b =>
+                {
+                    b.HasOne("GhostfolioSidekick.Model.Performance.HoldingAggregated", null)
+                        .WithMany("CalculatedSnapshotsPrimaryCurrency")
                         .HasForeignKey("HoldingAggregatedId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1588,6 +1520,8 @@ namespace GhostfolioSidekick.Database.Migrations
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
                 {
                     b.Navigation("Balance");
+
+                    b.Navigation("BalancePrimaryCurrency");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Holding", b =>
@@ -1600,6 +1534,8 @@ namespace GhostfolioSidekick.Database.Migrations
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.HoldingAggregated", b =>
                 {
                     b.Navigation("CalculatedSnapshots");
+
+                    b.Navigation("CalculatedSnapshotsPrimaryCurrency");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.CurrencyExchangeProfile", b =>

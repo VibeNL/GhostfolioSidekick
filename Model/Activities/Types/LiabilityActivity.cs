@@ -2,12 +2,10 @@
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class LiabilityActivity : Activity, IActivityWithPartialIdentifier
+	public record class LiabilityActivity : ActivityWithAmount, IActivityWithPartialIdentifier
 	{
 		public LiabilityActivity()
 		{
-			// EF Core
-			Price = null!;
 		}
 
 		public LiabilityActivity(
@@ -18,14 +16,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			Money amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, dateTime, amount, transactionId, sortingPriority, description)
 		{
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
-			Price = amount;
 		}
 
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
-
-		public Money Price { get; set; }
 	}
 }

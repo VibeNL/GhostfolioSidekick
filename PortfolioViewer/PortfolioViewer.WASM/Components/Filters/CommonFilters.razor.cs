@@ -1,5 +1,6 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
@@ -7,19 +8,21 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 {
-    public partial class CommonFilters : ComponentBase
+    public partial class CommonFilters : ComponentBase, IDisposable
     {
-        [Inject] private IHoldingsDataService HoldingsDataService { get; set; } = default!;
+        [Inject] private IAccountDataService AccountDataService { get; set; } = default!;
         [Inject] private ILogger<CommonFilters>? Logger { get; set; }
         
         [CascadingParameter] private FilterState? FilterState { get; set; }
 
         [Parameter] public bool ShowDateFilters { get; set; } = false;
-        [Parameter] public bool ShowCurrencyFilter { get; set; } = false;
         [Parameter] public bool ShowAccountFilter { get; set; } = false;
         [Parameter] public bool ShowSymbolFilter { get; set; } = false;
+        [Parameter] public bool ShowTransactionTypeFilter { get; set; } = false;
+        [Parameter] public bool ShowSearchFilter { get; set; } = false;
         [Parameter] public bool ShowApplyButton { get; set; } = true;
         [Parameter] public EventCallback OnFiltersApplied { get; set; }
+        [Parameter] public List<string>? TransactionTypes { get; set; } = null;
 
         // Pending filter state that holds changes before applying
         private PendingFilterState _pendingFilterState = new();
@@ -36,8 +39,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         // Track loading states
         private bool _isLoadingAccounts = false;
         private bool _isLoadingSymbols = false;
-        private bool _accountsLoadFailed = false;
-        private bool _symbolsLoadFailed = false;
+        
+        // Search debouncing
+        private Timer? _searchDebounceTimer;
 
         // Track previous parameter state to detect changes
         private bool _previousShowAccountFilter = false;
@@ -131,6 +135,24 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 Logger?.LogInformation("Reset symbol filter to 'All Symbols' (not shown on current page)");
             }
 
+            // Reset transaction type filter if it's not shown on current page
+            if (!ShowTransactionTypeFilter && !string.IsNullOrEmpty(FilterState.SelectedTransactionType))
+            {
+                FilterState.SelectedTransactionType = "";
+                _pendingFilterState.SelectedTransactionType = "";
+                hasChanges = true;
+                Logger?.LogInformation("Reset transaction type filter to 'All Types' (not shown on current page)");
+            }
+
+            // Reset search filter if it's not shown on current page
+            if (!ShowSearchFilter && !string.IsNullOrEmpty(FilterState.SearchText))
+            {
+                FilterState.SearchText = "";
+                _pendingFilterState.SearchText = "";
+                hasChanges = true;
+                Logger?.LogInformation("Reset search filter (not shown on current page)");
+            }
+
             if (hasChanges)
             {
                 // Update filtered options after resetting
@@ -143,12 +165,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         {
             var tasks = new List<Task>();
             
-            if (ShowAccountFilter && _allAccounts.Count == 0 && !_isLoadingAccounts && !_accountsLoadFailed)
+            if (ShowAccountFilter && _allAccounts.Count == 0 && !_isLoadingAccounts)
             {
                 tasks.Add(LoadAccountsAsync());
             }
             
-            if (ShowSymbolFilter && _allSymbols.Count == 0 && !_isLoadingSymbols && !_symbolsLoadFailed)
+            if (ShowSymbolFilter && _allSymbols.Count == 0 && !_isLoadingSymbols)
             {
                 tasks.Add(LoadSymbolsAsync());
             }
@@ -173,7 +195,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 // Update accounts based on selected symbol in pending state
                 if (ShowAccountFilter && !string.IsNullOrEmpty(_pendingFilterState.SelectedSymbol))
                 {
-                    Accounts = await HoldingsDataService.GetAccountsBySymbolAsync(_pendingFilterState.SelectedSymbol);
+                    Accounts = await AccountDataService.GetAccountsAsync(_pendingFilterState.SelectedSymbol);
                     
                     // Check if currently selected account is still valid
                     if (_pendingFilterState.SelectedAccountId > 0 && !Accounts.Any(a => a.Id == _pendingFilterState.SelectedAccountId))
@@ -189,7 +211,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 // Update symbols based on selected account in pending state
                 if (ShowSymbolFilter && _pendingFilterState.SelectedAccountId > 0)
                 {
-                    Symbols = await HoldingsDataService.GetSymbolsByAccountAsync(_pendingFilterState.SelectedAccountId);
+                    Symbols = await AccountDataService.GetSymbolProfilesAsync(_pendingFilterState.SelectedAccountId);
                     
                     // Check if currently selected symbol is still valid
                     if (!string.IsNullOrEmpty(_pendingFilterState.SelectedSymbol) && !Symbols.Contains(_pendingFilterState.SelectedSymbol))
@@ -215,12 +237,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             try
             {
                 _isLoadingAccounts = true;
-                _accountsLoadFailed = false;
                 Logger?.LogInformation("Loading accounts for filter...");
                 
                 // Add timeout to prevent infinite loading
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                var accounts = await HoldingsDataService.GetAccountsAsync().WaitAsync(cts.Token);
+                var accounts = await AccountDataService.GetAccountsAsync(null, cts.Token);
                 
                 // Only update if we got a valid result
                 if (accounts != null)
@@ -238,7 +259,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
             catch (OperationCanceledException)
             {
-                _accountsLoadFailed = true;
                 Logger?.LogError("Timeout loading accounts for filter");
                 _allAccounts = new List<Account>();
                 Accounts = new List<Account>();
@@ -252,7 +272,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
             catch (Exception ex)
             {
-                _accountsLoadFailed = true;
                 Logger?.LogError(ex, "Failed to load accounts for filter");
                 _allAccounts = new List<Account>();
                 Accounts = new List<Account>();
@@ -277,12 +296,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             try
             {
                 _isLoadingSymbols = true;
-                _symbolsLoadFailed = false;
                 Logger?.LogInformation("Loading symbols for filter...");
                 
                 // Add timeout to prevent infinite loading
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                var symbols = await HoldingsDataService.GetSymbolsAsync().WaitAsync(cts.Token);
+                var symbols = await AccountDataService.GetSymbolProfilesAsync(null, cts.Token);
                 
                 // Only update if we got a valid result
                 if (symbols != null)
@@ -300,7 +318,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
             catch (OperationCanceledException)
             {
-                _symbolsLoadFailed = true;
                 Logger?.LogError("Timeout loading symbols for filter");
                 _allSymbols = new List<string>();
                 Symbols = new List<string>();
@@ -314,7 +331,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
             catch (Exception ex)
             {
-                _symbolsLoadFailed = true;
                 Logger?.LogError(ex, "Failed to load symbols for filter");
                 _allSymbols = new List<string>();
                 Symbols = new List<string>();
@@ -332,63 +348,43 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
         }
 
-        private async Task RetryLoadAccountsAsync()
-        {
-            Logger?.LogInformation("Retrying to load accounts...");
-            _accountsLoadFailed = false;
-            _allAccounts.Clear();
-            Accounts.Clear();
-            await LoadAccountsAsync();
-            StateHasChanged();
-        }
-
-        private async Task RetryLoadSymbolsAsync()
-        {
-            Logger?.LogInformation("Retrying to load symbols...");
-            _symbolsLoadFailed = false;
-            _allSymbols.Clear();
-            Symbols.Clear();
-            await LoadSymbolsAsync();
-            StateHasChanged();
-        }
-
         private void DetectCurrentDateRange()
         {
             if (_pendingFilterState == null) return;
 
-            var today = DateTime.Today;
-            var startOfYear = new DateTime(today.Year, 1, 1);
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var startOfYear = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1));
 
             // Check if current dates match predefined ranges
-            if (_pendingFilterState.StartDate.Date == startOfYear && _pendingFilterState.EndDate.Date == today)
+            if (_pendingFilterState.StartDate == startOfYear && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "YearToDate";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddDays(-7) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddDays(-7) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "LastWeek";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddMonths(-1) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddMonths(-1) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "LastMonth";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddMonths(-3) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddMonths(-3) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "ThreeMonths";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddMonths(-6) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddMonths(-6) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "SixMonths";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddYears(-1) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddYears(-1) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "OneYear";
             }
-            else if (_pendingFilterState.StartDate.Date == today.AddYears(-5) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == today.AddYears(-5) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "FiveYear";
             }
-            else if (_pendingFilterState.StartDate.Date == new DateTime(2020, 1, 1) && _pendingFilterState.EndDate.Date == today)
+            else if (_pendingFilterState.StartDate == DateOnly.FromDateTime(new DateTime(2020, 1, 1)) && _pendingFilterState.EndDate == today)
             {
                 _currentDateRange = "Max";
             }
@@ -400,7 +396,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 
         private async Task SetDateRange(string range)
         {
-            var today = DateTime.Today;
+            var today = DateOnly.FromDateTime(DateTime.Today);
             _currentDateRange = range;
 
             switch (range)
@@ -422,7 +418,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                     _pendingFilterState.EndDate = today;
                     break;
                 case "YearToDate":
-                    _pendingFilterState.StartDate = new DateTime(today.Year, 1, 1);
+                    _pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1));
                     _pendingFilterState.EndDate = today;
                     break;
                 case "OneYear":
@@ -434,7 +430,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                     _pendingFilterState.EndDate = today;
                     break;
                 case "Max":
-                    _pendingFilterState.StartDate = new DateTime(2020, 1, 1);
+                    _pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(2020, 1, 1));
                     _pendingFilterState.EndDate = today;
                     break;
             }
@@ -453,7 +449,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 
         private async Task OnStartDateChanged(ChangeEventArgs e)
         {
-            if (DateTime.TryParse(e.Value?.ToString(), out var date))
+            if (DateOnly.TryParse(e.Value?.ToString(), out var date))
             {
                 _pendingFilterState.StartDate = date;
                 _currentDateRange = null; // Clear predefined range when custom date is set
@@ -468,7 +464,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 
         private async Task OnEndDateChanged(ChangeEventArgs e)
         {
-            if (DateTime.TryParse(e.Value?.ToString(), out var date))
+            if (DateOnly.TryParse(e.Value?.ToString(), out var date))
             {
                 _pendingFilterState.EndDate = date;
                 _currentDateRange = null; // Clear predefined range when custom date is set
@@ -477,20 +473,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
                 if (!ShowApplyButton && FilterState != null)
                 {
                     FilterState.EndDate = date;
-                }
-            }
-        }
-
-        private async Task OnCurrencyChanged(ChangeEventArgs e)
-        {
-            if (e.Value != null)
-            {
-                _pendingFilterState.SelectedCurrency = e.Value.ToString() ?? "EUR";
-                
-                // If apply button is not shown, apply changes immediately
-                if (!ShowApplyButton && FilterState != null)
-                {
-                    FilterState.SelectedCurrency = _pendingFilterState.SelectedCurrency;
                 }
             }
         }
@@ -531,6 +513,60 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
             }
         }
 
+        private async Task OnTransactionTypeChanged(ChangeEventArgs e)
+        {
+            if (e.Value != null)
+            {
+                _pendingFilterState.SelectedTransactionType = e.Value.ToString() ?? "";
+                
+                // If apply button is not shown, apply changes immediately
+                if (!ShowApplyButton && FilterState != null)
+                {
+                    FilterState.SelectedTransactionType = _pendingFilterState.SelectedTransactionType;
+                }
+            }
+        }
+
+        private async Task OnSearchTextChanged(ChangeEventArgs e)
+        {
+            if (e.Value != null)
+            {
+                _pendingFilterState.SearchText = e.Value.ToString() ?? "";
+                
+                // If apply button is not shown, apply changes immediately
+                if (!ShowApplyButton && FilterState != null)
+                {
+                    FilterState.SearchText = _pendingFilterState.SearchText;
+                }
+            }
+        }
+
+        private async Task OnSearchTextInput(ChangeEventArgs e)
+        {
+            if (e.Value != null)
+            {
+                var newSearchText = e.Value.ToString() ?? "";
+                _pendingFilterState.SearchText = newSearchText;
+                
+                // Debounce search when apply button is not shown (immediate mode)
+                if (!ShowApplyButton && FilterState != null)
+                {
+                    // Clear existing timer
+                    _searchDebounceTimer?.Dispose();
+                    
+                    // Set new timer for 300ms debounce
+                    _searchDebounceTimer = new Timer(async _ =>
+                    {
+                        await InvokeAsync(() =>
+                        {
+                            FilterState.SearchText = newSearchText;
+                            StateHasChanged();
+                        });
+                    }, null, 300, Timeout.Infinite);
+                }
+            }
+        }
+
         private async Task ApplyFilters()
         {
             if (FilterState != null)
@@ -559,5 +595,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
         }
 
         private bool HasPendingChanges => FilterState != null && _pendingFilterState.HasChanges(FilterState);
+
+        public void Dispose()
+        {
+            _searchDebounceTimer?.Dispose();
+        }
     }
 }

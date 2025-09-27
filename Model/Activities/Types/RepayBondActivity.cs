@@ -2,12 +2,11 @@
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record class RepayBondActivity : Activity, IActivityWithPartialIdentifier
+	public record class RepayBondActivity : ActivityWithAmount, IActivityWithPartialIdentifier
 	{
 		public RepayBondActivity()
 		{
 			// EF Core
-			TotalRepayAmount = null!;
 		}
 
 		public RepayBondActivity(
@@ -18,14 +17,11 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			Money totalRepayAmount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, dateTime, totalRepayAmount, transactionId, sortingPriority, description)
 		{
 			PartialSymbolIdentifiers = [.. partialSymbolIdentifiers];
-			TotalRepayAmount = totalRepayAmount;
 		}
 
 		public virtual List<PartialSymbolIdentifier> PartialSymbolIdentifiers { get; set; } = [];
-
-		public Money TotalRepayAmount { get; }
 	}
 }

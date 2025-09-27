@@ -6,11 +6,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
     /// </summary>
     public class PendingFilterState
     {
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public string SelectedCurrency { get; set; } = "EUR";
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public int SelectedAccountId { get; set; } = 0;
         public string SelectedSymbol { get; set; } = "";
+        public string SelectedTransactionType { get; set; } = "";
+        public string SearchText { get; set; } = "";
 
         /// <summary>
         /// Creates a pending filter state from the current filter state
@@ -21,9 +22,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
             {
                 StartDate = filterState.StartDate,
                 EndDate = filterState.EndDate,
-                SelectedCurrency = filterState.SelectedCurrency,
                 SelectedAccountId = filterState.SelectedAccountId,
-                SelectedSymbol = filterState.SelectedSymbol
+                SelectedSymbol = filterState.SelectedSymbol,
+                SelectedTransactionType = filterState.SelectedTransactionType,
+                SearchText = filterState.SearchText
             };
         }
 
@@ -34,9 +36,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
         {
             filterState.StartDate = StartDate;
             filterState.EndDate = EndDate;
-            filterState.SelectedCurrency = SelectedCurrency;
             filterState.SelectedAccountId = SelectedAccountId;
             filterState.SelectedSymbol = SelectedSymbol;
+            filterState.SelectedTransactionType = SelectedTransactionType;
+            filterState.SearchText = SearchText;
         }
 
         /// <summary>
@@ -46,9 +49,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
         {
             return StartDate != filterState.StartDate ||
                    EndDate != filterState.EndDate ||
-                   SelectedCurrency != filterState.SelectedCurrency ||
                    SelectedAccountId != filterState.SelectedAccountId ||
-                   SelectedSymbol != filterState.SelectedSymbol;
+                   SelectedSymbol != filterState.SelectedSymbol ||
+                   SelectedTransactionType != filterState.SelectedTransactionType ||
+                   SearchText != filterState.SearchText;
         }
     }
 }

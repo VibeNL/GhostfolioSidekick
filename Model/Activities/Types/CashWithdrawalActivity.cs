@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.Model.Activities.Types
 {
-	public record CashWithdrawalActivity : Activity
+	public record CashWithdrawalActivity : ActivityWithAmount
 	{
 		public CashWithdrawalActivity()
 		{
@@ -17,11 +17,8 @@ namespace GhostfolioSidekick.Model.Activities.Types
 			Money amount,
 			string transactionId,
 			int? sortingPriority,
-			string? description) : base(account, holding, dateTime, transactionId, sortingPriority, description)
+			string? description) : base(account, holding, dateTime, amount, transactionId, sortingPriority, description)
 		{
-			Amount = amount;
 		}
-
-		public Money Amount { get; set; }
 	}
 }

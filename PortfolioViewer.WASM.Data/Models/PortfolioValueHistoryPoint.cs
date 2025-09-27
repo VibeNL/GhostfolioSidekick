@@ -6,8 +6,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
     {
         public DateOnly Date { get; set; }
         
-		public Money[] Value { get; set; }
+		public decimal Value { get; set; }
 
-		public Money[] Invested { get; set; }
+		public decimal Invested { get; set; }
 	}
 }

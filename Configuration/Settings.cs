@@ -16,5 +16,8 @@ namespace GhostfolioSidekick.Configuration
 
 		[JsonPropertyName("dataprovider.preference.order")]
 		public required string DataProviderPreference { get; set; } = "YAHOO;COINGECKO";
+
+		[JsonPropertyName("performance.primarycurrency")]
+		public required string PrimaryCurrency { get; set; } = "EUR";
 	}
 }
