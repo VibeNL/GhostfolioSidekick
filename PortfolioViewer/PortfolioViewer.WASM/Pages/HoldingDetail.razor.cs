@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
@@ -9,279 +10,227 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
-    public partial class HoldingDetail : IDisposable
-    {
-        [Parameter]
-        public string Symbol { get; set; } = string.Empty;
+	public partial class HoldingDetail : IDisposable
+	{
+		[Parameter]
+		public string Symbol { get; set; } = string.Empty;
 
-        [Inject]
-        private IHoldingsDataService? HoldingsDataService { get; set; }
+		[Inject]
+		private IHoldingsDataService? HoldingsDataService { get; set; }
 
-        [Inject]
-        private ITestContextService? TestContextService { get; set; }
+		[Inject]
+		private ITestContextService? TestContextService { get; set; }
 
-        [Inject]
-        private NavigationManager? Navigation { get; set; }
+		[Inject]
+		private NavigationManager? Navigation { get; set; }
 
-        [CascadingParameter]
-        private FilterState FilterState { get; set; } = new();
+		[Inject]
+		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
-        // State
-        private bool IsLoading { get; set; } = true;
-        private bool HasError { get; set; } = false;
-        private string ErrorMessage { get; set; } = string.Empty;
+		[CascadingParameter]
+		private FilterState FilterState { get; set; } = new();
 
-        // Data
-        private HoldingDisplayModel? HoldingInfo { get; set; }
-        private List<HoldingPriceHistoryPoint> PriceHistory { get; set; } = new();
+		private FilterState? PreviousFilterState { get; set; } = null;
 
-        // Plotly chart
-        private Config plotConfig = new();
-        private Plotly.Blazor.Layout plotLayout = new();
-        private IList<ITrace> plotData = new List<ITrace>();
+		// State
+		private bool IsLoading { get; set; } = true;
+		private bool HasError { get; set; } = false;
+		private string ErrorMessage { get; set; } = string.Empty;
 
-        private FilterState? _previousFilterState;
+		// Data
+		private HoldingDisplayModel? HoldingInfo { get; set; }
+		private List<HoldingPriceHistoryPoint> PriceHistory { get; set; } = new();
 
-        protected override async Task OnInitializedAsync()
-        {
-            // Set default date range to 6 months for holding detail if not already set
-            if (FilterState.StartDate == new DateTime(DateTime.Today.Year, 1, 1) && 
-                FilterState.EndDate == DateTime.Today)
-            {
-                // If we're on the default YTD range, change to 6M for better holding detail view
-                FilterState.StartDate = DateTime.Today.AddMonths(-6);
-                FilterState.EndDate = DateTime.Today;
-            }
+		// Plotly chart
+		private Config plotConfig = new();
+		private Plotly.Blazor.Layout plotLayout = new();
+		private IList<ITrace> plotData = new List<ITrace>();
 
-            // Subscribe to filter changes
-            if (FilterState != null)
-            {
-                FilterState.PropertyChanged += OnFilterStateChanged;
-            }
-            
-            await LoadHoldingDataAsync();
-        }
+		protected override async Task OnParametersSetAsync()
+		{
+			// Check if filter state has changed
+			// Subscribe to new filter state
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged += OnFilterStateChanged;
+			}
 
-        protected override async Task OnParametersSetAsync()
-        {
-            // Check if filter state has changed
-            if (_previousFilterState == null || HasFilterStateChanged())
-            {
-                // Unsubscribe from old filter state
-                if (_previousFilterState != null)
-                {
-                    _previousFilterState.PropertyChanged -= OnFilterStateChanged;
-                }
-                
-                // Subscribe to new filter state
-                if (FilterState != null)
-                {
-                    FilterState.PropertyChanged += OnFilterStateChanged;
-                }
-                
-                _previousFilterState = FilterState;
-            }
+			if (!string.IsNullOrEmpty(Symbol))
+			{
+				await LoadHoldingDataAsync();
+			}
+		}
 
-            if (!string.IsNullOrEmpty(Symbol))
-            {
-                await LoadHoldingDataAsync();
-            }
-        }
+		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			Console.WriteLine($"HoldingDetail OnFilterStateChanged - Property: {e.PropertyName}");
 
-        private bool HasFilterStateChanged()
-        {
-            if (_previousFilterState == null) return true;
-            
-            return _previousFilterState.StartDate != FilterState.StartDate ||
-                   _previousFilterState.EndDate != FilterState.EndDate ||
-                   _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency;
-        }
+			// React to date changes
+			if (e.PropertyName == nameof(FilterState.StartDate) ||
+				e.PropertyName == nameof(FilterState.EndDate))
+			{
+				await LoadHoldingDataAsync();
+				StateHasChanged();
+			}
+		}
 
-        private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            Console.WriteLine($"HoldingDetail OnFilterStateChanged - Property: {e.PropertyName}");
-            
-            // React to date and currency changes
-            if (e.PropertyName == nameof(FilterState.StartDate) || 
-                e.PropertyName == nameof(FilterState.EndDate) ||
-                e.PropertyName == nameof(FilterState.SelectedCurrency))
-            {
-                await InvokeAsync(async () =>
-                {
-                    if (e.PropertyName == nameof(FilterState.SelectedCurrency))
-                    {
-                        // Reload holding data if currency changed
-                        await LoadHoldingDataAsync();
-                    }
-                    else
-                    {
-                        // Just reload price history if dates changed
-                        await LoadPriceHistoryAsync();
-                    }
-                    StateHasChanged();
-                });
-            }
-        }
+		private async Task LoadHoldingDataAsync()
+		{
+			// Add check to avoid duplicate loading
+			if (FilterState.IsEqual(PreviousFilterState))
+			{
+				return;
+			}
 
-        private async Task LoadHoldingDataAsync()
-        {
-            try
-            {
-                IsLoading = true;
-                HasError = false;
-                ErrorMessage = string.Empty;
-                StateHasChanged();
+			PreviousFilterState = new FilterState(FilterState);
 
-                await Task.Yield();
+			try
+			{
+				IsLoading = true;
+				HasError = false;
+				ErrorMessage = string.Empty;
+				StateHasChanged();
 
-                if (HoldingsDataService == null)
-                {
-                    throw new InvalidOperationException("HoldingsDataService is not initialized.");
-                }
+				await Task.Yield();
 
-                // Use the selected currency from FilterState
-                var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
-                
-                // Load all holdings to find the specific one
-                var allHoldings = await HoldingsDataService.GetHoldingsAsync(currency);
-                HoldingInfo = allHoldings.FirstOrDefault(h => 
-                    string.Equals(h.Symbol, Symbol, StringComparison.OrdinalIgnoreCase));
+				if (HoldingsDataService == null)
+				{
+					throw new InvalidOperationException("HoldingsDataService is not initialized.");
+				}
 
-                if (HoldingInfo != null)
-                {
-                    // Load price history
-                    await LoadPriceHistoryAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                HasError = true;
-                ErrorMessage = ex.Message;
-            }
-            finally
-            {
-                IsLoading = false;
-                StateHasChanged();
-            }
-        }
+				// Load all holdings to find the specific one
+				var allHoldings = await HoldingsDataService.GetHoldingsAsync();
+				HoldingInfo = allHoldings.FirstOrDefault(h =>
+					string.Equals(h.Symbol, Symbol, StringComparison.OrdinalIgnoreCase));
 
-        private async Task LoadPriceHistoryAsync()
-        {
-            try
-            {
-                if (HoldingsDataService == null || HoldingInfo == null)
-                    return;
+				if (HoldingInfo != null)
+				{
+					// Load price history
+					await LoadPriceHistoryAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				HasError = true;
+				ErrorMessage = ex.Message;
+			}
+			finally
+			{
+				IsLoading = false;
+				StateHasChanged();
+			}
+		}
 
-                // Use dates from FilterState instead of local TimeRange
-                PriceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
-                    Symbol, 
-                    FilterState.StartDate, 
-                    FilterState.EndDate);
+		private async Task LoadPriceHistoryAsync()
+		{
+			try
+			{
+				if (HoldingsDataService == null || HoldingInfo == null)
+					return;
 
-                await PrepareChartData();
-            }
-            catch (Exception ex)
-            {
-                // Log the error but don't show it as critical - price history might not be available
-                Console.WriteLine($"Failed to load price history for {Symbol}: {ex.Message}");
-                PriceHistory = new List<HoldingPriceHistoryPoint>();
-            }
-        }
+				// Use dates from FilterState instead of local TimeRange
+				PriceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
+					Symbol,
+					FilterState.StartDate,
+					FilterState.EndDate);
 
-        private async Task RefreshDataAsync()
-        {
-            await LoadHoldingDataAsync();
-        }
+				await PrepareChartData();
 
-        private async Task PrepareChartData()
-        {
-            if (PriceHistory.Count == 0)
-            {
-                plotData = new List<ITrace>();
-                return;
-            }
+				StateHasChanged();
+			}
+			catch (Exception ex)
+			{
+				// Log the error but don't show it as critical - price history might not be available
+				Console.WriteLine($"Failed to load price history for {Symbol}: {ex.Message}");
+				PriceHistory = new List<HoldingPriceHistoryPoint>();
+			}
+		}
 
-            await Task.Run(() =>
-            {
-                var dates = PriceHistory.OrderBy(p => p.Date)
-                    .Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
-                    .ToArray();
+		private async Task PrepareChartData()
+		{
+			if (PriceHistory.Count == 0)
+			{
+				plotData = new List<ITrace>();
+				return;
+			}
 
-                // Current market price trace
-                var priceTrace = new Scatter
-                {
-                    X = dates,
-                    Y = PriceHistory.OrderBy(p => p.Date)
-                        .Select(p => (object)p.Price.Amount)
-                        .ToList(),
-                    Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
-                    Name = $"Market Price",
-                    Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#007bff", Width = 2 },
-                    Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#007bff", Size = 4 }
-                };
+			await Task.Run(() =>
+			{
+				var dates = PriceHistory.OrderBy(p => p.Date)
+					.Select(p => p.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
+					.ToArray();
 
-                // Average paid price trace
-                var averagePriceTrace = new Scatter
-                {
-                    X = dates,
-                    Y = PriceHistory.OrderBy(p => p.Date)
-                        .Select(p => (object)p.AveragePrice.Amount)
-                        .ToList(),
+				// Current market price trace
+				var priceTrace = new Scatter
+				{
+					X = dates,
+					Y = PriceHistory.OrderBy(p => p.Date)
+						.Select(p => (object)p.Price.Amount)
+						.ToList(),
+					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+					Name = $"Market Price",
+					Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#007bff", Width = 2 },
+					Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#007bff", Size = 4 }
+				};
+
+				// Average paid price trace
+				var averagePriceTrace = new Scatter
+				{
+					X = dates,
+					Y = PriceHistory.OrderBy(p => p.Date)
+						.Select(p => (object)p.AveragePrice.Amount)
+						.ToList(),
 					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = $"Average Paid Price",
-                    Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#28a745", Width = 2 },
-                    Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 4 }
-                };
+					Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#28a745", Width = 2 },
+					Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 4 }
+				};
 
-                plotData = new List<ITrace> { priceTrace, averagePriceTrace };
+				plotData = new List<ITrace> { priceTrace, averagePriceTrace };
 
-                var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? FilterState.SelectedCurrency;
-                var dateRangeText = $"{FilterState.StartDate:yyyy-MM-dd} to {FilterState.EndDate:yyyy-MM-dd}";
-                
-                plotLayout = new Plotly.Blazor.Layout
-                {
-                    Title = new Plotly.Blazor.LayoutLib.Title { Text = $"{Symbol} Price History ({dateRangeText})" },
-                    XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> 
-                    { 
-                        new Plotly.Blazor.LayoutLib.XAxis 
-                        { 
-                            Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" },
-                            Type = Plotly.Blazor.LayoutLib.XAxisLib.TypeEnum.Date
-                        } 
-                    },
-                    YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> 
-                    { 
-                        new Plotly.Blazor.LayoutLib.YAxis 
-                        { 
-                            Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Price ({currencySymbol})" } 
-                        } 
-                    },
-                    Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
-                    AutoSize = true,
-                    ShowLegend = true,
-                    Legend = new List<Plotly.Blazor.LayoutLib.Legend>
-                    {
-                        new Plotly.Blazor.LayoutLib.Legend
-                        {
-                            Orientation = Plotly.Blazor.LayoutLib.LegendLib.OrientationEnum.H
-                        }
-                    }
-                };
+				var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? throw new NotSupportedException("Currency symbol not available");
+				var dateRangeText = $"{FilterState.StartDate:yyyy-MM-dd} to {FilterState.EndDate:yyyy-MM-dd}";
 
-                plotConfig = new Config { Responsive = true };
-            });
-        }
+				plotLayout = new Plotly.Blazor.Layout
+				{
+					Title = new Plotly.Blazor.LayoutLib.Title { Text = $"{Symbol} Price History ({dateRangeText})" },
+					XAxis = new List<Plotly.Blazor.LayoutLib.XAxis>
+					{
+						new Plotly.Blazor.LayoutLib.XAxis
+						{
+							Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" },
+							Type = Plotly.Blazor.LayoutLib.XAxisLib.TypeEnum.Date
+						}
+					},
+					YAxis = new List<Plotly.Blazor.LayoutLib.YAxis>
+					{
+						new Plotly.Blazor.LayoutLib.YAxis
+						{
+							Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Price ({currencySymbol})" }
+						}
+					},
+					Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
+					AutoSize = true,
+					ShowLegend = true,
+					Legend = new List<Plotly.Blazor.LayoutLib.Legend>
+					{
+						new Plotly.Blazor.LayoutLib.Legend
+						{
+							Orientation = Plotly.Blazor.LayoutLib.LegendLib.OrientationEnum.H
+						}
+					}
+				};
 
-        public void Dispose()
-        {
-            if (FilterState != null)
-            {
-                FilterState.PropertyChanged -= OnFilterStateChanged;
-            }
-            if (_previousFilterState != null)
-            {
-                _previousFilterState.PropertyChanged -= OnFilterStateChanged;
-            }
-        }
-    }
+				plotConfig = new Config { Responsive = true };
+			});
+		}
+
+		public void Dispose()
+		{
+			if (FilterState != null)
+			{
+				FilterState.PropertyChanged -= OnFilterStateChanged;
+			}
+		}
+	}
 }

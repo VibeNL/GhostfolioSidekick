@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 						moneyTrail.Add(new Tuple<DateTime, Money>(interestActivity.Date, interestActivity.Amount));
 						break;
 					case RepayBondActivity repayBondActivity:
-						moneyTrail.Add(new Tuple<DateTime, Money>(repayBondActivity.Date, repayBondActivity.TotalRepayAmount));
+						moneyTrail.Add(new Tuple<DateTime, Money>(repayBondActivity.Date, repayBondActivity.Amount));
 						break;
 					case GiftFiatActivity giftFiatActivity:
 						moneyTrail.Add(new Tuple<DateTime, Money>(giftFiatActivity.Date, giftFiatActivity.Amount));

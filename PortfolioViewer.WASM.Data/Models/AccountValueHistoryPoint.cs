@@ -7,12 +7,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
     {
         public DateOnly Date { get; set; }
         
-        public Account Account { get; set; } = new();
+        public int AccountId { get; set; }
         
-        public Money Value { get; set; }
+        public Money TotalAssetValue { get; set; }
         
-        public Money Invested { get; set; }
+        public Money TotalInvested { get; set; }
         
-        public Money Balance { get; set; }
-    }
+        public Money CashBalance { get; set; }
+		public Money TotalValue { get; internal set; }
+	}
 }

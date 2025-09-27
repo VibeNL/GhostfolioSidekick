@@ -181,7 +181,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					var sellQuantity = repayBondActivity.Holding!.Activities.OfType<SellActivity>().Sum(x => x.Quantity);
 					var quantity = buyQuantity - sellQuantity;
 
-					var price = repayBondActivity.TotalRepayAmount.SafeDivide(quantity);
+					var price = repayBondActivity.Amount.SafeDivide(quantity);
 
 					yield return new SellActivity(
 						activity.Account,

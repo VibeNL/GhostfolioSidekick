@@ -17,6 +17,8 @@ namespace GhostfolioSidekick.Database
 
 		public virtual DbSet<Account> Accounts { get; set; }
 
+		public virtual DbSet<Balance> Balances { get; set; }
+
 		public virtual DbSet<CurrencyExchangeProfile> CurrencyExchangeRates { get; set; }
 
 		public virtual DbSet<SymbolProfile> SymbolProfiles { get; set; }
@@ -33,6 +35,10 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<HoldingAggregated> HoldingAggregateds { get; set; }
 
 		public virtual DbSet<CalculatedSnapshot> CalculatedSnapshots { get; set; }
+
+		public virtual DbSet<CalculatedSnapshotPrimaryCurrency> CalculatedSnapshotPrimaryCurrencies { get; set; }
+
+		public virtual DbSet<BalancePrimaryCurrency> BalancePrimaryCurrencies { get; set; }
 
 		public DatabaseContext()
 		{

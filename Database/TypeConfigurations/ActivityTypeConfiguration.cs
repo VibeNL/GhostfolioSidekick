@@ -12,6 +12,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 	internal class ActivityTypeConfiguration :
 		IEntityTypeConfiguration<Activity>,
 		IEntityTypeConfiguration<ActivityWithQuantityAndUnitPrice>,
+		IEntityTypeConfiguration<ActivityWithAmount>,
 		IEntityTypeConfiguration<BuyActivity>,
 		IEntityTypeConfiguration<SellActivity>,
 		IEntityTypeConfiguration<CashDepositActivity>,
@@ -73,6 +74,10 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			var type = typeof(Activity);
 			var types = type.Assembly.GetTypes().Where(type.IsAssignableFrom);
+
+			// Indexes
+			builder.HasIndex(a => a.Date);
+			builder.HasIndex("AccountId");
 		}
 
 		public void Configure(EntityTypeBuilder<ActivityWithQuantityAndUnitPrice> builder)
@@ -86,6 +91,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.WithOne()
 				.HasForeignKey(x => x.ActivityId)
 				.OnDelete(DeleteBehavior.Cascade);
+		}
+
+		public void Configure(EntityTypeBuilder<ActivityWithAmount> builder)
+		{
+			MapMoney(builder, x => x.Amount, nameof(ActivityWithAmount.Amount));
 		}
 
 		public void Configure(EntityTypeBuilder<BuyActivity> builder)
@@ -164,13 +174,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<LiabilityActivity> builder)
 		{
-			MapMoney(builder, x => x.Price, nameof(LiabilityActivity.Price));
+			MapMoney(builder, x => x.Amount, nameof(LiabilityActivity.Amount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
 		public void Configure(EntityTypeBuilder<RepayBondActivity> builder)
 		{
-			MapMoney(builder, x => x.TotalRepayAmount, nameof(RepayBondActivity.TotalRepayAmount));
+			MapMoney(builder, x => x.Amount, nameof(RepayBondActivity.Amount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 
@@ -196,7 +206,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)
 		{
-			MapMoney(builder, x => x.Price, nameof(ValuableActivity.Price));
+			MapMoney(builder, x => x.Amount, nameof(ValuableActivity.Amount));
 			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
 		}
 

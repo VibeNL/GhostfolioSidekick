@@ -1,3 +1,4 @@
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 
@@ -6,15 +7,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
     public partial class MainLayout : LayoutComponentBase, IDisposable
     {
         [Inject] private NavigationManager Navigation { get; set; } = default!;
+        [Inject] private ITransactionService TransactionService { get; set; } = default!;
 
         protected FilterState FilterStateInstance { get; set; } = new();
+        private List<string>? _cachedTransactionTypes = null;
         
         // Determine which filters to show based on current page
-        private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowCurrencyFilter || ShouldShowAccountFilters || ShouldShowSymbolFilter;
+        private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowAccountFilters || ShouldShowSymbolFilter || ShouldShowTransactionTypeFilter || ShouldShowSearchFilter;
         private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage || IsTransactionsPage || IsAccountsPage);
-        private bool ShouldShowCurrencyFilter => CurrentPageSupportsFilters;
         private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage || IsHoldingsPage);
         private bool ShouldShowSymbolFilter => CurrentPageSupportsFilters && IsTransactionsPage;
+        private bool ShouldShowTransactionTypeFilter => CurrentPageSupportsFilters && IsTransactionsPage;
+        private bool ShouldShowSearchFilter => CurrentPageSupportsFilters && IsTransactionsPage;
         
         private bool CurrentPageSupportsFilters => IsTimeSeriesPage || IsHoldingDetailPage || IsHoldingsPage || IsTransactionsPage || IsAccountsPage;
         private bool IsTimeSeriesPage => Navigation.Uri.Contains("/portfolio-timeseries");
@@ -23,16 +27,49 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
         private bool IsTransactionsPage => Navigation.Uri.Contains("/transactions");
         private bool IsAccountsPage => Navigation.Uri.Contains("/accounts");
 
-        protected override void OnInitialized()
+        // Get transaction types for filtering
+        private List<string>? TransactionTypes => IsTransactionsPage ? _cachedTransactionTypes : null;
+
+        protected override async Task OnInitializedAsync()
         {
             // Subscribe to navigation changes
             Navigation.LocationChanged += OnLocationChanged;
+            
+            // Load transaction types for filtering
+            if (IsTransactionsPage && _cachedTransactionTypes == null)
+            {
+                await LoadTransactionTypesAsync();
+            }
         }
 
-        private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+        private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
         {
+            // Load transaction types if navigating to transactions page
+            if (IsTransactionsPage && _cachedTransactionTypes == null)
+            {
+                await LoadTransactionTypesAsync();
+            }
+            
             // Trigger re-render when location changes to update filter visibility
-            InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);
+        }
+
+        private async Task LoadTransactionTypesAsync()
+        {
+            try
+            {
+                _cachedTransactionTypes = await TransactionService.GetTransactionTypesAsync();
+            }
+            catch (Exception)
+            {
+                // Fallback to static types if service call fails
+                _cachedTransactionTypes = new List<string>
+                {
+                    "Buy", "Sell", "Dividend", "Deposit", "Withdrawal", 
+                    "Fee", "Interest", "Receive", "Send", "Staking Reward", "Gift"
+                };
+            }
+            StateHasChanged();
         }
 
         public void Dispose()

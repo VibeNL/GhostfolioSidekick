@@ -1,5 +1,8 @@
 ﻿using AutoFixture;
 using AutoFixture.Kernel;
+using GhostfolioSidekick.Model.Accounts;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Performance;
 
 namespace GhostfolioSidekick.Model.UnitTests
 {
@@ -13,22 +16,19 @@ namespace GhostfolioSidekick.Model.UnitTests
 							.ToList()
 							.ForEach(b => fixture.Behaviors.Remove(b));
 			fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(Activity)));
 			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(Holding)));
+			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(BalancePrimaryCurrency)));
+			fixture.Customizations.Add(new ExcludeTypeSpecimenBuilder(typeof(CalculatedSnapshotPrimaryCurrency)));
+
 			return fixture;
 		}
 
-		private class ExcludeTypeSpecimenBuilder : ISpecimenBuilder
+		private class ExcludeTypeSpecimenBuilder(Type excludedType) : ISpecimenBuilder
 		{
-			private readonly Type _excludedType;
-
-			public ExcludeTypeSpecimenBuilder(Type excludedType)
-			{
-				_excludedType = excludedType;
-			}
-
 			public object Create(object request, ISpecimenContext context)
 			{
-				if (request is Type type && type == _excludedType)
+				if (request is Type type && type == excludedType)
 				{
 					return null!;
 				}

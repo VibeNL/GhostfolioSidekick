@@ -1,11 +1,13 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -65,17 +67,26 @@ public static class Program
 
 		builder.Services.AddWebChatClient();
 
+		builder.Services.AddSingleton<IServerConfigurationService, ServerConfigurationService>();
+
 		// Register PortfolioClient for DI
 		builder.Services.AddScoped<Clients.PortfolioClient>();
+
+		// Register SyncTrackingService for DI
+		builder.Services.AddScoped<ISyncTrackingService, SyncTrackingService>();
 
 		builder.Services.AddSingleton<ITestContextService, TestContextService>();
 
 		builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
 		// Performance Calculations
-		builder.Services.AddMemoryCache();
-		builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
+		builder.Services.AddSingleton<MemoryCache, MemoryCache>();
+		builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+
+		builder.Services.AddSingleton<ICurrencyExchange, CurrencyExchange>();
 		builder.Services.AddScoped<IHoldingsDataService, HoldingsDataService>();
+		builder.Services.AddScoped<IAccountDataService, AccountDataService>();
+		builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 		// Data Issues Service
 		builder.Services.AddScoped<IDataIssuesService, DataIssuesService>();

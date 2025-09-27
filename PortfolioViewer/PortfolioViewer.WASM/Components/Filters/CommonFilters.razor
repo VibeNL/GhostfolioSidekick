@@ -34,18 +34,6 @@
             </div>
         }
 
-        @if (ShowCurrencyFilter)
-        {
-            <div class="filter-group">
-                <label class="form-label-sm">Currency</label>
-                <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedCurrency" @onchange="OnCurrencyChanged">
-                    <option value="EUR">EUR</option>
-                    <option value="USD">USD</option>
-                    <option value="GBP">GBP</option>
-                </select>
-            </div>
-        }
-
         @if (ShowAccountFilter)
         {
             <div class="filter-group">
@@ -59,17 +47,6 @@
                         <div class="spinner-border spinner-border-sm ms-2" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                    </div>
-                }
-                else if (_accountsLoadFailed)
-                {
-                    <div class="d-flex align-items-center">
-                        <select class="form-select form-select-sm" disabled>
-                            <option>Failed to load accounts</option>
-                        </select>
-                        <button class="btn btn-outline-warning btn-sm ms-2" @onclick="RetryLoadAccountsAsync" title="Retry loading accounts">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
                     </div>
                 }
                 else
@@ -100,17 +77,6 @@
                         </div>
                     </div>
                 }
-                else if (_symbolsLoadFailed)
-                {
-                    <div class="d-flex align-items-center">
-                        <select class="form-select form-select-sm" disabled>
-                            <option>Failed to load symbols</option>
-                        </select>
-                        <button class="btn btn-outline-warning btn-sm ms-2" @onclick="RetryLoadSymbolsAsync" title="Retry loading symbols">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                    </div>
-                }
                 else
                 {
                     <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedSymbol" @onchange="OnSymbolChanged">
@@ -121,6 +87,35 @@
                         }
                     </select>
                 }
+            </div>
+        }
+
+        @if (ShowTransactionTypeFilter)
+        {
+            <div class="filter-group">
+                <label class="form-label-sm">Transaction Type</label>
+                <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedTransactionType" @onchange="OnTransactionTypeChanged">
+                    <option value="">All Types</option>
+                    @if (TransactionTypes != null)
+                    {
+                        @foreach (var type in TransactionTypes)
+                        {
+                            <option value="@type">@type</option>
+                        }
+                    }
+                </select>
+            </div>
+        }
+
+        @if (ShowSearchFilter)
+        {
+            <div class="filter-group">
+                <label class="form-label-sm">Search</label>
+                <input type="text" class="form-control form-control-sm" 
+                       placeholder="Search symbol, name, or description..." 
+                       value="@_pendingFilterState.SearchText" 
+                       @onchange="OnSearchTextChanged"
+                       @oninput="OnSearchTextInput" />
             </div>
         }
 

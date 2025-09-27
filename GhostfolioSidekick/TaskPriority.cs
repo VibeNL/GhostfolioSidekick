@@ -29,6 +29,8 @@
 
 		PerformanceCalculations,
 
+		CovertToPrimaryCurrency,
+
 		CleanupDatabase,
 
 		SyncAccountsWithGhostfolio,

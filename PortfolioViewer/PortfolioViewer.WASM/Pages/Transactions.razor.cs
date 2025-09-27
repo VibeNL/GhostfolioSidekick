@@ -1,6 +1,6 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel;
 
@@ -9,17 +9,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class Transactions : IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private ITransactionService? HoldingsDataService { get; set; }
+
+		[Inject]
+		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
-		
+
 		private List<TransactionDisplayModel> TransactionsList = new();
 
 		// Loading state management
 		private bool IsLoading { get; set; } = true;
 		private bool HasError { get; set; } = false;
 		private string ErrorMessage { get; set; } = string.Empty;
+
+		// Modal state
+		private TransactionDisplayModel? SelectedTransaction { get; set; }
 
 		// Sorting state
 		private string sortColumn = "Date";
@@ -34,47 +40,24 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
-			
-			await LoadTransactionDataAsync();
 		}
 
 		protected override async Task OnParametersSetAsync()
 		{
 			// Check if filter state has changed
-			if (_previousFilterState == null || HasFilterStateChanged())
+			if (FilterState.IsEqual(_previousFilterState))
 			{
-				// Unsubscribe from old filter state
-				if (_previousFilterState != null)
-				{
-					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
-				}
-				
-				// Subscribe to new filter state
-				if (FilterState != null)
-				{
-					FilterState.PropertyChanged += OnFilterStateChanged;
-				}
-				
-				_previousFilterState = FilterState;
-				await LoadTransactionDataAsync();
+				return;
 			}
-		}
 
-		private bool HasFilterStateChanged()
-		{
-			if (_previousFilterState == null) return true;
-			
-			return _previousFilterState.StartDate != FilterState.StartDate ||
-				   _previousFilterState.EndDate != FilterState.EndDate ||
-				   _previousFilterState.SelectedCurrency != FilterState.SelectedCurrency ||
-				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId ||
-				   _previousFilterState.SelectedSymbol != FilterState.SelectedSymbol;
+			_previousFilterState = new(FilterState);
+			await LoadTransactionDataAsync();
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
 		{
 			Console.WriteLine($"Transactions OnFilterStateChanged - Property: {e.PropertyName}");
-			
+
 			await InvokeAsync(async () =>
 			{
 				await LoadTransactionDataAsync();
@@ -113,14 +96,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				var currency = Currency.GetCurrency(FilterState.SelectedCurrency);
-				Console.WriteLine($"LoadRealTransactionDataAsync - Using currency: {FilterState.SelectedCurrency} ({currency})");
-				return await HoldingsDataService?.GetTransactionsAsync(
-					currency,
+				var allTransactions = await HoldingsDataService?.GetTransactionsAsync(
+					ServerConfigurationService.PrimaryCurrency,
 					FilterState.StartDate,
 					FilterState.EndDate,
 					FilterState.SelectedAccountId,
 					FilterState.SelectedSymbol) ?? new List<TransactionDisplayModel>();
+
+				// Apply client-side filtering for transaction type and search text
+				return ApplyClientSideFilters(allTransactions);
 			}
 			catch (Exception ex)
 			{
@@ -128,10 +112,41 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
+		private List<TransactionDisplayModel> ApplyClientSideFilters(List<TransactionDisplayModel> transactions)
+		{
+			var filtered = transactions.AsEnumerable();
+
+			// Filter by transaction type
+			if (!string.IsNullOrEmpty(FilterState.SelectedTransactionType))
+			{
+				filtered = filtered.Where(t => t.Type.Equals(FilterState.SelectedTransactionType, StringComparison.OrdinalIgnoreCase));
+			}
+
+			// Filter by search text (searches in Symbol, Name, and Description)
+			if (!string.IsNullOrEmpty(FilterState.SearchText))
+			{
+				var searchTerm = FilterState.SearchText.ToLower();
+				filtered = filtered.Where(t =>
+					(t.Symbol?.ToLower().Contains(searchTerm) ?? false) ||
+					(t.Name?.ToLower().Contains(searchTerm) ?? false) ||
+					(t.Description?.ToLower().Contains(searchTerm) ?? false) ||
+					(t.TransactionId?.ToLower().Contains(searchTerm) ?? false));
+			}
+
+			return filtered.ToList();
+		}
+
 		// Add refresh method for manual data reload
 		private async Task RefreshDataAsync()
 		{
 			await LoadTransactionDataAsync();
+		}
+
+		// Modal methods
+		private void ShowTransactionDetails(TransactionDisplayModel transaction)
+		{
+			SelectedTransaction = transaction;
+			StateHasChanged();
 		}
 
 		private Dictionary<string, int> TransactionTypeBreakdown =>
@@ -141,6 +156,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private Dictionary<string, int> AccountBreakdown =>
 			TransactionsList.GroupBy(t => t.AccountName)
 				   .ToDictionary(g => g.Key, g => g.Count());
+
+		private List<string> AvailableTransactionTypes =>
+			TransactionsList?.Select(t => t.Type)
+				   .Distinct()
+				   .Where(t => !string.IsNullOrEmpty(t))
+				   .OrderBy(t => t)
+				   .ToList() ?? new List<string>();
 
 		private void SortBy(string column)
 		{
@@ -178,17 +200,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				case "Quantity":
 					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Quantity ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.Quantity ?? 0).ToList();
 					break;
-				case "UnitPrice":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.UnitPrice?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.UnitPrice?.Amount ?? 0).ToList();
-					break;
 				case "TotalValue":
 					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.TotalValue?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.TotalValue?.Amount ?? 0).ToList();
-					break;
-				case "Fee":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Fee?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.Fee?.Amount ?? 0).ToList();
-					break;
-				case "Tax":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Tax?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.Tax?.Amount ?? 0).ToList();
 					break;
 				case "Description":
 					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Description).ToList() : TransactionsList.OrderByDescending(t => t.Description).ToList();

@@ -11,7 +11,9 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 {
 	internal class HoldingAggregatedTypeConfiguration : 
 		IEntityTypeConfiguration<HoldingAggregated>,
-		IEntityTypeConfiguration<CalculatedSnapshot>
+		IEntityTypeConfiguration<CalculatedSnapshot>,
+		IEntityTypeConfiguration<CalculatedSnapshotPrimaryCurrency>,
+		IEntityTypeConfiguration<BalancePrimaryCurrency>
 	{
 		public void Configure(EntityTypeBuilder<HoldingAggregated> builder)
 		{
@@ -23,7 +25,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			builder.HasMany(x => x.CalculatedSnapshots)
 				.WithOne()
-				.HasForeignKey("HoldingAggregatedId")
+				.HasForeignKey(x => x.HoldingAggregatedId)
 				.OnDelete(DeleteBehavior.Cascade);
 
 			builder.Property(e => e.SectorWeights)
@@ -59,9 +61,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 				.HasAnnotation("Key", 0);
 			builder.HasKey("Id");
 
-			// Add shadow property for foreign key
-			builder.Property<long>("HoldingAggregatedId");
-
 			// Configure simple properties
 			builder.Property(x => x.Date).IsRequired();
 			builder.Property(x => x.Quantity).IsRequired();
@@ -71,6 +70,45 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.CurrentUnitPrice, nameof(CalculatedSnapshot.CurrentUnitPrice));
 			MapMoney(builder, x => x.TotalInvested, nameof(CalculatedSnapshot.TotalInvested));
 			MapMoney(builder, x => x.TotalValue, nameof(CalculatedSnapshot.TotalValue));
+
+			// Indexes
+			builder.HasIndex(x => new { x.Date });
+			builder.HasIndex(x => new { x.AccountId, x.Date });
+			builder.HasIndex(x => new { x.HoldingAggregatedId, x.AccountId, x.Date }).IsUnique();
+		}
+
+		public void Configure(EntityTypeBuilder<CalculatedSnapshotPrimaryCurrency> builder)
+		{
+			builder.ToTable("CalculatedSnapshotPrimaryCurrencies");
+
+			// Add a shadow property for the primary key since class doesn't have one
+			builder.Property<long>("Id")
+				.HasColumnType("integer")
+				.ValueGeneratedOnAdd()
+				.HasAnnotation("Key", 0);
+			builder.HasKey("Id");
+
+			// Configure simple properties
+			builder.Property(x => x.Date).IsRequired();
+			builder.Property(x => x.Quantity).IsRequired();
+			
+			// Indexes
+			builder.HasIndex(x => new { x.Date });
+			builder.HasIndex(x => new { x.AccountId, x.Date });
+			builder.HasIndex(x => new { x.HoldingAggregatedId, x.AccountId, x.Date }).IsUnique();
+		}
+
+		public void Configure(EntityTypeBuilder<BalancePrimaryCurrency> builder)
+		{
+			builder.ToTable("BalancePrimaryCurrencies");
+			builder.HasKey(x => x.Id);
+			
+			// Configure simple properties
+			builder.Property(x => x.Date).IsRequired();
+			builder.Property(x => x.Money).IsRequired();
+
+			// Indexes
+			builder.HasIndex(x => new { x.AccountId, x.Date }).IsUnique();
 		}
 
 		private static void MapMoney<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, Money>> navigationExpression, string name) where TEntity : class

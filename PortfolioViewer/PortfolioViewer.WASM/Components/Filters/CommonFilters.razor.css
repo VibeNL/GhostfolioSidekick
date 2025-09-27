@@ -26,6 +26,10 @@
     margin-left: auto; /* Push to the right */
 }
 
+.filter-group:has(input[type="text"]) {
+    min-width: 200px;
+}
+
 .filter-actions .d-flex {
     align-items: center;
 }
@@ -60,9 +64,27 @@
     box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
 }
 
+/* Visual indication for active filters */
+.filter-group select:not([value=""]):not([value="0"]),
+.filter-group input:not([value=""]) {
+    border-color: #0d6efd;
+    background-color: #f8f9ff;
+}
+
 /* Highlight apply button when changes are pending */
 .btn-primary:not(:disabled) {
     animation: pulse-subtle 2s infinite;
+}
+
+.active-filter-indicator {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background-color: #0d6efd;
+    border-radius: 50%;
+    border: 2px solid white;
 }
 
 @keyframes pulse-subtle {

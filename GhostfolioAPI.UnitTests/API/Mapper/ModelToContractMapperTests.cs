@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapBuySellActivityCorrectly()
 		{
 			// Arrange
-			var buyActivity = _fixture.Build<BuyActivity>().Without(x => x.Holding).Create();
+			var buyActivity = _fixture.Build<BuyActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
 			var symbolProfile = _fixture.Create<SymbolProfile>();
 			var account = _fixture.Create<Account>();
 
@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapSendAndReceiveActivityCorrectly()
 		{
 			// Arrange
-			var sendAndReceiveActivity = _fixture.Build<ReceiveActivity>().Without(x => x.Holding).Create();
+			var sendAndReceiveActivity = _fixture.Build<ReceiveActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
 			var symbolProfile = _fixture.Create<SymbolProfile>();
 			var account = _fixture.Create<Account>();
 
@@ -101,7 +101,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapDividendActivityCorrectly()
 		{
 			// Arrange
-			var dividendActivity = _fixture.Build<DividendActivity>().Without(x => x.Holding).Create();
+			var dividendActivity = _fixture.Build<DividendActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
 			var symbolProfile = _fixture.Create<SymbolProfile>();
 			var account = _fixture.Create<Account>();
 
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapInterestActivityCorrectly()
 		{
 			// Arrange
-			var interestActivity = _fixture.Build<InterestActivity>().Without(x => x.Holding).Create();
+			var interestActivity = _fixture.Build<InterestActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
 			var account = _fixture.Create<Account>();
 
 			// Act
@@ -153,7 +153,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapFeeActivityCorrectly()
 		{
 			// Arrange
-			var feeActivity = _fixture.Build<FeeActivity>().Without(x => x.Holding).Create();
+			var feeActivity = _fixture.Build<FeeActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
 			var account = _fixture.Create<Account>();
 
 			// Act
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapValuableActivityCorrectly()
 		{
 			// Arrange
-			var valuableActivity = _fixture.Build<ValuableActivity>().Without(x => x.Holding).Create();
+			var valuableActivity = _fixture.Build<ValuableActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
 			var account = _fixture.Create<Account>();
 
 			// Act
@@ -184,13 +184,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Currency.Should().Be(valuableActivity.Price.Currency.Symbol);
+			result!.SymbolProfile.Currency.Should().Be(valuableActivity.Amount.Currency.Symbol);
 			result.SymbolProfile.Name.Should().Be(valuableActivity.Description);
 			result.Comment.Should().NotBeNull();
 			result.Date.Should().Be(valuableActivity.Date);
 			result.Quantity.Should().Be(1);
 			result.Type.Should().Be(ActivityType.ITEM);
-			result.UnitPrice.Should().Be(valuableActivity.Price.Amount);
+			result.UnitPrice.Should().Be(valuableActivity.Amount.Amount);
 			result.ReferenceCode.Should().Be(valuableActivity.TransactionId);
 			result.AccountId.Should().Be(account.Id);
 		}
@@ -199,7 +199,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldMapLiabilityActivityCorrectly()
 		{
 			// Arrange
-			var liabilityActivity = _fixture.Build<LiabilityActivity>().Without(x => x.Holding).Create();
+			var liabilityActivity = _fixture.Build<LiabilityActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
 			var account = _fixture.Create<Account>();
 
 			// Act
@@ -207,13 +207,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Assert
 			result.Should().NotBeNull();
-			result!.SymbolProfile.Currency.Should().Be(liabilityActivity.Price.Currency.Symbol);
+			result!.SymbolProfile.Currency.Should().Be(liabilityActivity.Amount.Currency.Symbol);
 			result.SymbolProfile.Name.Should().Be(liabilityActivity.Description);
 			result.Comment.Should().NotBeNull();
 			result.Date.Should().Be(liabilityActivity.Date);
 			result.Quantity.Should().Be(1);
 			result.Type.Should().Be(ActivityType.LIABILITY);
-			result.UnitPrice.Should().Be(liabilityActivity.Price.Amount);
+			result.UnitPrice.Should().Be(liabilityActivity.Amount.Amount);
 			result.ReferenceCode.Should().Be(liabilityActivity.TransactionId);
 			result.AccountId.Should().Be(account.Id);
 		}
@@ -222,7 +222,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public async Task ConvertToGhostfolioActivity_ShouldReturnNullForUnsupportedActivity()
 		{
 			// Arrange
-			var unsupportedActivity = _fixture.Build<KnownBalanceActivity>().Without(x => x.Holding).Create();
+			var unsupportedActivity = _fixture.Build<KnownBalanceActivity>().Without(x => x.Holding).Without(x => x.Account).Create();
 			var account = _fixture.Create<Account>();
 
 			// Act

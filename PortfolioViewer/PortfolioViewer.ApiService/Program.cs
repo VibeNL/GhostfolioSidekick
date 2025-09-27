@@ -1,8 +1,10 @@
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using GhostfolioSidekick.PortfolioViewer.ServiceDefaults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
 
@@ -30,9 +32,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 			builder.Services.AddSingleton<IConfigurationHelper, ConfigurationHelper>();
 
-			// Register ApplicationSettings
-			builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
-
 			builder.Services.AddCors(options =>
 			{
 				options.AddDefaultPolicy(policy =>
@@ -51,6 +50,19 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				var connectionString = "Data Source="+configHelper.GetConnectionString();
 				options.UseSqlite(connectionString);
 			});
+			builder.Services.AddDbContextFactory<DatabaseContext>(options =>
+			{
+				var configHelper = builder.Services.BuildServiceProvider().GetRequiredService<IConfigurationHelper>();
+				var connectionString = "Data Source=" + configHelper.GetConnectionString();
+				options.UseSqlite(connectionString);
+			}, ServiceLifetime.Scoped);
+
+			// Add currency exchange services for server-side conversion
+			builder.Services.AddSingleton<MemoryCache>();
+			builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+						
+			// Register currency services as scoped to avoid singleton dependency issues
+			builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
 
 			builder.Services.AddControllers(options =>
 			{
