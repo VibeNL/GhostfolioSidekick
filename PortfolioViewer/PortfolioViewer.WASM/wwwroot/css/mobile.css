@@ -1,0 +1,279 @@
+/* PWA and Mobile Enhancements */
+
+/* Ensure the app takes full viewport height on mobile */
+html, body {
+    height: 100%;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* Prevent zoom on input focus on iOS */
+input, select, textarea {
+    font-size: 16px !important;
+}
+
+/* Touch-friendly buttons */
+.btn {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+    .navbar-nav .nav-link {
+        padding: 0.75rem 1rem;
+    }
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+    }
+    
+    /* Stack form controls on mobile */
+    .row .col-md-auto {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Status bar styling for iOS */
+@supports (padding-top: constant(safe-area-inset-top)) {
+    .page {
+        padding-top: constant(safe-area-inset-top);
+        padding-bottom: constant(safe-area-inset-bottom);
+    }
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+    .page {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Ensure content doesn't get hidden behind notches */
+@media screen and (display-mode: standalone) {
+    .page {
+        padding-top: env(safe-area-inset-top, 20px);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    
+    header {
+        padding-top: env(safe-area-inset-top, 0);
+    }
+}
+
+/* Better scrolling on mobile */
+.content {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* Hide scrollbars in standalone mode */
+@media screen and (display-mode: standalone) {
+    ::-webkit-scrollbar {
+        display: none;
+    }
+    
+    * {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+}
+
+/* Improve table responsiveness */
+@media (max-width: 768px) {
+    .table-responsive {
+        border: none;
+    }
+    
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem 0.25rem;
+    }
+}
+
+/* Better form styling on mobile */
+@media (max-width: 576px) {
+    .form-control,
+    .form-select {
+        font-size: 16px;
+        padding: 0.75rem;
+    }
+    
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group .form-control:not(:last-child) {
+        border-bottom-right-radius: 0.375rem;
+        border-bottom-left-radius: 0.375rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .input-group .btn {
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
+    }
+}
+
+/* Loading state improvements */
+.loading-progress {
+    width: 50px;
+    height: 50px;
+}
+
+@media (max-width: 576px) {
+    .loading-progress {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Splash screen styling for PWA */
+.pwa-splash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #03173d, #0d47a1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    color: white;
+    text-align: center;
+}
+
+.pwa-splash.hidden {
+    display: none;
+}
+
+/* App icon in splash */
+.pwa-splash-icon {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Improve chart responsiveness */
+@media (max-width: 768px) {
+    .plotly-graph-div {
+        width: 100% !important;
+        height: 300px !important;
+    }
+}
+
+/* Better modal experience on mobile */
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100% - 1rem);
+    }
+    
+    .modal-content {
+        border-radius: 0.5rem;
+    }
+}
+
+/* Improve navigation on mobile */
+@media (max-width: 768px) {
+    .navbar-collapse {
+        background: rgba(3, 23, 61, 0.95);
+        border-radius: 0.5rem;
+        margin-top: 0.5rem;
+        padding: 1rem;
+    }
+}
+
+/* Pull-to-refresh prevention */
+html {
+    overscroll-behavior-y: contain;
+}
+
+body {
+    overscroll-behavior-y: contain;
+}
+
+/* PWA Install Prompt Styles */
+.pwa-install-banner {
+    position: fixed;
+    bottom: -100px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #03173d, #0d47a1);
+    color: white;
+    padding: 12px 16px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+    transition: bottom 0.3s ease-in-out;
+    z-index: 1000;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pwa-install-banner.visible {
+    bottom: 0;
+}
+
+.pwa-install-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.pwa-install-icon {
+    font-size: 24px;
+    color: #4fc3f7;
+}
+
+.pwa-install-text {
+    flex: 1;
+    margin: 0;
+}
+
+.pwa-install-text h6 {
+    margin: 0 0 4px 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.pwa-install-text p {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.pwa-install-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.pwa-install-actions .btn {
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 16px;
+}
+
+@media (max-width: 576px) {
+    .pwa-install-content {
+        gap: 8px;
+    }
+    
+    .pwa-install-text h6 {
+        font-size: 13px;
+    }
+    
+    .pwa-install-text p {
+        font-size: 11px;
+    }
+    
+    .pwa-install-actions .btn {
+        padding: 4px 8px;
+    }
+}
