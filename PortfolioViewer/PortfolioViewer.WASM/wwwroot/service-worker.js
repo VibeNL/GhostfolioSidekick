@@ -33,9 +33,9 @@ async function onActivate(event) {
     // Delete unused caches
     const cacheNames = await caches.keys();
     await Promise.all(cacheNames
-        .filter(cacheName => cacheName.startsWith(cacheNamePrefix))
-        .filter(cacheName => cacheName !== cacheName)
-        .map(cacheName => caches.delete(cacheName)));
+        .filter(name => name.startsWith(cacheNamePrefix))
+        .filter(name => name !== cacheName)
+        .map(name => caches.delete(name)));
 }
 
 async function onFetch(event) {
