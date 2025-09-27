@@ -99,9 +99,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 
 				// Load all holdings to find the specific one
-				var allHoldings = await HoldingsDataService.GetHoldingsAsync();
-				HoldingInfo = allHoldings.FirstOrDefault(h =>
-					string.Equals(h.Symbol, Symbol, StringComparison.OrdinalIgnoreCase));
+				HoldingInfo = await HoldingsDataService.GetHoldingAsync(Symbol);
 
 				if (HoldingInfo != null)
 				{

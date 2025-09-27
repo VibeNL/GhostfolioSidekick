@@ -6,6 +6,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
@@ -81,6 +82,36 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return snapShots;
 		}
 
+		public async Task<HoldingDisplayModel?> GetHoldingAsync(string symbol, CancellationToken cancellationToken)
+		{
+			var lastKnownDate = await databaseContext.CalculatedSnapshotPrimaryCurrencies
+				.MaxAsync(x => (DateOnly?)x.Date, cancellationToken);
+
+			var item = databaseContext.HoldingAggregateds
+				.Where(x => x.Symbol == symbol)
+				.Select(x => new { x, LastSnapshots = x.CalculatedSnapshotsPrimaryCurrency.Where(y => y.Date == lastKnownDate) })
+				.AsNoTracking()
+				.AsEnumerable()
+				.Select(g => new HoldingDisplayModel
+				{
+					Symbol = g.x.Symbol,
+					Name = g.x.Name ?? g.x.Symbol,
+					AssetClass = g.x.AssetClass.ToString(),
+					Sector = g.x.SectorWeights?.FirstOrDefault()?.ToString() ?? string.Empty,
+					Quantity = g.LastSnapshots.Sum(y => y.Quantity),
+					AveragePrice = ConvertToMoney(g.LastSnapshots.Max(y => y.AverageCostPrice)),
+					CurrentPrice = ConvertToMoney(g.LastSnapshots.Min(y => y.CurrentUnitPrice)),
+					CurrentValue = ConvertToMoney(g.LastSnapshots.Sum(y => y.TotalValue)),
+					Currency = serverConfigurationService.PrimaryCurrency.ToString(),
+					GainLoss = ConvertToMoney(0),
+					GainLossPercentage = 0,
+					Weight = 0
+				})
+				.FirstOrDefault();
+
+			return item;
+		}
+
 		private async Task<List<HoldingDisplayModel>> GetHoldingsInternallyAsync(int? accountId, CancellationToken cancellationToken)
 		{
 			var lastKnownDate = await databaseContext.CalculatedSnapshotPrimaryCurrencies
@@ -101,9 +132,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				result.Add(new HoldingDisplayModel
 				{
 					AssetClass = x.Holding.AssetClass.ToString(),
-					AveragePrice = ConvertToMoney(x.Snapshots.Sum(y => y.AverageCostPrice)),
+					AveragePrice = ConvertToMoney(x.Snapshots.Max(y => y.AverageCostPrice)),
 					Currency = serverConfigurationService.PrimaryCurrency.Symbol,
-					CurrentPrice = ConvertToMoney(x.Snapshots.Sum(y => y.CurrentUnitPrice)),
+					CurrentPrice = ConvertToMoney(x.Snapshots.Min(y => y.CurrentUnitPrice)),
 					CurrentValue = ConvertToMoney(x.Snapshots.Sum(y => y.TotalValue)),
 					Name = x.Holding.Name ?? x.Holding.Symbol,
 					Quantity = x.Snapshots.Sum(y => y.Quantity),
