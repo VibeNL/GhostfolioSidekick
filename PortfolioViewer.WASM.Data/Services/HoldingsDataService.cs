@@ -83,12 +83,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		private async Task<List<HoldingDisplayModel>> GetHoldingsInternallyAsync(int? accountId, CancellationToken cancellationToken)
 		{
+			var lastKnownDate = await databaseContext.CalculatedSnapshotPrimaryCurrencies
+				.Where(x => accountId == null || x.AccountId == accountId)
+				.MaxAsync(x => (DateOnly?)x.Date, cancellationToken);
+
 			var list = await databaseContext.HoldingAggregateds
 				.Where(x => x.CalculatedSnapshotsPrimaryCurrency.Any(y => y.AccountId == accountId || accountId == null))
-				.Select(x => new { Holding = x, LastSnapshot = x.CalculatedSnapshotsPrimaryCurrency
+				.Select(x => new { Holding = x, Snapshots = x.CalculatedSnapshotsPrimaryCurrency
 					.Where(x => x.AccountId == accountId || accountId == null)
-					.OrderByDescending(x => x.Date)
-					.FirstOrDefault() })
+					.Where(x => x.Date == lastKnownDate) })
 				.OrderBy(x => x.Holding.Symbol)
 				.ToListAsync(cancellationToken);
 
@@ -98,12 +101,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				result.Add(new HoldingDisplayModel
 				{
 					AssetClass = x.Holding.AssetClass.ToString(),
-					AveragePrice = ConvertToMoney(x.LastSnapshot?.AverageCostPrice),
+					AveragePrice = ConvertToMoney(x.Snapshots.Sum(y => y.AverageCostPrice)),
 					Currency = serverConfigurationService.PrimaryCurrency.Symbol,
-					CurrentPrice = ConvertToMoney(x.LastSnapshot?.CurrentUnitPrice),
-					CurrentValue = ConvertToMoney(x.LastSnapshot?.TotalValue),
+					CurrentPrice = ConvertToMoney(x.Snapshots.Sum(y => y.CurrentUnitPrice)),
+					CurrentValue = ConvertToMoney(x.Snapshots.Sum(y => y.TotalValue)),
 					Name = x.Holding.Name ?? x.Holding.Symbol,
-					Quantity = x.LastSnapshot?.Quantity ?? 0,
+					Quantity = x.Snapshots.Sum(y => y.Quantity),
 					Sector = x.Holding.SectorWeights.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
 					Symbol = x.Holding.Symbol,
 				});
