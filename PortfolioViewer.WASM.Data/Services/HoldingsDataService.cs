@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					Symbol = g.x.Symbol,
 					Name = g.x.Name ?? g.x.Symbol,
 					AssetClass = g.x.AssetClass.ToString(),
-					Sector = g.x.SectorWeights?.FirstOrDefault()?.ToString() ?? string.Empty,
+					Sector = g.x.SectorWeights?.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
 					Quantity = g.LastSnapshots.Sum(y => y.Quantity),
 					AveragePrice = ConvertToMoney(SafeDivide(g.LastSnapshots.Sum(y => y.AverageCostPrice * y.Quantity), g.LastSnapshots.Sum(x => x.Quantity))),
 					CurrentPrice = ConvertToMoney(g.LastSnapshots.Min(y => y.CurrentUnitPrice)),
