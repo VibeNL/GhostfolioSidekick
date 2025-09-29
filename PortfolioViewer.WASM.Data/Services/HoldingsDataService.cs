@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				{
 					Date = group.Key,
 					Price = group.Min(x => x.CurrentUnitPrice),
-					AveragePrice = Money.Sum(group.Select(x => x.AverageCostPrice.Times(x.Quantity))).SafeDivide(group.Sum(x => x.Quantity)),
+					AveragePrice = Money.Sum(group.Select(y => y.AverageCostPrice.Times(y.Quantity))).SafeDivide(group.Sum(x => x.Quantity)),
 				});
 			}
 
@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					AssetClass = g.x.AssetClass.ToString(),
 					Sector = g.x.SectorWeights?.FirstOrDefault()?.ToString() ?? string.Empty,
 					Quantity = g.LastSnapshots.Sum(y => y.Quantity),
-					AveragePrice = ConvertToMoney(g.LastSnapshots.Max(y => y.AverageCostPrice)),
+					AveragePrice = ConvertToMoney(SafeDivide(g.LastSnapshots.Sum(y => y.AverageCostPrice * y.Quantity), g.LastSnapshots.Sum(x => x.Quantity))),
 					CurrentPrice = ConvertToMoney(g.LastSnapshots.Min(y => y.CurrentUnitPrice)),
 					CurrentValue = ConvertToMoney(g.LastSnapshots.Sum(y => y.TotalValue)),
 					Currency = serverConfigurationService.PrimaryCurrency.ToString(),
@@ -110,6 +110,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.FirstOrDefault();
 
 			return item;
+		}
+
+		private static decimal SafeDivide(decimal a, decimal b)
+		{
+			if (b == 0) return 0;
+			return a / b;
 		}
 
 		private async Task<List<HoldingDisplayModel>> GetHoldingsInternallyAsync(int? accountId, CancellationToken cancellationToken)
@@ -132,7 +138,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				result.Add(new HoldingDisplayModel
 				{
 					AssetClass = x.Holding.AssetClass.ToString(),
-					AveragePrice = ConvertToMoney(x.Snapshots.Max(y => y.AverageCostPrice)),
+					AveragePrice = ConvertToMoney(SafeDivide(x.Snapshots.Sum(y => y.AverageCostPrice * y.Quantity), x.Snapshots.Sum(x => x.Quantity))),
 					Currency = serverConfigurationService.PrimaryCurrency.Symbol,
 					CurrentPrice = ConvertToMoney(x.Snapshots.Min(y => y.CurrentUnitPrice)),
 					CurrentValue = ConvertToMoney(x.Snapshots.Sum(y => y.TotalValue)),
