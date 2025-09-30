@@ -9,10 +9,10 @@
 <PageTitle>Accounts</PageTitle>
 
 <div class="container-fluid">
-    <div class="row mb-3">
+    <div class="row mb-4">
         <div class="col-12">
-            <h1 class="display-4">Account Values Over Time</h1>
-            <p class="text-muted">View the value progression of each account over time</p>
+            <h1 class="display-4">Account Overview</h1>
+            <p class="text-muted">Current portfolio status and account performance tracking</p>
         </div>
     </div>
 
@@ -62,12 +62,129 @@
     }
     else
     {
-        <!-- Main Content -->
+        <!-- Current Portfolio Overview - Front and Center -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="card border-primary shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="card-title mb-0">
+                            <i class="bi bi-pie-chart-fill me-2"></i>Current Portfolio Overview
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 rounded bg-light">
+                                    <div class="h2 text-primary mb-1">@CurrencyDisplay.DisplaySignAndAmount(@TotalPortfolioValue)</div>
+                                    <div class="text-muted">Total Portfolio Value</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 rounded bg-light">
+                                    <div class="h4 text-info mb-1">@CurrencyDisplay.DisplaySignAndAmount(@TotalAssetValue)</div>
+                                    <div class="text-muted">Asset Holdings</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 rounded bg-light">
+                                    <div class="h4 text-success mb-1">@CurrencyDisplay.DisplaySignAndAmount(@TotalCashPosition)</div>
+                                    <div class="text-muted">Cash Available</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="card-title mb-0">
+                            <i class="bi bi-calendar-range me-2"></i>Date Range
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">From:</span>
+                            <strong>@FilterState.StartDate.ToString("yyyy-MM-dd")</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">To:</span>
+                            <strong>@FilterState.EndDate.ToString("yyyy-MM-dd")</strong>
+                        </div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Active Accounts:</span>
+                            <span class="badge bg-primary fs-6">@LatestAccountValues.Count</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Details Breakdown -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-bank me-2"></i>Account Details
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (LatestAccountValues.Any())
+                        {
+                            <div class="row g-3">
+                                @foreach (var latest in LatestAccountValues)
+                                {
+                                    <div class="col-lg-6 col-xl-4">
+                                        <div class="card h-100 border-0 shadow-sm account-detail-card">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="card-title text-primary mb-0">@latest.AccountName</h6>
+                                                    <span class="badge bg-secondary">@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)</span>
+                                                </div>
+                                                <div class="row g-2 small">
+                                                    <div class="col-6">
+                                                        <div class="text-muted">Assets:</div>
+                                                        <div class="text-info fw-semibold">@CurrencyDisplay.DisplaySignAndAmount(@latest.Value.Subtract(@latest.Balance))</div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="text-muted">Cash:</div>
+                                                        <div class="text-success fw-semibold">@CurrencyDisplay.DisplaySignAndAmount(@latest.Balance)</div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="text-muted">Gain/Loss:</div>
+                                                        <div class="fw-semibold @(latest.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                            @CurrencyDisplay.DisplaySignAndAmount(@latest.GainLoss)
+                                                            <small class="ms-1">(@latest.GainLossPercentage.ToString("P2"))</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <span class="text-muted">No account data available</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Data Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Account Value History</h5>
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-graph-up me-2"></i>Account Value History
+                        </h5>
                         <div class="d-flex gap-2">
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn @(ViewMode == "chart" ? "btn-primary" : "btn-outline-primary")"
@@ -182,93 +299,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Summary Cards -->
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="card-title mb-0">Date Range</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <span>From:</span>
-                            <strong>@FilterState.StartDate.ToString("yyyy-MM-dd")</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>To:</span>
-                            <strong>@FilterState.EndDate.ToString("yyyy-MM-dd")</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Accounts:</span>
-                            <strong>@LatestAccountValues.Count</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="card-title mb-0">Portfolio Summary</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <span>Total Value:</span>
-                            <strong class="text-primary">@CurrencyDisplay.DisplaySignAndAmount(@TotalPortfolioValue)</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Asset Value:</span>
-                            <strong class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@TotalAssetValue)</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Cash Position:</span>
-                            <strong class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@TotalCashPosition)</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="card-title mb-0">Account Breakdown</h6>
-                    </div>
-                    <div class="card-body">
-                        @if (LatestAccountValues.Any())
-                        {
-                            @foreach (var latest in LatestAccountValues)
-                            {
-                                <div class="mb-3 pb-2 border-bottom">
-                                    <div class="d-flex justify-content-between">
-                                        <strong class="text-primary">@latest.AccountName</strong>
-                                        <span class="badge bg-secondary">@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)</span>
-                                    </div>
-                                    <div class="small mt-1">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="text-muted">Assets:</span>
-                                            <span class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@latest.Value.Subtract(@latest.Balance))</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            <span class="text-muted">Cash:</span>
-                                            <span class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@latest.Balance)</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            <span class="text-muted">Gain/Loss:</span>
-                                            <span class="@(latest.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                @CurrencyDisplay.DisplaySignAndAmount(@latest.GainLoss)
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <span class="text-muted">No data available</span>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
     }
 </div>
 
@@ -298,5 +328,27 @@
 
     .account-row {
         transition: background-color 0.15s ease-in-out;
+    }
+
+    .account-detail-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .account-detail-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    }
+
+    .bg-light {
+        background-color: #f8f9fa !important;
+        border: 1px solid #e9ecef;
+    }
+
+    .card.border-primary {
+        border-width: 2px !important;
+    }
+
+    .badge.fs-6 {
+        font-size: 1rem !important;
     }
 </style>
