@@ -15,6 +15,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject] private ISyncTrackingService SyncTrackingService { get; set; } = default!;
 
+		[Inject] private IWakeLockService WakeLockService { get; set; } = default!;
+
 		private IJSObjectReference? mermaidmodule;
 		private Timer? refreshTimer;
 
@@ -22,6 +24,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private int Progress = 0;
 		private bool IsSyncing = false;
 		private DateTime? LastSyncTime = null;
+		private bool IsWakeLockActive = false;
+		private bool IsWakeLockSupported = false;
 
 		private string _statusMessage = string.Empty;
 		private bool _isError = false;
@@ -43,9 +47,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			Progress = 0;
 			_statusMessage = string.Empty;
 
+			// Request wake lock to keep screen active during sync
+			var wakeLockRequested = await WakeLockService.RequestWakeLockAsync();
+			if (wakeLockRequested)
+			{
+				IsWakeLockActive = true;
+				CurrentAction += " (keeping screen active)";
+				StateHasChanged();
+			}
+
 			var progress = new Progress<(string action, int progress)>(update =>
 			{
 				CurrentAction = update.action;
+				if (IsWakeLockActive)
+				{
+					CurrentAction += " (keeping screen active)";
+				}
 				Progress = update.progress;
 				StateHasChanged(); // Update the UI
 			});
@@ -69,6 +86,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 			finally
 			{
+				// Release wake lock when sync is complete
+				if (IsWakeLockActive)
+				{
+					await WakeLockService.ReleaseWakeLockAsync();
+					IsWakeLockActive = false;
+				}
+
 				IsSyncing = false;
 				CurrentAction = "Idle";
 				Progress = 0;
@@ -117,6 +141,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			// Load the last sync time when the component initializes
 			LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
+
+			// Check wake lock support
+			IsWakeLockSupported = await WakeLockService.IsWakeLockSupportedAsync();
 
 			refreshTimer = new Timer(async _ =>
 			{
