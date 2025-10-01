@@ -5,21 +5,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
     public class WakeLockService : IWakeLockService, IAsyncDisposable
     {
         private readonly IJSRuntime _jsRuntime;
-        private IJSObjectReference? _wakeLockModule;
+        private readonly Lazy<Task<IJSObjectReference>> _wakeLockModule;
         private bool _disposed = false;
 
         public WakeLockService(IJSRuntime jsRuntime)
         {
             _jsRuntime = jsRuntime;
+            _wakeLockModule = new Lazy<Task<IJSObjectReference>>(
+                () => _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/wakelock.js").AsTask());
         }
 
         private async Task<IJSObjectReference> GetWakeLockModuleAsync()
         {
-            if (_wakeLockModule == null)
-            {
-                _wakeLockModule = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/wakelock.js");
-            }
-            return _wakeLockModule;
+            return await _wakeLockModule.Value;
         }
 
         public async Task<bool> RequestWakeLockAsync()
@@ -82,12 +80,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         {
             if (!_disposed)
             {
-                if (_wakeLockModule != null)
+                if (_wakeLockModule.IsValueCreated)
                 {
                     try
                     {
-                        await _wakeLockModule.InvokeVoidAsync("releaseWakeLock");
-                        await _wakeLockModule.DisposeAsync();
+                        var module = await _wakeLockModule.Value;
+                        await module.InvokeVoidAsync("releaseWakeLock");
+                        await module.DisposeAsync();
                     }
                     catch (Exception ex)
                     {
