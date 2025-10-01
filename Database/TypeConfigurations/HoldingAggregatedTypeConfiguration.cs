@@ -75,6 +75,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.HasIndex(x => new { x.Date });
 			builder.HasIndex(x => new { x.AccountId, x.Date });
 			builder.HasIndex(x => new { x.HoldingAggregatedId, x.AccountId, x.Date }).IsUnique();
+			builder.HasIndex(x => new { x.HoldingAggregatedId, x.Date });
+			builder.HasIndex(x => new { x.Date });
 		}
 
 		public void Configure(EntityTypeBuilder<CalculatedSnapshotPrimaryCurrency> builder)
@@ -96,6 +98,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.HasIndex(x => new { x.Date });
 			builder.HasIndex(x => new { x.AccountId, x.Date });
 			builder.HasIndex(x => new { x.HoldingAggregatedId, x.AccountId, x.Date }).IsUnique();
+			builder.HasIndex(x => new { x.HoldingAggregatedId, x.Date });
+			builder.HasIndex(x => new { x.Date });
 		}
 
 		public void Configure(EntityTypeBuilder<BalancePrimaryCurrency> builder)
@@ -109,6 +113,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			// Indexes
 			builder.HasIndex(x => new { x.AccountId, x.Date }).IsUnique();
+			builder.HasIndex(x => new { x.Date });
 		}
 
 		private static void MapMoney<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, Money>> navigationExpression, string name) where TEntity : class
