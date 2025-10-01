@@ -68,6 +68,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 					break;
 				case "Limit buy":
 				case "Market buy":
+				case "Equity rights":
 					lst.Add(PartialActivity.CreateBuy(
 						currency,
 						record.Time,

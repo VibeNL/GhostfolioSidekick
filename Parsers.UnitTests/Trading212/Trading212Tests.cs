@@ -273,6 +273,28 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trading212
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleBuyEquityRights_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Trading212/BuyOrders/single_buy_equity_rights.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2025, 09, 23, 07, 36, 05, DateTimeKind.Utc),
+						PartialSymbolIdentifier.CreateStockAndETF("NL0015002IE0", "AVTX", "Avantium"),
+						11.2645304400M,
+						5.4000000000M,
+						new Money(Currency.EUR, 60.83M),
+						"EOF39167669257"),
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDividend_Converted()
 		{
 			// Arrange
