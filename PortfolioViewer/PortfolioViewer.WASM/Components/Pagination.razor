@@ -1,0 +1,114 @@
+@using Microsoft.AspNetCore.Components
+
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center mb-0">
+        <!-- Previous Button -->
+        <li class="page-item @(CurrentPage <= 1 ? "disabled" : "")">
+            <button class="page-link" @onclick="() => GoToPage(CurrentPage - 1)" disabled="@(CurrentPage <= 1)">
+                <i class="bi bi-chevron-left"></i>
+                <span class="d-none d-sm-inline ms-1">Previous</span>
+            </button>
+        </li>
+
+        <!-- First Page -->
+        @if (StartPage > 1)
+        {
+            <li class="page-item">
+                <button class="page-link" @onclick="() => GoToPage(1)">1</button>
+            </li>
+            @if (StartPage > 2)
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            }
+        }
+
+        <!-- Page Numbers -->
+        @for (int i = StartPage; i <= EndPage; i++)
+        {
+            var page = i; // Capture loop variable
+            <li class="page-item @(CurrentPage == page ? "active" : "")">
+                <button class="page-link" @onclick="() => GoToPage(page)">
+                    @(page)
+                    @if (CurrentPage == page)
+                    {
+                        <span class="visually-hidden">(current)</span>
+                    }
+                </button>
+            </li>
+        }
+
+        <!-- Last Page -->
+        @if (EndPage < TotalPages)
+        {
+            @if (EndPage < TotalPages - 1)
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            }
+            <li class="page-item">
+                <button class="page-link" @onclick="() => GoToPage(TotalPages)">@TotalPages</button>
+            </li>
+        }
+
+        <!-- Next Button -->
+        <li class="page-item @(CurrentPage >= TotalPages ? "disabled" : "")">
+            <button class="page-link" @onclick="() => GoToPage(CurrentPage + 1)" disabled="@(CurrentPage >= TotalPages)">
+                <span class="d-none d-sm-inline me-1">Next</span>
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </li>
+    </ul>
+</nav>
+
+<!-- Page Info -->
+<div class="d-flex justify-content-between align-items-center mt-2">
+    <small class="text-muted">
+        Showing @StartRecord - @EndRecord of @TotalRecords records
+    </small>
+    <div class="d-flex align-items-center gap-2">
+        <small class="text-muted">Show:</small>
+        <select class="form-select form-select-sm" style="width: auto;" @onchange="PageSizeChanged">
+            @foreach (var size in PageSizeOptions)
+            {
+                <option value="@size" selected="@(PageSize == size)">@size</option>
+            }
+        </select>
+        <small class="text-muted">per page</small>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int CurrentPage { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = 25;
+    [Parameter] public int TotalRecords { get; set; } = 0;
+    [Parameter] public EventCallback<int> OnPageChanged { get; set; }
+    [Parameter] public EventCallback<int> OnPageSizeChanged { get; set; }
+    [Parameter] public List<int> PageSizeOptions { get; set; } = new() { 10, 25, 50, 100 };
+
+    private int TotalPages => (int)Math.Ceiling((double)TotalRecords / PageSize);
+    private int StartRecord => TotalRecords == 0 ? 0 : (CurrentPage - 1) * PageSize + 1;
+    private int EndRecord => Math.Min(CurrentPage * PageSize, TotalRecords);
+
+    // Calculate visible page range (show up to 5 pages around current page)
+    private int StartPage => Math.Max(1, Math.Min(CurrentPage - 2, TotalPages - 4));
+    private int EndPage => Math.Min(TotalPages, StartPage + 4);
+
+    private async Task GoToPage(int page)
+    {
+        if (page >= 1 && page <= TotalPages && page != CurrentPage)
+        {
+            await OnPageChanged.InvokeAsync(page);
+        }
+    }
+
+    private async Task PageSizeChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int newPageSize))
+        {
+            await OnPageSizeChanged.InvokeAsync(newPageSize);
+        }
+    }
+}
