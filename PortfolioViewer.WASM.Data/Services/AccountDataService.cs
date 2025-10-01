@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				{
 					Date = g.Key.Date,
 					Value = g.Sum(x => (double)x.TotalValue),
-					Invested = g.Sum(x => (double)x.TotalValue),
+					Invested = g.Sum(x => (double)x.TotalInvested),
 					AccountId = g.Key.AccountId,
 					Currency = serverConfigurationService.PrimaryCurrency.Symbol
 				})
