@@ -18,14 +18,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 	{
 		private readonly Mock<DatabaseContext> _mockDatabaseContext;
 		private readonly Mock<IServerConfigurationService> _mockServerConfigurationService;
-		private readonly Mock<ILogger<HoldingsDataService>> _mockLogger;
 		private readonly HoldingsDataService _holdingsDataService;
 
 		public HoldingsDataServiceTests()
 		{
 			_mockDatabaseContext = new Mock<DatabaseContext>();
 			_mockServerConfigurationService = new Mock<IServerConfigurationService>();
-			_mockLogger = new Mock<ILogger<HoldingsDataService>>();
 
 			// Setup default primary currency
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.USD);
@@ -33,8 +31,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// The actual constructor signature from the source file
 			_holdingsDataService = new HoldingsDataService(
 				_mockDatabaseContext.Object,
-				_mockServerConfigurationService.Object,
-				_mockLogger.Object);
+				_mockServerConfigurationService.Object);
 		}
 
 		[Fact]
@@ -50,6 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holdingAggregateds = new List<HoldingAggregated> { holdingAggregated };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
+			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { calculatedSnapshot });
 
 			// Act
 			var result = await _holdingsDataService.GetHoldingsAsync(cancellationToken);
