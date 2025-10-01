@@ -8,6 +8,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 	public interface IHoldingsDataService
 	{
 		/// <summary>
+		/// Get holding by symbol
+		/// </summary>
+		Task<HoldingDisplayModel?> GetHoldingAsync(string symbol, CancellationToken cancellationToken = default);
+
+		/// <summary>
 		/// Loads all holdings for the current portfolio
 		/// </summary>
 		/// <param name="targetCurrency">Currency to convert values to</param>
@@ -52,5 +57,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			DateOnly endDate,
 			int? accountId,
 			CancellationToken cancellationToken = default);
+
 	}
 }

@@ -18,9 +18,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private FilterState FilterState { get; set; } = new();
 
 		private List<TransactionDisplayModel> TransactionsList = new();
+		private PaginatedTransactionResult? currentResult;
 
 		// Loading state management
 		private bool IsLoading { get; set; } = true;
+		private bool IsPageLoading { get; set; } = false;
 		private bool HasError { get; set; } = false;
 		private string ErrorMessage { get; set; } = string.Empty;
 
@@ -30,6 +32,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		// Sorting state
 		private string sortColumn = "Date";
 		private bool sortAscending = false;
+
+		// Pagination state
+		private int currentPage = 1;
+		private int pageSize = 25;
+		private int totalRecords = 0;
+		private List<int> pageSizeOptions = new() { 10, 25, 50, 100, 250 };
 
 		private FilterState? _previousFilterState;
 
@@ -60,6 +68,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			await InvokeAsync(async () =>
 			{
+				currentPage = 1; // Reset to first page when filters change
 				await LoadTransactionDataAsync();
 				StateHasChanged();
 			});
@@ -77,8 +86,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				// Yield control to allow UI to update
 				await Task.Yield();
 
-				TransactionsList = await LoadRealTransactionDataAsync();
-				SortTransactions(); // Sort after loading
+				currentResult = await LoadPaginatedTransactionDataAsync();
+				TransactionsList = currentResult?.Transactions ?? new List<TransactionDisplayModel>();
+				totalRecords = currentResult?.TotalCount ?? 0;
 			}
 			catch (Exception ex)
 			{
@@ -92,19 +102,52 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
-		private async Task<List<TransactionDisplayModel>> LoadRealTransactionDataAsync()
+		private async Task LoadPageDataAsync()
 		{
 			try
 			{
-				var allTransactions = await HoldingsDataService?.GetTransactionsAsync(
+				IsPageLoading = true;
+				HasError = false;
+				ErrorMessage = string.Empty;
+				StateHasChanged(); // Update UI to show page loading state
+
+				// Yield control to allow UI to update
+				await Task.Yield();
+
+				currentResult = await LoadPaginatedTransactionDataAsync();
+				TransactionsList = currentResult?.Transactions ?? new List<TransactionDisplayModel>();
+				totalRecords = currentResult?.TotalCount ?? 0;
+			}
+			catch (Exception ex)
+			{
+				HasError = true;
+				ErrorMessage = ex.Message;
+			}
+			finally
+			{
+				IsPageLoading = false;
+				StateHasChanged(); // Update UI when loading is complete
+			}
+		}
+
+		private async Task<PaginatedTransactionResult> LoadPaginatedTransactionDataAsync()
+		{
+			try
+			{
+				var result = await HoldingsDataService?.GetTransactionsPaginatedAsync(
 					ServerConfigurationService.PrimaryCurrency,
 					FilterState.StartDate,
 					FilterState.EndDate,
 					FilterState.SelectedAccountId,
-					FilterState.SelectedSymbol) ?? new List<TransactionDisplayModel>();
+					FilterState.SelectedSymbol ?? "",
+					FilterState.SelectedTransactionType ?? "",
+					FilterState.SearchText ?? "",
+					sortColumn,
+					sortAscending,
+					currentPage,
+					pageSize) ?? new PaginatedTransactionResult();
 
-				// Apply client-side filtering for transaction type and search text
-				return ApplyClientSideFilters(allTransactions);
+				return result;
 			}
 			catch (Exception ex)
 			{
@@ -112,33 +155,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
-		private List<TransactionDisplayModel> ApplyClientSideFilters(List<TransactionDisplayModel> transactions)
-		{
-			var filtered = transactions.AsEnumerable();
-
-			// Filter by transaction type
-			if (!string.IsNullOrEmpty(FilterState.SelectedTransactionType))
-			{
-				filtered = filtered.Where(t => t.Type.Equals(FilterState.SelectedTransactionType, StringComparison.OrdinalIgnoreCase));
-			}
-
-			// Filter by search text (searches in Symbol, Name, and Description)
-			if (!string.IsNullOrEmpty(FilterState.SearchText))
-			{
-				var searchTerm = FilterState.SearchText.ToLower();
-				filtered = filtered.Where(t =>
-					(t.Symbol?.ToLower().Contains(searchTerm) ?? false) ||
-					(t.Name?.ToLower().Contains(searchTerm) ?? false) ||
-					(t.Description?.ToLower().Contains(searchTerm) ?? false) ||
-					(t.TransactionId?.ToLower().Contains(searchTerm) ?? false));
-			}
-
-			return filtered.ToList();
-		}
-
 		// Add refresh method for manual data reload
 		private async Task RefreshDataAsync()
 		{
+			currentPage = 1; // Reset to first page
 			await LoadTransactionDataAsync();
 		}
 
@@ -149,22 +169,40 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			StateHasChanged();
 		}
 
+		// Pagination methods
+		private async Task OnPageChanged(int newPage)
+		{
+			if (newPage != currentPage)
+			{
+				currentPage = newPage;
+				await LoadPageDataAsync();
+			}
+		}
+
+		private async Task OnPageSizeChanged(int newPageSize)
+		{
+			if (newPageSize != pageSize)
+			{
+				pageSize = newPageSize;
+				currentPage = 1; // Reset to first page when changing page size
+				await LoadTransactionDataAsync(); // Reload with new page size
+			}
+		}
+
+		// Statistics based on all filtered transactions (not just current page)
 		private Dictionary<string, int> TransactionTypeBreakdown =>
-			TransactionsList.GroupBy(t => t.Type)
-				   .ToDictionary(g => g.Key, g => g.Count());
+			currentResult?.TransactionTypeBreakdown ?? new Dictionary<string, int>();
 
 		private Dictionary<string, int> AccountBreakdown =>
-			TransactionsList.GroupBy(t => t.AccountName)
-				   .ToDictionary(g => g.Key, g => g.Count());
+			currentResult?.AccountBreakdown ?? new Dictionary<string, int>();
 
 		private List<string> AvailableTransactionTypes =>
-			TransactionsList?.Select(t => t.Type)
-				   .Distinct()
+			TransactionTypeBreakdown?.Keys
 				   .Where(t => !string.IsNullOrEmpty(t))
 				   .OrderBy(t => t)
 				   .ToList() ?? new List<string>();
 
-		private void SortBy(string column)
+		private async Task SortBy(string column)
 		{
 			if (sortColumn == column)
 			{
@@ -175,40 +213,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				sortColumn = column;
 				sortAscending = true;
 			}
-			SortTransactions();
-		}
-
-		private void SortTransactions()
-		{
-			switch (sortColumn)
-			{
-				case "Date":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Date).ToList() : TransactionsList.OrderByDescending(t => t.Date).ToList();
-					break;
-				case "Type":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Type).ToList() : TransactionsList.OrderByDescending(t => t.Type).ToList();
-					break;
-				case "Symbol":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Symbol).ToList() : TransactionsList.OrderByDescending(t => t.Symbol).ToList();
-					break;
-				case "Name":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Name).ToList() : TransactionsList.OrderByDescending(t => t.Name).ToList();
-					break;
-				case "AccountName":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.AccountName).ToList() : TransactionsList.OrderByDescending(t => t.AccountName).ToList();
-					break;
-				case "Quantity":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Quantity ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.Quantity ?? 0).ToList();
-					break;
-				case "TotalValue":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.TotalValue?.Amount ?? 0).ToList() : TransactionsList.OrderByDescending(t => t.TotalValue?.Amount ?? 0).ToList();
-					break;
-				case "Description":
-					TransactionsList = sortAscending ? TransactionsList.OrderBy(t => t.Description).ToList() : TransactionsList.OrderByDescending(t => t.Description).ToList();
-					break;
-				default:
-					break;
-			}
+			
+			currentPage = 1; // Reset to first page when sorting
+			await LoadTransactionDataAsync();
 		}
 
 		private static string GetTypeClass(string type)
@@ -218,14 +225,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				"Buy" => "bg-success",
 				"Sell" => "bg-danger",
 				"Dividend" => "bg-info",
-				"Deposit" => "bg-success",
-				"Withdrawal" => "bg-warning",
+				"Deposit" or "CashDeposit" => "bg-success",
+				"Withdrawal" or "CashWithdrawal" => "bg-warning",
 				"Fee" => "bg-danger",
 				"Interest" => "bg-info",
 				"Receive" => "bg-success",
 				"Send" => "bg-warning",
-				"Staking Reward" => "bg-primary",
-				"Gift" => "bg-secondary",
+				"Staking Reward" or "StakingReward" => "bg-primary",
+				"Gift Fiat" or "GiftFiat" => "bg-secondary",
+				"Gift Asset" or "GiftAsset" => "bg-secondary",
+				"Valuable" => "bg-secondary",
+				"Liability" => "bg-secondary",
+				"Repay Bond" or "RepayBond" => "bg-secondary",
 				_ => "bg-secondary"
 			};
 		}
@@ -239,14 +250,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				"Buy" => "text-danger",
 				"Sell" => "text-success",
 				"Dividend" => "text-success",
-				"Deposit" => "text-success",
-				"Withdrawal" => "text-danger",
+				"Deposit" or "CashDeposit" => "text-success",
+				"Withdrawal" or "CashWithdrawal" => "text-danger",
 				"Fee" => "text-danger",
 				"Interest" => "text-success",
 				"Receive" => "text-success",
 				"Send" => "text-danger",
-				"Staking Reward" => "text-success",
-				"Gift" => "text-success",
+				"Staking Reward" or "StakingReward" => "text-success",
+				"Gift Fiat" or "GiftFiat" => "text-success",
+				"Gift Asset" or "GiftAsset" => "text-success",
+				"Valuable" => "text-success",
+				"Liability" => "text-danger",
+				"Repay Bond" or "RepayBond" => "text-success",
 				_ => ""
 			};
 		}

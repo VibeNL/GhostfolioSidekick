@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.Performance
 				primarySnapshot.TotalValue = (await currencyExchange.ConvertMoney(snapshot.TotalValue, currency, snapshot.Date)).Amount;
 				primarySnapshot.TotalInvested = (await currencyExchange.ConvertMoney(snapshot.TotalInvested, currency, snapshot.Date)).Amount;
 				primarySnapshot.AverageCostPrice = primarySnapshot.Quantity != 0 ? primarySnapshot.TotalInvested / primarySnapshot.Quantity : 0;
-				primarySnapshot.CurrentUnitPrice = primarySnapshot.Quantity != 0 ? primarySnapshot.TotalValue / primarySnapshot.Quantity : 0;
+				primarySnapshot.CurrentUnitPrice = (await currencyExchange.ConvertMoney(snapshot.CurrentUnitPrice, currency, snapshot.Date)).Amount;
 				primarySnapshot.AccountId = snapshot.AccountId;
 			}
 
