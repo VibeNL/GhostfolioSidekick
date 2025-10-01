@@ -53,5 +53,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
             var lastSync = await GetLastSyncTimeAsync();
             return lastSync.HasValue;
         }
+
+        public async Task ClearSyncTimeAsync()
+        {
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", LastSyncKey);
+            }
+            catch
+            {
+                // Ignore errors when clearing
+            }
+        }
     }
 }

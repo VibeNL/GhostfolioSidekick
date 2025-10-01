@@ -753,6 +753,53 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
+		public async Task DeleteAllData(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
+		{
+			try
+			{
+				progress?.Report(("Deleting all database data...", 10));
+				logger.LogInformation("Starting database deletion");
+
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+
+				// Step 1: Delete the database file completely
+				progress?.Report(("Deleting database file...", 30));
+				await databaseContext.Database.EnsureDeletedAsync();
+
+				// Step 2: Recreate the database with migrations
+				progress?.Report(("Recreating database structure...", 60));
+				await databaseContext.Database.MigrateAsync();
+
+				// Step 3: Clear sync tracking
+				progress?.Report(("Clearing sync history...", 80));
+				await syncTrackingService.ClearSyncTimeAsync();
+
+				// Step 4: Clear IndexedDB storage
+				progress?.Report(("Clearing browser storage...", 85));
+				try
+				{
+					await sqlitePersistence.ClearDatabaseFromIndexedDb();
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to clear IndexedDB storage, continuing with deletion");
+				}
+
+				// Step 5: Clear cache
+				progress?.Report(("Clearing cache...", 90));
+				await currencyExchange.ClearCache();
+
+				progress?.Report(("Database deletion completed successfully.", 100));
+				logger.LogInformation("Database deletion completed successfully");
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error during database deletion: {Message}", ex.Message);
+				progress?.Report(($"Error deleting database: {ex.Message}", 100));
+				throw;
+			}
+		}
+
 		public void Dispose()
 		{
 			Dispose(true);

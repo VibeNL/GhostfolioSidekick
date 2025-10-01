@@ -188,6 +188,55 @@ export async function setupDatabase(filename: string): Promise<void> {
     });
 }
 
+export async function clearDatabaseFromIndexedDb(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        console.log('Clearing database from IndexedDB');
+
+        // Open the IndexedDB database
+        const dbRequest: IDBOpenDBRequest = window.indexedDB.open('SqliteStorage', 1);
+
+        // Handle any errors opening IndexedDB
+        dbRequest.onerror = (): void => {
+            console.error('Error opening database for clearing:', dbRequest.error);
+            reject(dbRequest.error);
+        };
+
+        // This fires after IndexedDB is successfully opened
+        dbRequest.onsuccess = (): void => {
+            const db: IDBDatabase = (dbRequest as IDBOpenDBRequestExtended).result;
+
+            try {
+                // Verify the object store exists
+                if (!db.objectStoreNames.contains('Files')) {
+                    console.log('Files object store not found, nothing to clear');
+                    resolve();
+                    return;
+                }
+
+                // Start a transaction and get the object store
+                const transaction: IDBTransaction = db.transaction('Files', 'readwrite');
+                const objectStore: IDBObjectStore = transaction.objectStore('Files');
+
+                // Delete the database record from IndexedDB
+                const deleteRequest: IDBRequest = objectStore.delete('database');
+
+                deleteRequest.onsuccess = (): void => {
+                    console.log('Database successfully cleared from IndexedDB');
+                    resolve();
+                };
+
+                deleteRequest.onerror = (): void => {
+                    console.error('Error clearing database from IndexedDB:', deleteRequest.error);
+                    reject(deleteRequest.error);
+                };
+            } catch (error) {
+                console.error('Error during clear operation:', error);
+                reject(error);
+            }
+        };
+    });
+}
+
 export async function syncDatabaseToIndexedDb(filename: string): Promise<void> {
     // Wait for Blazor runtime to be available
     await waitForBlazorRuntime();

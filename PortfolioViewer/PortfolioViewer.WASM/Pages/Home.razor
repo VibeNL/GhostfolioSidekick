@@ -62,7 +62,7 @@ else
         @GetSyncButtonText()
     </button>
 
-    @if (LastSyncTime.HasValue && !IsSyncing)
+    @if (!IsSyncing)
     {
         <div class="btn-group" role="group">
             <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -70,17 +70,26 @@ else
                 Options
             </button>
             <ul class="dropdown-menu">
+                @if (LastSyncTime.HasValue)
+                {
+                    <li>
+                        <button class="dropdown-item" @onclick="StartFullSync">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Force Full Sync
+                            <small class="text-muted d-block">Download all data (slower but complete)</small>
+                        </button>
+                    </li>
+                }
                 <li>
-                    <button class="dropdown-item" @onclick="StartFullSync">
-                        <i class="bi bi-arrow-clockwise me-2"></i>
-                        Force Full Sync
-                        <small class="text-muted d-block">Download all data (slower but complete)</small>
+                    <button class="dropdown-item text-danger" @onclick="DeleteAllData">
+                        <i class="bi bi-trash me-2"></i>
+                        Delete All Data
+                        <small class="text-muted d-block">Remove all synced data from local database</small>
                     </button>
                 </li>
             </ul>
         </div>
     }
-
 </div>
 
 @if (!string.IsNullOrEmpty(_statusMessage))
