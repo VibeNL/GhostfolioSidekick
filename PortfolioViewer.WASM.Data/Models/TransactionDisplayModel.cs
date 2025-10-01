@@ -22,7 +22,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
         
         public override string ToString()
         {
-            return $"{Date:yyyy-MM-dd} - {Type} - {Symbol} - {Description} - {TotalValue}";
+            var parts = new List<string>
+            {
+                $"{Date:yyyy-MM-dd}",
+                Type,
+                Symbol ?? "",
+                Description,
+                TotalValue?.ToString() ?? ""
+            };
+
+            if (Fee != null && Fee.Amount > 0)
+                parts.Add($"Fee: {Fee}");
+
+            if (Tax != null && Tax.Amount > 0)
+                parts.Add($"Tax: {Tax}");
+
+            return string.Join(" - ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
         }
     }
 }
