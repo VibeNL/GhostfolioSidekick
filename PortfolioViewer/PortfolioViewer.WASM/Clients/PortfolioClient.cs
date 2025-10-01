@@ -25,12 +25,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		const int pageSize = 10_000;
 		const int PartialSyncBufferDays = 1; // Buffer to ensure we don't miss any data
 
-		// Tables that support date-based partial sync
-		private readonly HashSet<string> _tablesWithDateSupport = new()
-		{
-			"Activities", "MarketData", "Balances", "CalculatedSnapshots", "CurrencyExchangeRate", "StockSplits"
-		};
-
 		private GrpcChannel? _grpcChannel;
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed = false;
@@ -117,37 +111,42 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				progress?.Report(($"Checking data since {sinceDateString}...", 5));
 
-				// Get latest dates from server
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+
+				// Get all table names dynamically from the database
+				var allTables = await GetDatabaseTablesAsync(databaseContext);
+				var tablesWithDateColumns = await GetTablesWithDateColumnsAsync(databaseContext, allTables);
+				var tablesWithoutDateColumns = allTables.Except(tablesWithDateColumns).ToList();
+
+				// Get latest dates from server for tables with date columns
 				var latestDatesResponse = await grpcClient.GetLatestDatesAsync(new GetLatestDatesRequest(), cancellationToken: cancellationToken);
 
-				// Check if partial sync would be beneficial
-				var recordsToSync = 0;
-				var tablesToSync = new List<string>();
+				// Check if partial sync would be beneficial for tables with dates
+				var tablesToSyncPartially = new List<string>();
+				var tablesToSyncFully = new List<string>(tablesWithoutDateColumns);
 
-				foreach (var table in _tablesWithDateSupport)
+				foreach (var table in tablesWithDateColumns)
 				{
 					if (latestDatesResponse.LatestDates.ContainsKey(table))
 					{
 						var latestDateStr = latestDatesResponse.LatestDates[table];
 						if (DateTime.TryParse(latestDateStr, out var latestDate) && latestDate >= sinceDate)
 						{
-							tablesToSync.Add(table);
-							// For simplicity, we'll proceed with partial sync for tables with new data
-							recordsToSync += 1000; // Estimate
+							tablesToSyncPartially.Add(table);
 						}
 					}
 				}
 
+				// Always sync tables without date columns during partial sync
 				// If no tables need syncing, we're up to date
-				if (tablesToSync.Count == 0)
+				if (tablesToSyncPartially.Count == 0 && tablesToSyncFully.Count == 0)
 				{
 					progress?.Report(("No new data found, sync complete.", 100));
 					return true;
 				}
 
-				progress?.Report(($"Performing partial sync for {tablesToSync.Count} tables since {sinceDateString}...", 10));
-
-				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+				var totalTablesToSync = tablesToSyncPartially.Count + tablesToSyncFully.Count;
+				progress?.Report(($"Performing partial sync for {totalTablesToSync} tables since {sinceDateString}...", 10));
 
 				// Enable performance optimizations
 				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
@@ -155,9 +154,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
 
 				var totalProgress = 0;
-				var progressStep = 80 / tablesToSync.Count; // Reserve 20% for cleanup
+				var progressStep = 80 / totalTablesToSync; // Reserve 20% for cleanup
 
-				foreach (var tableName in tablesToSync)
+				// Sync tables with date columns (partial sync)
+				foreach (var tableName in tablesToSyncPartially)
 				{
 					progress?.Report(($"Syncing new data for table: {tableName}...", 10 + totalProgress));
 
@@ -171,6 +171,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					totalProgress += progressStep;
 				}
 
+				// Sync tables without date columns (full sync for these tables)
+				foreach (var tableName in tablesToSyncFully)
+				{
+					progress?.Report(($"Syncing all data for table: {tableName}...", 10 + totalProgress));
+
+					// Clear all data for tables without date columns
+					var deleteSql = $"DELETE FROM {tableName}";
+					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+
+					// Sync all data for this table
+					await SyncTableDataFull(grpcClient, databaseContext, tableName, progress, cancellationToken);
+
+					totalProgress += progressStep;
+				}
+
 				// Re-enable constraints and finalize
 				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
 				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
@@ -178,7 +193,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				await sqlitePersistence.SaveChangesAsync(cancellationToken);
 
-				logger.LogInformation("Partial sync completed successfully for tables: {Tables}", string.Join(", ", tablesToSync));
+				var allSyncedTables = tablesToSyncPartially.Concat(tablesToSyncFully).ToList();
+				logger.LogInformation("Partial sync completed successfully for {TableCount} tables: {Tables}", 
+					allSyncedTables.Count, string.Join(", ", allSyncedTables));
 				return true;
 			}
 			catch (Exception ex)
@@ -188,15 +205,79 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
+		private async Task<List<string>> GetDatabaseTablesAsync(DatabaseContext databaseContext)
+		{
+			var query = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN (@ignore1, @ignore2, @ignore3)";
+			
+			using var connection = databaseContext.Database.GetDbConnection();
+			await connection.OpenAsync();
+			using var command = connection.CreateCommand();
+			command.CommandText = query;
+
+			// Add parameters for tables to ignore
+			var ignore1Param = command.CreateParameter();
+			ignore1Param.ParameterName = "@ignore1";
+			ignore1Param.Value = TablesToIgnore[0];
+			command.Parameters.Add(ignore1Param);
+
+			var ignore2Param = command.CreateParameter();
+			ignore2Param.ParameterName = "@ignore2";
+			ignore2Param.Value = TablesToIgnore[1];
+			command.Parameters.Add(ignore2Param);
+
+			var ignore3Param = command.CreateParameter();
+			ignore3Param.ParameterName = "@ignore3";
+			ignore3Param.Value = TablesToIgnore[2];
+			command.Parameters.Add(ignore3Param);
+
+			var tables = new List<string>();
+			using var reader = await command.ExecuteReaderAsync();
+			while (await reader.ReadAsync())
+			{
+				tables.Add(reader.GetString(0));
+			}
+
+			return tables;
+		}
+
+		private async Task<List<string>> GetTablesWithDateColumnsAsync(DatabaseContext databaseContext, List<string> tables)
+		{
+			var tablesWithDateColumns = new List<string>();
+
+			using var connection = databaseContext.Database.GetDbConnection();
+			await connection.OpenAsync();
+
+			foreach (var table in tables)
+			{
+				// Check if table has a "Date" column
+				using var command = connection.CreateCommand();
+				command.CommandText = $"PRAGMA table_info({table})";
+
+				using var reader = await command.ExecuteReaderAsync();
+				while (await reader.ReadAsync())
+				{
+					var columnName = reader.GetString(1); // Column name is at index 1
+					if (string.Equals(columnName, "Date", StringComparison.OrdinalIgnoreCase))
+					{
+						tablesWithDateColumns.Add(table);
+						break; // Found the Date column, no need to check further
+					}
+				}
+			}
+
+			return tablesWithDateColumns;
+		}
+
 		private async Task<int> DeleteRecordsSinceDate(DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
 		{
-			var dateColumn = GetDateColumnForTable(tableName);
-			if (string.IsNullOrEmpty(dateColumn))
+			// Check if table has a Date column
+			var hasDateColumn = await TableHasDateColumn(databaseContext, tableName);
+			if (!hasDateColumn)
 			{
 				return 0;
 			}
 
-			var deleteSql = $"DELETE FROM {tableName} WHERE {dateColumn} >= @sinceDate";
+			var deleteSql = $"DELETE FROM {tableName} WHERE Date >= @sinceDate";
 
 			using var connection = databaseContext.Database.GetDbConnection();
 			await connection.OpenAsync(cancellationToken);
@@ -211,18 +292,32 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return await command.ExecuteNonQueryAsync(cancellationToken);
 		}
 
-		private string? GetDateColumnForTable(string tableName)
+		private async Task<bool> TableHasDateColumn(DatabaseContext databaseContext, string tableName)
 		{
-			return tableName switch
+			using var connection = databaseContext.Database.GetDbConnection();
+			await connection.OpenAsync();
+			using var command = connection.CreateCommand();
+			command.CommandText = $"PRAGMA table_info({tableName})";
+
+			using var reader = await command.ExecuteReaderAsync();
+			while (await reader.ReadAsync())
 			{
-				"Activities" => "Date",
-				"MarketData" => "Date",
-				"Balances" => "Date",
-				"CalculatedSnapshots" => "Date",
-				"CurrencyExchangeRate" => "Date",
-				"StockSplits" => "Date",
-				_ => null
-			};
+				var columnName = reader.GetString(1); // Column name is at index 1
+				if (string.Equals(columnName, "Date", StringComparison.OrdinalIgnoreCase))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		private async Task SyncTableDataFull(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		{
+			await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
+			{
+				await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
+			}
 		}
 
 		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
