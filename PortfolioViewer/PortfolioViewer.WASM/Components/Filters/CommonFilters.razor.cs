@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			await LoadFilterDataAsync();
 
 			// Detect if FilterState already has YTD dates set and update the button selection
-			DetectCurrentDateRange();
+			await DetectCurrentDateRange();
 		}
 
 		protected override async Task OnParametersSetAsync()
@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			_isFirstLoad = false;
 
 			// Re-detect the current date range when parameters change
-			DetectCurrentDateRange();
+			await DetectCurrentDateRange();
 
 			// Reload filter data if the filter requirements have changed
 			await LoadFilterDataAsync();
@@ -345,7 +345,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			}
 		}
 
-		private void DetectCurrentDateRange()
+		private async Task DetectCurrentDateRange()
 		{
 			if (_pendingFilterState == null) return;
 
@@ -381,7 +381,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			{
 				_currentDateRange = "FiveYear";
 			}
-			else if (_pendingFilterState.StartDate == GetMinDate() && _pendingFilterState.EndDate == today)
+			else if (_pendingFilterState.StartDate == await GetMinDate() && _pendingFilterState.EndDate == today)
 			{
 				_currentDateRange = "Max";
 			}
@@ -427,7 +427,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					_pendingFilterState.EndDate = today;
 					break;
 				case "Max":
-					_pendingFilterState.StartDate = GetMinDate();
+					_pendingFilterState.StartDate = await GetMinDate();
 					_pendingFilterState.EndDate = today;
 					break;
 			}
@@ -584,7 +584,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			if (FilterState != null)
 			{
 				_pendingFilterState = PendingFilterState.FromFilterState(FilterState);
-				DetectCurrentDateRange();
+				await DetectCurrentDateRange();
 				await UpdateFilteredOptionsAsync();
 				StateHasChanged();
 				Logger?.LogInformation("Reset pending filter changes");
@@ -598,9 +598,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			_searchDebounceTimer?.Dispose();
 		}
 
-		private DateOnly GetMinDate()
+		private Task<DateOnly> GetMinDate()
 		{
-			return AccountDataService.GetMinDateAsync().Result;
+			return AccountDataService.GetMinDateAsync();
 		}
 	}
 }
