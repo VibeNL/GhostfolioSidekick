@@ -57,6 +57,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected Money TotalPortfolioValue { get; set; } = Money.Zero(Currency.EUR);
 		protected Money TotalAssetValue { get; set; } = Money.Zero(Currency.EUR);
 		protected Money TotalCashPosition { get; set; } = Money.Zero(Currency.EUR);
+		
+		// Computed properties for totals in the summary table
+		protected Money TotalGainLoss => LatestAccountValues.Any() 
+			? LatestAccountValues.Aggregate(Money.Zero(TotalPortfolioValue.Currency), (sum, account) => sum.Add(account.GainLoss))
+			: Money.Zero(Currency.EUR);
+		
+		protected decimal TotalGainLossPercentage
+		{
+			get
+			{
+				if (!LatestAccountValues.Any()) return 0m;
+				var totalInvested = LatestAccountValues.Sum(x => x.Invested.Amount);
+				var totalGainLoss = LatestAccountValues.Sum(x => x.GainLoss.Amount);
+				return totalInvested == 0 ? 0 : totalGainLoss / totalInvested;
+			}
+		}
 
 		private FilterState? _previousFilterState;
 

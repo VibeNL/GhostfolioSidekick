@@ -1,5 +1,6 @@
 @page "/accounts"
 @using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.Model
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
 @using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @using GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
@@ -121,7 +122,7 @@
             </div>
         </div>
 
-        <!-- Account Details Breakdown -->
+        <!-- Account Details Breakdown - Now as Table -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
@@ -133,37 +134,74 @@
                     <div class="card-body">
                         @if (LatestAccountValues.Any())
                         {
-                            <div class="row g-3">
-                                @foreach (var latest in LatestAccountValues)
-                                {
-                                    <div class="col-lg-6 col-xl-4">
-                                        <div class="card h-100 border-0 shadow-sm account-detail-card">
-                                            <div class="card-body">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <h6 class="card-title text-primary mb-0">@latest.AccountName</h6>
-                                                    <span class="badge bg-secondary">@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)</span>
-                                                </div>
-                                                <div class="row g-2 small">
-                                                    <div class="col-6">
-                                                        <div class="text-muted">Assets:</div>
-                                                        <div class="text-info fw-semibold">@CurrencyDisplay.DisplaySignAndAmount(@latest.Value.Subtract(@latest.Balance))</div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="text-muted">Cash:</div>
-                                                        <div class="text-success fw-semibold">@CurrencyDisplay.DisplaySignAndAmount(@latest.Balance)</div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="text-muted">Gain/Loss:</div>
-                                                        <div class="fw-semibold @(latest.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                            @CurrencyDisplay.DisplaySignAndAmount(@latest.GainLoss)
-                                                            <small class="ms-1">(@latest.GainLossPercentage.ToString("P2"))</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">Account Name</th>
+                                            <th scope="col" class="text-end">Total Value</th>
+                                            <th scope="col" class="text-end">Asset Value</th>
+                                            <th scope="col" class="text-end">Cash Balance</th>
+                                            <th scope="col" class="text-end">Gain/Loss</th>
+                                            <th scope="col" class="text-end">Gain/Loss %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var latest in LatestAccountValues)
+                                        {
+                                            <tr class="account-summary-row">
+                                                <td>
+                                                    <strong class="text-primary">@latest.AccountName</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@latest.Value.Subtract(@latest.Balance))</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@latest.Balance)</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(latest.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                        @CurrencyDisplay.DisplaySignAndAmount(@latest.GainLoss)
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(latest.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                        @latest.GainLossPercentage.ToString("P2")
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light border-top-2">
+                                        <tr class="fw-bold">
+                                            <td>
+                                                <strong class="text-dark">Total Portfolio</strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="text-primary">@CurrencyDisplay.DisplaySignAndAmount(@TotalPortfolioValue)</strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@TotalAssetValue)</strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@TotalCashPosition)</strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="@(TotalGainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                    @CurrencyDisplay.DisplaySignAndAmount(TotalGainLoss)
+                                                </strong>
+                                            </td>
+                                            <td class="text-end">
+                                                <strong class="@(TotalGainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                    @TotalGainLossPercentage.ToString("P2")
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
                         }
                         else
@@ -330,13 +368,13 @@
         transition: background-color 0.15s ease-in-out;
     }
 
-    .account-detail-card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    .account-summary-row:hover {
+        background-color: #e7f3ff !important;
+        transition: background-color 0.15s ease-in-out;
     }
 
-    .account-detail-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    .account-summary-row {
+        transition: background-color 0.15s ease-in-out;
     }
 
     .bg-light {
@@ -350,5 +388,9 @@
 
     .badge.fs-6 {
         font-size: 1rem !important;
+    }
+
+    .border-top-2 {
+        border-top: 2px solid #dee2e6 !important;
     }
 </style>
