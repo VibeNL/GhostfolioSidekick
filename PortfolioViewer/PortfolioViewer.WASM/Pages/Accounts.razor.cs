@@ -27,6 +27,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// View mode for chart/table toggle
 		protected string ViewMode { get; set; } = "chart";
+		
+		// View mode for Account Details section (table, pie, treemap)
+		protected string AccountDetailsViewMode { get; set; } = "table";
 
 		// Properties that read from cascaded filter state
 		protected DateOnly StartDate => FilterState.StartDate;
@@ -44,10 +47,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string sortColumn = "Date";
 		private bool sortAscending = false;
 
-		// Plotly chart
+		// Plotly chart for historical data
 		protected Config plotConfig = new();
 		protected Plotly.Blazor.Layout plotLayout = new();
 		protected IList<ITrace> plotData = new List<ITrace>();
+
+		// Plotly charts for account details visualization
+		protected Config accountPieConfig = new();
+		protected Plotly.Blazor.Layout accountPieLayout = new();
+		protected IList<ITrace> accountPieData = new List<ITrace>();
+		
+		protected Config accountTreemapConfig = new();
+		protected Plotly.Blazor.Layout accountTreemapLayout = new();
+		protected IList<ITrace> accountTreemapData = new List<ITrace>();
 
 		// Summary data
 		protected Dictionary<string, int> AccountBreakdown { get; set; } = new();
@@ -131,6 +143,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				await PrepareDisplayData();
 				await PrepareChartData();
 				PrepareSummaryData();
+				await PrepareAccountDetailsCharts();
 			}
 			catch (Exception ex)
 			{
@@ -229,6 +242,133 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 			};
 			plotConfig = new Config { Responsive = true };
+		}
+
+		private async Task PrepareAccountDetailsCharts()
+		{
+			if (!LatestAccountValues.Any())
+			{
+				accountPieData = new List<ITrace>();
+				accountTreemapData = new List<ITrace>();
+				return;
+			}
+
+			await Task.Run(() =>
+			{
+				// Prepare Pie Chart
+				var pieTrace = new Pie
+				{
+					Labels = LatestAccountValues.Select(a => a.AccountName).ToArray(),
+					Values = LatestAccountValues.Select(a => (object)a.Value.Amount).ToList(),
+					TextInfo = Plotly.Blazor.Traces.PieLib.TextInfoFlag.Label | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Percent | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Value,
+					HoverTemplate = "<b>%{label}</b><br>" +
+									"Value: %{customdata[0]}<br>" +
+									"Gain/Loss: %{customdata[1]}<br>" +
+									"Percentage: %{percent}<br>" +
+									"<extra></extra>",
+					CustomData = LatestAccountValues.Select(a => new object[]
+					{
+						CurrencyDisplay.DisplaySignAndAmount(a.Value),
+						CurrencyDisplay.DisplaySignAndAmount(a.GainLoss)
+					}).Cast<object>().ToList(),
+					Marker = new Plotly.Blazor.Traces.PieLib.Marker
+					{
+						Colors = LatestAccountValues.Select(a => GetColorForGainLoss(a.GainLossPercentage)).ToList()
+					}
+				};
+
+				accountPieData = new List<ITrace> { pieTrace };
+
+				accountPieLayout = new Plotly.Blazor.Layout
+				{
+					Title = new Plotly.Blazor.LayoutLib.Title { Text = "Account Value Distribution" },
+					Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 10, R = 10, B = 10 },
+					AutoSize = true,
+					ShowLegend = true,
+					Legend = new List<Plotly.Blazor.LayoutLib.Legend>
+					{
+						new Plotly.Blazor.LayoutLib.Legend
+						{
+							Orientation = Plotly.Blazor.LayoutLib.LegendLib.OrientationEnum.V,
+							X = 1.02m,
+							Y = 0.5m
+						}
+					}
+				};
+
+				accountPieConfig = new Config { Responsive = true };
+
+				// Prepare Treemap
+				var treemapTrace = new TreeMap
+				{
+					Labels = LatestAccountValues.Select(a => a.AccountName).ToArray(),
+					Values = LatestAccountValues.Select(a => (object)a.Value.Amount).ToList(),
+					Parents = LatestAccountValues.Select(a => "").ToArray(),
+					Text = LatestAccountValues.Select(a => 
+						$"{a.AccountName}<br>{CurrencyDisplay.DisplaySignAndAmount(a.Value)}<br>Gain/Loss: {CurrencyDisplay.DisplaySignAndAmount(a.GainLoss)} ({a.GainLossPercentage:P2})").ToArray(),
+					TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
+					BranchValues = Plotly.Blazor.Traces.TreeMapLib.BranchValuesEnum.Total,
+					PathBar = new Plotly.Blazor.Traces.TreeMapLib.PathBar
+					{
+						Visible = false
+					},
+					Marker = new Plotly.Blazor.Traces.TreeMapLib.Marker
+					{
+						Colors = LatestAccountValues.Select(a => (object)GetColorForGainLoss(a.GainLossPercentage)).ToList(),
+						Line = new Plotly.Blazor.Traces.TreeMapLib.MarkerLib.Line
+						{
+							Width = 2,
+							Color = "#000000"
+						}
+					},
+					TextFont = new Plotly.Blazor.Traces.TreeMapLib.TextFont
+					{
+						Size = 12,
+						Color = "#000000"
+					}
+				};
+
+				accountTreemapData = new List<ITrace> { treemapTrace };
+
+				accountTreemapLayout = new Plotly.Blazor.Layout
+				{
+					Title = new Plotly.Blazor.LayoutLib.Title { Text = "Account Value Treemap" },
+					Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 10, R = 10, B = 10 },
+					AutoSize = true,
+				};
+
+				accountTreemapConfig = new Config { Responsive = true };
+			});
+		}
+
+		private object GetColorForGainLoss(decimal gainLossPercentage)
+		{
+			if (Math.Abs(gainLossPercentage) < 0.01m)
+			{
+				return "#808080"; // Gray for neutral
+			}
+
+			// Clamp the percentage to a reasonable range for color intensity
+			const decimal maxAbs = 50m; // 50% gain/loss is max intensity
+			var clamped = Math.Max(-maxAbs, Math.Min(maxAbs, gainLossPercentage));
+			var intensity = (int)(Math.Min(Math.Abs(clamped) / maxAbs, 1m) * 255);
+
+			if (clamped > 0)
+			{
+				// Green: from pastel (#ccffcc) to pure green (#00ff00)
+				int r = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				int g = 255;
+				int b = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				return $"#{r:X2}{g:X2}{b:X2}";
+			}
+			else
+			{
+				// Red: from pastel (#ffcccc) to pure red (#ff0000)
+				int r = 255;
+				int g = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				int b = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				return $"#{r:X2}{g:X2}{b:X2}";
+			}
 		}
 
 		private void PrepareSummaryData()
