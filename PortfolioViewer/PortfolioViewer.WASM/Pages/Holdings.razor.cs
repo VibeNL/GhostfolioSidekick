@@ -195,7 +195,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (Math.Abs(gainLossPercentage) < 0.01m)
 			{
-				return "#808080"; // Gray for neutral
+				return "#e3f2fd"; // Light blue for neutral - more pleasing than gray
 			}
 
 			// Clamp the percentage to a reasonable range for color intensity
@@ -205,18 +205,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			if (clamped > 0)
 			{
-				// Green: from pastel (#ccffcc) to pure green (#00ff00)
-				int r = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
-				int g = 255;
-				int b = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				// Green: from light green (#e8f5e8) to stronger green (#4caf50)
+				int r = 232 - (int)(184 * (intensity / 255.0)); // fades from 232 to 76 (4c in hex)
+				int g = 245 - (int)(70 * (intensity / 255.0));  // fades from 245 to 175 (af in hex)
+				int b = 232 - (int)(152 * (intensity / 255.0)); // fades from 232 to 80 (50 in hex)
 				return $"#{r:X2}{g:X2}{b:X2}";
 			}
 			else
 			{
-				// Red: from pastel (#ffcccc) to pure red (#ff0000)
-				int r = 255;
-				int g = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
-				int b = 204 - (int)(204 * (intensity / 255.0)); // fades from 204 to 0
+				// Red: from light red (#ffebee) to stronger red (#f44336)
+				int r = 255 - (int)(11 * (intensity / 255.0));  // fades from 255 to 244 (f4 in hex)
+				int g = 235 - (int)(168 * (intensity / 255.0)); // fades from 235 to 67 (43 in hex)
+				int b = 238 - (int)(184 * (intensity / 255.0)); // fades from 238 to 54 (36 in hex)
 				return $"#{r:X2}{g:X2}{b:X2}";
 			}
 		}
