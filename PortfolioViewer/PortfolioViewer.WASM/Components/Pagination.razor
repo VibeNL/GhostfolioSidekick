@@ -1,84 +1,93 @@
 @using Microsoft.AspNetCore.Components
 
 <nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center mb-0">
-        <!-- Previous Button -->
-        <li class="page-item @(CurrentPage <= 1 ? "disabled" : "")">
-            <button class="page-link" @onclick="() => GoToPage(CurrentPage - 1)" disabled="@(CurrentPage <= 1)">
+    <!-- Mobile-First Compact Pagination -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+        <!-- Mobile Pagination Controls -->
+        <div class="d-flex align-items-center gap-1 order-2 order-md-1">
+            <!-- Previous Button -->
+            <button class="btn btn-outline-primary btn-pagination @(CurrentPage <= 1 ? "disabled" : "")" 
+                    @onclick="() => GoToPage(CurrentPage - 1)" 
+                    disabled="@(CurrentPage <= 1)"
+                    title="Previous page">
                 <i class="bi bi-chevron-left"></i>
-                <span class="d-none d-sm-inline ms-1">Previous</span>
+                <span class="d-none d-sm-inline ms-1">Prev</span>
             </button>
-        </li>
 
-        <!-- First Page -->
-        @if (StartPage > 1)
-        {
-            <li class="page-item">
-                <button class="page-link" @onclick="() => GoToPage(1)">1</button>
-            </li>
-            @if (StartPage > 2)
-            {
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
-                </li>
-            }
-        }
-
-        <!-- Page Numbers -->
-        @for (int i = StartPage; i <= EndPage; i++)
-        {
-            var page = i; // Capture loop variable
-            <li class="page-item @(CurrentPage == page ? "active" : "")">
-                <button class="page-link" @onclick="() => GoToPage(page)">
-                    @(page)
-                    @if (CurrentPage == page)
+            <!-- Mobile: Show only essential page numbers -->
+            <div class="d-none d-md-flex align-items-center">
+                <!-- Desktop pagination (existing logic) -->
+                @if (StartPage > 1)
+                {
+                    <button class="btn btn-outline-secondary btn-pagination" @onclick="() => GoToPage(1)">1</button>
+                    @if (StartPage > 2)
                     {
-                        <span class="visually-hidden">(current)</span>
+                        <span class="px-2 text-muted">...</span>
                     }
-                </button>
-            </li>
-        }
+                }
 
-        <!-- Last Page -->
-        @if (EndPage < TotalPages)
-        {
-            @if (EndPage < TotalPages - 1)
-            {
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
-                </li>
-            }
-            <li class="page-item">
-                <button class="page-link" @onclick="() => GoToPage(TotalPages)">@TotalPages</button>
-            </li>
-        }
+                @for (int i = StartPage; i <= EndPage; i++)
+                {
+                    var pageNum = i;
+                    <button class="btn @(CurrentPage == pageNum ? "btn-primary" : "btn-outline-secondary") btn-pagination" 
+                            @onclick="() => GoToPage(pageNum)">
+                        @pageNum
+                    </button>
+                }
 
-        <!-- Next Button -->
-        <li class="page-item @(CurrentPage >= TotalPages ? "disabled" : "")">
-            <button class="page-link" @onclick="() => GoToPage(CurrentPage + 1)" disabled="@(CurrentPage >= TotalPages)">
+                @if (EndPage < TotalPages)
+                {
+                    @if (EndPage < TotalPages - 1)
+                    {
+                        <span class="px-2 text-muted">...</span>
+                    }
+                    <button class="btn btn-outline-secondary btn-pagination" @onclick="() => GoToPage(TotalPages)">@TotalPages</button>
+                }
+            </div>
+
+            <!-- Mobile: Page indicator and jump -->
+            <div class="d-flex d-md-none align-items-center mx-2">
+                <select class="form-select form-select-sm page-select" @onchange="OnPageSelectChanged" value="@CurrentPage">
+                    @for (int i = 1; i <= TotalPages; i++)
+                    {
+                        <option value="@i">@i</option>
+                    }
+                </select>
+                <span class="text-muted ms-2 small">of @TotalPages</span>
+            </div>
+
+            <!-- Next Button -->
+            <button class="btn btn-outline-primary btn-pagination @(CurrentPage >= TotalPages ? "disabled" : "")" 
+                    @onclick="() => GoToPage(CurrentPage + 1)" 
+                    disabled="@(CurrentPage >= TotalPages)"
+                    title="Next page">
                 <span class="d-none d-sm-inline me-1">Next</span>
                 <i class="bi bi-chevron-right"></i>
             </button>
-        </li>
-    </ul>
-</nav>
+        </div>
 
-<!-- Page Info -->
-<div class="d-flex justify-content-between align-items-center mt-2">
-    <small class="text-muted">
-        Showing @StartRecord - @EndRecord of @TotalRecords records
-    </small>
-    <div class="d-flex align-items-center gap-2">
-        <small class="text-muted">Show:</small>
-        <select class="form-select form-select-sm" style="width: auto;" @onchange="PageSizeChanged">
-            @foreach (var size in PageSizeOptions)
-            {
-                <option value="@size" selected="@(PageSize == size)">@size</option>
-            }
-        </select>
-        <small class="text-muted">per page</small>
+        <!-- Page Info and Size Selector -->
+        <div class="d-flex flex-column flex-sm-row align-items-center gap-2 order-1 order-md-2">
+            <!-- Records Info -->
+            <small class="text-muted text-center text-sm-start">
+                <span class="d-none d-sm-inline">Showing @StartRecord - @EndRecord of @TotalRecords records</span>
+                <span class="d-sm-none">@StartRecord-@EndRecord of @TotalRecords</span>
+            </small>
+            
+            <!-- Page Size Selector -->
+            <div class="d-flex align-items-center gap-1">
+                <small class="text-muted d-none d-sm-inline">Show:</small>
+                <select class="form-select form-select-sm page-size-select" @onchange="PageSizeChanged" value="@PageSize">
+                    @foreach (var size in PageSizeOptions)
+                    {
+                        <option value="@size">@size</option>
+                    }
+                </select>
+                <small class="text-muted d-none d-sm-inline">per page</small>
+            </div>
+        </div>
     </div>
-</div>
+</nav>
 
 @code {
     [Parameter] public int CurrentPage { get; set; } = 1;
@@ -109,6 +118,14 @@
         if (int.TryParse(e.Value?.ToString(), out int newPageSize))
         {
             await OnPageSizeChanged.InvokeAsync(newPageSize);
+        }
+    }
+
+    private async Task OnPageSelectChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int selectedPage))
+        {
+            await GoToPage(selectedPage);
         }
     }
 }
