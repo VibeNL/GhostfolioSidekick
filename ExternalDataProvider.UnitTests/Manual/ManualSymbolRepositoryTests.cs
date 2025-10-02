@@ -500,6 +500,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 		}
 
 		[Fact]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance", Justification = "Interface test")]
 		public void Repository_ImplementsBothInterfaces()
 		{
 			// Arrange
