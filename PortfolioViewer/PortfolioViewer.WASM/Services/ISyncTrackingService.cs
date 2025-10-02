@@ -5,5 +5,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
         Task<DateTime?> GetLastSyncTimeAsync();
         Task SetLastSyncTimeAsync(DateTime syncTime);
         Task<bool> HasEverSyncedAsync();
+        Task ClearSyncTimeAsync();
     }
 }

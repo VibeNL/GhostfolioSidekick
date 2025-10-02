@@ -40,6 +40,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 			Console.WriteLine("Database sync completed");
 		}
 
+		public async Task ClearDatabaseFromIndexedDb()
+		{
+			if (module == null)
+			{
+				module = await js.InvokeAsync<IJSObjectReference>("import", "./js/sqlite-persistence.js");
+			}
+
+			Console.WriteLine("Clearing database from IndexedDB");
+
+			await module.InvokeVoidAsync("clearDatabaseFromIndexedDb");
+			Console.WriteLine("Database cleared from IndexedDB");
+		}
+
 		public async Task DebugFileSystem()
 		{
 			if (module == null)

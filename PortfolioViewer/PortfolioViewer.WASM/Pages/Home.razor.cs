@@ -95,6 +95,53 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
+		private async Task DeleteAllData()
+		{
+			// Show confirmation dialog
+			var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+				"Are you sure you want to delete all data? This action cannot be undone and will remove all synced data from your local database.");
+			
+			if (!confirmed)
+			{
+				return;
+			}
+
+			IsSyncing = true;
+			CurrentAction = "Deleting all data...";
+			Progress = 0;
+			_statusMessage = string.Empty;
+
+			var progress = new Progress<(string action, int progress)>(update =>
+			{
+				CurrentAction = update.action;
+				Progress = update.progress;
+				StateHasChanged(); // Update the UI
+			});
+
+			try
+			{
+				await PortfolioClient.DeleteAllData(progress);
+
+				// Clear the last sync time
+				LastSyncTime = null;
+
+				_statusMessage = "All data has been successfully deleted.";
+				_isError = false;
+			}
+			catch (Exception ex)
+			{
+				_statusMessage = $"Delete failed: {ex.Message}";
+				_isError = true;
+			}
+			finally
+			{
+				IsSyncing = false;
+				CurrentAction = "Idle";
+				Progress = 0;
+				StateHasChanged();
+			}
+		}
+
 		private string GetTimeSinceLastSync()
 		{
 			if (!LastSyncTime.HasValue)

@@ -140,6 +140,49 @@ export function setupDatabase(filename) {
         });
     });
 }
+export function clearDatabaseFromIndexedDb() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => {
+            console.log('Clearing database from IndexedDB');
+            // Open the IndexedDB database
+            const dbRequest = window.indexedDB.open('SqliteStorage', 1);
+            // Handle any errors opening IndexedDB
+            dbRequest.onerror = () => {
+                console.error('Error opening database for clearing:', dbRequest.error);
+                reject(dbRequest.error);
+            };
+            // This fires after IndexedDB is successfully opened
+            dbRequest.onsuccess = () => {
+                const db = dbRequest.result;
+                try {
+                    // Verify the object store exists
+                    if (!db.objectStoreNames.contains('Files')) {
+                        console.log('Files object store not found, nothing to clear');
+                        resolve();
+                        return;
+                    }
+                    // Start a transaction and get the object store
+                    const transaction = db.transaction('Files', 'readwrite');
+                    const objectStore = transaction.objectStore('Files');
+                    // Delete the database record from IndexedDB
+                    const deleteRequest = objectStore.delete('database');
+                    deleteRequest.onsuccess = () => {
+                        console.log('Database successfully cleared from IndexedDB');
+                        resolve();
+                    };
+                    deleteRequest.onerror = () => {
+                        console.error('Error clearing database from IndexedDB:', deleteRequest.error);
+                        reject(deleteRequest.error);
+                    };
+                }
+                catch (error) {
+                    console.error('Error during clear operation:', error);
+                    reject(error);
+                }
+            };
+        });
+    });
+}
 export function syncDatabaseToIndexedDb(filename) {
     return __awaiter(this, void 0, void 0, function* () {
         // Wait for Blazor runtime to be available
