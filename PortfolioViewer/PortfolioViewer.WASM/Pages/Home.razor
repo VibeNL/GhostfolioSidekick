@@ -38,25 +38,6 @@ else
     </div>
 }
 
-@if (IsWakeLockSupported && !IsSyncing)
-{
-    <div class="alert alert-success mb-3">
-        <small>
-            <i class="bi bi-shield-check me-1"></i>
-            Wake Lock supported - your device will stay active during sync
-        </small>
-    </div>
-}
-else if (!IsWakeLockSupported && !IsSyncing)
-{
-    <div class="alert alert-warning mb-3">
-        <small>
-            <i class="bi bi-exclamation-triangle me-1"></i>
-            Wake Lock not supported - please keep your device active during sync
-        </small>
-    </div>
-}
-
 <!-- Sync Progress Section -->
 <div class="mb-4">
     <p>@CurrentAction</p>
