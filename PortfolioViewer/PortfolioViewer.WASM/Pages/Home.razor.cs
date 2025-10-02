@@ -1,6 +1,5 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
-using GhostfolioSidekick.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 

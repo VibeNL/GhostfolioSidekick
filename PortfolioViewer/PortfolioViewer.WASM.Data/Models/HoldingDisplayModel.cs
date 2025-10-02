@@ -1,5 +1,4 @@
 using GhostfolioSidekick.Model;
-using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {

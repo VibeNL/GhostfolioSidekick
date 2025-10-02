@@ -1,6 +1,5 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
-using GhostfolioSidekick.PortfolioViewer.WASM.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 

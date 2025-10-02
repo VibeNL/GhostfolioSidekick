@@ -1,5 +1,3 @@
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {
     public class PaginatedTransactionResult

@@ -1,5 +1,4 @@
 using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
 using Grpc.Core;

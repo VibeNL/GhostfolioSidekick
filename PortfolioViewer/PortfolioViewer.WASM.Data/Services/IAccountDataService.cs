@@ -1,6 +1,4 @@
-﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Symbols;
+﻿using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services

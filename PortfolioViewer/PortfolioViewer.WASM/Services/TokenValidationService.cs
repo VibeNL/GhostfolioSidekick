@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
     public class TokenValidationService : ITokenValidationService

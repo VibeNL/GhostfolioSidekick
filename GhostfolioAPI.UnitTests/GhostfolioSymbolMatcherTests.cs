@@ -1,7 +1,5 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Cryptocurrency;
-using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
