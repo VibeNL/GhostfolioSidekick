@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 			WebLLMCompletions.Enqueue(response);
 		}
 
-		internal IEnumerable<Message> ConvertMessage(IEnumerable<ChatMessage> chatMessages)
+		internal static IEnumerable<Message> ConvertMessage(IEnumerable<ChatMessage> chatMessages)
 		{
 			return chatMessages.Select(chatMessage =>
 			{

@@ -250,7 +250,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			return snapshots;
 		}
 
-		private async Task ApplyActivitiesForDateAsync(
+		private static async Task ApplyActivitiesForDateAsync(
 		Dictionary<DateOnly, List<ActivityWithQuantityAndUnitPrice>> activitiesByDate,
 		DateOnly date,
 		CalculatedSnapshot snapshot,
@@ -274,28 +274,19 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				date).ConfigureAwait(false);
 
 				var sign = 0;
-				switch (activity)
+				sign = activity switch
 				{
-					case BuyActivity:
-					case ReceiveActivity:
-					case GiftAssetActivity:
-					case StakingRewardActivity:
-						sign = 1;
-						break;
-					case SellActivity:
-					case SendActivity:
-						sign = -1;
-						break;
-					default:
-						throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}");
-				}
+					BuyActivity or ReceiveActivity or GiftAssetActivity or StakingRewardActivity => 1,
+					SellActivity or SendActivity => -1,
+					_ => throw new InvalidOperationException($"Unsupported activity type: {activity.GetType().Name}"),
+				};
 
 				if (sign == 1)
 				{
 					// For buy/receive/gift/staking, add the invested amount and update average cost price
 					snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
 					snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
-					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot, convertedAdjustedUnitPrice, 0); // quantity already added above
+					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot); // quantity already added above
 				}
 				else
 				{
@@ -313,7 +304,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			}
 		}
 
-		private static Money CalculateAverageCostPrice(CalculatedSnapshot snapshot, Money unitPriceActivity, decimal quantityActivity)
+		private static Money CalculateAverageCostPrice(CalculatedSnapshot snapshot)
 		{
 			if (snapshot.Quantity == 0)
 			{

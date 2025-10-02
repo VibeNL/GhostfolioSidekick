@@ -239,7 +239,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return tables;
 		}
 
-		private async Task<List<string>> GetTablesWithDateColumnsAsync(DatabaseContext databaseContext, List<string> tables)
+		private static async Task<List<string>> GetTablesWithDateColumnsAsync(DatabaseContext databaseContext, List<string> tables)
 		{
 			var tablesWithDateColumns = new List<string>();
 
@@ -291,7 +291,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return await command.ExecuteNonQueryAsync(cancellationToken);
 		}
 
-		private async Task<bool> TableHasDateColumn(DatabaseContext databaseContext, string tableName)
+		private static async Task<bool> TableHasDateColumn(DatabaseContext databaseContext, string tableName)
 		{
 			using var connection = databaseContext.Database.GetDbConnection();
 			await connection.OpenAsync();
@@ -814,7 +814,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private int CalculatePercentage(long written, long total)
+		private static int CalculatePercentage(long written, long total)
 		{
 			if (total == 0)
 			{

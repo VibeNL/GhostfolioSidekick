@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			var lst = new List<ActivityWithSymbol>();
 			foreach (var account in (await mainPage.GetPortfolios()))
 			{
-				await mainPage.SwitchToAccount(account);
+				await MainPage.SwitchToAccount(account);
 				var transactionPage = await mainPage.GoToTransactions();
 				var transactions = await transactionPage.ScrapeTransactions();
 				await transactionPage.GoToMainPage();

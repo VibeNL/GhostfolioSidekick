@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			RemoveNodes(htmlDoc, "//noscript");
 		}
 
-		private void RemoveNodes(HtmlDocument htmlDoc, string xpath)
+		private static void RemoveNodes(HtmlDocument htmlDoc, string xpath)
 		{
 			var nodes = htmlDoc.DocumentNode.SelectNodes(xpath);
 			if (nodes != null)
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		private void RemoveComments(HtmlNode node)
+		private static void RemoveComments(HtmlNode node)
 		{
 			if (node.NodeType == HtmlNodeType.Comment)
 			{
@@ -225,7 +225,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		private bool IsInvisibleNode(HtmlNode node)
+		private static bool IsInvisibleNode(HtmlNode node)
 		{
 			// Check if the node has a style attribute with display: none or visibility: hidden
 			if (node.Attributes["style"] != null)
@@ -238,7 +238,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			return false;
 		}
 
-		private bool IsBlockLevelElement(HtmlNode node)
+		private static bool IsBlockLevelElement(HtmlNode node)
 		{
 			string[] blockElements = { "p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "article", "section", "li", "br", "hr" };
 			return blockElements.Contains(node.Name.ToLower());
@@ -273,7 +273,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			return string.Empty;
 		}
 
-		private (string Title, string Description, List<string> Keywords) ExtractMetadata(HtmlDocument htmlDoc)
+		private static (string Title, string Description, List<string> Keywords) ExtractMetadata(HtmlDocument htmlDoc)
 		{
 			string title = htmlDoc.DocumentNode.SelectSingleNode("//title")?.InnerText?.Trim() ?? string.Empty;
 

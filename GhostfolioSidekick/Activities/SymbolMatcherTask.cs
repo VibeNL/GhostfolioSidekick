@@ -144,7 +144,7 @@ namespace GhostfolioSidekick.Activities
 			return x.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && CompareSymbolName(y.Symbol, symbol.Symbol));
 		}
 
-		private bool CompareSymbolName(string a, string b)
+		private static bool CompareSymbolName(string a, string b)
 		{
 			return string.Equals(
 					a.Replace("-", string.Empty),
@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.Activities
 					StringComparison.InvariantCultureIgnoreCase);
 		}
 
-		private IList<PartialSymbolIdentifier> GetIdentifiers(SymbolProfile symbol)
+		private static IList<PartialSymbolIdentifier> GetIdentifiers(SymbolProfile symbol)
 		{
 			var lst = new List<PartialSymbolIdentifier>();
 			foreach (var item in symbol.Identifiers)

@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private const string Keyword_BedragAf = "BEDRAF AF";
 		private const string Keyword_Saldo = "SALDO";
 
-		private List<string> TableKeyWords
+		private static List<string> TableKeyWords
 		{
 			get
 			{

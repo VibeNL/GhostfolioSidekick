@@ -262,7 +262,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return null;
 		}
 
-		private decimal ParseMoney(string money)
+		private static decimal ParseMoney(string money)
 		{
 			// Parse the value from strings like '€1,105.00'
 			return decimal.Parse(money.Replace("€", string.Empty), NumberStyles.Currency, CultureInfo.InvariantCulture);
@@ -297,7 +297,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 			return new Money();
 		}
-		private string GenerateTransactionId(string time, List<(string, string)> table)
+		private static string GenerateTransactionId(string time, List<(string, string)> table)
 		{
 			return time + string.Join("|", table.Select(x => x.Item2));
 		}

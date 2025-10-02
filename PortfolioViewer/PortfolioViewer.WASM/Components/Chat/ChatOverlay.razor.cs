@@ -190,7 +190,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 		}
 
-		private string GetBubbleStyle(ChatMessageContent? message)
+		private static string GetBubbleStyle(ChatMessageContent? message)
 		{
 			const string baseStyle = "max-width: 85%; padding: 10px 14px; border-radius: 18px; font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); ";
 

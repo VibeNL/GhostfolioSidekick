@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return list;
 		}
 
-		private string GetName(Security security)
+		private static string GetName(Security security)
 		{
 			if (security is null)
 			{
@@ -216,7 +216,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return security.Symbol;
 		}
 
-		private SectorWeight[] GetSectors(SecurityProfile? securityProfile)
+		private static SectorWeight[] GetSectors(SecurityProfile? securityProfile)
 		{
 			if (securityProfile is null)
 			{
@@ -231,7 +231,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return [new SectorWeight(securityProfile.Sector, 1)];
 		}
 
-		private CountryWeight[] GetCountries(SecurityProfile? securityProfile)
+		private static CountryWeight[] GetCountries(SecurityProfile? securityProfile)
 		{
 			if (securityProfile is null)
 			{
@@ -246,7 +246,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return [new CountryWeight(securityProfile.Country, string.Empty, string.Empty, 1)];
 		}
 
-		private AssetClass ParseQuoteType(string quoteType)
+		private static AssetClass ParseQuoteType(string quoteType)
 		{
 			switch (quoteType)
 			{
@@ -266,7 +266,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			}
 		}
 
-		private AssetSubClass? ParseQuoteTypeAsSub(string quoteType)
+		private static AssetSubClass? ParseQuoteTypeAsSub(string quoteType)
 		{
 			switch (quoteType)
 			{

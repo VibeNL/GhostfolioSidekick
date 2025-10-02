@@ -127,7 +127,7 @@ Format function calls like this:
 			{
 				await (await GetModule()).InvokeVoidAsync(
 									"completeStreamWebLLM",
-									interopInstance.ConvertMessage(convertedMessages),
+									InteropInstance.ConvertMessage(convertedMessages),
 									model,
 									ChatMode == ChatMode.ChatWithThinking,
 									null

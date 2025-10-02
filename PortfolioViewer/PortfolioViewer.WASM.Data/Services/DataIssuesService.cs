@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			}
 		}
 
-		private async Task EnrichDataIssueWithActivityDetails(DataIssueDisplayModel dataIssue, Activity activity)
+		private static async Task EnrichDataIssueWithActivityDetails(DataIssueDisplayModel dataIssue, Activity activity)
 		{
 			try
 			{

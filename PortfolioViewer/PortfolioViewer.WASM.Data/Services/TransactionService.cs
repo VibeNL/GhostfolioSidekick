@@ -103,7 +103,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				_ => null
 			};
 		}
-		private async Task<Dictionary<string, int>> GetTransactionTypeBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
+		private static async Task<Dictionary<string, int>> GetTransactionTypeBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
 		{
 			// Use specific activity types to avoid GetType().Name in LINQ
 			var breakdowns = new Dictionary<string, int>();
@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return breakdowns;
 		}
 
-		private async Task<Dictionary<string, int>> GetAccountBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
+		private static async Task<Dictionary<string, int>> GetAccountBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
 		{
 			return await baseQuery
 				.GroupBy(a => a.Account.Name)
@@ -240,7 +240,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return query;
 		}
 
-		private IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
+		private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
 		{
 			Expression<Func<Activity, object>> sortExpression = sortColumn switch
 			{

@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			return brokercards;
 		}
 
-		internal async Task SwitchToAccount(ILocator account)
+		internal static async Task SwitchToAccount(ILocator account)
 		{
 			await account.ClickAsync();
 		}

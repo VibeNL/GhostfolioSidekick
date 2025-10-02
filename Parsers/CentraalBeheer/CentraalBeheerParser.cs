@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		{
 		}
 
-		private List<string> MainKeyWords
+		private static List<string> MainKeyWords
 		{
 			get
 			{
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		private List<string> SubKeyWords
+		private static List<string> SubKeyWords
 		{
 			get
 			{
@@ -249,7 +249,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			return !x.Text.Contains("€") && !x.Text.Contains("-");
 		}
 
-		private string[] GetToken(string keyword, List<WordToken> relevantTokens)
+		private static string[] GetToken(string keyword, List<WordToken> relevantTokens)
 		{
 			return [.. relevantTokens
 				.OfType<MultiWordToken>()
