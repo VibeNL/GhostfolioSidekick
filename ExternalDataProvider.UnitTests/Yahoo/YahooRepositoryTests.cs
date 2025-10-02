@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsAssignableFrom<IEnumerable<CurrencyExchangeRate>>(result);
+            Assert.IsType<IEnumerable<CurrencyExchangeRate>>(result, exactMatch: false);
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsAssignableFrom<IEnumerable<MarketData>>(result);
+            Assert.IsType<IEnumerable<MarketData>>(result, exactMatch: false);
         }
 
         [Fact]
@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Yahoo
 
             // Assert
             Assert.NotNull(result);
-            Assert.IsAssignableFrom<IEnumerable<StockSplit>>(result);
+            Assert.IsType<IEnumerable<StockSplit>>(result, exactMatch: false);
         }
     }
 }
