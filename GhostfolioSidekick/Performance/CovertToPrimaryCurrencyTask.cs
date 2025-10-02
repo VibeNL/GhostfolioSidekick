@@ -119,9 +119,9 @@ namespace GhostfolioSidekick.Performance
 					continue;
 				}
 
-				var startDate = existingBalances.First().Date;
-				var lastKnownDate = existingBalances.Last().Date;
-				var lastKnownAmount = existingBalances.Last().Money;
+				var startDate = existingBalances[0].Date;
+				var lastKnownDate = existingBalances[^1].Date;
+				var lastKnownAmount = existingBalances[^1].Money;
 
 				// Create set of existing dates for quick lookup
 				var existingDates = existingBalances.Select(b => b.Date).ToHashSet();
