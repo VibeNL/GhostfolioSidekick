@@ -17,6 +17,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private string CurrentMessage = "";
 		private bool IsBotTyping = false;
 		private bool IsInitialized = false; // Flag to track initialization
+		private bool wakeLockActive = false; // Track wake lock status
 
 		private IWebChatClient chatClient;
 
@@ -46,15 +47,59 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			agentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
 		}
 
-		private void ToggleChat()
+		private async void ToggleChat()
 		{
 			IsOpen = !IsOpen;
 
-			if (IsOpen && !IsInitialized)
+			if (IsOpen)
 			{
-				IsInitialized = true; // Set to true to prevent re-initialization
-				_ = InitializeLlmAsync();
+				// Request wake lock when chat is opened
+				await RequestWakeLock();
+				
+				if (!IsInitialized)
+				{
+					IsInitialized = true; // Set to true to prevent re-initialization
+					_ = InitializeLlmAsync();
+				}
 			}
+			else
+			{
+				// Release wake lock when chat is closed
+				await ReleaseWakeLock();
+			}
+		}
+
+		private async Task RequestWakeLock()
+		{
+			try
+			{
+				var result = await JS.InvokeAsync<bool>("wakeLockModule.requestWakeLock");
+				wakeLockActive = result;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error requesting wake lock: {ex.Message}");
+			}
+
+			StateHasChanged();
+		}
+
+		private async Task ReleaseWakeLock()
+		{
+			try
+			{
+				if (wakeLockActive)
+				{
+					var result = await JS.InvokeAsync<bool>("wakeLockModule.releaseWakeLock");
+					wakeLockActive = false;
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error releasing wake lock: {ex.Message}");
+			}
+
+			StateHasChanged();
 		}
 
 		private async Task InitializeLlmAsync()
@@ -167,8 +212,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			}
 		}
 
-		public void Dispose()
+		public async void Dispose()
 		{
+			// Release wake lock on disposal
+			await ReleaseWakeLock();
+			
 			// Unsubscribe from AgentLogger event
 			agentLogger.CurrentAgentNameChanged -= OnCurrentAgentNameChanged;
 		}

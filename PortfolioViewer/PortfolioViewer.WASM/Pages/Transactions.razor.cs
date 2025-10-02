@@ -155,13 +155,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
-		// Add refresh method for manual data reload
-		private async Task RefreshDataAsync()
-		{
-			currentPage = 1; // Reset to first page
-			await LoadTransactionDataAsync();
-		}
-
 		// Modal methods
 		private void ShowTransactionDetails(TransactionDisplayModel transaction)
 		{

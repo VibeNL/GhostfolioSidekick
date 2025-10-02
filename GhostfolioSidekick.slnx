@@ -12,8 +12,8 @@
     <Project Path="Tools/ScraperUtilities/ScraperUtilities.csproj" />
   </Folder>
   <Folder Name="/Website/">
-    <Project Path="PortfolioViewer.WASM.Data.UnitTests/PortfolioViewer.WASM.Data.UnitTests.csproj" Id="6b2ce718-d248-48ab-bb53-5d968f711aeb" />
-    <Project Path="PortfolioViewer.WASM.Data/PortfolioViewer.WASM.Data.csproj" Id="2ba9f64a-a924-4b63-aaaf-5a9b3980b439" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM.Data.UnitTests/PortfolioViewer.WASM.Data.UnitTests.csproj" Id="6b2ce718-d248-48ab-bb53-5d968f711aeb" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM.Data/PortfolioViewer.WASM.Data.csproj" Id="2ba9f64a-a924-4b63-aaaf-5a9b3980b439" />
     <Project Path="PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" />
     <Project Path="PortfolioViewer/PortfolioViewer.AppHost/PortfolioViewer.AppHost.csproj" />
     <Project Path="PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj" />
