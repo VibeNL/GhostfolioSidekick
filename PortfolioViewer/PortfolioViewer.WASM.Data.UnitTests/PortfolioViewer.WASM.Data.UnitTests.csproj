@@ -26,9 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Database\Database.csproj" />
+    <ProjectReference Include="..\..\Model\Model.csproj" />
     <ProjectReference Include="..\PortfolioViewer.WASM.Data\PortfolioViewer.WASM.Data.csproj" />
-    <ProjectReference Include="..\Model\Model.csproj" />
-    <ProjectReference Include="..\Database\Database.csproj" />
   </ItemGroup>
 
 </Project>
