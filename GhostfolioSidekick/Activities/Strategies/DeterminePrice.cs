@@ -54,6 +54,7 @@ namespace GhostfolioSidekick.Activities.Strategies
 				{
 					activity.AdjustedUnitPrice = marketData.Close;
 					activity.AdjustedUnitPriceSource.Add(new CalculatedPriceTrace("Determine price", activity.AdjustedQuantity, activity.AdjustedUnitPrice));
+					activity.TotalTransactionAmount = activity.AdjustedUnitPrice.Times(activity.AdjustedQuantity);
 					return;
 				}
 			}
