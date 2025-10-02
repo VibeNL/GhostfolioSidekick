@@ -11,10 +11,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class Holdings : IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private IHoldingsDataService HoldingsDataService { get; set; } = default!;
 
 		[Inject]
-		private NavigationManager? Navigation { get; set; }
+		private NavigationManager Navigation { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();

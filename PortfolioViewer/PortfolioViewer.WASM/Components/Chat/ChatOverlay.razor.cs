@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			agentLogger.CurrentAgentNameChanged += OnCurrentAgentNameChanged;
 		}
 
-		private async void ToggleChat()
+		private async Task ToggleChat()
 		{
 			IsOpen = !IsOpen;
 
