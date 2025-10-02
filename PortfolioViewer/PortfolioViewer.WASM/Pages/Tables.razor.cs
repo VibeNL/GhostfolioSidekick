@@ -133,15 +133,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                                                 .ToDictionary(f => f.Key, f => f.Value);
 
                 // Get total record count with filters applied
-                TotalRecords = await RawQuery.GetTableCount(DbContext, tableName, activeFilters.Any() ? activeFilters : null);
+                TotalRecords = await RawQuery.GetTableCount(DbContext, tableName, activeFilters.Count != 0 ? activeFilters : null);
                 TotalPages = (int)Math.Ceiling((double)TotalRecords / PageSize);
 
-                var result = await RawQuery.ReadTable(DbContext, tableName, page, PageSize, activeFilters.Any() ? activeFilters : null, _sortColumn, _sortDirection);
+                var result = await RawQuery.ReadTable(DbContext, tableName, page, PageSize, activeFilters.Count != 0 ? activeFilters : null, _sortColumn, _sortDirection);
 
                 if (result == null || result.Count == 0)
                 {
                     // If we have an existing table structure but no data due to filters, preserve column structure
-                    if (activeFilters.Any() && TableData.Columns.Any())
+                    if (activeFilters.Count != 0 && TableData.Columns.Any())
                     {
                         TableData.Rows = new();
                     }
@@ -169,7 +169,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                             TableData.Rows = new();
                         }
                         
-                        if (!activeFilters.Any())
+                        if (activeFilters.Count == 0)
                         {
                             TotalRecords = 0;
                             TotalPages = 0;

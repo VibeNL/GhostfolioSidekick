@@ -84,11 +84,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		{
 			return activity switch
 			{
-				BuyActivity buy when buy.Fees.Any() => Money.Sum(buy.Fees.Select(f => f.Money)),
-				SellActivity sell when sell.Fees.Any() => Money.Sum(sell.Fees.Select(f => f.Money)),
-				DividendActivity dividend when dividend.Fees.Any() => Money.Sum(dividend.Fees.Select(f => f.Money)),
-				ReceiveActivity receive when receive.Fees.Any() => Money.Sum(receive.Fees.Select(f => f.Money)),
-				SendActivity send when send.Fees.Any() => Money.Sum(send.Fees.Select(f => f.Money)),
+				BuyActivity buy when buy.Fees.Count != 0 => Money.Sum(buy.Fees.Select(f => f.Money)),
+				SellActivity sell when sell.Fees.Count != 0 => Money.Sum(sell.Fees.Select(f => f.Money)),
+				DividendActivity dividend when dividend.Fees.Count != 0 => Money.Sum(dividend.Fees.Select(f => f.Money)),
+				ReceiveActivity receive when receive.Fees.Count != 0 => Money.Sum(receive.Fees.Select(f => f.Money)),
+				SendActivity send when send.Fees.Count != 0 => Money.Sum(send.Fees.Select(f => f.Money)),
 				_ => null
 			};
 		}
@@ -97,9 +97,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		{
 			return activity switch
 			{
-				BuyActivity buy when buy.Taxes.Any() => Money.Sum(buy.Taxes.Select(t => t.Money)),
-				SellActivity sell when sell.Taxes.Any() => Money.Sum(sell.Taxes.Select(t => t.Money)),
-				DividendActivity dividend when dividend.Taxes.Any() => Money.Sum(dividend.Taxes.Select(t => t.Money)),
+				BuyActivity buy when buy.Taxes.Count != 0 => Money.Sum(buy.Taxes.Select(t => t.Money)),
+				SellActivity sell when sell.Taxes.Count != 0 => Money.Sum(sell.Taxes.Select(t => t.Money)),
+				DividendActivity dividend when dividend.Taxes.Count != 0 => Money.Sum(dividend.Taxes.Select(t => t.Money)),
 				_ => null
 			};
 		}

@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 
 			// Add WHERE clause if filters are provided
 			var parameters = new List<(string name, object value)>();
-			if (columnFilters != null && columnFilters.Any())
+			if (columnFilters != null && columnFilters.Count != 0)
 			{
 				var whereConditions = new List<string>();
 				var paramIndex = 0;
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 					paramIndex++;
 				}
 				
-				if (whereConditions.Any())
+				if (whereConditions.Count != 0)
 				{
 					sqlQuery += " WHERE " + string.Join(" AND ", whereConditions);
 				}
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			
 			// Add WHERE clause if filters are provided
 			var parameters = new List<(string name, object value)>();
-			if (columnFilters != null && columnFilters.Any())
+			if (columnFilters != null && columnFilters.Count != 0)
 			{
 				var whereConditions = new List<string>();
 				var paramIndex = 0;
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 					paramIndex++;
 				}
 				
-				if (whereConditions.Any())
+				if (whereConditions.Count != 0)
 				{
 					sqlQuery += " WHERE " + string.Join(" AND ", whereConditions);
 				}

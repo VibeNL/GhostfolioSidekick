@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected Money TotalCashPosition { get; set; } = Money.Zero(Currency.EUR);
 		
 		// Computed properties for totals in the summary table
-		protected Money TotalGainLoss => LatestAccountValues.Any() 
+		protected Money TotalGainLoss => LatestAccountValues.Count != 0
 			? LatestAccountValues.Aggregate(Money.Zero(TotalPortfolioValue.Currency), (sum, account) => sum.Add(account.GainLoss))
 			: Money.Zero(Currency.EUR);
 		
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			get
 			{
-				if (!LatestAccountValues.Any()) return 0m;
+				if (LatestAccountValues.Count == 0) return 0m;
 				var totalInvested = LatestAccountValues.Sum(x => x.Invested.Amount);
 				var totalGainLoss = LatestAccountValues.Sum(x => x.GainLoss.Amount);
 				return totalInvested == 0 ? 0 : totalGainLoss / totalInvested;
@@ -246,7 +246,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task PrepareAccountDetailsCharts()
 		{
-			if (!LatestAccountValues.Any())
+			if (LatestAccountValues.Count == 0)
 			{
 				accountPieData = new List<ITrace>();
 				accountTreemapData = new List<ITrace>();

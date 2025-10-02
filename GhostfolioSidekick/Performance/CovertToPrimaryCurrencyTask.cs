@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.Performance
 					.OrderBy(b => b.Date)
 					.ToListAsync();
 
-				if (!existingBalances.Any())
+				if (existingBalances.Count == 0)
 				{
 					continue;
 				}
@@ -153,7 +153,7 @@ namespace GhostfolioSidekick.Performance
 					});
 				}
 
-				if (newBalances.Any())
+				if (newBalances.Count != 0)
 				{
 					databaseContext.BalancePrimaryCurrencies.AddRange(newBalances);
 					logger.LogInformation("Added {Count} missing balance records for account {AccountId}", newBalances.Count, accountId);
