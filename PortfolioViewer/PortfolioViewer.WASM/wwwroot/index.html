@@ -17,6 +17,15 @@
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        import { requestWakeLock, releaseWakeLock, isWakeLockSupported, isWakeLockActive } from './js/wakelock.js';
+        
+        // Make wake lock functions globally available
+        window.wakeLockModule = {
+            requestWakeLock,
+            releaseWakeLock,
+            isWakeLockSupported,
+            isWakeLockActive
+        };
     </script>
 </head>
 

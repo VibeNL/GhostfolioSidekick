@@ -3,56 +3,187 @@
     --bs-pagination-border-radius: 0.375rem;
 }
 
-.pagination .page-item:not(.disabled) .page-link:hover {
-    background-color: var(--bs-primary);
-    border-color: var(--bs-primary);
-    color: white;
-    transition: all 0.15s ease-in-out;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: var(--bs-primary);
-    border-color: var(--bs-primary);
-    color: white;
-    box-shadow: 0 0 0 0.125rem rgba(13, 110, 253, 0.25);
-}
-
-.pagination .page-item.disabled .page-link {
-    color: var(--bs-gray-600);
-    background-color: var(--bs-gray-100);
-    border-color: var(--bs-border-color);
-    cursor: not-allowed;
-}
-
-.pagination .page-link {
-    color: var(--bs-body-color);
-    border: 1px solid var(--bs-border-color);
-    background-color: var(--bs-body-bg);
+/* Custom button styles for better mobile experience */
+.btn-pagination {
+    min-width: 44px; /* Touch target minimum size */
+    min-height: 44px;
     padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
     transition: all 0.15s ease-in-out;
 }
 
-/* Small screens - compact pagination */
+.btn-pagination:not(.disabled):hover {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-pagination.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Page select dropdown for mobile */
+.page-select {
+    min-width: 60px;
+    max-width: 80px;
+    text-align: center;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--bs-border-color);
+}
+
+.page-size-select {
+    min-width: 60px;
+    max-width: 80px;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+}
+
+/* Mobile-specific optimizations */
 @media (max-width: 576px) {
-    .pagination .page-link {
+    .btn-pagination {
+        min-width: 40px;
+        min-height: 40px;
         padding: 0.375rem 0.5rem;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
+        margin: 0 1px;
     }
     
-    .pagination .page-item:not(.active):not(.disabled) {
-        display: none;
+    .page-select,
+    .page-size-select {
+        font-size: 0.8rem;
+        min-width: 50px;
+        max-width: 70px;
     }
     
-    .pagination .page-item.active,
-    .pagination .page-item:first-child,
-    .pagination .page-item:last-child,
-    .pagination .page-item.disabled {
-        display: block;
+    /* Ensure proper spacing on mobile */
+    .gap-1 {
+        gap: 0.25rem !important;
+    }
+    
+    .gap-2 {
+        gap: 0.5rem !important;
+    }
+    
+    /* Compact text on mobile */
+    .text-muted.small {
+        font-size: 0.75rem;
     }
 }
 
-/* Page size selector styling */
-.form-select-sm {
-    font-size: 0.875rem;
-    min-width: 4rem;
+/* Tablet optimizations */
+@media (min-width: 577px) and (max-width: 768px) {
+    .btn-pagination {
+        min-width: 42px;
+        min-height: 42px;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Large screen optimizations */
+@media (min-width: 992px) {
+    .btn-pagination {
+        min-width: 48px;
+        min-height: 48px;
+        padding: 0.6rem 0.9rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Focus styles for accessibility */
+.btn-pagination:focus,
+.page-select:focus,
+.page-size-select:focus {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Active state for better visual feedback */
+.btn-pagination.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+}
+
+/* Smooth transitions */
+.btn-pagination,
+.page-select,
+.page-size-select {
+    transition: all 0.15s ease-in-out;
+}
+
+/* Flexbox optimizations for better alignment */
+.d-flex {
+    align-items: center;
+}
+
+/* Better spacing for mobile stacked layout */
+@media (max-width: 576px) {
+    .flex-column > * {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .order-1 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .order-2 {
+        margin-top: 0.5rem;
+    }
+}
+
+/* Improve touch targets */
+@media (hover: none) and (pointer: coarse) {
+    .btn-pagination {
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 0.9rem;
+    }
+    
+    .page-select,
+    .page-size-select {
+        min-height: 44px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Loading state support */
+.btn-pagination:disabled {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .btn-pagination {
+        border-width: 2px;
+    }
+    
+    .btn-pagination:not(.disabled):hover {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .btn-pagination,
+    .page-select,
+    .page-size-select {
+        transition: none;
+    }
+    
+    .btn-pagination:not(.disabled):hover {
+        transform: none;
+    }
 }

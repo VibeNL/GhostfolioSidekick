@@ -21,7 +21,15 @@
 
 			<!-- Header -->
 			<div style="background-color: #2563eb; color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
-				<span style="font-size: 18px; font-weight: bold;">Sidekick Assistant</span>
+				<div style="display: flex; align-items: center; gap: 8px;">
+					<span style="font-size: 18px; font-weight: bold;">Sidekick Assistant</span>
+					@if (wakeLockActive)
+					{
+						<span style="font-size: 12px; background-color: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 8px; display: flex; align-items: center; gap: 4px;">
+							🔒 Wake Lock Active
+						</span>
+					}
+				</div>
 				<button @onclick="ToggleChat" style="background: none; border: none; font-size: 24px; color: white; cursor: pointer;">×</button>
 			</div>
 
