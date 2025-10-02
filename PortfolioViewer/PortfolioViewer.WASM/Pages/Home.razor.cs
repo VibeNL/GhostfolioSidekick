@@ -52,17 +52,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			if (wakeLockRequested)
 			{
 				IsWakeLockActive = true;
-				CurrentAction += " (keeping screen active)";
 				StateHasChanged();
 			}
 
 			var progress = new Progress<(string action, int progress)>(update =>
 			{
 				CurrentAction = update.action;
-				if (IsWakeLockActive)
-				{
-					CurrentAction += " (keeping screen active)";
-				}
 				Progress = update.progress;
 				StateHasChanged(); // Update the UI
 			});
