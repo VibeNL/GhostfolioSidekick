@@ -35,10 +35,6 @@
                 <div class="alert alert-danger" role="alert">
                     <h4 class="alert-heading">Error Loading Data</h4>
                     <p>@ErrorMessage</p>
-                    <hr>
-                    <button class="btn btn-outline-danger" @onclick="RefreshDataAsync">
-                        <i class="bi bi-arrow-clockwise"></i> Try Again
-                    </button>
                 </div>
             </div>
         </div>
@@ -53,9 +49,6 @@
                         <i class="bi bi-receipt text-muted" style="font-size: 4rem;"></i>
                         <h5 class="text-muted mt-3">No Transactions Found</h5>
                         <p class="text-muted mb-3">No transactions match your current filter criteria or date range.</p>
-                        <button class="btn btn-primary" @onclick="RefreshDataAsync">
-                            <i class="bi bi-arrow-clockwise"></i> Refresh Data
-                        </button>
                     </div>
                 </div>
             </div>
@@ -75,15 +68,6 @@
                                 <small class="text-muted">- Showing @TransactionsList.Count on this page</small>
                             }
                         </h5>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary" @onclick="RefreshDataAsync" disabled="@(IsLoading || IsPageLoading)">
-                                @if (IsLoading || IsPageLoading)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                }
-                                <i class="bi bi-arrow-clockwise"></i> Refresh
-                            </button>
-                        </div>
                     </div>
                     <div class="card-body position-relative">
                         <!-- Page Loading Overlay -->
