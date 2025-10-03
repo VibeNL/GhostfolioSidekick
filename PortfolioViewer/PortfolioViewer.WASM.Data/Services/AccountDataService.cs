@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.AsQueryable();
 			if (!string.IsNullOrWhiteSpace(symbolFilter))
 			{
-				query = query.Where(a => a.Activities.Any(h => h.Holding.SymbolProfiles.Any(s => s.Symbol == symbolFilter)));
+				query = query.Where(a => a.Activities.Any(h => h.Holding != null && h.Holding.SymbolProfiles.Any(s => s.Symbol == symbolFilter)));
 			}
 
 			return query.ToListAsync(cancellationToken);

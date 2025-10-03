@@ -202,7 +202,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 			[Description("The topic to research")]string topic, 
 			[Description("Specific aspects of the topic to research. Should be in natural language")] string[] aspects)
 		{
-			await _agentLogger.StartFunction(nameof(MultiStepResearch));
+			_agentLogger.StartFunction(nameof(MultiStepResearch));
 
 			if (string.IsNullOrWhiteSpace(topic))
 			{

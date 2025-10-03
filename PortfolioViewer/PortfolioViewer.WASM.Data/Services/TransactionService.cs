@@ -232,8 +232,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				var searchLower = searchText.ToLower();
 				query = query.Where(a =>
 					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol.ToLower().Contains(searchLower))) ||
-					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Name.ToLower().Contains(searchLower))) ||
-					a.Description.ToLower().Contains(searchLower) ||
+					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Name != null && sp.Name.ToLower().Contains(searchLower))) ||
+					(a.Description != null && a.Description.ToLower().Contains(searchLower)) ||
 					a.TransactionId.ToLower().Contains(searchLower));
 			}
 

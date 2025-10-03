@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)
 		{
-			logger.StartAgent(defaultAgent?.Name);
+			logger.StartAgent(defaultAgent?.Name ?? "<????>");
 			groupChat.AddChatMessage(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 
 			// Run the group chat
