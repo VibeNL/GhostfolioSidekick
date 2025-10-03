@@ -67,12 +67,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		internal static Model.Activities.Activity MapActivity(Account account, ICurrencyExchange currencyExchange, List<Contract.SymbolProfile> symbols, Contract.Activity rawActivity)
 		{
-			var symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol);
-			if (symbol == null)
-			{
-				throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
-			}
-
+			var symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol) ?? throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
 			return rawActivity.Type switch
 			{
 				Contract.ActivityType.BUY => new BuyActivity(),

@@ -462,11 +462,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 
 			// Create gRPC channel for web - use the httpClient's base address but ensure it's absolute
-			var baseAddress = httpClient.BaseAddress;
-			if (baseAddress == null)
-			{
-				throw new InvalidOperationException("HttpClient BaseAddress is not configured.");
-			}
+			var baseAddress = httpClient.BaseAddress ?? throw new InvalidOperationException("HttpClient BaseAddress is not configured.");
 
 			// For Blazor WASM, we need to use the actual HTTP URL, not the service discovery name
 			var grpcAddress = baseAddress.ToString().TrimEnd('/');

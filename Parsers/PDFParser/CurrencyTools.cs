@@ -42,13 +42,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				var isoCurrencySymbol = map
 					.Where(kvp => kvp.Value == currencySymbol)
 					.Select(kvp => kvp.Key)
-					.FirstOrDefault();
-
-				if (isoCurrencySymbol == null)
-				{
-					throw new ArgumentException("Currency symbol not found");
-				}
-
+					.FirstOrDefault() ?? throw new ArgumentException("Currency symbol not found");
 				return isoCurrencySymbol;
 			}
 		}

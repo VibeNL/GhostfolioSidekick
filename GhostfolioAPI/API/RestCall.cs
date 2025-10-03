@@ -295,12 +295,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				throw new NotSupportedException($"Error executing url [{r.StatusCode}]: {url}/{suffixUrl}");
 			}
 
-			var content = r.Content;
-			if (content == null)
-			{
-				throw new NotSupportedException($"No token found [{r.StatusCode}]: {url}/{suffixUrl}");
-			}
-
+			var content = r.Content ?? throw new NotSupportedException($"No token found [{r.StatusCode}]: {url}/{suffixUrl}");
 			try
 			{
 				var token = JsonConvert.DeserializeObject<Token>(content)!.AuthToken;
