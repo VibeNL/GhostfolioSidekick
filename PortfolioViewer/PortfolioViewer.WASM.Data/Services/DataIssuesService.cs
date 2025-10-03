@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				// Try to get symbol identifiers if the activity has them
 				if (activity is IActivityWithPartialIdentifier activityWithIdentifiers)
 				{
-					dataIssue.PartialIdentifiers = activityWithIdentifiers.PartialSymbolIdentifiers.ToList();
+					dataIssue.PartialIdentifiers = [.. activityWithIdentifiers.PartialSymbolIdentifiers];
 					dataIssue.SymbolIdentifiers = string.Join(", ", activityWithIdentifiers.PartialSymbolIdentifiers.Select(i => i.Identifier));
 				}
 

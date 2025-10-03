@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			var treemapTrace = new TreeMap
 			{
 				Labels = HoldingsList.Select(h => $"{h.Name} (GainLossPercentage {h.GainLossPercentage})").ToArray(),
-				Values = HoldingsList.Select(h => (object)h.CurrentValue.Amount).ToList(),
+				Values = [.. HoldingsList.Select(h => (object)h.CurrentValue.Amount)],
 				Parents = HoldingsList.Select(h => "").ToArray(),
 				Text = HoldingsList.Select(h => $"{h.Name}({h.Symbol})<br>{CurrencyDisplay.DisplaySignAndAmount(h.CurrentValue)}").ToArray(),
 				TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				},
 				Marker = new Plotly.Blazor.Traces.TreeMapLib.Marker
 				{
-					Colors = HoldingsList.Select(h => (object)GetColorForGainLoss(h.GainLossPercentage)).ToList(),
+					Colors = [.. HoldingsList.Select(h => (object)GetColorForGainLoss(h.GainLossPercentage))],
 					Line = new Plotly.Blazor.Traces.TreeMapLib.MarkerLib.Line
 					{
 						Width = 2,
@@ -260,37 +260,37 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			switch (sortColumn)
 			{
 				case "Symbol":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Symbol).ToList() : HoldingsList.OrderByDescending(h => h.Symbol).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Symbol)] : [.. HoldingsList.OrderByDescending(h => h.Symbol)];
 					break;
 				case "Name":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Name).ToList() : HoldingsList.OrderByDescending(h => h.Name).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Name)] : [.. HoldingsList.OrderByDescending(h => h.Name)];
 					break;
 				case "Quantity":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Quantity).ToList() : HoldingsList.OrderByDescending(h => h.Quantity).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Quantity)] : [.. HoldingsList.OrderByDescending(h => h.Quantity)];
 					break;
 				case "AveragePrice":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.AveragePrice).ToList() : HoldingsList.OrderByDescending(h => h.AveragePrice).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.AveragePrice)] : [.. HoldingsList.OrderByDescending(h => h.AveragePrice)];
 					break;
 				case "CurrentPrice":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.CurrentPrice).ToList() : HoldingsList.OrderByDescending(h => h.CurrentPrice).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.CurrentPrice)] : [.. HoldingsList.OrderByDescending(h => h.CurrentPrice)];
 					break;
 				case "CurrentValue":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.CurrentValue).ToList() : HoldingsList.OrderByDescending(h => h.CurrentValue).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.CurrentValue)] : [.. HoldingsList.OrderByDescending(h => h.CurrentValue)];
 					break;
 				case "GainLoss":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.GainLoss).ToList() : HoldingsList.OrderByDescending(h => h.GainLoss).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.GainLoss)] : [.. HoldingsList.OrderByDescending(h => h.GainLoss)];
 					break;
 				case "GainLossPercentage":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.GainLossPercentage).ToList() : HoldingsList.OrderByDescending(h => h.GainLossPercentage).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.GainLossPercentage)] : [.. HoldingsList.OrderByDescending(h => h.GainLossPercentage)];
 					break;
 				case "Weight":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Weight).ToList() : HoldingsList.OrderByDescending(h => h.Weight).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Weight)] : [.. HoldingsList.OrderByDescending(h => h.Weight)];
 					break;
 				case "Sector":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Sector).ToList() : HoldingsList.OrderByDescending(h => h.Sector).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Sector)] : [.. HoldingsList.OrderByDescending(h => h.Sector)];
 					break;
 				case "AssetClass":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.AssetClass).ToList() : HoldingsList.OrderByDescending(h => h.AssetClass).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.AssetClass)] : [.. HoldingsList.OrderByDescending(h => h.AssetClass)];
 					break;
 				default:
 					break;

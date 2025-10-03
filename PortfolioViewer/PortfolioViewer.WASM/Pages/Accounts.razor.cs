@@ -259,21 +259,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var pieTrace = new Pie
 				{
 					Labels = LatestAccountValues.Select(a => a.AccountName).ToArray(),
-					Values = LatestAccountValues.Select(a => (object)a.Value.Amount).ToList(),
+					Values = [.. LatestAccountValues.Select(a => (object)a.Value.Amount)],
 					TextInfo = Plotly.Blazor.Traces.PieLib.TextInfoFlag.Label | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Percent | Plotly.Blazor.Traces.PieLib.TextInfoFlag.Value,
 					HoverTemplate = "<b>%{label}</b><br>" +
 									"Value: %{customdata[0]}<br>" +
 									"Gain/Loss: %{customdata[1]}<br>" +
 									"Percentage: %{percent}<br>" +
 									"<extra></extra>",
-					CustomData = LatestAccountValues.Select(a => new object[]
+					CustomData = [.. LatestAccountValues.Select(a => new object[]
 					{
 						CurrencyDisplay.DisplaySignAndAmount(a.Value),
 						CurrencyDisplay.DisplaySignAndAmount(a.GainLoss)
-					}).Cast<object>().ToList(),
+					}).Cast<object>()],
 					Marker = new Plotly.Blazor.Traces.PieLib.Marker
 					{
-						Colors = LatestAccountValues.Select(a => GetColorForGainLoss(a.GainLossPercentage)).ToList()
+						Colors = [.. LatestAccountValues.Select(a => GetColorForGainLoss(a.GainLossPercentage))]
 					}
 				};
 
@@ -302,7 +302,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var treemapTrace = new TreeMap
 				{
 					Labels = LatestAccountValues.Select(a => a.AccountName).ToArray(),
-					Values = LatestAccountValues.Select(a => (object)a.Value.Amount).ToList(),
+					Values = [.. LatestAccountValues.Select(a => (object)a.Value.Amount)],
 					Parents = LatestAccountValues.Select(a => "").ToArray(),
 					Text = LatestAccountValues.Select(a => 
 						$"{a.AccountName}<br>{CurrencyDisplay.DisplaySignAndAmount(a.Value)}<br>Gain/Loss: {CurrencyDisplay.DisplaySignAndAmount(a.GainLoss)} ({a.GainLossPercentage:P2})").ToArray(),
@@ -314,7 +314,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					},
 					Marker = new Plotly.Blazor.Traces.TreeMapLib.Marker
 					{
-						Colors = LatestAccountValues.Select(a => (object)GetColorForGainLoss(a.GainLossPercentage)).ToList(),
+						Colors = [.. LatestAccountValues.Select(a => (object)GetColorForGainLoss(a.GainLossPercentage))],
 						Line = new Plotly.Blazor.Traces.TreeMapLib.MarkerLib.Line
 						{
 							Width = 2,
@@ -379,11 +379,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				.ToDictionary(g => g.Key, g => g.Count());
 
 			// Latest account values (most recent date for each account)
-			LatestAccountValues = AccountDisplayData
+			LatestAccountValues = [.. AccountDisplayData
 				.GroupBy(a => a.AccountName)
 				.Select(g => g.OrderByDescending(a => a.Date).First())
-				.OrderByDescending(a => a.Value.Amount)
-				.ToList();
+				.OrderByDescending(a => a.Value.Amount)];
 
 			// Calculate financial metrics from latest values
 			var currency = ServerConfigurationService.PrimaryCurrency;
@@ -412,38 +411,38 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				case "Date":
 					AccountDisplayData = sortAscending
-						? AccountDisplayData.OrderBy(d => d.Date).ToList()
-						: AccountDisplayData.OrderByDescending(d => d.Date).ToList();
+						? [.. AccountDisplayData.OrderBy(d => d.Date)]
+						: [.. AccountDisplayData.OrderByDescending(d => d.Date)];
 					break;
 				case "Account":
 					AccountDisplayData = sortAscending
-						? AccountDisplayData.OrderBy(d => d.AccountName).ToList()
-						: AccountDisplayData.OrderByDescending(d => d.AccountName).ToList();
+						? [.. AccountDisplayData.OrderBy(d => d.AccountName)]
+						: [.. AccountDisplayData.OrderByDescending(d => d.AccountName)];
 					break;
 				case "Value":
 					AccountDisplayData = sortAscending
-						? AccountDisplayData.OrderBy(d => d.Value.Amount).ToList()
-						: AccountDisplayData.OrderByDescending(d => d.Value.Amount).ToList();
+						? [.. AccountDisplayData.OrderBy(d => d.Value.Amount)]
+						: [.. AccountDisplayData.OrderByDescending(d => d.Value.Amount)];
 					break;
 				case "Invested":
 					AccountDisplayData = sortAscending
-						? AccountDisplayData.OrderBy(d => d.Invested.Amount).ToList()
-						: AccountDisplayData.OrderByDescending(d => d.Invested.Amount).ToList();
+						? [.. AccountDisplayData.OrderBy(d => d.Invested.Amount)]
+						: [.. AccountDisplayData.OrderByDescending(d => d.Invested.Amount)];
 					break;
 				case "Balance":
 					AccountDisplayData = sortAscending
-						? AccountDisplayData.OrderBy(d => d.Balance.Amount).ToList()
-						: AccountDisplayData.OrderByDescending(d => d.Balance.Amount).ToList();
+						? [.. AccountDisplayData.OrderBy(d => d.Balance.Amount)]
+						: [.. AccountDisplayData.OrderByDescending(d => d.Balance.Amount)];
 					break;
 				case "GainLoss":
 					AccountDisplayData = sortAscending
-						? AccountDisplayData.OrderBy(d => d.GainLoss.Amount).ToList()
-						: AccountDisplayData.OrderByDescending(d => d.GainLoss.Amount).ToList();
+						? [.. AccountDisplayData.OrderBy(d => d.GainLoss.Amount)]
+						: [.. AccountDisplayData.OrderByDescending(d => d.GainLoss.Amount)];
 					break;
 				case "GainLossPercentage":
 					AccountDisplayData = sortAscending
-						? AccountDisplayData.OrderBy(d => d.GainLossPercentage).ToList()
-						: AccountDisplayData.OrderByDescending(d => d.GainLossPercentage).ToList();
+						? [.. AccountDisplayData.OrderBy(d => d.GainLossPercentage)]
+						: [.. AccountDisplayData.OrderByDescending(d => d.GainLossPercentage)];
 					break;
 				default:
 					break;

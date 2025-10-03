@@ -570,8 +570,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 		{
 			return new Holding
 			{
-				SymbolProfiles = symbolProfiles.ToList(),
-				Activities = activities.ToList()
+				SymbolProfiles = [.. symbolProfiles],
+				Activities = [.. activities]
 			};
 		}
 

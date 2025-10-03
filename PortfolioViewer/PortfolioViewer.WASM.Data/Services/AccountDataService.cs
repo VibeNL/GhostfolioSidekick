@@ -91,7 +91,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				});
 			}
 
-			return result.OrderBy(x => x.Date).ThenBy(x => x.AccountId).ToList();
+			return [.. result.OrderBy(x => x.Date).ThenBy(x => x.AccountId)];
 		}
 
 		public Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)

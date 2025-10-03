@@ -246,10 +246,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				var searchLower = searchText.ToLower();
 				query = query.Where(a =>
-					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol.ToLower().Contains(searchLower))) ||
-					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Name != null && sp.Name.ToLower().Contains(searchLower))) ||
-					(a.Description != null && a.Description.ToLower().Contains(searchLower)) ||
-					a.TransactionId.ToLower().Contains(searchLower));
+					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase))) ||
+					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Name != null && sp.Name.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase))) ||
+					(a.Description != null && a.Description.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase)) ||
+					a.TransactionId.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase));
 			}
 
 			return query;
@@ -330,7 +330,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			if (await databaseContext.Activities.OfType<RepayBondActivity>().AnyAsync(cancellationToken))
 				existingTypes.Add("Repay Bond");
 
-			return existingTypes.OrderBy(x => x).ToList();
+			return [.. existingTypes.OrderBy(x => x)];
 		}
 	}
 }

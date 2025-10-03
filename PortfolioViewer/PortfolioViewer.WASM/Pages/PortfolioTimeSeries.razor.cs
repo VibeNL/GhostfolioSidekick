@@ -259,28 +259,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				case "Date":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.Date).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.Date).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.Date)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.Date)];
 					break;
 				case "TotalValue":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.TotalValue.Amount).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.TotalValue.Amount).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.TotalValue.Amount)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.TotalValue.Amount)];
 					break;
 				case "TotalInvested":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.TotalInvested.Amount).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.TotalInvested.Amount).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.TotalInvested.Amount)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.TotalInvested.Amount)];
 					break;
 				case "GainLoss":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.GainLoss.Amount).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.GainLoss.Amount).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.GainLoss.Amount)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.GainLoss.Amount)];
 					break;
 				case "GainLossPercentage":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.GainLossPercentage).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.GainLossPercentage).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.GainLossPercentage)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.GainLossPercentage)];
 					break;
 				default:
 					break;

@@ -33,12 +33,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
         private Task LoadTableNamesAsync()
         {
-            TableNames = DbContext.Model.GetEntityTypes()
+            TableNames = [.. DbContext.Model.GetEntityTypes()
                 .Select(t => t.GetTableName())
                 .Where(name => !string.IsNullOrEmpty(name))
                 .Distinct()
-                .OrderBy(name => name)
-                .ToList();
+                .OrderBy(name => name)];
             return Task.CompletedTask;
         }
 
@@ -151,7 +150,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                         var columnResult = await RawQuery.ReadTable(DbContext, tableName, 1, 1, null, _sortColumn, _sortDirection);
                         if (columnResult != null && columnResult.Count > 0)
                         {
-                            TableData.Columns = columnResult.First().Keys.ToArray();
+                            TableData.Columns = [.. columnResult.First().Keys];
                             TableData.Rows = [];
                             
                             // Initialize column filters for new columns
@@ -178,8 +177,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 }
                 else
                 {
-                    TableData.Columns = result.First().Keys.ToArray();
-                    TableData.Rows = result.Select(x => x.Values.ToArray()).ToList();
+                    TableData.Columns = [.. result.First().Keys];
+                    TableData.Rows = [.. result.Select(x => x.Values.ToArray())];
                     
                     // Initialize column filters for new columns
                     foreach (var column in TableData.Columns)

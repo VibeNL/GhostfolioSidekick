@@ -287,12 +287,12 @@ Respond with a JSON array of 3-5 clear and specific aspects to research.");
 				var resultsForSummarization = new SearchResults
 				{
 					Query = $"{topic} - {aspect}",
-					Items = results.Select(r => new SearchResultItem
+					Items = [.. results.Select(r => new SearchResultItem
 					{
 						Title = r.Title ?? "No title",
 						Link = r.Link ?? string.Empty,
 						Content = r.Content ?? r.Snippet ?? "No content available"
-					}).ToList()
+					})]
 				};
 				
 				var summary = await SummarizeSearchResults(resultsForSummarization);

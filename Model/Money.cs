@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.Model
 			var grouped = enumerable
 				.GroupBy(m => m.Currency)
 				.ToDictionary(g => g.Key, Sum);
-			return grouped.Values.ToArray();
+			return [.. grouped.Values];
 		}
 
 		public int CompareTo(Money? other)

@@ -290,11 +290,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			var keywordsNode = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='keywords']");
 			if (keywordsNode != null && keywordsNode.Attributes["content"] != null)
 			{
-				keywords = keywordsNode.Attributes["content"].Value
+				keywords = [.. keywordsNode.Attributes["content"].Value
 					.Split(',')
 					.Select(k => k.Trim())
-					.Where(k => !string.IsNullOrWhiteSpace(k))
-					.ToList();
+					.Where(k => !string.IsNullOrWhiteSpace(k))];
 			}
 
 			return (title, description, keywords);
