@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AwesomeAssertions;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
@@ -110,7 +111,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			var tableCount = await context.Database.SqlQueryRaw<int>("SELECT COUNT(*) as Value FROM sqlite_master WHERE type='table'").FirstOrDefaultAsync();
 
 			// Assert - Should have some tables created by EF migrations
-			Assert.True(tableCount > 0);
+			Assert.True(tableCount > 0, "Database should contain tables after EF migrations");
 		}
 
 		[Fact]
@@ -172,7 +173,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			{
 				Assert.Fail($"Unexpected type for Volume: {volumeValue?.GetType()}");
 			}
-			Assert.Equal(true, result[0]["Active"]);
+			Assert.True((bool)result[0]["Active"], "First record should be marked as active");
 			
 			// Verify second record
 			Assert.Equal("550e8400-e29b-41d4-a716-446655440001", result[1]["Id"]);
@@ -193,7 +194,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			{
 				Assert.Fail($"Unexpected type for Volume: {volumeValue2?.GetType()}");
 			}
-			Assert.Equal(true, result[1]["Active"]);
+			Assert.True((bool)result[1]["Active"], "Second record should be marked as active");
 		}
 
 		[Fact]
@@ -215,9 +216,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 				_mockSyncTrackingService.Object,
 				_mockLogger.Object);
 
-			// Act & Assert - Should not throw
-			portfolioClient.Dispose();
-			portfolioClient.Dispose(); // Second dispose should also not throw
+			// Act
+			var action = portfolioClient.Dispose;
+
+			// Assert - Should not throw
+			action.Should().NotThrow();
 		}
 
 		public void Dispose()
