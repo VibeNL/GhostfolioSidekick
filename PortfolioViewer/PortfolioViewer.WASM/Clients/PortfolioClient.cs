@@ -626,13 +626,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 
 			using var transaction = await databaseContext.Database.BeginTransactionAsync(cancellationToken);
-			var columns = string.Join(", ", dataChunk.First().Keys.Select(key => $"\"{key}\""));
+			var columns = string.Join(", ", dataChunk[0].Keys.Select(key => $"\"{key}\""));
 			using var connection = databaseContext.Database.GetDbConnection();
 			using var command = connection.CreateCommand();
-			var parametersString = string.Join(", ", dataChunk.First().Keys.Select(key => $"${key}"));
+			var parametersString = string.Join(", ", dataChunk[0].Keys.Select(key => $"${key}"));
 			command.CommandText = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parametersString})";
 
-			var parameters = dataChunk.First().Keys.ToDictionary(
+			var parameters = dataChunk[0].Keys.ToDictionary(
 				key => key,
 				key => new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0)
 			);
