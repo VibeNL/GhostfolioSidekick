@@ -781,6 +781,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			};
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "Testcode")]
 		private static CalculatedSnapshotPrimaryCurrency CreateTestCalculatedSnapshotPrimaryCurrency(
 			HoldingAggregated? holding, 
 			int? accountId, 

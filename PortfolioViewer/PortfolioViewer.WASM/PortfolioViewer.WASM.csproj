@@ -13,11 +13,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<SonarQubeSetting Include="sonar.exclusions">
 			<Value>**/*.js</Value>
-		</SonarQubeSetting>
-		<SonarQubeSetting Include="sonar.coverage.exclusions">
-			<Value>**</Value>
 		</SonarQubeSetting>
 	</ItemGroup>
 	
