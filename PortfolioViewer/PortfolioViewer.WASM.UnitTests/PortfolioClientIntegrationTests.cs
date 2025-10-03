@@ -7,6 +7,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {
@@ -22,6 +23,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 		private readonly Mock<ISyncTrackingService> _mockSyncTrackingService;
 		private readonly Mock<ILogger<PortfolioClient>> _mockLogger;
 		private readonly Mock<SqlitePersistence> _mockSqlitePersistence;
+		private bool _disposed = false;
 
 		public PortfolioClientIntegrationTests()
 		{
@@ -48,11 +50,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			_mockSqlitePersistence = new Mock<SqlitePersistence>(Mock.Of<Microsoft.JSInterop.IJSRuntime>());
 		}
 
-		public void Dispose()
-		{
-			_connection.Dispose();
-		}
-
 		[Fact]
 		public void PortfolioClient_ShouldInitializeCorrectly()
 		{
@@ -62,10 +59,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			dbContextFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(context);
 
-			var httpClient = new HttpClient { BaseAddress = new Uri("https://test.example.com") };
+			using var httpClient = new HttpClient { BaseAddress = new Uri("https://test.example.com") };
 
 			// Act & Assert
-			var portfolioClient = new PortfolioClient(
+			using var portfolioClient = new PortfolioClient(
 				httpClient,
 				_mockSqlitePersistence.Object,
 				_mockCurrencyExchange.Object,
@@ -74,7 +71,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 				_mockLogger.Object);
 
 			Assert.NotNull(portfolioClient);
-			portfolioClient.Dispose();
 		}
 
 		[Fact]
@@ -86,10 +82,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			dbContextFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(context);
 
-			var httpClient = new HttpClient(); // No BaseAddress
+			using var httpClient = new HttpClient(); // No BaseAddress
 
 			// Act - The PortfolioClient doesn't throw in constructor, it throws when trying to use gRPC
-			var portfolioClient = new PortfolioClient(
+			using var portfolioClient = new PortfolioClient(
 				httpClient,
 				_mockSqlitePersistence.Object,
 				_mockCurrencyExchange.Object,
@@ -99,7 +95,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 
 			// Assert - The client is created successfully, exception will be thrown later when gRPC is used
 			Assert.NotNull(portfolioClient);
-			portfolioClient.Dispose();
 		}
 
 		[Fact]
@@ -210,7 +205,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			dbContextFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
 				.ReturnsAsync(context);
 
-			var httpClient = new HttpClient { BaseAddress = new Uri("https://test.example.com") };
+			using var httpClient = new HttpClient { BaseAddress = new Uri("https://test.example.com") };
 			
 			var portfolioClient = new PortfolioClient(
 				httpClient,
@@ -223,6 +218,26 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			// Act & Assert - Should not throw
 			portfolioClient.Dispose();
 			portfolioClient.Dispose(); // Second dispose should also not throw
+		}
+
+		public void Dispose()
+		{
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed)
+			{
+				if (disposing)
+				{
+					// Dispose managed resources
+					_connection?.Dispose();
+				}
+
+				_disposed = true;
+			}
 		}
 	}
 }
