@@ -70,6 +70,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 				return new ActivityWithSymbol
 				{
 					Activity = generatedTransaction,
+					Symbol = default!,
 				};
 			}
 
@@ -80,7 +81,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			{
 				Activity = generatedTransaction,
 				Symbol = symbol,
-				symbolName = symbol
+				SymbolName = symbol
 			};
 		}
 

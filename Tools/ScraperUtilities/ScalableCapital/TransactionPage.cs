@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			int counter = 0;
 			foreach (var transaction in await GetTransactions())
 			{
-				logger.LogInformation($"Processing transaction {counter}...");
+				logger.LogInformation("Processing transaction {Counter}...", counter);
 
 				// Click on the transaction to open the details
 				await transaction.ScrollIntoViewIfNeededAsync();
@@ -104,6 +104,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				return new ActivityWithSymbol
 				{
 					Activity = generatedTransaction,
+					Symbol = default!,
 				};
 			}
 
@@ -122,7 +123,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			{
 				Activity = generatedTransaction,
 				Symbol = isin,
-				symbolName = name
+				SymbolName = name
 			};
 		}
 
@@ -223,15 +224,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			{
 				// find the div with the first child containing the text History
 				var historyNode = page.Locator("div").GetByText("History").First;
-				//await historyNode.HoverAsync();
 				var parentHistoryNode = historyNode.Locator("..");
-				//await parentHistoryNode.HoverAsync();
 				var nodeFromDescription = parentHistoryNode.Locator("div").GetByText(description).First;
-				//await nodeFromDescription.HoverAsync();
 				var parent = nodeFromDescription.Locator("..");
-				//await parent.HoverAsync();
 				var dateNode = parent.Locator("div").Nth(1);
-				//await dateNode.HoverAsync();
 				var text = await dateNode.InnerTextAsync();
 
 				if (DateTime.TryParseExact(text!, "dd MMM yyyy, HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime dateTime))

@@ -6,6 +6,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 	{
 		public required Activity Activity { get; set; }
 
-		public required string Symbol { get; set; }
+		public string? Symbol { get; set; }
+
+		internal string? SymbolName { get; set; }
 	}
 }

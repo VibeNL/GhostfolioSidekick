@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
-		private int MainTransactionTableIndex;
+		private const int MainTransactionTableIndex = 0;
 
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 					{
 						Activity = new DividendActivity
 						{
-							Amount = await ParseMoneyFromHeader(headerText),
+							Amount = ParseMoneyFromHeader(headerText),
 							Date = parsedTime,
 							TransactionId = GenerateTransactionId(time, table),
 							Description = headerText,

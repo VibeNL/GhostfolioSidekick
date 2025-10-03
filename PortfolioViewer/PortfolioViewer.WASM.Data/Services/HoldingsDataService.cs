@@ -115,7 +115,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					Quantity = x.Snapshots.Sum(y => y.Quantity),
 					Sector = x.Holding.SectorWeights.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
 					Symbol = x.Holding.Symbol,
-					GainLoss = 
+					GainLoss = Money.Zero(serverConfigurationService.PrimaryCurrency),
+					GainLossPercentage = 0,
 				});
 			}
 
