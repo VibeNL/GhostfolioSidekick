@@ -502,7 +502,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 		public async Task DataIssuesService_EnrichWithDetailedActivityData_ShouldHandleNullActivities()
 		{
 			// Arrange
-			var account = CreateTestAccount("Test Account");
+			CreateTestAccount("Test Account");
 			var activities = new List<Activity>(); // Empty list
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
