@@ -36,6 +36,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool sortAscending = false;
 
 		private FilterState? _previousFilterState;
+		private bool _disposed = false;
 
 		protected override Task OnInitializedAsync()
 		{
@@ -84,14 +85,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
 		{
-			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current accountId: {FilterState.SelectedAccountId}");
+			if (_disposed) return;
+
+			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current accountId: {FilterState?.SelectedAccountId}");
 
 			// Only reload when specific properties change
 			if (e.PropertyName == nameof(FilterState.SelectedAccountId) ||
 				e.PropertyName == nameof(FilterState.StartDate) ||
 				e.PropertyName == nameof(FilterState.EndDate))
 			{
-				Console.WriteLine($"Filter change detected in Holdings - AccountId: {FilterState.SelectedAccountId}");
+				Console.WriteLine($"Filter change detected in Holdings - AccountId: {FilterState?.SelectedAccountId}");
 				await LoadPortfolioDataAsync();
 			}
 
@@ -305,13 +308,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		public void Dispose()
 		{
-			if (FilterState != null)
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed && disposing)
 			{
-				FilterState.PropertyChanged -= OnFilterStateChanged;
-			}
-			if (_previousFilterState != null)
-			{
-				_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+				// Unsubscribe from current filter state
+				if (FilterState != null)
+				{
+					FilterState.PropertyChanged -= OnFilterStateChanged;
+				}
+
+				// Unsubscribe from previous filter state if it's different
+				if (_previousFilterState != null && _previousFilterState != FilterState)
+				{
+					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+				}
+
+				_disposed = true;
 			}
 		}
 	}
