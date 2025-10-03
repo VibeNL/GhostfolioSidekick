@@ -10,13 +10,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
         
         public int AccountId { get; set; }
         
-        public Money Value { get; set; }
+        public required Money Value { get; set; }
         
-        public Money Invested { get; set; }
+        public required Money Invested { get; set; }
         
-        public Money Balance { get; set; }
+        public required Money Balance { get; set; }
         
-        public Money GainLoss { get; set; }
+        public required Money GainLoss { get; set; }
         
         public decimal GainLossPercentage { get; set; }
         

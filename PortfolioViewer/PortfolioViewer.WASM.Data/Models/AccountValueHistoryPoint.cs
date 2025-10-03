@@ -4,15 +4,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {
     public class AccountValueHistoryPoint
     {
-        public DateOnly Date { get; set; }
-        
+        public DateTime Date { get; set; }
+
         public int AccountId { get; set; }
-        
-        public Money TotalAssetValue { get; set; }
-        
-        public Money TotalInvested { get; set; }
-        
-        public Money CashBalance { get; set; }
-		public Money TotalValue { get; internal set; }
-	}
+
+        public required Money TotalAssetValue { get; set; }
+
+        public required Money TotalInvested { get; set; }
+
+        public required Money CashBalance { get; set; }
+        public required Money TotalValue { get; set; }
+    }
 }

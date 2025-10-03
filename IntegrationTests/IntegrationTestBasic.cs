@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithPassword(Password)
 				.WithDatabase(Database)
 				.WithPortBinding(PostgresPort, true)
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(PostgresPort))
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(PostgresPort))
 				.WithNetwork(network)
 				.WithNetworkAliases("postgrescontainer")
 				.Build();
@@ -171,7 +171,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			redisContainer = new RedisBuilder()
 				.WithReuse(ReuseContainers)
 				.WithPortBinding(ReditPort, true)
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(ReditPort))
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(ReditPort))
 				.WithNetwork(network)
 				.Build();
 			await redisContainer.StartAsync().ConfigureAwait(false);
@@ -195,7 +195,7 @@ namespace GhostfolioSidekick.IntegrationTests
 				.WithEnvironment("POSTGRES_PASSWORD", Password)
 				.WithEnvironment("POSTGRES_USER", Username)
 				.WithEnvironment("REQUEST_TIMEOUT", "60000")
-				.WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(GhostfolioPort))
+				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(GhostfolioPort))
 				.WithNetwork(network)
 				.Build();
 
@@ -203,7 +203,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			{
 				await ghostfolioContainer.StartAsync().ConfigureAwait(false);
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				var logs = await ghostfolioContainer.GetLogsAsync().ConfigureAwait(false);
 				throw new Exception(logs.Stderr + logs.Stdout);

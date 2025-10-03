@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					return true;
 				}
 
-				return ParseQuoteTypeAsSub(x.Type) == null || id.AllowedAssetSubClasses.Contains(ParseQuoteTypeAsSub(x.Type).Value);
+				return ParseQuoteTypeAsSub(x.Type) == null || id.AllowedAssetSubClasses.Contains(ParseQuoteTypeAsSub(x.Type)!.Value);
 			}
 		}
 
@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return list;
 		}
 
-		private static string GetName(Security security)
+		private static string? GetName(Security security)
 		{
 			if (security is null)
 			{
