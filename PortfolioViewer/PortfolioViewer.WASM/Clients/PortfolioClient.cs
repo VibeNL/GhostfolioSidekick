@@ -34,21 +34,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			try
 			{
 				// Step 0: Ensure Database is Up-to-Date
-				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
-				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync();
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync(cancellationToken: cancellationToken);
 				if (pendingMigrations.Any())
 				{
 					try
 					{
-						await databaseContext.Database.MigrateAsync();
-					} catch
+						await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
+					}
+					catch (Exception ex)
 					{
 						progress.Report(("Error applying database migrations. Forcing new database.", 0));
-						logger.LogWarning("Failed to apply migrations, forcing new database");
+						logger.LogWarning(ex, "Failed to apply migrations, forcing new database");
 						forceFullSync = true;
 
-						await databaseContext.Database.EnsureDeletedAsync();
-						await databaseContext.Database.MigrateAsync();
+						await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
+						await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
 					}
 				}
 
@@ -112,7 +113,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				progress?.Report(($"Checking data since {sinceDateString}...", 5));
 
-				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				// Get all table names dynamically from the database
 				var allTables = await GetDatabaseTablesAsync(databaseContext);
@@ -128,13 +129,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				foreach (var table in tablesWithDateColumns)
 				{
-					if (latestDatesResponse.LatestDates.ContainsKey(table))
+					if (latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr) && DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate) && latestDate >= sinceDate)
 					{
-						var latestDateStr = latestDatesResponse.LatestDates[table];
-						if (DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate) && latestDate >= sinceDate)
-						{
-							tablesToSyncPartially.Add(table);
-						}
+						tablesToSyncPartially.Add(table);
 					}
 				}
 
@@ -195,7 +192,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await sqlitePersistence.SaveChangesAsync(cancellationToken);
 
 				var allSyncedTables = tablesToSyncPartially.Concat(tablesToSyncFully).ToList();
-				logger.LogInformation("Partial sync completed successfully for {TableCount} tables: {Tables}", 
+				logger.LogInformation("Partial sync completed successfully for {TableCount} tables: {Tables}",
 					allSyncedTables.Count, string.Join(", ", allSyncedTables));
 				return true;
 			}
@@ -209,7 +206,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private async Task<List<string>> GetDatabaseTablesAsync(DatabaseContext databaseContext)
 		{
 			var query = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN (@ignore1, @ignore2, @ignore3)";
-			
+
 			using var connection = databaseContext.Database.GetDbConnection();
 			await connection.OpenAsync();
 			using var command = connection.CreateCommand();
@@ -269,7 +266,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return tablesWithDateColumns;
 		}
 
-		private async Task<int> DeleteRecordsSinceDate(DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
+		private static async Task<int> DeleteRecordsSinceDate(DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
 		{
 			// Check if table has a Date column
 			var hasDateColumn = await TableHasDateColumn(databaseContext, tableName);
@@ -415,7 +412,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			var recordsWritten = 0;
 			var totalRecordsToSync = totalRows.Sum();
 
-			await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 			// Step 2: Clear Tables
 			// Disable contraints on DB
@@ -762,15 +759,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(("Deleting all database data...", 10));
 				logger.LogInformation("Starting database deletion");
 
-				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				// Step 1: Delete the database file completely
 				progress?.Report(("Deleting database file...", 30));
-				await databaseContext.Database.EnsureDeletedAsync();
+				await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
 
 				// Step 2: Recreate the database with migrations
 				progress?.Report(("Recreating database structure...", 60));
-				await databaseContext.Database.MigrateAsync();
+				await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
 
 				// Step 3: Clear sync tracking
 				progress?.Report(("Clearing sync history...", 80));

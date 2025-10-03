@@ -132,7 +132,7 @@ Format function calls like this:
 									ChatMode == ChatMode.ChatWithThinking,
 									null
 									);
-			});
+			}, cancellationToken);
 
 			string totalText = string.Empty;
 

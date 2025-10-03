@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		private string ExtractTextFromHtml(HtmlDocument htmlDoc)
+		private static string ExtractTextFromHtml(HtmlDocument htmlDoc)
 		{
 			var sb = new StringBuilder();
 
@@ -244,7 +244,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			return blockElements.Contains(node.Name.ToLower());
 		}
 
-		private string ExtractMainContent(HtmlDocument htmlDoc)
+		private static string ExtractMainContent(HtmlDocument htmlDoc)
 		{
 			// Try to find main content using common article containers
 			string[] contentSelectors = [
