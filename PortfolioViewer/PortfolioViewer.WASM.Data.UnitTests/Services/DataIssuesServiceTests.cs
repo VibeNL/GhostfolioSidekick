@@ -357,8 +357,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 		{
 			// This test verifies the activity type mapping logic in GetActivityTypeName method
 			// Since this method is static and private, we test the mapping concept
-			Assert.True(!string.IsNullOrEmpty(expectedDisplayName));
-			Assert.True(!string.IsNullOrEmpty(activityClassName));
+			Assert.False(string.IsNullOrEmpty(expectedDisplayName));
+			Assert.False(string.IsNullOrEmpty(activityClassName));
 		}
 
 		[Fact]
