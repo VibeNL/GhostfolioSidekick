@@ -91,6 +91,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return page.Locator("li[class='timeline__entry']").CountAsync();
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Scraper logic is complex")]
 		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			var table = await ParseTable(0);
@@ -136,7 +137,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 							Date = parsedTime,
 							TransactionId = GenerateTransactionId(time, table),
 							Description = headerText,
-						}
+						},
+						Symbol = default!,
 					};
 				}
 
@@ -147,11 +149,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 					{
 						Activity = new InterestActivity
 						{
-							Amount = await ParseMoneyFromHeader(headerText),
+							Amount = ParseMoneyFromHeader(headerText),
 							Date = parsedTime,
 							TransactionId = GenerateTransactionId(time, table),
 							Description = headerText,
-						}
+						},
+						Symbol = default!,
 					};
 				}
 
@@ -159,11 +162,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				{
 					Activity = new CashDepositActivity
 					{
-						Amount = await ParseMoneyFromHeader(headerText),
+						Amount = ParseMoneyFromHeader(headerText),
 						Date = parsedTime,
 						TransactionId = GenerateTransactionId(time, table),
 						Description = headerText,
-					}
+					},
+					Symbol = default!,
 				};
 			}
 
@@ -173,11 +177,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				{
 					Activity = new CashWithdrawalActivity
 					{
-						Amount = (await ParseMoneyFromHeader(headerText)),
+						Amount = ParseMoneyFromHeader(headerText),
 						Date = parsedTime,
 						TransactionId = GenerateTransactionId(time, table),
 						Description = headerText,
-					}
+					},
+					Symbol = default!,
 				};
 			}
 

@@ -4,10 +4,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
 	public class ActivityWithSymbol
 	{
-		public Activity Activity { get; set; }
+		public required Activity Activity { get; set; }
 
-		public string Symbol { get; set; }
-
-		public string symbolName { get; set; }
+		public required string Symbol { get; set; }
 	}
 }

@@ -359,7 +359,7 @@ Format function calls like this:
 			};
 		}
 
-		private async Task<string> CallToolAsync(ChatOptions options, string name, IDictionary<string, object?> arguments)
+		private async Task<string> CallToolAsync(ChatOptions options, string name, IDictionary<string, object?>? arguments)
 		{
 			var tool = options.Tools?.OfType<KernelFunction>()
 				.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
