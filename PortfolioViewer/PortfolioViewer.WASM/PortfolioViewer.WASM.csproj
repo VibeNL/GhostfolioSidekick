@@ -19,7 +19,7 @@
 	</ItemGroup>
 	
 	<PropertyGroup>
-		<NoWarn>1701;1702;SKEXP0110;SKEXP0001</NoWarn>
+		<NoWarn>1701;1702;SKEXP0110;SKEXP0001;CS8602</NoWarn>
 	</PropertyGroup>
 	
 	<ItemGroup>
