@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public long ID { get; set; }
 
-		public virtual List<CurrencyExchangeRate> Rates { get; set; } = new();
+		public virtual List<CurrencyExchangeRate> Rates { get; set; } = [];
 
 		public Currency SourceCurrency { get; set; }
 

@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
     {
         [Inject] private DatabaseContext DbContext { get; set; } = default!;
 
-        private List<string?> TableNames = new();
+        private List<string?> TableNames = [];
         private string? SelectedTable;
         private TableDataRecord TableData = new();
         private int page = 1;
@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private const int PageSize = 250;
         
         // Add column filters
-        private Dictionary<string, string> ColumnFilters = new();
+        private Dictionary<string, string> ColumnFilters = [];
         private bool _filtersApplied = false;
         private bool _isLoading = false;
         
@@ -143,7 +143,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                     // If we have an existing table structure but no data due to filters, preserve column structure
                     if (activeFilters.Count != 0 && TableData.Columns.Any())
                     {
-                        TableData.Rows = new();
+                        TableData.Rows = [];
                     }
                     else
                     {
@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                         if (columnResult != null && columnResult.Count > 0)
                         {
                             TableData.Columns = columnResult.First().Keys.ToArray();
-                            TableData.Rows = new();
+                            TableData.Rows = [];
                             
                             // Initialize column filters for new columns
                             foreach (var column in TableData.Columns)
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                         else
                         {
                             TableData.Columns = Array.Empty<string>();
-                            TableData.Rows = new();
+                            TableData.Rows = [];
                         }
                         
                         if (activeFilters.Count == 0)
@@ -195,7 +195,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             {
                 // Handle errors gracefully
                 TableData.Columns = new[] { "Error" };
-                TableData.Rows = new List<object?[]> { new object?[] { ex.Message } };
+                TableData.Rows = [new object?[] { ex.Message }];
                 TotalRecords = 0;
                 TotalPages = 0;
             }
@@ -250,7 +250,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private class TableDataRecord
         {
             public string[] Columns { get; set; } = Array.Empty<string>();
-            public List<object?[]> Rows { get; set; } = new();
+            public List<object?[]> Rows { get; set; } = [];
         }
     }
 }

@@ -4,11 +4,8 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
@@ -583,7 +580,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			return new SymbolProfile(
 				symbol,
 				name,
-				new List<string>(),
+				[],
 				Currency.USD,
 				"TEST",
 				AssetClass.Equity,

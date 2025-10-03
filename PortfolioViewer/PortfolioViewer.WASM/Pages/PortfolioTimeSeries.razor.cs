@@ -41,8 +41,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected bool IsLoading { get; set; } = false;
 		protected bool HasError { get; set; } = false;
 		protected string ErrorMessage { get; set; } = string.Empty;
-		protected List<PortfolioValueHistoryPoint> TimeSeriesData { get; set; } = new();
-		protected List<TimeSeriesDisplayModel> TimeSeriesDisplayData { get; set; } = new();
+		protected List<PortfolioValueHistoryPoint> TimeSeriesData { get; set; } = [];
+		protected List<TimeSeriesDisplayModel> TimeSeriesDisplayData { get; set; } = [];
 
 		// Sorting state
 		private string sortColumn = "Date";
@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		// Plotly chart
 		protected Config plotConfig = new();
 		protected Plotly.Blazor.Layout plotLayout = new();
-		protected IList<ITrace> plotData = new List<ITrace>();
+		protected IList<ITrace> plotData = [];
 
 		private FilterState? _previousFilterState;
 
@@ -134,7 +134,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					StartDate,
 					EndDate,
 					SelectedAccountId
-				) ?? new List<PortfolioValueHistoryPoint>();
+				) ?? [];
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 				
 				await PrepareDisplayData();
@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (TimeSeriesData.Count == 0)
 			{
-				TimeSeriesDisplayData = new List<TimeSeriesDisplayModel>();
+				TimeSeriesDisplayData = [];
 				return Task.CompletedTask;
 			}
 
@@ -189,12 +189,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (TimeSeriesData.Count == 0)
 			{
-				plotData = new List<ITrace>();
+				plotData = [];
 				return Task.CompletedTask;
 			}
 
-			List<object> valueList = new();
-			List<object> investedList = new();
+			List<object> valueList = [];
+			List<object> investedList = [];
 			foreach (var p in TimeSeriesData)
 			{
 				valueList.Add(p.Value);
@@ -220,13 +220,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 6 }
 			};
 
-			plotData = new List<ITrace> { valueTrace, investedTrace };
+			plotData = [valueTrace, investedTrace];
 			var primaryCurrency = ServerConfigurationService?.PrimaryCurrency;
 			plotLayout = new Plotly.Blazor.Layout
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Portfolio Value Over Time" },
-				XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> { new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } } },
-				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({primaryCurrency?.Symbol ?? "$"})" } } },
+				XAxis = [new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } }],
+				YAxis = [new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({primaryCurrency?.Symbol ?? "$"})" } }],
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 				AutoSize = true,
 				ShowLegend = true,

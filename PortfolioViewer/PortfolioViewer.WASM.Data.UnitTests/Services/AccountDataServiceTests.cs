@@ -7,8 +7,6 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
@@ -659,7 +657,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			{
 				Id = id,
 				Platform = platform,
-				Activities = new List<Activity>()
+				Activities = []
 			};
 		}
 
@@ -668,7 +666,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 			return new SymbolProfile(
 				symbol,
 				$"{symbol} Company",
-				new List<string> { symbol },
+				[symbol],
 				Currency.USD,
 				"TEST",
 				AssetClass.Equity,
@@ -679,18 +677,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 
 		private static Holding CreateTestHolding(SymbolProfile symbolProfile)
 		{
-			var holding = new Holding { Id = 1, Activities = new List<Activity>() };
+			var holding = new Holding { Id = 1, Activities = [] };
 			holding.SymbolProfiles.Add(symbolProfile);
 			return holding;
 		}
 
-		private static Activity CreateTestActivity(Holding holding, int accountId = 1)
+		private static BuyActivity CreateTestActivity(Holding holding, int accountId = 1)
 		{
 			var account = new Account("Test Account") { Id = accountId };
 			return new BuyActivity(
 				account,
 				holding,
-				new List<PartialSymbolIdentifier>(),
+				[],
 				DateTime.Now,
 				1m,
 				new Money(Currency.USD, 100m),

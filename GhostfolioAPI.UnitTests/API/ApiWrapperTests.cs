@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public async Task CreateAccount_ShouldCreateAccount()
 		{
 			// Arrange
-			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = new List<Model.Accounts.Balance>(), Comment = "TestComment" };
+			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = [], Comment = "TestComment" };
 			SetupRestCall("api/v1/account/", string.Empty);
 
 			// Act
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public async Task UpdateAccount_ShouldUpdateAccount()
 		{
 			// Arrange
-			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = new List<Model.Accounts.Balance> { new Model.Accounts.Balance(DateOnly.FromDateTime(DateTime.Now), new Money { Amount = 100 }) } };
+			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = [new Model.Accounts.Balance(DateOnly.FromDateTime(DateTime.Now), new Money { Amount = 100 })] };
 			var accounts = new List<Contract.Account> { new Contract.Account { Name = account.Name, Id = "1", Currency = "EUR" } };
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
 

@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private string streamingAuthor = string.Empty;
 		private InitializeProgress lastProgress = new(0);
 
-		private readonly List<ChatMessageContent> memory = new();
+		private readonly List<ChatMessageContent> memory = [];
 		private readonly AgentOrchestrator orchestrator;
 		private readonly AgentLogger agentLogger;
 

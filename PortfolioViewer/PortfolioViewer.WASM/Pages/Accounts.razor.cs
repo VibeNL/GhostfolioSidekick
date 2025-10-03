@@ -40,8 +40,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected bool IsLoading { get; set; } = false;
 		protected bool HasError { get; set; } = false;
 		protected string ErrorMessage { get; set; } = string.Empty;
-		protected List<AccountValueHistoryPoint> AccountsData { get; set; } = new();
-		protected List<AccountValueDisplayModel> AccountDisplayData { get; set; } = new();
+		protected List<AccountValueHistoryPoint> AccountsData { get; set; } = [];
+		protected List<AccountValueDisplayModel> AccountDisplayData { get; set; } = [];
 
 		// Sorting state
 		private string sortColumn = "Date";
@@ -50,20 +50,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		// Plotly chart for historical data
 		protected Config plotConfig = new();
 		protected Plotly.Blazor.Layout plotLayout = new();
-		protected IList<ITrace> plotData = new List<ITrace>();
+		protected IList<ITrace> plotData = [];
 
 		// Plotly charts for account details visualization
 		protected Config accountPieConfig = new();
 		protected Plotly.Blazor.Layout accountPieLayout = new();
-		protected IList<ITrace> accountPieData = new List<ITrace>();
+		protected IList<ITrace> accountPieData = [];
 		
 		protected Config accountTreemapConfig = new();
 		protected Plotly.Blazor.Layout accountTreemapLayout = new();
-		protected IList<ITrace> accountTreemapData = new List<ITrace>();
+		protected IList<ITrace> accountTreemapData = [];
 
 		// Summary data
-		protected Dictionary<string, int> AccountBreakdown { get; set; } = new();
-		protected List<AccountValueDisplayModel> LatestAccountValues { get; set; } = new();
+		protected Dictionary<string, int> AccountBreakdown { get; set; } = [];
+		protected List<AccountValueDisplayModel> LatestAccountValues { get; set; } = [];
 
 		// Financial metrics
 		protected Money TotalPortfolioValue { get; set; } = Money.Zero(Currency.EUR);
@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				AccountsData = await AccountDataService.GetAccountValueHistoryAsync(
 					StartDate,
 					EndDate
-				) ?? new List<AccountValueHistoryPoint>();
+				) ?? [];
 
 				await PrepareDisplayData();
 				await PrepareChartData();
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (AccountsData.Count == 0)
 			{
-				AccountDisplayData = new List<AccountValueDisplayModel>();
+				AccountDisplayData = [];
 				return;
 			}
 
@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (AccountsData.Count == 0)
 			{
-				plotData = new List<ITrace>();
+				plotData = [];
 				return;
 			}
 
@@ -226,20 +226,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			plotLayout = new Plotly.Blazor.Layout
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Account Values Over Time" },
-				XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> { new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } } },
-				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({ServerConfigurationService.PrimaryCurrency.Symbol})" } } },
+				XAxis = [new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } }],
+				YAxis = [new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({ServerConfigurationService.PrimaryCurrency.Symbol})" } }],
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 				AutoSize = true,
 				ShowLegend = true,
-				Legend = new List<Plotly.Blazor.LayoutLib.Legend>
-				{
+				Legend =
+				[
 					new Plotly.Blazor.LayoutLib.Legend
 					{
 						Orientation = Plotly.Blazor.LayoutLib.LegendLib.OrientationEnum.V,
 						X = 1.02m,
 						Y = 1m
 					}
-				}
+				]
 			};
 			plotConfig = new Config { Responsive = true };
 		}
@@ -248,8 +248,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (LatestAccountValues.Count == 0)
 			{
-				accountPieData = new List<ITrace>();
-				accountTreemapData = new List<ITrace>();
+				accountPieData = [];
+				accountTreemapData = [];
 				return;
 			}
 
@@ -277,7 +277,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					}
 				};
 
-				accountPieData = new List<ITrace> { pieTrace };
+				accountPieData = [pieTrace];
 
 				accountPieLayout = new Plotly.Blazor.Layout
 				{
@@ -285,15 +285,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 10, R = 10, B = 10 },
 					AutoSize = true,
 					ShowLegend = true,
-					Legend = new List<Plotly.Blazor.LayoutLib.Legend>
-					{
+					Legend =
+					[
 						new Plotly.Blazor.LayoutLib.Legend
 						{
 							Orientation = Plotly.Blazor.LayoutLib.LegendLib.OrientationEnum.V,
 							X = 1.02m,
 							Y = 0.5m
 						}
-					}
+					]
 				};
 
 				accountPieConfig = new Config { Responsive = true };
@@ -328,7 +328,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					}
 				};
 
-				accountTreemapData = new List<ITrace> { treemapTrace };
+				accountTreemapData = [treemapTrace];
 
 				accountTreemapLayout = new Plotly.Blazor.Layout
 				{

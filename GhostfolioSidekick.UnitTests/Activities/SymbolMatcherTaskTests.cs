@@ -29,10 +29,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
             _mockApplicationSettings = new Mock<IApplicationSettings>();
             _mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
 			_symbolMatcher = new Mock<ISymbolMatcher>();
-			_symbolMatchers = new List<ISymbolMatcher>
-			{
+			_symbolMatchers =
+			[
 				_symbolMatcher.Object
-            };
+            ];
 
             _symbolMatcherTask = new SymbolMatcherTask(
                 _mockLogger.Object,
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
             // Arrange
             var activities = new List<Activity>
             {
-                new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = new List<PartialSymbolIdentifier> { new PartialSymbolIdentifier { Identifier = "SYM1" } } }
+                new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = [new PartialSymbolIdentifier { Identifier = "SYM1" }] }
             };
 
             var holdings = new List<Holding>();
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
             // Arrange
             var activities = new List<Activity>
             {
-                new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = new List<PartialSymbolIdentifier>() }
+                new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = [] }
             };
 
             var holdings = new List<Holding>();
@@ -122,12 +122,12 @@ namespace GhostfolioSidekick.UnitTests.Activities
             // Arrange
             var activities = new List<Activity>
             {
-                new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = new List<PartialSymbolIdentifier> { new PartialSymbolIdentifier { Identifier = "SYM1" } } }
+                new BuyActivity { Date = DateTime.Now, PartialSymbolIdentifiers = [new PartialSymbolIdentifier { Identifier = "SYM1" }] }
             };
 
             var holdings = new List<Holding>
             {
-                new Holding { SymbolProfiles = new List<SymbolProfile> { new SymbolProfile { Symbol = "SYM1", DataSource = "TestSource" } } }
+                new Holding { SymbolProfiles = [new SymbolProfile { Symbol = "SYM1", DataSource = "TestSource" }] }
             };
 
             var mockDbContext = new Mock<DatabaseContext>();

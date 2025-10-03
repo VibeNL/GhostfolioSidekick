@@ -1,11 +1,8 @@
-using System.Data.Common;
 using System.Text.Json;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
-using Grpc.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

@@ -63,11 +63,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
             catch (Exception)
             {
                 // Fallback to static types if service call fails
-                _cachedTransactionTypes = new List<string>
-                {
-                    "Buy", "Sell", "Dividend", "Deposit", "Withdrawal", 
+                _cachedTransactionTypes =
+				[
+					"Buy", "Sell", "Dividend", "Deposit", "Withdrawal", 
                     "Fee", "Interest", "Receive", "Send", "Staking Reward", "Gift"
-                };
+                ];
             }
             StateHasChanged();
         }

@@ -56,15 +56,15 @@ namespace GhostfolioSidekick.Model.UnitTests
 			// Arrange
 			var holding = new Holding
 			{
-				SymbolProfiles = new List<SymbolProfile>
-				{
+				SymbolProfiles =
+				[
 					new SymbolProfile { Symbol = "SYM" }
-				},
-				Activities = new List<Activity>
-				{
+				],
+				Activities =
+				[
 					new BuyActivity(),
 					new SellActivity()
-				}
+				]
 			};
 
 			// Act

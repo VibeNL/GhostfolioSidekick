@@ -7,8 +7,6 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
@@ -760,7 +758,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			return new SymbolProfile(
 				symbol,
 				name,
-				new List<string>(),
+				[],
 				Currency.USD,
 				"TEST",
 				AssetClass.Equity,
@@ -781,7 +779,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			return new BuyActivity(
 				account,
 				holding,
-				new List<PartialSymbolIdentifier>(),
+				[],
 				date,
 				quantity,
 				new Money(Currency.USD, price),
@@ -798,7 +796,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			return new SellActivity(
 				account,
 				holding,
-				new List<PartialSymbolIdentifier>(),
+				[],
 				date,
 				quantity,
 				new Money(Currency.USD, price),
@@ -815,7 +813,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			return new DividendActivity(
 				account,
 				holding,
-				new List<PartialSymbolIdentifier>(),
+				[],
 				date,
 				new Money(Currency.USD, amount),
 				transactionId,
@@ -874,12 +872,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 		private static List<Activity> CreateTestActivities(Account account, Holding holding)
 		{
-			return new List<Activity>
-			{
+			return
+			[
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
-			};
+			];
 		}
 	}
 }

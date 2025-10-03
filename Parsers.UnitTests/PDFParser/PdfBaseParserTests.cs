@@ -20,10 +20,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
             protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
             {
-                return new List<PartialActivity>
-                {
-                    new PartialActivity(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "txn1")
-                };
+                return
+				[
+					new PartialActivity(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "txn1")
+                ];
             }
 
             public static bool IsCheckWordsPublic(string check, List<SingleWordToken> words, int i)
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
         public async Task CanParse_ReturnsTrue_WhenPdfIsValid()
         {
             var mockPdfToWordsParser = new Mock<IPdfToWordsParser>();
-            mockPdfToWordsParser.Setup(p => p.ParseTokens(It.IsAny<string>())).Returns(new List<SingleWordToken> { new SingleWordToken("test") });
+            mockPdfToWordsParser.Setup(p => p.ParseTokens(It.IsAny<string>())).Returns([new SingleWordToken("test")]);
             var parser = new TestPdfBaseParser(mockPdfToWordsParser.Object);
 
             var result = await parser.CanParse("test.pdf");
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
         public async Task ParseActivities_ParsesRecordsCorrectly()
         {
             var mockPdfToWordsParser = new Mock<IPdfToWordsParser>();
-            mockPdfToWordsParser.Setup(p => p.ParseTokens(It.IsAny<string>())).Returns(new List<SingleWordToken> { new SingleWordToken("test") });
+            mockPdfToWordsParser.Setup(p => p.ParseTokens(It.IsAny<string>())).Returns([new SingleWordToken("test")]);
             var parser = new TestPdfBaseParser(mockPdfToWordsParser.Object);
             var mockActivityManager = new Mock<IActivityManager>();
 

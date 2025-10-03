@@ -51,8 +51,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			catch (Exception ex)
 			{
 				// Log the exception and return empty list with error information
-				return new List<DataIssueDisplayModel>
-				{
+				return
+				[
 					new DataIssueDisplayModel
 					{
 						IssueType = "System Error",
@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 						ActivityDescription = ex.ToString(),
 						Severity = "Error"
 					}
-				};
+				];
 			}
 		}
 

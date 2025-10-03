@@ -21,10 +21,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		
 		// View mode for the treemap
 		private string ViewMode = "treemap";
-		private List<HoldingDisplayModel> HoldingsList = new();
+		private List<HoldingDisplayModel> HoldingsList = [];
 		private Config plotConfig = new();
 		private Plotly.Blazor.Layout plotLayout = new();
-		private IList<ITrace> plotData = new List<ITrace>();
+		private IList<ITrace> plotData = [];
 
 		// Loading state management
 		private bool IsLoading { get; set; } = true;
@@ -173,7 +173,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 			};
 
-			plotData = new List<ITrace> { treemapTrace };
+			plotData = [treemapTrace];
 
 			plotLayout = new Plotly.Blazor.Layout
 			{

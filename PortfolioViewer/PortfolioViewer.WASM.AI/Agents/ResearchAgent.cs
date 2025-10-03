@@ -344,7 +344,7 @@ Maintain a professional tone suitable for financial and investment contexts.");
 	public class SearchResults
 	{
 		public string Query { get; set; } = string.Empty;
-		public List<SearchResultItem> Items { get; set; } = new();
+		public List<SearchResultItem> Items { get; set; } = [];
 	}
 	
 	public class SearchResultItem

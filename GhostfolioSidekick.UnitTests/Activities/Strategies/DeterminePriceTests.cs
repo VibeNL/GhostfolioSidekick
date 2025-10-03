@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 
             var symbolProfile = new SymbolProfile
             {
-                MarketData = new List<MarketData> { marketData }
+                MarketData = [marketData]
             };
 
             var activity = new ReceiveActivity
@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 
             var symbolProfile = new SymbolProfile
             {
-                MarketData = new List<MarketData> { marketData }
+                MarketData = [marketData]
             };
 
             var activity = new BuyActivity

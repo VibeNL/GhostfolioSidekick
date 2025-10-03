@@ -264,14 +264,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 
 			foreach (var activity in dayActivities)
 			{
-				var convertedAdjustedUnitPrice = await currencyExchange.ConvertMoney(
-				activity.AdjustedUnitPrice,
-				targetCurrency,
-				date).ConfigureAwait(false);
 				var convertedTotal = await currencyExchange.ConvertMoney(
-				activity.TotalTransactionAmount,
-				targetCurrency,
-				date).ConfigureAwait(false);
+					activity.TotalTransactionAmount,
+					targetCurrency,
+					date)
+				.ConfigureAwait(false);
 
 				var sign = 0;
 				sign = activity switch

@@ -19,8 +19,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool IsListExpanded { get; set; } = false; // Collapsed by default
 
 		// Data
-		private List<DataIssueDisplayModel> DataIssuesList = new();
-		private List<DataIssueDisplayModel> FilteredDataIssuesList = new();
+		private List<DataIssueDisplayModel> DataIssuesList = [];
+		private List<DataIssueDisplayModel> FilteredDataIssuesList = [];
 
 		// Filters
 		private string SelectedSeverity = string.Empty;
@@ -28,17 +28,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string SelectedAccount = string.Empty;
 
 		// Filter options
-		private List<string> ActivityTypes = new();
-		private List<string> Accounts = new();
+		private List<string> ActivityTypes = [];
+		private List<string> Accounts = [];
 
 		// Sorting state
 		private string sortColumn = "Date";
 		private bool sortAscending = false;
 
 		// Summary data
-		private Dictionary<string, int> SeverityBreakdown = new();
-		private Dictionary<string, int> ActivityTypeBreakdown = new();
-		private Dictionary<string, int> AccountBreakdown = new();
+		private Dictionary<string, int> SeverityBreakdown = [];
+		private Dictionary<string, int> ActivityTypeBreakdown = [];
+		private Dictionary<string, int> AccountBreakdown = [];
 
 		protected override async Task OnInitializedAsync()
 		{

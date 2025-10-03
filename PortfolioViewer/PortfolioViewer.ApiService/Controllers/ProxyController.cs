@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		private void CleanHtml(HtmlDocument htmlDoc)
+		private static void CleanHtml(HtmlDocument htmlDoc)
 		{
 			// Remove script tags
 			RemoveNodes(htmlDoc, "//script");
@@ -200,7 +200,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			return text.Trim();
 		}
 
-		private void ExtractTextFromNode(HtmlNode node, StringBuilder sb)
+		private static void ExtractTextFromNode(HtmlNode node, StringBuilder sb)
 		{
 			// Skip invisible elements
 			if (IsInvisibleNode(node))

@@ -705,7 +705,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			if (string.IsNullOrEmpty(jsonData))
 			{
 				Console.WriteLine("DeserializeData received empty or null JSON data.");
-				return new List<Dictionary<string, object>>();
+				return [];
 			}
 
 			Console.WriteLine($"DeserializeData executing");
@@ -713,7 +713,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			if (string.IsNullOrWhiteSpace(jsonData))
 			{
-				return new List<Dictionary<string, object>>();
+				return [];
 			}
 
 			try

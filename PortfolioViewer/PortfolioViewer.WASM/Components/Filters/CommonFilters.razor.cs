@@ -24,12 +24,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 		// Pending filter state that holds changes before applying
 		private PendingFilterState _pendingFilterState = new();
 
-		private List<Account> Accounts { get; set; } = new();
-		private List<string> Symbols { get; set; } = new();
+		private List<Account> Accounts { get; set; } = [];
+		private List<string> Symbols { get; set; } = [];
 
 		// Store all available accounts and symbols for filtering
-		private List<Account> _allAccounts = new();
-		private List<string> _allSymbols = new();
+		private List<Account> _allAccounts = [];
+		private List<string> _allSymbols = [];
 
 		private string? _currentDateRange = null;
 
@@ -250,15 +250,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 				else
 				{
 					Logger?.LogWarning("GetAccountsAsync returned null");
-					_allAccounts = new List<Account>();
-					Accounts = new List<Account>();
+					_allAccounts = [];
+					Accounts = [];
 				}
 			}
 			catch (OperationCanceledException)
 			{
 				Logger?.LogError("Timeout loading accounts for filter");
-				_allAccounts = new List<Account>();
-				Accounts = new List<Account>();
+				_allAccounts = [];
+				Accounts = [];
 
 				// Ensure pending state remains consistent
 				if (_pendingFilterState.SelectedAccountId > 0)
@@ -270,8 +270,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			catch (Exception ex)
 			{
 				Logger?.LogError(ex, "Failed to load accounts for filter");
-				_allAccounts = new List<Account>();
-				Accounts = new List<Account>();
+				_allAccounts = [];
+				Accounts = [];
 
 				// Ensure pending state remains consistent
 				if (_pendingFilterState.SelectedAccountId > 0)
@@ -309,15 +309,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 				else
 				{
 					Logger?.LogWarning("GetSymbolsAsync returned null");
-					_allSymbols = new List<string>();
-					Symbols = new List<string>();
+					_allSymbols = [];
+					Symbols = [];
 				}
 			}
 			catch (OperationCanceledException)
 			{
 				Logger?.LogError("Timeout loading symbols for filter");
-				_allSymbols = new List<string>();
-				Symbols = new List<string>();
+				_allSymbols = [];
+				Symbols = [];
 
 				// Ensure pending state remains consistent
 				if (!string.IsNullOrEmpty(_pendingFilterState.SelectedSymbol))
@@ -329,8 +329,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			catch (Exception ex)
 			{
 				Logger?.LogError(ex, "Failed to load symbols for filter");
-				_allSymbols = new List<string>();
-				Symbols = new List<string>();
+				_allSymbols = [];
+				Symbols = [];
 
 				// Ensure pending state remains consistent
 				if (!string.IsNullOrEmpty(_pendingFilterState.SelectedSymbol))

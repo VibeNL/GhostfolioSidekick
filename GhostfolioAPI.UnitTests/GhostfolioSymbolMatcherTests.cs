@@ -149,7 +149,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
-				.ReturnsAsync(new List<SymbolProfile> { expectedSymbol });
+				.ReturnsAsync([expectedSymbol]);
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -185,11 +185,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Setup mocks for all possible calls the crypto logic makes
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("BTC", false))
-				.ReturnsAsync(new List<SymbolProfile>());
+				.ReturnsAsync([]);
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("BTCUSD", false))
-				.ReturnsAsync(new List<SymbolProfile> { cryptoSymbol });
+				.ReturnsAsync([cryptoSymbol]);
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("bitcoin", false))
-				.ReturnsAsync(new List<SymbolProfile>());
+				.ReturnsAsync([]);
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -208,7 +208,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "UNKNOWN" } };
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile(It.IsAny<string>(), false))
-				.ReturnsAsync(new List<SymbolProfile>());
+				.ReturnsAsync([]);
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -246,7 +246,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
-				.ReturnsAsync(new List<SymbolProfile> { stockSymbol });
+				.ReturnsAsync([stockSymbol]);
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -279,7 +279,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
-				.ReturnsAsync(new List<SymbolProfile> { stockSymbol });
+				.ReturnsAsync([stockSymbol]);
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -305,11 +305,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Setup to return empty first 4 times, then return symbol on 5th call
 			_apiWrapperMock.SetupSequence(x => x.GetSymbolProfile("AAPL", false))
-				.ReturnsAsync(new List<SymbolProfile>())
-				.ReturnsAsync(new List<SymbolProfile>())
-				.ReturnsAsync(new List<SymbolProfile>())
-				.ReturnsAsync(new List<SymbolProfile>())
-				.ReturnsAsync(new List<SymbolProfile> { expectedSymbol });
+				.ReturnsAsync([])
+				.ReturnsAsync([])
+				.ReturnsAsync([])
+				.ReturnsAsync([])
+				.ReturnsAsync([expectedSymbol]);
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -347,7 +347,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
-				.ReturnsAsync(new List<SymbolProfile> { fuzzyMatch, exactMatch }); // Return fuzzy match first
+				.ReturnsAsync([fuzzyMatch, exactMatch]); // Return fuzzy match first
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -384,7 +384,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
-				.ReturnsAsync(new List<SymbolProfile> { nonWellKnownSymbol, usdSymbol }); // Return non-well-known first
+				.ReturnsAsync([nonWellKnownSymbol, usdSymbol]); // Return non-well-known first
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -429,7 +429,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			};
 
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("AAPL", false))
-				.ReturnsAsync(new List<SymbolProfile> { yahooSymbol, coingeckoSymbol });
+				.ReturnsAsync([yahooSymbol, coingeckoSymbol]);
 
 			// Act
 			var result = await symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -464,11 +464,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Setup mocks for all possible calls
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("BTC", false))
-				.ReturnsAsync(new List<SymbolProfile>());
+				.ReturnsAsync([]);
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("BTCUSD", false))
-				.ReturnsAsync(new List<SymbolProfile> { yahooCryptoSymbol });
+				.ReturnsAsync([yahooCryptoSymbol]);
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("bitcoin", false))
-				.ReturnsAsync(new List<SymbolProfile>());
+				.ReturnsAsync([]);
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);
@@ -503,7 +503,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 
 			// Setup mocks for exact matches
 			_apiWrapperMock.Setup(x => x.GetSymbolProfile("WBTC", false))
-				.ReturnsAsync(new List<SymbolProfile> { cryptoSymbol });
+				.ReturnsAsync([cryptoSymbol]);
 
 			// Act
 			var result = await _symbolMatcher.MatchSymbol(symbolIdentifiers);

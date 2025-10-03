@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		private IList<PartialSymbolIdentifier> StringToPartialSymbolIdentifiers(string v)
 		{
-			return JsonSerializer.Deserialize<ICollection<PartialSymbolIdentifier>>(v, serializationOptions)?.ToList() ?? new List<PartialSymbolIdentifier>();
+			return JsonSerializer.Deserialize<ICollection<PartialSymbolIdentifier>>(v, serializationOptions)?.ToList() ?? [];
 		}
 
 		private string PartialSymbolIdentifiersToString(ICollection<PartialSymbolIdentifier> v)

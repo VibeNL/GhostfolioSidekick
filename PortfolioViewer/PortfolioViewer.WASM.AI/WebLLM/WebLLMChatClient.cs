@@ -233,7 +233,7 @@ Format function calls like this:
 									{
 										// Parse the string as JSON
 										using var argDoc = JsonDocument.Parse(argumentsStr);
-										argumentsDict = new Dictionary<string, object?>();
+										argumentsDict = [];
 										foreach (var prop in argDoc.RootElement.EnumerateObject())
 										{
 											argumentsDict[prop.Name] = prop.Value.ValueKind switch
@@ -258,7 +258,7 @@ Format function calls like this:
 							// If the arguments is a JSON object directly
 							else if (argumentsProperty.ValueKind == JsonValueKind.Object)
 							{
-								argumentsDict = new Dictionary<string, object?>();
+								argumentsDict = [];
 								foreach (var prop in argumentsProperty.EnumerateObject())
 								{
 									argumentsDict[prop.Name] = prop.Value.ValueKind switch
@@ -277,7 +277,7 @@ Format function calls like this:
 						toolCalls.Add(new Microsoft.Extensions.AI.FunctionCallContent(
 							id,
 							name,
-							argumentsDict ?? new Dictionary<string, object?>()
+							argumentsDict ?? []
 						));
 					}
 					return toolCalls.Count > 0;

@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		public string ActivityType { get; set; } = string.Empty;
 		public string? Symbol { get; set; }
 		public string? SymbolIdentifiers { get; set; }
-		public List<PartialSymbolIdentifier> PartialIdentifiers { get; set; } = new();
+		public List<PartialSymbolIdentifier> PartialIdentifiers { get; set; } = [];
 		public decimal? Quantity { get; set; }
 		public Money? UnitPrice { get; set; }
 		public Money? Amount { get; set; }

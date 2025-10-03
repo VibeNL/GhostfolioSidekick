@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 	public class SyncGrpcService(DatabaseContext dbContext, ILogger<SyncGrpcService> logger) : SyncService.SyncServiceBase
 	{
 		private readonly string[] _tablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
-		private Dictionary<string, string> _tablesWithDates = [];
+		private readonly Dictionary<string, string> _tablesWithDates = [];
 		private bool _tablesWithDatesInitialized;
 
 		private async Task<Dictionary<string, string>> GetTablesWithDatesAsync()
@@ -102,10 +102,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 		}
 
 		public override async Task GetEntityData(GetEntityDataRequest request, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context) =>
-			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, null, responseStream, context);
+			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, null, responseStream);
 
 		public override async Task GetEntityDataSince(GetEntityDataSinceRequest request, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context) =>
-			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, request.SinceDate, responseStream, context);
+			await GetEntityDataInternal(request.Entity, request.Page, request.PageSize, request.SinceDate, responseStream);
 
 		public override async Task<GetLatestDatesResponse> GetLatestDates(GetLatestDatesRequest request, ServerCallContext context)
 		{
@@ -142,7 +142,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			}
 		}
 
-		private async Task GetEntityDataInternal(string entity, int page, int pageSize, string? sinceDate, IServerStreamWriter<GetEntityDataResponse> responseStream, ServerCallContext context)
+		private async Task GetEntityDataInternal(string entity, int page, int pageSize, string? sinceDate, IServerStreamWriter<GetEntityDataResponse> responseStream)
 		{
 			if (page <= 0 || pageSize <= 0)
 				throw new RpcException(new Status(StatusCode.InvalidArgument, "Page and pageSize must be greater than 0."));
@@ -219,7 +219,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			while (await reader.ReadAsync()) {
 				var row = new Dictionary<string, object?>();
 				for (var i = 0; i < reader.FieldCount; i++)
-					row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+					row[reader.GetName(i)] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
 				result.Add(row);
 			}
 			return result;

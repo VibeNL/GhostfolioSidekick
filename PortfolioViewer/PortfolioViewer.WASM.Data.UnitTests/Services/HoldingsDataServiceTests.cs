@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
@@ -43,7 +42,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holdingAggregated = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var calculatedSnapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holdingAggregated, 1, testDate);
 
-			holdingAggregated.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { calculatedSnapshot };
+			holdingAggregated.CalculatedSnapshotsPrimaryCurrency = [calculatedSnapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holdingAggregated };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -87,8 +86,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var snapshot1 = CreateTestCalculatedSnapshotPrimaryCurrency(holding1, 1, testDate, 10, 100, 110, 1000, 1100);
 			var snapshot2 = CreateTestCalculatedSnapshotPrimaryCurrency(holding2, 1, testDate, 5, 200, 220, 1000, 1100);
 
-			holding1.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot1 };
-			holding2.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot2 };
+			holding1.CalculatedSnapshotsPrimaryCurrency = [snapshot1];
+			holding2.CalculatedSnapshotsPrimaryCurrency = [snapshot2];
 
 			var holdingAggregateds = new List<HoldingAggregated> { holding1, holding2 };
 			var snapshots = new List<CalculatedSnapshotPrimaryCurrency> { snapshot1, snapshot2 };
@@ -119,7 +118,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate, 10, 100, 110, 1000, 1100);
 
-			holding.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot };
+			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -146,7 +145,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate, 10, 0, 110, 0, 1100);
 
-			holding.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot };
+			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -177,9 +176,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var snapshotA = CreateTestCalculatedSnapshotPrimaryCurrency(holdingA, 1, testDate);
 			var snapshotM = CreateTestCalculatedSnapshotPrimaryCurrency(holdingM, 1, testDate);
 
-			holdingZ.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshotZ };
-			holdingA.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshotA };
-			holdingM.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshotM };
+			holdingZ.CalculatedSnapshotsPrimaryCurrency = [snapshotZ];
+			holdingA.CalculatedSnapshotsPrimaryCurrency = [snapshotA];
+			holdingM.CalculatedSnapshotsPrimaryCurrency = [snapshotM];
 
 			var holdingAggregateds = new List<HoldingAggregated> { holdingZ, holdingA, holdingM };
 			var snapshots = new List<CalculatedSnapshotPrimaryCurrency> { snapshotZ, snapshotA, snapshotM };
@@ -228,7 +227,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, accountId, testDate);
 
-			holding.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot };
+			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -252,7 +251,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
 
-			holding.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot };
+			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -275,7 +274,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
 
-			holding.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot };
+			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -305,8 +304,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var snapshotAAPL = CreateTestCalculatedSnapshotPrimaryCurrency(holdingAAPL, 1, testDate);
 			var snapshotMSFT = CreateTestCalculatedSnapshotPrimaryCurrency(holdingMSFT, 1, testDate);
 
-			holdingAAPL.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshotAAPL };
-			holdingMSFT.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshotMSFT };
+			holdingAAPL.CalculatedSnapshotsPrimaryCurrency = [snapshotAAPL];
+			holdingMSFT.CalculatedSnapshotsPrimaryCurrency = [snapshotMSFT];
 
 			var holdingAggregateds = new List<HoldingAggregated> { holdingAAPL, holdingMSFT };
 			var snapshots = new List<CalculatedSnapshotPrimaryCurrency> { snapshotAAPL, snapshotMSFT };
@@ -332,7 +331,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
 
-			holding.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot };
+			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -391,7 +390,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var calculatedSnapshot1 = CreateTestCalculatedSnapshot(startDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110));
 			var calculatedSnapshot2 = CreateTestCalculatedSnapshot(startDate.AddDays(1), 15, new Money(Currency.USD, 105), new Money(Currency.USD, 115));
 
-			holdingAggregated.CalculatedSnapshots = new List<CalculatedSnapshot> { calculatedSnapshot1, calculatedSnapshot2 };
+			holdingAggregated.CalculatedSnapshots = [calculatedSnapshot1, calculatedSnapshot2];
 			var holdingAggregateds = new List<HoldingAggregated> { holdingAggregated };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -427,7 +426,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var calculatedSnapshot1 = CreateTestCalculatedSnapshot(testDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110));
 			var calculatedSnapshot2 = CreateTestCalculatedSnapshot(testDate, 20, new Money(Currency.USD, 105), new Money(Currency.USD, 105)); // Lower price
 
-			holdingAggregated.CalculatedSnapshots = new List<CalculatedSnapshot> { calculatedSnapshot1, calculatedSnapshot2 };
+			holdingAggregated.CalculatedSnapshots = [calculatedSnapshot1, calculatedSnapshot2];
 			var holdingAggregateds = new List<HoldingAggregated> { holdingAggregated };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -476,7 +475,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holdingAggregated = CreateTestHoldingAggregated(symbol, "Apple Inc");
 			var calculatedSnapshot = CreateTestCalculatedSnapshot(dataDate, 10, new Money(Currency.USD, 100), new Money(Currency.USD, 110));
 
-			holdingAggregated.CalculatedSnapshots = new List<CalculatedSnapshot> { calculatedSnapshot };
+			holdingAggregated.CalculatedSnapshots = [calculatedSnapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holdingAggregated };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -698,7 +697,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holding = CreateTestHoldingAggregated("AAPL", null); // null name
 			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
 
-			holding.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot };
+			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -723,7 +722,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
 
-			holding.CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency> { snapshot };
+			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -750,7 +749,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var holdingAggregated = CreateTestHoldingAggregated(symbol, "Apple Inc");
 			var calculatedSnapshot = CreateTestCalculatedSnapshot(startDate, 10, new Money(Currency.USD, 100), null);
 
-			holdingAggregated.CalculatedSnapshots = new List<CalculatedSnapshot> { calculatedSnapshot };
+			holdingAggregated.CalculatedSnapshots = [calculatedSnapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holdingAggregated };
 
 			_mockDatabaseContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(holdingAggregateds);
@@ -775,9 +774,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 				Symbol = symbol,
 				Name = name,
 				AssetClass = AssetClass.Equity,
-				SectorWeights = new List<SectorWeight> { new SectorWeight { Name = "Technology" } },
-				CalculatedSnapshots = new List<CalculatedSnapshot>(),
-				CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency>()
+				SectorWeights = [new SectorWeight { Name = "Technology" }],
+				CalculatedSnapshots = [],
+				CalculatedSnapshotsPrimaryCurrency = []
 			};
 		}
 

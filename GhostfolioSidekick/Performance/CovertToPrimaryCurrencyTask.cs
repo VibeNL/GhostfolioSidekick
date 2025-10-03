@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.Performance
 				if (newBalances.Count != 0)
 				{
 					databaseContext.BalancePrimaryCurrencies.AddRange(newBalances);
-					logger.LogInformation("Added {Count} missing balance records for account {AccountId}", newBalances.Count, accountId);
+					logger.LogDebug("Added {Count} missing balance records for account {AccountId}", newBalances.Count, accountId);
 				}
 			}
 

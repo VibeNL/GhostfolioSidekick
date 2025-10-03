@@ -26,10 +26,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_mockLogger = new Mock<ILogger<FileImporterTask>>();
 			_mockSettings = new Mock<IApplicationSettings>();
 			_memoryCache = new MemoryCache(new MemoryCacheOptions());
-			_importers = new List<IFileImporter>
-			{
+			_importers =
+			[
 				new Mock<IFileImporter>().Object
-			};
+			];
 
 			_mockSettings.Setup(x => x.FileImporterPath).Returns("test/path");
 
