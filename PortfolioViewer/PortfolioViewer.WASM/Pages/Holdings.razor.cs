@@ -193,7 +193,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 		}
 
-		private static object GetColorForGainLoss(decimal gainLossPercentage)
+		private static string GetColorForGainLoss(decimal gainLossPercentage)
 		{
 			if (Math.Abs(gainLossPercentage) < 0.01m)
 			{
@@ -255,6 +255,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			SortHoldings();
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "TODO, Sort logic")]
 		private void SortHoldings()
 		{
 			switch (sortColumn)
