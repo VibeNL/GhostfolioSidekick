@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {
     public class AccountValueHistoryPoint
     {
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         public int AccountId { get; set; }
 

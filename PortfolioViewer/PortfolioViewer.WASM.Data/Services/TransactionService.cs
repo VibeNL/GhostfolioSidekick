@@ -240,18 +240,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return query;
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3358:Ternary operators should not be nested", Justification = "Expression")]
 		private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
 		{
 			Expression<Func<Activity, object>> sortExpression = sortColumn switch
 			{
 				"Date" => a => a.Date,
 				"Type" => a => a.GetType().Name,
-				"Symbol" => a => a.Holding != null ? a.Holding.SymbolProfiles.FirstOrDefault().Symbol : "",
-				"Name" => a => a.Holding != null ? a.Holding.SymbolProfiles.FirstOrDefault().Name : "",
+				"Symbol" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Symbol : "",
+				"Name" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Name ?? "" : "",
 				"AccountName" => a => a.Account.Name,
 				"TotalValue" => a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount : 
 								   a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Amount : 0,
-				"Description" => a => a.Description,
+				"Description" => a => a.Description ?? "",
 				_ => a => a.Date // Default sort
 			};
 

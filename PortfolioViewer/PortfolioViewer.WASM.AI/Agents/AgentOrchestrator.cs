@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)
 		{
-			await logger.StartAgent(defaultAgent?.Name);
+			logger.StartAgent(defaultAgent?.Name);
 			groupChat.AddChatMessage(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 
 			// Run the group chat
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				yield return update;
 			}
 
-			await logger.StartAgent(string.Empty);
+			logger.StartAgent(string.Empty);
 		}
 
 		private static bool DetermineTermination(FunctionResult result)
@@ -145,7 +145,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private string DetermineNextAgentWithLogger(FunctionResult result)
 		{
 			var nextAgent = DetermineNextAgent(result);
-			_ = logger.StartAgent(nextAgent);
+			logger.StartAgent(nextAgent);
 			return nextAgent;
 		}
 
@@ -167,7 +167,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		{
 			return KernelFunctionFactory.CreateFromMethod(async (Kernel kernel, KernelArguments args) =>
 			{
-				await logger.StartAgent(name);
+				logger.StartAgent(name);
 				var result = await originalFunction.InvokeAsync(kernel, args);
 				return result;
 			});

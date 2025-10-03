@@ -5,17 +5,17 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 {
 	public static class RawQuery
 	{
-		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize)
+		public static async Task<List<Dictionary<string, object?>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize)
 		{
 			return await ReadTable(databaseContext, entity, page, pageSize, null, null, null);
 		}
 
-		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters)
+		public static async Task<List<Dictionary<string, object?>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters)
 		{
 			return await ReadTable(databaseContext, entity, page, pageSize, columnFilters, null, null);
 		}
 
-		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters, string? sortColumn, string? sortDirection)
+		public static async Task<List<Dictionary<string, object?>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters, string? sortColumn, string? sortDirection)
 		{
 			// Calculate the offset for pagination
 			var offset = (page - 1) * pageSize;
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			using var reader = await command.ExecuteReaderAsync();
 
 			// Read data directly from the reader into a list of dictionaries
-			var result = new List<Dictionary<string, object>>();
+			var result = new List<Dictionary<string, object?>>();
 			while (await reader.ReadAsync())
 			{
 				var row = new Dictionary<string, object>();

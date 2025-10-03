@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
-		private int MainTransactionTableIndex = 0;
+		private int MainTransactionTableIndex;
 
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			int counter = 0;
 			foreach (var transaction in await GetTransactions())
 			{
-				logger.LogInformation($"Processing transaction {counter}...");
+				logger.LogInformation("Processing transaction {Counter}...", counter);
 
 				// Click on the transaction to open the details
 				await transaction.ScrollIntoViewIfNeededAsync();
@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 			// Scroll down the page to load all transactions
 			var isScrolling = true;
-			var lastUpdate = DateTime.Now;
+			var lastUpdate = DateTime.UtcNow;
 			while (isScrolling)
 			{
 				var cnt = await GetTransacionsCount();
@@ -71,10 +71,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				var newCnt = await GetTransacionsCount();
 				if (newCnt != cnt)
 				{
-					lastUpdate = DateTime.Now;
+					lastUpdate = DateTime.UtcNow;
 				}
 
-				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
+				isScrolling = (DateTime.UtcNow - lastUpdate).TotalSeconds < 5;
 			}
 
 			logger.LogInformation("All transactions loaded.");
@@ -262,13 +262,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return null;
 		}
 
-		private static decimal ParseMoney(string money)
-		{
-			// Parse the value from strings like '€1,105.00'
-			return decimal.Parse(money.Replace("€", string.Empty), NumberStyles.Currency, CultureInfo.InvariantCulture);
-		}
-
-		private static async Task<Money> ParseMoneyFromHeader(string headerText)
+		private static Money ParseMoneyFromHeader(string headerText)
 		{
 			// Parse the value from strings like 'You received €1,105.00'
 			// Or 'You added €5.00 via Direct Debit'

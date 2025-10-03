@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					var activity = detailedActivities.FirstOrDefault(a => a.Id == dataIssue.Id);
 					if (activity != null)
 					{
-						await EnrichDataIssueWithActivityDetails(dataIssue, activity);
+						EnrichDataIssueWithActivityDetails(dataIssue, activity);
 					}
 				}
 			}
@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			}
 		}
 
-		private static async Task EnrichDataIssueWithActivityDetails(DataIssueDisplayModel dataIssue, Activity activity)
+		private static void EnrichDataIssueWithActivityDetails(DataIssueDisplayModel dataIssue, Activity activity)
 		{
 			try
 			{
