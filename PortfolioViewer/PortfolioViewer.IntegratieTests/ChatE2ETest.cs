@@ -27,7 +27,7 @@ public class ChatE2ETest
 
 		// Wait for response bubble to appear
 		var response = await page.WaitForSelectorAsync(".chat-response", new() { Timeout = _timeoutinMs });
-		var text = await response.InnerTextAsync();
+		var text = response != null ? await response.InnerTextAsync() : string.Empty;
 
 		Assert.Contains("portfolio", text); // Adjust to expected content
 	}

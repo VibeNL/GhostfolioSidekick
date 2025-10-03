@@ -188,7 +188,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			}
 		}
 
-		private async Task<List<Dictionary<string, object>>> GetEntityDataWithDateFilter(string entity, string dateColumn, string sinceDate, int page, int pageSize)
+		private async Task<List<Dictionary<string, object?>>> GetEntityDataWithDateFilter(string entity, string dateColumn, string sinceDate, int page, int pageSize)
 		{
 			var tablesWithDates = await GetTablesWithDatesAsync();
 			if (!tablesWithDates.ContainsKey(entity))
@@ -215,11 +215,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			command.Parameters.Add(offsetParam);
 
 			using var reader = await command.ExecuteReaderAsync();
-			var result = new List<Dictionary<string, object>>();
+			var result = new List<Dictionary<string, object?>>();
 			while (await reader.ReadAsync()) {
-				var row = new Dictionary<string, object>();
+				var row = new Dictionary<string, object?>();
 				for (var i = 0; i < reader.FieldCount; i++)
-					row[reader.GetName(i)] = reader.IsDBNull(i) ? null! : reader.GetValue(i);
+					row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
 				result.Add(row);
 			}
 			return result;

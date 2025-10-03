@@ -37,16 +37,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private FilterState? _previousFilterState;
 
-		protected override async Task OnInitializedAsync()
+		protected override Task OnInitializedAsync()
 		{
 			// Subscribe to filter changes
 			if (FilterState != null)
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		protected override async Task OnParametersSetAsync()
+		protected override Task OnParametersSetAsync()
 		{
 			// Check if filter state has changed
 			if (_previousFilterState == null || HasFilterStateChanged())
@@ -64,8 +66,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 				
 				_previousFilterState = FilterState;
-				await LoadPortfolioDataAsync();
+				return LoadPortfolioDataAsync();
 			}
+			
+			return Task.CompletedTask;
 		}
 
 		private bool HasFilterStateChanged()
@@ -126,9 +130,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				return await HoldingsDataService?
-							.GetHoldingsAsync(FilterState.SelectedAccountId) ?? 
-								[];
+				return await (HoldingsDataService?.GetHoldingsAsync(FilterState.SelectedAccountId) ?? Task.FromResult(new List<HoldingDisplayModel>()));
 			}
 			catch (Exception ex)
 			{

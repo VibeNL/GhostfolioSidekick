@@ -195,7 +195,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             {
                 // Handle errors gracefully
                 TableData.Columns = new[] { "Error" };
-                TableData.Rows = new List<object[]> { new object[] { ex.Message } };
+                TableData.Rows = new List<object?[]> { new object?[] { ex.Message } };
                 TotalRecords = 0;
                 TotalPages = 0;
             }
@@ -250,7 +250,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private class TableDataRecord
         {
             public string[] Columns { get; set; } = Array.Empty<string>();
-            public List<object[]> Rows { get; set; } = new();
+            public List<object?[]> Rows { get; set; } = new();
         }
     }
 }

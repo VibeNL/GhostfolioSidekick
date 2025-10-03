@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed = false;
 
-		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)
+		public async Task SyncPortfolio(IProgress<(string action, int progress)>? progress, bool forceFullSync, CancellationToken cancellationToken = default)
 		{
 			try
 			{
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						await databaseContext.Database.MigrateAsync();
 					} catch
 					{
-						progress.Report(("Error applying database migrations. Forcing new database.", 0));
+						progress?.Report(("Error applying database migrations. Forcing new database.", 0));
 						logger.LogWarning("Failed to apply migrations, forcing new database");
 						forceFullSync = true;
 
@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			await currencyExchange.PreloadAllExchangeRates();
 		}
 
-		private async Task<bool> TryPartialSync(SyncService.SyncServiceClient grpcClient, DateTime lastSyncTime, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task<bool> TryPartialSync(SyncService.SyncServiceClient grpcClient, DateTime lastSyncTime, IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -311,7 +311,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return false;
 		}
 
-		private async Task SyncTableDataFull(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task SyncTableDataFull(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
 		{
 			await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
 			{
@@ -319,7 +319,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
 		{
 			await foreach (var dataChunk in FetchDataSinceAsync(grpcClient, tableName, sinceDateString, cancellationToken))
 			{
@@ -396,7 +396,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			logger.LogInformation("Completed fetching data for table: {TableName} since {SinceDate}, total pages: {TotalPages}", tableName, sinceDateString, page - 1);
 		}
 
-		private async Task PerformFullSync(SyncService.SyncServiceClient grpcClient, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task PerformFullSync(SyncService.SyncServiceClient grpcClient, IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
 		{
 			// Step 1: Retrieve Table Names and Row Counts
 			progress?.Report(("Retrieving table names and row counts...", 0));
@@ -752,7 +752,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		public async Task DeleteAllData(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
+		public async Task DeleteAllData(IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken = default)
 		{
 			try
 			{

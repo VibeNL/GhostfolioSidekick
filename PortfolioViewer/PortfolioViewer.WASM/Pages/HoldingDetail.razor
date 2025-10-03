@@ -191,17 +191,27 @@
                                         @foreach (var (price, index) in PriceHistory.OrderByDescending(p => p.Date).Take(10).Select((p, i) => (p, i)))
                                         {
                                             var previousPrice = index < PriceHistory.Count - 1 ? 
-                                                PriceHistory.OrderByDescending(p => p.Date).Skip(index + 1).FirstOrDefault()?.Price : 
+                                                PriceHistory.OrderByDescending(p => p.Date).Skip(index + 1).FirstOrDefault() : 
                                                 null;
-                                            var change = previousPrice != null ? price.Price.Amount - previousPrice.Amount : 0;
-                                            var changePercent = previousPrice != null && previousPrice.Amount != 0 ? 
-                                                (change / previousPrice.Amount) : 0;
+                                            var previousAmount = previousPrice?.Price?.Amount ?? 0;
+                                            var currentAmount = price.Price?.Amount ?? 0;
+                                            var change = currentAmount - previousAmount;
+                                            var changePercent = previousAmount != 0 ? (change / previousAmount) : 0;
                                             
                                             <tr>
                                                 <td>@price.Date.ToString("yyyy-MM-dd")</td>
-                                                <td class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@price.Price)</td>
                                                 <td class="text-end">
-                                                    @if (previousPrice != null)
+                                                    @if (price.Price != null)
+                                                    {
+                                                        @CurrencyDisplay.DisplaySignAndAmount(price.Price)
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td class="text-end">
+                                                    @if (previousPrice?.Price != null)
                                                     {
                                                         <span class="@(change >= 0 ? "text-success" : "text-danger")">
                                                             @(change >= 0 ? "+" : "")@change.ToString("F2")
@@ -213,7 +223,7 @@
                                                     }
                                                 </td>
                                                 <td class="text-end">
-                                                    @if (previousPrice != null)
+                                                    @if (previousPrice?.Price != null)
                                                     {
                                                         <span class="@(changePercent >= 0 ? "text-success" : "text-danger")">
                                                             @(changePercent >= 0 ? "+" : "")@changePercent.ToString("P2")
@@ -258,4 +268,4 @@
         width: 3rem;
         height: 3rem;
     }
-</style>
+</style></style>

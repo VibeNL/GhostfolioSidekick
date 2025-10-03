@@ -124,9 +124,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			await Task.Yield();
 			try
 			{
-				if (HoldingsDataService == null || CurrencyExchange == null)
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+				if (HoldingsDataService == null)
 				{
-					throw new InvalidOperationException("HoldingsDataService or CurrencyExchange is not initialized.");
+					throw new InvalidOperationException("HoldingsDataService is not initialized.");
 				}
 
 				TimeSeriesData = await HoldingsDataService.GetPortfolioValueHistoryAsync(
@@ -134,6 +135,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					EndDate,
 					SelectedAccountId
 				) ?? new List<PortfolioValueHistoryPoint>();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 				
 				await PrepareDisplayData();
 				await PrepareChartData();
@@ -150,16 +152,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
-		private async Task PrepareDisplayData()
+		private Task PrepareDisplayData()
 		{
 			if (TimeSeriesData.Count == 0)
 			{
 				TimeSeriesDisplayData = new List<TimeSeriesDisplayModel>();
-				return;
+				return Task.CompletedTask;
 			}
 
 			var displayData = new List<TimeSeriesDisplayModel>();
-			var targetCurrency = ServerConfigurationService.PrimaryCurrency;
+			var targetCurrency = ServerConfigurationService?.PrimaryCurrency ?? Currency.GetCurrency("USD");
 
 			foreach (var point in TimeSeriesData)
 			{
@@ -180,14 +182,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			TimeSeriesDisplayData = displayData;
 			SortDisplayData();
+			return Task.CompletedTask;
 		}
 
-		private async Task PrepareChartData()
+		private Task PrepareChartData()
 		{
 			if (TimeSeriesData.Count == 0)
 			{
 				plotData = new List<ITrace>();
-				return;
+				return Task.CompletedTask;
 			}
 
 			List<object> valueList = new();
@@ -218,11 +221,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 
 			plotData = new List<ITrace> { valueTrace, investedTrace };
+			var primaryCurrency = ServerConfigurationService?.PrimaryCurrency;
 			plotLayout = new Plotly.Blazor.Layout
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Portfolio Value Over Time" },
 				XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> { new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } } },
-				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({ServerConfigurationService.PrimaryCurrency.Symbol})" } } },
+				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({primaryCurrency?.Symbol ?? "$"})" } } },
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 				AutoSize = true,
 				ShowLegend = true,
@@ -232,6 +236,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}]
 			};
 			plotConfig = new Config { Responsive = true };
+			return Task.CompletedTask;
 		}
 
 		private void SortBy(string column)
