@@ -124,16 +124,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				var latestDatesResponse = await grpcClient.GetLatestDatesAsync(new GetLatestDatesRequest(), cancellationToken: cancellationToken);
 
 				// Check if partial sync would be beneficial for tables with dates
-				var tablesToSyncPartially = new List<string>();
-				var tablesToSyncFully = new List<string>(tablesWithoutDateColumns);
+				var tablesToSyncPartially = tablesWithDateColumns
+					.Where(table => latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr) 
+								   && DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate) 
+								   && latestDate >= sinceDate)
+					.ToList();
 
-				foreach (var table in tablesWithDateColumns)
-				{
-					if (latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr) && DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate) && latestDate >= sinceDate)
-					{
-						tablesToSyncPartially.Add(table);
-					}
-				}
+				var tablesToSyncFully = new List<string>(tablesWithoutDateColumns);
 
 				// Always sync tables without date columns during partial sync
 				// If no tables need syncing, we're up to date
@@ -212,21 +209,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			using var command = connection.CreateCommand();
 			command.CommandText = query;
 
-			// Add parameters for tables to ignore
-			var ignore1Param = command.CreateParameter();
-			ignore1Param.ParameterName = "@ignore1";
-			ignore1Param.Value = TablesToIgnore[0];
-			command.Parameters.Add(ignore1Param);
+			// Add parameters for tables to ignore using LINQ
+			var parameters = TablesToIgnore.Select((ignore, index) =>
+			{
+				var param = command.CreateParameter();
+				param.ParameterName = $"@ignore{index + 1}";
+				param.Value = ignore;
+				return param;
+			}).ToArray();
 
-			var ignore2Param = command.CreateParameter();
-			ignore2Param.ParameterName = "@ignore2";
-			ignore2Param.Value = TablesToIgnore[1];
-			command.Parameters.Add(ignore2Param);
-
-			var ignore3Param = command.CreateParameter();
-			ignore3Param.ParameterName = "@ignore3";
-			ignore3Param.Value = TablesToIgnore[2];
-			command.Parameters.Add(ignore3Param);
+			command.Parameters.AddRange(parameters);
 
 			var tables = new List<string>();
 			using var reader = await command.ExecuteReaderAsync();
@@ -361,21 +353,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						yield break;
 					}
 
-					// Pre-allocate the list with known capacity for better performance
-					var data = new List<Dictionary<string, object>>(response.Records.Count);
-
-					// Convert gRPC response to the expected format with optimized loop
-					foreach (var record in response.Records)
-					{
-						var dictionary = new Dictionary<string, object>(record.Fields.Count);
-						foreach (var field in record.Fields)
-						{
-							// Convert string back to appropriate type
-							dictionary[field.Key] = ConvertStringToValue(field.Value);
-						}
-
-						data.Add(dictionary);
-					}
+					// Convert gRPC response to the expected format with LINQ
+					var data = response.Records.Select(record => 
+						record.Fields.ToDictionary(field => field.Key, field => ConvertStringToValue(field.Value))
+					).ToList();
 
 					yield return data;
 
@@ -424,40 +405,37 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
 			await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
 
-			for (int i = 0; i < tableNames.Count; i++)
+			// Clear all non-ignored tables using LINQ
+			var tablesToClear = tableNames.Zip(totalRows, (name, count) => new { Name = name, Count = count })
+				.Where(t => !TablesToIgnore.Contains(t.Name));
+
+			foreach (var table in tablesToClear)
 			{
-				var tableName = tableNames[i];
-				if (!TablesToIgnore.Contains(tableName))
-				{
-					var rowCount = totalRows[i];
-					progress?.Report(($"Clearing table: {tableName} ({rowCount} rows)...", 0));
-					var deleteSql = $"DELETE FROM {tableName}";
-					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
-				}
+				progress?.Report(($"Clearing table: {table.Name} ({table.Count} rows)...", 0));
+				var deleteSql = $"DELETE FROM {table.Name}";
+				await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
 			}
 
 			// Step 3: Sync Data for Each Table with server-side currency conversion
-			for (int i = 0; i < tableNames.Count; i++)
+			var syncTables = tableNames.Zip(totalRows, (name, count) => new { Name = name, Count = count })
+				.Where(t => !TablesToIgnore.Contains(t.Name));
+
+			foreach (var table in syncTables)
 			{
-				var tableName = tableNames[i];
-				if (!TablesToIgnore.Contains(tableName))
+				var totalWrittenTable = 0;
+				progress?.Report(($"Syncing data for table: {table.Name} ({table.Count} rows)...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+
+				await foreach (var dataChunk in FetchDataAsync(grpcClient, table.Name, cancellationToken))
 				{
-					var expectedRowCount = totalRows[i];
-					var totalWrittenTable = 0;
-					progress?.Report(($"Syncing data for table: {tableName} ({expectedRowCount} rows)...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-
-					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
-					{
-						progress?.Report(($"Inserting data into table: {tableName} ({totalWrittenTable}/{expectedRowCount})...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-						await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
-						totalWrittenTable += dataChunk.Count;
-						recordsWritten += dataChunk.Count;
-						progress?.Report(($"Inserted {totalWrittenTable}/{expectedRowCount} records into table: {tableName}...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-					}
-
-					logger.LogInformation("Completed syncing table {TableName}: {ActualRows}/{ExpectedRows} records",
-						tableName, totalWrittenTable, expectedRowCount);
+					progress?.Report(($"Inserting data into table: {table.Name} ({totalWrittenTable}/{table.Count})...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+					await InsertDataAsync(databaseContext, table.Name, dataChunk, cancellationToken);
+					totalWrittenTable += dataChunk.Count;
+					recordsWritten += dataChunk.Count;
+					progress?.Report(($"Inserted {totalWrittenTable}/{table.Count} records into table: {table.Name}...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
 				}
+
+				logger.LogInformation("Completed syncing table {TableName}: {ActualRows}/{ExpectedRows} records",
+					table.Name, totalWrittenTable, table.Count);
 			}
 
 			// Step 4: Enable constraints on DB
@@ -541,21 +519,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						yield break;
 					}
 
-					// Pre-allocate the list with known capacity for better performance
-					var data = new List<Dictionary<string, object>>(response.Records.Count);
-
-					// Convert gRPC response to the expected format with optimized loop
-					foreach (var record in response.Records)
-					{
-						var dictionary = new Dictionary<string, object>(record.Fields.Count);
-						foreach (var field in record.Fields)
-						{
-							// Convert string back to appropriate type
-							dictionary[field.Key] = ConvertStringToValue(field.Value);
-						}
-
-						data.Add(dictionary);
-					}
+					// Convert gRPC response to the expected format with LINQ
+					var data = response.Records.Select(record => 
+						record.Fields.ToDictionary(field => field.Key, field => ConvertStringToValue(field.Value))
+					).ToList();
 
 					yield return data;
 
@@ -666,13 +633,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			var columns = string.Join(", ", dataChunk.First().Keys.Select(key => $"\"{key}\""));
 			using var connection = databaseContext.Database.GetDbConnection();
 			using var command = connection.CreateCommand();
-			var parametersString = string.Join(", ", dataChunk.First().Keys.Select((key, index) => $"${key}"));
+			var parametersString = string.Join(", ", dataChunk.First().Keys.Select(key => $"${key}"));
 			command.CommandText = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parametersString})";
 
-			var parameters = dataChunk.First().Keys.Select((key, index) =>
-			{
-				return new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0);
-			}).ToDictionary(x => x.ParameterName.Trim('$'), x => x);
+			var parameters = dataChunk.First().Keys.ToDictionary(
+				key => key,
+				key => new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0)
+			);
 			command.Parameters.AddRange(parameters.Values.ToArray());
 
 			foreach (var record in dataChunk)
@@ -717,27 +684,26 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			{
 				// Use JsonDocument for efficient parsing
 				using var document = JsonDocument.Parse(jsonData);
-				var result = new List<Dictionary<string, object>>();
-
-				foreach (var element in document.RootElement.EnumerateArray())
-				{
-					var dictionary = new Dictionary<string, object>();
-					foreach (var property in element.EnumerateObject())
-					{
-						dictionary[property.Name] = property.Value.ValueKind switch
-						{
-							JsonValueKind.String => property.Value.GetString() ?? string.Empty,
-							JsonValueKind.Number => property.Value.TryGetInt64(out var longValue) ? longValue : property.Value.GetDouble(),
-							JsonValueKind.True => true,
-							JsonValueKind.False => false,
-							JsonValueKind.Null => DBNull.Value,
-							JsonValueKind.Object => property.Value.GetRawText(), // Serialize nested objects as JSON
-							JsonValueKind.Array => property.Value.GetRawText(), // Serialize arrays as JSON
-							_ => property.Value.GetRawText() // Fallback for unsupported types
-						};
-					}
-					result.Add(dictionary);
-				}
+				
+				// Use LINQ to convert JSON to dictionary list
+				var result = document.RootElement.EnumerateArray()
+					.Select(element => element.EnumerateObject()
+						.ToDictionary(
+							property => property.Name,
+							property => (object)(property.Value.ValueKind switch
+							{
+								JsonValueKind.String => property.Value.GetString() ?? string.Empty,
+								JsonValueKind.Number => property.Value.TryGetInt64(out var longValue) ? longValue : property.Value.GetDouble(),
+								JsonValueKind.True => true,
+								JsonValueKind.False => false,
+								JsonValueKind.Null => DBNull.Value,
+								JsonValueKind.Object => property.Value.GetRawText(), // Serialize nested objects as JSON
+								JsonValueKind.Array => property.Value.GetRawText(), // Serialize arrays as JSON
+								_ => property.Value.GetRawText() // Fallback for unsupported types
+							})
+						)
+					)
+					.ToList();
 
 				stopwatch.Stop(); // Stop timing
 				Console.WriteLine($"DeserializeData executed in {stopwatch.ElapsedMilliseconds} ms");
