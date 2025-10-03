@@ -11,6 +11,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 {
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
+		private const string Description = "Transaction reference";
+		private const string Url = "https://de.scalable.capital/cockpit/";
+
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()
 		{
 			logger.LogInformation("Scraping transactions...");
@@ -61,7 +64,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 			// Scroll down the page to load all transactions
 			var isScrolling = true;
-			var lastUpdate = DateTime.Now;
+			var lastUpdate = DateTime.UtcNow;
 			while (isScrolling)
 			{
 				var cnt = await GetTransacionsCount();
@@ -71,10 +74,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				var newCnt = await GetTransacionsCount();
 				if (newCnt != cnt)
 				{
-					lastUpdate = DateTime.Now;
+					lastUpdate = DateTime.UtcNow;
 				}
 
-				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
+				isScrolling = (DateTime.UtcNow - lastUpdate).TotalSeconds < 5;
 			}
 
 			logger.LogInformation("All transactions loaded.");
@@ -149,7 +152,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				{
 					Amount = await GetMoneyField("Amount"),
 					Date = dateDeposit,
-					TransactionId = await GetField<string>("Transaction reference"),
+					TransactionId = await GetField<string>(Description),
 				};
 			}
 
@@ -161,7 +164,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				{
 					Amount = (await GetMoneyField("Amount")).Times(-1),
 					Date = dateWithdrawal,
-					TransactionId = await GetField<string>("Transaction reference"),
+					TransactionId = await GetField<string>(Description),
 				};
 			}
 
@@ -189,7 +192,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 						TotalTransactionAmount = await GetMoneyField("Market valuation"),
 						Fees = fee != null ? [new SellActivityFee(fee)] : [],
 						Date = date,
-						TransactionId = await GetField<string>("Transaction reference"),
+						TransactionId = await GetField<string>(Description),
 					};
 				}
 
@@ -200,7 +203,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 					TotalTransactionAmount = await GetMoneyField("Market valuation"),
 					Fees = fee != null ? [new BuyActivityFee(fee)] : [],
 					Date = date,
-					TransactionId = await GetField<string>("Transaction reference"),
+					TransactionId = await GetField<string>(Description),
 				};
 			}
 
@@ -211,7 +214,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				{
 					Amount = await GetMoneyField("Amount"),
 					Date = await GetHistoryDate("Dividend settled"),
-					TransactionId = await GetField<string>("Transaction reference"),
+					TransactionId = await GetField<string>(Description),
 				};
 			}
 
@@ -276,7 +279,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 		internal async Task GoToMainPage()
 		{
-			await page.GotoAsync("https://de.scalable.capital/cockpit/");
+			await page.GotoAsync(Url);
 		}
 
 		[GeneratedRegex(".*transaction.*")]

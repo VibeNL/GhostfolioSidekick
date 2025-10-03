@@ -10,7 +10,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
-		private const int MainTransactionTableIndex = 0;
 		internal static readonly string[] sourceArray = [
 				"Status", "Transfer",
 				"Card payment", "Card refund",
@@ -31,7 +30,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				// Click on the transaction to open the details
 				await transaction.ScrollIntoViewIfNeededAsync();
 
-				var location = await transaction.BoundingBoxAsync();
 				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
 
 				// Wait for the transaction to load
@@ -191,7 +189,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			var saving = headerText.Contains("You saved");
 			if (headerText.Contains("You invested") || saving || rewards)
 			{
-				var transactionTable = await ParseTable(MainTransactionTableIndex);
 				var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
 
 				var symbol = knownProfiles
