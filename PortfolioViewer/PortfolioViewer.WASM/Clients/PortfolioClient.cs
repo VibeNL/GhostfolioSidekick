@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed = false;
 
-		public async Task SyncPortfolio(IProgress<(string action, int progress)>? progress, bool forceFullSync, CancellationToken cancellationToken = default)
+		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)
 		{
 			try
 			{
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						await databaseContext.Database.MigrateAsync();
 					} catch
 					{
-						progress?.Report(("Error applying database migrations. Forcing new database.", 0));
+						progress.Report(("Error applying database migrations. Forcing new database.", 0));
 						logger.LogWarning("Failed to apply migrations, forcing new database");
 						forceFullSync = true;
 
@@ -106,7 +106,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			{
 				// Add buffer days to ensure we don't miss any data
 				var sinceDate = lastSyncTime.Date.AddDays(-PartialSyncBufferDays);
-				var sinceDateString = sinceDate.ToString("yyyy-MM-dd");
+				// Use culture-invariant ISO 8601 date format consistently
+				var sinceDateString = sinceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
 				progress?.Report(($"Checking data since {sinceDateString}...", 5));
 
@@ -129,7 +130,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					if (latestDatesResponse.LatestDates.ContainsKey(table))
 					{
 						var latestDateStr = latestDatesResponse.LatestDates[table];
-						if (DateTime.TryParse(latestDateStr, out var latestDate) && latestDate >= sinceDate)
+						if (DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate) && latestDate >= sinceDate)
 						{
 							tablesToSyncPartially.Add(table);
 						}
@@ -752,7 +753,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		public async Task DeleteAllData(IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken = default)
+		public async Task DeleteAllData(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
 			{
