@@ -57,8 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				UnitPrice = activity is ActivityWithQuantityAndUnitPrice quantityActivity2 ? quantityActivity2.UnitPrice : null,
 				Currency = activity is ActivityWithQuantityAndUnitPrice quantityActivity3 ? quantityActivity3.UnitPrice.Currency.Symbol : "",
 				Amount = activity is ActivityWithAmount amountActivity ? amountActivity.Amount : null,
-				TotalValue = activity is ActivityWithQuantityAndUnitPrice quantityActivity4 ? quantityActivity4.TotalTransactionAmount :
-							activity is ActivityWithAmount amountActivity2 ? amountActivity2.Amount : null,
+				TotalValue = GetTotalValueForActivity(activity),
 				// Calculate fees based on activity type
 				Fee = GetFeeForActivity(activity),
 				// Calculate taxes based on activity type  
@@ -78,6 +77,21 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				TransactionTypeBreakdown = typeBreakdown,
 				AccountBreakdown = accountBreakdown
 			};
+		}
+
+		private static Money? GetTotalValueForActivity(Activity activity)
+		{
+			if (activity is ActivityWithQuantityAndUnitPrice quantityActivity)
+			{
+				return quantityActivity.TotalTransactionAmount;
+			}
+			
+			if (activity is ActivityWithAmount amountActivity)
+			{
+				return amountActivity.Amount;
+			}
+			
+			return null;
 		}
 
 		private static Money? GetFeeForActivity(Activity activity)
@@ -178,6 +192,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return await baseQuery.CountAsync(cancellationToken);
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Complex query optimized")]
 		private IQueryable<Activity> BuildBaseQuery(
 			DateOnly startDate,
 			DateOnly endDate,
@@ -241,6 +256,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3358:Ternary operators should not be nested", Justification = "Expression")]
+		private static Expression<Func<Activity, object>> GetSortExpressionForTotalValue()
+		{
+			return a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount : 
+						a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Amount : (object)0;
+		}
+
 		private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
 		{
 			Expression<Func<Activity, object>> sortExpression = sortColumn switch
@@ -250,8 +271,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				"Symbol" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Symbol : "",
 				"Name" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Name ?? "" : "",
 				"AccountName" => a => a.Account.Name,
-				"TotalValue" => a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount : 
-								   a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Amount : 0,
+				"TotalValue" => GetSortExpressionForTotalValue(),
 				"Description" => a => a.Description ?? "",
 				_ => a => a.Date // Default sort
 			};
