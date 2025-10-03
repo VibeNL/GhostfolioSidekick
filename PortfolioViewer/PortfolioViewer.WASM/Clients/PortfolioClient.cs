@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		ISyncTrackingService syncTrackingService,
 		ILogger<PortfolioClient> logger) : IDisposable
 	{
-		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
+		private readonly string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 
 		const int pageSize = 10_000;
 		const int PartialSyncBufferDays = 1; // Buffer to ensure we don't miss any data
@@ -28,6 +28,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed = false;
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "Update UI")]
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)
 		{
 			try
@@ -166,7 +167,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					logger.LogInformation("Deleted {RecordCount} existing records from {TableName} since {SinceDate}", deleteRecordsCount, tableName, sinceDateString);
 
 					// Sync new data with server-side currency conversion
-					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, progress, cancellationToken);
+					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, cancellationToken);
 
 					totalProgress += progressStep;
 				}
@@ -181,7 +182,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
 
 					// Sync all data for this table
-					await SyncTableDataFull(grpcClient, databaseContext, tableName, progress, cancellationToken);
+					await SyncTableDataFull(grpcClient, databaseContext, tableName, cancellationToken);
 
 					totalProgress += progressStep;
 				}
@@ -312,7 +313,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return false;
 		}
 
-		private async Task SyncTableDataFull(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
+		private async Task SyncTableDataFull(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, CancellationToken cancellationToken)
 		{
 			await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
 			{
@@ -320,7 +321,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
+		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
 		{
 			await foreach (var dataChunk in FetchDataSinceAsync(grpcClient, tableName, sinceDateString, cancellationToken))
 			{
@@ -753,6 +754,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "UI Update")]
 		public async Task DeleteAllData(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
