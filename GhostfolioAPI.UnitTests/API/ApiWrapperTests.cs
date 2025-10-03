@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var identifier = "TestSymbol";
-			var symbolProfiles = new List<Contract.SymbolProfile> { new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = Array.Empty<Country>(), Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = Array.Empty<Sector>() } };
+			var symbolProfiles = new List<Contract.SymbolProfile> { new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = [], Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = [] } };
 			SetupRestCall("api/v1/symbol", JsonConvert.SerializeObject(new { Items = symbolProfiles }));
 
 			// Act
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var identifier = "TestSymbol";
 			var accountName = "TestAccount";
-			var symbol = new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = Array.Empty<Country>(), Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = Array.Empty<Sector>() };
+			var symbol = new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = [], Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = [] };
 			var contractActivities = new ActivityList { Activities = [new Contract.Activity { SymbolProfile = symbol }] };
 			SetupRestCall("api/v1/order", JsonConvert.SerializeObject(contractActivities));
 			SetupRestCall("api/v1/admin/market-data/", string.Empty);

@@ -3,6 +3,7 @@
 public class ChatE2ETest
 {
 	private int _timeoutinMs = 60000; // Adjust timeout as needed
+	private static readonly string[] options = ["--enable-unsafe-webgpu"];
 
 	[Fact(Skip = "Work in progress")]
 	public async Task Should_DisplayWebLLMResponse_When_UserSubmitsPrompt()
@@ -10,7 +11,7 @@ public class ChatE2ETest
 		using var playwright = await Playwright.CreateAsync();
 		var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { 
 			Headless = false,
-			Args = new[] { "--enable-unsafe-webgpu" },
+			Args = options,
 		});
 		var context = await browser.NewContextAsync();
 		var page = await context.NewPageAsync();

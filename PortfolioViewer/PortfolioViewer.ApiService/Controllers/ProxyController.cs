@@ -240,14 +240,14 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 
 		private static bool IsBlockLevelElement(HtmlNode node)
 		{
-			string[] blockElements = { "p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "article", "section", "li", "br", "hr" };
+			string[] blockElements = ["p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "article", "section", "li", "br", "hr"];
 			return blockElements.Contains(node.Name.ToLower());
 		}
 
 		private string ExtractMainContent(HtmlDocument htmlDoc)
 		{
 			// Try to find main content using common article containers
-			string[] contentSelectors = {
+			string[] contentSelectors = [
 				"//article",
 				"//main",
 				"//div[contains(@class, 'content')]",
@@ -256,7 +256,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				"//div[contains(@id, 'content')]",
 				"//div[contains(@id, 'article')]",
 				"//div[contains(@id, 'main')]"
-			};
+			];
 
 			foreach (var selector in contentSelectors)
 			{

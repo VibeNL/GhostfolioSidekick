@@ -11,6 +11,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
 		private const int MainTransactionTableIndex = 0;
+		internal static readonly string[] sourceArray = [
+				"Status", "Transfer",
+				"Card payment", "Card refund",
+				"Round up", "Saveback", "Savings Plan" ];
 
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
@@ -95,10 +99,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			var table = await ParseTable(0);
-			var status = table.FirstOrDefault(x => new string[] {
-				"Status", "Transfer",
-				"Card payment", "Card refund",
-				"Round up", "Saveback", "Savings Plan" }.Contains(x.Item1)).Item2;
+			var status = table.FirstOrDefault(x => sourceArray.Contains(x.Item1)).Item2;
 
 			var completedStatus = new string[] { "Completed", "Executed", };
 

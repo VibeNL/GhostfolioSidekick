@@ -16,6 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 	{
 		private readonly Mock<DatabaseContext> _mockDatabaseContext;
 		private readonly DataIssuesService _dataIssuesService;
+		private static readonly string[] sourceArray = ["Buy", "Sell", "Dividend", "Receive", "Send"];
 
 		public DataIssuesServiceTests()
 		{
@@ -494,7 +495,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			result.Should().Contain(r => r.ActivityType == "Send");
 			
 			// Verify severity assignment
-			result.Where(r => new[] { "Buy", "Sell", "Dividend", "Receive", "Send" }.Contains(r.ActivityType))
+			result.Where(r => sourceArray.Contains(r.ActivityType))
 				  .Should().AllSatisfy(r => r.Severity.Should().Be("Error"));
 		}
 
@@ -585,8 +586,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 				"TEST",
 				AssetClass.Equity,
 				null,
-				Array.Empty<CountryWeight>(),
-				Array.Empty<SectorWeight>());
+				[],
+				[]);
 		}
 
 		private static Holding CreateTestHolding(SymbolProfile symbolProfile)

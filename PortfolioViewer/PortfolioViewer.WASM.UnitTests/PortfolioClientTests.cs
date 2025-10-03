@@ -22,6 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			Assert.Equal("Value1", result[0]["Column1"].ToString());
 			Assert.Equal("123", result[0]["Column2"].ToString());
 		}
+		private static readonly string[] value = ["AAPL", "APPLE"];
 
 		[Fact]
 		public void DeserializeData_ShouldHandleArrayValues()
@@ -32,7 +33,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 				new Dictionary<string, object> 
 				{ 
 					{ "Id", "test-id" }, 
-					{ "PartialSymbolIdentifiers", new[] { "AAPL", "APPLE" } } 
+					{ "PartialSymbolIdentifiers", value } 
 				}
 			};
 			var jsonData = JsonSerializer.Serialize(testData);

@@ -671,8 +671,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 				"TEST",
 				AssetClass.Equity,
 				null,
-				Array.Empty<CountryWeight>(),
-				Array.Empty<SectorWeight>());
+				[],
+				[]);
 		}
 
 		private static Holding CreateTestHolding(SymbolProfile symbolProfile)
