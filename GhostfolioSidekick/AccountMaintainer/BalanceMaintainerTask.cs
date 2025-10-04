@@ -34,13 +34,13 @@ namespace GhostfolioSidekick.AccountMaintainer
 										.ToListAsync();
 
 					// Ensure activities is never null and order by date
-					var orderedActivities = (activities ?? new List<Model.Activities.Activity>()).OrderBy(x => x.Date);
+					var orderedActivities = (activities ?? []).OrderBy(x => x.Date);
 
 					var balanceCalculator = new BalanceCalculator(exchangeRateService);
 					var balances = await balanceCalculator.Calculate(Currency.EUR, orderedActivities);
 
 					var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey.Id)!;
-					var existingBalances = account!.Balance ?? new List<Model.Accounts.Balance>();
+					var existingBalances = account!.Balance ?? [];
 
 					var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
 					ComparisonResult result = compareLogic.Compare(existingBalances.OrderBy(x => x.Date), balances.OrderBy(x => x.Date));

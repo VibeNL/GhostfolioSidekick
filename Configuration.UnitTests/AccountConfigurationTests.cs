@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Configuration;
 using System.Text.Json;
 
 namespace GhostfolioSidekick.Configuration.UnitTests

@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             // Arrange
             var holding = new Holding
             {
-                SymbolProfiles = new List<SymbolProfile>(),
+                SymbolProfiles = [],
                 Activities = []
             };
 
@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 
             var symbolProfile = new SymbolProfile
             {
-                StockSplits = new List<StockSplit> { stockSplit }
+                StockSplits = [stockSplit]
             };
 
             var activityDate = DateTime.Now;
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 
             var holding = new Holding
             {
-                SymbolProfiles = new List<SymbolProfile> { symbolProfile },
+                SymbolProfiles = [symbolProfile],
                 Activities = [activity.Object]
             };
 
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 
             var symbolProfile = new SymbolProfile
             {
-                StockSplits = new List<StockSplit> { stockSplit }
+                StockSplits = [stockSplit]
             };
 
             var activityDate = DateTime.Now;
@@ -108,7 +108,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 
             var holding = new Holding
             {
-                SymbolProfiles = new List<SymbolProfile> { symbolProfile },
+                SymbolProfiles = [symbolProfile],
                 Activities = [activity.Object]
             };
 

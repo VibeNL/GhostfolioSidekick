@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Linq.Expressions;
-using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {

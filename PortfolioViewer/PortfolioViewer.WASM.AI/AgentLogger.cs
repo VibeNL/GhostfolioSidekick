@@ -8,14 +8,14 @@
 		// Event to notify when CurrentAgentName changes
 		public event Action? CurrentAgentNameChanged;
 
-		internal async Task StartAgent(string name)
+		internal void StartAgent(string name)
 		{
 			CurrentAgentName = name;
 			CurrentAgentFunction = string.Empty;
 			CurrentAgentNameChanged?.Invoke();
 		}
 
-		internal async Task StartFunction(string name)
+		internal void StartFunction(string name)
 		{
 			CurrentAgentFunction = name;
 			CurrentAgentNameChanged?.Invoke();

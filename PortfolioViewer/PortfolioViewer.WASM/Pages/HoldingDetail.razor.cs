@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
@@ -39,12 +38,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Data
 		private HoldingDisplayModel? HoldingInfo { get; set; }
-		private List<HoldingPriceHistoryPoint> PriceHistory { get; set; } = new();
+		private List<HoldingPriceHistoryPoint> PriceHistory { get; set; } = [];
 
 		// Plotly chart
 		private Config plotConfig = new();
 		private Plotly.Blazor.Layout plotLayout = new();
-		private IList<ITrace> plotData = new List<ITrace>();
+		private IList<ITrace> plotData = [];
 
 		protected override async Task OnParametersSetAsync()
 		{
@@ -140,7 +139,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				// Log the error but don't show it as critical - price history might not be available
 				Console.WriteLine($"Failed to load price history for {Symbol}: {ex.Message}");
-				PriceHistory = new List<HoldingPriceHistoryPoint>();
+				PriceHistory = [];
 			}
 		}
 
@@ -148,7 +147,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (PriceHistory.Count == 0)
 			{
-				plotData = new List<ITrace>();
+				plotData = [];
 				return;
 			}
 
@@ -162,9 +161,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var priceTrace = new Scatter
 				{
 					X = dates,
-					Y = PriceHistory.OrderBy(p => p.Date)
-						.Select(p => (object)p.Price.Amount)
-						.ToList(),
+					Y = [.. PriceHistory.OrderBy(p => p.Date).Select(p => (object)p.Price.Amount)],
 					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = $"Market Price",
 					Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#007bff", Width = 2 },
@@ -175,16 +172,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var averagePriceTrace = new Scatter
 				{
 					X = dates,
-					Y = PriceHistory.OrderBy(p => p.Date)
-						.Select(p => (object)p.AveragePrice.Amount)
-						.ToList(),
+					Y = [.. PriceHistory.OrderBy(p => p.Date).Select(p => (object)p.AveragePrice.Amount)],
 					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = $"Average Paid Price",
 					Line = new Plotly.Blazor.Traces.ScatterLib.Line { Color = "#28a745", Width = 2 },
 					Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 4 }
 				};
 
-				plotData = new List<ITrace> { priceTrace, averagePriceTrace };
+				plotData = [priceTrace, averagePriceTrace];
 
 				var currencySymbol = HoldingInfo?.CurrentPrice.Currency.Symbol ?? throw new NotSupportedException("Currency symbol not available");
 				var dateRangeText = $"{FilterState.StartDate:yyyy-MM-dd} to {FilterState.EndDate:yyyy-MM-dd}";
@@ -192,31 +187,31 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				plotLayout = new Plotly.Blazor.Layout
 				{
 					Title = new Plotly.Blazor.LayoutLib.Title { Text = $"{Symbol} Price History ({dateRangeText})" },
-					XAxis = new List<Plotly.Blazor.LayoutLib.XAxis>
-					{
+					XAxis =
+					[
 						new Plotly.Blazor.LayoutLib.XAxis
 						{
 							Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" },
 							Type = Plotly.Blazor.LayoutLib.XAxisLib.TypeEnum.Date
 						}
-					},
-					YAxis = new List<Plotly.Blazor.LayoutLib.YAxis>
-					{
+					],
+					YAxis =
+					[
 						new Plotly.Blazor.LayoutLib.YAxis
 						{
 							Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Price ({currencySymbol})" }
 						}
-					},
+					],
 					Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 					AutoSize = true,
 					ShowLegend = true,
-					Legend = new List<Plotly.Blazor.LayoutLib.Legend>
-					{
+					Legend =
+					[
 						new Plotly.Blazor.LayoutLib.Legend
 						{
 							Orientation = Plotly.Blazor.LayoutLib.LegendLib.OrientationEnum.H
 						}
-					}
+					]
 				};
 
 				plotConfig = new Config { Responsive = true };

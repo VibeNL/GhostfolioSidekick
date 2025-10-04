@@ -108,12 +108,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		public async Task<List<Model.Activities.Activity>> GetActivitiesByAccount(Model.Accounts.Account account)
 		{
 			var rawAccounts = await GetAllAccounts();
-			var rawAccount = rawAccounts.SingleOrDefault(x => string.Equals(x.Name, account.Name, StringComparison.InvariantCultureIgnoreCase));
-			if (rawAccount == null)
-			{
-				throw new NotSupportedException("Account not found");
-			}
-
+			var rawAccount = rawAccounts.SingleOrDefault(x => string.Equals(x.Name, account.Name, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException("Account not found");
 			var content = await restCall.DoRestGet($"api/v1/order");
 			var existingActivities = JsonConvert.DeserializeObject<ActivityList>(content!)!.Activities.ToList();
 
@@ -239,12 +234,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			var existingAccount = accounts.Single(x => string.Equals(x.Name, account.Name, StringComparison.InvariantCultureIgnoreCase));
 			var content = await restCall.DoRestGet($"api/v1/account/{existingAccount.Id}/balances");
 
-			var balanceList = JsonConvert.DeserializeObject<BalanceList>(content!);
-
-			if (balanceList == null)
-			{
-				throw new NotSupportedException("Account not found");
-			}
+			var balanceList = JsonConvert.DeserializeObject<BalanceList>(content!) ?? throw new NotSupportedException("Account not found");
 
 			// Delete all balances that are not in the new list
 			foreach (var item in balanceList.Balances?.Where(x => !account.Balance.Any(y => DateOnly.FromDateTime(x.Date) == y.Date)) ?? [])
@@ -405,13 +395,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 		private async Task<Contract.Account[]> GetAllAccounts()
 		{
-			var content = await restCall.DoRestGet($"api/v1/account");
-
-			if (content == null)
-			{
-				throw new NotSupportedException();
-			}
-
+			var content = await restCall.DoRestGet($"api/v1/account") ?? throw new NotSupportedException();
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
 			var accounts = rawAccounts?.Accounts;
 
@@ -432,12 +416,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return [];
 			}
 
-			var rawPlatforms = JsonConvert.DeserializeObject<Contract.Platform[]>(content);
-			if (rawPlatforms == null)
-			{
-				throw new NotSupportedException();
-			}
-
+			var rawPlatforms = JsonConvert.DeserializeObject<Contract.Platform[]>(content) ?? throw new NotSupportedException();
 			return [.. rawPlatforms];
 		}
 

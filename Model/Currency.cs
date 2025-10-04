@@ -16,11 +16,11 @@ namespace GhostfolioSidekick.Model
 		private static readonly List<Currency> knownCurrencies = [EUR, USD, GBP, GBp, GBX];
 		private static readonly List<Currency> allCurrencies = [.. knownCurrencies];
 
-		private static readonly List<Tuple<Currency, Currency, decimal>> knownExchangeRates = new()
-		{
+		private static readonly List<Tuple<Currency, Currency, decimal>> knownExchangeRates =
+		[
 			Tuple.Create(GBp, GBP, 0.01m),
 			Tuple.Create(GBX, GBP, 0.01m),
-		};
+		];
 
 		public Currency() // EF Core
 		{

@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return words;
 		}
 
-		protected List<SingleWordToken> ParseWords(string text, int page)
+		protected static List<SingleWordToken> ParseWords(string text, int page)
 		{
 			var lines = text.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
 			var words = new List<SingleWordToken>();

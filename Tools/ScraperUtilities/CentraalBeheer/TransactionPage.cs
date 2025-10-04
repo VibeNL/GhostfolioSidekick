@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			var list = new List<ActivityWithSymbol>();
 			for (int counter = 0; counter < await GetMaxTransactions(); counter++)
 			{
-				logger.LogInformation($"Processing transaction {counter}...");
+				logger.LogInformation("Processing transaction {Counter}...", counter);
 
 				// Click on the transaction to open the details
 				var transaction = page.Locator($"div[qa-id='transactie-collapsable-{counter}']").First;
@@ -70,6 +70,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 				return new ActivityWithSymbol
 				{
 					Activity = generatedTransaction,
+					Symbol = default!,
 				};
 			}
 
@@ -80,22 +81,16 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			{
 				Activity = generatedTransaction,
 				Symbol = symbol,
-				symbolName = symbol
+				SymbolName = symbol
 			};
 		}
 
 		private async Task<int> GetMaxTransactions()
 		{
 			var locators = await page.Locator("div[qa-id^='transactie-collapsable-']").AllAsync();
-			var content = await locators.Last().GetAttributeAsync("qa-id");
+			var content = await locators.Last().GetAttributeAsync("qa-id") ?? throw new NotSupportedException();
 
 			return int.Parse(content.Split("-").Last());
-		}
-
-		private Task<int> GetTransacionsCount()
-		{
-			// Count number of divs with role list
-			return page.Locator("div[id^='transactie-collapsable-']").CountAsync();
 		}
 
 		private async Task<Activity?> ProcessDetails(int counter)
@@ -184,7 +179,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 		{
 			var text = await page
 					.Locator(fieldId)
-					.TextContentAsync();
+					.TextContentAsync() ?? throw new NotSupportedException();
 
 			text = text.Trim();
 

@@ -5,13 +5,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-	</PropertyGroup>
-	<PropertyGroup>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 		<UserSecretsId>6629f599-8913-4b11-b453-def1f7486753</UserSecretsId>
 	</PropertyGroup>
 
@@ -27,8 +20,6 @@
 	  <ProjectReference Include="..\Parsers\Parsers.csproj" />
 	  <ProjectReference Include="..\PerformanceCalculations\PerformanceCalculations.csproj" />
 	</ItemGroup>
-
-	
 
 	<ItemGroup>
 		<None Update="appsettings.json">

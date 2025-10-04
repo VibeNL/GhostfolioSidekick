@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public HoldingTypeConfiguration()
 		{
 			partialSymbolIdentifiersListComparer = new ValueComparer<ICollection<PartialSymbolIdentifier>>(
-				(c1, c2) => c1.SequenceEqual(c2),
+				(c1, c2) => (c1 ?? Array.Empty<PartialSymbolIdentifier>()).SequenceEqual(c2 ?? Array.Empty<PartialSymbolIdentifier>()),
 				c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
 				c => c.ToList());
 

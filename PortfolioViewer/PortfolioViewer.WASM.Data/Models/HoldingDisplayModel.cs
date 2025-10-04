@@ -1,5 +1,4 @@
 using GhostfolioSidekick.Model;
-using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {
@@ -8,11 +7,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 	{
 		public string Symbol { get; set; } = string.Empty;
 		public string Name { get; set; } = string.Empty;
-		public Money CurrentValue { get; set; }
+		public required Money CurrentValue { get; set; }
 		public decimal Quantity { get; set; }
-		public Money AveragePrice { get; set; }
-		public Money CurrentPrice { get; set; }
-		public Money GainLoss { get; set; }
+		public required Money AveragePrice { get; set; }
+		public required Money CurrentPrice { get; set; }
+		public required Money GainLoss { get; set; }
 		public decimal GainLossPercentage { get; set; }
 		public decimal Weight { get; set; }
 		public string Sector { get; set; } = string.Empty;

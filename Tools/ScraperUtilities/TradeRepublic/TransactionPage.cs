@@ -10,7 +10,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 {
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
-		private int MainTransactionTableIndex = 0;
+		internal static readonly string[] sourceArray = [
+				"Status", "Transfer",
+				"Card payment", "Card refund",
+				"Round up", "Saveback", "Savings Plan" ];
 
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
@@ -22,12 +25,11 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			int counter = 0;
 			foreach (var transaction in await GetTransactions())
 			{
-				logger.LogInformation($"Processing transaction {counter}...");
+				logger.LogInformation("Processing transaction {Counter}...", counter);
 
 				// Click on the transaction to open the details
 				await transaction.ScrollIntoViewIfNeededAsync();
 
-				var location = await transaction.BoundingBoxAsync();
 				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
 
 				// Wait for the transaction to load
@@ -61,7 +63,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 			// Scroll down the page to load all transactions
 			var isScrolling = true;
-			var lastUpdate = DateTime.Now;
+			var lastUpdate = DateTime.UtcNow;
 			while (isScrolling)
 			{
 				var cnt = await GetTransacionsCount();
@@ -71,10 +73,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				var newCnt = await GetTransacionsCount();
 				if (newCnt != cnt)
 				{
-					lastUpdate = DateTime.Now;
+					lastUpdate = DateTime.UtcNow;
 				}
 
-				isScrolling = (DateTime.Now - lastUpdate).TotalSeconds < 5;
+				isScrolling = (DateTime.UtcNow - lastUpdate).TotalSeconds < 5;
 			}
 
 			logger.LogInformation("All transactions loaded.");
@@ -91,13 +93,11 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return page.Locator("li[class='timeline__entry']").CountAsync();
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Scraper logic is complex")]
 		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			var table = await ParseTable(0);
-			var status = table.FirstOrDefault(x => new string[] {
-				"Status", "Transfer",
-				"Card payment", "Card refund",
-				"Round up", "Saveback", "Savings Plan" }.Contains(x.Item1)).Item2;
+			var status = table.FirstOrDefault(x => sourceArray.Contains(x.Item1)).Item2;
 
 			var completedStatus = new string[] { "Completed", "Executed", };
 
@@ -132,11 +132,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 					{
 						Activity = new DividendActivity
 						{
-							Amount = await ParseMoneyFromHeader(headerText),
+							Amount = ParseMoneyFromHeader(headerText),
 							Date = parsedTime,
 							TransactionId = GenerateTransactionId(time, table),
 							Description = headerText,
-						}
+						},
+						Symbol = default!,
 					};
 				}
 
@@ -147,11 +148,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 					{
 						Activity = new InterestActivity
 						{
-							Amount = await ParseMoneyFromHeader(headerText),
+							Amount = ParseMoneyFromHeader(headerText),
 							Date = parsedTime,
 							TransactionId = GenerateTransactionId(time, table),
 							Description = headerText,
-						}
+						},
+						Symbol = default!,
 					};
 				}
 
@@ -159,11 +161,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				{
 					Activity = new CashDepositActivity
 					{
-						Amount = await ParseMoneyFromHeader(headerText),
+						Amount = ParseMoneyFromHeader(headerText),
 						Date = parsedTime,
 						TransactionId = GenerateTransactionId(time, table),
 						Description = headerText,
-					}
+					},
+					Symbol = default!,
 				};
 			}
 
@@ -173,11 +176,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				{
 					Activity = new CashWithdrawalActivity
 					{
-						Amount = (await ParseMoneyFromHeader(headerText)),
+						Amount = ParseMoneyFromHeader(headerText),
 						Date = parsedTime,
 						TransactionId = GenerateTransactionId(time, table),
 						Description = headerText,
-					}
+					},
+					Symbol = default!,
 				};
 			}
 
@@ -185,7 +189,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			var saving = headerText.Contains("You saved");
 			if (headerText.Contains("You invested") || saving || rewards)
 			{
-				var transactionTable = await ParseTable(MainTransactionTableIndex);
 				var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
 
 				var symbol = knownProfiles
@@ -262,13 +265,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return null;
 		}
 
-		private decimal ParseMoney(string money)
-		{
-			// Parse the value from strings like '€1,105.00'
-			return decimal.Parse(money.Replace("€", string.Empty), NumberStyles.Currency, CultureInfo.InvariantCulture);
-		}
-
-		private static async Task<Money> ParseMoneyFromHeader(string headerText)
+		private static Money ParseMoneyFromHeader(string headerText)
 		{
 			// Parse the value from strings like 'You received €1,105.00'
 			// Or 'You added €5.00 via Direct Debit'
@@ -297,7 +294,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 			return new Money();
 		}
-		private string GenerateTransactionId(string time, List<(string, string)> table)
+		private static string GenerateTransactionId(string time, List<(string, string)> table)
 		{
 			return time + string.Join("|", table.Select(x => x.Item2));
 		}

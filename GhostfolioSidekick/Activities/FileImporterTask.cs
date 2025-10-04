@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;

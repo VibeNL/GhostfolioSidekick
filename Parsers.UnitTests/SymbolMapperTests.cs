@@ -5,11 +5,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 {
 	public class SymbolMapperTests
     {
-        private readonly List<Mapping> mappings = new List<Mapping>
-        {
-            new Mapping { MappingType = MappingType.Currency, Source = "USD", Target = "US Dollar" },
+        private readonly List<Mapping> mappings =
+		[
+			new Mapping { MappingType = MappingType.Currency, Source = "USD", Target = "US Dollar" },
             new Mapping { MappingType = MappingType.Symbol, Source = "AAPL", Target = "Apple Inc." }
-        };
+        ];
 
         [Fact]
         public void Map_ShouldReturnMappedCurrency()

@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
 		{
 			var request = new GoogleSearchRequest { Query = query };
 			var response = await SearchAsync(request);
-			return response.Success ? response.Results.ToList() : new List<WebResult>();
+			return response.Success ? response.Results.ToList() : [];
 		}
 
 		/// <summary>

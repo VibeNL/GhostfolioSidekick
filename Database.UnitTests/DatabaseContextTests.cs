@@ -19,10 +19,10 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 
 			using (var context = new DatabaseContext(options))
 			{
-				context.Database.OpenConnection();
+				await context.Database.OpenConnectionAsync();
 
 				// Act
-				await context.Database.MigrateAsync().ConfigureAwait(false);
+				await context.Database.MigrateAsync();
 
 				// Assert
 				var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 				.Options;
 
 			using var context = new DatabaseContext(options);
-			context.Database.OpenConnection();
+			await context.Database.OpenConnectionAsync();
 
 			// Act & Assert - Should not throw exception when creating DbContext
 			await context.Database.EnsureCreatedAsync();

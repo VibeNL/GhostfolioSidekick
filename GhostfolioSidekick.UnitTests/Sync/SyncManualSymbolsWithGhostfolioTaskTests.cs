@@ -52,8 +52,8 @@ namespace GhostfolioSidekick.UnitTests.Sync
 				Symbol = "W",
 				DataSource = Datasource.MANUAL,
 				Currency = Currency.USD,
-				SectorWeights = new List<SectorWeight>(),
-				CountryWeight = new List<CountryWeight>()
+				SectorWeights = [],
+				CountryWeight = []
 			};
 			var holding = new Holding
 			{
@@ -103,8 +103,8 @@ namespace GhostfolioSidekick.UnitTests.Sync
 				Symbol = "W",
 				DataSource = Datasource.MANUAL,
 				Currency = Currency.USD,
-				SectorWeights = new List<SectorWeight>(),
-				CountryWeight = new List<CountryWeight>()
+				SectorWeights = [],
+				CountryWeight = []
 			};
 			context.SymbolProfiles.Add(symbol);
 			await context.SaveChangesAsync();

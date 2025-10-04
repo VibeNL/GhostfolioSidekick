@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public async Task CreateAccount_ShouldCreateAccount()
 		{
 			// Arrange
-			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = new List<Model.Accounts.Balance>(), Comment = "TestComment" };
+			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = [], Comment = "TestComment" };
 			SetupRestCall("api/v1/account/", string.Empty);
 
 			// Act
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var identifier = "TestSymbol";
-			var symbolProfiles = new List<Contract.SymbolProfile> { new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = Array.Empty<Country>(), Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = Array.Empty<Sector>() } };
+			var symbolProfiles = new List<Contract.SymbolProfile> { new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = [], Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = [] } };
 			SetupRestCall("api/v1/symbol", JsonConvert.SerializeObject(new { Items = symbolProfiles }));
 
 			// Act
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			// Arrange
 			var identifier = "TestSymbol";
 			var accountName = "TestAccount";
-			var symbol = new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = Array.Empty<Country>(), Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = Array.Empty<Sector>() };
+			var symbol = new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = [], Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = [] };
 			var contractActivities = new ActivityList { Activities = [new Contract.Activity { SymbolProfile = symbol }] };
 			SetupRestCall("api/v1/order", JsonConvert.SerializeObject(contractActivities));
 			SetupRestCall("api/v1/admin/market-data/", string.Empty);
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public async Task UpdateAccount_ShouldUpdateAccount()
 		{
 			// Arrange
-			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = new List<Model.Accounts.Balance> { new Model.Accounts.Balance(DateOnly.FromDateTime(DateTime.Now), new Money { Amount = 100 }) } };
+			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = [new Model.Accounts.Balance(DateOnly.FromDateTime(DateTime.Now), new Money { Amount = 100 })] };
 			var accounts = new List<Contract.Account> { new Contract.Account { Name = account.Name, Id = "1", Currency = "EUR" } };
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
 

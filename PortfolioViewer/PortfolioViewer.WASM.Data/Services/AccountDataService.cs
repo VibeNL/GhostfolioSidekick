@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Database;
-using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
@@ -30,7 +29,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.AsQueryable();
 			if (!string.IsNullOrWhiteSpace(symbolFilter))
 			{
-				query = query.Where(a => a.Activities.Any(h => h.Holding.SymbolProfiles.Any(s => s.Symbol == symbolFilter)));
+				query = query.Where(a => a.Activities.Any(h => h.Holding != null && h.Holding.SymbolProfiles.Any(s => s.Symbol == symbolFilter)));
 			}
 
 			return query.ToListAsync(cancellationToken);
@@ -92,7 +91,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				});
 			}
 
-			return result.OrderBy(x => x.Date).ThenBy(x => x.AccountId).ToList();
+			return [.. result.OrderBy(x => x.Date).ThenBy(x => x.AccountId)];
 		}
 
 		public Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)

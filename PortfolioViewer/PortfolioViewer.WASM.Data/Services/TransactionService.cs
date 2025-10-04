@@ -57,8 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				UnitPrice = activity is ActivityWithQuantityAndUnitPrice quantityActivity2 ? quantityActivity2.UnitPrice : null,
 				Currency = activity is ActivityWithQuantityAndUnitPrice quantityActivity3 ? quantityActivity3.UnitPrice.Currency.Symbol : "",
 				Amount = activity is ActivityWithAmount amountActivity ? amountActivity.Amount : null,
-				TotalValue = activity is ActivityWithQuantityAndUnitPrice quantityActivity4 ? quantityActivity4.TotalTransactionAmount :
-							activity is ActivityWithAmount amountActivity2 ? amountActivity2.Amount : null,
+				TotalValue = GetTotalValueForActivity(activity),
 				// Calculate fees based on activity type
 				Fee = GetFeeForActivity(activity),
 				// Calculate taxes based on activity type  
@@ -80,15 +79,30 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			};
 		}
 
+		private static Money? GetTotalValueForActivity(Activity activity)
+		{
+			if (activity is ActivityWithQuantityAndUnitPrice quantityActivity)
+			{
+				return quantityActivity.TotalTransactionAmount;
+			}
+			
+			if (activity is ActivityWithAmount amountActivity)
+			{
+				return amountActivity.Amount;
+			}
+			
+			return null;
+		}
+
 		private static Money? GetFeeForActivity(Activity activity)
 		{
 			return activity switch
 			{
-				BuyActivity buy when buy.Fees.Any() => Money.Sum(buy.Fees.Select(f => f.Money)),
-				SellActivity sell when sell.Fees.Any() => Money.Sum(sell.Fees.Select(f => f.Money)),
-				DividendActivity dividend when dividend.Fees.Any() => Money.Sum(dividend.Fees.Select(f => f.Money)),
-				ReceiveActivity receive when receive.Fees.Any() => Money.Sum(receive.Fees.Select(f => f.Money)),
-				SendActivity send when send.Fees.Any() => Money.Sum(send.Fees.Select(f => f.Money)),
+				BuyActivity buy when buy.Fees.Count != 0 => Money.Sum(buy.Fees.Select(f => f.Money)),
+				SellActivity sell when sell.Fees.Count != 0 => Money.Sum(sell.Fees.Select(f => f.Money)),
+				DividendActivity dividend when dividend.Fees.Count != 0 => Money.Sum(dividend.Fees.Select(f => f.Money)),
+				ReceiveActivity receive when receive.Fees.Count != 0 => Money.Sum(receive.Fees.Select(f => f.Money)),
+				SendActivity send when send.Fees.Count != 0 => Money.Sum(send.Fees.Select(f => f.Money)),
 				_ => null
 			};
 		}
@@ -97,13 +111,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		{
 			return activity switch
 			{
-				BuyActivity buy when buy.Taxes.Any() => Money.Sum(buy.Taxes.Select(t => t.Money)),
-				SellActivity sell when sell.Taxes.Any() => Money.Sum(sell.Taxes.Select(t => t.Money)),
-				DividendActivity dividend when dividend.Taxes.Any() => Money.Sum(dividend.Taxes.Select(t => t.Money)),
+				BuyActivity buy when buy.Taxes.Count != 0 => Money.Sum(buy.Taxes.Select(t => t.Money)),
+				SellActivity sell when sell.Taxes.Count != 0 => Money.Sum(sell.Taxes.Select(t => t.Money)),
+				DividendActivity dividend when dividend.Taxes.Count != 0 => Money.Sum(dividend.Taxes.Select(t => t.Money)),
 				_ => null
 			};
 		}
-		private async Task<Dictionary<string, int>> GetTransactionTypeBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
+		private static async Task<Dictionary<string, int>> GetTransactionTypeBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
 		{
 			// Use specific activity types to avoid GetType().Name in LINQ
 			var breakdowns = new Dictionary<string, int>();
@@ -157,7 +171,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return breakdowns;
 		}
 
-		private async Task<Dictionary<string, int>> GetAccountBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
+		private static async Task<Dictionary<string, int>> GetAccountBreakdownAsync(IQueryable<Activity> baseQuery, CancellationToken cancellationToken)
 		{
 			return await baseQuery
 				.GroupBy(a => a.Account.Name)
@@ -178,6 +192,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return await baseQuery.CountAsync(cancellationToken);
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Complex query optimized")]
 		private IQueryable<Activity> BuildBaseQuery(
 			DateOnly startDate,
 			DateOnly endDate,
@@ -231,27 +246,33 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				var searchLower = searchText.ToLower();
 				query = query.Where(a =>
-					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol.ToLower().Contains(searchLower))) ||
-					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Name.ToLower().Contains(searchLower))) ||
-					a.Description.ToLower().Contains(searchLower) ||
-					a.TransactionId.ToLower().Contains(searchLower));
+					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Symbol.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase))) ||
+					(a.Holding != null && a.Holding.SymbolProfiles.Any(sp => sp.Name != null && sp.Name.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase))) ||
+					(a.Description != null && a.Description.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase)) ||
+					a.TransactionId.Contains(searchLower, StringComparison.CurrentCultureIgnoreCase));
 			}
 
 			return query;
 		}
 
-		private IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3358:Ternary operators should not be nested", Justification = "Expression")]
+		private static Expression<Func<Activity, object>> GetSortExpressionForTotalValue()
+		{
+			return a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount : 
+						a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Amount : (object)0;
+		}
+
+		private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
 		{
 			Expression<Func<Activity, object>> sortExpression = sortColumn switch
 			{
 				"Date" => a => a.Date,
 				"Type" => a => a.GetType().Name,
-				"Symbol" => a => a.Holding != null ? a.Holding.SymbolProfiles.FirstOrDefault().Symbol : "",
-				"Name" => a => a.Holding != null ? a.Holding.SymbolProfiles.FirstOrDefault().Name : "",
+				"Symbol" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Symbol : "",
+				"Name" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Name ?? "" : "",
 				"AccountName" => a => a.Account.Name,
-				"TotalValue" => a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount : 
-								   a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Amount : 0,
-				"Description" => a => a.Description,
+				"TotalValue" => GetSortExpressionForTotalValue(),
+				"Description" => a => a.Description ?? "",
 				_ => a => a.Date // Default sort
 			};
 
@@ -309,7 +330,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			if (await databaseContext.Activities.OfType<RepayBondActivity>().AnyAsync(cancellationToken))
 				existingTypes.Add("Repay Bond");
 
-			return existingTypes.OrderBy(x => x).ToList();
+			return [.. existingTypes.OrderBy(x => x)];
 		}
 	}
 }

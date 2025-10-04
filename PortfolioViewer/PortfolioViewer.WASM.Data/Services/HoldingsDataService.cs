@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				snapShots.Add(new HoldingPriceHistoryPoint
 				{
 					Date = group.Key,
-					Price = group.Min(x => x.CurrentUnitPrice),
+					Price = group.Min(x => x.CurrentUnitPrice) ?? Money.Zero(Currency.EUR),
 					AveragePrice = Money.Sum(group.Select(y => y.AverageCostPrice.Times(y.Quantity))).SafeDivide(group.Sum(x => x.Quantity)),
 				});
 			}
@@ -115,6 +115,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					Quantity = x.Snapshots.Sum(y => y.Quantity),
 					Sector = x.Holding.SectorWeights.Select(x => x.Name).FirstOrDefault()?.ToString() ?? string.Empty,
 					Symbol = x.Holding.Symbol,
+					GainLoss = Money.Zero(serverConfigurationService.PrimaryCurrency),
+					GainLossPercentage = 0,
 				});
 			}
 

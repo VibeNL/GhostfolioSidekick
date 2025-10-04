@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_dbContextFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
 			_memoryCacheMock = new MemoryCache(new MemoryCacheOptions());
 			_symbolMatcherMock = new Mock<ISymbolMatcher>();
-			_symbolMatchers = new List<ISymbolMatcher> { _symbolMatcherMock.Object };
+			_symbolMatchers = [_symbolMatcherMock.Object];
 			var _mockApplicationSettings = new Mock<IApplicationSettings>();
 
 			_determineHoldings = new DetermineHoldings(
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = new List<Activity>();
 			var holdings = new List<Holding>
 			{
-				new Holding { Id = 1, SymbolProfiles = new List<SymbolProfile>() },
+				new Holding { Id = 1, SymbolProfiles = [] },
 				new Holding { Id = 2, SymbolProfiles = [new SymbolProfile()] }
 			};
 

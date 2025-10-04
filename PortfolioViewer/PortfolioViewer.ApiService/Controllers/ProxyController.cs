@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		private void CleanHtml(HtmlDocument htmlDoc)
+		private static void CleanHtml(HtmlDocument htmlDoc)
 		{
 			// Remove script tags
 			RemoveNodes(htmlDoc, "//script");
@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			RemoveNodes(htmlDoc, "//noscript");
 		}
 
-		private void RemoveNodes(HtmlDocument htmlDoc, string xpath)
+		private static void RemoveNodes(HtmlDocument htmlDoc, string xpath)
 		{
 			var nodes = htmlDoc.DocumentNode.SelectNodes(xpath);
 			if (nodes != null)
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		private void RemoveComments(HtmlNode node)
+		private static void RemoveComments(HtmlNode node)
 		{
 			if (node.NodeType == HtmlNodeType.Comment)
 			{
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		private string ExtractTextFromHtml(HtmlDocument htmlDoc)
+		private static string ExtractTextFromHtml(HtmlDocument htmlDoc)
 		{
 			var sb = new StringBuilder();
 
@@ -200,7 +200,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			return text.Trim();
 		}
 
-		private void ExtractTextFromNode(HtmlNode node, StringBuilder sb)
+		private static void ExtractTextFromNode(HtmlNode node, StringBuilder sb)
 		{
 			// Skip invisible elements
 			if (IsInvisibleNode(node))
@@ -225,7 +225,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			}
 		}
 
-		private bool IsInvisibleNode(HtmlNode node)
+		private static bool IsInvisibleNode(HtmlNode node)
 		{
 			// Check if the node has a style attribute with display: none or visibility: hidden
 			if (node.Attributes["style"] != null)
@@ -238,16 +238,16 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			return false;
 		}
 
-		private bool IsBlockLevelElement(HtmlNode node)
+		private static bool IsBlockLevelElement(HtmlNode node)
 		{
-			string[] blockElements = { "p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "article", "section", "li", "br", "hr" };
+			string[] blockElements = ["p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "article", "section", "li", "br", "hr"];
 			return blockElements.Contains(node.Name.ToLower());
 		}
 
-		private string ExtractMainContent(HtmlDocument htmlDoc)
+		private static string ExtractMainContent(HtmlDocument htmlDoc)
 		{
 			// Try to find main content using common article containers
-			string[] contentSelectors = {
+			string[] contentSelectors = [
 				"//article",
 				"//main",
 				"//div[contains(@class, 'content')]",
@@ -256,7 +256,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				"//div[contains(@id, 'content')]",
 				"//div[contains(@id, 'article')]",
 				"//div[contains(@id, 'main')]"
-			};
+			];
 
 			foreach (var selector in contentSelectors)
 			{
@@ -273,7 +273,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			return string.Empty;
 		}
 
-		private (string Title, string Description, List<string> Keywords) ExtractMetadata(HtmlDocument htmlDoc)
+		private static (string Title, string Description, List<string> Keywords) ExtractMetadata(HtmlDocument htmlDoc)
 		{
 			string title = htmlDoc.DocumentNode.SelectSingleNode("//title")?.InnerText?.Trim() ?? string.Empty;
 
@@ -290,11 +290,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			var keywordsNode = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='keywords']");
 			if (keywordsNode != null && keywordsNode.Attributes["content"] != null)
 			{
-				keywords = keywordsNode.Attributes["content"].Value
+				keywords = [.. keywordsNode.Attributes["content"].Value
 					.Split(',')
 					.Select(k => k.Trim())
-					.Where(k => !string.IsNullOrWhiteSpace(k))
-					.ToList();
+					.Where(k => !string.IsNullOrWhiteSpace(k))];
 			}
 
 			return (title, description, keywords);

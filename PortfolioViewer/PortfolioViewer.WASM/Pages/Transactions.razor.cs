@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class Transactions : IDisposable
 	{
 		[Inject]
-		private ITransactionService? HoldingsDataService { get; set; }
+		private ITransactionService HoldingsDataService { get; set; } = default!;
 
 		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
-		private List<TransactionDisplayModel> TransactionsList = new();
+		private List<TransactionDisplayModel> TransactionsList = [];
 		private PaginatedTransactionResult? currentResult;
 
 		// Loading state management
@@ -37,29 +37,31 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private int currentPage = 1;
 		private int pageSize = 25;
 		private int totalRecords = 0;
-		private List<int> pageSizeOptions = new() { 10, 25, 50, 100, 250 };
+		private List<int> pageSizeOptions = [10, 25, 50, 100, 250];
 
 		private FilterState? _previousFilterState;
 
-		protected override async Task OnInitializedAsync()
+		protected override Task OnInitializedAsync()
 		{
 			// Subscribe to filter changes
 			if (FilterState != null)
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		protected override async Task OnParametersSetAsync()
+		protected override Task OnParametersSetAsync()
 		{
 			// Check if filter state has changed
 			if (FilterState.IsEqual(_previousFilterState))
 			{
-				return;
+				return Task.CompletedTask;
 			}
 
 			_previousFilterState = new(FilterState);
-			await LoadTransactionDataAsync();
+			return LoadTransactionDataAsync();
 		}
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
@@ -87,7 +89,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				await Task.Yield();
 
 				currentResult = await LoadPaginatedTransactionDataAsync();
-				TransactionsList = currentResult?.Transactions ?? new List<TransactionDisplayModel>();
+				TransactionsList = currentResult?.Transactions ?? [];
 				totalRecords = currentResult?.TotalCount ?? 0;
 			}
 			catch (Exception ex)
@@ -115,7 +117,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				await Task.Yield();
 
 				currentResult = await LoadPaginatedTransactionDataAsync();
-				TransactionsList = currentResult?.Transactions ?? new List<TransactionDisplayModel>();
+				TransactionsList = currentResult?.Transactions ?? [];
 				totalRecords = currentResult?.TotalCount ?? 0;
 			}
 			catch (Exception ex)
@@ -134,7 +136,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				var result = await HoldingsDataService?.GetTransactionsPaginatedAsync(
+				var result = await (HoldingsDataService?.GetTransactionsPaginatedAsync(
 					ServerConfigurationService.PrimaryCurrency,
 					FilterState.StartDate,
 					FilterState.EndDate,
@@ -145,7 +147,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					sortColumn,
 					sortAscending,
 					currentPage,
-					pageSize) ?? new PaginatedTransactionResult();
+					pageSize) ?? Task.FromResult(new PaginatedTransactionResult()));
 
 				return result;
 			}
@@ -184,16 +186,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Statistics based on all filtered transactions (not just current page)
 		private Dictionary<string, int> TransactionTypeBreakdown =>
-			currentResult?.TransactionTypeBreakdown ?? new Dictionary<string, int>();
+			currentResult?.TransactionTypeBreakdown ?? [];
 
 		private Dictionary<string, int> AccountBreakdown =>
-			currentResult?.AccountBreakdown ?? new Dictionary<string, int>();
+			currentResult?.AccountBreakdown ?? [];
 
 		private List<string> AvailableTransactionTypes =>
 			TransactionTypeBreakdown?.Keys
 				   .Where(t => !string.IsNullOrEmpty(t))
 				   .OrderBy(t => t)
-				   .ToList() ?? new List<string>();
+				   .ToList() ?? [];
 
 		private async Task SortBy(string column)
 		{

@@ -11,20 +11,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class Holdings : IDisposable
 	{
 		[Inject]
-		private IHoldingsDataService? HoldingsDataService { get; set; }
+		private IHoldingsDataService HoldingsDataService { get; set; } = default!;
 
 		[Inject]
-		private NavigationManager? Navigation { get; set; }
+		private NavigationManager Navigation { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 		
 		// View mode for the treemap
 		private string ViewMode = "treemap";
-		private List<HoldingDisplayModel> HoldingsList = new();
+		private List<HoldingDisplayModel> HoldingsList = [];
 		private Config plotConfig = new();
 		private Plotly.Blazor.Layout plotLayout = new();
-		private IList<ITrace> plotData = new List<ITrace>();
+		private IList<ITrace> plotData = [];
 
 		// Loading state management
 		private bool IsLoading { get; set; } = true;
@@ -36,17 +36,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool sortAscending = false;
 
 		private FilterState? _previousFilterState;
+		private bool _disposed = false;
 
-		protected override async Task OnInitializedAsync()
+		protected override Task OnInitializedAsync()
 		{
 			// Subscribe to filter changes
 			if (FilterState != null)
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		protected override async Task OnParametersSetAsync()
+		protected override Task OnParametersSetAsync()
 		{
 			// Check if filter state has changed
 			if (_previousFilterState == null || HasFilterStateChanged())
@@ -64,8 +67,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 				
 				_previousFilterState = FilterState;
-				await LoadPortfolioDataAsync();
+				return LoadPortfolioDataAsync();
 			}
+			
+			return Task.CompletedTask;
 		}
 
 		private bool HasFilterStateChanged()
@@ -80,14 +85,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
 		{
-			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current accountId: {FilterState.SelectedAccountId}");
+			if (_disposed) return;
+
+			Console.WriteLine($"Holdings OnFilterStateChanged - Property: {e.PropertyName}, Current accountId: {FilterState?.SelectedAccountId}");
 
 			// Only reload when specific properties change
 			if (e.PropertyName == nameof(FilterState.SelectedAccountId) ||
 				e.PropertyName == nameof(FilterState.StartDate) ||
 				e.PropertyName == nameof(FilterState.EndDate))
 			{
-				Console.WriteLine($"Filter change detected in Holdings - AccountId: {FilterState.SelectedAccountId}");
+				Console.WriteLine($"Filter change detected in Holdings - AccountId: {FilterState?.SelectedAccountId}");
 				await LoadPortfolioDataAsync();
 			}
 
@@ -126,9 +133,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				return await HoldingsDataService?
-							.GetHoldingsAsync(FilterState.SelectedAccountId) ?? 
-								[];
+				return await (HoldingsDataService?.GetHoldingsAsync(FilterState.SelectedAccountId) ?? Task.FromResult(new List<HoldingDisplayModel>()));
 			}
 			catch (Exception ex)
 			{
@@ -146,7 +151,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			var treemapTrace = new TreeMap
 			{
 				Labels = HoldingsList.Select(h => $"{h.Name} (GainLossPercentage {h.GainLossPercentage})").ToArray(),
-				Values = HoldingsList.Select(h => (object)h.CurrentValue.Amount).ToList(),
+				Values = [.. HoldingsList.Select(h => (object)h.CurrentValue.Amount)],
 				Parents = HoldingsList.Select(h => "").ToArray(),
 				Text = HoldingsList.Select(h => $"{h.Name}({h.Symbol})<br>{CurrencyDisplay.DisplaySignAndAmount(h.CurrentValue)}").ToArray(),
 				TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
@@ -157,7 +162,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				},
 				Marker = new Plotly.Blazor.Traces.TreeMapLib.Marker
 				{
-					Colors = HoldingsList.Select(h => (object)GetColorForGainLoss(h.GainLossPercentage)).ToList(),
+					Colors = [.. HoldingsList.Select(h => (object)GetColorForGainLoss(h.GainLossPercentage))],
 					Line = new Plotly.Blazor.Traces.TreeMapLib.MarkerLib.Line
 					{
 						Width = 2,
@@ -171,7 +176,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}
 			};
 
-			plotData = new List<ITrace> { treemapTrace };
+			plotData = [treemapTrace];
 
 			plotLayout = new Plotly.Blazor.Layout
 			{
@@ -191,7 +196,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 		}
 
-		private object GetColorForGainLoss(decimal gainLossPercentage)
+		private static string GetColorForGainLoss(decimal gainLossPercentage)
 		{
 			if (Math.Abs(gainLossPercentage) < 0.01m)
 			{
@@ -253,42 +258,43 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			SortHoldings();
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "TODO, Sort logic")]
 		private void SortHoldings()
 		{
 			switch (sortColumn)
 			{
 				case "Symbol":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Symbol).ToList() : HoldingsList.OrderByDescending(h => h.Symbol).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Symbol)] : [.. HoldingsList.OrderByDescending(h => h.Symbol)];
 					break;
 				case "Name":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Name).ToList() : HoldingsList.OrderByDescending(h => h.Name).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Name)] : [.. HoldingsList.OrderByDescending(h => h.Name)];
 					break;
 				case "Quantity":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Quantity).ToList() : HoldingsList.OrderByDescending(h => h.Quantity).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Quantity)] : [.. HoldingsList.OrderByDescending(h => h.Quantity)];
 					break;
 				case "AveragePrice":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.AveragePrice).ToList() : HoldingsList.OrderByDescending(h => h.AveragePrice).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.AveragePrice)] : [.. HoldingsList.OrderByDescending(h => h.AveragePrice)];
 					break;
 				case "CurrentPrice":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.CurrentPrice).ToList() : HoldingsList.OrderByDescending(h => h.CurrentPrice).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.CurrentPrice)] : [.. HoldingsList.OrderByDescending(h => h.CurrentPrice)];
 					break;
 				case "CurrentValue":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.CurrentValue).ToList() : HoldingsList.OrderByDescending(h => h.CurrentValue).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.CurrentValue)] : [.. HoldingsList.OrderByDescending(h => h.CurrentValue)];
 					break;
 				case "GainLoss":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.GainLoss).ToList() : HoldingsList.OrderByDescending(h => h.GainLoss).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.GainLoss)] : [.. HoldingsList.OrderByDescending(h => h.GainLoss)];
 					break;
 				case "GainLossPercentage":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.GainLossPercentage).ToList() : HoldingsList.OrderByDescending(h => h.GainLossPercentage).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.GainLossPercentage)] : [.. HoldingsList.OrderByDescending(h => h.GainLossPercentage)];
 					break;
 				case "Weight":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Weight).ToList() : HoldingsList.OrderByDescending(h => h.Weight).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Weight)] : [.. HoldingsList.OrderByDescending(h => h.Weight)];
 					break;
 				case "Sector":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.Sector).ToList() : HoldingsList.OrderByDescending(h => h.Sector).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.Sector)] : [.. HoldingsList.OrderByDescending(h => h.Sector)];
 					break;
 				case "AssetClass":
-					HoldingsList = sortAscending ? HoldingsList.OrderBy(h => h.AssetClass).ToList() : HoldingsList.OrderByDescending(h => h.AssetClass).ToList();
+					HoldingsList = sortAscending ? [.. HoldingsList.OrderBy(h => h.AssetClass)] : [.. HoldingsList.OrderByDescending(h => h.AssetClass)];
 					break;
 				default:
 					break;
@@ -302,13 +308,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		public void Dispose()
 		{
-			if (FilterState != null)
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!_disposed && disposing)
 			{
-				FilterState.PropertyChanged -= OnFilterStateChanged;
-			}
-			if (_previousFilterState != null)
-			{
-				_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+				// Unsubscribe from current filter state
+				if (FilterState != null)
+				{
+					FilterState.PropertyChanged -= OnFilterStateChanged;
+				}
+
+				// Unsubscribe from previous filter state if it's different
+				if (_previousFilterState != null && _previousFilterState != FilterState)
+				{
+					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
+				}
+
+				_disposed = true;
 			}
 		}
 	}

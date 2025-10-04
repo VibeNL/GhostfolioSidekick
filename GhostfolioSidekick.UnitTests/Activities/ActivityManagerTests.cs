@@ -14,11 +14,11 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
         public ActivityManagerTests()
         {
-            _accounts = new List<Account>
-            {
-                new Account { Name = "Account1", Id = 1 },
+            _accounts =
+			[
+				new Account { Name = "Account1", Id = 1 },
                 new Account { Name = "Account2", Id = 2 }
-            };
+            ];
             _activityManager = new ActivityManager(_accounts);
         }
 

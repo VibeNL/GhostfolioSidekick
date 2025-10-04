@@ -1,6 +1,5 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
-using GhostfolioSidekick.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -9,7 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class Home : ComponentBase, IDisposable
 	{
 		[Inject]
-		private PortfolioClient PortfolioClient { get; set; }
+		private PortfolioClient PortfolioClient { get; set; } = default!;
 
 		[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 

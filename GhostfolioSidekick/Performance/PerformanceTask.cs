@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.Performance
 				.ToList();
 
 			// Delete obsolete holdings
-			if (obsoleteHoldings.Any())
+			if (obsoleteHoldings.Count != 0)
 			{
 				databaseContext.HoldingAggregateds.RemoveRange(obsoleteHoldings);
 			}
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.Performance
 		private async Task DeleteAllHoldings()
 		{
 			var allHoldings = await databaseContext.HoldingAggregateds.ToListAsync();
-			if (allHoldings.Any())
+			if (allHoldings.Count != 0)
 			{
 				databaseContext.HoldingAggregateds.RemoveRange(allHoldings);
 				await databaseContext.SaveChangesAsync();

@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
             // Arrange
             var holding = new Holding
             {
-                Activities = new List<Activity>()
+                Activities = []
             };
             var cleanTrace = new CleanTrace();
 
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 
             var holding = new Holding
             {
-                Activities = new List<Activity> { activity.Object }
+                Activities = [activity.Object]
             };
             var cleanTrace = new CleanTrace();
 

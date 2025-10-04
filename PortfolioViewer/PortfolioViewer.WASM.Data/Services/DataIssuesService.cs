@@ -51,8 +51,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			catch (Exception ex)
 			{
 				// Log the exception and return empty list with error information
-				return new List<DataIssueDisplayModel>
-				{
+				return
+				[
 					new DataIssueDisplayModel
 					{
 						IssueType = "System Error",
@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 						ActivityDescription = ex.ToString(),
 						Severity = "Error"
 					}
-				};
+				];
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					var activity = detailedActivities.FirstOrDefault(a => a.Id == dataIssue.Id);
 					if (activity != null)
 					{
-						await EnrichDataIssueWithActivityDetails(dataIssue, activity);
+						EnrichDataIssueWithActivityDetails(dataIssue, activity);
 					}
 				}
 			}
@@ -98,14 +98,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			}
 		}
 
-		private async Task EnrichDataIssueWithActivityDetails(DataIssueDisplayModel dataIssue, Activity activity)
+		private static void EnrichDataIssueWithActivityDetails(DataIssueDisplayModel dataIssue, Activity activity)
 		{
 			try
 			{
 				// Try to get symbol identifiers if the activity has them
 				if (activity is IActivityWithPartialIdentifier activityWithIdentifiers)
 				{
-					dataIssue.PartialIdentifiers = activityWithIdentifiers.PartialSymbolIdentifiers.ToList();
+					dataIssue.PartialIdentifiers = [.. activityWithIdentifiers.PartialSymbolIdentifiers];
 					dataIssue.SymbolIdentifiers = string.Join(", ", activityWithIdentifiers.PartialSymbolIdentifiers.Select(i => i.Identifier));
 				}
 

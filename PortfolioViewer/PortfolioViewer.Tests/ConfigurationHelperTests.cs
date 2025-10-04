@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
     public class ConfigurationHelperTests : IDisposable
     {
         private readonly IConfigurationHelper _configHelper;
-        private readonly List<string> _environmentVariablesToCleanup = new();
+        private readonly List<string> _environmentVariablesToCleanup = [];
         private readonly FakeApplicationSettings _fakeApplicationSettings;
 
         public ConfigurationHelperTests()

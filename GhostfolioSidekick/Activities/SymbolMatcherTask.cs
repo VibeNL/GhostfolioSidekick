@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.Activities
 			foreach (var symbol in symbols)
 			{
 				// Try to find existing holding
-				holding ??= currentHoldings.SingleOrDefault(x => CompareSymbolName1(x, symbol));
+				holding ??= currentHoldings.SingleOrDefault(x => CompareSymbolName(x, symbol));
 				holding ??= currentHoldings.SingleOrDefault(x => symbol.Identifiers.Select(x => PartialSymbolIdentifier.CreateGeneric(x)).Any(y => x.IdentifierContainsInList(y)));
 			}
 
@@ -139,12 +139,12 @@ namespace GhostfolioSidekick.Activities
 			activity.Holding = holding;
 		}
 
-		private bool CompareSymbolName1(Holding x, SymbolProfile symbol)
+		private static bool CompareSymbolName(Holding x, SymbolProfile symbol)
 		{
 			return x.SymbolProfiles.Any(y => y.DataSource == symbol.DataSource && CompareSymbolName(y.Symbol, symbol.Symbol));
 		}
 
-		private bool CompareSymbolName(string a, string b)
+		private static bool CompareSymbolName(string a, string b)
 		{
 			return string.Equals(
 					a.Replace("-", string.Empty),
@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.Activities
 					StringComparison.InvariantCultureIgnoreCase);
 		}
 
-		private IList<PartialSymbolIdentifier> GetIdentifiers(SymbolProfile symbol)
+		private static IList<PartialSymbolIdentifier> GetIdentifiers(SymbolProfile symbol)
 		{
 			var lst = new List<PartialSymbolIdentifier>();
 			foreach (var item in symbol.Identifiers)

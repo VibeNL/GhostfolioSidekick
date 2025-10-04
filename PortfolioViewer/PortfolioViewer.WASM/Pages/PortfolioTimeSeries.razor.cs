@@ -41,8 +41,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected bool IsLoading { get; set; } = false;
 		protected bool HasError { get; set; } = false;
 		protected string ErrorMessage { get; set; } = string.Empty;
-		protected List<PortfolioValueHistoryPoint> TimeSeriesData { get; set; } = new();
-		protected List<TimeSeriesDisplayModel> TimeSeriesDisplayData { get; set; } = new();
+		protected List<PortfolioValueHistoryPoint> TimeSeriesData { get; set; } = [];
+		protected List<TimeSeriesDisplayModel> TimeSeriesDisplayData { get; set; } = [];
 
 		// Sorting state
 		private string sortColumn = "Date";
@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		// Plotly chart
 		protected Config plotConfig = new();
 		protected Plotly.Blazor.Layout plotLayout = new();
-		protected IList<ITrace> plotData = new List<ITrace>();
+		protected IList<ITrace> plotData = [];
 
 		private FilterState? _previousFilterState;
 
@@ -124,16 +124,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			await Task.Yield();
 			try
 			{
-				if (HoldingsDataService == null || CurrencyExchange == null)
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+				if (HoldingsDataService == null)
 				{
-					throw new InvalidOperationException("HoldingsDataService or CurrencyExchange is not initialized.");
+					throw new InvalidOperationException("HoldingsDataService is not initialized.");
 				}
 
 				TimeSeriesData = await HoldingsDataService.GetPortfolioValueHistoryAsync(
 					StartDate,
 					EndDate,
 					SelectedAccountId
-				) ?? new List<PortfolioValueHistoryPoint>();
+				) ?? [];
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 				
 				await PrepareDisplayData();
 				await PrepareChartData();
@@ -150,16 +152,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
-		private async Task PrepareDisplayData()
+		private Task PrepareDisplayData()
 		{
 			if (TimeSeriesData.Count == 0)
 			{
-				TimeSeriesDisplayData = new List<TimeSeriesDisplayModel>();
-				return;
+				TimeSeriesDisplayData = [];
+				return Task.CompletedTask;
 			}
 
 			var displayData = new List<TimeSeriesDisplayModel>();
-			var targetCurrency = ServerConfigurationService.PrimaryCurrency;
+			var targetCurrency = ServerConfigurationService?.PrimaryCurrency ?? Currency.GetCurrency("USD");
 
 			foreach (var point in TimeSeriesData)
 			{
@@ -180,18 +182,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			TimeSeriesDisplayData = displayData;
 			SortDisplayData();
+			return Task.CompletedTask;
 		}
 
-		private async Task PrepareChartData()
+		private Task PrepareChartData()
 		{
 			if (TimeSeriesData.Count == 0)
 			{
-				plotData = new List<ITrace>();
-				return;
+				plotData = [];
+				return Task.CompletedTask;
 			}
 
-			List<object> valueList = new();
-			List<object> investedList = new();
+			List<object> valueList = [];
+			List<object> investedList = [];
 			foreach (var p in TimeSeriesData)
 			{
 				valueList.Add(p.Value);
@@ -217,12 +220,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				Marker = new Plotly.Blazor.Traces.ScatterLib.Marker { Color = "#28a745", Size = 6 }
 			};
 
-			plotData = new List<ITrace> { valueTrace, investedTrace };
+			plotData = [valueTrace, investedTrace];
+			var primaryCurrency = ServerConfigurationService?.PrimaryCurrency;
 			plotLayout = new Plotly.Blazor.Layout
 			{
 				Title = new Plotly.Blazor.LayoutLib.Title { Text = "Portfolio Value Over Time" },
-				XAxis = new List<Plotly.Blazor.LayoutLib.XAxis> { new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } } },
-				YAxis = new List<Plotly.Blazor.LayoutLib.YAxis> { new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({ServerConfigurationService.PrimaryCurrency.Symbol})" } } },
+				XAxis = [new Plotly.Blazor.LayoutLib.XAxis { Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "Date" } }],
+				YAxis = [new Plotly.Blazor.LayoutLib.YAxis { Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = $"Value ({primaryCurrency?.Symbol ?? "$"})" } }],
 				Margin = new Plotly.Blazor.LayoutLib.Margin { T = 40, L = 60, R = 30, B = 40 },
 				AutoSize = true,
 				ShowLegend = true,
@@ -232,6 +236,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				}]
 			};
 			plotConfig = new Config { Responsive = true };
+			return Task.CompletedTask;
 		}
 
 		private void SortBy(string column)
@@ -254,28 +259,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				case "Date":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.Date).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.Date).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.Date)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.Date)];
 					break;
 				case "TotalValue":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.TotalValue.Amount).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.TotalValue.Amount).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.TotalValue.Amount)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.TotalValue.Amount)];
 					break;
 				case "TotalInvested":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.TotalInvested.Amount).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.TotalInvested.Amount).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.TotalInvested.Amount)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.TotalInvested.Amount)];
 					break;
 				case "GainLoss":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.GainLoss.Amount).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.GainLoss.Amount).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.GainLoss.Amount)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.GainLoss.Amount)];
 					break;
 				case "GainLossPercentage":
 					TimeSeriesDisplayData = sortAscending 
-						? TimeSeriesDisplayData.OrderBy(d => d.GainLossPercentage).ToList() 
-						: TimeSeriesDisplayData.OrderByDescending(d => d.GainLossPercentage).ToList();
+						? [.. TimeSeriesDisplayData.OrderBy(d => d.GainLossPercentage)]
+						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.GainLossPercentage)];
 					break;
 				default:
 					break;

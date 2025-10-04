@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Models
         /// <summary>
         /// Keywords from meta tags
         /// </summary>
-        public List<string> Keywords { get; set; } = new();
+        public List<string> Keywords { get; set; } = [];
         
         /// <summary>
         /// The content type of the response

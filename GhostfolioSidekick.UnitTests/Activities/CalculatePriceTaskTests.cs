@@ -18,11 +18,11 @@ namespace GhostfolioSidekick.UnitTests.Activities
         public CalculatePriceTaskTests()
         {
             _mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
-            _holdingStrategies = new List<IHoldingStrategy>
-            {
-                new Mock<IHoldingStrategy>().Object,
+            _holdingStrategies =
+			[
+				new Mock<IHoldingStrategy>().Object,
                 new Mock<IHoldingStrategy>().Object
-            };
+            ];
             _calculatePriceTask = new CalculatePriceTask(_holdingStrategies, _mockDbContextFactory.Object);
         }
 

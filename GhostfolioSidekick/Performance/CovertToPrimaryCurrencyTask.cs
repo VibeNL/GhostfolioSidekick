@@ -55,11 +55,11 @@ namespace GhostfolioSidekick.Performance
 				primarySnapshot.AccountId = snapshot.AccountId;
 			}
 
-			logger.LogInformation("Converted {Count} snapshots to primary currency {Currency}", await snapshots.CountAsync(), primaryCurrencySymbol);
+			logger.LogDebug("Converted {Count} snapshots to primary currency {Currency}", await snapshots.CountAsync(), primaryCurrencySymbol);
 
 			await databaseContext.SaveChangesAsync();
 
-			logger.LogInformation("Converting all balances to primary currency {Currency}", primaryCurrencySymbol);
+			logger.LogDebug("Converting all balances to primary currency {Currency}", primaryCurrencySymbol);
 
 			var balances = databaseContext.Balances.AsQueryable();
 
@@ -81,16 +81,16 @@ namespace GhostfolioSidekick.Performance
 				primaryBalance.Money = (await currencyExchange.ConvertMoney(balance.Money, currency, balance.Date)).Amount;
 			}
 
-			logger.LogInformation("Converted {Count} balances to primary currency {Currency}", await balances.CountAsync(), primaryCurrencySymbol);
+			logger.LogDebug("Converted {Count} balances to primary currency {Currency}", await balances.CountAsync(), primaryCurrencySymbol);
 
 			await databaseContext.SaveChangesAsync();
 
-			logger.LogInformation("Adding missing days and extrapolating balances to today");
+			logger.LogDebug("Adding missing days and extrapolating balances to today");
 
 			// Fill missing days and extrapolate to today for each account
 			await FillMissingDaysAndExtrapolate();
 
-			logger.LogInformation("Cleanup unmatched primary currency records");
+			logger.LogDebug("Cleanup unmatched primary currency records");
 
 			// Cleanup unmatched items (but preserve extrapolated records)
 			await CleanupUnmatchedItems();
@@ -114,14 +114,14 @@ namespace GhostfolioSidekick.Performance
 					.OrderBy(b => b.Date)
 					.ToListAsync();
 
-				if (!existingBalances.Any())
+				if (existingBalances.Count == 0)
 				{
 					continue;
 				}
 
-				var startDate = existingBalances.First().Date;
-				var lastKnownDate = existingBalances.Last().Date;
-				var lastKnownAmount = existingBalances.Last().Money;
+				var startDate = existingBalances[0].Date;
+				var lastKnownDate = existingBalances[^1].Date;
+				var lastKnownAmount = existingBalances[^1].Money;
 
 				// Create set of existing dates for quick lookup
 				var existingDates = existingBalances.Select(b => b.Date).ToHashSet();
@@ -153,10 +153,10 @@ namespace GhostfolioSidekick.Performance
 					});
 				}
 
-				if (newBalances.Any())
+				if (newBalances.Count != 0)
 				{
 					databaseContext.BalancePrimaryCurrencies.AddRange(newBalances);
-					logger.LogInformation("Added {Count} missing balance records for account {AccountId}", newBalances.Count, accountId);
+					logger.LogDebug("Added {Count} missing balance records for account {AccountId}", newBalances.Count, accountId);
 				}
 			}
 

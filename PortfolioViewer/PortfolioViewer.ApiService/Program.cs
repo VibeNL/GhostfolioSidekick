@@ -50,9 +50,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 				var connectionString = "Data Source="+configHelper.GetConnectionString();
 				options.UseSqlite(connectionString);
 			});
-			builder.Services.AddDbContextFactory<DatabaseContext>(options =>
+			builder.Services.AddDbContextFactory<DatabaseContext>((serviceProvider, options) =>
 			{
-				var configHelper = builder.Services.BuildServiceProvider().GetRequiredService<IConfigurationHelper>();
+				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
 				var connectionString = "Data Source=" + configHelper.GetConnectionString();
 				options.UseSqlite(connectionString);
 			}, ServiceLifetime.Scoped);

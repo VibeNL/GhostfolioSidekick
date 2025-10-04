@@ -1,6 +1,5 @@
 ﻿using AutoFixture;
 using AutoFixture.Kernel;
-using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
 

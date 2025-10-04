@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 	public class SqlitePersistence
 	{
 		private readonly IJSRuntime js;
-		private IJSObjectReference module;
+		private IJSObjectReference? module;
 
 		public SqlitePersistence(IJSRuntime js)
 		{

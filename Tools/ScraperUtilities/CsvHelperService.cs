@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
     public class CsvHelperService
     {
-        public void SaveToCSV(string outputFile, IEnumerable<ActivityWithSymbol> transactions)
+        public static void SaveToCSV(string outputFile, IEnumerable<ActivityWithSymbol> transactions)
         {
             using var writer = new StreamWriter(outputFile);
             using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);

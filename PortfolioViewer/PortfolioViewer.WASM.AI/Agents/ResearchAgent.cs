@@ -202,7 +202,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 			[Description("The topic to research")]string topic, 
 			[Description("Specific aspects of the topic to research. Should be in natural language")] string[] aspects)
 		{
-			await _agentLogger.StartFunction(nameof(MultiStepResearch));
+			_agentLogger.StartFunction(nameof(MultiStepResearch));
 
 			if (string.IsNullOrWhiteSpace(topic))
 			{
@@ -287,12 +287,12 @@ Respond with a JSON array of 3-5 clear and specific aspects to research.");
 				var resultsForSummarization = new SearchResults
 				{
 					Query = $"{topic} - {aspect}",
-					Items = results.Select(r => new SearchResultItem
+					Items = [.. results.Select(r => new SearchResultItem
 					{
 						Title = r.Title ?? "No title",
 						Link = r.Link ?? string.Empty,
 						Content = r.Content ?? r.Snippet ?? "No content available"
-					}).ToList()
+					})]
 				};
 				
 				var summary = await SummarizeSearchResults(resultsForSummarization);
@@ -344,7 +344,7 @@ Maintain a professional tone suitable for financial and investment contexts.");
 	public class SearchResults
 	{
 		public string Query { get; set; } = string.Empty;
-		public List<SearchResultItem> Items { get; set; } = new();
+		public List<SearchResultItem> Items { get; set; } = [];
 	}
 	
 	public class SearchResultItem

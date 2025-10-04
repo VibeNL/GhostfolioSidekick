@@ -24,12 +24,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 		// Pending filter state that holds changes before applying
 		private PendingFilterState _pendingFilterState = new();
 
-		private List<Account> Accounts { get; set; } = new();
-		private List<string> Symbols { get; set; } = new();
+		private List<Account> Accounts { get; set; } = [];
+		private List<string> Symbols { get; set; } = [];
 
 		// Store all available accounts and symbols for filtering
-		private List<Account> _allAccounts = new();
-		private List<string> _allSymbols = new();
+		private List<Account> _allAccounts = [];
+		private List<string> _allSymbols = [];
 
 		private string? _currentDateRange = null;
 
@@ -250,15 +250,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 				else
 				{
 					Logger?.LogWarning("GetAccountsAsync returned null");
-					_allAccounts = new List<Account>();
-					Accounts = new List<Account>();
+					_allAccounts = [];
+					Accounts = [];
 				}
 			}
 			catch (OperationCanceledException)
 			{
 				Logger?.LogError("Timeout loading accounts for filter");
-				_allAccounts = new List<Account>();
-				Accounts = new List<Account>();
+				_allAccounts = [];
+				Accounts = [];
 
 				// Ensure pending state remains consistent
 				if (_pendingFilterState.SelectedAccountId > 0)
@@ -270,8 +270,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			catch (Exception ex)
 			{
 				Logger?.LogError(ex, "Failed to load accounts for filter");
-				_allAccounts = new List<Account>();
-				Accounts = new List<Account>();
+				_allAccounts = [];
+				Accounts = [];
 
 				// Ensure pending state remains consistent
 				if (_pendingFilterState.SelectedAccountId > 0)
@@ -309,15 +309,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 				else
 				{
 					Logger?.LogWarning("GetSymbolsAsync returned null");
-					_allSymbols = new List<string>();
-					Symbols = new List<string>();
+					_allSymbols = [];
+					Symbols = [];
 				}
 			}
 			catch (OperationCanceledException)
 			{
 				Logger?.LogError("Timeout loading symbols for filter");
-				_allSymbols = new List<string>();
-				Symbols = new List<string>();
+				_allSymbols = [];
+				Symbols = [];
 
 				// Ensure pending state remains consistent
 				if (!string.IsNullOrEmpty(_pendingFilterState.SelectedSymbol))
@@ -329,8 +329,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			catch (Exception ex)
 			{
 				Logger?.LogError(ex, "Failed to load symbols for filter");
-				_allSymbols = new List<string>();
-				Symbols = new List<string>();
+				_allSymbols = [];
+				Symbols = [];
 
 				// Ensure pending state remains consistent
 				if (!string.IsNullOrEmpty(_pendingFilterState.SelectedSymbol))
@@ -444,7 +444,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			return range == _currentDateRange ? "btn-primary" : "btn-outline-primary";
 		}
 
-		private async Task OnStartDateChanged(ChangeEventArgs e)
+		private Task OnStartDateChanged(ChangeEventArgs e)
 		{
 			if (DateOnly.TryParse(e.Value?.ToString(), out var date))
 			{
@@ -457,9 +457,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					FilterState.StartDate = date;
 				}
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		private async Task OnEndDateChanged(ChangeEventArgs e)
+		private Task OnEndDateChanged(ChangeEventArgs e)
 		{
 			if (DateOnly.TryParse(e.Value?.ToString(), out var date))
 			{
@@ -472,45 +474,57 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					FilterState.EndDate = date;
 				}
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		private async Task OnAccountChanged(ChangeEventArgs e)
+		private Task OnAccountChanged(ChangeEventArgs e)
 		{
 			if (int.TryParse(e.Value?.ToString(), out var accountId))
 			{
 				_pendingFilterState.SelectedAccountId = accountId;
-
-				// Update available Symbols based on selected account
-				await UpdateFilteredOptionsAsync();
-				StateHasChanged();
 
 				// If apply button is not shown, apply changes immediately
 				if (!ShowApplyButton && FilterState != null)
 				{
 					FilterState.SelectedAccountId = accountId;
 				}
+				
+				// Update available Symbols based on selected account
+				Task.Run(async () =>
+				{
+					await UpdateFilteredOptionsAsync();
+					await InvokeAsync(StateHasChanged);
+				});
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		private async Task OnSymbolChanged(ChangeEventArgs e)
+		private Task OnSymbolChanged(ChangeEventArgs e)
 		{
 			if (e.Value != null)
 			{
 				_pendingFilterState.SelectedSymbol = e.Value.ToString() ?? "";
-
-				// Update available accounts based on selected symbol
-				await UpdateFilteredOptionsAsync();
-				StateHasChanged();
 
 				// If apply button is not shown, apply changes immediately
 				if (!ShowApplyButton && FilterState != null)
 				{
 					FilterState.SelectedSymbol = _pendingFilterState.SelectedSymbol;
 				}
+				
+				// Update available accounts based on selected symbol
+				Task.Run(async () =>
+				{
+					await UpdateFilteredOptionsAsync();
+					await InvokeAsync(StateHasChanged);
+				});
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		private async Task OnTransactionTypeChanged(ChangeEventArgs e)
+		private Task OnTransactionTypeChanged(ChangeEventArgs e)
 		{
 			if (e.Value != null)
 			{
@@ -522,9 +536,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					FilterState.SelectedTransactionType = _pendingFilterState.SelectedTransactionType;
 				}
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		private async Task OnSearchTextChanged(ChangeEventArgs e)
+		private Task OnSearchTextChanged(ChangeEventArgs e)
 		{
 			if (e.Value != null)
 			{
@@ -536,9 +552,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					FilterState.SearchText = _pendingFilterState.SearchText;
 				}
 			}
+			
+			return Task.CompletedTask;
 		}
 
-		private async Task OnSearchTextInput(ChangeEventArgs e)
+		private Task OnSearchTextInput(ChangeEventArgs e)
 		{
 			if (e.Value != null)
 			{
@@ -562,6 +580,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					}, null, 300, Timeout.Infinite);
 				}
 			}
+			
+			return Task.CompletedTask;
 		}
 
 		private async Task ApplyFilters()

@@ -72,8 +72,8 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 					{
 						SourceCurrency = Currency.USD,
 						TargetCurrency = Currency.EUR,
-						Rates = new List<CurrencyExchangeRate>
-						{
+						Rates =
+						[
 							new CurrencyExchangeRate
 							{
 								Date = date,
@@ -83,7 +83,7 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 								Low = new Money(currency, exchangeRate),
 								TradingVolume = 0
 							}
-						}
+						]
 					}
 				});
 
@@ -114,8 +114,8 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 					{
 						SourceCurrency = Currency.USD,
 						TargetCurrency = Currency.EUR,
-						Rates = new List<CurrencyExchangeRate>
-						{
+						Rates =
+						[
 							new CurrencyExchangeRate
 							{
 								Date = previousDate,
@@ -125,7 +125,7 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests.Repository
 								Low = new Money(currency, exchangeRate),
 								TradingVolume = 0
 							}
-						}
+						]
 					}
 				});
 

@@ -3,9 +3,6 @@ using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider.Manual;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -110,7 +107,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			var repository = new ManualSymbolRepository(mockContext.Object, mockCurrencyExchange.Object);
 
 			// Assert
-			Assert.IsAssignableFrom<ISymbolMatcher>(repository);
+			Assert.IsType<ISymbolMatcher>(repository, exactMatch: false);
 		}
 
 		[Fact]
@@ -124,7 +121,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			var repository = new ManualSymbolRepository(mockContext.Object, mockCurrencyExchange.Object);
 
 			// Assert
-			Assert.IsAssignableFrom<IStockPriceRepository>(repository);
+			Assert.IsType<IStockPriceRepository>(repository, exactMatch: false);
 		}
 
 		[Fact]
@@ -217,7 +214,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 	/// Integration tests for ManualSymbolRepository that test the actual database operations.
 	/// Note: These tests avoid complex EF Core queries that don't work with InMemory provider.
 	/// </summary>
-	public class ManualSymbolRepositoryIntegrationTests : IDisposable
+	public class ManualSymbolRepositoryIntegrationTests
 	{
 		private readonly DatabaseContext _context;
 		private readonly Mock<ICurrencyExchange> _currencyExchangeMock;
@@ -232,11 +229,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			_context = new DatabaseContext(options);
 			_currencyExchangeMock = new Mock<ICurrencyExchange>();
 			_repository = new ManualSymbolRepository(_context, _currencyExchangeMock.Object);
-		}
-
-		public void Dispose()
-		{
-			_context.Dispose();
 		}
 
 		[Fact]
@@ -256,8 +248,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 		public void Repository_Implements_RequiredInterfaces()
 		{
 			// Act & Assert
-			Assert.IsAssignableFrom<ISymbolMatcher>(_repository);
-			Assert.IsAssignableFrom<IStockPriceRepository>(_repository);
+			Assert.IsType<ISymbolMatcher>(_repository, exactMatch: false);
+			Assert.IsType<IStockPriceRepository>(_repository, exactMatch: false);
 		}
 
 		[Fact]
@@ -296,7 +288,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			await _context.SaveChangesAsync();
 
 			// Basic verification that context is working
-			var count = _context.SymbolProfiles.Count();
+			var count = await _context.SymbolProfiles.CountAsync();
 			Assert.True(count >= 1);
 		}
 
@@ -351,8 +343,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			// Act & Assert
 			Assert.Equal(Datasource.MANUAL, repository.DataSource);
 			Assert.Equal(DateOnly.MinValue, repository.MinDate);
-			Assert.IsAssignableFrom<ISymbolMatcher>(repository);
-			Assert.IsAssignableFrom<IStockPriceRepository>(repository);
+			Assert.IsType<ISymbolMatcher>(repository, exactMatch: false);
+			Assert.IsType<IStockPriceRepository>(repository, exactMatch: false);
 		}
 
 		[Fact]
@@ -508,6 +500,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 		}
 
 		[Fact]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance", Justification = "Interface test")]
 		public void Repository_ImplementsBothInterfaces()
 		{
 			// Arrange
@@ -518,8 +511,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			var repository = new ManualSymbolRepository(mockContext.Object, mockCurrencyExchange.Object);
 
 			// Assert
-			Assert.IsAssignableFrom<ISymbolMatcher>(repository);
-			Assert.IsAssignableFrom<IStockPriceRepository>(repository);
+			Assert.IsType<ISymbolMatcher>(repository, exactMatch: false);
+			Assert.IsType<IStockPriceRepository>(repository, exactMatch: false);
 			
 			// Verify interface properties are accessible
 			var symbolMatcher = repository as ISymbolMatcher;

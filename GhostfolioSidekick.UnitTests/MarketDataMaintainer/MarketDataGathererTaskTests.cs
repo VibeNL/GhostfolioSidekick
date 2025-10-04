@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL", 
 				DataSource = "TEST_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData>()
+				MarketData = []
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
@@ -155,17 +155,17 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL", 
 				DataSource = "UNKNOWN_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData>()
+				MarketData = []
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
 			var holding = new Holding 
 			{ 
-				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
-				Activities = new List<Activity> 
-				{
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
 					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
-				}
+				]
 			};
 			var holdings = new List<Holding> { holding };
 
@@ -200,22 +200,22 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL", 
 				DataSource = "TEST_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData>
-				{
+				MarketData =
+				[
 					new(new Money(Currency.USD, 100), new Money(Currency.USD, 95), 
 						new Money(Currency.USD, 105), new Money(Currency.USD, 90), 
 						1000, DateOnly.FromDateTime(DateTime.Today))
-				}
+				]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
 			var holding = new Holding 
 			{ 
-				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
-				Activities = new List<Activity> 
-				{
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
 					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
-				}
+				]
 			};
 			var holdings = new List<Holding> { holding };
 
@@ -255,17 +255,17 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL", 
 				DataSource = "TEST_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData>()
+				MarketData = []
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
 			var holding = new Holding 
 			{ 
-				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
-				Activities = new List<Activity> 
-				{
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
 					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
-				}
+				]
 			};
 			var holdings = new List<Holding> { holding };
 
@@ -325,17 +325,17 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL", 
 				DataSource = "TEST_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData> { existingMarketData }
+				MarketData = [existingMarketData]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
 			var holding = new Holding 
 			{ 
-				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
-				Activities = new List<Activity> 
-				{
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
 					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
-				}
+				]
 			};
 			var holdings = new List<Holding> { holding };
 
@@ -384,17 +384,17 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL", 
 				DataSource = "TEST_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData> { existingMarketData }
+				MarketData = [existingMarketData]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
 			var holding = new Holding 
 			{ 
-				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
-				Activities = new List<Activity> 
-				{
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
 					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
-				}
+				]
 			};
 			var holdings = new List<Holding> { holding };
 
@@ -444,17 +444,17 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL", 
 				DataSource = "TEST_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData> { existingMarketData }
+				MarketData = [existingMarketData]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
 			var holding = new Holding 
 			{ 
-				SymbolProfiles = new List<SymbolProfile> { symbolProfile },
-				Activities = new List<Activity> 
-				{
+				SymbolProfiles = [symbolProfile],
+				Activities =
+				[
 					new BuyActivity { Date = activityDate }
-				}
+				]
 			};
 			var holdings = new List<Holding> { holding };
 
@@ -494,7 +494,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL", 
 				DataSource = "TEST_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData>()
+				MarketData = []
 			};
 
 			var symbolProfile2 = new SymbolProfile 
@@ -502,25 +502,25 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "GOOGL", 
 				DataSource = "TEST_SOURCE", 
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData>()
+				MarketData = []
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile1, symbolProfile2 };
 			var holding1 = new Holding 
 			{ 
-				SymbolProfiles = new List<SymbolProfile> { symbolProfile1 },
-				Activities = new List<Activity> 
-				{
+				SymbolProfiles = [symbolProfile1],
+				Activities =
+				[
 					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
-				}
+				]
 			};
 			var holding2 = new Holding 
 			{ 
-				SymbolProfiles = new List<SymbolProfile> { symbolProfile2 },
-				Activities = new List<Activity> 
-				{
+				SymbolProfiles = [symbolProfile2],
+				Activities =
+				[
 					new BuyActivity { Date = DateTime.Today.AddDays(-25) }
-				}
+				]
 			};
 			var holdings = new List<Holding> { holding1, holding2 };
 

@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Grpc.Net.Client;
@@ -20,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		ISyncTrackingService syncTrackingService,
 		ILogger<PortfolioClient> logger) : IDisposable
 	{
-		private string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
+		private readonly string[] TablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
 
 		const int pageSize = 10_000;
 		const int PartialSyncBufferDays = 1; // Buffer to ensure we don't miss any data
@@ -29,26 +28,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed = false;
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "Update UI")]
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)
 		{
 			try
 			{
 				// Step 0: Ensure Database is Up-to-Date
-				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
-				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync();
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+				var pendingMigrations = await databaseContext.Database.GetPendingMigrationsAsync(cancellationToken: cancellationToken);
 				if (pendingMigrations.Any())
 				{
 					try
 					{
-						await databaseContext.Database.MigrateAsync();
-					} catch
+						await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
+					}
+					catch (Exception ex)
 					{
 						progress.Report(("Error applying database migrations. Forcing new database.", 0));
-						logger.LogWarning("Failed to apply migrations, forcing new database");
+						logger.LogWarning(ex, "Failed to apply migrations, forcing new database");
 						forceFullSync = true;
 
-						await databaseContext.Database.EnsureDeletedAsync();
-						await databaseContext.Database.MigrateAsync();
+						await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
+						await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
 					}
 				}
 
@@ -101,17 +102,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			await currencyExchange.PreloadAllExchangeRates();
 		}
 
-		private async Task<bool> TryPartialSync(SyncService.SyncServiceClient grpcClient, DateTime lastSyncTime, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task<bool> TryPartialSync(SyncService.SyncServiceClient grpcClient, DateTime lastSyncTime, IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
 		{
 			try
 			{
 				// Add buffer days to ensure we don't miss any data
 				var sinceDate = lastSyncTime.Date.AddDays(-PartialSyncBufferDays);
-				var sinceDateString = sinceDate.ToString("yyyy-MM-dd");
+				// Use culture-invariant ISO 8601 date format consistently
+				var sinceDateString = sinceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
 				progress?.Report(($"Checking data since {sinceDateString}...", 5));
 
-				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				// Get all table names dynamically from the database
 				var allTables = await GetDatabaseTablesAsync(databaseContext);
@@ -122,20 +124,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				var latestDatesResponse = await grpcClient.GetLatestDatesAsync(new GetLatestDatesRequest(), cancellationToken: cancellationToken);
 
 				// Check if partial sync would be beneficial for tables with dates
-				var tablesToSyncPartially = new List<string>();
-				var tablesToSyncFully = new List<string>(tablesWithoutDateColumns);
+				var tablesToSyncPartially = tablesWithDateColumns
+					.Where(table => latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr) 
+								   && DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate) 
+								   && latestDate >= sinceDate)
+					.ToList();
 
-				foreach (var table in tablesWithDateColumns)
-				{
-					if (latestDatesResponse.LatestDates.ContainsKey(table))
-					{
-						var latestDateStr = latestDatesResponse.LatestDates[table];
-						if (DateTime.TryParse(latestDateStr, out var latestDate) && latestDate >= sinceDate)
-						{
-							tablesToSyncPartially.Add(table);
-						}
-					}
-				}
+				var tablesToSyncFully = new List<string>(tablesWithoutDateColumns);
 
 				// Always sync tables without date columns during partial sync
 				// If no tables need syncing, we're up to date
@@ -166,7 +161,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					logger.LogInformation("Deleted {RecordCount} existing records from {TableName} since {SinceDate}", deleteRecordsCount, tableName, sinceDateString);
 
 					// Sync new data with server-side currency conversion
-					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, progress, cancellationToken);
+					await SyncTableDataSince(grpcClient, databaseContext, tableName, sinceDateString, cancellationToken);
 
 					totalProgress += progressStep;
 				}
@@ -181,7 +176,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
 
 					// Sync all data for this table
-					await SyncTableDataFull(grpcClient, databaseContext, tableName, progress, cancellationToken);
+					await SyncTableDataFull(grpcClient, databaseContext, tableName, cancellationToken);
 
 					totalProgress += progressStep;
 				}
@@ -194,7 +189,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await sqlitePersistence.SaveChangesAsync(cancellationToken);
 
 				var allSyncedTables = tablesToSyncPartially.Concat(tablesToSyncFully).ToList();
-				logger.LogInformation("Partial sync completed successfully for {TableCount} tables: {Tables}", 
+				logger.LogInformation("Partial sync completed successfully for {TableCount} tables: {Tables}",
 					allSyncedTables.Count, string.Join(", ", allSyncedTables));
 				return true;
 			}
@@ -208,27 +203,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private async Task<List<string>> GetDatabaseTablesAsync(DatabaseContext databaseContext)
 		{
 			var query = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT IN (@ignore1, @ignore2, @ignore3)";
-			
+
 			using var connection = databaseContext.Database.GetDbConnection();
 			await connection.OpenAsync();
 			using var command = connection.CreateCommand();
 			command.CommandText = query;
 
-			// Add parameters for tables to ignore
-			var ignore1Param = command.CreateParameter();
-			ignore1Param.ParameterName = "@ignore1";
-			ignore1Param.Value = TablesToIgnore[0];
-			command.Parameters.Add(ignore1Param);
+			// Add parameters for tables to ignore using LINQ
+			var parameters = TablesToIgnore.Select((ignore, index) =>
+			{
+				var param = command.CreateParameter();
+				param.ParameterName = $"@ignore{index + 1}";
+				param.Value = ignore;
+				return param;
+			}).ToArray();
 
-			var ignore2Param = command.CreateParameter();
-			ignore2Param.ParameterName = "@ignore2";
-			ignore2Param.Value = TablesToIgnore[1];
-			command.Parameters.Add(ignore2Param);
-
-			var ignore3Param = command.CreateParameter();
-			ignore3Param.ParameterName = "@ignore3";
-			ignore3Param.Value = TablesToIgnore[2];
-			command.Parameters.Add(ignore3Param);
+			command.Parameters.AddRange(parameters);
 
 			var tables = new List<string>();
 			using var reader = await command.ExecuteReaderAsync();
@@ -240,7 +230,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return tables;
 		}
 
-		private async Task<List<string>> GetTablesWithDateColumnsAsync(DatabaseContext databaseContext, List<string> tables)
+		private static async Task<List<string>> GetTablesWithDateColumnsAsync(DatabaseContext databaseContext, List<string> tables)
 		{
 			var tablesWithDateColumns = new List<string>();
 
@@ -268,7 +258,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return tablesWithDateColumns;
 		}
 
-		private async Task<int> DeleteRecordsSinceDate(DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
+		private static async Task<int> DeleteRecordsSinceDate(DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
 		{
 			// Check if table has a Date column
 			var hasDateColumn = await TableHasDateColumn(databaseContext, tableName);
@@ -292,7 +282,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return await command.ExecuteNonQueryAsync(cancellationToken);
 		}
 
-		private async Task<bool> TableHasDateColumn(DatabaseContext databaseContext, string tableName)
+		private static async Task<bool> TableHasDateColumn(DatabaseContext databaseContext, string tableName)
 		{
 			using var connection = databaseContext.Database.GetDbConnection();
 			await connection.OpenAsync();
@@ -312,7 +302,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			return false;
 		}
 
-		private async Task SyncTableDataFull(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task SyncTableDataFull(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, CancellationToken cancellationToken)
 		{
 			await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
 			{
@@ -320,7 +310,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task SyncTableDataSince(SyncService.SyncServiceClient grpcClient, DatabaseContext databaseContext, string tableName, string sinceDateString, CancellationToken cancellationToken)
 		{
 			await foreach (var dataChunk in FetchDataSinceAsync(grpcClient, tableName, sinceDateString, cancellationToken))
 			{
@@ -363,21 +353,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						yield break;
 					}
 
-					// Pre-allocate the list with known capacity for better performance
-					var data = new List<Dictionary<string, object>>(response.Records.Count);
-
-					// Convert gRPC response to the expected format with optimized loop
-					foreach (var record in response.Records)
-					{
-						var dictionary = new Dictionary<string, object>(record.Fields.Count);
-						foreach (var field in record.Fields)
-						{
-							// Convert string back to appropriate type
-							dictionary[field.Key] = ConvertStringToValue(field.Value);
-						}
-
-						data.Add(dictionary);
-					}
+					// Convert gRPC response to the expected format with LINQ
+					var data = response.Records.Select(record => 
+						record.Fields.ToDictionary(field => field.Key, field => ConvertStringToValue(field.Value))
+					).ToList();
 
 					yield return data;
 
@@ -397,7 +376,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			logger.LogInformation("Completed fetching data for table: {TableName} since {SinceDate}, total pages: {TotalPages}", tableName, sinceDateString, page - 1);
 		}
 
-		private async Task PerformFullSync(SyncService.SyncServiceClient grpcClient, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken)
+		private async Task PerformFullSync(SyncService.SyncServiceClient grpcClient, IProgress<(string action, int progress)>? progress, CancellationToken cancellationToken)
 		{
 			// Step 1: Retrieve Table Names and Row Counts
 			progress?.Report(("Retrieving table names and row counts...", 0));
@@ -414,7 +393,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			var recordsWritten = 0;
 			var totalRecordsToSync = totalRows.Sum();
 
-			await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 			// Step 2: Clear Tables
 			// Disable contraints on DB
@@ -426,40 +405,37 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			await databaseContext.ExecutePragma("PRAGMA temp_store =MEMORY;");
 			await databaseContext.ExecutePragma("PRAGMA auto_vacuum=0;");
 
-			for (int i = 0; i < tableNames.Count; i++)
+			// Clear all non-ignored tables using LINQ
+			var tablesToClear = tableNames.Zip(totalRows, (name, count) => new { Name = name, Count = count })
+				.Where(t => !TablesToIgnore.Contains(t.Name));
+
+			foreach (var table in tablesToClear)
 			{
-				var tableName = tableNames[i];
-				if (!TablesToIgnore.Contains(tableName))
-				{
-					var rowCount = totalRows[i];
-					progress?.Report(($"Clearing table: {tableName} ({rowCount} rows)...", 0));
-					var deleteSql = $"DELETE FROM {tableName}";
-					await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
-				}
+				progress?.Report(($"Clearing table: {table.Name} ({table.Count} rows)...", 0));
+				var deleteSql = $"DELETE FROM {table.Name}";
+				await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
 			}
 
 			// Step 3: Sync Data for Each Table with server-side currency conversion
-			for (int i = 0; i < tableNames.Count; i++)
+			var syncTables = tableNames.Zip(totalRows, (name, count) => new { Name = name, Count = count })
+				.Where(t => !TablesToIgnore.Contains(t.Name));
+
+			foreach (var table in syncTables)
 			{
-				var tableName = tableNames[i];
-				if (!TablesToIgnore.Contains(tableName))
+				var totalWrittenTable = 0;
+				progress?.Report(($"Syncing data for table: {table.Name} ({table.Count} rows)...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+
+				await foreach (var dataChunk in FetchDataAsync(grpcClient, table.Name, cancellationToken))
 				{
-					var expectedRowCount = totalRows[i];
-					var totalWrittenTable = 0;
-					progress?.Report(($"Syncing data for table: {tableName} ({expectedRowCount} rows)...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-
-					await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
-					{
-						progress?.Report(($"Inserting data into table: {tableName} ({totalWrittenTable}/{expectedRowCount})...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-						await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
-						totalWrittenTable += dataChunk.Count;
-						recordsWritten += dataChunk.Count;
-						progress?.Report(($"Inserted {totalWrittenTable}/{expectedRowCount} records into table: {tableName}...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
-					}
-
-					logger.LogInformation("Completed syncing table {TableName}: {ActualRows}/{ExpectedRows} records",
-						tableName, totalWrittenTable, expectedRowCount);
+					progress?.Report(($"Inserting data into table: {table.Name} ({totalWrittenTable}/{table.Count})...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
+					await InsertDataAsync(databaseContext, table.Name, dataChunk, cancellationToken);
+					totalWrittenTable += dataChunk.Count;
+					recordsWritten += dataChunk.Count;
+					progress?.Report(($"Inserted {totalWrittenTable}/{table.Count} records into table: {table.Name}...", CalculatePercentage(recordsWritten, totalRecordsToSync)));
 				}
+
+				logger.LogInformation("Completed syncing table {TableName}: {ActualRows}/{ExpectedRows} records",
+					table.Name, totalWrittenTable, table.Count);
 			}
 
 			// Step 4: Enable constraints on DB
@@ -486,11 +462,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 
 			// Create gRPC channel for web - use the httpClient's base address but ensure it's absolute
-			var baseAddress = httpClient.BaseAddress;
-			if (baseAddress == null)
-			{
-				throw new InvalidOperationException("HttpClient BaseAddress is not configured.");
-			}
+			var baseAddress = httpClient.BaseAddress ?? throw new InvalidOperationException("HttpClient BaseAddress is not configured.");
 
 			// For Blazor WASM, we need to use the actual HTTP URL, not the service discovery name
 			var grpcAddress = baseAddress.ToString().TrimEnd('/');
@@ -543,21 +515,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 						yield break;
 					}
 
-					// Pre-allocate the list with known capacity for better performance
-					var data = new List<Dictionary<string, object>>(response.Records.Count);
-
-					// Convert gRPC response to the expected format with optimized loop
-					foreach (var record in response.Records)
-					{
-						var dictionary = new Dictionary<string, object>(record.Fields.Count);
-						foreach (var field in record.Fields)
-						{
-							// Convert string back to appropriate type
-							dictionary[field.Key] = ConvertStringToValue(field.Value);
-						}
-
-						data.Add(dictionary);
-					}
+					// Convert gRPC response to the expected format with LINQ
+					var data = response.Records.Select(record => 
+						record.Fields.ToDictionary(field => field.Key, field => ConvertStringToValue(field.Value))
+					).ToList();
 
 					yield return data;
 
@@ -665,16 +626,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 
 			using var transaction = await databaseContext.Database.BeginTransactionAsync(cancellationToken);
-			var columns = string.Join(", ", dataChunk.First().Keys.Select(key => $"\"{key}\""));
+			var columns = string.Join(", ", dataChunk[0].Keys.Select(key => $"\"{key}\""));
 			using var connection = databaseContext.Database.GetDbConnection();
 			using var command = connection.CreateCommand();
-			var parametersString = string.Join(", ", dataChunk.First().Keys.Select((key, index) => $"${key}"));
+			var parametersString = string.Join(", ", dataChunk[0].Keys.Select(key => $"${key}"));
 			command.CommandText = $"INSERT INTO \"{tableName}\" ({columns}) VALUES ({parametersString})";
 
-			var parameters = dataChunk.First().Keys.Select((key, index) =>
-			{
-				return new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0);
-			}).ToDictionary(x => x.ParameterName.Trim('$'), x => x);
+			var parameters = dataChunk[0].Keys.ToDictionary(
+				key => key,
+				key => new Microsoft.Data.Sqlite.SqliteParameter($"${key}", 0)
+			);
 			command.Parameters.AddRange(parameters.Values.ToArray());
 
 			foreach (var record in dataChunk)
@@ -704,7 +665,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			if (string.IsNullOrEmpty(jsonData))
 			{
 				Console.WriteLine("DeserializeData received empty or null JSON data.");
-				return new List<Dictionary<string, object>>();
+				return [];
 			}
 
 			Console.WriteLine($"DeserializeData executing");
@@ -712,34 +673,33 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			if (string.IsNullOrWhiteSpace(jsonData))
 			{
-				return new List<Dictionary<string, object>>();
+				return [];
 			}
 
 			try
 			{
 				// Use JsonDocument for efficient parsing
 				using var document = JsonDocument.Parse(jsonData);
-				var result = new List<Dictionary<string, object>>();
-
-				foreach (var element in document.RootElement.EnumerateArray())
-				{
-					var dictionary = new Dictionary<string, object>();
-					foreach (var property in element.EnumerateObject())
-					{
-						dictionary[property.Name] = property.Value.ValueKind switch
-						{
-							JsonValueKind.String => property.Value.GetString() ?? string.Empty,
-							JsonValueKind.Number => property.Value.TryGetInt64(out var longValue) ? longValue : property.Value.GetDouble(),
-							JsonValueKind.True => true,
-							JsonValueKind.False => false,
-							JsonValueKind.Null => DBNull.Value,
-							JsonValueKind.Object => property.Value.GetRawText(), // Serialize nested objects as JSON
-							JsonValueKind.Array => property.Value.GetRawText(), // Serialize arrays as JSON
-							_ => property.Value.GetRawText() // Fallback for unsupported types
-						};
-					}
-					result.Add(dictionary);
-				}
+				
+				// Use LINQ to convert JSON to dictionary list
+				var result = document.RootElement.EnumerateArray()
+					.Select(element => element.EnumerateObject()
+						.ToDictionary(
+							property => property.Name,
+							property => (object)(property.Value.ValueKind switch
+							{
+								JsonValueKind.String => property.Value.GetString() ?? string.Empty,
+								JsonValueKind.Number => property.Value.TryGetInt64(out var longValue) ? longValue : property.Value.GetDouble(),
+								JsonValueKind.True => true,
+								JsonValueKind.False => false,
+								JsonValueKind.Null => DBNull.Value,
+								JsonValueKind.Object => property.Value.GetRawText(), // Serialize nested objects as JSON
+								JsonValueKind.Array => property.Value.GetRawText(), // Serialize arrays as JSON
+								_ => property.Value.GetRawText() // Fallback for unsupported types
+							})
+						)
+					)
+					.ToList();
 
 				stopwatch.Stop(); // Stop timing
 				Console.WriteLine($"DeserializeData executed in {stopwatch.ElapsedMilliseconds} ms");
@@ -753,6 +713,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "UI Update")]
 		public async Task DeleteAllData(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
@@ -760,15 +721,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(("Deleting all database data...", 10));
 				logger.LogInformation("Starting database deletion");
 
-				await using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				// Step 1: Delete the database file completely
 				progress?.Report(("Deleting database file...", 30));
-				await databaseContext.Database.EnsureDeletedAsync();
+				await databaseContext.Database.EnsureDeletedAsync(cancellationToken);
 
 				// Step 2: Recreate the database with migrations
 				progress?.Report(("Recreating database structure...", 60));
-				await databaseContext.Database.MigrateAsync();
+				await databaseContext.Database.MigrateAsync(cancellationToken: cancellationToken);
 
 				// Step 3: Clear sync tracking
 				progress?.Report(("Clearing sync history...", 80));
@@ -815,7 +776,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		private int CalculatePercentage(long written, long total)
+		private static int CalculatePercentage(long written, long total)
 		{
 			if (total == 0)
 			{

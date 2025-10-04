@@ -5,17 +5,17 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 {
 	public static class RawQuery
 	{
-		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize)
+		public static async Task<List<Dictionary<string, object?>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize)
 		{
 			return await ReadTable(databaseContext, entity, page, pageSize, null, null, null);
 		}
 
-		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters)
+		public static async Task<List<Dictionary<string, object?>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters)
 		{
 			return await ReadTable(databaseContext, entity, page, pageSize, columnFilters, null, null);
 		}
 
-		public static async Task<List<Dictionary<string, object>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters, string? sortColumn, string? sortDirection)
+		public static async Task<List<Dictionary<string, object?>>> ReadTable(DatabaseContext databaseContext, string entity, int page, int pageSize, Dictionary<string, string>? columnFilters, string? sortColumn, string? sortDirection)
 		{
 			// Calculate the offset for pagination
 			var offset = (page - 1) * pageSize;
@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 
 			// Add WHERE clause if filters are provided
 			var parameters = new List<(string name, object value)>();
-			if (columnFilters != null && columnFilters.Any())
+			if (columnFilters != null && columnFilters.Count != 0)
 			{
 				var whereConditions = new List<string>();
 				var paramIndex = 0;
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 					paramIndex++;
 				}
 				
-				if (whereConditions.Any())
+				if (whereConditions.Count != 0)
 				{
 					sqlQuery += " WHERE " + string.Join(" AND ", whereConditions);
 				}
@@ -92,10 +92,10 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			using var reader = await command.ExecuteReaderAsync();
 
 			// Read data directly from the reader into a list of dictionaries
-			var result = new List<Dictionary<string, object>>();
+			var result = new List<Dictionary<string, object?>>();
 			while (await reader.ReadAsync())
 			{
-				var row = new Dictionary<string, object>();
+				var row = new Dictionary<string, object?>();
 				for (var i = 0; i < reader.FieldCount; i++)
 				{
 					row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			
 			// Add WHERE clause if filters are provided
 			var parameters = new List<(string name, object value)>();
-			if (columnFilters != null && columnFilters.Any())
+			if (columnFilters != null && columnFilters.Count != 0)
 			{
 				var whereConditions = new List<string>();
 				var paramIndex = 0;
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 					paramIndex++;
 				}
 				
-				if (whereConditions.Any())
+				if (whereConditions.Count != 0)
 				{
 					sqlQuery += " WHERE " + string.Join(" AND ", whereConditions);
 				}
