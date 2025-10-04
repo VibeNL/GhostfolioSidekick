@@ -254,9 +254,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					Accounts = [];
 				}
 			}
-			catch (OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
-				Logger?.LogError("Timeout loading accounts for filter");
+				Logger?.LogError(ex, "Timeout loading accounts for filter");
 				_allAccounts = [];
 				Accounts = [];
 
@@ -313,9 +313,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					Symbols = [];
 				}
 			}
-			catch (OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
-				Logger?.LogError("Timeout loading symbols for filter");
+				Logger?.LogError(ex, "Timeout loading symbols for filter");
 				_allSymbols = [];
 				Symbols = [];
 
@@ -350,7 +350,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			if (_pendingFilterState == null) return;
 
 			var today = DateOnly.FromDateTime(DateTime.Today);
-			var startOfYear = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1));
+			var startOfYear = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1,0,0,0, DateTimeKind.Utc));
 
 			// Check if current dates match predefined ranges
 			if (_pendingFilterState.StartDate == startOfYear && _pendingFilterState.EndDate == today)
@@ -415,7 +415,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					_pendingFilterState.EndDate = today;
 					break;
 				case "YearToDate":
-					_pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1));
+					_pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc));
 					_pendingFilterState.EndDate = today;
 					break;
 				case "OneYear":

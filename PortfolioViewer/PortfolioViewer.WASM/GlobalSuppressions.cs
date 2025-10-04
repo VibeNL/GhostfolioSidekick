@@ -6,3 +6,4 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>", Scope = "module")]
+[assembly: SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>", Scope = "member", Target = "~M:GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters.CommonFilters.DetectCurrentDateRange~System.Threading.Tasks.Task")]
