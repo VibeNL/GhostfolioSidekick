@@ -124,7 +124,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 if (result == null || result.Count == 0)
                 {
                     // If we have an existing table structure but no data due to filters, preserve column structure
-                    if (activeFilters.Count != 0 && TableData.Columns.Any())
+                    if (activeFilters.Count != 0 && TableData.Columns.Length != 0)
                     {
                         TableData.Rows = [];
                     }
