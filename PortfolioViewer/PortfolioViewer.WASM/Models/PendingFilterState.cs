@@ -8,8 +8,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
     {
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
-        public int SelectedAccountId { get; set; } = 0;
-        public string SelectedSymbol { get; set; } = "";
+		public int SelectedAccountId { get; set; }
+		public string SelectedSymbol { get; set; } = "";
         public string SelectedTransactionType { get; set; } = "";
         public string SearchText { get; set; } = "";
 

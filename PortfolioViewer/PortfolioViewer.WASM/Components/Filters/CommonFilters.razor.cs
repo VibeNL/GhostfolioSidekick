@@ -32,18 +32,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 		private List<Account> _allAccounts = [];
 		private List<string> _allSymbols = [];
 
-		private string? _currentDateRange = null;
+		private string? _currentDateRange;
 
 		// Track loading states
-		private bool _isLoadingAccounts = false;
-		private bool _isLoadingSymbols = false;
+		private bool _isLoadingAccounts;
+		private bool _isLoadingSymbols;
 
 		// Search debouncing
 		private Timer? _searchDebounceTimer;
 
 		// Track previous parameter state to detect changes
-		private bool _previousShowAccountFilter = false;
-		private bool _previousShowSymbolFilter = false;
+		private bool _previousShowAccountFilter;
+		private bool _previousShowSymbolFilter;
 		private bool _isFirstLoad = true;
 
 		protected override async Task OnInitializedAsync()

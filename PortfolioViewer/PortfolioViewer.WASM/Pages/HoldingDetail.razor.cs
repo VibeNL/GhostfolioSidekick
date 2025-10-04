@@ -20,20 +20,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private ITestContextService? TestContextService { get; set; }
 
-		[Inject]
-		private NavigationManager? Navigation { get; set; }
-
-		[Inject]
-		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
-
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
 
-		private FilterState? PreviousFilterState { get; set; } = null;
+		private FilterState? PreviousFilterState { get; set; }
 
 		// State
 		private bool IsLoading { get; set; } = true;
-		private bool HasError { get; set; } = false;
+		private bool HasError { get; set; }
 		private string ErrorMessage { get; set; } = string.Empty;
 
 		// Data

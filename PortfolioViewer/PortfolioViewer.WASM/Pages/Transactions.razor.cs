@@ -22,8 +22,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Loading state management
 		private bool IsLoading { get; set; } = true;
-		private bool IsPageLoading { get; set; } = false;
-		private bool HasError { get; set; } = false;
+		private bool IsPageLoading { get; set; }
+		private bool HasError { get; set; }
 		private string ErrorMessage { get; set; } = string.Empty;
 
 		// Modal state
@@ -31,12 +31,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Sorting state
 		private string sortColumn = "Date";
-		private bool sortAscending = false;
+		private bool sortAscending;
 
 		// Pagination state
 		private int currentPage = 1;
 		private int pageSize = 25;
-		private int totalRecords = 0;
+		private int totalRecords;
 		private readonly List<int> pageSizeOptions = [10, 25, 50, 100, 250];
 
 		private FilterState? _previousFilterState;
@@ -194,12 +194,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private Dictionary<string, int> AccountBreakdown =>
 			currentResult?.AccountBreakdown ?? [];
-
-		private List<string> AvailableTransactionTypes =>
-			TransactionTypeBreakdown?.Keys
-				   .Where(t => !string.IsNullOrEmpty(t))
-				   .OrderBy(t => t)
-				   .ToList() ?? [];
 
 		private async Task SortBy(string column)
 		{

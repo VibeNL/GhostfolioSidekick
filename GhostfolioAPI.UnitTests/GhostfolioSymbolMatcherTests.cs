@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		private readonly MemoryCache _memoryCache;
 		private readonly GhostfolioSymbolMatcher _symbolMatcher;
 		private readonly ConfigurationInstance _configInstance;
-		private bool _disposed = false;
+		private bool _disposed;
 
 		public GhostfolioSymbolMatcherTests()
 		{

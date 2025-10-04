@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 	{
 		private DateOnly _startDate = DateOnly.FromDateTime(new DateTime(DateTime.Today.Year, 1, 1));  // YTD start - January 1st of current year
 		private DateOnly _endDate = DateOnly.FromDateTime(DateTime.Today);
-		private int _selectedAccountId = 0;
+		private int _selectedAccountId;
 		private string _selectedSymbol = ""; // Add symbol filter
 		private string _selectedTransactionType = ""; // Add transaction type filter
 		private string _searchText = ""; // Add search text filter

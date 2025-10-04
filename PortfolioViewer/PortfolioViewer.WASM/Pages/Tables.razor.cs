@@ -13,18 +13,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private string? SelectedTable;
         private TableDataRecord TableData = new();
         private int page = 1;
-        private int TotalRecords = 0;
-        private int TotalPages = 0;
-        private const int PageSize = 250;
+        private int TotalRecords;
+		private int TotalPages;
+		private const int PageSize = 250;
         
         // Add column filters
         private readonly Dictionary<string, string> ColumnFilters = [];
-        private bool _filtersApplied = false;
-        private bool _isLoading = false;
-        
-        // Add sorting state
-        private string? _sortColumn = null;
-        private string _sortDirection = "asc";
+        private bool _filtersApplied;
+		private bool _isLoading;
+
+		// Add sorting state
+		private string? _sortColumn;
+		private string _sortDirection = "asc";
 
         protected override async Task OnInitializedAsync()
         {
@@ -104,23 +104,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             }
         }
 
-        private string GetSortIcon(string columnName)
-        {
-            if (_sortColumn != columnName)
-                return "bi-arrow-down-up"; // Unsorted icon
-
-            return _sortDirection == "asc" ? "bi-sort-up" : "bi-sort-down";
-        }
-
-        private string GetSortClass(string columnName)
-        {
-            if (_sortColumn == columnName)
-                return "sorted-column";
-            
-            return "";
-        }
-
-        private async Task LoadTableDataAsync(string tableName)
+		private async Task LoadTableDataAsync(string tableName)
         {
             try
             {

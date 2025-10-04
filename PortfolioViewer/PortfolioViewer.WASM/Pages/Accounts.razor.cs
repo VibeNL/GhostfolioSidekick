@@ -37,15 +37,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected DateOnly MinDate { get; set; } = DateOnly.FromDayNumber(1);
 
 		// State
-		protected bool IsLoading { get; set; } = false;
-		protected bool HasError { get; set; } = false;
+		protected bool IsLoading { get; set; }
+		protected bool HasError { get; set; }
 		protected string ErrorMessage { get; set; } = string.Empty;
 		protected List<AccountValueHistoryPoint> AccountsData { get; set; } = [];
 		protected List<AccountValueDisplayModel> AccountDisplayData { get; set; } = [];
 
 		// Sorting state
 		private string sortColumn = "Date";
-		private bool sortAscending = false;
+		private bool sortAscending;
 
 		// Plotly chart for historical data
 		protected Config plotConfig = new();

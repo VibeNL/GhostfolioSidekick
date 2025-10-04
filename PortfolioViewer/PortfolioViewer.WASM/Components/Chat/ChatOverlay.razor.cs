@@ -13,11 +13,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 	{
 		[Inject] private IJSRuntime JS { get; set; } = default!;
 
-		private bool IsOpen = false;
+		private bool IsOpen;
 		private string CurrentMessage = "";
-		private bool IsBotTyping = false;
-		private bool IsInitialized = false; // Flag to track initialization
-		private bool wakeLockActive = false; // Track wake lock status
+		private bool IsBotTyping;
+		private bool IsInitialized; // Flag to track initialization
+		private bool wakeLockActive; // Track wake lock status
 
 		private readonly IWebChatClient chatClient;
 

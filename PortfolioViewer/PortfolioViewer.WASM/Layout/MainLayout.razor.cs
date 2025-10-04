@@ -10,10 +10,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
         [Inject] private ITransactionService TransactionService { get; set; } = default!;
 
         protected FilterState FilterStateInstance { get; set; } = new();
-        private List<string>? _cachedTransactionTypes = null;
-        
-        // Determine which filters to show based on current page
-        private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowAccountFilters || ShouldShowSymbolFilter || ShouldShowTransactionTypeFilter || ShouldShowSearchFilter;
+        private List<string>? _cachedTransactionTypes;
+
+		// Determine which filters to show based on current page
+		private bool ShouldShowFilters => ShouldShowDateFilters || ShouldShowAccountFilters || ShouldShowSymbolFilter || ShouldShowTransactionTypeFilter || ShouldShowSearchFilter;
         private bool ShouldShowDateFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsHoldingDetailPage || IsTransactionsPage || IsAccountsPage);
         private bool ShouldShowAccountFilters => CurrentPageSupportsFilters && (IsTimeSeriesPage || IsTransactionsPage || IsHoldingsPage);
         private bool ShouldShowSymbolFilter => CurrentPageSupportsFilters && IsTransactionsPage;

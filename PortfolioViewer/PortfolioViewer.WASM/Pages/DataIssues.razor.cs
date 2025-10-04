@@ -9,14 +9,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		[Inject]
 		private IDataIssuesService? DataIssuesService { get; set; }
 
-		[Inject]
-		private NavigationManager? Navigation { get; set; }
-
 		// State
 		private bool IsLoading { get; set; } = true;
-		private bool HasError { get; set; } = false;
+		private bool HasError { get; set; }
 		private string ErrorMessage { get; set; } = string.Empty;
-		private bool IsListExpanded { get; set; } = false; // Collapsed by default
+		private bool IsListExpanded { get; set; }  // Collapsed by default
 
 		// Data
 		private List<DataIssueDisplayModel> DataIssuesList = [];
@@ -33,7 +30,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Sorting state
 		private string sortColumn = "Date";
-		private bool sortAscending = false;
+		private bool sortAscending;
 
 		// Summary data
 		private Dictionary<string, int> SeverityBreakdown = [];

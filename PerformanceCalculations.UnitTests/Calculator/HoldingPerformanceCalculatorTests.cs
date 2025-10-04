@@ -575,9 +575,9 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			};
 		}
 
-		private static int _symbolProfileCounter = 0;
-		private static int _accountCounter = 0;
-		
+		private static int _symbolProfileCounter;
+		private static int _accountCounter;
+
 		private static SymbolProfile CreateSymbolProfile(string symbol, string name, Currency currency)
 		{
 			// Ensure unique symbol to avoid EF tracking conflicts

@@ -28,15 +28,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Loading state management
 		private bool IsLoading { get; set; } = true;
-		private bool HasError { get; set; } = false;
+		private bool HasError { get; set; }
 		private string ErrorMessage { get; set; } = string.Empty;
 
 		// Sorting state
 		private string sortColumn = "CurrentValue";
-		private bool sortAscending = false;
+		private bool sortAscending;
 
 		private FilterState? _previousFilterState;
-		private bool _disposed = false;
+		private bool _disposed;
 
 		protected override Task OnInitializedAsync()
 		{
