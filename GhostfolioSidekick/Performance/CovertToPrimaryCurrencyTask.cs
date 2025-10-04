@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Performance
 
 			await currencyExchange.PreloadAllExchangeRates();
 
-			logger.LogInformation("Converting all snapshots and balances to primary currency {Currency}", primaryCurrencySymbol);
+			logger.LogDebug("Converting all snapshots and balances to primary currency {Currency}", primaryCurrencySymbol);
 
 			var snapshots = databaseContext.CalculatedSnapshots.AsQueryable();
 
@@ -55,11 +55,11 @@ namespace GhostfolioSidekick.Performance
 				primarySnapshot.AccountId = snapshot.AccountId;
 			}
 
-			logger.LogDebug("Converted {Count} snapshots to primary currency {Currency}", await snapshots.CountAsync(), primaryCurrencySymbol);
+			logger.LogTrace("Converted {Count} snapshots to primary currency {Currency}", await snapshots.CountAsync(), primaryCurrencySymbol);
 
 			await databaseContext.SaveChangesAsync();
 
-			logger.LogDebug("Converting all balances to primary currency {Currency}", primaryCurrencySymbol);
+			logger.LogTrace("Converting all balances to primary currency {Currency}", primaryCurrencySymbol);
 
 			var balances = databaseContext.Balances.AsQueryable();
 
@@ -81,21 +81,21 @@ namespace GhostfolioSidekick.Performance
 				primaryBalance.Money = (await currencyExchange.ConvertMoney(balance.Money, currency, balance.Date)).Amount;
 			}
 
-			logger.LogDebug("Converted {Count} balances to primary currency {Currency}", await balances.CountAsync(), primaryCurrencySymbol);
+			logger.LogTrace("Converted {Count} balances to primary currency {Currency}", await balances.CountAsync(), primaryCurrencySymbol);
 
 			await databaseContext.SaveChangesAsync();
 
-			logger.LogDebug("Adding missing days and extrapolating balances to today");
+			logger.LogTrace("Adding missing days and extrapolating balances to today");
 
 			// Fill missing days and extrapolate to today for each account
 			await FillMissingDaysAndExtrapolate();
 
-			logger.LogDebug("Cleanup unmatched primary currency records");
+			logger.LogTrace("Cleanup unmatched primary currency records");
 
 			// Cleanup unmatched items (but preserve extrapolated records)
 			await CleanupUnmatchedItems();
 
-			logger.LogInformation("Completed conversion to primary currency {Currency}", primaryCurrencySymbol);
+			logger.LogDebug("Completed conversion to primary currency {Currency}", primaryCurrencySymbol);
 		}
 
 		private async Task FillMissingDaysAndExtrapolate()
