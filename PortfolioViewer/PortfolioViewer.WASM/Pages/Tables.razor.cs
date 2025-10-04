@@ -222,7 +222,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             await OnFilterChanged(args.Column, args.Value);
         }
 
-        private class TableDataRecord
+        private sealed class TableDataRecord
         {
             public string[] Columns { get; set; } = [];
             public List<object?[]> Rows { get; set; } = [];

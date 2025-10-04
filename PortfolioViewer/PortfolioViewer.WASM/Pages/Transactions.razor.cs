@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -206,13 +206,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				sortColumn = column;
 				sortAscending = true;
 			}
-			
+
 			currentPage = 1; // Reset to first page when sorting
 			await LoadTransactionDataAsync();
 		}
 
 		private static string GetTypeClass(string type)
 		{
+			var bgsecondary = "bg-secondary";
 			return type switch
 			{
 				"Buy" => "bg-success",
@@ -225,12 +226,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				"Receive" => "bg-success",
 				"Send" => "bg-warning",
 				"Staking Reward" or "StakingReward" => "bg-primary",
-				"Gift Fiat" or "GiftFiat" => "bg-secondary",
-				"Gift Asset" or "GiftAsset" => "bg-secondary",
-				"Valuable" => "bg-secondary",
-				"Liability" => "bg-secondary",
-				"Repay Bond" or "RepayBond" => "bg-secondary",
-				_ => "bg-secondary"
+				"Gift Fiat" or "GiftFiat" => bgsecondary,
+				"Gift Asset" or "GiftAsset" => bgsecondary,
+				"Valuable" => bgsecondary,
+				"Liability" => bgsecondary,
+				"Repay Bond" or "RepayBond" => bgsecondary,
+				_ => bgsecondary
 			};
 		}
 
@@ -238,23 +239,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (value == null) return "";
 
+			const string dangerText = "text-danger";
+			const string succesText = "text-success";
 			return type switch
 			{
-				"Buy" => "text-danger",
-				"Sell" => "text-success",
-				"Dividend" => "text-success",
-				"Deposit" or "CashDeposit" => "text-success",
-				"Withdrawal" or "CashWithdrawal" => "text-danger",
-				"Fee" => "text-danger",
-				"Interest" => "text-success",
-				"Receive" => "text-success",
-				"Send" => "text-danger",
-				"Staking Reward" or "StakingReward" => "text-success",
-				"Gift Fiat" or "GiftFiat" => "text-success",
-				"Gift Asset" or "GiftAsset" => "text-success",
-				"Valuable" => "text-success",
-				"Liability" => "text-danger",
-				"Repay Bond" or "RepayBond" => "text-success",
+				"Buy" => dangerText,
+				"Sell" => succesText,
+				"Dividend" => succesText,
+				"Deposit" or "CashDeposit" => succesText,
+				"Withdrawal" or "CashWithdrawal" => dangerText,
+				"Fee" => dangerText,
+				"Interest" => succesText,
+				"Receive" => succesText,
+				"Send" => dangerText,
+				"Staking Reward" or "StakingReward" => succesText,
+				"Gift Fiat" or "GiftFiat" => succesText,
+				"Gift Asset" or "GiftAsset" => succesText,
+				"Valuable" => succesText,
+				"Liability" => dangerText,
+				"Repay Bond" or "RepayBond" => succesText,
 				_ => ""
 			};
 		}
