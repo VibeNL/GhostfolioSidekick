@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private int currentPage = 1;
 		private int pageSize = 25;
 		private int totalRecords = 0;
-		private List<int> pageSizeOptions = [10, 25, 50, 100, 250];
+		private readonly List<int> pageSizeOptions = [10, 25, 50, 100, 250];
 
 		private FilterState? _previousFilterState;
 

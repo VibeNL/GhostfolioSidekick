@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private const int PageSize = 250;
         
         // Add column filters
-        private Dictionary<string, string> ColumnFilters = [];
+        private readonly Dictionary<string, string> ColumnFilters = [];
         private bool _filtersApplied = false;
         private bool _isLoading = false;
         

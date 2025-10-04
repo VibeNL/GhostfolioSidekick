@@ -2,7 +2,7 @@
 
 public class ChatE2ETest
 {
-	private int _timeoutinMs = 60000; // Adjust timeout as needed
+	private readonly int _timeoutinMs = 60000; // Adjust timeout as needed
 	private static readonly string[] options = ["--enable-unsafe-webgpu"];
 
 	[Fact(Skip = "Work in progress")]
