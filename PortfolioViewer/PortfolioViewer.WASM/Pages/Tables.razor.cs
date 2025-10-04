@@ -137,14 +137,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                             TableData.Columns = [.. columnResult.First().Keys];
                             TableData.Rows = [];
                             
-                            // Initialize column filters for new columns
-                            foreach (var column in TableData.Columns)
-                            {
-                                if (!ColumnFilters.ContainsKey(column))
-                                {
-                                    ColumnFilters[column] = string.Empty;
-                                }
-                            }
+                            // Initialize column filters for new columns using LINQ
+                            TableData.Columns.Where(column => !ColumnFilters.ContainsKey(column))
+                                           .ToList()
+                                           .ForEach(column => ColumnFilters[column] = string.Empty);
                         }
                         else
                         {
@@ -164,14 +160,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                     TableData.Columns = [.. result.First().Keys];
                     TableData.Rows = [.. result.Select(x => x.Values.ToArray())];
                     
-                    // Initialize column filters for new columns
-                    foreach (var column in TableData.Columns)
-                    {
-                        if (!ColumnFilters.ContainsKey(column))
-                        {
-                            ColumnFilters[column] = string.Empty;
-                        }
-                    }
+                    // Initialize column filters for new columns using LINQ
+                    TableData.Columns.Where(column => !ColumnFilters.ContainsKey(column))
+                                   .ToList()
+                                   .ForEach(column => ColumnFilters[column] = string.Empty);
                 }
             }
             catch (Exception ex)
