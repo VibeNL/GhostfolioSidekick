@@ -13,32 +13,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		) : ITransactionService
 	{
 		public async Task<PaginatedTransactionResult> GetTransactionsPaginatedAsync(
-			Currency targetCurrency,
-			DateOnly startDate,
-			DateOnly endDate,
-			int accountId,
-			string symbol,
-			string transactionType,
-			string searchText,
-			string sortColumn,
-			bool sortAscending,
-			int pageNumber,
-			int pageSize,
+			TransactionQueryParameters parameters,
 			CancellationToken cancellationToken = default)
 		{
-			var baseQuery = BuildBaseQuery(startDate, endDate, accountId, symbol, transactionType, searchText);
+			var baseQuery = BuildBaseQuery(
+				parameters.StartDate, 
+				parameters.EndDate, 
+				parameters.AccountId, 
+				parameters.Symbol, 
+				parameters.TransactionType, 
+				parameters.SearchText);
 
 			// Get total count for pagination
 			var totalCount = await baseQuery.CountAsync(cancellationToken);
 
 			// Apply sorting
-			var sortedQuery = ApplySorting(baseQuery, sortColumn, sortAscending);
+			var sortedQuery = ApplySorting(baseQuery, parameters.SortColumn, parameters.SortAscending);
 
 			// Apply pagination and get activities
-			var skip = (pageNumber - 1) * pageSize;
+			var skip = (parameters.PageNumber - 1) * parameters.PageSize;
 			var activities = await sortedQuery
 				.Skip(skip)
-				.Take(pageSize)
+				.Take(parameters.PageSize)
 				.AsNoTracking()
 				.ToListAsync(cancellationToken);
 
@@ -72,8 +68,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				Transactions = transactions,
 				TotalCount = totalCount,
-				PageNumber = pageNumber,
-				PageSize = pageSize,
+				PageNumber = parameters.PageNumber,
+				PageSize = parameters.PageSize,
 				TransactionTypeBreakdown = typeBreakdown,
 				AccountBreakdown = accountBreakdown
 			};

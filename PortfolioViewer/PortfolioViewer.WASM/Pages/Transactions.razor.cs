@@ -136,18 +136,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				var result = await (HoldingsDataService?.GetTransactionsPaginatedAsync(
-					ServerConfigurationService.PrimaryCurrency,
-					FilterState.StartDate,
-					FilterState.EndDate,
-					FilterState.SelectedAccountId,
-					FilterState.SelectedSymbol ?? "",
-					FilterState.SelectedTransactionType ?? "",
-					FilterState.SearchText ?? "",
-					sortColumn,
-					sortAscending,
-					currentPage,
-					pageSize) ?? Task.FromResult(new PaginatedTransactionResult()));
+				var parameters = new TransactionQueryParameters
+				{
+					TargetCurrency = ServerConfigurationService.PrimaryCurrency,
+					StartDate = FilterState.StartDate,
+					EndDate = FilterState.EndDate,
+					AccountId = FilterState.SelectedAccountId,
+					Symbol = FilterState.SelectedSymbol ?? "",
+					TransactionType = FilterState.SelectedTransactionType ?? "",
+					SearchText = FilterState.SearchText ?? "",
+					SortColumn = sortColumn,
+					SortAscending = sortAscending,
+					PageNumber = currentPage,
+					PageSize = pageSize
+				};
+
+				var result = await (HoldingsDataService?.GetTransactionsPaginatedAsync(parameters) ?? Task.FromResult(new PaginatedTransactionResult()));
 
 				return result;
 			}
