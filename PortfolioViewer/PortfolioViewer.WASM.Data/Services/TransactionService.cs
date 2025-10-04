@@ -179,19 +179,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToDictionaryAsync(x => x.AccountName, x => x.Count, cancellationToken);
 		}
 
-		public async Task<int> GetTransactionCountAsync(
-			DateOnly startDate,
-			DateOnly endDate,
-			int accountId,
-			string symbol,
-			string transactionType,
-			string searchText,
-			CancellationToken cancellationToken = default)
-		{
-			var baseQuery = BuildBaseQuery(startDate, endDate, accountId, symbol, transactionType, searchText);
-			return await baseQuery.CountAsync(cancellationToken);
-		}
-
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Complex query optimized")]
 		private IQueryable<Activity> BuildBaseQuery(
 			DateOnly startDate,

@@ -34,27 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			int pageNumber,
 			int pageSize,
 			CancellationToken cancellationToken = default);
-
-		/// <summary>
-		/// Gets total count of transactions with filtering
-		/// </summary>
-		/// <param name="startDate">Start date filter</param>
-		/// <param name="endDate">End date filter</param>
-		/// <param name="accountId">Account filter (0 for all accounts)</param>
-		/// <param name="symbol">Symbol filter (empty for all symbols)</param>
-		/// <param name="transactionType">Transaction type filter (empty for all types)</param>
-		/// <param name="searchText">Search text filter (empty for no search)</param>
-		/// <param name="cancellationToken">Cancellation token</param>
-		/// <returns>Total count of filtered transactions</returns>
-		Task<int> GetTransactionCountAsync(
-			DateOnly startDate,
-			DateOnly endDate,
-			int accountId,
-			string symbol,
-			string transactionType,
-			string searchText,
-			CancellationToken cancellationToken = default);
-
+				
 		/// <summary>
 		/// Gets all available transaction types from the database
 		/// </summary>

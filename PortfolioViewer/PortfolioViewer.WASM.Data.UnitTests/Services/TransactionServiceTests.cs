@@ -367,60 +367,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 		}
 
 		[Fact]
-		public async Task GetTransactionCountAsync_ShouldReturnTotalCount()
-		{
-			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
-			var holding = CreateTestHolding(symbolProfile);
-			var activities = CreateTestActivities(account, holding);
-
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
-
-			// Act
-			var result = await _transactionService.GetTransactionCountAsync(
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"");
-
-			// Assert
-			result.Should().BeGreaterThan(0);
-		}
-
-		[Fact]
-		public async Task GetTransactionCountAsync_WithFilters_ShouldReturnFilteredCount()
-		{
-			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
-			var holding = CreateTestHolding(symbolProfile);
-			
-			var activities = new List<Activity>
-			{
-				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
-				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
-				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
-			};
-
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
-
-			// Act
-			var result = await _transactionService.GetTransactionCountAsync(
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"Buy", // Filter by Buy activities
-				"");
-
-			// Assert
-			result.Should().Be(1);
-		}
-
-		[Fact]
 		public async Task GetTransactionTypesAsync_ShouldReturnUniqueTypes()
 		{
 			// Arrange
