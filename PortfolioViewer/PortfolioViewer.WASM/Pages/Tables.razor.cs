@@ -217,7 +217,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             }
         }
 
-        private async Task OnFilterChangedWrapper(GhostfolioSidekick.PortfolioViewer.WASM.Components.FilterableSortableTableHeader.FilterChangeArgs args)
+        private async Task OnFilterChangedWrapper(Components.FilterableSortableTableHeader.FilterChangeArgs args)
         {
             await OnFilterChanged(args.Column, args.Value);
         }

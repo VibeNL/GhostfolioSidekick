@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		public static ChatCompletionAgent Create(IWebChatClient webChatClient, IEnumerable<Agent> companions)
 		{
 			IKernelBuilder thinkBuilder = Kernel.CreateBuilder();
-			thinkBuilder.Services.AddScoped<IChatCompletionService>((s) =>
+			thinkBuilder.Services.AddScoped((s) =>
 			{
 				var client = webChatClient.Clone();
 				client.ChatMode = ChatMode.ChatWithThinking;

@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
         public void GetConfigurationValue_WithType_UsesDefaultValue()
         {
             // Act
-            var result = _configHelper.GetConfigurationValue<int>("NonExistentSetting", 42);
+            var result = _configHelper.GetConfigurationValue("NonExistentSetting", 42);
 
             // Assert
             Assert.Equal(42, result);

@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
 			var webChatClient = serviceProvider.GetRequiredService<IWebChatClient>();
-			builder.Services.AddSingleton<IChatCompletionService>((s) => webChatClient.AsChatCompletionService());
+			builder.Services.AddSingleton((s) => webChatClient.AsChatCompletionService());
 			
 			kernel = builder.Build();
 

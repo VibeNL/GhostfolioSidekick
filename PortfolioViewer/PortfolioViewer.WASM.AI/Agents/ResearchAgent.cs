@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		{
 			string researchAgent = GetSystemPrompt();
 			IKernelBuilder functionCallingBuilder = Kernel.CreateBuilder();
-			functionCallingBuilder.Services.AddScoped<IChatCompletionService>((s) =>
+			functionCallingBuilder.Services.AddScoped((s) =>
 			{
 				var client = webChatClient.Clone();
 				client.ChatMode = ChatMode.FunctionCalling;

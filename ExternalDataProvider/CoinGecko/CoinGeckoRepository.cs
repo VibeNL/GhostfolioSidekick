@@ -138,7 +138,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 
 			memoryCache.Set(DataSource, list, TimeSpan.FromDays(1));
 
-			if (memoryCache.TryGetValue<List<CoinGeckoAsset>>(DataSource, out cachedCoinGecko))
+			if (memoryCache.TryGetValue(DataSource, out cachedCoinGecko))
 			{
 				return GetAsset(identifier, cachedCoinGecko!);
 			}
