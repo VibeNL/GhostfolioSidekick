@@ -341,7 +341,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			});
 		}
 
-		private static object GetColorForGainLoss(decimal gainLossPercentage)
+		private static string GetColorForGainLoss(decimal gainLossPercentage)
 		{
 			if (Math.Abs(gainLossPercentage) < 0.01m)
 			{
