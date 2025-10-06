@@ -27,12 +27,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		public async Task<IEnumerable<CurrencyExchangeRate>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
-			var marketData= await GetStockMarketData($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", currencyFrom, fromDate);
+			var marketData = await GetStockMarketData($"{currencyFrom.Symbol.ToUpperInvariant()}{currencyTo.Symbol.ToUpperInvariant()}=X", currencyFrom, fromDate);
 
 			var result = marketData.Select(x => new CurrencyExchangeRate
 			{
 				Date = x.Date,
-				Close= x.Close,
+				Close = x.Close,
 				High = x.High,
 				Low = x.Low,
 				Open = x.Open,

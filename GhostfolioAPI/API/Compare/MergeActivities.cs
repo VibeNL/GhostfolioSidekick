@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 		{
 			var existingListOfItems = Sortorder([.. existingActivityGroup]).GroupBy(x => x.Date.Date);
 			var newListOfItems = Sortorder([.. newActivityGroup]).GroupBy(x => x.Date.Date);
-			
+
 			foreach (var existingItem in existingListOfItems)
 			{
 				var newItem = newListOfItems.FirstOrDefault(x => x.Key == existingItem.Key);

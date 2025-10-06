@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 
 		public FilterState()
 		{
-			
+
 		}
 
 		public FilterState(FilterState source)

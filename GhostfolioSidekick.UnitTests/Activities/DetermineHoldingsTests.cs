@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id == 1)), Times.Once);
 			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
 		}
-				
+
 		[Fact]
 		public async Task DoWork_ShouldCreateNewHoldings()
 		{
@@ -125,14 +125,14 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		{
 			// Arrange - This test targets line 119
 			var dbContextMock = new Mock<DatabaseContext>();
-			var symbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "TEST", 
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "TEST",
 				DataSource = "TestSource",
 				Currency = Currency.USD,
 				Name = "Test Symbol"
 			};
-			
+
 			var activities = new List<Activity>
 			{
 				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST1")] },
@@ -157,7 +157,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				x => x.Log(
 					LogLevel.Trace,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: Holding already exists for") && 
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: Holding already exists for") &&
 													v.ToString()!.Contains("TEST") &&
 													v.ToString()!.Contains("with")),
 					It.IsAny<Exception?>(),
@@ -193,7 +193,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				x => x.Log(
 					LogLevel.Warning,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: No symbol profile found for") && 
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: No symbol profile found for") &&
 													v.ToString()!.Contains("UNKNOWN")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),

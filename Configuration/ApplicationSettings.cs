@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Configuration
 				return url;
 			}
 		}
-		
+
 		public int TrottleTimeout => GetTimeout();
 
 		/// <summary>

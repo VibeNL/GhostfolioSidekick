@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+﻿using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {
@@ -30,10 +30,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			// Arrange
 			var testData = new List<Dictionary<string, object>>
 			{
-				new Dictionary<string, object> 
-				{ 
-					{ "Id", "test-id" }, 
-					{ "PartialSymbolIdentifiers", value } 
+				new Dictionary<string, object>
+				{
+					{ "Id", "test-id" },
+					{ "PartialSymbolIdentifiers", value }
 				}
 			};
 			var jsonData = JsonSerializer.Serialize(testData);

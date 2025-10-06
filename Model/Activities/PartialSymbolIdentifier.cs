@@ -18,7 +18,7 @@
 		public List<AssetClass>? AllowedAssetClasses { get; set; }
 
 		public List<AssetSubClass>? AllowedAssetSubClasses { get; set; }
-		
+
 		public static PartialSymbolIdentifier CreateCrypto(string id)
 		{
 			return new PartialSymbolIdentifier(id)

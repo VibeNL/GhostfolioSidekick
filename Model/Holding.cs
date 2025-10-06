@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Model
 				var idsMatch = item.Identifier == newId.Identifier;
 				var allowedAssetClassesMatch =
 					IsEmpty(item.AllowedAssetClasses) ||
-					IsEmpty(newId.AllowedAssetClasses) || 
+					IsEmpty(newId.AllowedAssetClasses) ||
 					(item.AllowedAssetClasses?.Any(y => newId.AllowedAssetClasses?.Contains(y) ?? true) ?? true);
 				var allowedSubClass =
 					IsEmpty(item.AllowedAssetSubClasses) ||

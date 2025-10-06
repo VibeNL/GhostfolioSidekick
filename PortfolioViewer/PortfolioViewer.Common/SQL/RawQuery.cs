@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			{
 				var whereConditions = new List<string>();
 				var paramIndex = 0;
-				
+
 				foreach (var filter in columnFilters.Where(f => !string.IsNullOrWhiteSpace(f.Value)))
 				{
 					// Validate column name to prevent SQL injection
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 					parameters.Add((paramName, $"%{filter.Value}%"));
 					paramIndex++;
 				}
-				
+
 				if (whereConditions.Count != 0)
 				{
 					sqlQuery += " WHERE " + string.Join(" AND ", whereConditions);
@@ -115,14 +115,14 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 		{
 			entity = await ValidateTableNameAsync(context, entity);
 			var sqlQuery = $"SELECT COUNT(*) FROM {entity}";
-			
+
 			// Add WHERE clause if filters are provided
 			var parameters = new List<(string name, object value)>();
 			if (columnFilters != null && columnFilters.Count != 0)
 			{
 				var whereConditions = new List<string>();
 				var paramIndex = 0;
-				
+
 				foreach (var filter in columnFilters.Where(f => !string.IsNullOrWhiteSpace(f.Value)))
 				{
 					// Validate column name to prevent SQL injection
@@ -132,18 +132,18 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 					parameters.Add((paramName, $"%{filter.Value}%"));
 					paramIndex++;
 				}
-				
+
 				if (whereConditions.Count != 0)
 				{
 					sqlQuery += " WHERE " + string.Join(" AND ", whereConditions);
 				}
 			}
-			
+
 			using var connection = context.Database.GetDbConnection();
 			await connection.OpenAsync();
 			using var command = connection.CreateCommand();
 			command.CommandText = sqlQuery;
-			
+
 			// Add filter parameters
 			foreach (var (name, value) in parameters)
 			{
@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 				param.Value = value;
 				command.Parameters.Add(param);
 			}
-			
+
 			var result = await command.ExecuteScalarAsync();
 			return Convert.ToInt32(result);
 		}
@@ -167,17 +167,17 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 
 			// Check if the table exists in the database using parameterized query
 			var query = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@tableName";
-			
+
 			using var connection = context.Database.GetDbConnection();
 			await connection.OpenAsync();
 			using var command = connection.CreateCommand();
 			command.CommandText = query;
-			
+
 			var param = command.CreateParameter();
 			param.ParameterName = "@tableName";
 			param.Value = entity;
 			command.Parameters.Add(param);
-			
+
 			var result = await command.ExecuteScalarAsync();
 			var tableExists = Convert.ToInt32(result) > 0;
 
@@ -200,12 +200,12 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			// Check if the column exists in the table
 			// Note: PRAGMA statements cannot be parameterized, but entity is already validated
 			var query = $"PRAGMA table_info({entity})";
-			
+
 			using var connection = context.Database.GetDbConnection();
 			await connection.OpenAsync();
 			using var command = connection.CreateCommand();
 			command.CommandText = query;
-			
+
 			using var reader = await command.ExecuteReaderAsync();
 			var columnExists = false;
 			while (await reader.ReadAsync())

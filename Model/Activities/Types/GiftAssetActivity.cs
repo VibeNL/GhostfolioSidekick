@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 	public record class GiftAssetActivity : ActivityWithQuantityAndUnitPrice
 	{
 		public GiftAssetActivity()
-		{			
+		{
 		}
 
 		public GiftAssetActivity(

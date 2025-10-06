@@ -145,8 +145,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange
 			var syncAccount = new Account { Name = "SyncAccount", SyncActivities = true };
 			var noSyncAccount = new Account { Name = "NoSyncAccount", SyncActivities = false };
-			var activities = new List<Activity> 
-			{ 
+			var activities = new List<Activity>
+			{
 				new BuyActivity(syncAccount, null, [], DateTime.Now, 10, new Money(Currency.USD, 100), "tx1", null, null),
 				new BuyActivity(noSyncAccount, null, [], DateTime.Now, 5, new Money(Currency.USD, 50), "tx2", null, null)
 			};
@@ -244,7 +244,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var holding = new Holding();
 			var buyActivity = new BuyActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now.AddDays(-1), 100, new Money(Currency.USD, 10), "tx0", null, null);
 			holding.Activities = [buyActivity];
-			
+
 			var repayBondActivity = new RepayBondActivity(account, holding, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, new Money(Currency.USD, 1200), "tx1", null, null);
 			var activities = new List<Activity> { repayBondActivity };
 

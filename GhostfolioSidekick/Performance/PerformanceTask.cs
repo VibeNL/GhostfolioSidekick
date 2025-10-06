@@ -1,6 +1,6 @@
 ﻿using GhostfolioSidekick.Database;
-using GhostfolioSidekick.PerformanceCalculations;
 using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.PerformanceCalculations;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Performance

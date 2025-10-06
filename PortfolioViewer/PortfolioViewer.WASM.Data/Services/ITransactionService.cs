@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+﻿using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
@@ -14,7 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		Task<PaginatedTransactionResult> GetTransactionsPaginatedAsync(
 			TransactionQueryParameters parameters,
 			CancellationToken cancellationToken = default);
-				
+
 		/// <summary>
 		/// Gets all available transaction types from the database
 		/// </summary>

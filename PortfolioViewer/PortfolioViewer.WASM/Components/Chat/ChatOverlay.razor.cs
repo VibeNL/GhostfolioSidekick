@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			{
 				// Request wake lock when chat is opened
 				await RequestWakeLock();
-				
+
 				if (!IsInitialized)
 				{
 					IsInitialized = true; // Set to true to prevent re-initialization
@@ -216,7 +216,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		{
 			// Release wake lock on disposal
 			await ReleaseWakeLock();
-			
+
 			// Unsubscribe from AgentLogger event
 			agentLogger.CurrentAgentNameChanged -= OnCurrentAgentNameChanged;
 		}

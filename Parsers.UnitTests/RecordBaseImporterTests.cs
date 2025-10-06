@@ -1,9 +1,9 @@
+using AwesomeAssertions;
 using CsvHelper.Configuration;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
 using System.Globalization;
-using AwesomeAssertions;
-using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Parsers.UnitTests
 {

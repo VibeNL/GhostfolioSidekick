@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			prompt.AppendLine($"Please analyze and summarize these search results for the query: \"{results.Query}\"");
 			prompt.AppendLine("Extract key information, identify common themes, and note any significant findings.");
 			prompt.AppendLine("Focus on providing accurate and useful information that answers the query.");
-			
+
 			foreach (var item in results.Items.Take(3))
 			{
 				prompt.AppendLine($"\nTitle: {item.Title}");
@@ -98,16 +98,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		}
 
 		/// <summary>
-		 /// Generates an optimal search query using the LLM's understanding of search effectiveness
-		 /// </summary>
+		/// Generates an optimal search query using the LLM's understanding of search effectiveness
+		/// </summary>
 		private async Task<string> GenerateSearchQuery(string topic, string aspect)
 		{
 			// Current date info for time-sensitive queries
 			var currentYear = DateTime.Now.Year;
 			var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
-			
+
 			var chatHistory = new ChatHistory();
-			
+
 			// The system prompt provides detailed guidance on creating effective search queries
 			chatHistory.AddSystemMessage(@"You are an expert search query generator that creates highly effective queries for web searches.
 Your goal is to formulate queries that will return the most relevant and useful information.
@@ -124,7 +124,7 @@ Follow these principles:
 9. Keep queries under 150 characters to ensure search engine compatibility
 
 YOU MUST ONLY RESPOND WITH THE EXACT SEARCH QUERY TEXT. No explanations or formatting.");
-			
+
 			// The prompt is structured to elicit an optimal search query
 			chatHistory.AddUserMessage($@"Generate the most effective search query to find accurate and relevant information about '{aspect}' as it relates to '{topic}'. 
 Current date: {currentDate}
@@ -132,23 +132,23 @@ Current year: {currentYear}
 
 The query should lead to high-quality, factual information that would help someone understand this specific aspect of the topic.
 If recency is important, incorporate the year {currentYear} in your query.");
-			
+
 			// Generate the optimized query
 			var response = await _chatService.GetChatMessageContentAsync(chatHistory);
 			var optimizedQuery = response.Content?.Trim() ?? $"{topic} {aspect}";
-			
+
 			// Safety checks and constraints
 			if (string.IsNullOrWhiteSpace(optimizedQuery))
 			{
 				return $"{topic} {aspect}";
 			}
-			
+
 			// Ensure the query isn't too long for search engines
 			if (optimizedQuery.Length > 150)
 			{
 				optimizedQuery = optimizedQuery.Substring(0, 150);
 			}
-			
+
 			// Make sure the core topic is included in the query
 			if (!optimizedQuery.Contains(topic, StringComparison.OrdinalIgnoreCase))
 			{
@@ -156,10 +156,10 @@ If recency is important, incorporate the year {currentYear} in your query.");
 				var rewriteHistory = new ChatHistory();
 				rewriteHistory.AddSystemMessage("You are an expert at refining search queries. Respond only with the rewritten query.");
 				rewriteHistory.AddUserMessage($"This search query needs to include the term '{topic}' but currently doesn't: \"{optimizedQuery}\". Rewrite the query to include this term while maintaining its effectiveness. Make sure the query stays under 150 characters.");
-				
+
 				var rewriteResponse = await _chatService.GetChatMessageContentAsync(rewriteHistory);
 				var rewrittenQuery = rewriteResponse.Content?.Trim();
-				
+
 				// Only use the rewritten query if it actually contains the topic and isn't empty
 				if (!string.IsNullOrWhiteSpace(rewrittenQuery) && rewrittenQuery.Contains(topic, StringComparison.OrdinalIgnoreCase))
 				{
@@ -171,10 +171,10 @@ If recency is important, incorporate the year {currentYear} in your query.");
 					optimizedQuery = $"{topic} {optimizedQuery}";
 				}
 			}
-			
+
 			return ChatMessageContentHelper.ToDisplayText(optimizedQuery);
 		}
-		
+
 		/// <summary>
 		/// Evaluates search results and suggests alternative search queries if needed
 		/// </summary>
@@ -183,23 +183,23 @@ If recency is important, incorporate the year {currentYear} in your query.");
 			var chatHistory = new ChatHistory();
 			chatHistory.AddSystemMessage("You are a search query optimization expert. Your task is to suggest alternative search queries when the original query doesn't yield good results.");
 			chatHistory.AddUserMessage($"The search query \"{originalQuery}\" for researching \"{aspect}\" of \"{topic}\" didn't return useful results. Suggest an alternative search query that might work better. Only provide the query text with no explanation or additional text.");
-			
+
 			var response = await _chatService.GetChatMessageContentAsync(chatHistory);
 			var alternativeQuery = response.Content?.Trim();
-			
+
 			if (string.IsNullOrWhiteSpace(alternativeQuery))
 			{
 				// If LLM failed to provide an alternative, create a simpler version
 				return $"{topic} {aspect} information";
 			}
-			
+
 			return ChatMessageContentHelper.ToDisplayText(alternativeQuery);
 		}
-		
+
 		[KernelFunction("multi_step_research")]
 		[Description("Perform multi-step research on a topic by making multiple queries and synthesizing the results")]
 		public async Task<string> MultiStepResearch(
-			[Description("The topic to research")]string topic, 
+			[Description("The topic to research")] string topic,
 			[Description("Specific aspects of the topic to research. Should be in natural language")] string[] aspects)
 		{
 			_agentLogger.StartFunction(nameof(MultiStepResearch));
@@ -208,7 +208,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 			{
 				return "No research topic provided.";
 			}
-				
+
 			if (aspects == null || aspects.Length == 0)
 			{
 				// Generate research aspects tailored to the topic using the LLM
@@ -218,12 +218,12 @@ For financial topics, consider market performance, trends, economic impact, and 
 For companies, consider business model, financials, competitive landscape, and future outlook.
 For products, consider features, market position, comparison with alternatives, and reception.
 Respond with a JSON array of 3-5 clear and specific aspects to research.");
-				
+
 				chatHistory.AddUserMessage($"What are the most important aspects to research about '{topic}'? Focus on aspects that would provide valuable and comprehensive understanding. Respond with ONLY a JSON array of strings.");
-				
+
 				var aspectResponse = await _chatService.GetChatMessageContentAsync(chatHistory);
 				var aspectContent = aspectResponse.Content ?? "[]";
-				
+
 				// Extract the JSON array from the response
 				try
 				{
@@ -247,29 +247,29 @@ Respond with a JSON array of 3-5 clear and specific aspects to research.");
 					aspects = ["overview", "recent developments", "analysis"];
 				}
 			}
-			
+
 			// Now perform the research on each aspect
 			var allResults = new Dictionary<string, string>();
 			var researchBuilder = new StringBuilder();
 			researchBuilder.AppendLine($"# Multi-Step Research on: {topic}");
 			researchBuilder.AppendLine();
-			
+
 			foreach (var aspect in aspects)
 			{
 				researchBuilder.AppendLine($"## Researching: {aspect}");
-				
+
 				// Generate an optimized search query for this specific aspect and topic
 				var optimizedQuery = await GenerateSearchQuery(topic, aspect);
-				
+
 				// Try the optimized query
 				var results = await _searchService.SearchAsync(optimizedQuery);
-				
+
 				// If no results, try generating an alternative query
 				if (results == null || results.Count == 0)
 				{
 					var alternativeQuery = await SuggestAlternativeQuery(optimizedQuery, topic, aspect);
 					results = await _searchService.SearchAsync(alternativeQuery);
-					
+
 					// If still no results, try a simple fallback query as a last resort
 					if (results == null || results.Count == 0)
 					{
@@ -277,13 +277,13 @@ Respond with a JSON array of 3-5 clear and specific aspects to research.");
 						results = await _searchService.SearchAsync(fallbackQuery);
 					}
 				}
-				
+
 				if (results == null || results.Count == 0)
 				{
 					researchBuilder.AppendLine("No results found for this aspect.");
 					continue;
 				}
-				
+
 				var resultsForSummarization = new SearchResults
 				{
 					Query = $"{topic} - {aspect}",
@@ -294,32 +294,32 @@ Respond with a JSON array of 3-5 clear and specific aspects to research.");
 						Content = r.Content ?? r.Snippet ?? "No content available"
 					})]
 				};
-				
+
 				var summary = await SummarizeSearchResults(resultsForSummarization);
 				researchBuilder.AppendLine(summary);
 				researchBuilder.AppendLine();
-				
+
 				allResults[aspect] = summary;
 			}
-			
+
 			// Check if we have any results at all
 			if (allResults.Count == 0)
 			{
 				return $"# Research on {topic}\n\nNo results found for any of the research aspects. Please try a different topic or check your internet connection.";
 			}
-			
+
 			// Final synthesis of all aspects
 			researchBuilder.AppendLine("# Research Synthesis");
-			
+
 			var synthesisPromptBuilder = new StringBuilder();
 			synthesisPromptBuilder.AppendLine($"Please synthesize the following research findings on '{topic}':");
-			
+
 			foreach (var kvp in allResults)
 			{
 				synthesisPromptBuilder.AppendLine($"\n## {kvp.Key}");
 				synthesisPromptBuilder.AppendLine(kvp.Value);
 			}
-			
+
 			var synChatHistory = new ChatHistory();
 			synChatHistory.AddSystemMessage(@"You are a research synthesis expert who can integrate multiple aspects of a topic into a coherent analysis.
 Your task is to:
@@ -329,24 +329,24 @@ Your task is to:
 4. Address any contradictions or differences in the information
 5. Provide a balanced and comprehensive overview of the topic
 Maintain a professional tone suitable for financial and investment contexts.");
-			
+
 			synChatHistory.AddUserMessage(synthesisPromptBuilder.ToString());
-			
+
 			var synthesisResponse = await _chatService.GetChatMessageContentAsync(synChatHistory);
 			var synthesis = synthesisResponse.Content ?? "Unable to synthesize research.";
-			
+
 			researchBuilder.AppendLine(synthesis);
-			
+
 			return researchBuilder.ToString();
 		}
 	}
-	
+
 	public class SearchResults
 	{
 		public string Query { get; set; } = string.Empty;
 		public List<SearchResultItem> Items { get; set; } = [];
 	}
-	
+
 	public class SearchResultItem
 	{
 		public string Title { get; set; } = string.Empty;

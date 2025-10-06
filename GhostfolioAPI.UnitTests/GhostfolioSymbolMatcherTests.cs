@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			_settingsMock = new Mock<IApplicationSettings>();
 			_apiWrapperMock = new Mock<IApiWrapper>();
 			_memoryCache = new MemoryCache(new MemoryCacheOptions());
-			
+
 			// Create real configuration objects instead of mocking
 			_configInstance = new ConfigurationInstance
 			{
@@ -164,13 +164,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldHandleCryptocurrency_AddingUSDSuffix()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] 
-			{ 
-				new PartialSymbolIdentifier 
-				{ 
+			var symbolIdentifiers = new[]
+			{
+				new PartialSymbolIdentifier
+				{
 					Identifier = "BTC",
 					AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
-				} 
+				}
 			};
 
 			var cryptoSymbol = new SymbolProfile
@@ -226,13 +226,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldFilterByAllowedAssetClasses()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] 
-			{ 
-				new PartialSymbolIdentifier 
-				{ 
+			var symbolIdentifiers = new[]
+			{
+				new PartialSymbolIdentifier
+				{
 					Identifier = "AAPL",
 					AllowedAssetClasses = [AssetClass.FixedIncome] // Only bonds allowed
-				} 
+				}
 			};
 
 			var stockSymbol = new SymbolProfile
@@ -259,13 +259,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldFilterByAllowedAssetSubClasses()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] 
-			{ 
-				new PartialSymbolIdentifier 
-				{ 
+			var symbolIdentifiers = new[]
+			{
+				new PartialSymbolIdentifier
+				{
 					Identifier = "AAPL",
 					AllowedAssetSubClasses = [AssetSubClass.Bond] // Only bonds allowed
-				} 
+				}
 			};
 
 			var stockSymbol = new SymbolProfile
@@ -325,7 +325,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
-			
+
 			var exactMatch = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -339,7 +339,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var fuzzyMatch = new SymbolProfile
 			{
 				Symbol = "APPL",
-				Name = "Apple Computer", 
+				Name = "Apple Computer",
 				Currency = Currency.USD,
 				DataSource = Datasource.YAHOO,
 				AssetClass = AssetClass.Equity,
@@ -362,7 +362,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange - This test verifies that well-known currencies are preferred
 			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
-			
+
 			var usdSymbol = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -405,9 +405,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			var settingsMock = new Mock<IApplicationSettings>();
 			settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
 			var symbolMatcher = new GhostfolioSymbolMatcher(settingsMock.Object, _apiWrapperMock.Object, _memoryCache);
-			
+
 			var symbolIdentifiers = new[] { new PartialSymbolIdentifier { Identifier = "AAPL" } };
-			
+
 			var yahooSymbol = new SymbolProfile
 			{
 				Symbol = "AAPL",
@@ -443,13 +443,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldFixYahooCryptoSymbol()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] 
-			{ 
-				new PartialSymbolIdentifier 
-				{ 
+			var symbolIdentifiers = new[]
+			{
+				new PartialSymbolIdentifier
+				{
 					Identifier = "BTC",
 					AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
-				} 
+				}
 			};
 
 			var yahooCryptoSymbol = new SymbolProfile
@@ -482,13 +482,13 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task MatchSymbol_ShouldHandleCryptocurrencyWithDashes()
 		{
 			// Arrange
-			var symbolIdentifiers = new[] 
-			{ 
-				new PartialSymbolIdentifier 
-				{ 
+			var symbolIdentifiers = new[]
+			{
+				new PartialSymbolIdentifier
+				{
 					Identifier = "WBTC",
 					AllowedAssetSubClasses = [AssetSubClass.CryptoCurrency]
-				} 
+				}
 			};
 
 			var cryptoSymbol = new SymbolProfile

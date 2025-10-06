@@ -1,8 +1,8 @@
-﻿using CsvHelper.Configuration;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
-using CsvHelper;
-using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers
 {
@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Parsers
 
 		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 		{
-if (text == null){ return null;}
+			if (text == null) { return null; }
 			return decimal.Parse(text, NumberStyles.Currency, cultureInfo);
 		}
 

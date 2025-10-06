@@ -404,7 +404,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Should().HaveCount(3);
-			
+
 			result.Should().Contain(r => r.ActivityType == "Buy");
 			result.Should().Contain(r => r.ActivityType == "Sell");
 			result.Should().Contain(r => r.ActivityType == "Dividend");
@@ -426,7 +426,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Should().HaveCount(1);
-			
+
 			var issue = result[0];
 			issue.PartialIdentifiers.Should().NotBeEmpty();
 			issue.SymbolIdentifiers.Should().NotBeNullOrEmpty();
@@ -439,14 +439,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// Arrange
 			var account1 = CreateTestAccount("Account 1", 1);
 			var account2 = CreateTestAccount("Account 2", 2);
-			
+
 			// Create some activities with holdings
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			// Use specific dates to avoid timing issues
 			var baseDate = new DateTime(2023, 1, 1, 12, 0, 0, DateTimeKind.Utc);
-			
+
 			// Create various activities without holdings for comprehensive testing
 			var activities = new List<Activity>
 			{
@@ -474,7 +474,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Should().HaveCount(5); // Only activities without holdings that implement IActivityWithPartialIdentifier
-			
+
 			// Verify correct ordering (date descending, then id ascending)
 			result[0].Date.Date.Should().Be(baseDate.AddDays(-3).Date);
 			result[0].Id.Should().Be(1);
@@ -482,18 +482,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			result[1].Id.Should().Be(2);
 			result[2].Date.Date.Should().Be(baseDate.AddDays(-5).Date);
 			result[2].Id.Should().Be(3);
-			
+
 			// Verify account distribution
 			result.Should().Contain(r => r.AccountName == "Account 1");
 			result.Should().Contain(r => r.AccountName == "Account 2");
-			
+
 			// Verify activity types
 			result.Should().Contain(r => r.ActivityType == "Buy");
 			result.Should().Contain(r => r.ActivityType == "Sell");
 			result.Should().Contain(r => r.ActivityType == "Dividend");
 			result.Should().Contain(r => r.ActivityType == "Receive");
 			result.Should().Contain(r => r.ActivityType == "Send");
-			
+
 			// Verify severity assignment
 			result.Where(r => sourceArray.Contains(r.ActivityType))
 				  .Should().AllSatisfy(r => r.Severity.Should().Be("Error"));
@@ -562,7 +562,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Should().HaveCount(7);
-			
+
 			// All these activity types should be marked as "Error" severity
 			result.Should().AllSatisfy(issue => issue.Severity.Should().Be("Error"));
 		}

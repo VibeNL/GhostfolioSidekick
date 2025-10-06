@@ -61,7 +61,7 @@ namespace GhostfolioSidekick.Database.Repository
 			}
 
 			// Try to get from preloaded cache first
-			if (!memoryCache.TryGetValue(new ExchangeRateKey(searchSourceCurrency.Item1, searchTargetCurrency.Item1), 
+			if (!memoryCache.TryGetValue(new ExchangeRateKey(searchSourceCurrency.Item1, searchTargetCurrency.Item1),
 				out IDictionary<DateOnly, decimal>? cachedRates))
 			{
 				await PreloadAllExchangeRates();
@@ -132,7 +132,7 @@ namespace GhostfolioSidekick.Database.Repository
 				foreach (var group in allExchangeRateData.Where(x => x.Amount != 0).GroupBy(x => new { x.SourceCurrency, x.TargetCurrency }))
 				{
 					memoryCache.Set(
-						new ExchangeRateKey(group.Key.SourceCurrency, group.Key.TargetCurrency), 
+						new ExchangeRateKey(group.Key.SourceCurrency, group.Key.TargetCurrency),
 						group.ToDictionary(x => x.Date, x => x.Amount));
 				}
 			}

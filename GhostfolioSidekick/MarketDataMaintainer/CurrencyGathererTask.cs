@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					var currencyExchangeProfile = await writeDatabaseContext.CurrencyExchangeRates
 						.Where(x => x.SourceCurrency == sourceCurrency && x.TargetCurrency == targetCurrency)
 						.FirstOrDefaultAsync() ?? new CurrencyExchangeProfile(sourceCurrency, targetCurrency);
-					
+
 					foreach (var item in currencyHistory)
 					{
 						var existing = currencyExchangeProfile.Rates.SingleOrDefault(x => x.Date == item.Date);

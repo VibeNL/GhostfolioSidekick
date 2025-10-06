@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			logger.LogInformation("Scraping transactions...");
 
 			await SetDateSelection(page);
-			
+
 			var list = new List<ActivityWithSymbol>();
 			for (int counter = 0; counter < await GetMaxTransactions(); counter++)
 			{
@@ -101,7 +101,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			switch (type)
 			{
 				case "Overboeking":
-					var amount = await GetMoneyField($"div[qa-id='bedrag-{counter}']");	
+					var amount = await GetMoneyField($"div[qa-id='bedrag-{counter}']");
 
 					if (amount.Amount < 0)
 					{
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 							TransactionId = Guid.NewGuid().ToString(),
 						};
 					}
-					
+
 					return new CashDepositActivity
 					{
 						Amount = amount,

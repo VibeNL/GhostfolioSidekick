@@ -134,7 +134,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 
 			// Act & Assert
 			// The method currently throws NullReferenceException, testing actual behavior
-			await Assert.ThrowsAsync<NullReferenceException>(() => 
+			await Assert.ThrowsAsync<NullReferenceException>(() =>
 				repository.MatchSymbol(null!));
 		}
 
@@ -358,7 +358,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 
 			using var context = new DatabaseContext(options);
 			var mockCurrencyExchange = new Mock<ICurrencyExchange>();
-			
+
 			mockCurrencyExchange
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), Currency.EUR, It.IsAny<DateOnly>()))
 				.ReturnsAsync(new Money(Currency.EUR, 100m));
@@ -368,10 +368,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			// Act & Assert
 			Assert.NotNull(repository);
 			Assert.Equal(Datasource.MANUAL, repository.DataSource);
-			
+
 			// Verify the mock was setup correctly
-			mockCurrencyExchange.Verify(x => 
-				x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()), 
+			mockCurrencyExchange.Verify(x =>
+				x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()),
 				Times.Never); // Should not have been called yet
 		}
 
@@ -385,9 +385,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			var repository = new ManualSymbolRepository(mockContext.Object, mockCurrencyExchange.Object);
 
 			// Act & Assert
-			await Assert.ThrowsAsync<NullReferenceException>(() => 
+			await Assert.ThrowsAsync<NullReferenceException>(() =>
 				repository.MatchSymbol(null!));
-			
+
 			// Note: Not testing GetStockMarketData with null because it triggers complex EF queries
 			// that don't work with mocked context. This is covered in the main test class.
 		}
@@ -513,11 +513,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			// Assert
 			Assert.IsType<ISymbolMatcher>(repository, exactMatch: false);
 			Assert.IsType<IStockPriceRepository>(repository, exactMatch: false);
-			
+
 			// Verify interface properties are accessible
 			var symbolMatcher = repository as ISymbolMatcher;
 			var stockPriceRepo = repository as IStockPriceRepository;
-			
+
 			Assert.NotNull(symbolMatcher);
 			Assert.NotNull(stockPriceRepo);
 			Assert.Equal(repository.DataSource, symbolMatcher.DataSource);

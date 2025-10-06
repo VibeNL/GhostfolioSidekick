@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			builder.Services.AddDbContext<DatabaseContext>((serviceProvider, options) =>
 			{
 				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
-				var connectionString = "Data Source="+configHelper.GetConnectionString();
+				var connectionString = "Data Source=" + configHelper.GetConnectionString();
 				options.UseSqlite(connectionString);
 			});
 			builder.Services.AddDbContextFactory<DatabaseContext>((serviceProvider, options) =>
@@ -60,7 +60,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Add currency exchange services for server-side conversion
 			builder.Services.AddSingleton<MemoryCache>();
 			builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
-						
+
 			// Register currency services as scoped to avoid singleton dependency issues
 			builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
 

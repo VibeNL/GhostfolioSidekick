@@ -110,10 +110,10 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		public async Task DoWork_ShouldContinueWhenNoActivitiesFound()
 		{
 			// Arrange
-			var symbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "AAPL", 
-				DataSource = "TEST_SOURCE", 
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData = []
 			};
@@ -150,17 +150,17 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		public async Task DoWork_ShouldContinueWhenNoStockPriceRepositoryFound()
 		{
 			// Arrange
-			var symbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "AAPL", 
-				DataSource = "UNKNOWN_SOURCE", 
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "UNKNOWN_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData = []
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
-			var holding = new Holding 
-			{ 
+			var holding = new Holding
+			{
 				SymbolProfiles = [symbolProfile],
 				Activities =
 				[
@@ -195,22 +195,22 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		public async Task DoWork_ShouldSkipWhenMarketDataIsUpToDate()
 		{
 			// Arrange
-			var symbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "AAPL", 
-				DataSource = "TEST_SOURCE", 
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData =
 				[
-					new(new Money(Currency.USD, 100), new Money(Currency.USD, 95), 
-						new Money(Currency.USD, 105), new Money(Currency.USD, 90), 
+					new(new Money(Currency.USD, 100), new Money(Currency.USD, 95),
+						new Money(Currency.USD, 105), new Money(Currency.USD, 90),
 						1000, DateOnly.FromDateTime(DateTime.Today))
 				]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
-			var holding = new Holding 
-			{ 
+			var holding = new Holding
+			{
 				SymbolProfiles = [symbolProfile],
 				Activities =
 				[
@@ -250,17 +250,17 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		public async Task DoWork_ShouldGatherMarketDataForNewSymbol()
 		{
 			// Arrange
-			var symbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "AAPL", 
-				DataSource = "TEST_SOURCE", 
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData = []
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
-			var holding = new Holding 
-			{ 
+			var holding = new Holding
+			{
 				SymbolProfiles = [symbolProfile],
 				Activities =
 				[
@@ -271,11 +271,11 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			var marketDataList = new List<MarketData>
 			{
-				new(new Money(Currency.USD, 100), new Money(Currency.USD, 95), 
-					new Money(Currency.USD, 105), new Money(Currency.USD, 90), 
+				new(new Money(Currency.USD, 100), new Money(Currency.USD, 95),
+					new Money(Currency.USD, 105), new Money(Currency.USD, 90),
 					1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-29))),
-				new(new Money(Currency.USD, 102), new Money(Currency.USD, 98), 
-					new Money(Currency.USD, 107), new Money(Currency.USD, 95), 
+				new(new Money(Currency.USD, 102), new Money(Currency.USD, 98),
+					new Money(Currency.USD, 107), new Money(Currency.USD, 95),
 					1200, DateOnly.FromDateTime(DateTime.Today.AddDays(-28)))
 			};
 
@@ -300,7 +300,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			// Assert
 			symbolProfile.MarketData.Count.Should().Be(2);
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-			
+
 			_mockLogger.Verify(
 				x => x.Log(
 					LogLevel.Debug,
@@ -316,21 +316,21 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		{
 			// Arrange
 			var existingMarketData = new MarketData(
-				new Money(Currency.USD, 95), new Money(Currency.USD, 90), 
-				new Money(Currency.USD, 100), new Money(Currency.USD, 85), 
+				new Money(Currency.USD, 95), new Money(Currency.USD, 90),
+				new Money(Currency.USD, 100), new Money(Currency.USD, 85),
 				800, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
 
-			var symbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "AAPL", 
-				DataSource = "TEST_SOURCE", 
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData = [existingMarketData]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
-			var holding = new Holding 
-			{ 
+			var holding = new Holding
+			{
 				SymbolProfiles = [symbolProfile],
 				Activities =
 				[
@@ -340,8 +340,8 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var holdings = new List<Holding> { holding };
 
 			var updatedMarketData = new MarketData(
-				new Money(Currency.USD, 100), new Money(Currency.USD, 95), 
-				new Money(Currency.USD, 105), new Money(Currency.USD, 90), 
+				new Money(Currency.USD, 100), new Money(Currency.USD, 95),
+				new Money(Currency.USD, 105), new Money(Currency.USD, 90),
 				1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
 
 			var marketDataList = new List<MarketData> { updatedMarketData };
@@ -375,21 +375,21 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		{
 			// Arrange
 			var existingMarketData = new MarketData(
-				new Money(Currency.USD, 100), new Money(Currency.USD, 95), 
-				new Money(Currency.USD, 105), new Money(Currency.USD, 90), 
+				new Money(Currency.USD, 100), new Money(Currency.USD, 95),
+				new Money(Currency.USD, 105), new Money(Currency.USD, 90),
 				1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
 
-			var symbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "AAPL", 
-				DataSource = "TEST_SOURCE", 
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData = [existingMarketData]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
-			var holding = new Holding 
-			{ 
+			var holding = new Holding
+			{
 				SymbolProfiles = [symbolProfile],
 				Activities =
 				[
@@ -400,8 +400,8 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			// Same market data as existing
 			var sameMarketData = new MarketData(
-				new Money(Currency.USD, 100), new Money(Currency.USD, 95), 
-				new Money(Currency.USD, 105), new Money(Currency.USD, 90), 
+				new Money(Currency.USD, 100), new Money(Currency.USD, 95),
+				new Money(Currency.USD, 105), new Money(Currency.USD, 90),
 				1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-1)));
 
 			var marketDataList = new List<MarketData> { sameMarketData };
@@ -435,21 +435,21 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			// Arrange
 			var activityDate = DateTime.Today.AddDays(-50);
 			var existingMarketData = new MarketData(
-				new Money(Currency.USD, 100), new Money(Currency.USD, 95), 
-				new Money(Currency.USD, 105), new Money(Currency.USD, 90), 
+				new Money(Currency.USD, 100), new Money(Currency.USD, 95),
+				new Money(Currency.USD, 105), new Money(Currency.USD, 90),
 				1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-40)));
 
-			var symbolProfile = new SymbolProfile 
-			{ 
-				Symbol = "AAPL", 
-				DataSource = "TEST_SOURCE", 
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData = [existingMarketData]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
-			var holding = new Holding 
-			{ 
+			var holding = new Holding
+			{
 				SymbolProfiles = [symbolProfile],
 				Activities =
 				[
@@ -481,7 +481,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			// The logic should use the activity date since it's after the repository MinDate
 			// and before the existing market data min date
 			_mockStockPriceRepository1.Verify(
-				r => r.GetStockMarketData(symbolProfile, DateOnly.FromDateTime(activityDate)), 
+				r => r.GetStockMarketData(symbolProfile, DateOnly.FromDateTime(activityDate)),
 				Times.Once);
 		}
 
@@ -489,33 +489,33 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		public async Task DoWork_ShouldProcessMultipleSymbols()
 		{
 			// Arrange
-			var symbolProfile1 = new SymbolProfile 
-			{ 
-				Symbol = "AAPL", 
-				DataSource = "TEST_SOURCE", 
+			var symbolProfile1 = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData = []
 			};
 
-			var symbolProfile2 = new SymbolProfile 
-			{ 
-				Symbol = "GOOGL", 
-				DataSource = "TEST_SOURCE", 
+			var symbolProfile2 = new SymbolProfile
+			{
+				Symbol = "GOOGL",
+				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
 				MarketData = []
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile1, symbolProfile2 };
-			var holding1 = new Holding 
-			{ 
+			var holding1 = new Holding
+			{
 				SymbolProfiles = [symbolProfile1],
 				Activities =
 				[
 					new BuyActivity { Date = DateTime.Today.AddDays(-30) }
 				]
 			};
-			var holding2 = new Holding 
-			{ 
+			var holding2 = new Holding
+			{
 				SymbolProfiles = [symbolProfile2],
 				Activities =
 				[
@@ -526,8 +526,8 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			var marketDataList = new List<MarketData>
 			{
-				new(new Money(Currency.USD, 100), new Money(Currency.USD, 95), 
-					new Money(Currency.USD, 105), new Money(Currency.USD, 90), 
+				new(new Money(Currency.USD, 100), new Money(Currency.USD, 95),
+					new Money(Currency.USD, 105), new Money(Currency.USD, 90),
 					1000, DateOnly.FromDateTime(DateTime.Today.AddDays(-29)))
 			};
 
@@ -555,9 +555,9 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			// Assert
 			_mockStockPriceRepository1.Verify(
-				r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()), 
+				r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()),
 				Times.Exactly(2));
-			
+
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 			mockDbContext3.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 		}

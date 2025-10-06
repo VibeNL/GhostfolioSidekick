@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 		[Name("date")]
 		[Format("yyyy-MM-dd")]
 		public DateOnly Date { get; set; }
-		
+
 		[Name("time")]
 		[Format("HH:mm:ss")]
 		public TimeOnly Time { get; set; }
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 
 		[Name("isin")]
 		public required string Isin { get; set; }
-		
+
 		[Name("shares")]
 		[CultureInfo("de-DE")]
 		public decimal? Shares { get; set; }

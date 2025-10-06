@@ -2,28 +2,28 @@ using Microsoft.AspNetCore.Components;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 {
-    public partial class NavMenu : ComponentBase
-    {
-        private bool collapseNavMenu = true;
+	public partial class NavMenu : ComponentBase
+	{
+		private bool collapseNavMenu = true;
 
-        [Parameter] public bool ShowFilters { get; set; } = false;
-        [Parameter] public bool ShowDateFilters { get; set; } = false;
-        [Parameter] public bool ShowAccountFilter { get; set; } = false;
-        [Parameter] public bool ShowSymbolFilter { get; set; } = false;
-        [Parameter] public bool ShowTransactionTypeFilter { get; set; } = false;
-        [Parameter] public bool ShowSearchFilter { get; set; } = false;
-        [Parameter] public List<string>? TransactionTypes { get; set; } = null;
+		[Parameter] public bool ShowFilters { get; set; } = false;
+		[Parameter] public bool ShowDateFilters { get; set; } = false;
+		[Parameter] public bool ShowAccountFilter { get; set; } = false;
+		[Parameter] public bool ShowSymbolFilter { get; set; } = false;
+		[Parameter] public bool ShowTransactionTypeFilter { get; set; } = false;
+		[Parameter] public bool ShowSearchFilter { get; set; } = false;
+		[Parameter] public List<string>? TransactionTypes { get; set; } = null;
 
-        private string? NavMenuCssClass => collapseNavMenu ? "collapse" : "collapse show";
+		private string? NavMenuCssClass => collapseNavMenu ? "collapse" : "collapse show";
 
-        private void ToggleNavMenu()
-        {
-            collapseNavMenu = !collapseNavMenu;
-        }
+		private void ToggleNavMenu()
+		{
+			collapseNavMenu = !collapseNavMenu;
+		}
 
-        private void CollapseNavMenu()
-        {
-            collapseNavMenu = true;
-        }
-    }
+		private void CollapseNavMenu()
+		{
+			collapseNavMenu = true;
+		}
+	}
 }

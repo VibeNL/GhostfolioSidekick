@@ -21,8 +21,8 @@ namespace GhostfolioSidekick.Parsers.NIBC
 			if (record.Description == "Inkomende overboeking")
 			{
 				return [PartialActivity.CreateCashDeposit(
-					currency, 
-					record.Date, 
+					currency,
+					record.Date,
 					Math.Abs(record.Amount),
 					new Money(currency, Math.Abs(record.Amount)),
 					record.TransactionID)];
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.NIBC
 			if (record.Description == "Uitgaande overboeking")
 			{
 				return [PartialActivity.CreateCashWithdrawal(
-					currency, 
+					currency,
 					record.Date,
 					Math.Abs(record.Amount),
 					new Money(currency, Math.Abs(record.Amount)),
@@ -41,8 +41,8 @@ namespace GhostfolioSidekick.Parsers.NIBC
 			if (record.Description == "Renteuitkering" || record.Description == "Bonusrente")
 			{
 				return [PartialActivity.CreateInterest(
-					currency, 
-					record.Date, 
+					currency,
+					record.Date,
 					Math.Abs(record.Amount),
 					record.Description,
 					new Money(currency, Math.Abs(record.Amount)),

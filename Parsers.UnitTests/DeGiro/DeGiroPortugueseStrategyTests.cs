@@ -1,7 +1,7 @@
-﻿using AwesomeAssertions;
-using GhostfolioSidekick.Parsers.DeGiro;
+﻿using AutoFixture;
+using AwesomeAssertions;
 using GhostfolioSidekick.Model.Activities;
-using AutoFixture;
+using GhostfolioSidekick.Parsers.DeGiro;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 {

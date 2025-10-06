@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using HtmlAgilityPack;
-using System.Text;
-using System.Text.RegularExpressions;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Models;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
+using HtmlAgilityPack;
+using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 					return StatusCode((int)response.StatusCode, $"Failed to fetch search results: {response.StatusCode}");
 
 				var searchResult = await response.Content.ReadFromJsonAsync<object>();
-				
+
 				// Return the search result directly as received from Google API
 				return Ok(searchResult);
 			}

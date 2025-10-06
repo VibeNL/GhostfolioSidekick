@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Model.Activities.Types
 
 		public LiabilityActivity(
 			Account account,
-			Holding? holding,	
+			Holding? holding,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
 			DateTime dateTime,
 			Money amount,

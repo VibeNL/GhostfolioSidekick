@@ -2,9 +2,9 @@ using AwesomeAssertions;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PerformanceCalculations.Calculator;
@@ -179,7 +179,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Calculator creates snapshots from buy date to today (6 days including today)
 			var expectedSnapshotCount = (DateOnly.FromDateTime(DateTime.Today).DayNumber - DateOnly.FromDateTime(buyDate).DayNumber) + 1;
 			holdingAggregated.CalculatedSnapshots.Should().HaveCount(expectedSnapshotCount);
-			
+
 			var firstSnapshot = holdingAggregated.CalculatedSnapshots.First();
 			firstSnapshot.Date.Should().Be(DateOnly.FromDateTime(buyDate));
 			firstSnapshot.Quantity.Should().Be(100);
@@ -194,10 +194,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
 			var account = CreateAccount("Test Account");
-			
+
 			var firstBuyDate = DateTime.Today.AddDays(-10);
 			var secondBuyDate = DateTime.Today.AddDays(-5);
-			
+
 			var activities = new[]
 			{
 				CreateBuyActivity(account, firstBuyDate, 100, new Money(Currency.USD, 150), "T1"),
@@ -219,7 +219,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			{
 				Date = DateOnly.FromDateTime(secondBuyDate),
 				Close = new Money(Currency.USD, 165),
-				Open = new Money(Currency.USD, 160),  
+				Open = new Money(Currency.USD, 160),
 				High = new Money(Currency.USD, 170),
 				Low = new Money(Currency.USD, 155),
 				TradingVolume = 800000
@@ -265,10 +265,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
 			var account = CreateAccount("Test Account");
-			
+
 			var buyDate = DateTime.Today.AddDays(-10);
 			var sellDate = DateTime.Today.AddDays(-5);
-			
+
 			var activities = new Activity[]
 			{
 				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
@@ -310,7 +310,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holdingAggregated = result.First();
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(70); // 100 - 30
-			// TotalInvested: buy 100*150 = 15000, sell reduces by cost basis of 30*150 = 4500, total = 10500
+													// TotalInvested: buy 100*150 = 15000, sell reduces by cost basis of 30*150 = 4500, total = 10500
 			finalSnapshot.TotalInvested.Amount.Should().Be(10500);
 		}
 
@@ -321,7 +321,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
 			var account = CreateAccount("Test Account");
-			
+
 			var buyDate = DateTime.Today.AddDays(-5);
 			var activities = new[]
 			{
@@ -374,7 +374,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Setup currency conversion from USD to EUR (activity currency to symbol currency)
 			_mockCurrencyExchange
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), Currency.EUR, It.IsAny<DateOnly>()))
-				.ReturnsAsync((Money money, Currency targetCurrency, DateOnly date) => 
+				.ReturnsAsync((Money money, Currency targetCurrency, DateOnly date) =>
 					new Money(targetCurrency, money.Amount * 0.85m)); // USD to EUR conversion
 
 			var calculator = CreateCalculator(context);
@@ -396,11 +396,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
 			var account = CreateAccount("Test Account");
-			
+
 			// Create activities that result in zero quantity (buy and sell same amount)
 			var buyDate = DateTime.Today.AddDays(-5);
 			var sellDate = DateTime.Today.AddDays(-3);
-			
+
 			var activities = new Activity[]
 			{
 				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
@@ -425,10 +425,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
 			var account = CreateAccount("Test Account");
-			
+
 			var buyDate = DateTime.Today.AddDays(-5);
 			var sellDate = DateTime.Today.AddDays(-3);
-			
+
 			// Sell more than owned (potential bug scenario)
 			var activities = new Activity[]
 			{
@@ -486,7 +486,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
 			var account = CreateAccount("Test Account");
-			
+
 			// Create a dividend activity (not BuySellActivity)
 			var dividendActivity = new DividendActivity(
 				account,
@@ -498,7 +498,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 				null,
 				"Dividend payment"
 			);
-			
+
 			var activities = new Activity[]
 			{
 				CreateBuyActivity(account, DateTime.Today.AddDays(-5), 100, new Money(Currency.USD, 150), "T1"),
@@ -517,7 +517,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Assert
 			var holdingAggregated = result.First();
 			holdingAggregated.ActivityCount.Should().Be(2); // Total activities
-			// Calculator creates snapshots from buy date to today (6 days including today)
+															// Calculator creates snapshots from buy date to today (6 days including today)
 			var expectedSnapshotCount = (DateOnly.FromDateTime(DateTime.Today).DayNumber - DateOnly.FromDateTime(DateTime.Today.AddDays(-5)).DayNumber) + 1;
 			holdingAggregated.CalculatedSnapshots.Should().HaveCount(expectedSnapshotCount);
 		}
@@ -529,11 +529,11 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
 			var account = CreateAccount("Test Account");
-			
+
 			var activities = new[]
 			{
 				// Sell activity before any buy (edge case that could cause division by zero)
-				CreateSellActivity(account, DateTime.Today.AddDays(-5), 50, new Money(Currency.USD, 160), "T1") 
+				CreateSellActivity(account, DateTime.Today.AddDays(-5), 50, new Money(Currency.USD, 160), "T1")
 			};
 			var holding = CreateHolding([symbolProfile], activities);
 
@@ -545,7 +545,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Act & Assert - This should handle the edge case gracefully
 			var result = await calculator.GetCalculatedHoldings();
 			result.Should().HaveCount(1);
-			
+
 			var holdingAggregated = result.First();
 			var firstSnapshot = holdingAggregated.CalculatedSnapshots.First();
 			// The calculation should handle negative quantities without throwing
@@ -623,10 +623,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 				AdjustedQuantity = quantity,
 				AdjustedUnitPrice = unitPrice
 			};
-			
+
 			// Set TotalTransactionAmount to quantity * unitPrice (for testing purposes)
 			activity.TotalTransactionAmount = new Money(unitPrice.Currency, Math.Abs(quantity) * unitPrice.Amount);
-			
+
 			return activity;
 		}
 
@@ -675,10 +675,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var symbolProfile = CreateSymbolProfile("AAPL", "Apple Inc.", Currency.USD);
 			var account = CreateAccount("Test Account");
-			
+
 			var buyDate = DateTime.Today.AddDays(-10);
 			var sellDate = DateTime.Today.AddDays(-5);
-			
+
 			var activities = new Activity[]
 			{
 				CreateBuyActivity(account, buyDate, 100, new Money(Currency.USD, 150), "T1"),
@@ -718,20 +718,20 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 			// Assert
 			var holdingAggregated = result.First();
-			
+
 			// Check first snapshot (buy day)
 			var firstSnapshot = holdingAggregated.CalculatedSnapshots.First();
 			firstSnapshot.Date.Should().Be(DateOnly.FromDateTime(buyDate));
 			firstSnapshot.Quantity.Should().Be(100);
 			firstSnapshot.TotalInvested.Amount.Should().Be(15000); // 100 * 150
-			
+
 			// Check sell day snapshot
 			var sellSnapshot = holdingAggregated.CalculatedSnapshots
 				.FirstOrDefault(s => s.Date == DateOnly.FromDateTime(sellDate));
 			sellSnapshot.Should().NotBeNull();
 			sellSnapshot!.Quantity.Should().Be(70); // 100 - 30
 			sellSnapshot.TotalInvested.Amount.Should().Be(10500); // 15000 - (30 * 150) = 10500 (cost basis reduction using average cost)
-			
+
 			// Check final snapshot
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(70); // 100 - 30

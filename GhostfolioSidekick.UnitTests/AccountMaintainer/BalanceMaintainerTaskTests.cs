@@ -106,7 +106,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			var mockDbContext = new Mock<DatabaseContext>();
 			Model.Accounts.Account accountWithSyncDisabled = new Model.Accounts.Account { Id = 1, Name = "Account1", SyncBalance = false };
 			Model.Accounts.Account accountWithSyncEnabled = new Model.Accounts.Account { Id = 2, Name = "Account2", SyncBalance = true };
-			
+
 			mockDbContext.Setup(db => db.Accounts).ReturnsDbSet(new List<Model.Accounts.Account>
 			{
 				accountWithSyncDisabled,

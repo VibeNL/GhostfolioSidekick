@@ -4,42 +4,42 @@
 
 namespace GhostfolioSidekick.Database.Migrations
 {
-    /// <inheritdoc />
-    public partial class AddedIndexesOnPrimaryCurrencyTables : Migration
-    {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.CreateIndex(
-                name: "IX_CalculatedSnapshots_HoldingAggregatedId_Date",
-                table: "CalculatedSnapshots",
-                columns: new[] { "HoldingAggregatedId", "Date" });
+	/// <inheritdoc />
+	public partial class AddedIndexesOnPrimaryCurrencyTables : Migration
+	{
+		/// <inheritdoc />
+		protected override void Up(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.CreateIndex(
+				name: "IX_CalculatedSnapshots_HoldingAggregatedId_Date",
+				table: "CalculatedSnapshots",
+				columns: new[] { "HoldingAggregatedId", "Date" });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_CalculatedSnapshotPrimaryCurrencies_HoldingAggregatedId_Date",
-                table: "CalculatedSnapshotPrimaryCurrencies",
-                columns: new[] { "HoldingAggregatedId", "Date" });
+			migrationBuilder.CreateIndex(
+				name: "IX_CalculatedSnapshotPrimaryCurrencies_HoldingAggregatedId_Date",
+				table: "CalculatedSnapshotPrimaryCurrencies",
+				columns: new[] { "HoldingAggregatedId", "Date" });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_BalancePrimaryCurrencies_Date",
-                table: "BalancePrimaryCurrencies",
-                column: "Date");
-        }
+			migrationBuilder.CreateIndex(
+				name: "IX_BalancePrimaryCurrencies_Date",
+				table: "BalancePrimaryCurrencies",
+				column: "Date");
+		}
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropIndex(
-                name: "IX_CalculatedSnapshots_HoldingAggregatedId_Date",
-                table: "CalculatedSnapshots");
+		/// <inheritdoc />
+		protected override void Down(MigrationBuilder migrationBuilder)
+		{
+			migrationBuilder.DropIndex(
+				name: "IX_CalculatedSnapshots_HoldingAggregatedId_Date",
+				table: "CalculatedSnapshots");
 
-            migrationBuilder.DropIndex(
-                name: "IX_CalculatedSnapshotPrimaryCurrencies_HoldingAggregatedId_Date",
-                table: "CalculatedSnapshotPrimaryCurrencies");
+			migrationBuilder.DropIndex(
+				name: "IX_CalculatedSnapshotPrimaryCurrencies_HoldingAggregatedId_Date",
+				table: "CalculatedSnapshotPrimaryCurrencies");
 
-            migrationBuilder.DropIndex(
-                name: "IX_BalancePrimaryCurrencies_Date",
-                table: "BalancePrimaryCurrencies");
-        }
-    }
+			migrationBuilder.DropIndex(
+				name: "IX_BalancePrimaryCurrencies_Date",
+				table: "BalancePrimaryCurrencies");
+		}
+	}
 }

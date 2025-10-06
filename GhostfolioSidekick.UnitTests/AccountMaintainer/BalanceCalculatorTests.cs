@@ -1,10 +1,10 @@
-using Moq;
 using AwesomeAssertions;
+using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Model.Activities.Types;
+using Moq;
 
 namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 {

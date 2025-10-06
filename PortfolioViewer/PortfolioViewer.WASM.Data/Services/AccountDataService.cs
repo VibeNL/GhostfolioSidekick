@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToListAsync(cancellationToken);
 
 			var result = new List<AccountValueHistoryPoint>();
-			
+
 			var join = from b in balanceByAccount
 					   join s in snapShots on new { b.Date, b.AccountId } equals new { s.Date, s.AccountId } into bs
 					   from s in bs.DefaultIfEmpty()
@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					.Select(s => s.Symbol)
 					.ToListAsync(cancellationToken);
 			}
-			
+
 			return databaseContext.Holdings
 				.Where(x => x.Activities.Any(y => y.Account.Id == accountFilter))
 				.SelectMany(x => x.SymbolProfiles)

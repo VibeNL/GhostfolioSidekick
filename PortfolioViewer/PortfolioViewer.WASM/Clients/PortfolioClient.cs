@@ -125,8 +125,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 				// Check if partial sync would be beneficial for tables with dates
 				var tablesToSyncPartially = tablesWithDateColumns
-					.Where(table => latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr) 
-								   && DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate) 
+					.Where(table => latestDatesResponse.LatestDates.TryGetValue(table, out string? latestDateStr)
+								   && DateTime.TryParseExact(latestDateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var latestDate)
 								   && latestDate >= sinceDate)
 					.ToList();
 
@@ -354,7 +354,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					}
 
 					// Convert gRPC response to the expected format with LINQ
-					var data = response.Records.Select(record => 
+					var data = response.Records.Select(record =>
 						record.Fields.ToDictionary(field => field.Key, field => ConvertStringToValue(field.Value))
 					).ToList();
 
@@ -516,7 +516,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 					}
 
 					// Convert gRPC response to the expected format with LINQ
-					var data = response.Records.Select(record => 
+					var data = response.Records.Select(record =>
 						record.Fields.ToDictionary(field => field.Key, field => ConvertStringToValue(field.Value))
 					).ToList();
 
@@ -680,7 +680,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			{
 				// Use JsonDocument for efficient parsing
 				using var document = JsonDocument.Parse(jsonData);
-				
+
 				// Use LINQ to convert JSON to dictionary list
 				var result = document.RootElement.EnumerateArray()
 					.Select(element => element.EnumerateObject()

@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 					ids.Add($"{identifier.Identifier}USD");
 					ids.Add(CryptoMapper.Instance.GetFullname(identifier.Identifier));
 				}
-				
+
 				ids = [.. ids.Distinct(StringComparer.InvariantCultureIgnoreCase)];
 
 				var symbol = await FindByDataProvider(

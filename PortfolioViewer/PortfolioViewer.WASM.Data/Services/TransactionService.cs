@@ -17,11 +17,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			CancellationToken cancellationToken = default)
 		{
 			var baseQuery = BuildBaseQuery(
-				parameters.StartDate, 
-				parameters.EndDate, 
-				parameters.AccountId, 
-				parameters.Symbol, 
-				parameters.TransactionType, 
+				parameters.StartDate,
+				parameters.EndDate,
+				parameters.AccountId,
+				parameters.Symbol,
+				parameters.TransactionType,
 				parameters.SearchText);
 
 			// Get total count for pagination
@@ -81,12 +81,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				return quantityActivity.TotalTransactionAmount;
 			}
-			
+
 			if (activity is ActivityWithAmount amountActivity)
 			{
 				return amountActivity.Amount;
 			}
-			
+
 			return null;
 		}
 
@@ -241,7 +241,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3358:Ternary operators should not be nested", Justification = "Expression")]
 		private static Expression<Func<Activity, object>> GetSortExpressionForTotalValue()
 		{
-			return a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount : 
+			return a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount :
 						a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Amount : (object)0;
 		}
 

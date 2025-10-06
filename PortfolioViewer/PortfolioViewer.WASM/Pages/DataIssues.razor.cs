@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				StateHasChanged();
 
 				DataIssuesList = await DataIssuesService!.GetActivitiesWithoutHoldingsAsync();
-				
+
 				// Extract filter options
 				ActivityTypes = [.. DataIssuesList.Select(d => d.ActivityType).Distinct().OrderBy(x => x)];
 				Accounts = [.. DataIssuesList.Select(d => d.AccountName).Distinct().OrderBy(x => x)];
@@ -113,16 +113,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			FilteredDataIssuesList = sortColumn switch
 			{
-				"Date" => sortAscending 
+				"Date" => sortAscending
 					? [.. FilteredDataIssuesList.OrderBy(d => d.Date)]
 					: [.. FilteredDataIssuesList.OrderByDescending(d => d.Date)],
-				"Severity" => sortAscending 
+				"Severity" => sortAscending
 					? [.. FilteredDataIssuesList.OrderBy(d => GetSeverityOrder(d.Severity))]
 					: [.. FilteredDataIssuesList.OrderByDescending(d => GetSeverityOrder(d.Severity))],
-				"ActivityType" => sortAscending 
+				"ActivityType" => sortAscending
 					? [.. FilteredDataIssuesList.OrderBy(d => d.ActivityType)]
 					: [.. FilteredDataIssuesList.OrderByDescending(d => d.ActivityType)],
-				"AccountName" => sortAscending 
+				"AccountName" => sortAscending
 					? [.. FilteredDataIssuesList.OrderBy(d => d.AccountName)]
 					: [.. FilteredDataIssuesList.OrderByDescending(d => d.AccountName)],
 				_ => FilteredDataIssuesList

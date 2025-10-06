@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using GhostfolioSidekick.Database;
 using AwesomeAssertions;
-using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Performance;
+using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.Tools.Database.UnitTests
 {

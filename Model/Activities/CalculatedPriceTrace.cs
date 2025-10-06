@@ -18,7 +18,7 @@
 		public string Reason { get; set; } = string.Empty;
 
 		public decimal? NewQuantity { get; }
-		
+
 		public Money? NewPrice { get; set; }
 
 		public long ActivityId { get; set; }

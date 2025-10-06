@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					DataSource = Datasource.MANUAL,
 				};
 				databaseContext.SymbolProfiles.Add(symbol);
-                logger.LogInformation("Added symbol {Symbol}.", symbolConfiguration.Symbol);
+				logger.LogInformation("Added symbol {Symbol}.", symbolConfiguration.Symbol);
 			}
 
 			symbol.Name = manualSymbolConfiguration.Name;
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				Name = x.Name,
 				Weight = x.Weight,
 			}).ToArray();
-            logger.LogDebug("Updated symbol {Symbol}.", symbolConfiguration.Symbol);
+			logger.LogDebug("Updated symbol {Symbol}.", symbolConfiguration.Symbol);
 		}
 	}
 }

@@ -441,7 +441,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var point = result[0];
 			point.Date.Should().Be(testDate);
 			point.Price.Amount.Should().Be(105); // Min price
-			// Average price should be weighted: (100*10 + 105*20) / (10+20) = 103.33...
+												 // Average price should be weighted: (100*10 + 105*20) / (10+20) = 103.33...
 			point.AveragePrice.Amount.Should().BeApproximately(103.33m, 0.01m);
 		}
 
@@ -782,8 +782,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "Testcode")]
 		private static CalculatedSnapshotPrimaryCurrency CreateTestCalculatedSnapshotPrimaryCurrency(
-			HoldingAggregated? holding, 
-			int? accountId, 
+			HoldingAggregated? holding,
+			int? accountId,
 			DateOnly? date,
 			decimal quantity = 10,
 			decimal averageCostPrice = 100,

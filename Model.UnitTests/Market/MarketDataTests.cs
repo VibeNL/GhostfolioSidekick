@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() => 
+			Assert.Throws<ArgumentNullException>(() =>
 				new MarketData(close!, open, high, low, tradingVolume, date));
 		}
 
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() => 
+			Assert.Throws<ArgumentNullException>(() =>
 				new MarketData(close, open!, high, low, tradingVolume, date));
 		}
 
@@ -72,7 +72,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() => 
+			Assert.Throws<ArgumentNullException>(() =>
 				new MarketData(close, open, high!, low, tradingVolume, date));
 		}
 
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act & Assert
-			Assert.Throws<ArgumentNullException>(() => 
+			Assert.Throws<ArgumentNullException>(() =>
 				new MarketData(close, open, high, low!, tradingVolume, date));
 		}
 

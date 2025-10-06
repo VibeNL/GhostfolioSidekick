@@ -1,4 +1,3 @@
-using System.Text.Json;
 using AwesomeAssertions;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
@@ -8,7 +7,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 {
@@ -103,10 +102,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 		{
 			// Arrange
 			using var context = new DatabaseContext(_contextOptions);
-			
+
 			// Verify we can perform basic database operations
 			await context.Database.EnsureCreatedAsync();
-			
+
 			// Act - Try to query tables (should not throw)
 			var tableCount = await context.Database.SqlQueryRaw<int>("SELECT COUNT(*) as Value FROM sqlite_master WHERE type='table'").FirstOrDefaultAsync();
 
@@ -153,7 +152,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 
 			// Assert
 			Assert.Equal(2, result.Count);
-			
+
 			// Verify first record
 			Assert.Equal("550e8400-e29b-41d4-a716-446655440000", result[0]["Id"]);
 			Assert.Equal("AAPL", result[0]["Symbol"]);
@@ -174,7 +173,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 				Assert.Fail($"Unexpected type for Volume: {volumeValue?.GetType()}");
 			}
 			Assert.True((bool)result[0]["Active"], "First record should be marked as active");
-			
+
 			// Verify second record
 			Assert.Equal("550e8400-e29b-41d4-a716-446655440001", result[1]["Id"]);
 			Assert.Equal("GOOGL", result[1]["Symbol"]);
@@ -207,7 +206,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 				.ReturnsAsync(context);
 
 			using var httpClient = new HttpClient { BaseAddress = new Uri("https://test.example.com") };
-			
+
 			var portfolioClient = new PortfolioClient(
 				httpClient,
 				_mockSqlitePersistence.Object,

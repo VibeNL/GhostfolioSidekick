@@ -96,9 +96,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private async Task DeleteAllData()
 		{
 			// Show confirmation dialog
-			var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+			var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
 				"Are you sure you want to delete all data? This action cannot be undone and will remove all synced data from your local database.");
-			
+
 			if (!confirmed)
 			{
 				return;

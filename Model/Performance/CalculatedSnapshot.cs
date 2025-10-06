@@ -18,7 +18,7 @@
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage(
-			"Major Code Smell", "S107:Methods should not have too many parameters", 
+			"Major Code Smell", "S107:Methods should not have too many parameters",
 			Justification = "DDD")]
 		public CalculatedSnapshot(long id, int accountId, DateOnly date, decimal quantity, Money averageCostPrice, Money currentUnitPrice, Money totalInvested, Money totalValue)
 		{

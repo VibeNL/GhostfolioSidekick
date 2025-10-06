@@ -1,11 +1,11 @@
-﻿using GhostfolioSidekick.ExternalDataProvider;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model;
-using Microsoft.Extensions.Logging;
-using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Configuration;
+﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Activities
 {

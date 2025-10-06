@@ -1,15 +1,15 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Parsers;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Text;
-using System.Diagnostics.CodeAnalysis;
-using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 
 namespace GhostfolioSidekick.Activities
 {
@@ -146,30 +146,30 @@ namespace GhostfolioSidekick.Activities
 			await databaseContext.SaveChangesAsync();
 		}
 
-        private static async Task UpdatePartialSymbolIdentifiers(DatabaseContext databaseContext, IEnumerable<Activity> activities)
-        {
-            var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
+		private static async Task UpdatePartialSymbolIdentifiers(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+		{
+			var existingPartialSymbolIdentifiers = await databaseContext.PartialSymbolIdentifiers.ToListAsync();
 
-            foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
-            {
-                var newPartialSymbolIdentifiers = activity.PartialSymbolIdentifiers
-                    .Where(partialSymbolIdentifier => !existingPartialSymbolIdentifiers.Any(x => x == partialSymbolIdentifier))
-                    .ToList();
+			foreach (var activity in activities.OfType<IActivityWithPartialIdentifier>())
+			{
+				var newPartialSymbolIdentifiers = activity.PartialSymbolIdentifiers
+					.Where(partialSymbolIdentifier => !existingPartialSymbolIdentifiers.Any(x => x == partialSymbolIdentifier))
+					.ToList();
 
-                if (newPartialSymbolIdentifiers.Count > 0)
-                {
-                    await databaseContext.PartialSymbolIdentifiers.AddRangeAsync(newPartialSymbolIdentifiers);
-                    existingPartialSymbolIdentifiers.AddRange(newPartialSymbolIdentifiers);
-                }
+				if (newPartialSymbolIdentifiers.Count > 0)
+				{
+					await databaseContext.PartialSymbolIdentifiers.AddRangeAsync(newPartialSymbolIdentifiers);
+					existingPartialSymbolIdentifiers.AddRange(newPartialSymbolIdentifiers);
+				}
 
-                activity.PartialSymbolIdentifiers = [.. activity.PartialSymbolIdentifiers.Select(x => existingPartialSymbolIdentifiers.FirstOrDefault(y => y == x) ?? x)];
-            }
-        }
+				activity.PartialSymbolIdentifiers = [.. activity.PartialSymbolIdentifiers.Select(x => existingPartialSymbolIdentifiers.FirstOrDefault(y => y == x) ?? x)];
+			}
+		}
 
 		private static async Task SyncActivities(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
 			var existingActivities = await databaseContext.Activities.ToListAsync();
-			
+
 			var existingTransactionKeys = GetTransactionKeys(existingActivities);
 			var newTransactionKeys = GetTransactionKeys(activities);
 
@@ -186,7 +186,7 @@ namespace GhostfolioSidekick.Activities
 		}
 
 		private static void DeleteRemovedActivities(
-			DatabaseContext databaseContext, 
+			DatabaseContext databaseContext,
 			List<Activity> existingActivities,
 			List<(string TransactionId, int AccountId)> existingKeys,
 			List<(string TransactionId, int AccountId)> newKeys)
@@ -194,8 +194,8 @@ namespace GhostfolioSidekick.Activities
 			var deletedKeys = existingKeys.Except(newKeys);
 			foreach (var (TransactionId, AccountId) in deletedKeys)
 			{
-				var activitiesToDelete = existingActivities.Where(x => 
-					x.TransactionId == TransactionId && 
+				var activitiesToDelete = existingActivities.Where(x =>
+					x.TransactionId == TransactionId &&
 					x.Account.Id == AccountId);
 				databaseContext.Activities.RemoveRange(activitiesToDelete);
 			}
@@ -210,8 +210,8 @@ namespace GhostfolioSidekick.Activities
 			var addedKeys = newKeys.Except(existingKeys);
 			foreach (var (TransactionId, AccountId) in addedKeys)
 			{
-				var activitiesToAdd = activities.Where(x => 
-					x.TransactionId == TransactionId && 
+				var activitiesToAdd = activities.Where(x =>
+					x.TransactionId == TransactionId &&
 					x.Account.Id == AccountId);
 				await databaseContext.Activities.AddRangeAsync(activitiesToAdd);
 			}
@@ -228,13 +228,13 @@ namespace GhostfolioSidekick.Activities
 			foreach (var (TransactionId, AccountId) in updatedKeys)
 			{
 				var existingActivity = existingActivities
-					.Where(x => x.TransactionId == TransactionId && 
+					.Where(x => x.TransactionId == TransactionId &&
 								x.Account.Id == AccountId)
 					.OrderBy(x => x.SortingPriority)
 					.ThenBy(x => x.Description);
 
 				var newActivity = activities
-					.Where(x => x.TransactionId == TransactionId && 
+					.Where(x => x.TransactionId == TransactionId &&
 								x.Account.Id == AccountId)
 					.OrderBy(x => x.SortingPriority)
 					.ThenBy(x => x.Description);
@@ -256,7 +256,7 @@ namespace GhostfolioSidekick.Activities
 					MaxDifferences = int.MaxValue,
 					IgnoreObjectTypes = true,
 					MembersToIgnore = [
-						nameof(Activity.Id), 
+						nameof(Activity.Id),
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedQuantity),
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice),
 						nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPriceSource),
@@ -271,7 +271,7 @@ namespace GhostfolioSidekick.Activities
 					]
 				}
 			};
-			
+
 			return compareLogic.Compare(existing, newActivities).AreEqual;
 		}
 	}

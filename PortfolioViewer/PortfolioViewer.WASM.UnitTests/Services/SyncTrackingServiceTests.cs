@@ -5,131 +5,131 @@ using Moq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
 {
-    public class SyncTrackingServiceTests
-    {
-        private readonly Mock<IJSRuntime> _jsRuntimeMock;
-        private readonly SyncTrackingService _syncTrackingService;
+	public class SyncTrackingServiceTests
+	{
+		private readonly Mock<IJSRuntime> _jsRuntimeMock;
+		private readonly SyncTrackingService _syncTrackingService;
 
-        public SyncTrackingServiceTests()
-        {
-            _jsRuntimeMock = new Mock<IJSRuntime>();
-            _syncTrackingService = new SyncTrackingService(_jsRuntimeMock.Object);
-        }
+		public SyncTrackingServiceTests()
+		{
+			_jsRuntimeMock = new Mock<IJSRuntime>();
+			_syncTrackingService = new SyncTrackingService(_jsRuntimeMock.Object);
+		}
 
-        [Fact]
-        public async Task GetLastSyncTimeAsync_WhenNoStoredValue_ReturnsNull()
-        {
-            // Arrange
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
-                         .ReturnsAsync((string?)null);
+		[Fact]
+		public async Task GetLastSyncTimeAsync_WhenNoStoredValue_ReturnsNull()
+		{
+			// Arrange
+			_jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
+						 .ReturnsAsync((string?)null);
 
-            // Act
-            var result = await _syncTrackingService.GetLastSyncTimeAsync();
+			// Act
+			var result = await _syncTrackingService.GetLastSyncTimeAsync();
 
-            // Assert
-            Assert.Null(result);
-        }
+			// Assert
+			Assert.Null(result);
+		}
 
-        [Fact]
-        public async Task GetLastSyncTimeAsync_WhenValidStoredValue_ReturnsDateTime()
-        {
-            // Arrange
-            var expectedDate = DateTime.Now;
-            var isoString = expectedDate.ToString("O");
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
-                         .ReturnsAsync(isoString);
+		[Fact]
+		public async Task GetLastSyncTimeAsync_WhenValidStoredValue_ReturnsDateTime()
+		{
+			// Arrange
+			var expectedDate = DateTime.Now;
+			var isoString = expectedDate.ToString("O");
+			_jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
+						 .ReturnsAsync(isoString);
 
-            // Act
-            var result = await _syncTrackingService.GetLastSyncTimeAsync();
+			// Act
+			var result = await _syncTrackingService.GetLastSyncTimeAsync();
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(expectedDate, result.Value, TimeSpan.FromSeconds(1)); // Allow small time difference
-        }
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal(expectedDate, result.Value, TimeSpan.FromSeconds(1)); // Allow small time difference
+		}
 
-        [Fact]
-        public async Task GetLastSyncTimeAsync_WhenInvalidStoredValue_ReturnsNull()
-        {
-            // Arrange
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
-                         .ReturnsAsync("invalid-date-string");
+		[Fact]
+		public async Task GetLastSyncTimeAsync_WhenInvalidStoredValue_ReturnsNull()
+		{
+			// Arrange
+			_jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
+						 .ReturnsAsync("invalid-date-string");
 
-            // Act
-            var result = await _syncTrackingService.GetLastSyncTimeAsync();
+			// Act
+			var result = await _syncTrackingService.GetLastSyncTimeAsync();
 
-            // Assert
-            Assert.Null(result);
-        }
+			// Assert
+			Assert.Null(result);
+		}
 
-        [Fact]
-        public async Task SetLastSyncTimeAsync_CallsLocalStorageSetItem()
-        {
-            // Arrange
-            var syncTime = DateTime.Now;
+		[Fact]
+		public async Task SetLastSyncTimeAsync_CallsLocalStorageSetItem()
+		{
+			// Arrange
+			var syncTime = DateTime.Now;
 
-            // Act
-            await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
+			// Act
+			await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
 
-            // Assert
-            _jsRuntimeMock.Verify(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()), Times.Once);
-        }
+			// Assert
+			_jsRuntimeMock.Verify(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()), Times.Once);
+		}
 
-        [Fact]
-        public async Task HasEverSyncedAsync_WhenNoStoredValue_ReturnsFalse()
-        {
-            // Arrange
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
-                         .ReturnsAsync((string?)null);
+		[Fact]
+		public async Task HasEverSyncedAsync_WhenNoStoredValue_ReturnsFalse()
+		{
+			// Arrange
+			_jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
+						 .ReturnsAsync((string?)null);
 
-            // Act
-            var result = await _syncTrackingService.HasEverSyncedAsync();
+			// Act
+			var result = await _syncTrackingService.HasEverSyncedAsync();
 
-            // Assert
-            Assert.False(result);
-        }
+			// Assert
+			Assert.False(result);
+		}
 
-        [Fact]
-        public async Task HasEverSyncedAsync_WhenValidStoredValue_ReturnsTrue()
-        {
-            // Arrange
-            var isoString = DateTime.Now.ToString("O");
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
-                         .ReturnsAsync(isoString);
+		[Fact]
+		public async Task HasEverSyncedAsync_WhenValidStoredValue_ReturnsTrue()
+		{
+			// Arrange
+			var isoString = DateTime.Now.ToString("O");
+			_jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
+						 .ReturnsAsync(isoString);
 
-            // Act
-            var result = await _syncTrackingService.HasEverSyncedAsync();
+			// Act
+			var result = await _syncTrackingService.HasEverSyncedAsync();
 
-            // Assert
-            Assert.True(result);
-        }
+			// Assert
+			Assert.True(result);
+		}
 
-        [Fact]
-        public async Task GetLastSyncTimeAsync_WhenJSRuntimeThrows_ReturnsNull()
-        {
-            // Arrange
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
-                         .ThrowsAsync(new InvalidOperationException());
+		[Fact]
+		public async Task GetLastSyncTimeAsync_WhenJSRuntimeThrows_ReturnsNull()
+		{
+			// Arrange
+			_jsRuntimeMock.Setup(js => js.InvokeAsync<string?>(It.IsAny<string>(), It.IsAny<object?[]?>()))
+						 .ThrowsAsync(new InvalidOperationException());
 
-            // Act
-            var result = await _syncTrackingService.GetLastSyncTimeAsync();
+			// Act
+			var result = await _syncTrackingService.GetLastSyncTimeAsync();
 
-            // Assert
-            Assert.Null(result);
-        }
+			// Assert
+			Assert.Null(result);
+		}
 
-        [Fact]
-        public async Task SetLastSyncTimeAsync_WhenJSRuntimeThrows_DoesNotThrow()
-        {
-            // Arrange
-            var syncTime = DateTime.Now;
-            _jsRuntimeMock.Setup(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()))
-                         .ThrowsAsync(new InvalidOperationException());
+		[Fact]
+		public async Task SetLastSyncTimeAsync_WhenJSRuntimeThrows_DoesNotThrow()
+		{
+			// Arrange
+			var syncTime = DateTime.Now;
+			_jsRuntimeMock.Setup(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()))
+						 .ThrowsAsync(new InvalidOperationException());
 
-            // Act
-            var action = async () => await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
+			// Act
+			var action = async () => await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
 
 			// Assert
 			await action.Should().NotThrowAsync();
 		}
-    }
+	}
 }

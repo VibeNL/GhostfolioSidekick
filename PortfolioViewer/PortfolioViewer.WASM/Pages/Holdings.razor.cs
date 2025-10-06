@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
-		
+
 		// View mode for the treemap
 		private string ViewMode = "treemap";
 		private List<HoldingDisplayModel> HoldingsList = [];
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -59,24 +59,24 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				{
 					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
 				}
-				
+
 				// Subscribe to new filter state
 				if (FilterState != null)
 				{
 					FilterState.PropertyChanged += OnFilterStateChanged;
 				}
-				
+
 				_previousFilterState = FilterState;
 				return LoadPortfolioDataAsync();
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
 		private bool HasFilterStateChanged()
 		{
 			if (_previousFilterState == null) return true;
-			
+
 			// For Holdings, we care about currency and account changes
 			return _previousFilterState.StartDate != FilterState.StartDate ||
 				   _previousFilterState.EndDate != FilterState.EndDate ||

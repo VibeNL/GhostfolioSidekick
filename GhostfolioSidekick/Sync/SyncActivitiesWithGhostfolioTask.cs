@@ -15,13 +15,13 @@ namespace GhostfolioSidekick.Sync
 		public async Task DoWork()
 		{
 			await using var databaseContext = databaseContextFactory.CreateDbContext();
-			
+
 			// Only sync activities for accounts that have SyncActivities enabled
 			var allActivities = await databaseContext.Activities
 				.Include(x => x.Holding)
 				.Include(x => x.Account)
 				.ToListAsync();
-				
+
 			await ghostfolioSync.SyncAllActivities(allActivities);
 		}
 	}

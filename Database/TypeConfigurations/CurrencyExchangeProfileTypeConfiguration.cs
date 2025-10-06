@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<CurrencyExchangeProfile> builder)
 		{
 			builder.ToTable("CurrencyExchangeProfile");
-			
+
 			builder.HasKey(x => x.ID);
 			builder.HasMany(x => x.Rates).WithOne().OnDelete(DeleteBehavior.Cascade);
 

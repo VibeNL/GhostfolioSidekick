@@ -106,7 +106,7 @@ Format function calls like this:
 						functionDefinitions.AppendLine($"- {function.Name}");
 						functionDefinitions.AppendLine($"  Description: {function.Description ?? function.Name}");
 						functionDefinitions.AppendLine("  Parameters:");
-						
+
 						foreach (var param in function.Metadata.Parameters)
 						{
 							var paramDesc = param.Description ?? param.Name;

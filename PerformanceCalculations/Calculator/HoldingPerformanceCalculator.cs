@@ -140,10 +140,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				{
 					ICollection<Activity> activitiesForAccount = [.. activities.Where(x => x.AccountId == accountId).Select(x => x.Activity)];
 					var lst = await CalculateSnapShots(
-						defaultSymbolProfile.Currency, 
+						defaultSymbolProfile.Currency,
 						accountId,
 						symbolProfiles,
-						activitiesForAccount, 
+						activitiesForAccount,
 						allMarketData).ConfigureAwait(false);
 					snapshots.AddRange(lst);
 				}
@@ -291,7 +291,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					var costBasisReduction = snapshot.AverageCostPrice.Times(activity.AdjustedQuantity);
 					snapshot.TotalInvested = snapshot.TotalInvested.Subtract(costBasisReduction);
 					snapshot.Quantity = snapshot.Quantity - activity.AdjustedQuantity;
-					
+
 					// Average cost price remains the same after a sell (unless quantity becomes zero)
 					if (snapshot.Quantity <= 0)
 					{

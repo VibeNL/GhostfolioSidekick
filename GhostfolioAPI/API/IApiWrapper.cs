@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 	{
 		Task<Account?> GetAccountByName(string name);
 		Task<Platform?> GetPlatformByName(string name);
-				
+
 		Task<List<SymbolProfile>> GetSymbolProfile(string identifier, bool includeIndexes);
 
 		Task<List<Activity>> GetActivitiesByAccount(Account account);

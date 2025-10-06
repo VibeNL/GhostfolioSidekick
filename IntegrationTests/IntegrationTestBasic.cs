@@ -1,8 +1,8 @@
-﻿using DotNet.Testcontainers.Builders;
+﻿using AwesomeAssertions;
+using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Networks;
-using AwesomeAssertions;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			response.EnsureSuccessStatusCode();
 			authToken = await response.Content.ReadFromJsonAsync<AuthData>().ConfigureAwait(false);
 		}
-				
+
 		public async Task DisposeAsync()
 		{
 			// Dispose HttpClient.
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			await redisContainer.StopAsync().ConfigureAwait(false);
 			await redisContainer.DisposeAsync().ConfigureAwait(false);
 		}
-		
+
 		private async Task InitializeSidekick(AuthData authToken, string url)
 		{
 			// Arrange

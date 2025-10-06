@@ -10,9 +10,9 @@
 
 		MaintainManualSymbol,
 
-		
+
 		FileImporter,
-		
+
 		CurrencyGatherer,
 
 		BalanceMaintainer,
@@ -20,11 +20,11 @@
 		DetermineHoldings,
 
 		SymbolMatcher,
-		
+
 		MarketDataStockSplit,
 
 		MarketDataGatherer,
-		
+
 		CalculatePrice,
 
 		PerformanceCalculations,
@@ -34,7 +34,7 @@
 		CleanupDatabase,
 
 		SyncAccountsWithGhostfolio,
-		
+
 		SyncManualActivitiesmarketDataWithGhostfolio,
 
 		SyncActivitiesWithGhostfolio,

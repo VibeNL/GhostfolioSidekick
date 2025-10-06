@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.ExternalDataProvider
 			   .WaitAndRetryAsync(10, retryAttempt =>
 			   {
 				   return TimeSpan.FromSeconds(30);
-			   }, 
+			   },
 			   (exception, timeSpan, retryCount, context) =>
 			   {
 				   logger.LogWarning($"Retry {retryCount} encountered an error: {exception.Message}. Waiting {timeSpan} before next retry.");

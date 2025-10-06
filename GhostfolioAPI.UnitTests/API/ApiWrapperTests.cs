@@ -1,14 +1,14 @@
+using AwesomeAssertions;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Symbols;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
-using AwesomeAssertions;
-using GhostfolioSidekick.Database.Repository;
 using RestSharp;
-using Microsoft.Extensions.Caching.Memory;
-using GhostfolioSidekick.GhostfolioAPI.Contract;
 
 namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 {
@@ -140,16 +140,16 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			var modelActivities = new List<Model.Activities.Activity> {
 				new Model.Activities.Types.BuyActivity {
 					Holding = new Holding {
-						SymbolProfiles = [new Model.Symbols.SymbolProfile { 
-							Symbol = identifier, 
+						SymbolProfiles = [new Model.Symbols.SymbolProfile {
+							Symbol = identifier,
 							Currency = Currency.EUR,
 							DataSource = Datasource.GHOSTFOLIO + "_DUMMY" }]
 					},
 					Account = new Model.Accounts.Account(){
-						Name = accountName, 
+						Name = accountName,
 						Balance = [],
 						Comment = accountName
-					} 
+					}
 				}
 			};
 

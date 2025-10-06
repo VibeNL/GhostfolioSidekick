@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 	{
 		private const string Pattern = "[Buy|Sell] (?<amount>\\d+) (.*)@(?<price>[0-9]+[.0-9]+) (?<currency>[A-Z]+)";
 		private const string PatternMoneyMarketfunds = "Money Market fund conversion: (Buy|Sell) (?<amount>[.0-9]*) at (?<price>[.0-9]*) (?<currency>[A-Z]+)";
-		
+
 		public PartialActivityType? GetActivityType(DeGiroRecord record)
 		{
 			if (record.Description.Equals("DEGIRO Transaction and/or third party fees"))
@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 				return PartialActivityType.Dividend;
 			}
 
-			
+
 			return null;
 		}
 
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 			return decimal.Parse(GetValue(record, 2), GetCultureForParsingNumbers());
 		}
 
-		
+
 		public decimal GetUnitPrice(DeGiroRecord record)
 		{
 			return decimal.Parse(GetValue(record, 3), GetCultureForParsingNumbers());

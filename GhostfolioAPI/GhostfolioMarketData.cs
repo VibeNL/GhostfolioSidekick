@@ -1,7 +1,7 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace GhostfolioSidekick.GhostfolioAPI
 {

@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account2 = CreateTestAccount("Account 2", 2);
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account1, holding, DateTime.Now.AddDays(-1), 10, 100),
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var symbolProfile2 = CreateTestSymbolProfile("MSFT", "Microsoft");
 			var holding1 = CreateTestHolding(symbolProfile1);
 			var holding2 = CreateTestHolding(symbolProfile2);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding1, DateTime.Now.AddDays(-1), 10, 100),
@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
@@ -195,7 +195,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var symbolProfile2 = CreateTestSymbolProfile("MSFT", "Microsoft");
 			var holding1 = CreateTestHolding(symbolProfile1);
 			var holding2 = CreateTestHolding(symbolProfile2);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding1, DateTime.Now.AddDays(-1), 10, 100, "BUY-001", "Apple purchase"),
@@ -236,7 +236,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
@@ -277,7 +277,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>();
 			for (int i = 0; i < 15; i++)
 			{
@@ -319,7 +319,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
@@ -368,7 +368,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var buyActivity = CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100);
 			buyActivity.Fees.Add(new BuyActivityFee(new Money(Currency.USD, 5)));
 			buyActivity.Taxes.Add(new BuyActivityTax(new Money(Currency.USD, 10)));
@@ -410,7 +410,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
@@ -455,7 +455,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
@@ -495,7 +495,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-5), 10, 100), // Inside range
@@ -535,7 +535,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var sellActivity = CreateSellActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100);
 			sellActivity.Fees.Add(new SellActivityFee(new Money(Currency.USD, 3)));
 			sellActivity.Fees.Add(new SellActivityFee(new Money(Currency.USD, 2)));
@@ -567,11 +567,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Transactions.Should().HaveCount(2);
-			
+
 			var sellTransaction = result.Transactions.First(t => t.Type == "Sell");
 			sellTransaction.Fee.Should().NotBeNull();
 			sellTransaction.Fee!.Amount.Should().Be(5); // 3 + 2
-			
+
 			var dividendTransaction = result.Transactions.First(t => t.Type == "Dividend");
 			dividendTransaction.Fee.Should().NotBeNull();
 			dividendTransaction.Fee!.Amount.Should().Be(1);
@@ -582,7 +582,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 		{
 			// Arrange
 			var account = CreateTestAccount("Test Account");
-			
+
 			var activities = new List<Activity>
 			{
 				CreateCashDepositActivity(account, DateTime.Now.AddDays(-1), 1000),
@@ -612,13 +612,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// Assert
 			result.Should().NotBeNull();
 			result.Transactions.Should().HaveCount(2);
-			
+
 			var depositTransaction = result.Transactions.First(t => t.Type == "CashDeposit");
 			depositTransaction.Amount.Should().NotBeNull();
 			depositTransaction.Amount!.Amount.Should().Be(1000);
 			depositTransaction.TotalValue.Should().NotBeNull();
 			depositTransaction.TotalValue!.Amount.Should().Be(1000);
-			
+
 			var interestTransaction = result.Transactions.First(t => t.Type == "Interest");
 			interestTransaction.Amount.Should().NotBeNull();
 			interestTransaction.Amount!.Amount.Should().Be(25);
@@ -665,7 +665,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("UNKNOWN", null); // Null name
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100)
@@ -712,7 +712,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
-			
+
 			var activities = new List<Activity>
 			{
 				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
@@ -745,7 +745,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			// Assert
 			result.Should().NotBeNull();
-			
+
 			if (transactionType == "UnknownType")
 			{
 				// Unknown types should return all activities (no filtering)

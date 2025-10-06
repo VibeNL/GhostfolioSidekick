@@ -9,7 +9,8 @@ public class ChatE2ETest
 	public async Task Should_DisplayWebLLMResponse_When_UserSubmitsPrompt()
 	{
 		using var playwright = await Playwright.CreateAsync();
-		var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { 
+		var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+		{
 			Headless = false,
 			Args = options,
 		});

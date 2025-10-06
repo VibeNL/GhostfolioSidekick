@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.Activities
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		private async Task CreateOrUpdateHolding(
-			DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary, 
+			DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary,
 			List<Holding> holdings,
 			IList<PartialSymbolIdentifier> partialIdentifiers)
 		{

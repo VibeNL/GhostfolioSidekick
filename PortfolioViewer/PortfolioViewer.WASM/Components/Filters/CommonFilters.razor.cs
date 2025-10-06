@@ -462,7 +462,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			{
 				Logger?.LogWarning("Invalid start date format received: {Value}", e.Value?.ToString());
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -483,7 +483,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			{
 				Logger?.LogWarning("Invalid end date format received: {Value}", e.Value?.ToString());
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -498,7 +498,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 				{
 					FilterState.SelectedAccountId = accountId;
 				}
-				
+
 				// Update available Symbols based on selected account
 				Task.Run(async () =>
 				{
@@ -510,7 +510,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			{
 				Logger?.LogWarning("Invalid account ID format received: {Value}", e.Value?.ToString());
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -525,7 +525,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 				{
 					FilterState.SelectedSymbol = _pendingFilterState.SelectedSymbol;
 				}
-				
+
 				// Update available accounts based on selected symbol
 				Task.Run(async () =>
 				{
@@ -533,7 +533,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					await InvokeAsync(StateHasChanged);
 				});
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -549,7 +549,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					FilterState.SelectedTransactionType = _pendingFilterState.SelectedTransactionType;
 				}
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -565,7 +565,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					FilterState.SearchText = _pendingFilterState.SearchText;
 				}
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -593,7 +593,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					}, null, 300, Timeout.Infinite);
 				}
 			}
-			
+
 			return Task.CompletedTask;
 		}
 

@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
 	public class AgentOrchestrator
 	{
-		
+
 		private readonly Kernel kernel;
 		private readonly Agent defaultAgent;
 		private readonly List<Agent> agents;
@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			IKernelBuilder builder = Kernel.CreateBuilder();
 			var webChatClient = serviceProvider.GetRequiredService<IWebChatClient>();
 			builder.Services.AddSingleton((s) => webChatClient.AsChatCompletionService());
-			
+
 			kernel = builder.Build();
 
 			var researchAgent = ResearchAgent.Create(webChatClient, serviceProvider);
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  HistoryReducer = new ChatHistoryTruncationReducer(1),
 				  // Limit total number of turns no matter what
 				  MaximumIterations = 10,
-				  AutomaticReset = true,				  
+				  AutomaticReset = true,
 			  };
 
 			groupChat = new AgentGroupChat([.. agents])

@@ -1,13 +1,13 @@
+using AwesomeAssertions;
+using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using AwesomeAssertions;
-using GhostfolioSidekick.Model;
 using Moq.EntityFrameworkCore;
-using GhostfolioSidekick.AccountMaintainer;
 
 namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 {

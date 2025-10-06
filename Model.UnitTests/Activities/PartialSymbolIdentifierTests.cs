@@ -1,5 +1,5 @@
-using GhostfolioSidekick.Model.Activities;
 using AwesomeAssertions;
+using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Model.UnitTests.Activities
 {

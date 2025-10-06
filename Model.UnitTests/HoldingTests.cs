@@ -1,7 +1,7 @@
-using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Model.Activities;
 using AwesomeAssertions;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
+using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.Model.UnitTests
 {

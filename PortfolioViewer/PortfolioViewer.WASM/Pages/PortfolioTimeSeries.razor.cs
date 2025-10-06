@@ -1,12 +1,11 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 using Plotly.Blazor;
 using Plotly.Blazor.Traces;
-using System.Globalization;
-using GhostfolioSidekick.Database.Repository;
 using System.ComponentModel;
-using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -55,13 +54,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected override async Task OnInitializedAsync()
 		{
 			MinDate = await AccountDataService.GetMinDateAsync();
-			
+
 			// Subscribe to filter changes
 			if (FilterState != null)
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
-			
+
 			//await LoadTimeSeriesAsync();
 		}
 
@@ -75,13 +74,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				{
 					_previousFilterState.PropertyChanged -= OnFilterStateChanged;
 				}
-				
+
 				// Subscribe to new filter state
 				if (FilterState != null)
 				{
 					FilterState.PropertyChanged += OnFilterStateChanged;
 				}
-				
+
 				_previousFilterState = FilterState;
 				await LoadTimeSeriesAsync();
 			}
@@ -97,7 +96,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool HasFilterStateChanged()
 		{
 			if (_previousFilterState == null) return true;
-			
+
 			return _previousFilterState.StartDate != FilterState.StartDate ||
 				   _previousFilterState.EndDate != FilterState.EndDate ||
 				   _previousFilterState.SelectedAccountId != FilterState.SelectedAccountId;
@@ -133,7 +132,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					SelectedAccountId
 				) ?? [];
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-				
+
 				await PrepareDisplayData();
 				await PrepareChartData();
 			}
@@ -255,27 +254,27 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			switch (sortColumn)
 			{
 				case "Date":
-					TimeSeriesDisplayData = sortAscending 
+					TimeSeriesDisplayData = sortAscending
 						? [.. TimeSeriesDisplayData.OrderBy(d => d.Date)]
 						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.Date)];
 					break;
 				case "TotalValue":
-					TimeSeriesDisplayData = sortAscending 
+					TimeSeriesDisplayData = sortAscending
 						? [.. TimeSeriesDisplayData.OrderBy(d => d.TotalValue.Amount)]
 						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.TotalValue.Amount)];
 					break;
 				case "TotalInvested":
-					TimeSeriesDisplayData = sortAscending 
+					TimeSeriesDisplayData = sortAscending
 						? [.. TimeSeriesDisplayData.OrderBy(d => d.TotalInvested.Amount)]
 						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.TotalInvested.Amount)];
 					break;
 				case "GainLoss":
-					TimeSeriesDisplayData = sortAscending 
+					TimeSeriesDisplayData = sortAscending
 						? [.. TimeSeriesDisplayData.OrderBy(d => d.GainLoss.Amount)]
 						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.GainLoss.Amount)];
 					break;
 				case "GainLossPercentage":
-					TimeSeriesDisplayData = sortAscending 
+					TimeSeriesDisplayData = sortAscending
 						? [.. TimeSeriesDisplayData.OrderBy(d => d.GainLossPercentage)]
 						: [.. TimeSeriesDisplayData.OrderByDescending(d => d.GainLossPercentage)];
 					break;

@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// View mode for chart/table toggle
 		protected string ViewMode { get; set; } = "chart";
-		
+
 		// View mode for Account Details section (table, pie, treemap)
 		protected string AccountDetailsViewMode { get; set; } = "table";
 
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected Config accountPieConfig = new();
 		protected Plotly.Blazor.Layout accountPieLayout = new();
 		protected IList<ITrace> accountPieData = [];
-		
+
 		protected Config accountTreemapConfig = new();
 		protected Plotly.Blazor.Layout accountTreemapLayout = new();
 		protected IList<ITrace> accountTreemapData = [];
@@ -69,12 +69,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected Money TotalPortfolioValue { get; set; } = Money.Zero(Currency.EUR);
 		protected Money TotalAssetValue { get; set; } = Money.Zero(Currency.EUR);
 		protected Money TotalCashPosition { get; set; } = Money.Zero(Currency.EUR);
-		
+
 		// Computed properties for totals in the summary table
 		protected Money TotalGainLoss => LatestAccountValues.Count != 0
 			? LatestAccountValues.Aggregate(Money.Zero(TotalPortfolioValue.Currency), (sum, account) => sum.Add(account.GainLoss))
 			: Money.Zero(Currency.EUR);
-		
+
 		protected decimal TotalGainLossPercentage
 		{
 			get
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 
 			var displayData = new List<AccountValueDisplayModel>();
-			
+
 			var accounts = (await AccountDataService!.GetAccountInfo()).ToDictionary(x => x.Id, x => x);
 
 			foreach (var point in AccountsData)
@@ -304,7 +304,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					Labels = LatestAccountValues.Select(a => a.AccountName).ToArray(),
 					Values = [.. LatestAccountValues.Select(a => (object)a.Value.Amount)],
 					Parents = LatestAccountValues.Select(a => "").ToArray(),
-					Text = LatestAccountValues.Select(a => 
+					Text = LatestAccountValues.Select(a =>
 						$"{a.AccountName}<br>{CurrencyDisplay.DisplaySignAndAmount(a.Value)}<br>Gain/Loss: {CurrencyDisplay.DisplaySignAndAmount(a.GainLoss)} ({a.GainLossPercentage:P2})").ToArray(),
 					TextInfo = Plotly.Blazor.Traces.TreeMapLib.TextInfoFlag.Text,
 					BranchValues = Plotly.Blazor.Traces.TreeMapLib.BranchValuesEnum.Total,

@@ -156,7 +156,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 
 				if (symbolProfile != null)
 				{
-					ghostfolioSymbolProfile = new Contract.SymbolProfile {
+					ghostfolioSymbolProfile = new Contract.SymbolProfile
+					{
 						AssetClass = symbolProfile.AssetClass.ToString(),
 						AssetSubClass = symbolProfile.AssetSubClass?.ToString(),
 						Currency = symbolProfile.Currency.Symbol,
@@ -164,7 +165,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						Name = symbolProfile.Name ?? symbolProfile.Symbol,
 						Symbol = symbolProfile.Symbol,
 						Sectors = symbolProfile.SectorWeights?.Select(x => new Sector { Name = x.Name, Weight = x.Weight }).ToArray() ?? [],
-						Countries = symbolProfile.CountryWeight?.Select(x => new Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []	
+						Countries = symbolProfile.CountryWeight?.Select(x => new Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []
 					};
 				}
 

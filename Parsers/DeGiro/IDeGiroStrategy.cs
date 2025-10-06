@@ -1,5 +1,5 @@
-﻿using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {

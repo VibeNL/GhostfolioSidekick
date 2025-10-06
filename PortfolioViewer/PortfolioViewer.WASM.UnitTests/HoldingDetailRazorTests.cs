@@ -30,9 +30,9 @@
 //            var mockService = new Mock<IHoldingsDataServiceOLD>();
 //            Services.AddSingleton(mockService.Object);
 //            Services.AddSingleton<NavigationManager>(new MockNavigationManager());
-            
+
 //            var cut = RenderComponent<HoldingDetail>(parameters => parameters.Add(p => p.Symbol, "AAPL"));
-            
+
 //            Assert.Contains("Loading Holding Data...", cut.Markup);
 //        }
 
@@ -43,9 +43,9 @@
 //            var fakeService = new FakeHoldingDetailDataService(priceHistory);
 //            Services.AddSingleton<IHoldingsDataServiceOLD>(fakeService);
 //            Services.AddSingleton<NavigationManager>(new MockNavigationManager());
-            
+
 //            var cut = RenderComponent<HoldingDetail>(parameters => parameters.Add(p => p.Symbol, "NOTFOUND"));
-            
+
 //            cut.WaitForAssertion(() => Assert.Contains("Holding Not Found", cut.Markup));
 //        }
 
@@ -71,9 +71,9 @@
 //            var fakeService = new FakeHoldingDetailDataService(priceHistory, holding);
 //            Services.AddSingleton<IHoldingsDataServiceOLD>(fakeService);
 //            Services.AddSingleton<NavigationManager>(new MockNavigationManager());
-            
+
 //            var cut = RenderComponent<HoldingDetail>(parameters => parameters.Add(p => p.Symbol, "AAPL"));
-            
+
 //            cut.WaitForAssertion(() => 
 //            {
 //                Assert.Contains("AAPL", cut.Markup);
@@ -112,9 +112,9 @@
 //            var fakeService = new FakeHoldingDetailDataService(priceHistory, holding);
 //            Services.AddSingleton<IHoldingsDataServiceOLD>(fakeService);
 //            Services.AddSingleton<NavigationManager>(new MockNavigationManager());
-            
+
 //            var cut = RenderComponent<HoldingDetail>(parameters => parameters.Add(p => p.Symbol, "AAPL"));
-            
+
 //            cut.WaitForAssertion(() => 
 //            {
 //                Assert.Contains("Recent Price Data", cut.Markup);

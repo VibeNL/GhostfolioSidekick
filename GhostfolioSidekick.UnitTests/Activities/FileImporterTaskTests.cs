@@ -1,15 +1,15 @@
+using AwesomeAssertions;
+using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
-using AwesomeAssertions;
-using GhostfolioSidekick.Model.Accounts;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Activities;
 
 namespace GhostfolioSidekick.UnitTests.Activities
 {

@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a")
 				]);
 		}
-		
+
 		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleBuyEuroenHeaders_Converted()
 		{

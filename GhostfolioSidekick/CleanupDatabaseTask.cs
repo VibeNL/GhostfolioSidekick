@@ -11,9 +11,9 @@ namespace GhostfolioSidekick
 		public TaskPriority Priority => TaskPriority.CleanupDatabase;
 
 		public TimeSpan ExecutionFrequency => Frequencies.Daily;
-		
+
 		public bool ExceptionsAreFatal => true;
-		
+
 		public Task DoWork()
 		{
 			return CleanupDatabase();

@@ -2,7 +2,7 @@
 
 public class WebTests
 {
-	[Fact(Skip ="TODO")]
+	[Fact(Skip = "TODO")]
 	public async Task GetWebResourceRootReturnsOkStatusCode()
 	{
 		// Arrange

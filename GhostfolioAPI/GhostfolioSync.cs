@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 		public async Task SyncAllActivities(IEnumerable<Activity> allActivities)
 		{
 			logger.LogDebug("Syncing activities");
-						
+
 			allActivities = ConvertSendAndRecievesToBuyAndSells(allActivities);
 			allActivities = ConvertGiftsToInterestOrBuy(allActivities);
 			allActivities = ConvertBondRepay(allActivities);

@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
-	internal class HoldingAggregatedTypeConfiguration : 
+	internal class HoldingAggregatedTypeConfiguration :
 		IEntityTypeConfiguration<HoldingAggregated>,
 		IEntityTypeConfiguration<CalculatedSnapshot>,
 		IEntityTypeConfiguration<CalculatedSnapshotPrimaryCurrency>,
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			// Configure simple properties
 			builder.Property(x => x.Date).IsRequired();
 			builder.Property(x => x.Quantity).IsRequired();
-			
+
 			// Indexes
 			builder.HasIndex(x => new { x.Date });
 			builder.HasIndex(x => new { x.AccountId, x.Date });
@@ -106,7 +106,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			builder.ToTable("BalancePrimaryCurrencies");
 			builder.HasKey(x => x.Id);
-			
+
 			// Configure simple properties
 			builder.Property(x => x.Date).IsRequired();
 			builder.Property(x => x.Money).IsRequired();
@@ -120,9 +120,9 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		{
 			// Cast to nullable Money to satisfy EF Core's ComplexProperty method
 			var nullableExpression = Expression.Lambda<Func<TEntity, Money?>>(
-				navigationExpression.Body, 
+				navigationExpression.Body,
 				navigationExpression.Parameters);
-			
+
 			builder.ComplexProperty(nullableExpression).IsRequired().Property(x => x!.Amount).HasColumnName(name);
 			builder.ComplexProperty(nullableExpression).IsRequired().ComplexProperty(x => x!.Currency).Property(x => x.Symbol).HasColumnName("Currency" + name);
 		}

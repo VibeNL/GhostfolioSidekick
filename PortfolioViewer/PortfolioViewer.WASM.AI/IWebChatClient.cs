@@ -2,7 +2,7 @@
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 {
-	public interface IWebChatClient: IChatClient
+	public interface IWebChatClient : IChatClient
 	{
 		IWebChatClient Clone();
 

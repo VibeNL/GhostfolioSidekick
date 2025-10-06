@@ -31,14 +31,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected abstract string WITHHOLDING_TAX { get; }
 		protected abstract string DATE { get; }
 		protected abstract CultureInfo Culture { get; }
-		protected CultureInfo AlternativeCulture{ get; } = CultureInfo.InvariantCulture;
+		protected CultureInfo AlternativeCulture { get; } = CultureInfo.InvariantCulture;
 
 		private List<string> TableKeyWords
 		{
 			get
 			{
 				return [.. Keyword_Booking.Union(Keyword_Nominal)
-				.Union(Keyword_Price)	
+				.Union(Keyword_Price)
 				.Union([
 					Keyword_Position,
 					Keyword_Quantity,
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					}
 				}
 
-				if (Keyword_Amount.Contains(word.Text) || 
+				if (Keyword_Amount.Contains(word.Text) ||
 					(headers.Count != 0 && CheckEndOfRecord(headers, word.Text))) // end of header
 				{
 					inHeader = false;
@@ -240,7 +240,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					Parse(words[i + 1].Text),
 					Parse(words[i + 2 + incrementDueToPiecesText].Text),
 					new Money(
-						Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text), 
+						Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text),
 						Parse(words[i + 4 + incrementDueToPiecesText].Text)),
 					id));
 
@@ -273,7 +273,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					Currency.GetCurrency(words[i + 6].Text),
 					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					Parse(words[i + 5].Text	),
+					Parse(words[i + 5].Text),
 					new Money(Currency.GetCurrency(words[i + 6].Text), Parse(words[i + 5].Text)),
 					id));
 

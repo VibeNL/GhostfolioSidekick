@@ -168,8 +168,8 @@ namespace GhostfolioSidekick.Performance
 			// Clean up CalculatedSnapshotPrimaryCurrency records that no longer have corresponding CalculatedSnapshot records
 			var orphanedPrimarySnapshots = await databaseContext.CalculatedSnapshotPrimaryCurrencies
 				.Where(ps => !databaseContext.CalculatedSnapshots
-					.Any(s => s.HoldingAggregatedId == ps.HoldingAggregatedId && 
-							  s.AccountId == ps.AccountId && 
+					.Any(s => s.HoldingAggregatedId == ps.HoldingAggregatedId &&
+							  s.AccountId == ps.AccountId &&
 							  s.Date == ps.Date))
 				.ToListAsync();
 
