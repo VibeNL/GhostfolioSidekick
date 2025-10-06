@@ -1,94 +1,122 @@
-# Base runtime image for the API
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/runtime:9.0 AS base
-
-ARG TARGETPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
-ARG TARGETVARIANT
-ARG BUILDPLATFORM
-ARG BUILDOS
-ARG BUILDARCH
-ARG BUILDVARIANT
-
-RUN echo "Building on $BUILDPLATFORM, targeting $TARGETPLATFORM"
-RUN echo "Building on ${BUILDOS} and ${BUILDARCH} with optional variant ${BUILDVARIANT}"
-RUN echo "Targeting ${TARGETOS} and ${TARGETARCH} with optional variant ${TARGETVARIANT}"
-
-WORKDIR /app
-
-# Build stage for the API and Sidekick
+# syntax=docker/dockerfile:1
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 ARG TARGETARCH
+ARG BUILDPLATFORM
+
+# Install dependencies in a single layer for better caching
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3 \
+        python3-pip \
+        curl \
+        ca-certificates && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    dotnet workload install wasm-tools && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /src
 
-# Install Python, wasm-tools workload, and supervisord in a single layer
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip supervisor && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
-    dotnet workload install wasm-tools && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy solution file first for better layer caching
+COPY *.sln ./
 
-# Copy and restore projects
-COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer.ApiService/"]
-COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer.WASM/"]
+# Copy all project files in a structured way for optimal caching
 COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
+COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer/PortfolioViewer.ApiService/"]
+COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer/PortfolioViewer.WASM/"]
+COPY ["PortfolioViewer/PortfolioViewer.Common/PortfolioViewer.Common.csproj", "PortfolioViewer/PortfolioViewer.Common/"]
+COPY ["PortfolioViewer/PortfolioViewer.ServiceDefaults/PortfolioViewer.ServiceDefaults.csproj", "PortfolioViewer/PortfolioViewer.ServiceDefaults/"]
+COPY ["PortfolioViewer/PortfolioViewer.WASM.Data/PortfolioViewer.WASM.Data.csproj", "PortfolioViewer/PortfolioViewer.WASM.Data/"]
 
-RUN dotnet restore -a $TARGETARCH "PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
-    dotnet restore -a $TARGETARCH "PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
-    dotnet restore -a $TARGETARCH "GhostfolioSidekick/GhostfolioSidekick.csproj"
+# Copy supporting library projects
+COPY ["Model/Model.csproj", "Model/"]
+COPY ["Configuration/Configuration.csproj", "Configuration/"]
+COPY ["Database/Database.csproj", "Database/"]
+COPY ["GhostfolioAPI/GhostfolioAPI.csproj", "GhostfolioAPI/"]
+COPY ["ExternalDataProvider/ExternalDataProvider.csproj", "ExternalDataProvider/"]
+COPY ["Parsers/Parsers.csproj", "Parsers/"]
+COPY ["Cryptocurrency/Cryptocurrency.csproj", "Cryptocurrency/"]
+COPY ["PerformanceCalculations/PerformanceCalculations.csproj", "PerformanceCalculations/"]
 
-# Copy the entire source code
+# Restore dependencies for the main projects only (dependencies will be resolved)
+RUN dotnet restore -a $TARGETARCH "GhostfolioSidekick/GhostfolioSidekick.csproj" && \
+    dotnet restore -a $TARGETARCH "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
+    dotnet restore -a $TARGETARCH "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj"
+
+# Copy source code
 COPY . .
 
-# Build all projects
-RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/build && \
-    dotnet build "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" -c Release -o /app/build && \
-    dotnet build "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/build
+# Build and publish in optimized way
+RUN dotnet publish "GhostfolioSidekick/GhostfolioSidekick.csproj" \
+        -a $TARGETARCH \
+        -c Release \
+        --no-restore \
+        -p:PublishSingleFile=false \
+        -p:PublishTrimmed=false \
+        -o /app/publish-sidekick && \
+    dotnet publish "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" \
+        -a $TARGETARCH \
+        -c Release \
+        --no-restore \
+        -p:PublishSingleFile=false \
+        -p:PublishTrimmed=false \
+        -o /app/publish-api && \
+    dotnet publish "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" \
+        -a $TARGETARCH \
+        -c Release \
+        --no-restore \
+        -p:RunAOTCompilation=true \
+        -p:PublishTrimmed=true \
+        -o /app/publish-wasm
 
-# Publish each project
-FROM build AS publish-api
-WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
-RUN dotnet publish -a $TARGETARCH "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish
+# Final runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 
-FROM build AS publish-wasm
-WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
-RUN dotnet publish -a $TARGETARCH "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
-
-FROM build AS publish-sidekick
-WORKDIR "/src/GhostfolioSidekick"
-RUN dotnet publish -a $TARGETARCH "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
-
-# Final runtime image
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 WORKDIR /app
 
-# Install supervisord
+# Install supervisor with minimal dependencies
 RUN apt-get update && \
-    apt-get install -y supervisor && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends supervisor && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Copy published outputs
-COPY --from=publish-api /app/publish ./
-COPY --from=publish-wasm /app/publish-wasm/wwwroot ./wwwroot
-COPY --from=publish-sidekick /app/publish-sidekick ./
+# Copy published applications
+COPY --from=build --chown=appuser:appuser /app/publish-api ./
+COPY --from=build --chown=appuser:appuser /app/publish-wasm/wwwroot ./wwwroot
+COPY --from=build --chown=appuser:appuser /app/publish-sidekick ./sidekick/
 
-# Copy supervisord config
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Copy configuration files
+COPY --chown=appuser:appuser supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Copy SSL certificate and key (ensure these files are available in your build context)
-COPY certs/aspnetapp.pfx /https/aspnetapp.pfx
+# Create directories and set permissions
+RUN mkdir -p /https /var/log/supervisor && \
+    chown -R appuser:appuser /app /https /var/log/supervisor
 
-# Set environment and expose ports
-ENV ASPNETCORE_URLS="http://+:80;https://+:443"
-ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
-ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere
+# Copy SSL certificate if it exists (make this optional)
+COPY --chown=appuser:appuser certs/aspnetapp.pfx /https/aspnetapp.pfx 2>/dev/null || echo "No SSL certificate found, skipping..."
+
+# Set environment variables
+ENV ASPNETCORE_URLS="http://+:80;https://+:443" \
+    ASPNETCORE_ENVIRONMENT=Production \
+    ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx \
+    ASPNETCORE_Kestrel__Certificates__Default__Password=YourPasswordHere \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    DOTNET_EnableDiagnostics=0
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:80/health || exit 1
+
+# Switch to non-root user
+USER appuser
 
 EXPOSE 80
 EXPOSE 443
 
-# Start app via supervisord
+# Use exec form for better signal handling
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
