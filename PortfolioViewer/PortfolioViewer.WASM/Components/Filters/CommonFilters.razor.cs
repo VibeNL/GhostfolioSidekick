@@ -351,7 +351,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			if (_pendingFilterState == null) return;
 
 			var today = DateOnly.FromDateTime(DateTime.Today);
-			var startOfYear = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+			var startOfYear = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Local));
 
 			// Check if current dates match predefined ranges
 			if (_pendingFilterState.StartDate == startOfYear && _pendingFilterState.EndDate == today)
