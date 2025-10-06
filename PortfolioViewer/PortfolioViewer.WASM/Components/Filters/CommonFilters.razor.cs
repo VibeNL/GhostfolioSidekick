@@ -416,7 +416,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					_pendingFilterState.EndDate = today;
 					break;
 				case "YearToDate":
-					_pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+					_pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Local));
 					_pendingFilterState.EndDate = today;
 					break;
 				case "OneYear":
