@@ -13,21 +13,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<SonarQubeSetting Include="sonar.exclusions">
 			<Value>**/*.js</Value>
 		</SonarQubeSetting>
+		<SonarQubeSetting Include="sonar.coverage.exclusions">
+			<Value>**</Value>
+		</SonarQubeSetting>
 	</ItemGroup>
-	
+
 	<PropertyGroup>
 		<NoWarn>1701;1702;SKEXP0110;SKEXP0001;CS8602</NoWarn>
 	</PropertyGroup>
-	
+
 	<ItemGroup>
-	  <Content Remove="wwwroot\js\site.ts" />
+		<Content Remove="wwwroot\js\site.ts" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -38,8 +37,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.9" />
 		<PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.5.1" />
 		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.9.3">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Plotly.Blazor" Version="6.0.2" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
@@ -62,28 +61,28 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Update="wwwroot\js\dist\webllm.interop.js">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Update="wwwroot\js\dist\webllm.types.js">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
+		<Content Update="wwwroot\js\dist\webllm.interop.js">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Update="wwwroot\js\dist\webllm.types.js">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <TypeScriptCompile Update="wwwroot\js\dist\webllm.interop.ts">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </TypeScriptCompile>
-	  <TypeScriptCompile Update="wwwroot\js\dist\webllm.types.ts">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\js\dist\webllm.interop.ts">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</TypeScriptCompile>
+		<TypeScriptCompile Update="wwwroot\js\dist\webllm.types.ts">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</TypeScriptCompile>
 	</ItemGroup>
 
 	<ItemGroup>
-  	<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.9" />
-  	<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="9.0.9" />
+		<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.9" />
+		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="9.0.9" />
 		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
 	</ItemGroup>
 

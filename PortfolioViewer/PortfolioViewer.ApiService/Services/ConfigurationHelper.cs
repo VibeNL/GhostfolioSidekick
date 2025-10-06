@@ -141,9 +141,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			   .Replace(".", "_", StringComparison.Ordinal)
 			   .ToUpperInvariant();
 
-		private static string NormalizeConnectionStringName(string name) =>
-			name.ToUpperInvariant().Replace("CONNECTION", "", StringComparison.Ordinal);
-
 		private T ConvertValue<T>(string value)
 		{
 			var targetType = typeof(T);

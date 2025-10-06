@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Configuration
 {
 	public class ConfigurationInstance
 	{
-		private static JsonSerializerOptions options = new()
+		private static readonly JsonSerializerOptions options = new()
 		{
 			Converters =
 				{

@@ -7,6 +7,7 @@ using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
@@ -35,19 +36,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0, // All accounts
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0, // All accounts
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -74,19 +79,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 1, // Filter by account 1
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				1, // Filter by account 1
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -112,19 +121,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "AAPL", // Filter by AAPL symbol
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"AAPL", // Filter by AAPL symbol
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -149,19 +162,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "Buy", // Filter by Buy activities
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"Buy", // Filter by Buy activities
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -187,19 +204,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "apple", // Search for "apple"
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"apple", // Search for "apple"
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -225,19 +246,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = false, // Sort descending
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				false, // Sort descending
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -261,19 +286,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 2, // Second page
+				PageSize = 10 // 10 items per page
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				2, // Second page
-				10); // 10 items per page
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -301,19 +330,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -343,19 +376,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var activities = new List<Activity> { buyActivity };
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -364,60 +401,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			result.Transactions[0].Fee!.Amount.Should().Be(5);
 			result.Transactions[0].Tax.Should().NotBeNull();
 			result.Transactions[0].Tax!.Amount.Should().Be(10);
-		}
-
-		[Fact]
-		public async Task GetTransactionCountAsync_ShouldReturnTotalCount()
-		{
-			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
-			var holding = CreateTestHolding(symbolProfile);
-			var activities = CreateTestActivities(account, holding);
-
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
-
-			// Act
-			var result = await _transactionService.GetTransactionCountAsync(
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"");
-
-			// Assert
-			result.Should().BeGreaterThan(0);
-		}
-
-		[Fact]
-		public async Task GetTransactionCountAsync_WithFilters_ShouldReturnFilteredCount()
-		{
-			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
-			var holding = CreateTestHolding(symbolProfile);
-			
-			var activities = new List<Activity>
-			{
-				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
-				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
-				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
-			};
-
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
-
-			// Act
-			var result = await _transactionService.GetTransactionCountAsync(
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"Buy", // Filter by Buy activities
-				"");
-
-			// Assert
-			result.Should().Be(1);
 		}
 
 		[Fact]
@@ -481,19 +464,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -517,19 +504,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-10)), // Start date
+				EndDate = DateOnly.FromDateTime(DateTime.Now), // End date
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-10)), // Start date
-				DateOnly.FromDateTime(DateTime.Now), // End date
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -555,19 +546,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			var activities = new List<Activity> { sellActivity, dividendActivity };
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -596,19 +591,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -631,19 +630,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 			// Arrange
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<Activity>());
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -670,19 +673,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = "",
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				"",
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -718,19 +725,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionType = transactionType,
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(
-				Currency.USD,
-				DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				DateOnly.FromDateTime(DateTime.Now),
-				0,
-				"",
-				transactionType,
-				"",
-				"Date",
-				true,
-				1,
-				10);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
 			// Assert
 			result.Should().NotBeNull();

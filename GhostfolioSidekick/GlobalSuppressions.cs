@@ -8,3 +8,4 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Info Code Smell", "S1135:Track uses of \"TODO\" tags", Justification = "<Pending>", Scope = "member", Target = "~M:GhostfolioSidekick.AccountMaintainer.AccountMaintainerTask.CreateOrUpdatePlatform(GhostfolioSidekick.Configuration.PlatformConfiguration)~System.Threading.Tasks.Task{GhostfolioSidekick.Model.Accounts.Platform}")]
 [assembly: SuppressMessage("Info Code Smell", "S1135:Track uses of \"TODO\" tags", Justification = "<Pending>", Scope = "member", Target = "~M:GhostfolioSidekick.AccountMaintainer.AccountMaintainerTask.AddOrUpdateAccountsAndPlatforms~System.Threading.Tasks.Task")]
 [assembly: SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "TODO")]
+[assembly: SuppressMessage("Minor Code Smell", "S6664:The code block contains too many logging calls", Justification = "<Pending>")]

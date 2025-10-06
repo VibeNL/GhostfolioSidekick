@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 	{
 		public static class CurrencyTools
 		{
-			private static IDictionary<string, string> map;
+			private static readonly IDictionary<string, string> map;
 #pragma warning disable S3963 // "static" fields should be initialized inline
 			static CurrencyTools()
 #pragma warning restore S3963 // "static" fields should be initialized inline

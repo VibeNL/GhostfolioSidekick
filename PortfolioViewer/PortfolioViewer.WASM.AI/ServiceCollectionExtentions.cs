@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			// Register Google Search service with MCP pattern
 			services.AddHttpClient<GoogleSearchService>();
 			services.AddSingleton<IGoogleSearchProtocol, GoogleSearchService>();
-			services.AddSingleton<GoogleSearchService>((s) =>
+			services.AddSingleton((s) =>
 			{
 				var httpClient = s.GetRequiredService<HttpClient>();
 				// Create a context for the GoogleSearchService

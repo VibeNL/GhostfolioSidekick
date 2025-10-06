@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 		private GrpcChannel? _grpcChannel;
 		private SyncService.SyncServiceClient? _grpcClient;
-		private bool _disposed = false;
+		private bool _disposed;
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "Update UI")]
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)

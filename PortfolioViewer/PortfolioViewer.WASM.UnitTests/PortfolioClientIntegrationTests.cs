@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 		private readonly Mock<ISyncTrackingService> _mockSyncTrackingService;
 		private readonly Mock<ILogger<PortfolioClient>> _mockLogger;
 		private readonly Mock<SqlitePersistence> _mockSqlitePersistence;
-		private bool _disposed = false;
+		private bool _disposed;
 
 		public PortfolioClientIntegrationTests()
 		{

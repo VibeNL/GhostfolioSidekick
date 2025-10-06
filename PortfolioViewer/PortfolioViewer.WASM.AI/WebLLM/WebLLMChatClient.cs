@@ -13,9 +13,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 		private readonly IJSRuntime jsRuntime;
 		private readonly ILogger<WebLLMChatClient> logger;
 		private readonly Dictionary<ChatMode, string> modelIds;
-		private InteropInstance? interopInstance = null;
+		private InteropInstance? interopInstance;
 
-		private IJSObjectReference? module = null;
+		private IJSObjectReference? module;
 
 		public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 

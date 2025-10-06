@@ -68,16 +68,102 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 		internal static Model.Activities.Activity MapActivity(Account account, ICurrencyExchange currencyExchange, List<Contract.SymbolProfile> symbols, Contract.Activity rawActivity)
 		{
 			var symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol) ?? throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
+			
+			// Create partial symbol identifiers based on the symbol profile
+			var partialSymbolIdentifiers = new List<Model.Activities.PartialSymbolIdentifier>
+			{
+				Model.Activities.PartialSymbolIdentifier.CreateGeneric(symbol.Symbol)
+			};
+
+			// Create money objects for amounts
+			var currency = Currency.GetCurrency(symbol.Currency);
+			var unitPrice = new Money(currency, rawActivity.UnitPrice);
+			var feeAmount = rawActivity.Fee > 0 ? new Money(Currency.GetCurrency(rawActivity.FeeCurrency ?? symbol.Currency), rawActivity.Fee) : null;
+
 			return rawActivity.Type switch
 			{
-				Contract.ActivityType.BUY => new BuyActivity(),
-				Contract.ActivityType.SELL => new SellActivity(),
-				Contract.ActivityType.DIVIDEND => new DividendActivity(),
-				Contract.ActivityType.INTEREST => new InterestActivity(),
-				Contract.ActivityType.FEE => new FeeActivity(),
-				Contract.ActivityType.ITEM => new ValuableActivity(),
-				Contract.ActivityType.LIABILITY => new LiabilityActivity(),
-				_ => throw new NotSupportedException(),
+				Contract.ActivityType.BUY => new BuyActivity(
+					account,
+					null, // holding
+					partialSymbolIdentifiers,
+					rawActivity.Date,
+					rawActivity.Quantity,
+					unitPrice,
+					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
+					null, // sortingPriority
+					rawActivity.Comment)
+				{
+					TotalTransactionAmount = new Money(currency, rawActivity.Quantity * rawActivity.UnitPrice),
+					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.BuyActivityFee(feeAmount)] : []
+				},
+
+				Contract.ActivityType.SELL => new SellActivity(
+					account,
+					null, // holding
+					partialSymbolIdentifiers,
+					rawActivity.Date,
+					rawActivity.Quantity,
+					unitPrice,
+					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
+					null, // sortingPriority
+					rawActivity.Comment)
+				{
+					TotalTransactionAmount = new Money(currency, rawActivity.Quantity * rawActivity.UnitPrice),
+					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.SellActivityFee(feeAmount)] : []
+				},
+
+				Contract.ActivityType.DIVIDEND => new DividendActivity(
+					account,
+					null, // holding
+					partialSymbolIdentifiers,
+					rawActivity.Date,
+					new Money(currency, rawActivity.UnitPrice), // dividend amount
+					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
+					null, // sortingPriority
+					rawActivity.Comment)
+				{
+					Fees = feeAmount != null ? [new Model.Activities.Types.MoneyLists.DividendActivityFee(feeAmount)] : []
+				},
+
+				Contract.ActivityType.INTEREST => new InterestActivity(
+					account,
+					null, // holding
+					rawActivity.Date,
+					new Money(currency, rawActivity.UnitPrice), // interest amount
+					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
+					null, // sortingPriority
+					rawActivity.Comment),
+
+				Contract.ActivityType.FEE => new FeeActivity(
+					account,
+					null, // holding
+					rawActivity.Date,
+					new Money(currency, rawActivity.UnitPrice), // fee amount
+					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
+					null, // sortingPriority
+					rawActivity.Comment),
+
+				Contract.ActivityType.ITEM => new ValuableActivity(
+					account,
+					null, // holding
+					partialSymbolIdentifiers,
+					rawActivity.Date,
+					new Money(currency, rawActivity.UnitPrice), // valuable amount
+					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
+					null, // sortingPriority
+					rawActivity.Comment),
+
+				Contract.ActivityType.LIABILITY => new LiabilityActivity(
+					account,
+					null, // holding
+					partialSymbolIdentifiers,
+					rawActivity.Date,
+					new Money(currency, rawActivity.UnitPrice), // liability amount
+					rawActivity.ReferenceCode ?? rawActivity.Id ?? Guid.NewGuid().ToString(),
+					null, // sortingPriority
+					rawActivity.Comment),
+
+				_ => throw new NotSupportedException($"Activity type {rawActivity.Type} is not supported."),
 			};
 		}
 	}

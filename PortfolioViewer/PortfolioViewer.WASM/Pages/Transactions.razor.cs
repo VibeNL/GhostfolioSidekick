@@ -22,8 +22,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Loading state management
 		private bool IsLoading { get; set; } = true;
-		private bool IsPageLoading { get; set; } = false;
-		private bool HasError { get; set; } = false;
+		private bool IsPageLoading { get; set; }
+		private bool HasError { get; set; }
 		private string ErrorMessage { get; set; } = string.Empty;
 
 		// Modal state
@@ -31,13 +31,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		// Sorting state
 		private string sortColumn = "Date";
-		private bool sortAscending = false;
+		private bool sortAscending;
 
 		// Pagination state
 		private int currentPage = 1;
 		private int pageSize = 25;
-		private int totalRecords = 0;
-		private List<int> pageSizeOptions = [10, 25, 50, 100, 250];
+		private int totalRecords;
+		private readonly List<int> pageSizeOptions = [10, 25, 50, 100, 250];
 
 		private FilterState? _previousFilterState;
 
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
-			
+
 			return Task.CompletedTask;
 		}
 
@@ -136,18 +136,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			try
 			{
-				var result = await (HoldingsDataService?.GetTransactionsPaginatedAsync(
-					ServerConfigurationService.PrimaryCurrency,
-					FilterState.StartDate,
-					FilterState.EndDate,
-					FilterState.SelectedAccountId,
-					FilterState.SelectedSymbol ?? "",
-					FilterState.SelectedTransactionType ?? "",
-					FilterState.SearchText ?? "",
-					sortColumn,
-					sortAscending,
-					currentPage,
-					pageSize) ?? Task.FromResult(new PaginatedTransactionResult()));
+				var parameters = new TransactionQueryParameters
+				{
+					TargetCurrency = ServerConfigurationService.PrimaryCurrency,
+					StartDate = FilterState.StartDate,
+					EndDate = FilterState.EndDate,
+					AccountId = FilterState.SelectedAccountId,
+					Symbol = FilterState.SelectedSymbol ?? "",
+					TransactionType = FilterState.SelectedTransactionType ?? "",
+					SearchText = FilterState.SearchText ?? "",
+					SortColumn = sortColumn,
+					SortAscending = sortAscending,
+					PageNumber = currentPage,
+					PageSize = pageSize
+				};
+
+				var result = await (HoldingsDataService?.GetTransactionsPaginatedAsync(parameters) ?? Task.FromResult(new PaginatedTransactionResult()));
 
 				return result;
 			}
@@ -191,12 +195,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private Dictionary<string, int> AccountBreakdown =>
 			currentResult?.AccountBreakdown ?? [];
 
-		private List<string> AvailableTransactionTypes =>
-			TransactionTypeBreakdown?.Keys
-				   .Where(t => !string.IsNullOrEmpty(t))
-				   .OrderBy(t => t)
-				   .ToList() ?? [];
-
 		private async Task SortBy(string column)
 		{
 			if (sortColumn == column)
@@ -208,13 +206,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				sortColumn = column;
 				sortAscending = true;
 			}
-			
+
 			currentPage = 1; // Reset to first page when sorting
 			await LoadTransactionDataAsync();
 		}
 
 		private static string GetTypeClass(string type)
 		{
+			var bgsecondary = "bg-secondary";
 			return type switch
 			{
 				"Buy" => "bg-success",
@@ -227,12 +226,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				"Receive" => "bg-success",
 				"Send" => "bg-warning",
 				"Staking Reward" or "StakingReward" => "bg-primary",
-				"Gift Fiat" or "GiftFiat" => "bg-secondary",
-				"Gift Asset" or "GiftAsset" => "bg-secondary",
-				"Valuable" => "bg-secondary",
-				"Liability" => "bg-secondary",
-				"Repay Bond" or "RepayBond" => "bg-secondary",
-				_ => "bg-secondary"
+				"Gift Fiat" or "GiftFiat" => bgsecondary,
+				"Gift Asset" or "GiftAsset" => bgsecondary,
+				"Valuable" => bgsecondary,
+				"Liability" => bgsecondary,
+				"Repay Bond" or "RepayBond" => bgsecondary,
+				_ => bgsecondary
 			};
 		}
 
@@ -240,23 +239,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			if (value == null) return "";
 
+			const string dangerText = "text-danger";
+			const string succesText = "text-success";
 			return type switch
 			{
-				"Buy" => "text-danger",
-				"Sell" => "text-success",
-				"Dividend" => "text-success",
-				"Deposit" or "CashDeposit" => "text-success",
-				"Withdrawal" or "CashWithdrawal" => "text-danger",
-				"Fee" => "text-danger",
-				"Interest" => "text-success",
-				"Receive" => "text-success",
-				"Send" => "text-danger",
-				"Staking Reward" or "StakingReward" => "text-success",
-				"Gift Fiat" or "GiftFiat" => "text-success",
-				"Gift Asset" or "GiftAsset" => "text-success",
-				"Valuable" => "text-success",
-				"Liability" => "text-danger",
-				"Repay Bond" or "RepayBond" => "text-success",
+				"Buy" => dangerText,
+				"Sell" => succesText,
+				"Dividend" => succesText,
+				"Deposit" or "CashDeposit" => succesText,
+				"Withdrawal" or "CashWithdrawal" => dangerText,
+				"Fee" => dangerText,
+				"Interest" => succesText,
+				"Receive" => succesText,
+				"Send" => dangerText,
+				"Staking Reward" or "StakingReward" => succesText,
+				"Gift Fiat" or "GiftFiat" => succesText,
+				"Gift Asset" or "GiftAsset" => succesText,
+				"Valuable" => succesText,
+				"Liability" => dangerText,
+				"Repay Bond" or "RepayBond" => succesText,
 				_ => ""
 			};
 		}

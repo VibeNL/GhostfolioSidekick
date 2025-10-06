@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.JSInterop;
 using Moq;
@@ -65,7 +66,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
         {
             // Arrange
             var syncTime = DateTime.Now;
-            var expectedIsoString = syncTime.ToString("O");
 
             // Act
             await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
@@ -125,8 +125,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
             _jsRuntimeMock.Setup(js => js.InvokeAsync<object>(It.IsAny<string>(), It.IsAny<object?[]?>()))
                          .ThrowsAsync(new InvalidOperationException());
 
-            // Act & Assert - Should not throw
-            await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
-        }
+            // Act
+            var action = async () => await _syncTrackingService.SetLastSyncTimeAsync(syncTime);
+
+			// Assert
+			await action.Should().NotThrowAsync();
+		}
     }
 }

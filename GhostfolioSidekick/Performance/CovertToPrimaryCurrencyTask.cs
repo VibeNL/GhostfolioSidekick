@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Performance
 
 			await currencyExchange.PreloadAllExchangeRates();
 
-			logger.LogInformation("Converting all snapshots and balances to primary currency {Currency}", primaryCurrencySymbol);
+			logger.LogDebug("Converting all snapshots and balances to primary currency {Currency}", primaryCurrencySymbol);
 
 			var snapshots = databaseContext.CalculatedSnapshots.AsQueryable();
 
@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.Performance
 			// Cleanup unmatched items (but preserve extrapolated records)
 			await CleanupUnmatchedItems();
 
-			logger.LogInformation("Completed conversion to primary currency {Currency}", primaryCurrencySymbol);
+			logger.LogDebug("Completed conversion to primary currency {Currency}", primaryCurrencySymbol);
 		}
 
 		private async Task FillMissingDaysAndExtrapolate()

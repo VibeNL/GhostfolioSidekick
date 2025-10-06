@@ -13,15 +13,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 	{
 		[Inject] private IJSRuntime JS { get; set; } = default!;
 
-		private bool IsOpen = false;
+		private bool IsOpen;
 		private string CurrentMessage = "";
-		private bool IsBotTyping = false;
-		private bool IsInitialized = false; // Flag to track initialization
-		private bool wakeLockActive = false; // Track wake lock status
+		private bool IsBotTyping;
+		private bool IsInitialized; // Flag to track initialization
+		private bool wakeLockActive; // Track wake lock status
 
-		private IWebChatClient chatClient;
+		private readonly IWebChatClient chatClient;
 
-		private Progress<InitializeProgress> progress = new();
+		private readonly Progress<InitializeProgress> progress = new();
 		private string streamingAuthor = string.Empty;
 		private InitializeProgress lastProgress = new(0);
 
@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		internal string CurrentAgentFunction => agentLogger.CurrentAgentFunction;
 
-		private MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+		private readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
 		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
 		{

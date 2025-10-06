@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return [];
 			}
 
-			var symbolProfileList = JsonConvert.DeserializeObject<Contract.SymbolProfileList>(content);
+			var symbolProfileList = JsonConvert.DeserializeObject<SymbolProfileList>(content);
 			var assets = symbolProfileList!.Items.Select(ContractToModelMapper.MapSymbolProfile).ToList();
 			return assets;
 		}
@@ -163,8 +163,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 						DataSource = Datasource.GetUnderlyingDataSource(symbolProfile.DataSource).ToString(),
 						Name = symbolProfile.Name ?? symbolProfile.Symbol,
 						Symbol = symbolProfile.Symbol,
-						Sectors = symbolProfile.SectorWeights?.Select(x => new Contract.Sector { Name = x.Name, Weight = x.Weight }).ToArray() ?? [],
-						Countries = symbolProfile.CountryWeight?.Select(x => new Contract.Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []	
+						Sectors = symbolProfile.SectorWeights?.Select(x => new Sector { Name = x.Name, Weight = x.Weight }).ToArray() ?? [],
+						Countries = symbolProfile.CountryWeight?.Select(x => new Country { Name = x.Name, Code = x.Code, Continent = x.Continent, Weight = x.Weight }).ToArray() ?? []	
 					};
 				}
 
@@ -393,7 +393,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 		}
 
-		private async Task<Contract.Account[]> GetAllAccounts()
+		private async Task<Account[]> GetAllAccounts()
 		{
 			var content = await restCall.DoRestGet($"api/v1/account") ?? throw new NotSupportedException();
 			var rawAccounts = JsonConvert.DeserializeObject<AccountList>(content);
@@ -407,7 +407,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return accounts;
 		}
 
-		private async Task<List<Contract.Platform>> GetPlatforms()
+		private async Task<List<Platform>> GetPlatforms()
 		{
 			var content = await restCall.DoRestGet($"api/v1/platform");
 
@@ -416,7 +416,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				return [];
 			}
 
-			var rawPlatforms = JsonConvert.DeserializeObject<Contract.Platform[]>(content) ?? throw new NotSupportedException();
+			var rawPlatforms = JsonConvert.DeserializeObject<Platform[]>(content) ?? throw new NotSupportedException();
 			return [.. rawPlatforms];
 		}
 
@@ -462,7 +462,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
-		private async Task DeleteOrder(Contract.Activity activity)
+		private async Task DeleteOrder(Activity activity)
 		{
 			if (string.IsNullOrWhiteSpace(activity.Id))
 			{
@@ -473,7 +473,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation("Deleted transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
 		}
 
-		private static Task<string> ConvertToBody(Contract.Activity activity)
+		private static Task<string> ConvertToBody(Activity activity)
 		{
 			var o = new JObject
 			{

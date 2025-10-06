@@ -20,23 +20,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private Timer? refreshTimer;
 
 		private string CurrentAction = "Idle";
-		private int Progress = 0;
-		private bool IsSyncing = false;
-		private DateTime? LastSyncTime = null;
-		private bool IsWakeLockActive = false;
-		private bool IsWakeLockSupported = false;
+		private int Progress;
+		private bool IsSyncing;
+		private DateTime? LastSyncTime;
+		private bool IsWakeLockActive;
 
 		private string _statusMessage = string.Empty;
-		private bool _isError = false;
-
-		private async Task StartSync()
-		{
-			await StartSync(false);
-		}
+		private bool _isError;
 
 		private async Task StartFullSync()
 		{
 			await StartSync(true);
+		}
+
+		private async Task StartSync()
+		{
+			await StartSync(false);
 		}
 
 		private async Task StartSync(bool forceFullSync)
@@ -144,26 +143,38 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string GetTimeSinceLastSync()
 		{
 			if (!LastSyncTime.HasValue)
+			{
 				return string.Empty;
+			}
 
-			var timeSince = DateTime.Now - LastSyncTime.Value;
+			var timeSince = DateTime.UtcNow - LastSyncTime.Value;
 
 			if (timeSince.TotalMinutes < 1)
+			{
 				return "just now";
+			}
 			else if (timeSince.TotalHours < 1)
+			{
 				return $"{(int)timeSince.TotalMinutes} minute{((int)timeSince.TotalMinutes != 1 ? "s" : "")} ago";
+			}
 			else if (timeSince.TotalDays < 1)
+			{
 				return $"{(int)timeSince.TotalHours} hour{((int)timeSince.TotalHours != 1 ? "s" : "")} ago";
+			}
 			else
+			{
 				return $"{(int)timeSince.TotalDays} day{((int)timeSince.TotalDays != 1 ? "s" : "")} ago";
+			}
 		}
 
 		private int GetDaysSinceLastSync()
 		{
 			if (!LastSyncTime.HasValue)
+			{
 				return int.MaxValue;
+			}
 
-			return (int)(DateTime.Now - LastSyncTime.Value).TotalDays;
+			return (int)(DateTime.UtcNow - LastSyncTime.Value).TotalDays;
 		}
 
 		private string GetSyncButtonText()
@@ -182,9 +193,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		{
 			// Load the last sync time when the component initializes
 			LastSyncTime = await SyncTrackingService.GetLastSyncTimeAsync();
-
-			// Check wake lock support
-			IsWakeLockSupported = await WakeLockService.IsWakeLockSupportedAsync();
 
 			refreshTimer = new Timer(async _ =>
 			{

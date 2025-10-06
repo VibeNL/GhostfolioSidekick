@@ -350,7 +350,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Generic
 
 			// Assert
 			const decimal Amount = (decimal)(0.3247 * 0.27);
-			activityManager.PartialActivities.Should().BeEquivalentTo<PartialActivity>(
+			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
 					PartialActivity.CreateDividend(
 						Currency.EUR,

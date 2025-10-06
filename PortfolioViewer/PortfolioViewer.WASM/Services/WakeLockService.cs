@@ -6,9 +6,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
     {
         private readonly IJSRuntime _jsRuntime;
         private readonly Lazy<Task<IJSObjectReference>> _wakeLockModule;
-        private bool _disposed = false;
+        private bool _disposed;
 
-        public WakeLockService(IJSRuntime jsRuntime)
+		public WakeLockService(IJSRuntime jsRuntime)
         {
             _jsRuntime = jsRuntime;
             _wakeLockModule = new Lazy<Task<IJSObjectReference>>(

@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.CoinGecko
 	{
 		private readonly Mock<ILogger<CoinGeckoRepository>> loggerMock;
 		private readonly CoinGeckoRepository repository;
-		private Mock<ICoinGeckoRestClient> restClientMock;
+		private readonly Mock<ICoinGeckoRestClient> restClientMock;
 
 		public CoinGeckoRepositoryTests()
 		{

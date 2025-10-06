@@ -2,6 +2,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
+using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 {
@@ -31,18 +32,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 		private List<Account> _allAccounts = [];
 		private List<string> _allSymbols = [];
 
-		private string? _currentDateRange = null;
+		private string? _currentDateRange;
 
 		// Track loading states
-		private bool _isLoadingAccounts = false;
-		private bool _isLoadingSymbols = false;
+		private bool _isLoadingAccounts;
+		private bool _isLoadingSymbols;
 
 		// Search debouncing
 		private Timer? _searchDebounceTimer;
 
 		// Track previous parameter state to detect changes
-		private bool _previousShowAccountFilter = false;
-		private bool _previousShowSymbolFilter = false;
+		private bool _previousShowAccountFilter;
+		private bool _previousShowSymbolFilter;
 		private bool _isFirstLoad = true;
 
 		protected override async Task OnInitializedAsync()
@@ -254,9 +255,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					Accounts = [];
 				}
 			}
-			catch (OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
-				Logger?.LogError("Timeout loading accounts for filter");
+				Logger?.LogError(ex, "Timeout loading accounts for filter");
 				_allAccounts = [];
 				Accounts = [];
 
@@ -313,9 +314,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					Symbols = [];
 				}
 			}
-			catch (OperationCanceledException)
+			catch (OperationCanceledException ex)
 			{
-				Logger?.LogError("Timeout loading symbols for filter");
+				Logger?.LogError(ex, "Timeout loading symbols for filter");
 				_allSymbols = [];
 				Symbols = [];
 
@@ -350,7 +351,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			if (_pendingFilterState == null) return;
 
 			var today = DateOnly.FromDateTime(DateTime.Today);
-			var startOfYear = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1));
+			var startOfYear = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Local));
 
 			// Check if current dates match predefined ranges
 			if (_pendingFilterState.StartDate == startOfYear && _pendingFilterState.EndDate == today)
@@ -415,7 +416,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					_pendingFilterState.EndDate = today;
 					break;
 				case "YearToDate":
-					_pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1));
+					_pendingFilterState.StartDate = DateOnly.FromDateTime(new DateTime(today.Year, 1, 1, 0, 0, 0, DateTimeKind.Local));
 					_pendingFilterState.EndDate = today;
 					break;
 				case "OneYear":
@@ -446,7 +447,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 
 		private Task OnStartDateChanged(ChangeEventArgs e)
 		{
-			if (DateOnly.TryParse(e.Value?.ToString(), out var date))
+			if (DateOnly.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
 			{
 				_pendingFilterState.StartDate = date;
 				_currentDateRange = null; // Clear predefined range when custom date is set
@@ -457,13 +458,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					FilterState.StartDate = date;
 				}
 			}
+			else
+			{
+				Logger?.LogWarning("Invalid start date format received: {Value}", e.Value?.ToString());
+			}
 			
 			return Task.CompletedTask;
 		}
 
 		private Task OnEndDateChanged(ChangeEventArgs e)
 		{
-			if (DateOnly.TryParse(e.Value?.ToString(), out var date))
+			if (DateOnly.TryParse(e.Value?.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
 			{
 				_pendingFilterState.EndDate = date;
 				_currentDateRange = null; // Clear predefined range when custom date is set
@@ -474,13 +479,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					FilterState.EndDate = date;
 				}
 			}
+			else
+			{
+				Logger?.LogWarning("Invalid end date format received: {Value}", e.Value?.ToString());
+			}
 			
 			return Task.CompletedTask;
 		}
 
 		private Task OnAccountChanged(ChangeEventArgs e)
 		{
-			if (int.TryParse(e.Value?.ToString(), out var accountId))
+			if (int.TryParse(e.Value?.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var accountId))
 			{
 				_pendingFilterState.SelectedAccountId = accountId;
 
@@ -496,6 +505,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					await UpdateFilteredOptionsAsync();
 					await InvokeAsync(StateHasChanged);
 				});
+			}
+			else
+			{
+				Logger?.LogWarning("Invalid account ID format received: {Value}", e.Value?.ToString());
 			}
 			
 			return Task.CompletedTask;

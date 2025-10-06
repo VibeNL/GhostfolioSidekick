@@ -8,6 +8,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class DataIssuesService(DatabaseContext databaseContext) : IDataIssuesService
 	{
+		private const string Error = "Error";
+		private const string Warning = "Warning";
+		private const string Info = "Info";
+
 		public async Task<List<DataIssueDisplayModel>> GetActivitiesWithoutHoldingsAsync(CancellationToken cancellationToken = default)
 		{
 			try
@@ -59,10 +63,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 						Description = $"Failed to analyze data issues: {ex.Message}",
 						Date = DateTime.Now,
 						AccountName = "System",
-						ActivityType = "Error",
+						ActivityType = Error,
 						TransactionId = "ERROR",
 						ActivityDescription = ex.ToString(),
-						Severity = "Error"
+						Severity = Error
 					}
 				];
 			}
@@ -179,15 +183,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			// Determine severity based on type name
 			return activity.GetType().Name switch
 			{
-				var name when name.Contains("BuySell") => "Error",
-				var name when name.Contains("Dividend") => "Error",
-				var name when name.Contains("SendAndReceive") => "Error",
-				var name when name.Contains("StakingReward") => "Error",
-				var name when name.Contains("GiftAsset") => "Error",
-				var name when name.Contains("CashDepositWithdrawal") => "Info",
-				var name when name.Contains("Fee") => "Warning",
-				var name when name.Contains("Interest") => "Info",
-				_ => "Warning"
+				var name when name.Contains("BuySell") => Error,
+				var name when name.Contains("Dividend") => Error,
+				var name when name.Contains("SendAndReceive") => Error,
+				var name when name.Contains("StakingReward") => Error,
+				var name when name.Contains("GiftAsset") => Error,
+				var name when name.Contains("CashDepositWithdrawal") => Info,
+				var name when name.Contains("Fee") => Warning,
+				var name when name.Contains("Interest") => Info,
+				_ => Warning
 			};
 		}
 
@@ -196,18 +200,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			// Activities that typically need holdings are more severe
 			return activity switch
 			{
-				BuyActivity => "Error",
-				SellActivity => "Error",
-				DividendActivity => "Error",
-				ReceiveActivity => "Error",
-				SendActivity => "Error",
-				StakingRewardActivity => "Error",
-				GiftAssetActivity => "Error",
-				CashDepositActivity => "Info",
-				CashWithdrawalActivity => "Info",
-				FeeActivity => "Warning",
-				InterestActivity => "Info",
-				_ => "Warning"
+				BuyActivity => Error,
+				SellActivity => Error,
+				DividendActivity => Error,
+				ReceiveActivity => Error,
+				SendActivity => Error,
+				StakingRewardActivity => Error,
+				GiftAssetActivity => Error,
+				CashDepositActivity => Info,
+				CashWithdrawalActivity => Info,
+				FeeActivity => Warning,
+				InterestActivity => Info,
+				_ => Warning
 			};
 		}
 	}

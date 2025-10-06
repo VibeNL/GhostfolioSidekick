@@ -4,7 +4,7 @@ namespace GhostfolioSidekick.IntegrationTests
 {
 	internal class TestLogger(string checkForEndMessage) : ILogger<TimedHostedService>, IDisposable
 	{
-		public volatile bool IsTriggered = false;
+		public volatile bool IsTriggered;
 
 		public IDisposable? BeginScope<TState>(TState state) where TState : notnull
 		{

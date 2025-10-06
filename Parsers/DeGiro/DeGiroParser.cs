@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 	{
 		private readonly ICurrencyMapper currencyMapper;
 
-		private static IDeGiroStrategy strategy = new DeGiroMultiStrategy(
+		private static readonly IDeGiroStrategy strategy = new DeGiroMultiStrategy(
 				new DeGiroEnglishStrategy(),
 				new DeGiroDutchStrategy(),
 				new DeGiroPortugueseStrategy()

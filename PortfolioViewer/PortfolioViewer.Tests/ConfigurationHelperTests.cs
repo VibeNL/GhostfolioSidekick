@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
         public void GetConfigurationValue_WithType_UsesDefaultValue()
         {
             // Act
-            var result = _configHelper.GetConfigurationValue<int>("NonExistentSetting", 42);
+            var result = _configHelper.GetConfigurationValue("NonExistentSetting", 42);
 
             // Assert
             Assert.Equal(42, result);
@@ -287,8 +287,8 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
             public string GhostfolioAccessToken { get; set; } = string.Empty;
             public int TrottleTimeout { get; set; }
             public int DatabaseQueryTimeoutSeconds { get; set; } = 120;
-            public bool EnableDatabasePerformanceLogging { get; set; } = false;
-            public ConfigurationInstance ConfigurationInstance { get; set; } = new();
+			public bool EnableDatabasePerformanceLogging { get; set; }
+			public ConfigurationInstance ConfigurationInstance { get; set; } = new();
             public bool AllowAdminCalls { get; set; }
         }
     }

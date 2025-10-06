@@ -13,18 +13,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
         private string? SelectedTable;
         private TableDataRecord TableData = new();
         private int page = 1;
-        private int TotalRecords = 0;
-        private int TotalPages = 0;
-        private const int PageSize = 250;
+        private int TotalRecords;
+		private int TotalPages;
+		private const int PageSize = 250;
         
         // Add column filters
-        private Dictionary<string, string> ColumnFilters = [];
-        private bool _filtersApplied = false;
-        private bool _isLoading = false;
-        
-        // Add sorting state
-        private string? _sortColumn = null;
-        private string _sortDirection = "asc";
+        private readonly Dictionary<string, string> ColumnFilters = [];
+        private bool _filtersApplied;
+		private bool _isLoading;
+
+		// Add sorting state
+		private string? _sortColumn;
+		private string _sortDirection = "asc";
 
         protected override async Task OnInitializedAsync()
         {
@@ -104,23 +104,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             }
         }
 
-        private string GetSortIcon(string columnName)
-        {
-            if (_sortColumn != columnName)
-                return "bi-arrow-down-up"; // Unsorted icon
-
-            return _sortDirection == "asc" ? "bi-sort-up" : "bi-sort-down";
-        }
-
-        private string GetSortClass(string columnName)
-        {
-            if (_sortColumn == columnName)
-                return "sorted-column";
-            
-            return "";
-        }
-
-        private async Task LoadTableDataAsync(string tableName)
+		private async Task LoadTableDataAsync(string tableName)
         {
             try
             {
@@ -140,7 +124,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                 if (result == null || result.Count == 0)
                 {
                     // If we have an existing table structure but no data due to filters, preserve column structure
-                    if (activeFilters.Count != 0 && TableData.Columns.Any())
+                    if (activeFilters.Count != 0 && TableData.Columns.Length != 0)
                     {
                         TableData.Rows = [];
                     }
@@ -153,14 +137,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                             TableData.Columns = [.. columnResult.First().Keys];
                             TableData.Rows = [];
                             
-                            // Initialize column filters for new columns
-                            foreach (var column in TableData.Columns)
-                            {
-                                if (!ColumnFilters.ContainsKey(column))
-                                {
-                                    ColumnFilters[column] = string.Empty;
-                                }
-                            }
+                            // Initialize column filters for new columns using LINQ
+                            TableData.Columns.Where(column => !ColumnFilters.ContainsKey(column))
+                                           .ToList()
+                                           .ForEach(column => ColumnFilters[column] = string.Empty);
                         }
                         else
                         {
@@ -180,14 +160,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                     TableData.Columns = [.. result.First().Keys];
                     TableData.Rows = [.. result.Select(x => x.Values.ToArray())];
                     
-                    // Initialize column filters for new columns
-                    foreach (var column in TableData.Columns)
-                    {
-                        if (!ColumnFilters.ContainsKey(column))
-                        {
-                            ColumnFilters[column] = string.Empty;
-                        }
-                    }
+                    // Initialize column filters for new columns using LINQ
+                    TableData.Columns.Where(column => !ColumnFilters.ContainsKey(column))
+                                   .ToList()
+                                   .ForEach(column => ColumnFilters[column] = string.Empty);
                 }
             }
             catch (Exception ex)
@@ -241,12 +217,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
             }
         }
 
-        private async Task OnFilterChangedWrapper(GhostfolioSidekick.PortfolioViewer.WASM.Components.FilterableSortableTableHeader.FilterChangeArgs args)
+        private async Task OnFilterChangedWrapper(Components.FilterableSortableTableHeader.FilterChangeArgs args)
         {
             await OnFilterChanged(args.Column, args.Value);
         }
 
-        private class TableDataRecord
+        private sealed class TableDataRecord
         {
             public string[] Columns { get; set; } = [];
             public List<object?[]> Rows { get; set; } = [];
