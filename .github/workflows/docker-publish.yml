@@ -60,7 +60,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run tests
-        run: dotnet test --no-build --configuration Release --logger trx --results-directory TestResults --filter "FullyQualifiedName!=GhostfolioSidekick.Tools.AnonymisePDF.UnitTests"
+        run: dotnet test --no-build --configuration Release --logger trx --results-directory TestResults --framework net9.0 --framework net8.0
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -134,7 +134,7 @@ jobs:
         run: |
           dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
           dotnet build --no-restore --configuration Release
-          dotnet-coverage collect "dotnet test --no-build --configuration Release --filter \"FullyQualifiedName!=GhostfolioSidekick.Tools.AnonymisePDF.UnitTests\" -f xml -o "coverage.xml"
+          dotnet-coverage collect "dotnet test --no-build --configuration Release --framework net9.0 --framework net8.0" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
   # Job 3: Docker Build and Push
