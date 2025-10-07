@@ -15,6 +15,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<SonarQubeSetting Include="sonar.coverage.exclusions">
+			<Value>**</Value>
+		</SonarQubeSetting>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
 		<PackageReference Include="itext.bouncy-castle-adapter" Version="9.3.0" />
 		<PackageReference Include="itext.pdfsweep" Version="5.0.3" />

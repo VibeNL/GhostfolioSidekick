@@ -60,7 +60,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run tests
-        run: dotnet test --no-build --configuration Release --logger trx --results-directory TestResults
+        run: dotnet test --no-build --configuration Release --logger trx --results-directory TestResults --framework net9.0
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -134,82 +134,5 @@ jobs:
         run: |
           dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
           dotnet build --no-restore --configuration Release
-          dotnet-coverage collect "dotnet test --no-build --configuration Release" -f xml -o "coverage.xml"
+          dotnet-coverage collect "dotnet test --no-build --configuration Release --framework net9.0 --framework net8.0" -f xml -o "coverage.xml"
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-
-  # Job 3: Docker Build and Push
-  docker-build:
-    runs-on: ubuntu-latest
-    needs: [build-and-test, sonar-analysis]
-    if: |
-      always() && 
-      needs.build-and-test.result == 'success' && 
-      (needs.sonar-analysis.result == 'success' || needs.sonar-analysis.result == 'skipped') &&
-      needs.build-and-test.outputs.secrets-present == 'YES'
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Install WASM tools
-        run: dotnet workload install wasm-tools
-
-      - name: Install cosign
-        if: github.event_name != 'pull_request'
-        uses: sigstore/cosign-installer@v3.6.0
-        with:
-          cosign-release: 'v2.4.1'
-
-      - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log into registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=v2,enable={{is_default_branch}}
-            type=ref,event=pr
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
-
-      - name: Create PR comment with published version
-        uses: thollander/actions-comment-pull-request@v2
-        if: github.event_name == 'pull_request'
-        with:
-          message: |
-            ### Development container published
-
-            Install with:
-
-            ```
-            docker pull ${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}
-            ```
-          comment_tag: "development-ghostfoliosidekick-published"
-          mode: "recreate"
-          pr_number: ${{ github.event.number }}
