@@ -69,7 +69,6 @@ public static class Program
 		builder.Services.AddWebChatClient();
 
 		// Register ServerConfigurationService for DI
-		builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 		builder.Services.AddSingleton<IServerConfigurationService, ServerConfigurationService>();
 
 		// Register PortfolioClient for DI
@@ -103,6 +102,17 @@ public static class Program
 		var serviceScope = app.Services.CreateScope();
 		var sqlitePersistence = serviceScope.ServiceProvider.GetRequiredService<SqlitePersistence>();
 		await sqlitePersistence.InitializeDatabase();
+
+		// Preload server configuration to avoid blocking calls later
+		try
+		{
+			var serverConfigService = app.Services.GetRequiredService<IServerConfigurationService>();
+			await serverConfigService.GetPrimaryCurrencyAsync();
+		}
+		catch (Exception)
+		{
+			// Ignore errors during preload - the service will fall back to defaults
+		}
 
 		await app.RunAsync();
 	}
