@@ -1,3 +1,4 @@
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
@@ -67,6 +68,8 @@ public static class Program
 
 		builder.Services.AddWebChatClient();
 
+		// Register ServerConfigurationService for DI
+		builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
 		builder.Services.AddSingleton<IServerConfigurationService, ServerConfigurationService>();
 
 		// Register PortfolioClient for DI
