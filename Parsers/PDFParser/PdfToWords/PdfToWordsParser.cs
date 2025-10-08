@@ -11,9 +11,9 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		{
 			List<SingleWordToken> words = [];
 
-			using (PdfReader reader = new PdfReader(filePath))
+			using (PdfReader reader = new(filePath))
 			{
-				PdfDocument pdfDoc = new PdfDocument(reader);
+				PdfDocument pdfDoc = new(reader);
 				for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
 				{
 					ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();

@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string EXTERNAL_COST_SURCHARGE => "del servicio de ejecución de terceros";
 		protected override string WITHHOLDING_TAX => "Retención Fiscal para Emisores de Estados Unidos";
 		protected override string DATE => "FECHA";
-		protected override CultureInfo Culture => new CultureInfo("es");
+		protected override CultureInfo Culture => new("es");
 
 		protected override bool CheckEndOfRecord(List<MultiWordToken> headers, string currentWord)
 		{

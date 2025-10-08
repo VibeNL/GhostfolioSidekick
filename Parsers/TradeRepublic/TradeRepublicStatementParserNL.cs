@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			for (int j = i; j < words.Count - 2; j++)
 			{
-				CultureInfo dutchCultureInfo = new CultureInfo("nl-NL");
+				CultureInfo dutchCultureInfo = new("nl-NL");
 				if (DateTime.TryParseExact(
 					words[j].Text + " " + words[j + 1].Text + " " + words[j + 2].Text,
 					["dd MMM yyyy", "dd MMM. yyyy"],

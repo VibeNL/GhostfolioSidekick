@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 			var existingActivities = new List<Activity>();
 			var newActivities = new List<Activity>
 			{
-				new Activity { Comment = "New Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now }
+				new() { Comment = "New Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now }
 			};
 
 			// Act
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 			// Arrange
 			var existingActivities = new List<Activity>
 			{
-				new Activity { Comment = "Existing Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now }
+				new() { Comment = "Existing Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now }
 			};
 			var newActivities = new List<Activity>();
 
@@ -49,11 +49,11 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Compare
 			// Arrange
 			var existingActivities = new List<Activity>
 			{
-				new Activity { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 10 }
+				new() { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 10 }
 			};
 			var newActivities = new List<Activity>
 			{
-				new Activity { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 20 }
+				new() { Comment = "Activity", SymbolProfile = GenerateSymbol(), Date = DateTime.Now, Fee = 20 }
 			};
 
 			// Act

@@ -83,8 +83,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 		{
 			var words = new List<SingleWordToken>
 			{
-				new SingleWordToken("hello"),
-				new SingleWordToken("world")
+				new("hello"),
+				new("world")
 			};
 
 			var result = TestPdfBaseParser.IsCheckWordsPublic("hello world", words, 0);
@@ -97,8 +97,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 		{
 			var words = new List<SingleWordToken>
 			{
-				new SingleWordToken("hello"),
-				new SingleWordToken("world")
+				new("hello"),
+				new("world")
 			};
 
 			var result = TestPdfBaseParser.IsCheckWordsPublic("hello there", words, 0);

@@ -119,8 +119,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			// Arrange - Test with data that might come from a real API
 			var realWorldData = new List<Dictionary<string, object>>
 			{
-				new Dictionary<string, object>
-				{
+				new() {
 					{ "Id", "550e8400-e29b-41d4-a716-446655440000" },
 					{ "Symbol", "AAPL" },
 					{ "Name", "Apple Inc." },
@@ -131,8 +130,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 					{ "Exchange", "NASDAQ" },
 					{ "Metadata", new { Sector = "Technology", MarketCap = 2800000000000L } }
 				},
-				new Dictionary<string, object>
-				{
+				new() {
 					{ "Id", "550e8400-e29b-41d4-a716-446655440001" },
 					{ "Symbol", "GOOGL" },
 					{ "Name", "Alphabet Inc." },

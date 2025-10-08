@@ -127,7 +127,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			var holdings = new List<Holding>
 			{
-				new Holding { SymbolProfiles = [new SymbolProfile { Symbol = "SYM1", DataSource = "TestSource" }] }
+				new() { SymbolProfiles = [new SymbolProfile { Symbol = "SYM1", DataSource = "TestSource" }] }
 			};
 
 			var mockDbContext = new Mock<DatabaseContext>();

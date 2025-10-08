@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				new PartialActivity(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1")
+				new(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1")
 			};
 
 			// Act
@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				new PartialActivity(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1")
+				new(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
 
@@ -63,8 +63,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				new PartialActivity(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1"),
-				new PartialActivity(PartialActivityType.Fee, DateTime.Now, Currency.USD, new Money(Currency.USD, 10), "T1")
+				new(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1"),
+				new(PartialActivityType.Fee, DateTime.Now, Currency.USD, new Money(Currency.USD, 10), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
 
@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var partialActivities = new List<PartialActivity>
 			{
-				new PartialActivity(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1")
+				new(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "T1")
 			};
 			_activityManager.AddPartialActivity("Account1", partialActivities);
 

@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.Parsers
 {
 	public class CurrencyConverter(string culture) : DefaultTypeConverter
 	{
-		private readonly CultureInfo cultureInfo = new CultureInfo(culture);
+		private readonly CultureInfo cultureInfo = new(culture);
 
 		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 		{

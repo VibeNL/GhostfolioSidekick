@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.Tools.AnonymisePDF.UnitTests
 			// use itext7 to read the result.pdf and check that the words "Adobe Acrobat Reader" and "computer" are redacted
 
 			// Load the PDF file
-			using PdfDocument pdfDocument = new PdfDocument(new PdfReader("result.pdf"));
+			using PdfDocument pdfDocument = new(new PdfReader("result.pdf"));
 			// Extract the text content from the PDF
 			string extractedText = PdfTextExtractor.GetTextFromPage(pdfDocument.GetPage(1));
 

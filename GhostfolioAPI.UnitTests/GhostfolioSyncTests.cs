@@ -361,7 +361,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		public async Task SyncSymbolProfiles_ShouldSyncSymbolProfiles()
 		{
 			// Arrange
-			var symbolProfiles = new List<SymbolProfile> { new SymbolProfile() };
+			var symbolProfiles = new List<SymbolProfile> { new() };
 			_apiWrapperMock.Setup(x => x.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>())).Returns(Task.CompletedTask);
 
 			// Act
@@ -376,7 +376,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var profile = new SymbolProfile();
-			var marketDataList = new List<MarketData> { new MarketData() };
+			var marketDataList = new List<MarketData> { new() };
 			_apiWrapperMock.Setup(x => x.SyncMarketData(It.IsAny<SymbolProfile>(), It.IsAny<ICollection<MarketData>>())).Returns(Task.CompletedTask);
 
 			// Act
