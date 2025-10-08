@@ -44,75 +44,126 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
-			var matches = new List<SearchResult>();
-			foreach (var id in symbolIdentifiers)
-			{
-				if (string.IsNullOrWhiteSpace(id.Identifier))
-				{
-					continue;
-				}
-
-				var identifier = id.Identifier;
-
-				if (id.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
-				{
-					identifier = $"{identifier}-USD";
-				}
-
-				var searchResults = await RetryPolicyHelper.GetFallbackPolicy<SearchResult[]>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(identifier));
-				if (searchResults != null)
-				{
-					matches.AddRange(searchResults.Where(x => FilterOnAllowedType(x, id)));
-				}
-			}
-
-			if (matches.Count == 0)
+			var searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
+			
+			if (searchResults.Count == 0)
 			{
 				return null;
 			}
 
-			// Get the best match of the correct QuoteType
-			// TODO: Fix if score is available
-			var bestMatch = matches./*OrderByDescending(x => x.Score).*/First();
+			// Get the best match - TODO: Fix if score is available
+			var bestMatch = searchResults.First();
 
-			var symbols = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync());
+			return await CreateSymbolProfileFromMatch(bestMatch);
+		}
+
+		private async Task<List<SearchResult>> GetSearchResultsForIdentifiers(PartialSymbolIdentifier[] symbolIdentifiers)
+		{
+			var matches = new List<SearchResult>();
+			
+			foreach (var identifier in symbolIdentifiers)
+			{
+				if (string.IsNullOrWhiteSpace(identifier.Identifier))
+				{
+					continue;
+				}
+
+				var searchTerm = PrepareSearchTerm(identifier);
+				var results = await SearchSymbol(searchTerm);
+				
+				if (results != null)
+				{
+					var filteredResults = results.Where(result => IsAllowedSymbolType(result, identifier));
+					matches.AddRange(filteredResults);
+				}
+			}
+
+			return matches;
+		}
+
+		private static string PrepareSearchTerm(PartialSymbolIdentifier identifier)
+		{
+			var searchTerm = identifier.Identifier;
+
+			if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
+			{
+				searchTerm = $"{searchTerm}-USD";
+			}
+
+			return searchTerm;
+		}
+
+		private async Task<SearchResult[]?> SearchSymbol(string searchTerm)
+		{
+			return await RetryPolicyHelper
+				.GetFallbackPolicy<SearchResult[]>(logger)
+				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+				.ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(searchTerm));
+		}
+
+		private async Task<SymbolProfile?> CreateSymbolProfileFromMatch(SearchResult match)
+		{
+			var symbols = await GetSymbolDetails(match.Symbol);
 			if (symbols == null)
 			{
 				return null;
 			}
 
-			var symbol = symbols.OrderBy(x => x.Value.Symbol == bestMatch.Symbol).First().Value;
-
+			var symbol = symbols.OrderBy(x => x.Value.Symbol == match.Symbol).First().Value;
 			if (symbol == null)
 			{
 				return null;
 			}
 
-			var securityProfile = await RetryPolicyHelper.GetFallbackPolicy<SecurityProfile>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol));
+			var securityProfile = await GetSecurityProfile(symbol.Symbol);
 
-			var symbolProfile = new SymbolProfile(symbol.Symbol, GetName(symbol), [symbol.Symbol, GetName(symbol)], Currency.GetCurrency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
+			return new SymbolProfile(
+				symbol.Symbol,
+				GetName(symbol),
+				[symbol.Symbol, GetName(symbol)],
+				Currency.GetCurrency(symbol.Currency),
+				Datasource.YAHOO,
+				ParseQuoteType(symbol.QuoteType),
+				ParseQuoteTypeAsSub(symbol.QuoteType),
+				GetCountries(securityProfile),
+				GetSectors(securityProfile));
+		}
 
-			return symbolProfile;
+		private async Task<IReadOnlyDictionary<string, Security>?> GetSymbolDetails(string symbolName)
+		{
+			return await RetryPolicyHelper
+				.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger)
+				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+				.ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(symbolName).QueryAsync());
+		}
 
-			bool FilterOnAllowedType(SearchResult x, PartialSymbolIdentifier id)
+		private async Task<SecurityProfile?> GetSecurityProfile(string symbolName)
+		{
+			return await RetryPolicyHelper
+				.GetFallbackPolicy<SecurityProfile>(logger)
+				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+				.ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbolName));
+		}
+
+		private static bool IsAllowedSymbolType(SearchResult searchResult, PartialSymbolIdentifier identifier)
+		{
+			if (identifier.AllowedAssetClasses == null)
 			{
-				if (id.AllowedAssetClasses == null)
-				{
-					return true;
-				}
-
-				if (!id.AllowedAssetClasses.Contains(ParseQuoteType(x.Type)))
-				{
-					return false;
-				}
-
-				if (id.AllowedAssetSubClasses == null)
-				{
-					return true;
-				}
-
-				return ParseQuoteTypeAsSub(x.Type) == null || id.AllowedAssetSubClasses.Contains(ParseQuoteTypeAsSub(x.Type)!.Value);
+				return true;
 			}
+
+			if (!identifier.AllowedAssetClasses.Contains(ParseQuoteType(searchResult.Type)))
+			{
+				return false;
+			}
+
+			if (identifier.AllowedAssetSubClasses == null)
+			{
+				return true;
+			}
+
+			var assetSubClass = ParseQuoteTypeAsSub(searchResult.Type);
+			return assetSubClass == null || identifier.AllowedAssetSubClasses.Contains(assetSubClass.Value);
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
