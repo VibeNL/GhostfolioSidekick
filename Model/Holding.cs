@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace GhostfolioSidekick.Model
 {
@@ -16,12 +17,9 @@ namespace GhostfolioSidekick.Model
 
 		public void MergeIdentifiers(IList<PartialSymbolIdentifier> ids)
 		{
-			foreach (var item in ids)
+			foreach (var item in ids.Where(item => !IdentifierContainsInList(item)))
 			{
-				if (!IdentifierContainsInList(item))
-				{
-					PartialSymbolIdentifiers.Add(item);
-				}
+				PartialSymbolIdentifiers.Add(item);
 			}
 		}
 

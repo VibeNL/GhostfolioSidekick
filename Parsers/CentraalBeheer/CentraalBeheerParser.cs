@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
-	public partial class CentraalBeheerParser : PdfBaseParser
+	public partial class CentraalBeheerParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
 		private const string Keyword_Aankoop = "Aankoop";
 		private const string Keyword_Verkoop = "Verkoop";
@@ -23,10 +23,6 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 		private readonly CultureInfo cultureInfo = new("nl-NL");
 
 		private const string Prefix = "Centraal Beheer ";
-
-		public CentraalBeheerParser(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
-		{
-		}
 
 		private static List<string> MainKeyWords
 		{
@@ -172,7 +168,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				id);
 
 			var feeToken = GetToken(Keyword_Aankoopkosten, relevantTokens);
-			if (feeToken.Any())
+			if (feeToken.Length != 0)
 			{
 				Money fee = GetMoney(feeToken);
 				yield return PartialActivity.CreateFee(
@@ -232,7 +228,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				id);
 
 			var feeToken = GetToken(Keyword_DividendBelasting, relevantTokens);
-			if (feeToken.Any())
+			if (feeToken.Length != 0)
 			{
 				Money tax = GetMoney(feeToken);
 				yield return PartialActivity.CreateTax(
@@ -246,7 +242,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 		private static bool FilterOutPrice(SingleWordToken x)
 		{
-			return !x.Text.Contains("€") && !x.Text.Contains("-");
+			return !x.Text.Contains('€') && !x.Text.Contains('-');
 		}
 
 		private static string[] GetToken(string keyword, List<WordToken> relevantTokens)
