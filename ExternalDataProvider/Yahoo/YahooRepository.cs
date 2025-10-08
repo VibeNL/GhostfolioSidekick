@@ -156,7 +156,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				foreach (var candle in history)
 				{
-					var item = new StockSplit(DateOnly.FromDateTime(candle.DateTime), BeforeSplit: candle.AfterSplit, AfterSplit: candle.BeforeSplit); // API has them mixed up
+					var item = new StockSplit(Date: DateOnly.FromDateTime(candle.DateTime), BeforeSplit: candle.AfterSplit, AfterSplit: candle.BeforeSplit); // API has them mixed up
 					list.Add(item);
 				}
 
