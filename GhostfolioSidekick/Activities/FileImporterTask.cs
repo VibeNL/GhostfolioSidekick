@@ -108,7 +108,8 @@ namespace GhostfolioSidekick.Activities
 						sb.AppendLine($"{accountName} | {file} can be imported by {importerString}");
 					}
 
-					logger.LogError(ex, sb.ToString());
+					var message = sb.ToString();
+					logger.LogError(ex, message);
 				}
 				catch (Exception ex)
 				{
@@ -131,14 +132,13 @@ namespace GhostfolioSidekick.Activities
 				{
 					var fileBytes = File.ReadAllBytes(file);
 					var hashBytes = SHA256.HashData(fileBytes);
-					sb.Append(BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant());
+					sb.Append(Convert.ToHexStringLower(hashBytes));
 				}
 			}
 
 			return sb.ToString();
 		}
 
-		[SuppressMessage("Major Code Smell", "S3267:Loops should be simplified using the \"Where\" LINQ method", Justification = "Complex database operations with async calls require explicit loops")]
 		public static async Task StoreAll(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
 			await UpdatePartialSymbolIdentifiers(databaseContext, activities);

@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 	{
 		private readonly Mock<ILogger<FileImporterTask>> _mockLogger;
 		private readonly Mock<IApplicationSettings> _mockSettings;
-		private readonly IMemoryCache _memoryCache;
+		private readonly MemoryCache _memoryCache;
 		private readonly List<IFileImporter> _importers;
 		private readonly FileImporterTask _fileImporterTask;
 		private readonly DbContextFactory _dbContextFactory;
@@ -105,53 +105,51 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			{
 				// Load the account from this context to ensure proper tracking
 				var trackedAccount = await setupContext.Accounts.FindAsync(accountId);
-				
+
 				var existingActivities = new List<Activity>
 				{
 					new BuyActivity { TransactionId = "T1", Account = trackedAccount! },
 					new BuyActivity { TransactionId = "T2", Account = trackedAccount! }
 				};
-				
+
 				setupContext.Activities.AddRange(existingActivities);
 				await setupContext.SaveChangesAsync();
 			}
 
 			// Act & Assert - Use a fresh context for the StoreAll operation
-			using (var testContext = _dbContextFactory.CreateDbContext())
-			{
-				// Load the account in this context to ensure proper tracking
-				var accountForTest = await testContext.Accounts.FindAsync(accountId);
-				
-				// Create new activities using the properly tracked account
-				var newActivities = new List<Activity>
+			using var testContext = _dbContextFactory.CreateDbContext();
+			// Load the account in this context to ensure proper tracking
+			var accountForTest = await testContext.Accounts.FindAsync(accountId);
+
+			// Create new activities using the properly tracked account
+			var newActivities = new List<Activity>
 				{
-					new BuyActivity 
-					{ 
-						TransactionId = "T2", 
+					new BuyActivity
+					{
+						TransactionId = "T2",
 						Account = accountForTest!
 					},
-					new BuyActivity 
-					{ 
-						TransactionId = "T3", 
+					new BuyActivity
+					{
+						TransactionId = "T3",
 						Account = accountForTest!
 					}
 				};
 
-				// Execute the method under test
-				await FileImporterTask.StoreAll(testContext, newActivities);
+			// Execute the method under test
+			await FileImporterTask.StoreAll(testContext, newActivities);
 
-				// Verify results in the same context to avoid additional complexity
-				var finalActivities = await testContext.Activities
-					.Include(x => x.Account)
-					.ToListAsync();
+			// Verify results in the same context to avoid additional complexity
+			var finalActivities = await testContext.Activities
+				.Include(x => x.Account)
+				.ToListAsync();
 
-				finalActivities.Count.Should().Be(2);
-				
-				// Verify that we have T2 and T3 transactions
-				finalActivities.Should().Contain(a => a.TransactionId == "T2");
-				finalActivities.Should().Contain(a => a.TransactionId == "T3");
-				finalActivities.Should().NotContain(a => a.TransactionId == "T1");
-			}
+			finalActivities.Count.Should().Be(2);
+
+			// Verify that we have T2 and T3 transactions
+			finalActivities.Should().Contain(a => a.TransactionId == "T2");
+			finalActivities.Should().Contain(a => a.TransactionId == "T3");
+			finalActivities.Should().NotContain(a => a.TransactionId == "T1");
 		}
 	}
 
@@ -169,10 +167,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 		public DatabaseContext CreateDbContext()
 		{
-			if (_disposed)
-			{
-				throw new ObjectDisposedException(nameof(DbContextFactory));
-			}
+			ObjectDisposedException.ThrowIf(_disposed, nameof(DbContextFactory));
 
 			var options = new DbContextOptionsBuilder<DatabaseContext>()
 				.UseSqlite($"Data Source={_databasePath}")
