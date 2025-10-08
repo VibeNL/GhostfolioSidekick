@@ -10,9 +10,7 @@ namespace GhostfolioSidekick.Parsers
 		{
 			get
 			{
-				if (map == null)
-				{
-					map = CultureInfo
+				map ??= CultureInfo
 						.GetCultures(CultureTypes.AllCultures)
 						.Where(c => !c.IsNeutralCulture)
 						.Select(culture =>
@@ -29,7 +27,6 @@ namespace GhostfolioSidekick.Parsers
 						.Where(ri => ri != null)
 						.GroupBy(ri => ri!.ISOCurrencySymbol)
 						.ToDictionary(x => x.Key, x => x.First()!.CurrencySymbol);
-				}
 
 				return map;
 			}

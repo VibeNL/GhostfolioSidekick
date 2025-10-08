@@ -27,10 +27,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			{
 				lock (_lock)
 				{
-					if (_primaryCurrencyTask == null)
-					{
-						_primaryCurrencyTask = FetchPrimaryCurrencyAsync();
-					}
+					_primaryCurrencyTask ??= FetchPrimaryCurrencyAsync();
 				}
 			}
 
