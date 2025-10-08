@@ -20,12 +20,12 @@ namespace GhostfolioSidekick.ExternalDataProvider
 					   return false;
 				   }
 
-				   if (x is Exception && x.Message.Contains("'System.Dynamic.ExpandoObject' does not contain a definition for"))
+				   if (x is not null && x.Message.Contains("'System.Dynamic.ExpandoObject' does not contain a definition for"))
 				   {
 					   return false;
 				   }
 
-				   logger.LogWarning($"An error occurred: {x.Message}");
+				   logger.LogWarning(x, "An error occurred: {Message}", x?.Message);
 				   return true;
 			   })
 			   .WaitAndRetryAsync(10, retryAttempt =>
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.ExternalDataProvider
 			   },
 			   (exception, timeSpan, retryCount, context) =>
 			   {
-				   logger.LogWarning($"Retry {retryCount} encountered an error: {exception.Message}. Waiting {timeSpan} before next retry.");
+				   logger.LogWarning(exception, "Retry {RetryCount} encountered an error: {Message}. Waiting {TimeSpan} before next retry.", retryCount, exception.Message, timeSpan);
 			   });
 		}
 
