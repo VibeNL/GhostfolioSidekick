@@ -42,6 +42,11 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: Install Mono
+        run: |
+          sudo apt update
+          sudo apt install -y mono-complete
+
       - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
@@ -100,6 +105,11 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
+
+      - name: Install Mono
+        run: |
+          sudo apt update
+          sudo apt install -y mono-complete
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
