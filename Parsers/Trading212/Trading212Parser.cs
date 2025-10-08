@@ -5,15 +5,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Trading212
 {
-	public class Trading212Parser : RecordBaseImporter<Trading212Record>
+	public class Trading212Parser(ICurrencyMapper currencyMapper) : RecordBaseImporter<Trading212Record>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public Trading212Parser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(Trading212Record record, int rowNumber)
 		{
 			if (string.IsNullOrWhiteSpace(record.Id))

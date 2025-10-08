@@ -5,15 +5,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
-	public class ScalableCapitalWUMParser : RecordBaseImporter<BaaderBankWUMRecord>
+	public class ScalableCapitalWUMParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<BaaderBankWUMRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public ScalableCapitalWUMParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(BaaderBankWUMRecord record, int rowNumber)
 		{
 			var date = record.Date.ToDateTime(record.Time, DateTimeKind.Utc);

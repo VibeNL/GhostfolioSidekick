@@ -6,27 +6,19 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.AccountMaintainer
 {
-	public class AccountMaintainerTask : IScheduledWork
+	public class AccountMaintainerTask(
+		ILogger<AccountMaintainerTask> logger,
+		IDbContextFactory<DatabaseContext> databaseContextFactory,
+		IApplicationSettings applicationSettings) : IScheduledWork
 	{
-		private readonly ILogger<AccountMaintainerTask> logger;
-		private readonly IDbContextFactory<DatabaseContext> databaseContextFactory;
-		private readonly IApplicationSettings applicationSettings;
+		private readonly ILogger<AccountMaintainerTask> logger = logger ?? throw new ArgumentNullException(nameof(logger));
+		private readonly IApplicationSettings applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 
 		public TaskPriority Priority => TaskPriority.AccountMaintainer;
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		public bool ExceptionsAreFatal => false;
-
-		public AccountMaintainerTask(
-			ILogger<AccountMaintainerTask> logger,
-			IDbContextFactory<DatabaseContext> databaseContextFactory,
-			IApplicationSettings applicationSettings)
-		{
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.databaseContextFactory = databaseContextFactory;
-			this.applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
-		}
 
 		public async Task DoWork()
 		{

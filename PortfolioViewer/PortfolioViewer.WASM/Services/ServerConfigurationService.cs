@@ -4,17 +4,12 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
-	public class ServerConfigurationService : IServerConfigurationService
+	public class ServerConfigurationService(HttpClient httpClient) : IServerConfigurationService
 	{
-		private readonly HttpClient _httpClient;
+		private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 		private Currency? _cachedPrimaryCurrency;
 		private Task<Currency>? _primaryCurrencyTask;
 		private readonly object _lock = new();
-
-		public ServerConfigurationService(HttpClient httpClient)
-		{
-			_httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-		}
 
 		public Currency PrimaryCurrency
 		{

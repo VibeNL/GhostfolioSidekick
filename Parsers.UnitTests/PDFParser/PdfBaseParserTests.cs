@@ -9,10 +9,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 {
 	public class PdfBaseParserTests
 	{
-		private class TestPdfBaseParser : PdfBaseParser
+		private class TestPdfBaseParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 		{
-			public TestPdfBaseParser(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords) { }
-
 			protected override bool CanParseRecords(List<SingleWordToken> words)
 			{
 				return words.Count > 0;

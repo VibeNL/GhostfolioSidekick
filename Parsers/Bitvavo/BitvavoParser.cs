@@ -5,15 +5,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Bitvavo
 {
-	public class BitvavoParser : RecordBaseImporter<BitvavoRecord>
+	public class BitvavoParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<BitvavoRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public BitvavoParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(BitvavoRecord record, int rowNumber)
 		{
 			if (record.Status != "Completed" && record.Status != "Distributed")

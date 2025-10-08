@@ -5,15 +5,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Generic
 {
-	public class GenericParser : RecordBaseImporter<GenericRecord>
+	public class GenericParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<GenericRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public GenericParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(GenericRecord record, int rowNumber)
 		{
 			if (string.IsNullOrWhiteSpace(record.Id))

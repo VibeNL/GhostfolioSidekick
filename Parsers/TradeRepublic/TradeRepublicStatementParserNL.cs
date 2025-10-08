@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicStatementParserNL : PdfBaseParser
+	public class TradeRepublicStatementParserNL(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
 		private const string Keyword_Datum = "DATUM";
 		private const string Keyword_Type = "TYPE";
@@ -28,10 +28,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					Keyword_Saldo
 				];
 			}
-		}
-
-		public TradeRepublicStatementParserNL(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
-		{
 		}
 
 		protected override bool CanParseRecords(List<SingleWordToken> words)

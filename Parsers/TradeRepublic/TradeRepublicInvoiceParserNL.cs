@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicInvoiceParserNL : TradeRepublicInvoiceParserBase
+	public class TradeRepublicInvoiceParserNL(IPdfToWordsParser parsePDfToWords) : TradeRepublicInvoiceParserBase(parsePDfToWords)
 	{
 		// EN
 		protected override string Keyword_Position => "POSITIE";
@@ -28,9 +28,5 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string WITHHOLDING_TAX => "Withholding tax for US issuer";
 		protected override string DATE => "DATUM";
 		protected override CultureInfo Culture => CultureInfo.InvariantCulture;
-
-		public TradeRepublicInvoiceParserNL(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
-		{
-		}
 	}
 }

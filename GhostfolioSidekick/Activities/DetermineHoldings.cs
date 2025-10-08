@@ -12,28 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Activities
 {
-	public class DetermineHoldings : IScheduledWork
+	public class DetermineHoldings(
+			ILogger<DetermineHoldings> logger,
+			ISymbolMatcher[] symbolMatchers,
+			IDbContextFactory<DatabaseContext> databaseContextFactory,
+			IMemoryCache memoryCache,
+			IApplicationSettings settings) : IScheduledWork
 	{
-		private readonly ILogger<DetermineHoldings> logger;
-		private readonly ISymbolMatcher[] symbolMatchers;
-		private readonly IDbContextFactory<DatabaseContext> databaseContextFactory;
-		private readonly IMemoryCache memoryCache;
-		private readonly Mapping[] mappings;
-
-		public DetermineHoldings(
-				ILogger<DetermineHoldings> logger,
-				ISymbolMatcher[] symbolMatchers,
-				IDbContextFactory<DatabaseContext> databaseContextFactory,
-				IMemoryCache memoryCache,
-				IApplicationSettings settings)
-		{
-			this.logger = logger;
-			this.symbolMatchers = symbolMatchers;
-			this.databaseContextFactory = databaseContextFactory;
-			this.memoryCache = memoryCache;
-
-			this.mappings = settings?.ConfigurationInstance?.Mappings ?? [];
-		}
+		private readonly Mapping[] mappings = settings?.ConfigurationInstance?.Mappings ?? [];
 
 		public TaskPriority Priority => TaskPriority.DetermineHoldings;
 

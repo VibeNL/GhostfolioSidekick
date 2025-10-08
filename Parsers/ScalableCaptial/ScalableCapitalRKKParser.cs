@@ -5,15 +5,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
-	public class ScalableCapitalRKKParser : RecordBaseImporter<BaaderBankRKKRecord>
+	public class ScalableCapitalRKKParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<BaaderBankRKKRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public ScalableCapitalRKKParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(BaaderBankRKKRecord record, int rowNumber)
 		{
 			if (record.ExecutionDate == "0")

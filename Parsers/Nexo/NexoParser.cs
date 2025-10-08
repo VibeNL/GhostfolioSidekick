@@ -5,18 +5,12 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Nexo
 {
-	public class NexoParser : RecordBaseImporter<NexoRecord>
+	public class NexoParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<NexoRecord>
 	{
 		readonly Dictionary<string, string> Translation = new Dictionary<string, string>{
 			{ "EURX", "EUR" },
 			{ "USDX", "USD" }
 		};
-		private readonly ICurrencyMapper currencyMapper;
-
-		public NexoParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(NexoRecord record, int rowNumber)
 		{

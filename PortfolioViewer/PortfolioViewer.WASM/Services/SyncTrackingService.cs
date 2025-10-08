@@ -2,21 +2,15 @@ using Microsoft.JSInterop;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
-	public class SyncTrackingService : ISyncTrackingService
+	public class SyncTrackingService(IJSRuntime jsRuntime) : ISyncTrackingService
 	{
 		private const string LastSyncKey = "lastSyncTime";
-		private readonly IJSRuntime _jsRuntime;
-
-		public SyncTrackingService(IJSRuntime jsRuntime)
-		{
-			_jsRuntime = jsRuntime;
-		}
 
 		public async Task<DateTime?> GetLastSyncTimeAsync()
 		{
 			try
 			{
-				var storedValue = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", LastSyncKey);
+				var storedValue = await jsRuntime.InvokeAsync<string?>("localStorage.getItem", LastSyncKey);
 				if (string.IsNullOrEmpty(storedValue))
 				{
 					return null;
@@ -40,7 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			try
 			{
 				var isoString = syncTime.ToString("O"); // ISO 8601 format
-				await _jsRuntime.InvokeVoidAsync("localStorage.setItem", LastSyncKey, isoString);
+				await jsRuntime.InvokeVoidAsync("localStorage.setItem", LastSyncKey, isoString);
 			}
 			catch
 			{
@@ -58,7 +52,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			try
 			{
-				await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", LastSyncKey);
+				await jsRuntime.InvokeVoidAsync("localStorage.removeItem", LastSyncKey);
 			}
 			catch
 			{

@@ -8,11 +8,9 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
-	public partial class WebLLMChatClient : IWebChatClient
+	[method: System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
+	public partial class WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds) : IWebChatClient
 	{
-		private readonly IJSRuntime jsRuntime;
-		private readonly ILogger<WebLLMChatClient> logger;
-		private readonly Dictionary<ChatMode, string> modelIds;
 		private InteropInstance? interopInstance;
 
 		private IJSObjectReference? module;
@@ -44,14 +42,6 @@ Format function calls like this:
     }
 ] }
 """;
-
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
-		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds)
-		{
-			this.jsRuntime = jsRuntime;
-			this.logger = logger;
-			this.modelIds = modelIds;
-		}
 
 		public async Task<ChatResponse> GetResponseAsync(
 			IEnumerable<ChatMessage> messages,

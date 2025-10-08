@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicInvoiceParserES : TradeRepublicInvoiceParserBase
+	public class TradeRepublicInvoiceParserES(IPdfToWordsParser parsePDfToWords) : TradeRepublicInvoiceParserBase(parsePDfToWords)
 	{
 		// ES
 		protected override string Keyword_Position => "POSICIÓN";
@@ -29,10 +29,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string WITHHOLDING_TAX => "Retención Fiscal para Emisores de Estados Unidos";
 		protected override string DATE => "FECHA";
 		protected override CultureInfo Culture => new CultureInfo("es");
-
-		public TradeRepublicInvoiceParserES(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
-		{
-		}
 
 		protected override bool CheckEndOfRecord(List<MultiWordToken> headers, string currentWord)
 		{

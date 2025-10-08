@@ -6,15 +6,8 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	public class CoinbaseParser : RecordBaseImporter<CoinbaseRecord>
+	public class CoinbaseParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<CoinbaseRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public CoinbaseParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(CoinbaseRecord record, int rowNumber)
 		{
 			var date = record.Timestamp;

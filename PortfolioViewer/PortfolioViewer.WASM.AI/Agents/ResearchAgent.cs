@@ -55,19 +55,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		}
 	}
 
-	public class ResearchAgentFunction
+	public class ResearchAgentFunction(GoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
 	{
-		private readonly GoogleSearchService _searchService;
-		private readonly IChatCompletionService _chatService;
-		private readonly AgentLogger _agentLogger;
-
-		public ResearchAgentFunction(GoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
-		{
-			_searchService = searchService;
-			_chatService = chatService;
-			_agentLogger = agentLogger;
-		}
-
 		private async Task<string> SummarizeSearchResults(SearchResults results)
 		{
 			if (results.Items.Count == 0)
@@ -93,7 +82,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			chatHistory.AddSystemMessage("You are a helpful research assistant that can synthesize information from multiple sources.");
 			chatHistory.AddUserMessage(prompt.ToString());
 
-			var result = await _chatService.GetChatMessageContentAsync(chatHistory);
+			var result = await chatService.GetChatMessageContentAsync(chatHistory);
 			return result.Content ?? "No summary content available.";
 		}
 
@@ -134,7 +123,7 @@ The query should lead to high-quality, factual information that would help someo
 If recency is important, incorporate the year {currentYear} in your query.");
 
 			// Generate the optimized query
-			var response = await _chatService.GetChatMessageContentAsync(chatHistory);
+			var response = await chatService.GetChatMessageContentAsync(chatHistory);
 			var optimizedQuery = response.Content?.Trim() ?? $"{topic} {aspect}";
 
 			// Safety checks and constraints
@@ -157,7 +146,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 				rewriteHistory.AddSystemMessage("You are an expert at refining search queries. Respond only with the rewritten query.");
 				rewriteHistory.AddUserMessage($"This search query needs to include the term '{topic}' but currently doesn't: \"{optimizedQuery}\". Rewrite the query to include this term while maintaining its effectiveness. Make sure the query stays under 150 characters.");
 
-				var rewriteResponse = await _chatService.GetChatMessageContentAsync(rewriteHistory);
+				var rewriteResponse = await chatService.GetChatMessageContentAsync(rewriteHistory);
 				var rewrittenQuery = rewriteResponse.Content?.Trim();
 
 				// Only use the rewritten query if it actually contains the topic and isn't empty
@@ -184,7 +173,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 			chatHistory.AddSystemMessage("You are a search query optimization expert. Your task is to suggest alternative search queries when the original query doesn't yield good results.");
 			chatHistory.AddUserMessage($"The search query \"{originalQuery}\" for researching \"{aspect}\" of \"{topic}\" didn't return useful results. Suggest an alternative search query that might work better. Only provide the query text with no explanation or additional text.");
 
-			var response = await _chatService.GetChatMessageContentAsync(chatHistory);
+			var response = await chatService.GetChatMessageContentAsync(chatHistory);
 			var alternativeQuery = response.Content?.Trim();
 
 			if (string.IsNullOrWhiteSpace(alternativeQuery))
@@ -202,7 +191,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 			[Description("The topic to research")] string topic,
 			[Description("Specific aspects of the topic to research. Should be in natural language")] string[] aspects)
 		{
-			_agentLogger.StartFunction(nameof(MultiStepResearch));
+			agentLogger.StartFunction(nameof(MultiStepResearch));
 
 			if (string.IsNullOrWhiteSpace(topic))
 			{
@@ -221,7 +210,7 @@ Respond with a JSON array of 3-5 clear and specific aspects to research.");
 
 				chatHistory.AddUserMessage($"What are the most important aspects to research about '{topic}'? Focus on aspects that would provide valuable and comprehensive understanding. Respond with ONLY a JSON array of strings.");
 
-				var aspectResponse = await _chatService.GetChatMessageContentAsync(chatHistory);
+				var aspectResponse = await chatService.GetChatMessageContentAsync(chatHistory);
 				var aspectContent = aspectResponse.Content ?? "[]";
 
 				// Extract the JSON array from the response
@@ -262,19 +251,19 @@ Respond with a JSON array of 3-5 clear and specific aspects to research.");
 				var optimizedQuery = await GenerateSearchQuery(topic, aspect);
 
 				// Try the optimized query
-				var results = await _searchService.SearchAsync(optimizedQuery);
+				var results = await searchService.SearchAsync(optimizedQuery);
 
 				// If no results, try generating an alternative query
 				if (results == null || results.Count == 0)
 				{
 					var alternativeQuery = await SuggestAlternativeQuery(optimizedQuery, topic, aspect);
-					results = await _searchService.SearchAsync(alternativeQuery);
+					results = await searchService.SearchAsync(alternativeQuery);
 
 					// If still no results, try a simple fallback query as a last resort
 					if (results == null || results.Count == 0)
 					{
 						var fallbackQuery = $"{topic} {aspect}";
-						results = await _searchService.SearchAsync(fallbackQuery);
+						results = await searchService.SearchAsync(fallbackQuery);
 					}
 				}
 
@@ -332,7 +321,7 @@ Maintain a professional tone suitable for financial and investment contexts.");
 
 			synChatHistory.AddUserMessage(synthesisPromptBuilder.ToString());
 
-			var synthesisResponse = await _chatService.GetChatMessageContentAsync(synChatHistory);
+			var synthesisResponse = await chatService.GetChatMessageContentAsync(synChatHistory);
 			var synthesis = synthesisResponse.Content ?? "Unable to synthesize research.";
 
 			researchBuilder.AppendLine(synthesis);

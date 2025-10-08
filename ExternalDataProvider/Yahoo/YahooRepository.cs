@@ -8,7 +8,7 @@ using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository :
+	public class YahooRepository(ILogger<YahooRepository> logger) :
 		ICurrencyRepository,
 		ISymbolMatcher,
 		IStockPriceRepository,
@@ -17,13 +17,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		public string DataSource => Datasource.YAHOO;
 
 		public DateOnly MinDate => DateOnly.MinValue;
-
-		private readonly ILogger<YahooRepository> logger;
-
-		public YahooRepository(ILogger<YahooRepository> logger)
-		{
-			this.logger = logger;
-		}
 
 		public async Task<IEnumerable<CurrencyExchangeRate>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{

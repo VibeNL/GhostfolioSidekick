@@ -5,21 +5,14 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class ConfigurationController : ControllerBase
+	public class ConfigurationController(IApplicationSettings applicationSettings) : ControllerBase
 	{
-		private readonly IApplicationSettings _applicationSettings;
-
-		public ConfigurationController(IApplicationSettings applicationSettings)
-		{
-			_applicationSettings = applicationSettings;
-		}
-
 		[HttpGet("primary-currency")]
 		public IActionResult GetPrimaryCurrency()
 		{
 			try
 			{
-				var primaryCurrencySymbol = _applicationSettings.ConfigurationInstance?.Settings?.PrimaryCurrency;
+				var primaryCurrencySymbol = applicationSettings.ConfigurationInstance?.Settings?.PrimaryCurrency;
 				
 				if (string.IsNullOrWhiteSpace(primaryCurrencySymbol))
 				{

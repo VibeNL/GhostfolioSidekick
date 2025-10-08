@@ -5,20 +5,13 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.DeGiro
 {
-	public class DeGiroParser : RecordBaseImporter<DeGiroRecord>
+	public class DeGiroParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<DeGiroRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
 		private static readonly IDeGiroStrategy strategy = new DeGiroMultiStrategy(
 				new DeGiroEnglishStrategy(),
 				new DeGiroDutchStrategy(),
 				new DeGiroPortugueseStrategy()
 		);
-
-		public DeGiroParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
 
 		protected override IEnumerable<PartialActivity> ParseRow(DeGiroRecord record, int rowNumber)
 		{

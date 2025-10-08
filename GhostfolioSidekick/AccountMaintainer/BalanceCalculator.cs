@@ -6,15 +6,8 @@ using GhostfolioSidekick.Model.Activities.Types;
 
 namespace GhostfolioSidekick.AccountMaintainer
 {
-	public class BalanceCalculator
+	public class BalanceCalculator(ICurrencyExchange exchangeRateService)
 	{
-		private readonly ICurrencyExchange exchangeRateService;
-
-		public BalanceCalculator(ICurrencyExchange exchangeRateService)
-		{
-			this.exchangeRateService = exchangeRateService;
-		}
-
 		public async Task<List<Balance>> Calculate(
 			Currency baseCurrency,
 			IEnumerable<Activity> activities)

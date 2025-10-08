@@ -4,16 +4,11 @@ using System.Collections.Concurrent;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
-	public class InteropInstance
+	public class InteropInstance(IProgress<InitializeProgress> progress)
 	{
-		private readonly IProgress<InitializeProgress> _progress;
+		private readonly IProgress<InitializeProgress> _progress = progress;
 
 		public ConcurrentQueue<WebLLMCompletion> WebLLMCompletions { get; init; } = new();
-
-		public InteropInstance(IProgress<InitializeProgress> progress)
-		{
-			_progress = progress;
-		}
 
 		[JSInvokable]
 		public void ReportProgress(InitProgressReport progress)

@@ -28,48 +28,39 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					services.AddHostedService<ScraperService>();
 				});
 
-		public class ScraperService : IHostedService
+		public class ScraperService(ILogger<Program.ScraperService> logger, IPlaywright playwright) : IHostedService
 		{
-			private readonly ILogger<ScraperService> _logger;
-			private readonly IPlaywright _playwright;
-
-			public ScraperService(ILogger<ScraperService> logger, IPlaywright playwright)
-			{
-				_logger = logger;
-				_playwright = playwright;
-			}
-
 			public async Task RunAsync(SupportedBrokers broker, string outputDirectory)
 			{
-				var browser = await _playwright.Chromium.ConnectOverCDPAsync("http://localhost:9222");
+				var browser = await playwright.Chromium.ConnectOverCDPAsync("http://localhost:9222");
 				var defaultContext = browser.Contexts[0];
 
 				try
 				{
 					var page = defaultContext.Pages[0];
 
-					_logger.LogInformation("Starting the scraping process...");
-					_logger.LogInformation($"Broker: {broker}");
-					_logger.LogInformation($"Output directory: {outputDirectory}");
+					logger.LogInformation("Starting the scraping process...");
+					logger.LogInformation($"Broker: {broker}");
+					logger.LogInformation($"Output directory: {outputDirectory}");
 
 					IEnumerable<ActivityWithSymbol> transactions;
 					switch (broker)
 					{
 						case SupportedBrokers.ScalableCapital:
 							{
-								var scraper = new ScalableCapital.Scraper(page, _logger);
+								var scraper = new ScalableCapital.Scraper(page, logger);
 								transactions = await scraper.ScrapeTransactions();
 							}
 							break;
 						case SupportedBrokers.TradeRepublic:
 							{
-								var scraper = new TradeRepublic.Scraper(page, _logger, outputDirectory);
+								var scraper = new TradeRepublic.Scraper(page, logger, outputDirectory);
 								transactions = await scraper.ScrapeTransactions();
 							}
 							break;
 						case SupportedBrokers.CentraalBeheer:
 							{
-								var scraper = new CentraalBeheer.Scraper(page, _logger);
+								var scraper = new CentraalBeheer.Scraper(page, logger);
 								transactions = await scraper.ScrapeTransactions();
 							}
 							break;
@@ -78,10 +69,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					}
 
 					var outputFile = Path.Combine(outputDirectory, $"{broker}.csv");
-					_logger.LogInformation($"Output file: {outputFile}");
+					logger.LogInformation($"Output file: {outputFile}");
 
 					SaveToCSV(outputFile, transactions);
-					_logger.LogInformation("Scraping process completed.");
+					logger.LogInformation("Scraping process completed.");
 				}
 				finally
 				{

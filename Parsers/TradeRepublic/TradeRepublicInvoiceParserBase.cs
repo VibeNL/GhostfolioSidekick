@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public abstract class TradeRepublicInvoiceParserBase : PdfBaseParser
+	public abstract class TradeRepublicInvoiceParserBase(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
 		protected abstract string Keyword_Position { get; }
 		protected abstract string Keyword_Quantity { get; }
@@ -50,10 +50,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					Keyword_Number
 				])];
 			}
-		}
-
-		protected TradeRepublicInvoiceParserBase(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
-		{
 		}
 
 		protected override bool CanParseRecords(List<SingleWordToken> words)

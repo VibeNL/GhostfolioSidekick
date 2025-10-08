@@ -10,20 +10,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 	/// Configuration helper that provides a unified way to read configuration values
 	/// from appsettings.json files and environment variables with proper fallback logic.
 	/// </summary>
-	public class ConfigurationHelper : IConfigurationHelper
+	public class ConfigurationHelper(IConfiguration configuration, IApplicationSettings applicationSettings, ILogger<ConfigurationHelper>? logger = null) : IConfigurationHelper
 	{
-		private readonly IConfiguration _configuration;
-		private readonly IApplicationSettings applicationSettings;
-		private readonly ILogger<ConfigurationHelper>? _logger;
+		private readonly IConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+		private readonly IApplicationSettings applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		private readonly ConcurrentDictionary<string, string> _envVarCache = new();
 		private readonly ConcurrentDictionary<Type, TypeConverter> _typeConverters = new();
-
-		public ConfigurationHelper(IConfiguration configuration, IApplicationSettings applicationSettings, ILogger<ConfigurationHelper>? logger = null)
-		{
-			_configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-			this.applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
-			_logger = logger;
-		}
 
 		public string GetConnectionString()
 		{
@@ -39,25 +31,25 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			var envValue = GetCachedEnvironmentVariable(envVarName);
 			if (!string.IsNullOrEmpty(envValue))
 			{
-				_logger?.LogDebug("Using configuration value '{Key}' from environment variable '{EnvVar}'", key, envVarName);
+				logger?.LogDebug("Using configuration value '{Key}' from environment variable '{EnvVar}'", key, envVarName);
 				return envValue;
 			}
 
 			var configValue = _configuration[key];
 			if (!string.IsNullOrEmpty(configValue))
 			{
-				_logger?.LogDebug("Using configuration value '{Key}' from configuration", key);
+				logger?.LogDebug("Using configuration value '{Key}' from configuration", key);
 				return configValue;
 			}
 
 			if (defaultValue != null)
 			{
-				_logger?.LogDebug("Using default value for configuration key '{Key}'", key);
+				logger?.LogDebug("Using default value for configuration key '{Key}'", key);
 				return defaultValue;
 			}
 
 			var message = $"Configuration value '{key}' not found in configuration or environment variable '{envVarName}'";
-			_logger?.LogError("{Message}", message);
+			logger?.LogError("{Message}", message);
 			throw new InvalidOperationException(message);
 		}
 
@@ -71,31 +63,31 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				var envValue = GetCachedEnvironmentVariable(envVarName);
 				if (!string.IsNullOrEmpty(envValue))
 				{
-					_logger?.LogDebug("Using configuration value '{Key}' from environment variable '{EnvVar}'", key, envVarName);
+					logger?.LogDebug("Using configuration value '{Key}' from environment variable '{EnvVar}'", key, envVarName);
 					return ConvertValue<T>(envValue);
 				}
 
 				var configValue = _configuration[key];
 				if (!string.IsNullOrEmpty(configValue))
 				{
-					_logger?.LogDebug("Using configuration value '{Key}' from configuration", key);
+					logger?.LogDebug("Using configuration value '{Key}' from configuration", key);
 					return ConvertValue<T>(configValue);
 				}
 
 				if (defaultValue != null || !typeof(T).IsValueType || Nullable.GetUnderlyingType(typeof(T)) != null)
 				{
-					_logger?.LogDebug("Using default value for configuration key '{Key}'", key);
+					logger?.LogDebug("Using default value for configuration key '{Key}'", key);
 					return defaultValue!;
 				}
 
 				var message = $"Configuration value '{key}' not found in configuration or environment variable '{envVarName}'";
-				_logger?.LogError("{Message}", message);
+				logger?.LogError("{Message}", message);
 				throw new InvalidOperationException(message);
 			}
 			catch (Exception ex) when (!(ex is InvalidOperationException))
 			{
 				var message = $"Failed to convert configuration value '{key}' to type {typeof(T).Name}";
-				_logger?.LogError(ex, "{Message}", message);
+				logger?.LogError(ex, "{Message}", message);
 				throw new InvalidOperationException(message, ex);
 			}
 		}
@@ -110,11 +102,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 			try
 			{
 				section.Bind(model);
-				_logger?.LogDebug("Bound configuration section '{SectionName}' to type {TypeName}", sectionName, typeof(T).Name);
+				logger?.LogDebug("Bound configuration section '{SectionName}' to type {TypeName}", sectionName, typeof(T).Name);
 			}
 			catch (Exception ex)
 			{
-				_logger?.LogWarning(ex, "Failed to bind configuration section '{SectionName}' to type {TypeName}", sectionName, typeof(T).Name);
+				logger?.LogWarning(ex, "Failed to bind configuration section '{SectionName}' to type {TypeName}", sectionName, typeof(T).Name);
 			}
 
 			OverrideWithEnvironmentVariables(model, sectionName);
@@ -199,11 +191,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 					{
 						var convertedValue = ConvertValueForType(envValue, property.PropertyType);
 						property.SetValue(model, convertedValue);
-						_logger?.LogDebug("Overrode property {PropertyName} with environment variable {EnvVar}", property.Name, envVarName);
+						logger?.LogDebug("Overrode property {PropertyName} with environment variable {EnvVar}", property.Name, envVarName);
 					}
 					catch (Exception ex)
 					{
-						_logger?.LogWarning(ex, "Failed to convert environment variable {EnvVar} to property {PropertyName} of type {PropertyType}",
+						logger?.LogWarning(ex, "Failed to convert environment variable {EnvVar} to property {PropertyName} of type {PropertyType}",
 							envVarName, property.Name, property.PropertyType.Name);
 					}
 				}
