@@ -40,15 +40,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				{ [ "POSICIÓN", "NOMINALES", "CUPÓN", "CANTIDAD" ] } // interest bond
 			};
 
-			foreach (var mapping in headerMappings)
-			{
-				if (headers.Select(x => x.KeyWord).SequenceEqual(mapping) && mapping.Last() == currentWord)
-				{
-					return true;
-				}
-			}
-
-			return false;
+			return headerMappings
+				.Any(mapping => headers.Select(x => x.KeyWord).SequenceEqual(mapping) && mapping.Last() == currentWord);
 		}
 	}
 }
