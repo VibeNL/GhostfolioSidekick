@@ -1,225 +1,150 @@
 using AwesomeAssertions;
-using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Moq;
+using Moq.Protected;
+using System.Net;
+using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
 {
 	public class ServerConfigurationServiceTests
 	{
-		private readonly Mock<IApplicationSettings> _applicationSettingsMock;
+		private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
+		private readonly HttpClient _httpClient;
 		private readonly ServerConfigurationService _serverConfigurationService;
 
 		public ServerConfigurationServiceTests()
 		{
-			_applicationSettingsMock = new Mock<IApplicationSettings>();
-			_serverConfigurationService = new ServerConfigurationService(_applicationSettingsMock.Object);
+			_httpMessageHandlerMock = new Mock<HttpMessageHandler>();
+			_httpClient = new HttpClient(_httpMessageHandlerMock.Object)
+			{
+				BaseAddress = new Uri("https://test.com/")
+			};
+			_serverConfigurationService = new ServerConfigurationService(_httpClient);
 		}
 
 		[Fact]
-		public void PrimaryCurrency_WhenConfigurationInstanceIsNull_ReturnsEUR()
+		public async Task GetPrimaryCurrencyAsync_WhenApiReturnsEUR_ReturnsEUR()
 		{
 			// Arrange
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns((ConfigurationInstance)null!);
+			var responseContent = JsonSerializer.Serialize(new { PrimaryCurrency = "EUR" });
+			SetupHttpResponse(HttpStatusCode.OK, responseContent);
 
 			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
+			var result = await _serverConfigurationService.GetPrimaryCurrencyAsync();
 
 			// Assert
 			result.Should().Be(Currency.EUR);
 		}
 
 		[Fact]
-		public void PrimaryCurrency_WhenSettingsIsNull_ReturnsEUR()
+		public async Task GetPrimaryCurrencyAsync_WhenApiReturnsUSD_ReturnsUSD()
 		{
 			// Arrange
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = null!
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
+			var responseContent = JsonSerializer.Serialize(new { PrimaryCurrency = "USD" });
+			SetupHttpResponse(HttpStatusCode.OK, responseContent);
 
 			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
-
-			// Assert
-			result.Should().Be(Currency.EUR);
-		}
-
-		[Fact]
-		public void PrimaryCurrency_WhenPrimaryCurrencyIsNull_ReturnsEUR()
-		{
-			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = null!
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
-
-			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
-
-			// Assert
-			result.Should().Be(Currency.EUR);
-		}
-
-		[Fact]
-		public void PrimaryCurrency_WhenPrimaryCurrencyIsEmpty_ReturnsEUR()
-		{
-			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = string.Empty
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
-
-			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
-
-			// Assert
-			result.Should().Be(Currency.EUR);
-		}
-
-		[Fact]
-		public void PrimaryCurrency_WhenPrimaryCurrencyIsWhitespace_ReturnsEUR()
-		{
-			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "   "
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
-
-			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
-
-			// Assert
-			result.Should().Be(Currency.EUR);
-		}
-
-		[Fact]
-		public void PrimaryCurrency_WhenValidUSDCurrency_ReturnsUSD()
-		{
-			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "USD"
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
-
-			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
+			var result = await _serverConfigurationService.GetPrimaryCurrencyAsync();
 
 			// Assert
 			result.Should().Be(Currency.USD);
 		}
 
 		[Fact]
-		public void PrimaryCurrency_WhenValidGBPCurrency_ReturnsGBP()
+		public async Task GetPrimaryCurrencyAsync_WhenApiReturnsGBP_ReturnsGBP()
 		{
 			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "GBP"
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
+			var responseContent = JsonSerializer.Serialize(new { PrimaryCurrency = "GBP" });
+			SetupHttpResponse(HttpStatusCode.OK, responseContent);
 
 			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
+			var result = await _serverConfigurationService.GetPrimaryCurrencyAsync();
 
 			// Assert
 			result.Should().Be(Currency.GBP);
 		}
 
 		[Fact]
-		public void PrimaryCurrency_WhenValidEURCurrency_ReturnsEUR()
+		public async Task GetPrimaryCurrencyAsync_WhenApiReturnsUnknownCurrency_CreatesNewCurrency()
 		{
 			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "EUR"
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
+			var responseContent = JsonSerializer.Serialize(new { PrimaryCurrency = "JPY" });
+			SetupHttpResponse(HttpStatusCode.OK, responseContent);
 
 			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
-
-			// Assert
-			result.Should().Be(Currency.EUR);
-		}
-
-		[Fact]
-		public void PrimaryCurrency_WhenUnknownCurrency_CreatesNewCurrency()
-		{
-			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "JPY"
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
-
-			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
+			var result = await _serverConfigurationService.GetPrimaryCurrencyAsync();
 
 			// Assert
 			result.Symbol.Should().Be("JPY");
 		}
 
 		[Fact]
-		public void PrimaryCurrency_WhenCalledMultipleTimes_ReturnsConsistentResults()
+		public async Task GetPrimaryCurrencyAsync_WhenApiReturnsEmptyString_ReturnsEUR()
 		{
 			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "USD"
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
+			var responseContent = JsonSerializer.Serialize(new { PrimaryCurrency = "" });
+			SetupHttpResponse(HttpStatusCode.OK, responseContent);
 
 			// Act
-			var result1 = _serverConfigurationService.PrimaryCurrency;
-			var result2 = _serverConfigurationService.PrimaryCurrency;
-			var result3 = _serverConfigurationService.PrimaryCurrency;
+			var result = await _serverConfigurationService.GetPrimaryCurrencyAsync();
+
+			// Assert
+			result.Should().Be(Currency.EUR);
+		}
+
+		[Fact]
+		public async Task GetPrimaryCurrencyAsync_WhenApiReturnsNull_ReturnsEUR()
+		{
+			// Arrange
+			var responseContent = JsonSerializer.Serialize(new { PrimaryCurrency = (string?)null });
+			SetupHttpResponse(HttpStatusCode.OK, responseContent);
+
+			// Act
+			var result = await _serverConfigurationService.GetPrimaryCurrencyAsync();
+
+			// Assert
+			result.Should().Be(Currency.EUR);
+		}
+
+		[Fact]
+		public async Task GetPrimaryCurrencyAsync_WhenApiCallFails_ReturnsEUR()
+		{
+			// Arrange
+			SetupHttpResponse(HttpStatusCode.InternalServerError, "Error");
+
+			// Act
+			var result = await _serverConfigurationService.GetPrimaryCurrencyAsync();
+
+			// Assert
+			result.Should().Be(Currency.EUR);
+		}
+
+		[Fact]
+		public async Task GetPrimaryCurrencyAsync_WhenApiReturnsInvalidJson_ReturnsEUR()
+		{
+			// Arrange
+			SetupHttpResponse(HttpStatusCode.OK, "invalid json");
+
+			// Act
+			var result = await _serverConfigurationService.GetPrimaryCurrencyAsync();
+
+			// Assert
+			result.Should().Be(Currency.EUR);
+		}
+
+		[Fact]
+		public async Task GetPrimaryCurrencyAsync_WhenCalledMultipleTimes_CachesResult()
+		{
+			// Arrange
+			var responseContent = JsonSerializer.Serialize(new { PrimaryCurrency = "USD" });
+			SetupHttpResponse(HttpStatusCode.OK, responseContent);
+
+			// Act
+			var result1 = await _serverConfigurationService.GetPrimaryCurrencyAsync();
+			var result2 = await _serverConfigurationService.GetPrimaryCurrencyAsync();
+			var result3 = await _serverConfigurationService.GetPrimaryCurrencyAsync();
 
 			// Assert
 			result1.Should().Be(Currency.USD);
@@ -227,66 +152,25 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Services
 			result3.Should().Be(Currency.USD);
 			result1.Should().Be(result2);
 			result2.Should().Be(result3);
+
+			// Verify the HTTP call was made only once (due to caching)
+			_httpMessageHandlerMock.Protected()
+				.Verify("SendAsync", Times.Once(),
+					ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.ToString().Contains("api/configuration/primary-currency")),
+					ItExpr.IsAny<CancellationToken>());
 		}
 
-		[Fact]
-		public void PrimaryCurrency_WhenConfigurationChanges_ReflectsNewValue()
+		private void SetupHttpResponse(HttpStatusCode statusCode, string content)
 		{
-			// Arrange
-			var settings1 = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "USD"
-			};
-			var configurationInstance1 = new ConfigurationInstance
-			{
-				Settings = settings1
-			};
-
-			var settings2 = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "GBP"
-			};
-			var configurationInstance2 = new ConfigurationInstance
-			{
-				Settings = settings2
-			};
-
-			_applicationSettingsMock.SetupSequence(x => x.ConfigurationInstance)
-				.Returns(configurationInstance1)
-				.Returns(configurationInstance2);
-
-			// Act
-			var result1 = _serverConfigurationService.PrimaryCurrency;
-			var result2 = _serverConfigurationService.PrimaryCurrency;
-
-			// Assert
-			result1.Should().Be(Currency.USD);
-			result2.Should().Be(Currency.GBP);
-		}
-
-		[Fact]
-		public void PrimaryCurrency_WhenCurrencyIsCaseInsensitive_ReturnsCorrectCurrency()
-		{
-			// Arrange
-			var settings = new Settings
-			{
-				DataProviderPreference = "YAHOO",
-				PrimaryCurrency = "usd"
-			};
-			var configurationInstance = new ConfigurationInstance
-			{
-				Settings = settings
-			};
-			_applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
-
-			// Act
-			var result = _serverConfigurationService.PrimaryCurrency;
-
-			// Assert
-			// Currency.GetCurrency is case sensitive, so "usd" would create a new currency
-			result.Symbol.Should().Be("usd");
+			_httpMessageHandlerMock.Protected()
+				.Setup<Task<HttpResponseMessage>>("SendAsync",
+					ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.ToString().Contains("api/configuration/primary-currency")),
+					ItExpr.IsAny<CancellationToken>())
+				.ReturnsAsync(new HttpResponseMessage
+				{
+					StatusCode = statusCode,
+					Content = new StringContent(content)
+				});
 		}
 	}
 }
