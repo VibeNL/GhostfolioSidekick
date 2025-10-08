@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class ProxyController : ControllerBase
+	public partial class ProxyController : ControllerBase
 	{
 		private readonly HttpClient _httpClient;
 		private readonly IConfigurationHelper _configurationHelper;
@@ -194,8 +194,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 
 			// Clean up the text by removing extra whitespace
 			string text = sb.ToString();
-			text = Regex.Replace(text, @"\s+", " ");
-			text = Regex.Replace(text, @"\n\s*\n", "\n");
+			text = WhitespaceRegex().Replace(text, " ");
+			text = NewlineRegex().Replace(text, "\n");
 
 			return text.Trim();
 		}
@@ -298,5 +298,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 
 			return (title, description, keywords);
 		}
+
+		[GeneratedRegex(@"\s+")]
+		private static partial Regex WhitespaceRegex();
+
+		[GeneratedRegex(@"\n\s*\n")]
+		private static partial Regex NewlineRegex();
 	}
 }
