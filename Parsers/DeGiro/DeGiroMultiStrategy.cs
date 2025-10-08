@@ -21,13 +21,8 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public Currency GetCurrency(DeGiroRecord record, ICurrencyMapper currencyMapper)
 		{
-			foreach (var strategy in strategies)
+			foreach (var strategy in strategies.Where(s => s.GetActivityType(record) != null))
 			{
-				if (strategy.GetActivityType(record) == null)
-				{
-					continue;
-				}
-
 				var currency = strategy.GetCurrency(record, currencyMapper);
 				if (currency != null)
 				{
@@ -40,13 +35,8 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public decimal GetQuantity(DeGiroRecord record)
 		{
-			foreach (var strategy in strategies)
+			foreach (var strategy in strategies.Where(s => s.GetActivityType(record) != null))
 			{
-				if (strategy.GetActivityType(record) == null)
-				{
-					continue;
-				}
-
 				var quantity = strategy.GetQuantity(record);
 				if (quantity != 0)
 				{
@@ -59,13 +49,8 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public decimal GetUnitPrice(DeGiroRecord record)
 		{
-			foreach (var strategy in strategies)
+			foreach (var strategy in strategies.Where(s => s.GetActivityType(record) != null))
 			{
-				if (strategy.GetActivityType(record) == null)
-				{
-					continue;
-				}
-
 				var unitPrice = strategy.GetUnitPrice(record);
 				if (unitPrice != 0)
 				{
@@ -78,13 +63,11 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 
 		public void SetGenerateTransactionIdIfEmpty(DeGiroRecord record, DateTime recordDate)
 		{
-			foreach (var strategy in strategies)
+			var strategy = strategies.FirstOrDefault(s => s.GetActivityType(record) != null);
+			if (strategy != null)
 			{
-				if (strategy.GetActivityType(record) != null)
-				{
-					strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
-					return;
-				}
+				strategy.SetGenerateTransactionIdIfEmpty(record, recordDate);
+				return;
 			}
 
 			strategies.FirstOrDefault()?.SetGenerateTransactionIdIfEmpty(record, recordDate);
