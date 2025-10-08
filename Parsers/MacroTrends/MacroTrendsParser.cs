@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.MacroTrends
 		private static string GetSymbol(string filename)
 		{
 			var line = File.ReadAllLines(filename).Skip(1).First();
-			return line.Substring(1, line.IndexOf(" ") - 1).Trim();
+			return line[1..line.IndexOf(' ')].Trim();
 		}
 
 		private static HistoricData ParseRow(string symbol, MacroTrendsRecord macroTrendsRecord)
