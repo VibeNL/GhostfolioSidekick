@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 {
 	public class ModelToContractMapperTests
 	{
-		private readonly IFixture _fixture;
+		private readonly Fixture _fixture;
 		private readonly Mock<ICurrencyExchange> _exchangeRateServiceMock;
 
 		public ModelToContractMapperTests()

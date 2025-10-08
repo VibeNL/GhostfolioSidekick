@@ -282,7 +282,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			if (headerStrings.Contains(Keyword_Security) && Keyword_Booking.Any(headerStrings.Contains)) // Repay of bonds
 			{
-				i = i + 2; // skip column "Number" and "Booking"
+				i += 2; // skip column "Number" and "Booking"
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
 
