@@ -139,14 +139,22 @@ namespace GhostfolioSidekick.AccountMaintainer
 						Url = platformConfiguration.Url,
 					});
 				}
-				catch //(NotAuthorizedException)
+				catch
 				{
 					// Running against a managed instance?
 					applicationSettings.AllowAdminCalls = false;
 				}
 			}
+			else
+			{
+				// Update platform if URL has changed
+				if (platform.Url != platformConfiguration.Url)
+				{
+					platform.Url = platformConfiguration.Url;
+					// Entity Framework will track this change automatically
+				}
+			}
 
-			// TODO Update platform
 			return await databaseContext.Platforms.FirstOrDefaultAsync(x => x.Name == platformConfiguration.Name);
 		}
 	}
