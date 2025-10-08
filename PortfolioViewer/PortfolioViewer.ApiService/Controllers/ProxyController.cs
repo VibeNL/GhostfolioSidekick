@@ -11,6 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 	[Route("api/[controller]")]
 	public partial class ProxyController : ControllerBase
 	{
+		private const string contentString = "content";
 		private readonly HttpClient _httpClient;
 		private readonly IConfigurationHelper _configurationHelper;
 
@@ -48,7 +49,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				htmlDoc.LoadHtml(htmlContent);
 
 				// Extract metadata
-				var metadata = ExtractMetadata(htmlDoc);
+				var (Title, Description, Keywords) = ExtractMetadata(htmlDoc);
 
 				// Clean HTML by removing script tags, style tags, and other unnecessary elements
 				CleanHtml(htmlDoc);
@@ -65,9 +66,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				{
 					Url = url,
 					StatusCode = (int)response.StatusCode,
-					Title = metadata.Title,
-					Description = metadata.Description,
-					Keywords = metadata.Keywords,
+					Title = Title,
+					Description = Description,
+					Keywords = Keywords,
 					ContentType = response.Content.Headers.ContentType?.ToString(),
 					Content = textOnly ? ExtractTextFromHtml(htmlDoc) : htmlDoc.DocumentNode.OuterHtml,
 					MainContent = mainContent
@@ -280,17 +281,17 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			// Try to get description from meta tags
 			string description = string.Empty;
 			var descriptionNode = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='description']");
-			if (descriptionNode != null && descriptionNode.Attributes["content"] != null)
+			if (descriptionNode != null && descriptionNode.Attributes[contentString] != null)
 			{
-				description = descriptionNode.Attributes["content"].Value.Trim();
+				description = descriptionNode.Attributes[contentString].Value.Trim();
 			}
 
 			// Try to get keywords from meta tags
 			var keywords = new List<string>();
 			var keywordsNode = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='keywords']");
-			if (keywordsNode != null && keywordsNode.Attributes["content"] != null)
+			if (keywordsNode != null && keywordsNode.Attributes[contentString] != null)
 			{
-				keywords = [.. keywordsNode.Attributes["content"].Value
+				keywords = [.. keywordsNode.Attributes[contentString].Value
 					.Split(',')
 					.Select(k => k.Trim())
 					.Where(k => !string.IsNullOrWhiteSpace(k))];
