@@ -45,7 +45,7 @@ namespace GhostfolioSidekick
 
 			PrintUsedMappings(sb);
 
-			logger.LogInformation(sb.ToString());
+			logger.LogInformation("{Message}", sb.ToString());
 		}
 
 		private void PrintUsedMappings(StringBuilder sb)
