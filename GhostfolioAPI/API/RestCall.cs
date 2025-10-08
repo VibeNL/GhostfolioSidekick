@@ -13,6 +13,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 {
 	public class RestCall
 	{
+		private const string Authorization = "Authorization";
+		private const string ContentType = "Content-Type";
+		private const string ContentJson = "application/json";
 		private readonly SemaphoreSlim semaphore = new(1);
 
 		private readonly IMemoryCache memoryCache;
@@ -90,8 +93,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					RequestFormat = DataFormat.Json
 				};
 
-				request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-				request.AddHeader("Content-Type", "application/json");
+				request.AddHeader(Authorization, $"Bearer {await GetAuthenticationToken()}");
+				request.AddHeader(ContentType, ContentJson);
 
 				var stopwatch = new Stopwatch();
 
@@ -136,8 +139,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					RequestFormat = DataFormat.Json
 				};
 
-				request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-				request.AddHeader("Content-Type", "application/json");
+				request.AddHeader(Authorization, $"Bearer {await GetAuthenticationToken()}");
+				request.AddHeader(ContentType, ContentJson);
 
 				request.AddJsonBody(body);
 				var r = retryPolicy.Execute(() => restClient.ExecutePostAsync(request).Result);
@@ -172,8 +175,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					RequestFormat = DataFormat.Json
 				};
 
-				request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-				request.AddHeader("Content-Type", "application/json");
+				request.AddHeader(Authorization, $"Bearer {await GetAuthenticationToken()}");
+				request.AddHeader(ContentType, ContentJson);
 
 				request.AddJsonBody(body);
 				var r = retryPolicy.Execute(() => restClient.ExecutePutAsync(request).Result);
@@ -208,8 +211,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					RequestFormat = DataFormat.Json
 				};
 
-				request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-				request.AddHeader("Content-Type", "application/json");
+				request.AddHeader(Authorization, $"Bearer {await GetAuthenticationToken()}");
+				request.AddHeader(ContentType, ContentJson);
 
 				request.AddJsonBody(body);
 				var r = retryPolicy.Execute(() => restClient.PatchAsync(request).Result);
@@ -244,8 +247,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 					RequestFormat = DataFormat.Json
 				};
 
-				request.AddHeader("Authorization", $"Bearer {await GetAuthenticationToken()}");
-				request.AddHeader("Content-Type", "application/json");
+				request.AddHeader(Authorization, $"Bearer {await GetAuthenticationToken()}");
+				request.AddHeader(ContentType, ContentJson);
 
 				var r = retryPolicy.Execute(() => restClient.DeleteAsync(request).Result);
 
@@ -281,7 +284,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 				RequestFormat = DataFormat.Json
 			};
 
-			request.AddHeader("Content-Type", "application/json");
+			request.AddHeader(ContentType, ContentJson);
 
 			var body = new JObject
 			{
