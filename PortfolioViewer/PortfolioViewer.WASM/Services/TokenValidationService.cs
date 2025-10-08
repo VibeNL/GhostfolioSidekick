@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 			catch (Exception ex)
 			{
-				logger.LogWarning(ex, "API validation failed: {Message}", ex.Message);
+				logger.LogWarning(ex, "API validation failed");
 			}
 
 			return false;
