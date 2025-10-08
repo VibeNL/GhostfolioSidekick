@@ -18,29 +18,26 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 		{
 			var date = record.Date.ToDateTime(record.Time, DateTimeKind.Utc);
 			var currency = currencyMapper.Map(record.Currency);
-			switch (record.OrderType)
+			return record.OrderType switch
 			{
-				case "Verkauf":
-					return [PartialActivity.CreateSell(
+				"Verkauf" => [PartialActivity.CreateSell(
 						currency,
 						date,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
 						Math.Abs(record.Quantity.GetValueOrDefault()),
 						record.UnitPrice.GetValueOrDefault(),
 						new Money(currency, record.TotalPrice.GetValueOrDefault()),
-						record.Reference)];
-				case "Kauf":
-					return [PartialActivity.CreateBuy(
+						record.Reference)],
+				"Kauf" => [PartialActivity.CreateBuy(
 						currency,
 						date,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
 						Math.Abs(record.Quantity.GetValueOrDefault()),
 						record.UnitPrice.GetValueOrDefault(),
 						new Money(currency, record.TotalPrice.GetValueOrDefault()),
-						record.Reference)];
-				default:
-					throw new NotSupportedException();
-			}
+						record.Reference)],
+				_ => throw new NotSupportedException(),
+			};
 		}
 
 		protected override CsvConfiguration GetConfig()

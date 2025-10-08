@@ -298,41 +298,28 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		private static AssetClass ParseQuoteType(string quoteType)
 		{
-			switch (quoteType)
+			return quoteType switch
 			{
-				case "EQUITY":
-					return AssetClass.Equity;
-				case "ETF":
-					return AssetClass.Equity;
-				case "MUTUALFUND":
-					return AssetClass.Undefined;
-				case "CURRENCY":
-				case "CRYPTOCURRENCY":
-					return AssetClass.Liquidity;
-				case "INDEX":
-					return AssetClass.Undefined;
-				default:
-					return AssetClass.Undefined;
-			}
+				"EQUITY" => AssetClass.Equity,
+				"ETF" => AssetClass.Equity,
+				"MUTUALFUND" => AssetClass.Undefined,
+				"CURRENCY" or "CRYPTOCURRENCY" => AssetClass.Liquidity,
+				"INDEX" => AssetClass.Undefined,
+				_ => AssetClass.Undefined,
+			};
 		}
 
 		private static AssetSubClass? ParseQuoteTypeAsSub(string quoteType)
 		{
-			switch (quoteType)
+			return quoteType switch
 			{
-				case "EQUITY":
-					return AssetSubClass.Stock;
-				case "ETF":
-					return AssetSubClass.Etf;
-				case "CRYPTOCURRENCY":
-					return AssetSubClass.CryptoCurrency;
-				case "CURRENCY":
-					return AssetSubClass.Undefined;
-				case "MUTUALFUND":
-					return AssetSubClass.Undefined;
-				default:
-					return null;
-			}
+				"EQUITY" => (AssetSubClass?)AssetSubClass.Stock,
+				"ETF" => (AssetSubClass?)AssetSubClass.Etf,
+				"CRYPTOCURRENCY" => (AssetSubClass?)AssetSubClass.CryptoCurrency,
+				"CURRENCY" => (AssetSubClass?)AssetSubClass.Undefined,
+				"MUTUALFUND" => (AssetSubClass?)AssetSubClass.Undefined,
+				_ => null,
+			};
 		}
 	}
 }
