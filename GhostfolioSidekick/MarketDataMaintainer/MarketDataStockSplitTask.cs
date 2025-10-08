@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (!await activities.AnyAsync())
 				{
-					logger.LogTrace($"No activities found for {symbol.Symbol} from {symbol.DataSource}");
+					logger.LogTrace("No activities found for {Symbol} from {DataSource}", symbol.Symbol, symbol.DataSource);
 					continue;
 				}
 
@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (stockSplitRepository == null)
 				{
-					logger.LogWarning($"No stock split repository found for {symbol.DataSource}");
+					logger.LogWarning("No stock split repository found for {DataSource}", symbol.DataSource);
 					continue;
 				}
 
@@ -86,7 +86,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (splits.Any())
 				{
-					logger.LogDebug($"Stock splits for {symbol.Symbol} from {symbol.DataSource} gathered. Found {splits.Count()}");
+					logger.LogDebug("Stock splits for {Symbol} from {DataSource} gathered. Found {SplitCount}", symbol.Symbol, symbol.DataSource, splits.Count());
 				}
 			}
 
