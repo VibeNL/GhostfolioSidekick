@@ -51,8 +51,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
-			// Get the best match - TODO: Fix if score is available
-			var bestMatch = searchResults.First();
+			var bestMatch = searchResults.OrderByDescending(x => x.Score).First();
 
 			return await CreateSymbolProfileFromMatch(bestMatch);
 		}
