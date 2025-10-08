@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.ToList()
 					.Where(x => !Datasource.IsGhostfolio(x.Item2))
 					.ToList()
-					.ForEach(x => symbolIdentifiers.Add(x));
+					.ForEach(symbolIdentifiers.Add);
 #pragma warning restore S2971 // LINQ expressions should be simplified
 			}
 

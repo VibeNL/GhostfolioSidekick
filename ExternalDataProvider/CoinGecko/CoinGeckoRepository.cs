@@ -148,8 +148,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 			static CoinGeckoAsset? GetAsset(string identifier, List<CoinGeckoAsset> cachedCoinGecko)
 			{
 				return cachedCoinGecko!
-					.Where(x => x.Symbol.ToLowerInvariant() == identifier.ToLowerInvariant())
-					.OrderByDescending(x => IsKnown(x)) // true should be first
+					.Where(x => x.Symbol.Equals(identifier, StringComparison.InvariantCultureIgnoreCase))
+					.OrderByDescending(IsKnown) // true should be first
 					.ThenBy(x => x.Name.Length) // Prefer the shortest name
 					.ThenBy(x => x.Id)
 					.FirstOrDefault();
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 		private static bool IsKnown(CoinGeckoAsset x)
 		{
 			var fullName = CryptoMapper.Instance.GetFullname(x.Symbol) ?? string.Empty;
-			return x.Name.ToLowerInvariant() == fullName.ToLowerInvariant();
+			return x.Name.Equals(fullName, StringComparison.InvariantCultureIgnoreCase);
 		}
 	}
 }

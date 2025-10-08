@@ -83,7 +83,7 @@ Format function calls like this:
 			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
 			var convertedMessages = list
 				.Select((x, i) => i == list.Count - 1 ? Fix(x) : x)
-				.Select(x => RemoveThink(x))
+				.Select(RemoveThink)
 				.ToList();
 
 			if (convertedMessages.Count == 0)

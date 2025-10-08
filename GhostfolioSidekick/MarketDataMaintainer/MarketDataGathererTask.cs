@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					.OrderBy(x => x.Item1)
 					.ThenBy(x => x.Item2)
 					.ToList()
-					.ForEach(x => symbolIdentifiers.Add(x));
+					.ForEach(symbolIdentifiers.Add);
 			}
 
 			foreach (var symbolIds in symbolIdentifiers)

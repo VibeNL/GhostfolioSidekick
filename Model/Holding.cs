@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.Model
 
 		public bool HasPartialSymbolIdentifier(IList<PartialSymbolIdentifier> partialIdentifiers)
 		{
-			return partialIdentifiers.Any(x => IdentifierContainsInList(x));
+			return partialIdentifiers.Any(IdentifierContainsInList);
 		}
 
 		private static bool IsEmpty<T>(List<T>? list)
