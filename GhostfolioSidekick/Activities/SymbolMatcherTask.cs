@@ -44,13 +44,13 @@ namespace GhostfolioSidekick.Activities
 		{
 			var allsymbols = currentHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
 
-			foreach (var item in allsymbols)
+			foreach (var key in allsymbols.Select(x => x.Key))
 			{
 				// find holding
-				var holdings = currentHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == item.Key.DataSource && y.Symbol == item.Key.Symbol)).ToList();
+				var holdings = currentHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == key.DataSource && y.Symbol == key.Symbol)).ToList();
 				foreach (var holding in holdings)
 				{
-					logger.LogError($"Multiple symbols found for {item.Key.Symbol} from {item.Key.DataSource}");
+					logger.LogError($"Multiple symbols found for {key.Symbol} from {key.DataSource}");
 				}
 			}
 
@@ -152,7 +152,7 @@ namespace GhostfolioSidekick.Activities
 					StringComparison.InvariantCultureIgnoreCase);
 		}
 
-		private static IList<PartialSymbolIdentifier> GetIdentifiers(SymbolProfile symbol)
+		private static List<PartialSymbolIdentifier> GetIdentifiers(SymbolProfile symbol)
 		{
 			var lst = new List<PartialSymbolIdentifier>();
 			foreach (var item in symbol.Identifiers)
@@ -186,7 +186,7 @@ namespace GhostfolioSidekick.Activities
 			return [.. ids.DistinctBy(x => x.Identifier)];
 		}
 
-		private class CustomObject
+		private sealed class CustomObject
 		{
 			public Activity Activity { get; set; } = default!;
 			public IActivityWithPartialIdentifier? PartialIdentifier { get; set; } = default!;

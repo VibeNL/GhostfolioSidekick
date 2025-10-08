@@ -20,15 +20,15 @@ namespace GhostfolioSidekick.AccountMaintainer
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
 			{
 				accountKeys = await databaseContext.Accounts
-					.Select(x => new AccountKey { Name = x.Name, Id = x.Id })
+					.Select(x => new AccountKey(x.Name, x.Id))
 					.ToListAsync();
 			}
 
-			foreach (var accountKey in accountKeys)
+			foreach (var accountKey in accountKeys.Select(x => x.Id))
 			{
 				using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 				var activities = await databaseContext.Activities
-									.Where(x => x.Account.Id == accountKey.Id)
+									.Where(x => x.Account.Id == accountKey)
 									.AsNoTracking()
 									.ToListAsync();
 
@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 				var balanceCalculator = new BalanceCalculator(exchangeRateService);
 				var balances = await balanceCalculator.Calculate(Currency.EUR, orderedActivities);
 
-				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey.Id)!;
+				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey)!;
 				var existingBalances = account!.Balance ?? [];
 
 				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
@@ -56,11 +56,6 @@ namespace GhostfolioSidekick.AccountMaintainer
 			}
 		}
 
-		private class AccountKey
-		{
-			public required string Name { get; set; }
-
-			public int Id { get; set; }
-		}
+		private sealed record AccountKey(string Name, int Id);
 	}
 }
