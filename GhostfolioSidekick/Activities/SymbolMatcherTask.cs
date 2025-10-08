@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Activities
 				var holdings = currentHoldings.Where(x => x.SymbolProfiles.Any(y => y.DataSource == key.DataSource && y.Symbol == key.Symbol)).ToList();
 				foreach (var holding in holdings)
 				{
-					logger.LogError($"Multiple symbols found for {key.Symbol} from {key.DataSource}");
+					logger.LogError("Multiple symbols found for {Symbol} from {DataSource}", key.Symbol, key.DataSource);
 				}
 			}
 
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.Activities
 					holding.SymbolProfiles.Add(symbol);
 				}
 
-				logger.LogDebug($"Matched {symbol.Symbol} from {symbol.DataSource} with PartialIds {string.Join(",", ids.Select(x => x.Identifier))}");
+				logger.LogDebug("Matched {Symbol} from {DataSource} with PartialIds {PartialIds}", symbol.Symbol, symbol.DataSource, string.Join(",", ids.Select(x => x.Identifier)));
 			}
 
 			activity.Holding = holding;
