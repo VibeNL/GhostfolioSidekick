@@ -168,7 +168,13 @@ namespace GhostfolioSidekick.Activities
 
 		private static async Task SyncActivities(DatabaseContext databaseContext, IEnumerable<Activity> activities)
 		{
-			var existingActivities = await databaseContext.Activities.ToListAsync();
+			var existingActivities = await databaseContext
+				.Activities
+				.Include(x => x.Account)
+				.ToListAsync();
+
+			// Ensure all account entities in activities are properly tracked
+			await EnsureAccountsAreTracked(databaseContext, activities);
 
 			var existingTransactionKeys = GetTransactionKeys(existingActivities);
 			var newTransactionKeys = GetTransactionKeys(activities);
@@ -176,6 +182,26 @@ namespace GhostfolioSidekick.Activities
 			DeleteRemovedActivities(databaseContext, existingActivities, existingTransactionKeys, newTransactionKeys);
 			await AddNewActivities(databaseContext, activities, existingTransactionKeys, newTransactionKeys);
 			await UpdateExistingActivities(databaseContext, existingActivities, activities, existingTransactionKeys, newTransactionKeys);
+		}
+
+		private static async Task EnsureAccountsAreTracked(DatabaseContext databaseContext, IEnumerable<Activity> activities)
+		{
+			// Get all unique account IDs from the activities
+			var accountIds = activities.Select(x => x.Account.Id).Distinct().ToList();
+			
+			// Load all required accounts from the database to ensure they're tracked
+			var trackedAccounts = await databaseContext.Accounts
+				.Where(a => accountIds.Contains(a.Id))
+				.ToDictionaryAsync(a => a.Id, a => a);
+
+			// Replace the account references in activities with tracked entities
+			foreach (var activity in activities)
+			{
+				if (trackedAccounts.TryGetValue(activity.Account.Id, out var trackedAccount))
+				{
+					activity.Account = trackedAccount;
+				}
+			}
 		}
 
 		private static List<(string TransactionId, int AccountId)> GetTransactionKeys(IEnumerable<Activity> activities)
