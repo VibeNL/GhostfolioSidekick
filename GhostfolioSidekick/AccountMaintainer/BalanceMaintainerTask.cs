@@ -26,34 +26,32 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			foreach (var accountKey in accountKeys)
 			{
-				using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
+				using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+				var activities = await databaseContext.Activities
+									.Where(x => x.Account.Id == accountKey.Id)
+									.AsNoTracking()
+									.ToListAsync();
+
+				// Ensure activities is never null and order by date
+				var orderedActivities = (activities ?? []).OrderBy(x => x.Date);
+
+				var balanceCalculator = new BalanceCalculator(exchangeRateService);
+				var balances = await balanceCalculator.Calculate(Currency.EUR, orderedActivities);
+
+				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey.Id)!;
+				var existingBalances = account!.Balance ?? [];
+
+				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
+				ComparisonResult result = compareLogic.Compare(existingBalances.OrderBy(x => x.Date), balances.OrderBy(x => x.Date));
+
+				if (!result.AreEqual)
 				{
-					var activities = await databaseContext.Activities
-										.Where(x => x.Account.Id == accountKey.Id)
-										.AsNoTracking()
-										.ToListAsync();
-
-					// Ensure activities is never null and order by date
-					var orderedActivities = (activities ?? []).OrderBy(x => x.Date);
-
-					var balanceCalculator = new BalanceCalculator(exchangeRateService);
-					var balances = await balanceCalculator.Calculate(Currency.EUR, orderedActivities);
-
-					var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey.Id)!;
-					var existingBalances = account!.Balance ?? [];
-
-					var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
-					ComparisonResult result = compareLogic.Compare(existingBalances.OrderBy(x => x.Date), balances.OrderBy(x => x.Date));
-
-					if (!result.AreEqual)
+					if (account.Balance != null)
 					{
-						if (account.Balance != null)
-						{
-							account.Balance.Clear();
-							account.Balance.AddRange(balances);
-						}
-						await databaseContext.SaveChangesAsync();
+						account.Balance.Clear();
+						account.Balance.AddRange(balances);
 					}
+					await databaseContext.SaveChangesAsync();
 				}
 			}
 		}

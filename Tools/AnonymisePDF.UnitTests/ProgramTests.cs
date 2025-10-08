@@ -24,22 +24,20 @@ namespace GhostfolioSidekick.Tools.AnonymisePDF.UnitTests
 			// use itext7 to read the result.pdf and check that the words "Adobe Acrobat Reader" and "computer" are redacted
 
 			// Load the PDF file
-			using (PdfDocument pdfDocument = new PdfDocument(new PdfReader("result.pdf")))
-			{
-				// Extract the text content from the PDF
-				string extractedText = PdfTextExtractor.GetTextFromPage(pdfDocument.GetPage(1));
+			using PdfDocument pdfDocument = new PdfDocument(new PdfReader("result.pdf"));
+			// Extract the text content from the PDF
+			string extractedText = PdfTextExtractor.GetTextFromPage(pdfDocument.GetPage(1));
 
-				// Check if the words are redacted
-				bool isAdobeAcrobatReaderRedacted = extractedText.Contains("Adobe Acrobat Reader");
-				bool isComputerRedacted = extractedText.Contains("computer");
+			// Check if the words are redacted
+			bool isAdobeAcrobatReaderRedacted = extractedText.Contains("Adobe Acrobat Reader");
+			bool isComputerRedacted = extractedText.Contains("computer");
 
-				// Assert the results
-				isAdobeAcrobatReaderRedacted.Should().BeFalse();
-				isComputerRedacted.Should().BeFalse();
+			// Assert the results
+			isAdobeAcrobatReaderRedacted.Should().BeFalse();
+			isComputerRedacted.Should().BeFalse();
 
-				// Close the PDF document
-				pdfDocument.Close();
-			}
+			// Close the PDF document
+			pdfDocument.Close();
 		}
 	}
 }

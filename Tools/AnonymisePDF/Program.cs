@@ -14,16 +14,14 @@ namespace GhostfolioSidekick.Tools.AnonymisePDF
 			var targetFile = args[1];
 			var forbiddenWords = args.Skip(2);
 
-			using (var pdf = new PdfDocument(new PdfReader(sourceFile), new PdfWriter(targetFile)))
+			using var pdf = new PdfDocument(new PdfReader(sourceFile), new PdfWriter(targetFile));
+			foreach (var word in forbiddenWords)
 			{
-				foreach (var word in forbiddenWords)
-				{
-					var cleanupStrategy = new RegexBasedCleanupStrategy(new Regex(word, RegexOptions.IgnoreCase)).SetRedactionColor(ColorConstants.RED);
-					PdfCleaner.AutoSweepCleanUp(pdf, cleanupStrategy);
-				}
-
-				pdf.Close();
+				var cleanupStrategy = new RegexBasedCleanupStrategy(new Regex(word, RegexOptions.IgnoreCase)).SetRedactionColor(ColorConstants.RED);
+				PdfCleaner.AutoSweepCleanUp(pdf, cleanupStrategy);
 			}
+
+			pdf.Close();
 		}
 	}
 }
