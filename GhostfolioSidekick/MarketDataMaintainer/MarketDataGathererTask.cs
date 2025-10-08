@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			foreach (var symbolIds in symbolIdentifiers)
 			{
-				logger.LogDebug($"Gathering market data for {symbolIds.Item1} from {symbolIds.Item2}");
+				logger.LogDebug("Gathering market data for {Symbol} from {DataSource}", symbolIds.Item1, symbolIds.Item2);
 
 				using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 				var symbol = await databaseContext.SymbolProfiles
@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				if (!await activities.AnyAsync())
 				{
-					logger.LogDebug($"No activities found for {symbol.Symbol} from {symbol.DataSource}");
+					logger.LogDebug("No activities found for {Symbol} from {DataSource}", symbol.Symbol, symbol.DataSource);
 					continue;
 				}
 
@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						) && symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close.Amount).LastOrDefault() != 0;
 					if (hasDataCorruption)
 					{
-						logger.LogWarning($"Data corruption detected for {symbol.Symbol} from {symbol.DataSource}. Re-fetching all data.");
+						logger.LogWarning("Data corruption detected for {Symbol} from {DataSource}. Re-fetching all data.", symbol.Symbol, symbol.DataSource);
 					}
 					// Only get new data since our earliest date is inside the database
 					// Or we cannot get data ealiers than we already have
@@ -84,7 +84,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						if (maxDate >= DateOnly.FromDateTime(DateTime.Today))
 						{
 							// For now skip today
-							logger.LogDebug($"Market data for {symbol.Symbol} from {symbol.DataSource} is up to date");
+							logger.LogDebug("Market data for {Symbol} from {DataSource} is up to date", symbol.Symbol, symbol.DataSource);
 							continue;
 						}
 					}
@@ -117,7 +117,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 				await databaseContext.SaveChangesAsync();
-				logger.LogDebug($"Market data for {symbol.Symbol} from {symbol.DataSource} gathered");
+				logger.LogDebug("Market data for {Symbol} from {DataSource} gathered", symbol.Symbol, symbol.DataSource);
 			}
 
 		}
