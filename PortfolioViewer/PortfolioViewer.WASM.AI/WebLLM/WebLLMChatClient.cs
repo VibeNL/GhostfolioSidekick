@@ -126,7 +126,7 @@ Format function calls like this:
 									);
 			}, cancellationToken);
 
-			string totalText = string.Empty;
+			var totalTextBuilder = new StringBuilder();
 
 			while (true)
 			{
@@ -135,9 +135,10 @@ Format function calls like this:
 				{
 					if (response.IsStreamComplete)
 					{
-						if ((options?.Tools?.Any() ?? false) && !string.IsNullOrWhiteSpace(totalText))
+						if ((options?.Tools?.Any() ?? false) && totalTextBuilder.Length > 0)
 						{
 							// Try to parse function calls from the response
+							var totalText = totalTextBuilder.ToString();
 							if (TryParseToolCalls(ChatMessageContentHelper.ToDisplayText(totalText), out var toolCalls))
 							{
 								foreach (var toolCall in toolCalls)
@@ -171,7 +172,10 @@ Format function calls like this:
 					}
 
 					var content = choice.Delta?.Content;
-					totalText += content ?? string.Empty;
+					if (!string.IsNullOrEmpty(content))
+					{
+						totalTextBuilder.Append(content);
+					}
 
 					if ((options?.Tools?.Any() ?? false))
 					{
