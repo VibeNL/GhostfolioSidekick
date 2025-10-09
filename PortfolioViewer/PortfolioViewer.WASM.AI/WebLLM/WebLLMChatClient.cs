@@ -9,6 +9,8 @@ using System.Text.Json;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
 	[method: System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>")]
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "<Pending>")]
 	public partial class WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds) : IWebChatClient
 	{
 		private InteropInstance? interopInstance;
@@ -300,12 +302,7 @@ Format function calls like this:
 			return x;
 		}
 
-		public object? GetService(Type serviceType, object? serviceKey) => this;
-
-		public TService? GetService<TService>(object? key = null)
-			where TService : class => this as TService;
-
-		public void Dispose() { }
+		public object? GetService(Type serviceType, object? serviceKey = null) => this;
 
 		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
@@ -383,6 +380,11 @@ Format function calls like this:
 				logger.LogError(ex, "Error executing tool '{ToolName}' with arguments: {Arguments}", name, JsonSerializer.Serialize(arguments));
 				return $"Error executing tool '{name}': {ex.Message}";
 			}
+		}
+
+		public void Dispose()
+		{
+			GC.SuppressFinalize(this);
 		}
 	}
 }
