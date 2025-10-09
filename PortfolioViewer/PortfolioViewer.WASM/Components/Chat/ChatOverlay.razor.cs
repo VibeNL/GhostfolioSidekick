@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
 	public partial class ChatOverlay : ComponentBase, IDisposable
 	{
-		[Inject] private IJSRuntime JS { get; set; } = default!;
+		[Inject] private IJSRuntime JS { get; set; }
 
 		private bool IsOpen;
 		private string CurrentMessage = "";
@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			{
 				if (wakeLockActive)
 				{
-					var result = await JS.InvokeAsync<bool>("wakeLockModule.releaseWakeLock");
+					_ = await JS.InvokeAsync<bool>("wakeLockModule.releaseWakeLock");
 					wakeLockActive = false;
 				}
 			}
