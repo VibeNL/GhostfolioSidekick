@@ -10,6 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 	{
 		private readonly Mock<IProgress<InitializeProgress>> _mockProgress;
 		private readonly InteropInstance _interopInstance;
+		private const double Tolerance = 0.001;
 
 		public InteropInstanceTests()
 		{
@@ -36,7 +37,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 			// Assert
 			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip => 
-				ip.Progress == 0.5 && ip.Message == "Loading model...")), Times.Once);
+				Math.Abs(ip.Progress - 0.5) < Tolerance && ip.Message == "Loading model...")), Times.Once);
 		}
 
 		[Fact]
@@ -57,7 +58,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 			// Assert
 			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip => 
-				ip.Progress == 0.99)), Times.Once);
+				Math.Abs(ip.Progress - 0.99) < Tolerance)), Times.Once);
 		}
 
 		[Fact]
@@ -71,7 +72,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 			// Assert
 			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip => 
-				ip.Progress == 1.0)), Times.Once);
+				Math.Abs(ip.Progress - 1.0) < Tolerance)), Times.Once);
 		}
 
 		[Fact]
@@ -117,6 +118,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 	/// </summary>
 	public class WebLLMRecordTests
 	{
+		private const double Tolerance = 0.001;
+
 		[Fact]
 		public void WebLLMCompletion_WithUsage_ShouldBeStreamComplete()
 		{
@@ -145,7 +148,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var report = new InitProgressReport(0.75, "Loading...", 500);
 
 			// Assert
-			Assert.Equal(0.75, report.Progress);
+			Assert.True(Math.Abs(report.Progress - 0.75) < Tolerance);
 			Assert.Equal("Loading...", report.Text);
 			Assert.Equal(500, report.timeElapsed);
 		}
