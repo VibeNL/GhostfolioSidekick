@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 					return Unauthorized(new { message = "Invalid authorization header format" });
 				}
 
-				var token = authHeader.Substring("Bearer ".Length).Trim();
+				var token = authHeader["Bearer ".Length..].Trim();
 
 				if (string.IsNullOrEmpty(token))
 				{
