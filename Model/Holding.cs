@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace GhostfolioSidekick.Model
 {

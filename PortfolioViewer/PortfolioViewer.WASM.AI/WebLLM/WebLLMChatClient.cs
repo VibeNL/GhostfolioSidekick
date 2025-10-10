@@ -258,13 +258,14 @@ Format function calls like this:
 		private bool TryParseToolCalls(string content, out List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
 		{
 			toolCalls = [];
-			content = content.Trim('\'');
 			
 			if (string.IsNullOrWhiteSpace(content))
 			{
 				return false;
 			}
-
+			
+			content = content.Trim('\'');			
+			
 			try
 			{
 				using var doc = JsonDocument.Parse(content);

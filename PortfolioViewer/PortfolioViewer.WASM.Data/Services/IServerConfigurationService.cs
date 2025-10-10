@@ -1,5 +1,4 @@
 ﻿using GhostfolioSidekick.Model;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {

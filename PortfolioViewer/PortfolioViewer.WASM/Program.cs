@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
