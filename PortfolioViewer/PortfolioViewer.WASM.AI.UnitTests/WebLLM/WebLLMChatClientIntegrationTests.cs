@@ -181,9 +181,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				{ ChatMode.Chat, "custom-chat-model" },
 				{ ChatMode.FunctionCalling, "custom-function-model" }
 			};
-			
-			var customClient = new WebLLMChatClient(_mockJSRuntime.Object, _mockLogger.Object, testModelIds);
-			customClient.ChatMode = ChatMode.FunctionCalling;
+
+			var customClient = new WebLLMChatClient(_mockJSRuntime.Object, _mockLogger.Object, testModelIds)
+			{
+				ChatMode = ChatMode.FunctionCalling
+			};
 
 			// Assert
 			customClient.ChatMode.Should().Be(ChatMode.FunctionCalling);
@@ -269,6 +271,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 		public void Dispose()
 		{
+			GC.SuppressFinalize(this);
 			_client?.Dispose();
 		}
 	}

@@ -117,13 +117,13 @@ namespace GhostfolioSidekick.Database.Migrations
 			migrationBuilder.CreateIndex(
 				name: "IX_CurrencyExchangeProfile_SourceCurrency_TargetCurrency",
 				table: "CurrencyExchangeProfile",
-				columns: new[] { "SourceCurrency", "TargetCurrency" },
+				columns: ["SourceCurrency", "TargetCurrency"],
 				unique: true);
 
 			migrationBuilder.CreateIndex(
 				name: "IX_CurrencyExchangeRate_CurrencyExchangeProfileID_Date",
 				table: "CurrencyExchangeRate",
-				columns: new[] { "CurrencyExchangeProfileID", "Date" },
+				columns: ["CurrencyExchangeProfileID", "Date"],
 				unique: true);
 		}
 

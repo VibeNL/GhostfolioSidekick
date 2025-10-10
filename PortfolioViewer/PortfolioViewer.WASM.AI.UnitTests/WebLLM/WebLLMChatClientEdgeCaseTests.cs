@@ -11,7 +11,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 	/// <summary>
 	/// Tests for edge cases and error scenarios in WebLLMChatClient
 	/// </summary>
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>")]
 	public class WebLLMChatClientEdgeCaseTests : IDisposable
 	{
 		private readonly Mock<IJSRuntime> _mockJSRuntime;
@@ -51,7 +50,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			
 			var exception = await Assert.ThrowsAsync<NotSupportedException>(
-				async () => await (Task<IJSObjectReference>)method!.Invoke(_client, Array.Empty<object>())!);
+				async () => await (Task<IJSObjectReference>)method!.Invoke(_client, [])!);
 			
 			Assert.Contains("Interop instance is not initialized", exception.Message);
 		}
@@ -69,7 +68,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			
 			var exception = await Assert.ThrowsAsync<NotSupportedException>(
-				async () => await (Task<IJSObjectReference>)method!.Invoke(_client, Array.Empty<object>())!);
+				async () => await (Task<IJSObjectReference>)method!.Invoke(_client, [])!);
 			
 			Assert.Contains("Module is not initialized", exception.Message);
 		}
@@ -178,7 +177,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act - Using reflection to access private method
 			var method = typeof(WebLLMChatClient).GetMethod("CreateFunctionCallContent", 
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var result = (Microsoft.Extensions.AI.FunctionCallContent?)method!.Invoke(_client, new object[] { doc.RootElement });
+			var result = (Microsoft.Extensions.AI.FunctionCallContent?)method!.Invoke(_client, [doc.RootElement]);
 
 			// Assert
 			Assert.Null(result);
@@ -202,7 +201,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act - Using reflection to access private method
 			var method = typeof(WebLLMChatClient).GetMethod("ExtractFunctionArguments", 
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var result = (Dictionary<string, object?>?)method!.Invoke(_client, new object[] { doc.RootElement });
+			var result = (Dictionary<string, object?>?)method!.Invoke(_client, [doc.RootElement]);
 
 			// Assert
 			Assert.NotNull(result);
@@ -220,7 +219,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act - Using reflection to access private method
 			var method = typeof(WebLLMChatClient).GetMethod("ExtractFunctionArguments", 
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var result = (Dictionary<string, object?>?)method!.Invoke(_client, new object[] { function });
+			var result = (Dictionary<string, object?>?)method!.Invoke(_client, [function]);
 
 			// Assert
 			Assert.NotNull(result);
@@ -233,7 +232,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act - Using reflection to access private method
 			var method = typeof(WebLLMChatClient).GetMethod("ParseArgumentsFromString", 
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var result = (Dictionary<string, object?>?)method!.Invoke(_client, new object?[] { null });
+			var result = (Dictionary<string, object?>?)method!.Invoke(_client, [null]);
 
 			// Assert
 			Assert.NotNull(result);
@@ -258,7 +257,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act - Using reflection to access private method
 			var method = typeof(WebLLMChatClient).GetMethod("ConvertJsonElementToDictionary", 
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-			var result = (Dictionary<string, object?>)method!.Invoke(null, new object[] { doc.RootElement })!;
+			var result = (Dictionary<string, object?>)method!.Invoke(null, [doc.RootElement])!;
 
 			// Assert
 			Assert.Single(result);
@@ -282,7 +281,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act - Using reflection to access private method
 			var method = typeof(WebLLMChatClient).GetMethod("CallToolAsync", 
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var result = await (Task<string>)method!.Invoke(_client, new object[] { options, "TestFunction", null! })!;
+			var result = await (Task<string>)method!.Invoke(_client, [options, "TestFunction", null!])!;
 
 			// Assert
 			Assert.Equal("Success with null args", result);
@@ -306,7 +305,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act - Using reflection to access private method
 			var method = typeof(WebLLMChatClient).GetMethod("CallToolAsync", 
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var result = await (Task<string>)method!.Invoke(_client, new object[] { options, "TestFunction", null! })!;
+			var result = await (Task<string>)method!.Invoke(_client, [options, "TestFunction", null!])!;
 
 			// Assert
 			Assert.Equal("[Function returned null]", result);
@@ -320,7 +319,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			
 			var exception = Assert.Throws<System.Reflection.TargetInvocationException>(() => 
-				method!.Invoke(_client, Array.Empty<object>()));
+				method!.Invoke(_client, []));
 			
 			Assert.IsType<NotSupportedException>(exception.InnerException);
 		}
@@ -338,7 +337,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act - Using reflection to access private method
 			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", 
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-			var result = (List<ChatMessage>)method!.Invoke(_client, new object[] { messages, null! })!;
+			var result = (List<ChatMessage>)method!.Invoke(_client, [messages, null!])!;
 
 			// Assert
 			Assert.Equal(2, result.Count);
@@ -357,6 +356,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 		public void Dispose()
 		{
+			GC.SuppressFinalize(this);
 			_client?.Dispose();
 		}
 	}

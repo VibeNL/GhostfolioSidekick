@@ -63,6 +63,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 		public void Dispose()
 		{
+			GC.SuppressFinalize(this);
 			_client?.Dispose();
 		}
 	}
