@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public abstract class TradeRepublicInvoiceParserBase : PdfBaseParser
+	public abstract class TradeRepublicInvoiceParserBase(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
 		protected abstract string Keyword_Position { get; }
 		protected abstract string Keyword_Quantity { get; }
@@ -50,10 +50,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					Keyword_Number
 				])];
 			}
-		}
-
-		protected TradeRepublicInvoiceParserBase(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
-		{
 		}
 
 		protected override bool CanParseRecords(List<SingleWordToken> words)
@@ -226,7 +222,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private int ParseSecurityRecord(List<SingleWordToken> words, int i, DateOnly dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
 		{
 			var headerStrings = headers.Select(h => h.KeyWord).ToList();
-			if (headerStrings.Contains(Keyword_Quantity) && (Keyword_Price.Any(x => headerStrings.Contains(x)) || headerStrings.Contains(Keyword_AverageRate))) // Stocks
+			if (headerStrings.Contains(Keyword_Quantity) && (Keyword_Price.Any(headerStrings.Contains) || headerStrings.Contains(Keyword_AverageRate))) // Stocks
 			{
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
@@ -247,7 +243,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i + 5 + incrementDueToPiecesText;
 			}
 
-			if (Keyword_Nominal.Any(x => headerStrings.Contains(x)) && Keyword_Price.Any(x => headerStrings.Contains(x))) // Bonds
+			if (Keyword_Nominal.Any(headerStrings.Contains) && Keyword_Price.Any(headerStrings.Contains)) // Bonds
 			{
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
@@ -264,7 +260,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i + 6;
 			}
 
-			if (headerStrings.Contains(Keyword_Income) || Keyword_Nominal.Any(x => headerStrings.Contains(x))) // Dividends
+			if (headerStrings.Contains(Keyword_Income) || Keyword_Nominal.Any(headerStrings.Contains)) // Dividends
 			{
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
@@ -280,9 +276,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return i + 6;
 			}
 
-			if (headerStrings.Contains(Keyword_Security) && Keyword_Booking.Any(x => headerStrings.Contains(x))) // Repay of bonds
+			if (headerStrings.Contains(Keyword_Security) && Keyword_Booking.Any(headerStrings.Contains)) // Repay of bonds
 			{
-				i = i + 2; // skip column "Number" and "Booking"
+				i += 2; // skip column "Number" and "Booking"
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
 

@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var platformName = "TestPlatform";
-			var platforms = new List<Platform> { new Platform { Name = platformName, Id = "a" } };
+			var platforms = new List<Platform> { new() { Name = platformName, Id = "a" } };
 			SetupRestCall("api/v1/platform", JsonConvert.SerializeObject(platforms));
 
 			// Act
@@ -112,7 +112,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var identifier = "TestSymbol";
-			var symbolProfiles = new List<Contract.SymbolProfile> { new Contract.SymbolProfile { Symbol = identifier, AssetClass = "", Countries = [], Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = [] } };
+			var symbolProfiles = new List<Contract.SymbolProfile> { new() { Symbol = identifier, AssetClass = "", Countries = [], Currency = "EUR", DataSource = "DUMMY", Name = identifier, Sectors = [] } };
 			SetupRestCall("api/v1/symbol", JsonConvert.SerializeObject(new { Items = symbolProfiles }));
 
 			// Act
@@ -167,7 +167,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		{
 			// Arrange
 			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = [new Model.Accounts.Balance(DateOnly.FromDateTime(DateTime.Now), new Money { Amount = 100 })] };
-			var accounts = new List<Account> { new Account { Name = account.Name, Id = "1", Currency = "EUR" } };
+			var accounts = new List<Account> { new() { Name = account.Name, Id = "1", Currency = "EUR" } };
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));
 
 			// Act

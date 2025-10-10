@@ -8,7 +8,7 @@ using YahooFinanceApi;
 
 namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 {
-	public class YahooRepository :
+	public class YahooRepository(ILogger<YahooRepository> logger) :
 		ICurrencyRepository,
 		ISymbolMatcher,
 		IStockPriceRepository,
@@ -17,13 +17,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		public string DataSource => Datasource.YAHOO;
 
 		public DateOnly MinDate => DateOnly.MinValue;
-
-		private readonly ILogger<YahooRepository> logger;
-
-		public YahooRepository(ILogger<YahooRepository> logger)
-		{
-			this.logger = logger;
-		}
 
 		public async Task<IEnumerable<CurrencyExchangeRate>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{
@@ -44,75 +37,125 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
-			var matches = new List<SearchResult>();
-			foreach (var id in symbolIdentifiers)
-			{
-				if (string.IsNullOrWhiteSpace(id.Identifier))
-				{
-					continue;
-				}
-
-				var identifier = id.Identifier;
-
-				if (id.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
-				{
-					identifier = $"{identifier}-USD";
-				}
-
-				var searchResults = await RetryPolicyHelper.GetFallbackPolicy<SearchResult[]>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(identifier));
-				if (searchResults != null)
-				{
-					matches.AddRange(searchResults.Where(x => FilterOnAllowedType(x, id)));
-				}
-			}
-
-			if (matches.Count == 0)
+			var searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
+			
+			if (searchResults.Count == 0)
 			{
 				return null;
 			}
 
-			// Get the best match of the correct QuoteType
-			// TODO: Fix if score is available
-			var bestMatch = matches./*OrderByDescending(x => x.Score).*/First();
+			var bestMatch = searchResults.First();
 
-			var symbols = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(bestMatch.Symbol).QueryAsync());
+			return await CreateSymbolProfileFromMatch(bestMatch);
+		}
+
+		private async Task<List<SearchResult>> GetSearchResultsForIdentifiers(PartialSymbolIdentifier[] symbolIdentifiers)
+		{
+			var matches = new List<SearchResult>();
+			
+			foreach (var identifier in symbolIdentifiers)
+			{
+				if (string.IsNullOrWhiteSpace(identifier.Identifier))
+				{
+					continue;
+				}
+
+				var searchTerm = PrepareSearchTerm(identifier);
+				var results = await SearchSymbol(searchTerm);
+				
+				if (results != null)
+				{
+					var filteredResults = results.Where(result => IsAllowedSymbolType(result, identifier));
+					matches.AddRange(filteredResults);
+				}
+			}
+
+			return matches;
+		}
+
+		private static string PrepareSearchTerm(PartialSymbolIdentifier identifier)
+		{
+			var searchTerm = identifier.Identifier;
+
+			if (identifier.AllowedAssetSubClasses?.Contains(AssetSubClass.CryptoCurrency) ?? false)
+			{
+				searchTerm = $"{searchTerm}-USD";
+			}
+
+			return searchTerm;
+		}
+
+		private async Task<SearchResult[]?> SearchSymbol(string searchTerm)
+		{
+			return await RetryPolicyHelper
+				.GetFallbackPolicy<SearchResult[]>(logger)
+				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+				.ExecuteAsync(() => YahooFinanceApi.Yahoo.SearchAsync(searchTerm));
+		}
+
+		private async Task<SymbolProfile?> CreateSymbolProfileFromMatch(SearchResult match)
+		{
+			var symbols = await GetSymbolDetails(match.Symbol);
 			if (symbols == null)
 			{
 				return null;
 			}
 
-			var symbol = symbols.OrderBy(x => x.Value.Symbol == bestMatch.Symbol).First().Value;
-
+			var symbol = symbols.OrderBy(x => x.Value.Symbol == match.Symbol).First().Value;
 			if (symbol == null)
 			{
 				return null;
 			}
 
-			var securityProfile = await RetryPolicyHelper.GetFallbackPolicy<SecurityProfile>(logger).WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger)).ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbol.Symbol));
+			var securityProfile = await GetSecurityProfile(symbol.Symbol);
 
-			var symbolProfile = new SymbolProfile(symbol.Symbol, GetName(symbol), [symbol.Symbol, GetName(symbol)], Currency.GetCurrency(symbol.Currency), Datasource.YAHOO, ParseQuoteType(symbol.QuoteType), ParseQuoteTypeAsSub(symbol.QuoteType), GetCountries(securityProfile), GetSectors(securityProfile));
+			return new SymbolProfile(
+				symbol.Symbol,
+				GetName(symbol),
+				[symbol.Symbol, GetName(symbol)],
+				Currency.GetCurrency(symbol.Currency),
+				Datasource.YAHOO,
+				ParseQuoteType(symbol.QuoteType),
+				ParseQuoteTypeAsSub(symbol.QuoteType),
+				GetCountries(securityProfile),
+				GetSectors(securityProfile));
+		}
 
-			return symbolProfile;
+		private async Task<IReadOnlyDictionary<string, Security>?> GetSymbolDetails(string symbolName)
+		{
+			return await RetryPolicyHelper
+				.GetFallbackPolicy<IReadOnlyDictionary<string, Security>>(logger)
+				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+				.ExecuteAsync(() => YahooFinanceApi.Yahoo.Symbols(symbolName).QueryAsync());
+		}
 
-			bool FilterOnAllowedType(SearchResult x, PartialSymbolIdentifier id)
+		private async Task<SecurityProfile?> GetSecurityProfile(string symbolName)
+		{
+			return await RetryPolicyHelper
+				.GetFallbackPolicy<SecurityProfile>(logger)
+				.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+				.ExecuteAsync(() => YahooFinanceApi.Yahoo.QueryProfileAsync(symbolName));
+		}
+
+		private static bool IsAllowedSymbolType(SearchResult searchResult, PartialSymbolIdentifier identifier)
+		{
+			if (identifier.AllowedAssetClasses == null)
 			{
-				if (id.AllowedAssetClasses == null)
-				{
-					return true;
-				}
-
-				if (!id.AllowedAssetClasses.Contains(ParseQuoteType(x.Type)))
-				{
-					return false;
-				}
-
-				if (id.AllowedAssetSubClasses == null)
-				{
-					return true;
-				}
-
-				return ParseQuoteTypeAsSub(x.Type) == null || id.AllowedAssetSubClasses.Contains(ParseQuoteTypeAsSub(x.Type)!.Value);
+				return true;
 			}
+
+			if (!identifier.AllowedAssetClasses.Contains(ParseQuoteType(searchResult.Type)))
+			{
+				return false;
+			}
+
+			if (identifier.AllowedAssetSubClasses == null)
+			{
+				return true;
+			}
+
+			var assetSubClass = ParseQuoteTypeAsSub(searchResult.Type);
+			return assetSubClass == null || identifier.AllowedAssetSubClasses.Contains(assetSubClass.Value);
 		}
 
 		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
@@ -156,7 +199,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				foreach (var candle in history)
 				{
-					var item = new StockSplit(DateOnly.FromDateTime(candle.DateTime), BeforeSplit: candle.AfterSplit, AfterSplit: candle.BeforeSplit); // API has them mixed up
+					var item = new StockSplit(Date: DateOnly.FromDateTime(candle.DateTime), BeforeSplit: candle.AfterSplit, AfterSplit: candle.BeforeSplit); // API has them mixed up
 					list.Add(item);
 				}
 
@@ -248,41 +291,28 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 		private static AssetClass ParseQuoteType(string quoteType)
 		{
-			switch (quoteType)
+			return quoteType switch
 			{
-				case "EQUITY":
-					return AssetClass.Equity;
-				case "ETF":
-					return AssetClass.Equity;
-				case "MUTUALFUND":
-					return AssetClass.Undefined;
-				case "CURRENCY":
-				case "CRYPTOCURRENCY":
-					return AssetClass.Liquidity;
-				case "INDEX":
-					return AssetClass.Undefined;
-				default:
-					return AssetClass.Undefined;
-			}
+				"EQUITY" => AssetClass.Equity,
+				"ETF" => AssetClass.Equity,
+				"MUTUALFUND" => AssetClass.Undefined,
+				"CURRENCY" or "CRYPTOCURRENCY" => AssetClass.Liquidity,
+				"INDEX" => AssetClass.Undefined,
+				_ => AssetClass.Undefined,
+			};
 		}
 
 		private static AssetSubClass? ParseQuoteTypeAsSub(string quoteType)
 		{
-			switch (quoteType)
+			return quoteType switch
 			{
-				case "EQUITY":
-					return AssetSubClass.Stock;
-				case "ETF":
-					return AssetSubClass.Etf;
-				case "CRYPTOCURRENCY":
-					return AssetSubClass.CryptoCurrency;
-				case "CURRENCY":
-					return AssetSubClass.Undefined;
-				case "MUTUALFUND":
-					return AssetSubClass.Undefined;
-				default:
-					return null;
-			}
+				"EQUITY" => (AssetSubClass?)AssetSubClass.Stock,
+				"ETF" => (AssetSubClass?)AssetSubClass.Etf,
+				"CRYPTOCURRENCY" => (AssetSubClass?)AssetSubClass.CryptoCurrency,
+				"CURRENCY" => (AssetSubClass?)AssetSubClass.Undefined,
+				"MUTUALFUND" => (AssetSubClass?)AssetSubClass.Undefined,
+				_ => null,
+			};
 		}
 	}
 }

@@ -15,13 +15,13 @@ namespace GhostfolioSidekick.Database.Migrations
 			migrationBuilder.CreateIndex(
 				name: "IX_PartialSymbolIdentifiers_Identifier_AllowedAssetClass_AllowedAssetSubClass",
 				table: "PartialSymbolIdentifiers",
-				columns: new[] { "Identifier", "AllowedAssetClasses", "AllowedAssetSubClasses" },
+				columns: ["Identifier", "AllowedAssetClasses", "AllowedAssetSubClasses"],
 				unique: true);
 
 			migrationBuilder.CreateIndex(
 				name: "IX_MarketData_SymbolProfileDataSource_SymbolProfileSymbol_Date",
 				table: "MarketData",
-				columns: new[] { "SymbolProfileDataSource", "SymbolProfileSymbol", "Date" },
+				columns: ["SymbolProfileDataSource", "SymbolProfileSymbol", "Date"],
 				unique: true);
 		}
 

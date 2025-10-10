@@ -78,8 +78,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = new List<Activity>();
 			var holdings = new List<Holding>
 			{
-				new Holding { Id = 1, SymbolProfiles = [] },
-				new Holding { Id = 2, SymbolProfiles = [new SymbolProfile()] }
+				new() { Id = 1, SymbolProfiles = [] },
+				new() { Id = 2, SymbolProfiles = [new SymbolProfile()] }
 			};
 
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);

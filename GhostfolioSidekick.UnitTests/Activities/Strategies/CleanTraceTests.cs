@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 		{
 			// Arrange
 			var activity = new Mock<ActivityWithQuantityAndUnitPrice>();
-			var adjustedUnitPriceSource = new List<CalculatedPriceTrace> { new CalculatedPriceTrace() };
+			var adjustedUnitPriceSource = new List<CalculatedPriceTrace> { new() };
 			activity.Setup(a => a.AdjustedUnitPriceSource).Returns(adjustedUnitPriceSource);
 
 			var holding = new Holding

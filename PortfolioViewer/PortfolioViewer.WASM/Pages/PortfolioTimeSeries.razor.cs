@@ -60,8 +60,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
-
-			//await LoadTimeSeriesAsync();
 		}
 
 		protected override async Task OnParametersSetAsync()
@@ -83,13 +81,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				_previousFilterState = FilterState;
 				await LoadTimeSeriesAsync();
-			}
-
-			if (_previousFilterState != null &&
-				   _previousFilterState.StartDate == FilterState.StartDate &&
-				   _previousFilterState.EndDate == FilterState.EndDate)
-			{
-				return;
 			}
 		}
 
@@ -120,7 +111,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			await Task.Yield();
 			try
 			{
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
 				if (HoldingsDataService == null)
 				{
 					throw new InvalidOperationException("HoldingsDataService is not initialized.");
@@ -131,7 +121,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					EndDate,
 					SelectedAccountId
 				) ?? [];
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
 				await PrepareDisplayData();
 				await PrepareChartData();

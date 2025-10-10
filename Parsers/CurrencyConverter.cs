@@ -6,14 +6,9 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers
 {
-	public class CurrencyConverter : DefaultTypeConverter
+	public class CurrencyConverter(string culture) : DefaultTypeConverter
 	{
-		private readonly CultureInfo cultureInfo;
-
-		public CurrencyConverter(string culture)
-		{
-			this.cultureInfo = new CultureInfo(culture);
-		}
+		private readonly CultureInfo cultureInfo = new(culture);
 
 		public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
 		{

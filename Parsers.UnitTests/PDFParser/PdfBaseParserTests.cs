@@ -9,10 +9,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 {
 	public class PdfBaseParserTests
 	{
-		private class TestPdfBaseParser : PdfBaseParser
+		private class TestPdfBaseParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 		{
-			public TestPdfBaseParser(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords) { }
-
 			protected override bool CanParseRecords(List<SingleWordToken> words)
 			{
 				return words.Count > 0;
@@ -85,8 +83,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 		{
 			var words = new List<SingleWordToken>
 			{
-				new SingleWordToken("hello"),
-				new SingleWordToken("world")
+				new("hello"),
+				new("world")
 			};
 
 			var result = TestPdfBaseParser.IsCheckWordsPublic("hello world", words, 0);
@@ -99,8 +97,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 		{
 			var words = new List<SingleWordToken>
 			{
-				new SingleWordToken("hello"),
-				new SingleWordToken("world")
+				new("hello"),
+				new("world")
 			};
 
 			var result = TestPdfBaseParser.IsCheckWordsPublic("hello there", words, 0);

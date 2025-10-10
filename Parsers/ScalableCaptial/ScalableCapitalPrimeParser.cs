@@ -5,15 +5,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.ScalableCaptial
 {
-	public class ScalableCapitalPrimeParser : RecordBaseImporter<ScalableCapitalPrimeRecord>
+	public class ScalableCapitalPrimeParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<ScalableCapitalPrimeRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public ScalableCapitalPrimeParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(ScalableCapitalPrimeRecord record, int rowNumber)
 		{
 			if (record.Status != "Executed")

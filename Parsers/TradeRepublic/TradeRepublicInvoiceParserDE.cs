@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicInvoiceParserDE : TradeRepublicInvoiceParserBase
+	public class TradeRepublicInvoiceParserDE(IPdfToWordsParser parsePDfToWords) : TradeRepublicInvoiceParserBase(parsePDfToWords)
 	{
 		// DE
 		protected override string Keyword_Position => "POSITION";
@@ -27,10 +27,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string EXTERNAL_COST_SURCHARGE => "Fremdkostenzuschlag";
 		protected override string WITHHOLDING_TAX => "Kapitalertragssteuer";
 		protected override string DATE => "DATUM";
-		protected override CultureInfo Culture => new CultureInfo("de");
-
-		public TradeRepublicInvoiceParserDE(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
-		{
-		}
+		protected override CultureInfo Culture => new("de");
 	}
 }

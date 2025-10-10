@@ -43,8 +43,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var mockDbContext = new Mock<DatabaseContext>();
 			var holdings = new List<Holding>
 			{
-				new Holding { Id = 1 },
-				new Holding { Id = 2 }
+				new() { Id = 1 },
+				new() { Id = 2 }
 			};
 
 			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);

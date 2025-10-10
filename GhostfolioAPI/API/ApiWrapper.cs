@@ -123,7 +123,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return [.. existingActivities.Select(x => ContractToModelMapper.MapActivity(account, currencyExchange, symbols, x))];
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)
 		{
 			var content = await restCall.DoRestGet($"api/v1/order");
@@ -132,10 +131,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			// fixup
 			foreach (var existingActivity in existingActivities)
 			{
-				existingActivity.FeeCurrency = existingActivity.FeeCurrency ?? existingActivity.SymbolProfile.Currency;
+				existingActivity.FeeCurrency ??= existingActivity.SymbolProfile.Currency;
 			}
 
-			var symbols = await GetAllSymbolProfiles();
 			var accounts = await GetAllAccounts();
 
 			// Filter out existing activities that are not in the new list
@@ -445,8 +443,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			return profiles;
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1121:Assignments should not be made from within sub-expressions", Justification = "Cleaner")]
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
 		private async Task WriteOrder(Activity activity)
 		{
 			if (activity.Type == ActivityType.IGNORE)
@@ -462,7 +458,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			logger.LogInformation("Added transaction {Date} {Symbol} {Quantity} {Type}", activity.Date.ToInvariantString(), activity.SymbolProfile?.Symbol, activity.Quantity, activity.Type);
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "<Pending>")]
 		private async Task DeleteOrder(Activity activity)
 		{
 			if (string.IsNullOrWhiteSpace(activity.Id))

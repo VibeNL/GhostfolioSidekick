@@ -4,13 +4,9 @@ using System.Text.Json.Serialization;
 namespace GhostfolioSidekick.Configuration
 {
 	[ExcludeFromCodeCoverage]
-	public class Settings
+	[method: SetsRequiredMembers]
+	public class Settings()
 	{
-		[SetsRequiredMembers]
-		public Settings()
-		{
-		}
-
 		[JsonPropertyName("delete.unused.symbols")]
 		public bool DeleteUnusedSymbols { get; set; } = true;
 

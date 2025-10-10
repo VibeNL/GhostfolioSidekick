@@ -5,15 +5,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class AuthController : ControllerBase
+	public class AuthController(IApplicationSettings applicationSettings) : ControllerBase
 	{
-		private readonly IApplicationSettings _applicationSettings;
-
-		public AuthController(IApplicationSettings applicationSettings)
-		{
-			_applicationSettings = applicationSettings;
-		}
-
 		[HttpPost("validate")]
 		[HttpGet("validate")]
 		public IActionResult ValidateToken()
@@ -27,7 +20,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 					return Unauthorized(new { message = "Invalid authorization header format" });
 				}
 
-				var token = authHeader.Substring("Bearer ".Length).Trim();
+				var token = authHeader["Bearer ".Length..].Trim();
 
 				if (string.IsNullOrEmpty(token))
 				{
@@ -35,7 +28,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				}
 
 				// Compare the token with the configured access token
-				var configuredToken = _applicationSettings.GhostfolioAccessToken;
+				var configuredToken = applicationSettings.GhostfolioAccessToken;
 
 				if (string.IsNullOrEmpty(configuredToken))
 				{

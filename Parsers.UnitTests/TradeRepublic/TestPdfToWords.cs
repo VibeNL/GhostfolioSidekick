@@ -3,14 +3,9 @@
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
 
-	internal class TestPdfToWords : PdfToWordsParser
+	internal class TestPdfToWords(Dictionary<int, string> text) : PdfToWordsParser
 	{
-		public TestPdfToWords(Dictionary<int, string> text)
-		{
-			Text = text;
-		}
-
-		public Dictionary<int, string> Text { get; internal set; }
+		public Dictionary<int, string> Text { get; internal set; } = text;
 
 		public override List<SingleWordToken> ParseTokens(string filePath)
 		{

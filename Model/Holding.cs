@@ -16,12 +16,9 @@ namespace GhostfolioSidekick.Model
 
 		public void MergeIdentifiers(IList<PartialSymbolIdentifier> ids)
 		{
-			foreach (var item in ids)
+			foreach (var item in ids.Where(item => !IdentifierContainsInList(item)))
 			{
-				if (!IdentifierContainsInList(item))
-				{
-					PartialSymbolIdentifiers.Add(item);
-				}
+				PartialSymbolIdentifiers.Add(item);
 			}
 		}
 
@@ -56,7 +53,7 @@ namespace GhostfolioSidekick.Model
 
 		public bool HasPartialSymbolIdentifier(IList<PartialSymbolIdentifier> partialIdentifiers)
 		{
-			return partialIdentifiers.Any(x => IdentifierContainsInList(x));
+			return partialIdentifiers.Any(IdentifierContainsInList);
 		}
 
 		private static bool IsEmpty<T>(List<T>? list)

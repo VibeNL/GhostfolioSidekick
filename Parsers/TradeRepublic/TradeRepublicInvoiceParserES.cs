@@ -3,7 +3,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class TradeRepublicInvoiceParserES : TradeRepublicInvoiceParserBase
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1192:String literals should not be duplicated", Justification = "Seperate fields, just named the same in this language")]
+	public class TradeRepublicInvoiceParserES(IPdfToWordsParser parsePDfToWords) : TradeRepublicInvoiceParserBase(parsePDfToWords)
 	{
 		// ES
 		protected override string Keyword_Position => "POSICIÓN";
@@ -28,11 +29,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string EXTERNAL_COST_SURCHARGE => "del servicio de ejecución de terceros";
 		protected override string WITHHOLDING_TAX => "Retención Fiscal para Emisores de Estados Unidos";
 		protected override string DATE => "FECHA";
-		protected override CultureInfo Culture => new CultureInfo("es");
-
-		public TradeRepublicInvoiceParserES(IPdfToWordsParser parsePDfToWords) : base(parsePDfToWords)
-		{
-		}
+		protected override CultureInfo Culture => new("es");
 
 		protected override bool CheckEndOfRecord(List<MultiWordToken> headers, string currentWord)
 		{
@@ -43,15 +40,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				{ [ "POSICIÓN", "NOMINALES", "CUPÓN", "CANTIDAD" ] } // interest bond
 			};
 
-			foreach (var mapping in headerMappings)
-			{
-				if (headers.Select(x => x.KeyWord).SequenceEqual(mapping) && mapping.Last() == currentWord)
-				{
-					return true;
-				}
-			}
-
-			return false;
+			return headerMappings
+				.Any(mapping => headers.Select(x => x.KeyWord).SequenceEqual(mapping) && mapping.Last() == currentWord);
 		}
 	}
 }

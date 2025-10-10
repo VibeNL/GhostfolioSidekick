@@ -14,8 +14,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 			var holding = new Holding();
 			var newIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				new PartialSymbolIdentifier { Identifier = "ID1" },
-				new PartialSymbolIdentifier { Identifier = "ID2" }
+				new() { Identifier = "ID1" },
+				new() { Identifier = "ID2" }
 			};
 
 			// Act
@@ -37,8 +37,8 @@ namespace GhostfolioSidekick.Model.UnitTests
 
 			var newIdentifiers = new List<PartialSymbolIdentifier>
 			{
-				new PartialSymbolIdentifier { Identifier = "ID1" },
-				new PartialSymbolIdentifier { Identifier = "ID2" }
+				new() { Identifier = "ID1" },
+				new() { Identifier = "ID2" }
 			};
 
 			// Act

@@ -282,7 +282,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 				{
 					// For buy/receive/gift/staking, add the invested amount and update average cost price
 					snapshot.TotalInvested = snapshot.TotalInvested.Add(convertedTotal);
-					snapshot.Quantity = snapshot.Quantity + activity.AdjustedQuantity;
+					snapshot.Quantity += activity.AdjustedQuantity;
 					snapshot.AverageCostPrice = CalculateAverageCostPrice(snapshot); // quantity already added above
 				}
 				else
@@ -290,7 +290,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					// For sell/send, first calculate cost basis reduction using current average cost price
 					var costBasisReduction = snapshot.AverageCostPrice.Times(activity.AdjustedQuantity);
 					snapshot.TotalInvested = snapshot.TotalInvested.Subtract(costBasisReduction);
-					snapshot.Quantity = snapshot.Quantity - activity.AdjustedQuantity;
+					snapshot.Quantity -= activity.AdjustedQuantity;
 
 					// Average cost price remains the same after a sell (unless quantity becomes zero)
 					if (snapshot.Quantity <= 0)

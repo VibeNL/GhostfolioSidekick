@@ -4,24 +4,15 @@ using System.Text;
 
 namespace GhostfolioSidekick
 {
-	public class DisplayInformationTask : IScheduledWork
+	public class DisplayInformationTask(
+		ILogger<DisplayInformationTask> logger,
+		IApplicationSettings applicationSettings) : IScheduledWork
 	{
-		private readonly ILogger<DisplayInformationTask> logger;
-		private readonly IApplicationSettings applicationSettings;
-
 		public TaskPriority Priority => TaskPriority.DisplayInformation;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.MaxValue;
 
 		public bool ExceptionsAreFatal => true;
-
-		public DisplayInformationTask(
-			ILogger<DisplayInformationTask> logger,
-			IApplicationSettings applicationSettings)
-		{
-			this.logger = logger;
-			this.applicationSettings = applicationSettings;
-		}
 
 		public Task DoWork()
 		{
@@ -45,7 +36,7 @@ namespace GhostfolioSidekick
 
 			PrintUsedMappings(sb);
 
-			logger.LogInformation(sb.ToString());
+			logger.LogInformation("{Message}", sb.ToString());
 		}
 
 		private void PrintUsedMappings(StringBuilder sb)

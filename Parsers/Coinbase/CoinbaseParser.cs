@@ -6,15 +6,8 @@ using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
 {
-	public class CoinbaseParser : RecordBaseImporter<CoinbaseRecord>
+	public partial class CoinbaseParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<CoinbaseRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public CoinbaseParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(CoinbaseRecord record, int rowNumber)
 		{
 			var date = record.Timestamp;
@@ -112,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		private static (decimal, string) ParseNote(string note)
 		{
 			// Converted 0.00087766 ETH to 1.629352 USDC or  Converted 0,00087766 ETH to 1,629352 USDC
-			var match = Regex.Match(note, "Converted ([0-9.,]+) ([A-Za-z0-9]+) to ([0-9.,]+) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase);
+			var match = NoteRegex().Match(note);
 			var quantity = match.Groups[3].Value;
 			var asset = match.Groups[4].Value;
 
@@ -147,5 +140,8 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		{
 			return new CultureInfo("nl");
 		}
+
+		[GeneratedRegex("Converted ([0-9.,]+) ([A-Za-z0-9]+) to ([0-9.,]+) ([A-Za-z0-9]+)", RegexOptions.IgnoreCase, "nl-NL")]
+		private static partial Regex NoteRegex();
 	}
 }

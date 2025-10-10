@@ -3,27 +3,19 @@ using System.Security.Claims;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
-	public class AuthenticationService : IAuthenticationService
+	public class AuthenticationService(ITokenValidationService tokenValidationService, IJSRuntime jsRuntime) : IAuthenticationService
 	{
 		private const string StorageKey = "authToken";
-		private readonly ITokenValidationService _tokenValidationService;
-		private readonly IJSRuntime _jsRuntime;
 		private ClaimsPrincipal _currentUser = new(new ClaimsIdentity());
 
 		public event Action<ClaimsPrincipal>? AuthenticationStateChanged;
-
-		public AuthenticationService(ITokenValidationService tokenValidationService, IJSRuntime jsRuntime)
-		{
-			_tokenValidationService = tokenValidationService;
-			_jsRuntime = jsRuntime;
-		}
 
 		public async Task<bool> LoginAsync(string token)
 		{
 			try
 			{
 				// Validate the token
-				var isValid = await _tokenValidationService.ValidateTokenAsync(token);
+				var isValid = await tokenValidationService.ValidateTokenAsync(token);
 
 				if (isValid)
 				{
@@ -69,7 +61,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			var token = await GetStoredTokenAsync();
 			if (!string.IsNullOrEmpty(token))
 			{
-				var isValid = await _tokenValidationService.ValidateTokenAsync(token);
+				var isValid = await tokenValidationService.ValidateTokenAsync(token);
 				if (isValid)
 				{
 					var identity = new ClaimsIdentity(new[]
@@ -95,7 +87,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			try
 			{
-				await _jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, token);
+				await jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, token);
 			}
 			catch
 			{
@@ -107,7 +99,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			try
 			{
-				return await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+				return await jsRuntime.InvokeAsync<string?>("localStorage.getItem", StorageKey);
 			}
 			catch
 			{
@@ -119,7 +111,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			try
 			{
-				await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", StorageKey);
+				await jsRuntime.InvokeVoidAsync("localStorage.removeItem", StorageKey);
 			}
 			catch
 			{

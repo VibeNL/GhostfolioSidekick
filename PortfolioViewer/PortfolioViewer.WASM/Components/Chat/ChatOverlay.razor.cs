@@ -90,7 +90,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 			{
 				if (wakeLockActive)
 				{
-					var result = await JS.InvokeAsync<bool>("wakeLockModule.releaseWakeLock");
+					_ = await JS.InvokeAsync<bool>("wakeLockModule.releaseWakeLock");
 					wakeLockActive = false;
 				}
 			}

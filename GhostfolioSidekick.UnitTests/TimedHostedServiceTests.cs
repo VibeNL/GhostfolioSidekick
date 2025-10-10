@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.UnitTests
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			var scheduledWorkMock = new Mock<IScheduledWork>();
-			new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
+			_ = new TimedHostedService(loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
 
 			// Act
 			await Task.Delay(1000);

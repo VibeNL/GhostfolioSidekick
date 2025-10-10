@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			// Arrange
 			var jsonData = JsonSerializer.Serialize(new List<Dictionary<string, object>>
 			{
-				new Dictionary<string, object> { { "Column1", "Value1" }, { "Column2", 123 } }
+				new() { { "Column1", "Value1" }, { "Column2", 123 } }
 			});
 
 			// Act
@@ -30,8 +30,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			// Arrange
 			var testData = new List<Dictionary<string, object>>
 			{
-				new Dictionary<string, object>
-				{
+				new() {
 					{ "Id", "test-id" },
 					{ "PartialSymbolIdentifiers", value }
 				}

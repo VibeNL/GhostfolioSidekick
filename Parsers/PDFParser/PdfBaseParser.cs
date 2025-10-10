@@ -3,15 +3,8 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.PDFParser
 {
-	public abstract class PdfBaseParser : IActivityFileImporter
+	public abstract class PdfBaseParser(IPdfToWordsParser parsePDfToWords) : IActivityFileImporter
 	{
-		private readonly IPdfToWordsParser parsePDfToWords;
-
-		protected PdfBaseParser(IPdfToWordsParser parsePDfToWords)
-		{
-			this.parsePDfToWords = parsePDfToWords;
-		}
-
 		public Task<bool> CanParse(string filename)
 		{
 			try

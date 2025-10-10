@@ -5,15 +5,8 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.Generic
 {
-	public class GenericParser : RecordBaseImporter<GenericRecord>
+	public class GenericParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<GenericRecord>
 	{
-		private readonly ICurrencyMapper currencyMapper;
-
-		public GenericParser(ICurrencyMapper currencyMapper)
-		{
-			this.currencyMapper = currencyMapper;
-		}
-
 		protected override IEnumerable<PartialActivity> ParseRow(GenericRecord record, int rowNumber)
 		{
 			if (string.IsNullOrWhiteSpace(record.Id))
@@ -34,12 +27,12 @@ namespace GhostfolioSidekick.Parsers.Generic
 				lst.Add(PartialActivity.CreateFee(currency, record.Date, record.Fee.Value, new Money(currency, record.Fee.Value), record.Id));
 			}
 
-			// Todo: remove when scraper is fixed
+			// in case of cash deposit/withdrawal, set quantity to 1 if it's 0 (meaningless, but some users might do this)
 			if ((record.ActivityType == PartialActivityType.CashDeposit ||
 				record.ActivityType == PartialActivityType.CashWithdrawal) &&
 				record.Quantity == 0)
 			{
-				record.Quantity = 1; // Pdcb8
+				record.Quantity = 1;
 			}
 
 			switch (record.ActivityType)

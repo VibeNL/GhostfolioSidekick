@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 			{
 				return new List<PartialActivity>
 				{
-					new PartialActivity(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "txn1")
+					new(PartialActivityType.Buy, DateTime.Now, Currency.USD, new Money(Currency.USD, 100), "txn1")
 				};
 			}
 

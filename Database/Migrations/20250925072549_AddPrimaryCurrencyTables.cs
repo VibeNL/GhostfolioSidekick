@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.Database.Migrations
 			migrationBuilder.CreateIndex(
 				name: "IX_CalculatedSnapshots_AccountId_Date",
 				table: "CalculatedSnapshots",
-				columns: new[] { "AccountId", "Date" });
+				columns: ["AccountId", "Date"]);
 
 			migrationBuilder.CreateIndex(
 				name: "IX_CalculatedSnapshots_Date",
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.Database.Migrations
 			migrationBuilder.CreateIndex(
 				name: "IX_CalculatedSnapshots_HoldingAggregatedId_AccountId_Date",
 				table: "CalculatedSnapshots",
-				columns: new[] { "HoldingAggregatedId", "AccountId", "Date" },
+				columns: ["HoldingAggregatedId", "AccountId", "Date"],
 				unique: true);
 
 			migrationBuilder.CreateIndex(
@@ -103,13 +103,13 @@ namespace GhostfolioSidekick.Database.Migrations
 			migrationBuilder.CreateIndex(
 				name: "IX_BalancePrimaryCurrencies_AccountId_Date",
 				table: "BalancePrimaryCurrencies",
-				columns: new[] { "AccountId", "Date" },
+				columns: ["AccountId", "Date"],
 				unique: true);
 
 			migrationBuilder.CreateIndex(
 				name: "IX_CalculatedSnapshotPrimaryCurrencies_AccountId_Date",
 				table: "CalculatedSnapshotPrimaryCurrencies",
-				columns: new[] { "AccountId", "Date" });
+				columns: ["AccountId", "Date"]);
 
 			migrationBuilder.CreateIndex(
 				name: "IX_CalculatedSnapshotPrimaryCurrencies_Date",
@@ -119,7 +119,7 @@ namespace GhostfolioSidekick.Database.Migrations
 			migrationBuilder.CreateIndex(
 				name: "IX_CalculatedSnapshotPrimaryCurrencies_HoldingAggregatedId_AccountId_Date",
 				table: "CalculatedSnapshotPrimaryCurrencies",
-				columns: new[] { "HoldingAggregatedId", "AccountId", "Date" },
+				columns: ["HoldingAggregatedId", "AccountId", "Date"],
 				unique: true);
 		}
 

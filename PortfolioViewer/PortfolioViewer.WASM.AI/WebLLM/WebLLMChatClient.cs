@@ -8,11 +8,11 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
-	public partial class WebLLMChatClient : IWebChatClient
+	[method: System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>")]
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "<Pending>")]
+	public partial class WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds) : IWebChatClient
 	{
-		private readonly IJSRuntime jsRuntime;
-		private readonly ILogger<WebLLMChatClient> logger;
-		private readonly Dictionary<ChatMode, string> modelIds;
 		private InteropInstance? interopInstance;
 
 		private IJSObjectReference? module;
@@ -45,14 +45,6 @@ Format function calls like this:
 ] }
 """;
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
-		public WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds)
-		{
-			this.jsRuntime = jsRuntime;
-			this.logger = logger;
-			this.modelIds = modelIds;
-		}
-
 		public async Task<ChatResponse> GetResponseAsync(
 			IEnumerable<ChatMessage> messages,
 			ChatOptions? options = null,
@@ -74,225 +66,318 @@ Format function calls like this:
 			ChatOptions? options = null,
 			[EnumeratorCancellation] CancellationToken cancellationToken = default)
 		{
-			if (interopInstance == null)
-			{
-				throw new NotSupportedException();
-			}
+			ValidateInteropInstance();
 
-			// If the last message is assistant, fake it to be a user call
-			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
-			var convertedMessages = list
-				.Select((x, i) => i == list.Count - 1 ? Fix(x) : x)
-				.Select(x => RemoveThink(x))
-				.ToList();
-
-			if (convertedMessages.Count == 0)
+			var convertedMessages = PrepareMessages(messages, options);
+			if (IsEmptyMessageList(convertedMessages))
 			{
-				// If no messages are provided, return an empty response
 				yield return new ChatResponseUpdate(ChatRole.Assistant, string.Empty);
 				yield break;
 			}
 
-			// Add function calling messages if the chat mode is FunctionCalling
-			if (ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true)
+			StartStreamingAsync(convertedMessages, cancellationToken);
+
+			await foreach (var update in ProcessStreamingResponseAsync(options, cancellationToken))
 			{
-				var functions = options.Tools.OfType<KernelFunction>().ToList();
-				if (functions.Count != 0)
-				{
-					// Create a proper function definition description for each tool
-					var functionDefinitions = new StringBuilder();
-					foreach (var function in functions)
-					{
-						functionDefinitions.AppendLine($"- {function.Name}");
-						functionDefinitions.AppendLine($"  Description: {function.Description ?? function.Name}");
-						functionDefinitions.AppendLine("  Parameters:");
+				yield return update;
+			}
+		}
 
-						foreach (var param in function.Metadata.Parameters)
-						{
-							var paramDesc = param.Description ?? param.Name;
-							var paramType = param.ParameterType?.Name ?? "string";
-							functionDefinitions.AppendLine($"    - {param.Name} ({paramType}): {paramDesc}");
-						}
-						functionDefinitions.AppendLine();
-					}
+		private void ValidateInteropInstance()
+		{
+			if (interopInstance == null)
+			{
+				throw new NotSupportedException();
+			}
+		}
 
-					convertedMessages.Add(new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionDefinitions.ToString())));
-				}
+		private static bool IsEmptyMessageList(List<ChatMessage> messages)
+		{
+			return messages.Count == 0;
+		}
+
+		private List<ChatMessage> PrepareMessages(IEnumerable<ChatMessage> messages, ChatOptions? options)
+		{
+			var list = messages.Where(x => !string.IsNullOrWhiteSpace(x.Text)).ToList();
+			var convertedMessages = list
+				.Select((x, i) => i == list.Count - 1 ? Fix(x) : x)
+				.Select(RemoveThink)
+				.ToList();
+
+			if (ShouldAddFunctionPrompt(options))
+			{
+				convertedMessages.Add(CreateFunctionPromptMessage(options!));
 			}
 
-			var model = modelIds[ChatMode];
+			return convertedMessages;
+		}
 
-			// Call the `completeStreamWebLLM` function in the JavaScript module, but do not wait for it to complete
+		private bool ShouldAddFunctionPrompt(ChatOptions? options)
+		{
+			return ChatMode == ChatMode.FunctionCalling && options?.Tools?.Any() == true;
+		}
+
+		private static ChatMessage CreateFunctionPromptMessage(ChatOptions options)
+		{
+			var functions = options.Tools!.OfType<KernelFunction>().ToList();
+			var functionDefinitions = BuildFunctionDefinitions(functions);
+			return new ChatMessage(ChatRole.User, SystemPromptWithFunctions.Replace("[FUNCTIONS]", functionDefinitions));
+		}
+
+		private static string BuildFunctionDefinitions(List<KernelFunction> functions)
+		{
+			var functionDefinitions = new StringBuilder();
+			foreach (var function in functions)
+			{
+				functionDefinitions.AppendLine($"- {function.Name}");
+				functionDefinitions.AppendLine($"  Description: {function.Description ?? function.Name}");
+				functionDefinitions.AppendLine("  Parameters:");
+
+				foreach (var param in function.Metadata.Parameters)
+				{
+					var paramDesc = param.Description ?? param.Name;
+					var paramType = param.ParameterType?.Name ?? "string";
+					functionDefinitions.AppendLine($"    - {param.Name} ({paramType}): {paramDesc}");
+				}
+				functionDefinitions.AppendLine();
+			}
+			return functionDefinitions.ToString();
+		}
+
+		private void StartStreamingAsync(List<ChatMessage> convertedMessages, CancellationToken cancellationToken)
+		{
+			var model = modelIds[ChatMode];
 			_ = Task.Run(async () =>
 			{
 				await (await GetModule()).InvokeVoidAsync(
-									"completeStreamWebLLM",
-									InteropInstance.ConvertMessage(convertedMessages),
-									model,
-									ChatMode == ChatMode.ChatWithThinking,
-									null
-									);
+					"completeStreamWebLLM",
+					InteropInstance.ConvertMessage(convertedMessages),
+					model,
+					ChatMode == ChatMode.ChatWithThinking,
+					null
+				);
 			}, cancellationToken);
+		}
 
-			string totalText = string.Empty;
+		private async IAsyncEnumerable<ChatResponseUpdate> ProcessStreamingResponseAsync(
+			ChatOptions? options,
+			[EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			var totalTextBuilder = new StringBuilder();
 
 			while (true)
 			{
-				// Wait for a response to be available
-				if (interopInstance.WebLLMCompletions.TryDequeue(out WebLLMCompletion? response))
-				{
-					if (response.IsStreamComplete)
-					{
-						if ((options?.Tools?.Any() ?? false) && !string.IsNullOrWhiteSpace(totalText))
-						{
-							// Try to parse function calls from the response
-							if (TryParseToolCalls(ChatMessageContentHelper.ToDisplayText(totalText), out var toolCalls))
-							{
-								foreach (var toolCall in toolCalls)
-								{
-									var output = await CallToolAsync(options, toolCall.Name, toolCall.Arguments);
-									yield return new ChatResponseUpdate(ChatRole.Assistant, output);
-								}
-
-								yield break;
-							}
-							else
-							{
-								// Return the final response as a single update for function calling
-								string content1 = ChatMessageContentHelper.ToDisplayText(totalText).Trim();
-								yield return new ChatResponseUpdate(ChatRole.Assistant, content1);
-							}
-						}
-
-						yield break;
-					}
-
-					if (response.Choices is null || response.Choices.Length == 0)
-					{
-						continue;
-					}
-
-					var choice = response.Choices[0];
-					if (choice.Delta is null)
-					{
-						continue;
-					}
-
-					var content = choice.Delta?.Content;
-					totalText += content ?? string.Empty;
-
-					if ((options?.Tools?.Any() ?? false))
-					{
-						logger.LogDebug("ChatRole.Tool: {Message}", content);
-						yield return new ChatResponseUpdate(ChatRole.Tool, content ?? string.Empty);
-					}
-					else
-					{
-						logger.LogDebug("ChatRole.Assistant: {Message}", content);
-						yield return new ChatResponseUpdate(ChatRole.Assistant, content ?? string.Empty);
-					}
-				}
-				else
+				var response = TryDequeueResponse();
+				if (response == null)
 				{
 					await Task.Delay(1, cancellationToken);
+					continue;
+				}
+
+				if (response.IsStreamComplete)
+				{
+					await foreach (var finalUpdate in HandleStreamComplete(options, totalTextBuilder))
+					{
+						yield return finalUpdate;
+					}
+					yield break;
+				}
+
+				var content = ExtractContentFromResponse(response);
+				if (content != null)
+				{
+					totalTextBuilder.Append(content);
+					yield return CreateResponseUpdate(options, content);
 				}
 			}
+		}
+
+		private WebLLMCompletion? TryDequeueResponse()
+		{
+			return interopInstance!.WebLLMCompletions.TryDequeue(out WebLLMCompletion? response) 
+				? response 
+				: null;
+		}
+
+		private async IAsyncEnumerable<ChatResponseUpdate> HandleStreamComplete(
+			ChatOptions? options,
+			StringBuilder totalTextBuilder)
+		{
+			if (!HasTools(options) || totalTextBuilder.Length == 0)
+			{
+				yield break;
+			}
+
+			var totalText = totalTextBuilder.ToString();
+			if (TryParseToolCalls(ChatMessageContentHelper.ToDisplayText(totalText), out var toolCalls))
+			{
+				await foreach (var update in ExecuteToolCallsAsync(options!, toolCalls))
+				{
+					yield return update;
+				}
+			}
+			else
+			{
+				var content = ChatMessageContentHelper.ToDisplayText(totalText).Trim();
+				yield return new ChatResponseUpdate(ChatRole.Assistant, content);
+			}
+		}
+
+		private async IAsyncEnumerable<ChatResponseUpdate> ExecuteToolCallsAsync(
+			ChatOptions options,
+			List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
+		{
+			foreach (var toolCall in toolCalls)
+			{
+				var output = await CallToolAsync(options, toolCall.Name, toolCall.Arguments);
+				yield return new ChatResponseUpdate(ChatRole.Assistant, output);
+			}
+		}
+
+		private static string? ExtractContentFromResponse(WebLLMCompletion response)
+		{
+			if (response.Choices?.Length > 0)
+			{
+				return response.Choices[0].Delta?.Content;
+			}
+			return null;
+		}
+
+		private ChatResponseUpdate CreateResponseUpdate(ChatOptions? options, string content)
+		{
+			var role = HasTools(options) ? ChatRole.Tool : ChatRole.Assistant;
+			logger.LogDebug("{Role}: {Message}", role, content);
+			return new ChatResponseUpdate(role, content);
+		}
+
+		private static bool HasTools(ChatOptions? options)
+		{
+			return options?.Tools?.Any() ?? false;
 		}
 
 		private bool TryParseToolCalls(string content, out List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
 		{
 			toolCalls = [];
-			content = content.Trim('\'');
+			
 			if (string.IsNullOrWhiteSpace(content))
 			{
 				return false;
 			}
-
+			
+			content = content.Trim('\'');			
+			
 			try
 			{
 				using var doc = JsonDocument.Parse(content);
-				if (doc.RootElement.TryGetProperty("tool_calls", out var toolCallsArray) && toolCallsArray.ValueKind == JsonValueKind.Array)
-				{
-					foreach (var toolCall in toolCallsArray.EnumerateArray())
-					{
-						var function = toolCall.GetProperty("function");
-						var id = toolCall.GetProperty("id").GetString() ?? Random.Shared.Next().ToString();
-						var name = function.GetProperty("name").GetString() ?? string.Empty;
-
-						// Handle different argument formats
-						Dictionary<string, object?>? argumentsDict = null;
-						if (function.TryGetProperty("arguments", out var argumentsProperty))
-						{
-							// Try to handle arguments as a JSON string first
-							if (argumentsProperty.ValueKind == JsonValueKind.String)
-							{
-								var argumentsStr = argumentsProperty.GetString();
-								if (!string.IsNullOrEmpty(argumentsStr))
-								{
-									try
-									{
-										// Parse the string as JSON
-										using var argDoc = JsonDocument.Parse(argumentsStr);
-										argumentsDict = [];
-										foreach (var prop in argDoc.RootElement.EnumerateObject())
-										{
-											argumentsDict[prop.Name] = prop.Value.ValueKind switch
-											{
-												JsonValueKind.String => prop.Value.GetString(),
-												JsonValueKind.Number => prop.Value.TryGetInt64(out var l) ? l : prop.Value.GetDouble(),
-												JsonValueKind.True => true,
-												JsonValueKind.False => false,
-												JsonValueKind.Null => null,
-												_ => prop.Value.GetRawText()
-											};
-										}
-									}
-									catch (JsonException ex)
-									{
-										logger.LogWarning(ex, "Failed to parse function arguments as JSON string: {Arguments}", argumentsStr);
-										// Fall back to using the string as is
-										argumentsDict = new Dictionary<string, object?> { { "value", argumentsStr } };
-									}
-								}
-							}
-							// If the arguments is a JSON object directly
-							else if (argumentsProperty.ValueKind == JsonValueKind.Object)
-							{
-								argumentsDict = [];
-								foreach (var prop in argumentsProperty.EnumerateObject())
-								{
-									argumentsDict[prop.Name] = prop.Value.ValueKind switch
-									{
-										JsonValueKind.String => prop.Value.GetString(),
-										JsonValueKind.Number => prop.Value.TryGetInt64(out var l) ? l : prop.Value.GetDouble(),
-										JsonValueKind.True => true,
-										JsonValueKind.False => false,
-										JsonValueKind.Null => null,
-										_ => prop.Value.GetRawText()
-									};
-								}
-							}
-						}
-
-						toolCalls.Add(new Microsoft.Extensions.AI.FunctionCallContent(
-							id,
-							name,
-							argumentsDict ?? []
-						));
-					}
-					return toolCalls.Count > 0;
-				}
+				return TryExtractToolCallsFromJson(doc, out toolCalls);
 			}
 			catch (JsonException ex)
 			{
 				logger.LogWarning(ex, "Failed to parse tool calls from content: {Content}", content);
+				return false;
 			}
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Unexpected error while parsing tool calls from content: {Content}", content);
+				return false;
+			}
+		}
+
+		private bool TryExtractToolCallsFromJson(JsonDocument doc, out List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
+		{
+			toolCalls = [];
+
+			if (!doc.RootElement.TryGetProperty("tool_calls", out var toolCallsArray) || 
+				toolCallsArray.ValueKind != JsonValueKind.Array)
+			{
+				return false;
 			}
 
-			return false;
+			foreach (var toolCall in toolCallsArray.EnumerateArray())
+			{
+				var functionCallContent = CreateFunctionCallContent(toolCall);
+				if (functionCallContent != null)
+				{
+					toolCalls.Add(functionCallContent);
+				}
+			}
+
+			return toolCalls.Count > 0;
+		}
+
+		private Microsoft.Extensions.AI.FunctionCallContent? CreateFunctionCallContent(JsonElement toolCall)
+		{
+			try
+			{
+				var function = toolCall.GetProperty("function");
+				var id = toolCall.GetProperty("id").GetString() ?? Random.Shared.Next().ToString();
+				var name = function.GetProperty("name").GetString() ?? string.Empty;
+				var argumentsDict = ExtractFunctionArguments(function);
+
+				return new Microsoft.Extensions.AI.FunctionCallContent(id, name, argumentsDict ?? []);
+			}
+			catch (Exception ex)
+			{
+				logger.LogWarning(ex, "Failed to create function call content from tool call");
+				return null;
+			}
+		}
+
+		private Dictionary<string, object?>? ExtractFunctionArguments(JsonElement function)
+		{
+			if (!function.TryGetProperty("arguments", out var argumentsProperty))
+			{
+				return [];
+			}
+
+			return argumentsProperty.ValueKind switch
+			{
+				JsonValueKind.String => ParseArgumentsFromString(argumentsProperty.GetString()),
+				JsonValueKind.Object => ParseArgumentsFromObject(argumentsProperty),
+				_ => []
+			};
+		}
+
+		private Dictionary<string, object?>? ParseArgumentsFromString(string? argumentsStr)
+		{
+			if (string.IsNullOrEmpty(argumentsStr))
+			{
+				return [];
+			}
+
+			try
+			{
+				using var argDoc = JsonDocument.Parse(argumentsStr);
+				return ConvertJsonElementToDictionary(argDoc.RootElement);
+			}
+			catch (JsonException ex)
+			{
+				logger.LogWarning(ex, "Failed to parse function arguments as JSON string: {Arguments}", argumentsStr);
+				return new Dictionary<string, object?> { { "value", argumentsStr } };
+			}
+		}
+
+		private static Dictionary<string, object?> ParseArgumentsFromObject(JsonElement argumentsProperty)
+		{
+			return ConvertJsonElementToDictionary(argumentsProperty);
+		}
+
+		private static Dictionary<string, object?> ConvertJsonElementToDictionary(JsonElement element)
+		{
+			var argumentsDict = new Dictionary<string, object?>();
+			foreach (var prop in element.EnumerateObject())
+			{
+				argumentsDict[prop.Name] = prop.Value.ValueKind switch
+				{
+					JsonValueKind.String => prop.Value.GetString(),
+					JsonValueKind.Number => prop.Value.TryGetInt64(out var l) ? l : prop.Value.GetDouble(),
+					JsonValueKind.True => true,
+					JsonValueKind.False => false,
+					JsonValueKind.Null => null,
+					_ => prop.Value.GetRawText()
+				};
+			}
+			return argumentsDict;
 		}
 
 		private static ChatMessage RemoveThink(ChatMessage x)
@@ -310,12 +395,7 @@ Format function calls like this:
 			return x;
 		}
 
-		public object? GetService(Type serviceType, object? serviceKey) => this;
-
-		public TService? GetService<TService>(object? key = null)
-			where TService : class => this as TService;
-
-		public void Dispose() { }
+		public object? GetService(Type serviceType, object? serviceKey = null) => this;
 
 		public async Task InitializeAsync(IProgress<InitializeProgress> OnProgress)
 		{
@@ -393,6 +473,11 @@ Format function calls like this:
 				logger.LogError(ex, "Error executing tool '{ToolName}' with arguments: {Arguments}", name, JsonSerializer.Serialize(arguments));
 				return $"Error executing tool '{name}': {ex.Message}";
 			}
+		}
+
+		public void Dispose()
+		{
+			GC.SuppressFinalize(this);
 		}
 	}
 }

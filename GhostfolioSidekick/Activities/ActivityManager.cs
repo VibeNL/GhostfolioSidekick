@@ -97,66 +97,49 @@ namespace GhostfolioSidekick.Activities
 			int? sortingPriority,
 			string? description)
 		{
-			totalTransactionAmount = totalTransactionAmount ?? new Money(money.Currency, amount * money.Amount);
+			totalTransactionAmount ??= new Money(money.Currency, amount * money.Amount);
 			partialSymbolIdentifiers = partialSymbolIdentifiers.Distinct().ToArray();
 
-			switch (activityType)
+			return activityType switch
 			{
-				case PartialActivityType.Buy:
-					return new BuyActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
-					{
-						Taxes = [.. taxes.Select(x => new BuyActivityTax(x))],
-						Fees = [.. fees.Select(x => new BuyActivityFee(x))],
-						TotalTransactionAmount = totalTransactionAmount,
-					};
-				case PartialActivityType.Sell:
-					return new SellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
-					{
-						Taxes = [.. taxes.Select(x => new SellActivityTax(x))],
-						Fees = [.. fees.Select(x => new SellActivityFee(x))],
-						TotalTransactionAmount = totalTransactionAmount,
-					};
-				case PartialActivityType.Receive:
-					return new ReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
-					{
-						Fees = [.. fees.Select(x => new ReceiveActivityFee(x))],
-					};
-				case PartialActivityType.Send:
-					return new SendActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
-					{
-						Fees = [.. fees.Select(x => new SendActivityFee(x))],
-					};
-				case PartialActivityType.Dividend:
-					return new DividendActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
-					{
-						Taxes = [.. taxes.Select(x => new DividendActivityTax(x))],
-						Fees = [.. fees.Select(x => new DividendActivityFee(x))],
-					};
-				case PartialActivityType.Interest:
-					return new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
-				case PartialActivityType.Fee:
-					return new FeeActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
-				case PartialActivityType.CashDeposit:
-					return new CashDepositActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
-				case PartialActivityType.CashWithdrawal:
-					return new CashWithdrawalActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description);
-				case PartialActivityType.KnownBalance:
-					return new KnownBalanceActivity(account, null, date, money.Times(amount), transactionId, sortingPriority, description);
-				case PartialActivityType.Valuable:
-					return new ValuableActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
-				case PartialActivityType.Liability:
-					return new LiabilityActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
-				case PartialActivityType.GiftFiat:
-					return new GiftFiatActivity(account, null, date, money.Times(amount), transactionId, sortingPriority, description);
-				case PartialActivityType.GiftAsset:
-					return new GiftAssetActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
-				case PartialActivityType.StakingReward:
-					return new StakingRewardActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description);
-				case PartialActivityType.BondRepay:
-					return new RepayBondActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description);
-				default:
-					throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented");
-			}
+				PartialActivityType.Buy => new BuyActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
+				{
+					Taxes = [.. taxes.Select(x => new BuyActivityTax(x))],
+					Fees = [.. fees.Select(x => new BuyActivityFee(x))],
+					TotalTransactionAmount = totalTransactionAmount,
+				},
+				PartialActivityType.Sell => new SellActivity(account, null, partialSymbolIdentifiers, date, amount, money, transactionId, sortingPriority, description)
+				{
+					Taxes = [.. taxes.Select(x => new SellActivityTax(x))],
+					Fees = [.. fees.Select(x => new SellActivityFee(x))],
+					TotalTransactionAmount = totalTransactionAmount,
+				},
+				PartialActivityType.Receive => new ReceiveActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
+				{
+					Fees = [.. fees.Select(x => new ReceiveActivityFee(x))],
+				},
+				PartialActivityType.Send => new SendActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description)
+				{
+					Fees = [.. fees.Select(x => new SendActivityFee(x))],
+				},
+				PartialActivityType.Dividend => new DividendActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description)
+				{
+					Taxes = [.. taxes.Select(x => new DividendActivityTax(x))],
+					Fees = [.. fees.Select(x => new DividendActivityFee(x))],
+				},
+				PartialActivityType.Interest => new InterestActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.Fee => new FeeActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.CashDeposit => new CashDepositActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.CashWithdrawal => new CashWithdrawalActivity(account, null, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.KnownBalance => new KnownBalanceActivity(account, null, date, money.Times(amount), transactionId, sortingPriority, description),
+				PartialActivityType.Valuable => new ValuableActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.Liability => new LiabilityActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.GiftFiat => new GiftFiatActivity(account, null, date, money.Times(amount), transactionId, sortingPriority, description),
+				PartialActivityType.GiftAsset => new GiftAssetActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description),
+				PartialActivityType.StakingReward => new StakingRewardActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description),
+				PartialActivityType.BondRepay => new RepayBondActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				_ => throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented"),
+			};
 		}
 	}
 }

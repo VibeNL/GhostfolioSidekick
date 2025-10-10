@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  // Always start with the writer agent.
 				  InitialAgent = defaultAgent,
 				  // Parse the function response.
-				  ResultParser = (result) => DetermineNextAgentWithLogger(result),
+				  ResultParser = DetermineNextAgentWithLogger,
 				  // The prompt variable name for the history argument.
 				  HistoryVariableName = "history",
 				  // Save tokens by not including the entire history in the prompt
@@ -84,8 +84,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  // Only the reviewer may give approval.
 				  Agents = [defaultAgent],
 				  // Parse the function response.
-				  ResultParser = (result) =>
-					DetermineTermination(result),
+				  ResultParser = DetermineTermination,
 				  // The prompt variable name for the history argument.
 				  HistoryVariableName = "history",
 				  // Save tokens by not including the entire history in the prompt

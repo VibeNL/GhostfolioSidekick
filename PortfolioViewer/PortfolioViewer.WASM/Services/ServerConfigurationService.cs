@@ -4,17 +4,17 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
-	public class ServerConfigurationService : IServerConfigurationService
+	public class ServerConfigurationService(HttpClient httpClient) : IServerConfigurationService
 	{
-		private readonly HttpClient _httpClient;
+		private static readonly JsonSerializerOptions _jsonOptions = new()
+		{
+			PropertyNameCaseInsensitive = true
+		};
+
+		private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 		private Currency? _cachedPrimaryCurrency;
 		private Task<Currency>? _primaryCurrencyTask;
-		private readonly object _lock = new();
-
-		public ServerConfigurationService(HttpClient httpClient)
-		{
-			_httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-		}
+		private readonly Lock _lock = new();
 
 		public Currency PrimaryCurrency
 		{
@@ -32,10 +32,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			{
 				lock (_lock)
 				{
-					if (_primaryCurrencyTask == null)
-					{
-						_primaryCurrencyTask = FetchPrimaryCurrencyAsync();
-					}
+					_primaryCurrencyTask ??= FetchPrimaryCurrencyAsync();
 				}
 			}
 
@@ -55,11 +52,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				if (response.IsSuccessStatusCode)
 				{
 					var content = await response.Content.ReadAsStringAsync();
-					var result = JsonSerializer.Deserialize<PrimaryCurrencyResponse>(content, new JsonSerializerOptions
-					{
-						PropertyNameCaseInsensitive = true
-					});
-					
+					var result = JsonSerializer.Deserialize<PrimaryCurrencyResponse>(content, _jsonOptions);
+
 					if (!string.IsNullOrWhiteSpace(result?.PrimaryCurrency))
 					{
 						_cachedPrimaryCurrency = Currency.GetCurrency(result.PrimaryCurrency);
@@ -78,10 +72,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			return _cachedPrimaryCurrency;
 		}
 
-		private class PrimaryCurrencyResponse
+		private sealed record PrimaryCurrencyResponse(string? PrimaryCurrency)
 		{
-			[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "<Pending>")]
-			public string? PrimaryCurrency { get; set; }
 		}
 	}
 }

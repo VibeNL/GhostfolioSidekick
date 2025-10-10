@@ -3,14 +3,9 @@ using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.Parsers
 {
-	public class SymbolMapper : ICurrencyMapper
+	public class SymbolMapper(IEnumerable<Mapping> mappings) : ICurrencyMapper
 	{
-		private readonly List<Mapping> mappings;
-
-		public SymbolMapper(IEnumerable<Mapping> mappings)
-		{
-			this.mappings = [.. mappings];
-		}
+		private readonly List<Mapping> mappings = [.. mappings];
 
 		public Currency Map(string currency)
 		{

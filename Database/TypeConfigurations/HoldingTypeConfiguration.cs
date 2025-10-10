@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 					partialSymbolIdentifiersListComparer);
 		}
 
-		private IList<PartialSymbolIdentifier> StringToPartialSymbolIdentifiers(string v)
+		private List<PartialSymbolIdentifier> StringToPartialSymbolIdentifiers(string v)
 		{
 			return JsonSerializer.Deserialize<ICollection<PartialSymbolIdentifier>>(v, serializationOptions)?.ToList() ?? [];
 		}

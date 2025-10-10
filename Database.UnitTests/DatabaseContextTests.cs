@@ -17,20 +17,18 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 				.UseSqlite("Data Source=:memory:")
 				.Options;
 
-			using (var context = new DatabaseContext(options))
-			{
-				await context.Database.OpenConnectionAsync();
+			using var context = new DatabaseContext(options);
+			await context.Database.OpenConnectionAsync();
 
-				// Act
-				await context.Database.MigrateAsync();
+			// Act
+			await context.Database.MigrateAsync();
 
-				// Assert
-				var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-				pendingMigrations.Should().BeEmpty();
+			// Assert
+			var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+			pendingMigrations.Should().BeEmpty();
 
-				// Check if table Holding exists
-				var tableExists = await context.Database.ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Holdings';");
-			}
+			// Check if table Holding exists
+			var tableExists = await context.Database.ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Holdings';");
 		}
 
 		[Fact]

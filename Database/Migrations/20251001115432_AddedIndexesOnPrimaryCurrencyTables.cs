@@ -13,12 +13,12 @@ namespace GhostfolioSidekick.Database.Migrations
 			migrationBuilder.CreateIndex(
 				name: "IX_CalculatedSnapshots_HoldingAggregatedId_Date",
 				table: "CalculatedSnapshots",
-				columns: new[] { "HoldingAggregatedId", "Date" });
+				columns: ["HoldingAggregatedId", "Date"]);
 
 			migrationBuilder.CreateIndex(
 				name: "IX_CalculatedSnapshotPrimaryCurrencies_HoldingAggregatedId_Date",
 				table: "CalculatedSnapshotPrimaryCurrencies",
-				columns: new[] { "HoldingAggregatedId", "Date" });
+				columns: ["HoldingAggregatedId", "Date"]);
 
 			migrationBuilder.CreateIndex(
 				name: "IX_BalancePrimaryCurrencies_Date",

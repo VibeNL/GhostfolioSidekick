@@ -9,7 +9,7 @@ namespace GhostfolioSidekick
 
 		private Task? task;
 		private readonly ILogger logger;
-		private readonly PriorityQueue<Scheduled, DateTime> workQueue = new PriorityQueue<Scheduled, DateTime>();
+		private readonly PriorityQueue<Scheduled, DateTime> workQueue = new();
 
 		public TimedHostedService(ILogger<TimedHostedService> logger, IEnumerable<IScheduledWork> workItems)
 		{
@@ -29,57 +29,81 @@ namespace GhostfolioSidekick
 
 			// create a task that runs continuously
 			task = Task.Run(async () =>
-						{
-							try
-							{
-								while (!cancellationTokenSource.Token.IsCancellationRequested)
-								{
-									var workItem = workQueue.Peek();
-
-									var delay = (workItem.NextSchedule - DateTime.Now).TotalMilliseconds;
-									if (delay > 0)
-									{
-										await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenSource.Token);
-										continue;
-									}
-
-									logger.LogInformation("Service {Name} is executing.", workItem.Work.GetType().Name);
-
-									workItem = workQueue.Dequeue();
-
-									try
-									{
-										await workItem.Work.DoWork();
-									}
-									catch (Exception ex)
-									{
-										logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
-
-										if (workItem.Work.ExceptionsAreFatal)
-										{
-											throw;
-										}
-									}
-
-									if (workItem.DetermineNextSchedule())
-									{
-										workQueue.Enqueue(workItem, workItem.NextSchedule);
-									}
-									else
-									{
-										logger.LogInformation("Service {Name} is no longer scheduled.", workItem.Work.GetType().Name);
-									}
-
-									logger.LogInformation("Service {Name} has executed.", workItem.Work.GetType().Name);
-								}
-							}
-							catch (Exception ex)
-							{
-								logger.LogCritical(ex, "An error occurred executing {Name}. Exception message {Message}", nameof(TimedHostedService), ex.Message);
-							}
-						}, cancellationTokenSource.Token);
+			{
+				try
+				{
+					await ExecuteWorkLoop();
+				}
+				catch (Exception ex)
+				{
+					logger.LogCritical(ex, "An error occurred executing {Name}. Exception message {Message}", nameof(TimedHostedService), ex.Message);
+				}
+			}, cancellationTokenSource.Token);
 
 			return Task.CompletedTask;
+		}
+
+		private async Task ExecuteWorkLoop()
+		{
+			while (!cancellationTokenSource!.Token.IsCancellationRequested)
+			{
+				var workItem = workQueue.Peek();
+
+				if (await ShouldDelayExecution(workItem))
+				{
+					continue;
+				}
+
+				logger.LogInformation("Service {Name} is executing.", workItem.Work.GetType().Name);
+
+				workItem = workQueue.Dequeue();
+
+				await ExecuteWorkItem(workItem);
+
+				HandleWorkItemCompletion(workItem);
+
+				logger.LogInformation("Service {Name} has executed.", workItem.Work.GetType().Name);
+			}
+		}
+
+		private async Task<bool> ShouldDelayExecution(Scheduled workItem)
+		{
+			var delay = (workItem.NextSchedule - DateTime.Now).TotalMilliseconds;
+			if (delay > 0)
+			{
+				await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenSource!.Token);
+				return true;
+			}
+			return false;
+		}
+
+		private async Task ExecuteWorkItem(Scheduled workItem)
+		{
+			try
+			{
+				await workItem.Work.DoWork();
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
+
+				if (workItem.Work.ExceptionsAreFatal)
+				{
+					throw;
+				}
+			}
+		}
+
+		private void HandleWorkItemCompletion(Scheduled workItem)
+		{
+			if (workItem.DetermineNextSchedule())
+			{
+				workQueue.Enqueue(workItem, workItem.NextSchedule);
+			}
+			else
+			{
+				logger.LogInformation("Service {Name} is no longer scheduled.", workItem.Work.GetType().Name);
+			}
 		}
 
 		public async Task StopAsync(CancellationToken cancellationToken)
@@ -107,17 +131,11 @@ namespace GhostfolioSidekick
 			cancellationTokenSource = null;
 		}
 
-		private sealed class Scheduled
+		private sealed class Scheduled(IScheduledWork item, DateTime nextSchedule)
 		{
-			public Scheduled(IScheduledWork item, DateTime nextSchedule)
-			{
-				Work = item;
-				NextSchedule = nextSchedule;
-			}
+			public IScheduledWork Work { get; } = item;
 
-			public IScheduledWork Work { get; }
-
-			public DateTime NextSchedule { get; set; }
+			public DateTime NextSchedule { get; set; } = nextSchedule;
 
 			internal bool DetermineNextSchedule()
 			{

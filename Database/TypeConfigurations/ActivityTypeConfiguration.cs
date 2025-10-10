@@ -40,11 +40,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 		IEntityTypeConfiguration<CalculatedPriceTrace>
 	{
-		public ActivityTypeConfiguration()
-		{
-			var stringEnumConverter = new System.Text.Json.Serialization.JsonStringEnumConverter();
-		}
-
 		public void Configure(EntityTypeBuilder<Activity> builder)
 		{
 			builder.ToTable("Activities");
@@ -71,9 +66,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 
 			builder.HasKey(a => a.Id);
 
-			var type = typeof(Activity);
-			var types = type.Assembly.GetTypes().Where(type.IsAssignableFrom);
-
 			// Indexes
 			builder.HasIndex(a => a.Date);
 			builder.HasIndex("AccountId");
@@ -84,7 +76,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.UnitPrice, nameof(ActivityWithQuantityAndUnitPrice.UnitPrice));
 			MapMoney(builder, x => x.AdjustedUnitPrice, nameof(ActivityWithQuantityAndUnitPrice.AdjustedUnitPrice));
 			MapMoney(builder, x => x.TotalTransactionAmount, nameof(ActivityWithQuantityAndUnitPrice.TotalTransactionAmount));
-			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 
 			builder.HasMany(x => x.AdjustedUnitPriceSource)
 				.WithOne()
@@ -136,7 +128,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<DividendActivity> builder)
 		{
 			MapMoney(builder, x => x.Amount, nameof(DividendActivity.Amount));
-			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 			builder.HasMany(x => x.Fees)
 				.WithOne()
 				.HasForeignKey(x => x.ActivityId)
@@ -174,13 +166,13 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<LiabilityActivity> builder)
 		{
 			MapMoney(builder, x => x.Amount, nameof(LiabilityActivity.Amount));
-			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 		}
 
 		public void Configure(EntityTypeBuilder<RepayBondActivity> builder)
 		{
 			MapMoney(builder, x => x.Amount, nameof(RepayBondActivity.Amount));
-			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 		}
 
 		public void Configure(EntityTypeBuilder<SendActivity> builder)
@@ -206,7 +198,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 		public void Configure(EntityTypeBuilder<ValuableActivity> builder)
 		{
 			MapMoney(builder, x => x.Amount, nameof(ValuableActivity.Amount));
-			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers, nameof(ActivityWithQuantityAndUnitPrice.PartialSymbolIdentifiers));
+			MapPartialSymbolIdentifiers(builder, x => x.PartialSymbolIdentifiers);
 		}
 
 		public void Configure(EntityTypeBuilder<BuyActivityFee> builder)
@@ -277,7 +269,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			MapMoney(builder, x => x.NewPrice, nameof(CalculatedPriceTrace.NewPrice));
 		}
 
-		private static void MapPartialSymbolIdentifiers<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, IEnumerable<PartialSymbolIdentifier>?>>? navigationExpression, string name) where TEntity : class
+		private static void MapPartialSymbolIdentifiers<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, IEnumerable<PartialSymbolIdentifier>?>>? navigationExpression) where TEntity : class
 		{
 			builder.HasMany(navigationExpression)
 		   .WithMany()
