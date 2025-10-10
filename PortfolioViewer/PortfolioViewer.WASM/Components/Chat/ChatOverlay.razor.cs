@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 {
 	public partial class ChatOverlay : ComponentBase, IDisposable
 	{
-		[Inject] private IJSRuntime JS { get; set; }
+		[Inject] private IJSRuntime JS { get; set; } = default!;
 
 		private bool IsOpen;
 		private string CurrentMessage = "";
