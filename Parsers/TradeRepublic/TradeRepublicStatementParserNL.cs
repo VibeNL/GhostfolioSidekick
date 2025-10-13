@@ -148,9 +148,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 					var items = words.Skip(j + 4).TakeWhile(w => w.BoundingBox!.Row == singleWordToken.BoundingBox!.Row).ToList();
 
-					var amountText = items[items.Count - 2];
-					var currency = Currency.GetCurrency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text.Substring(0, 1)));
-					var amount = decimal.Parse(amountText.Text.Substring(1).Trim(), dutchCultureInfo);
+					var amountText = items[^2];
+					var currency = Currency.GetCurrency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text[..1]));
+					var amount = decimal.Parse(amountText.Text[1..].Trim(), dutchCultureInfo);
 
 					var id = $"Trade_Republic_{singleWordToken.Text}_{date.ToInvariantDateOnlyString()}";
 

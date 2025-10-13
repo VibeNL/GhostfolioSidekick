@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Model.Symbols
 				return dataSource;
 			}
 
-			return dataSource.Substring(GHOSTFOLIO.Length + 1);
+			return dataSource[(GHOSTFOLIO.Length + 1)..];
 		}
 
 		public static bool IsGhostfolio(string dataSource)
