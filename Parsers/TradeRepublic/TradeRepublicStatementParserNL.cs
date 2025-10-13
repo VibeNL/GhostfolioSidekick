@@ -189,9 +189,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private static List<SingleWordToken> GetActivityItems(List<SingleWordToken> words, int typeTokenIndex)
 		{
 			var typeToken = words[typeTokenIndex];
-			return words.Skip(typeTokenIndex + 1)
-				.TakeWhile(w => w.BoundingBox!.Row == typeToken.BoundingBox!.Row)
-				.ToList();
+			return [.. words.Skip(typeTokenIndex + 1).TakeWhile(w => w.BoundingBox!.Row == typeToken.BoundingBox!.Row)];
 		}
 
 		private static (Currency currency, decimal amount) ParseAmountAndCurrency(List<SingleWordToken> items)
