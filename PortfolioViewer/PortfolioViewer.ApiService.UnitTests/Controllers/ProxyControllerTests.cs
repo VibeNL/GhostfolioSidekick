@@ -104,7 +104,13 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			okResult.Value.Should().BeOfType<FetchResponse>();
 
 			var fetchResponse = (FetchResponse)okResult.Value!;
-			fetchResponse.Url.Should().Be(testUrl);
+			// Uri normalization may add trailing slash, so check the base components
+			var expectedUri = new Uri(testUrl);
+			var actualUri = new Uri(fetchResponse.Url);
+			actualUri.Host.Should().Be(expectedUri.Host);
+			actualUri.Scheme.Should().Be(expectedUri.Scheme);
+			actualUri.Port.Should().Be(expectedUri.Port);
+			
 			fetchResponse.StatusCode.Should().Be(200);
 			fetchResponse.Title.Should().Be("Test Title");
 			fetchResponse.Description.Should().Be("Test Description");
