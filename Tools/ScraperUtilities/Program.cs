@@ -40,8 +40,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					var page = defaultContext.Pages[0];
 
 					logger.LogInformation("Starting the scraping process...");
-					logger.LogInformation($"Broker: {broker}");
-					logger.LogInformation($"Output directory: {outputDirectory}");
+					logger.LogInformation("Broker: {Broker}", broker);
+					logger.LogInformation("Output directory: {OutputDirectory}", outputDirectory);
 
 					IEnumerable<ActivityWithSymbol> transactions;
 					switch (broker)
@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					}
 
 					var outputFile = Path.Combine(outputDirectory, $"{broker}.csv");
-					logger.LogInformation($"Output file: {outputFile}");
+					logger.LogInformation("Output file: {OutputFile}", outputFile);
 
 					SaveToCSV(outputFile, transactions);
 					logger.LogInformation("Scraping process completed.");
@@ -267,11 +267,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 						default:
 							Console.WriteLine("Invalid input.");
 							continue;
-					}
-
-					if (broker == null)
-					{
-						continue;
 					}
 
 					await RunAsync(broker.Value, outputDirectory);
