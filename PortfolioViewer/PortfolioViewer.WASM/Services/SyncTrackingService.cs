@@ -1,4 +1,5 @@
 using Microsoft.JSInterop;
+using System.Globalization;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
@@ -16,7 +17,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					return null;
 				}
 
-				if (DateTime.TryParse(storedValue, out var lastSyncTime))
+				if (DateTime.TryParse(storedValue, CultureInfo.InvariantCulture, out var lastSyncTime))
 				{
 					return lastSyncTime;
 				}

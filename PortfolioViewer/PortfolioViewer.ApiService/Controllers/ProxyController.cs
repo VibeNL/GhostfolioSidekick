@@ -2,6 +2,7 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Models;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -14,6 +15,23 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 		private const string contentString = "content";
 		private readonly HttpClient _httpClient;
 		private readonly IConfigurationHelper _configurationHelper;
+
+		// Allowed URL schemes for security
+		private static readonly HashSet<string> AllowedSchemes = new(StringComparer.OrdinalIgnoreCase) { "http", "https" };
+		
+		// Blocked private/internal IP ranges and localhost
+		private static readonly List<IPNetwork> BlockedNetworks =
+		[
+			IPNetwork.Parse("127.0.0.0/8"),     // Loopback
+			IPNetwork.Parse("10.0.0.0/8"),      // Private Class A
+			IPNetwork.Parse("172.16.0.0/12"),   // Private Class B
+			IPNetwork.Parse("192.168.0.0/16"),  // Private Class C
+			IPNetwork.Parse("169.254.0.0/16"),  // Link-local
+			IPNetwork.Parse("224.0.0.0/4"),     // Multicast
+			IPNetwork.Parse("::1/128"),         // IPv6 loopback
+			IPNetwork.Parse("fc00::/7"),        // IPv6 unique local
+			IPNetwork.Parse("fe80::/10")        // IPv6 link-local
+		];
 
 		public ProxyController(IHttpClientFactory httpClientFactory, IConfigurationHelper configurationHelper)
 		{
@@ -32,10 +50,17 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				return BadRequest("URL is required.");
 			}
 
+			// Validate and sanitize the URL
+			var validationResult = await ValidateUrlAsync(url);
+			if (!validationResult.IsValid)
+			{
+				return BadRequest($"Invalid URL: {validationResult.ErrorMessage}");
+			}
+
 			try
 			{
-				// Create HTTP request with appropriate headers
-				var response = await _httpClient.GetAsync(url);
+				// Use the validated URL - validationResult.ValidatedUrl is guaranteed to be non-null when IsValid is true
+				var response = await _httpClient.GetAsync(validationResult.ValidatedUrl!);
 
 				// Check if the response is successful
 				if (!response.IsSuccessStatusCode)
@@ -64,7 +89,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 				// Create a result object with additional metadata
 				var result = new FetchResponse
 				{
-					Url = url,
+					Url = validationResult.ValidatedUrl!.ToString(),
 					StatusCode = (int)response.StatusCode,
 					Title = Title,
 					Description = Description,
@@ -84,6 +109,50 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			{
 				return StatusCode(500, $"An error occurred: {ex.Message}");
 			}
+		}
+
+		private static async Task<UrlValidationResult> ValidateUrlAsync(string url)
+		{
+			// Try to parse the URL
+			if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? parsedUri))
+			{
+				return new UrlValidationResult { IsValid = false, ErrorMessage = "Invalid URL format" };
+			}
+
+			// Check if scheme is allowed
+			if (!AllowedSchemes.Contains(parsedUri.Scheme))
+			{
+				return new UrlValidationResult { IsValid = false, ErrorMessage = $"URL scheme '{parsedUri.Scheme}' is not allowed" };
+			}
+
+			// Resolve the hostname to IP addresses
+			try
+			{
+				var hostEntry = await Dns.GetHostEntryAsync(parsedUri.Host);
+
+				// Check each resolved IP address using LINQ
+				var blockedIp = hostEntry.AddressList
+					.FirstOrDefault(ipAddress => BlockedNetworks.Any(blockedNetwork => blockedNetwork.Contains(ipAddress)));
+
+				if (blockedIp != null)
+				{
+					return new UrlValidationResult { IsValid = false, ErrorMessage = "Access to private/internal networks is not allowed" };
+				}
+			}
+			catch (Exception)
+			{
+				// If DNS resolution fails, block the request
+				return new UrlValidationResult { IsValid = false, ErrorMessage = "Unable to resolve hostname" };
+			}
+
+			// Additional port validation - block common internal service ports
+			var blockedPorts = new HashSet<int> { 22, 23, 25, 53, 110, 143, 993, 995, 1433, 3306, 5432, 6379, 11211, 27017 };
+			if (blockedPorts.Contains(parsedUri.Port))
+			{
+				return new UrlValidationResult { IsValid = false, ErrorMessage = $"Access to port {parsedUri.Port} is not allowed" };
+			}
+
+			return new UrlValidationResult { IsValid = true, ValidatedUrl = parsedUri };
 		}
 
 		[HttpGet("google-search")]
@@ -305,5 +374,79 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 
 		[GeneratedRegex(@"\n\s*\n")]
 		private static partial Regex NewlineRegex();
+	}
+
+	internal class UrlValidationResult
+	{
+		public bool IsValid { get; set; }
+		public string ErrorMessage { get; set; } = string.Empty;
+		public Uri? ValidatedUrl { get; set; }
+	}
+
+	// Helper class for IP network validation
+	internal class IPNetwork
+	{
+		private readonly IPAddress _network;
+		private readonly byte[] _maskBytes;
+
+		private IPNetwork(IPAddress network, int prefixLength)
+		{
+			_network = network;
+			_maskBytes = CreateMaskBytes(network.AddressFamily, prefixLength);
+		}
+
+		public static IPNetwork Parse(string cidr)
+		{
+			var parts = cidr.Split('/');
+			if (parts.Length != 2)
+				throw new ArgumentException("Invalid CIDR format");
+
+			var network = IPAddress.Parse(parts[0]);
+			var prefixLength = int.Parse(parts[1]);
+
+			return new IPNetwork(network, prefixLength);
+		}
+
+		public bool Contains(IPAddress address)
+		{
+			if (address.AddressFamily != _network.AddressFamily)
+				return false;
+
+			var addressBytes = address.GetAddressBytes();
+			var networkBytes = _network.GetAddressBytes();
+
+			// Apply mask to both addresses and compare
+			for (int i = 0; i < addressBytes.Length; i++)
+			{
+				if ((addressBytes[i] & _maskBytes[i]) != (networkBytes[i] & _maskBytes[i]))
+					return false;
+			}
+
+			return true;
+		}
+
+		private static byte[] CreateMaskBytes(System.Net.Sockets.AddressFamily addressFamily, int prefixLength)
+		{
+			int totalBits = addressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? 32 : 128;
+			int bytes = totalBits / 8;
+			var mask = new byte[bytes];
+
+			int fullBytes = prefixLength / 8;
+			int remainingBits = prefixLength % 8;
+
+			// Set full bytes to 255
+			for (int i = 0; i < fullBytes; i++)
+			{
+				mask[i] = 255;
+			}
+
+			// Set partial byte
+			if (remainingBits > 0 && fullBytes < bytes)
+			{
+				mask[fullBytes] = (byte)(255 << (8 - remainingBits));
+			}
+
+			return mask;
+		}
 	}
 }

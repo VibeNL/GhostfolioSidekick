@@ -186,7 +186,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
 				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
 
-				await sqlitePersistence.SaveChangesAsync(cancellationToken);
+				await sqlitePersistence.SaveChangesAsync();
 
 				var allSyncedTables = tablesToSyncPartially.Concat(tablesToSyncFully).ToList();
 				logger.LogInformation("Partial sync completed successfully for {TableCount} tables: {Tables}",
@@ -449,7 +449,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			await databaseContext.ExecutePragma("PRAGMA synchronous = FULL;"); // Force immediate writes
 			await databaseContext.ExecutePragma("PRAGMA cache_size = -2000;"); // Limit cache size to force writes
 
-			await sqlitePersistence.SaveChangesAsync(cancellationToken);
+			await sqlitePersistence.SaveChangesAsync();
 
 			progress?.Report(("Full sync completed successfully.", 100));
 		}

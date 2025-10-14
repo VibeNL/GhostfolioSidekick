@@ -28,10 +28,9 @@ namespace GhostfolioSidekick
 	internal static class Program
 	{
 		[ExcludeFromCodeCoverage]
-		static async Task Main(string[] args)
+		static async Task Main()
 		{
-			IHostBuilder hostBuilder = CreateHostBuilder();
-
+			var hostBuilder = CreateHostBuilder();
 			await hostBuilder.RunConsoleAsync();
 		}
 

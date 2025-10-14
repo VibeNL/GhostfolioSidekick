@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				return null;
 			}
 
-			var bestMatch = searchResults.First();
+			var bestMatch = searchResults[0];
 
 			return await CreateSymbolProfileFromMatch(bestMatch);
 		}

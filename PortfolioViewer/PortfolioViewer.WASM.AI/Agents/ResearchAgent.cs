@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				prompt.AppendLine($"\nTitle: {item.Title}");
 				if (!string.IsNullOrEmpty(item.Content) && item.Content.Length > 100)
 				{
-					prompt.AppendLine($"Content: {item.Content.Substring(0, Math.Min(500, item.Content.Length))}...");
+					prompt.AppendLine($"Content: {item.Content[..Math.Min(500, item.Content.Length)]}...");
 				}
 			}
 
@@ -135,7 +135,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 			// Ensure the query isn't too long for search engines
 			if (optimizedQuery.Length > 150)
 			{
-				optimizedQuery = optimizedQuery.Substring(0, 150);
+				optimizedQuery = optimizedQuery[..150];
 			}
 
 			// Make sure the core topic is included in the query
@@ -219,15 +219,15 @@ Respond with a JSON array of 3-5 clear and specific aspects to research.");
 					aspectContent = aspectContent.Trim();
 					if (aspectContent.StartsWith("```json"))
 					{
-						aspectContent = aspectContent.Substring(7);
+						aspectContent = aspectContent[7..];
 					}
 					if (aspectContent.StartsWith("```"))
 					{
-						aspectContent = aspectContent.Substring(3);
+						aspectContent = aspectContent[3..];
 					}
 					if (aspectContent.EndsWith("```"))
 					{
-						aspectContent = aspectContent.Substring(0, aspectContent.Length - 3);
+						aspectContent = aspectContent[..^3];
 					}
 					aspects = JsonSerializer.Deserialize<string[]>(aspectContent) ?? ["overview", "recent developments", "analysis"];
 				}

@@ -15,6 +15,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private const string Keyword_BedragAf = "BEDRAF AF";
 		private const string Keyword_Saldo = "SALDO";
 
+		private static readonly CultureInfo DutchCultureInfo = new("nl-NL");
+
 		private static List<string> TableKeyWords
 		{
 			get
@@ -55,186 +57,305 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
-
-			// detect headers
 			var headers = new List<MultiWordToken>();
 
-			bool inHeader = false;
+			var parsingState = new ParsingState();
 
-			for (int i = 0; i < words.Count; i++)
+			int i = 0;
+			while (i < words.Count)
 			{
-				var word = words[i];
-
-				if (headers.Count == TableKeyWords.Count) // parsing rows
+				if (IsReadyToParseActivities(headers))
 				{
-					var incr = ParseActivity(words, i, activities);
-					if (incr == int.MaxValue)
+					var increment = ParseActivity(words, i, activities);
+					if (increment == int.MaxValue)
 					{
 						break;
 					}
-
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-					i += incr;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
+					i += increment;
 				}
-
-				if (Keyword_Datum == word.Text) // start of header
+				else
 				{
-					inHeader = true;
-				}
-
-				if (inHeader) // add column headers
-				{
-					var matched = false;
-					foreach (var kw in TableKeyWords)
-					{
-						var keywordMatch = true;
-						string[] keywordSplitted = kw.Split(" ");
-						for (int j = 0; j < keywordSplitted.Length; j++)
-						{
-							string? keyword = keywordSplitted[j];
-							if (words[i + j].Text != keyword)
-							{
-								keywordMatch = false;
-								break;
-							}
-						}
-
-						if (keywordMatch)
-						{
-							headers.Add(new MultiWordToken(kw, word.BoundingBox));
-							matched = true;
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-							i += keywordSplitted.Length - 1;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
-							break;
-						}
-					}
-
-					if (!matched)
-					{
-						inHeader = false;
-						headers.Clear();
-					}
-				}
-
-				if (Keyword_Saldo == word.Text) // end of header
-				{
-					inHeader = false;
+					var newIndex = ProcessHeaderParsing(words, i, headers, parsingState);
+					i = newIndex + 1; // Move to next word after processing current one
 				}
 			}
 
 			return activities;
 		}
 
+		private static bool IsReadyToParseActivities(List<MultiWordToken> headers)
+		{
+			return headers.Count == TableKeyWords.Count;
+		}
+
+		private static int ProcessHeaderParsing(List<SingleWordToken> words, int currentIndex, List<MultiWordToken> headers, ParsingState state)
+		{
+			var word = words[currentIndex];
+
+			if (IsStartOfHeader(word.Text))
+			{
+				state.InHeader = true;
+			}
+
+			if (state.InHeader)
+			{
+				var headerProcessResult = ProcessHeaderKeywords(words, currentIndex, headers);
+				if (headerProcessResult.Found)
+				{
+					return currentIndex + headerProcessResult.Increment;
+				}
+				else
+				{
+					ResetHeaderParsing(headers, state);
+				}
+			}
+
+			if (IsEndOfHeader(word.Text))
+			{
+				state.InHeader = false;
+			}
+
+			return currentIndex;
+		}
+
+		private static bool IsStartOfHeader(string text)
+		{
+			return text == Keyword_Datum;
+		}
+
+		private static bool IsEndOfHeader(string text)
+		{
+			return text == Keyword_Saldo;
+		}
+
+		private static HeaderProcessResult ProcessHeaderKeywords(List<SingleWordToken> words, int currentIndex, List<MultiWordToken> headers)
+		{
+			var word = words[currentIndex];
+
+			foreach (var keyword in TableKeyWords)
+			{
+				var matchResult = TryMatchKeyword(words, currentIndex, keyword);
+				if (matchResult.IsMatch)
+				{
+					headers.Add(new MultiWordToken(keyword, word.BoundingBox));
+					return new HeaderProcessResult(true, matchResult.WordCount - 1);
+				}
+			}
+
+			return new HeaderProcessResult(false, 0);
+		}
+
+		private static KeywordMatchResult TryMatchKeyword(List<SingleWordToken> words, int startIndex, string keyword)
+		{
+			var keywordParts = keyword.Split(" ");
+			
+			for (int i = 0; i < keywordParts.Length; i++)
+			{
+				if (startIndex + i >= words.Count || words[startIndex + i].Text != keywordParts[i])
+				{
+					return new KeywordMatchResult(false, 0);
+				}
+			}
+
+			return new KeywordMatchResult(true, keywordParts.Length);
+		}
+
+		private static void ResetHeaderParsing(List<MultiWordToken> headers, ParsingState state)
+		{
+			state.InHeader = false;
+			headers.Clear();
+		}
+
 		private static int ParseActivity(List<SingleWordToken> words, int i, List<PartialActivity> activities)
 		{
 			for (int j = i; j < words.Count - 2; j++)
 			{
-				CultureInfo dutchCultureInfo = new("nl-NL");
-				if (DateTime.TryParseExact(
-					words[j].Text + " " + words[j + 1].Text + " " + words[j + 2].Text,
-					["dd MMM yyyy", "dd MMM. yyyy"],
-					dutchCultureInfo,
-					DateTimeStyles.AssumeUniversal,
-					out var date))
+				if (TryParseDate(words, j, out var date))
 				{
-					// start of a new activity
-					SingleWordToken singleWordToken = words[j + 3];
-					if (singleWordToken.Text == "Handel" || singleWordToken.Text == "Inkomsten" || singleWordToken.Text == "Pagina")
-					{
-						return j - i + 3;
-					}
-
-					var items = words.Skip(j + 4).TakeWhile(w => w.BoundingBox!.Row == singleWordToken.BoundingBox!.Row).ToList();
-
-					var amountText = items[items.Count - 2];
-					var currency = Currency.GetCurrency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text.Substring(0, 1)));
-					var amount = decimal.Parse(amountText.Text.Substring(1).Trim(), dutchCultureInfo);
-
-					var id = $"Trade_Republic_{singleWordToken.Text}_{date.ToInvariantDateOnlyString()}";
-
-					switch (singleWordToken.Text)
-					{
-						case "Rentebetaling":
-							activities.Add(PartialActivity.CreateInterest(
-											currency,
-											date,
-											amount,
-											string.Join(" ", items.Take(items.Count - 2)),
-											new Money(currency, amount),
-											id));
-
-							break;
-						case "Overschrijving":
-
-							if (items[0].Text == "PayOut")
-							{
-								activities.Add(PartialActivity.CreateCashWithdrawal(
-									currency,
-									date,
-									amount,
-									new Money(currency, amount),
-									id));
-							}
-							else if (items[0].Text == "Storting" ||
-									 items.Select(x => x.Text).Contains("inpayed") ||
-									 (items.Select(x => x.Text).Contains("Top") && items.Select(x => x.Text).Contains("up")))
-							{
-								activities.Add(PartialActivity.CreateCashDeposit(
-									currency,
-									date,
-									amount,
-									new Money(currency, amount),
-									id));
-							}
-							else
-							{
-								throw new NotSupportedException($"{items[0].Text} not supported as an {singleWordToken.Text}");
-							}
-
-							break;
-						case "Kaarttransactie":
-							activities.Add(PartialActivity.CreateCashWithdrawal(
-												currency,
-												date,
-												amount,
-												new Money(currency, amount),
-												id));
-							break;
-						case "Beloning":
-							activities.Add(PartialActivity.CreateGift(
-													currency,
-													date,
-													amount,
-													new Money(currency, amount),
-													id));
-							break;
-						case "Handel":
-							// Buy or sell
-							// Should be handeld by another parser
-							break;
-						case "Verwijzing":
-							activities.Add(PartialActivity.CreateGift(
-													currency,
-													date,
-													amount,
-													new Money(currency, amount),
-													id));
-							break;
-						case "Inkomsten":
-							// Dividend
-							// Should be handeld by another parser
-							break;
-						default:
-							throw new NotSupportedException();
-					}
-
-					return j - i + 3 + items.Count;
+					return ProcessActivityAtDate(words, j, date, activities, i);
 				}
 			}
 
 			return int.MaxValue;
 		}
+
+		private static bool TryParseDate(List<SingleWordToken> words, int index, out DateTime date)
+		{
+			date = default;
+			
+			if (index + 2 >= words.Count)
+				return false;
+
+			var dateString = $"{words[index].Text} {words[index + 1].Text} {words[index + 2].Text}";
+			
+			return DateTime.TryParseExact(
+				dateString,
+				["dd MMM yyyy", "dd MMM. yyyy"],
+				DutchCultureInfo,
+				DateTimeStyles.AssumeUniversal,
+				out date);
+		}
+
+		private static int ProcessActivityAtDate(List<SingleWordToken> words, int dateIndex, DateTime date, List<PartialActivity> activities, int originalIndex)
+		{
+			var typeTokenIndex = dateIndex + 3;
+			if (typeTokenIndex >= words.Count)
+				return int.MaxValue;
+
+			var typeToken = words[typeTokenIndex];
+			
+			if (ShouldSkipActivityType(typeToken.Text))
+			{
+				return dateIndex - originalIndex + 3;
+			}
+
+			var items = GetActivityItems(words, typeTokenIndex);
+			var (currency, amount) = ParseAmountAndCurrency(items);
+			var id = GenerateTransactionId(typeToken.Text, date);
+
+			CreateActivityBasedOnType(typeToken.Text, date, currency, amount, items, activities, id);
+
+			return dateIndex - originalIndex + 3 + items.Count;
+		}
+
+		private static bool ShouldSkipActivityType(string activityType)
+		{
+			return activityType is "Handel" or "Inkomsten" or "Pagina";
+		}
+
+		private static List<SingleWordToken> GetActivityItems(List<SingleWordToken> words, int typeTokenIndex)
+		{
+			var typeToken = words[typeTokenIndex];
+			return [.. words.Skip(typeTokenIndex + 1).TakeWhile(w => w.BoundingBox!.Row == typeToken.BoundingBox!.Row)];
+		}
+
+		private static (Currency currency, decimal amount) ParseAmountAndCurrency(List<SingleWordToken> items)
+		{
+			var amountText = items[^2];
+			var currency = Currency.GetCurrency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text[..1]));
+			var amount = decimal.Parse(amountText.Text[1..].Trim(), DutchCultureInfo);
+			
+			return (currency, amount);
+		}
+
+		private static string GenerateTransactionId(string activityType, DateTime date)
+		{
+			return $"Trade_Republic_{activityType}_{date.ToInvariantDateOnlyString()}";
+		}
+
+		private static void CreateActivityBasedOnType(
+			string activityType, 
+			DateTime date, 
+			Currency currency, 
+			decimal amount, 
+			List<SingleWordToken> items, 
+			List<PartialActivity> activities, 
+			string id)
+		{
+			switch (activityType)
+			{
+				case "Rentebetaling":
+					CreateInterestActivity(currency, date, amount, items, activities, id);
+					break;
+				case "Overschrijving":
+					CreateTransferActivity(currency, date, amount, items, activities, id);
+					break;
+				case "Kaarttransactie":
+					CreateCardTransactionActivity(currency, date, amount, activities, id);
+					break;
+				case "Beloning":
+				case "Verwijzing":
+					CreateGiftActivity(currency, date, amount, activities, id);
+					break;
+				case "Handel":
+				case "Inkomsten":
+					// These are handled by other parsers
+					break;
+				default:
+					throw new NotSupportedException($"Activity type '{activityType}' is not supported");
+			}
+		}
+
+		private static void CreateInterestActivity(Currency currency, DateTime date, decimal amount, List<SingleWordToken> items, List<PartialActivity> activities, string id)
+		{
+			var description = string.Join(" ", items.Take(items.Count - 2));
+			activities.Add(PartialActivity.CreateInterest(
+				currency,
+				date,
+				amount,
+				description,
+				new Money(currency, amount),
+				id));
+		}
+
+		private static void CreateTransferActivity(Currency currency, DateTime date, decimal amount, List<SingleWordToken> items, List<PartialActivity> activities, string id)
+		{
+			var firstItemText = items[0].Text;
+			var itemTexts = items.Select(x => x.Text).ToList();
+
+			if (IsPayOut(firstItemText))
+			{
+				activities.Add(PartialActivity.CreateCashWithdrawal(
+					currency,
+					date,
+					amount,
+					new Money(currency, amount),
+					id));
+			}
+			else if (IsDeposit(firstItemText, itemTexts))
+			{
+				activities.Add(PartialActivity.CreateCashDeposit(
+					currency,
+					date,
+					amount,
+					new Money(currency, amount),
+					id));
+			}
+			else
+			{
+				throw new NotSupportedException($"{firstItemText} not supported as an Overschrijving");
+			}
+		}
+
+		private static bool IsPayOut(string firstItemText)
+		{
+			return firstItemText == "PayOut";
+		}
+
+		private static bool IsDeposit(string firstItemText, List<string> itemTexts)
+		{
+			return firstItemText == "Storting" ||
+				   itemTexts.Contains("inpayed") ||
+				   (itemTexts.Contains("Top") && itemTexts.Contains("up"));
+		}
+
+		private static void CreateCardTransactionActivity(Currency currency, DateTime date, decimal amount, List<PartialActivity> activities, string id)
+		{
+			activities.Add(PartialActivity.CreateCashWithdrawal(
+				currency,
+				date,
+				amount,
+				new Money(currency, amount),
+				id));
+		}
+
+		private static void CreateGiftActivity(Currency currency, DateTime date, decimal amount, List<PartialActivity> activities, string id)
+		{
+			activities.Add(PartialActivity.CreateGift(
+				currency,
+				date,
+				amount,
+				new Money(currency, amount),
+				id));
+		}
+
+		// Helper classes for parsing state management
+		private sealed class ParsingState
+		{
+			public bool InHeader { get; set; }
+		}
+
+		private sealed record HeaderProcessResult(bool Found, int Increment);
+		private sealed record KeywordMatchResult(bool IsMatch, int WordCount);
 	}
 }
