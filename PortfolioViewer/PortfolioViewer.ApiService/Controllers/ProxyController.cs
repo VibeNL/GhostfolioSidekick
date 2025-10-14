@@ -20,8 +20,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 		private static readonly HashSet<string> AllowedSchemes = new(StringComparer.OrdinalIgnoreCase) { "http", "https" };
 		
 		// Blocked private/internal IP ranges and localhost
-		private static readonly List<IPNetwork> BlockedNetworks = new()
-		{
+		private static readonly List<IPNetwork> BlockedNetworks =
+		[
 			IPNetwork.Parse("127.0.0.0/8"),     // Loopback
 			IPNetwork.Parse("10.0.0.0/8"),      // Private Class A
 			IPNetwork.Parse("172.16.0.0/12"),   // Private Class B
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			IPNetwork.Parse("::1/128"),         // IPv6 loopback
 			IPNetwork.Parse("fc00::/7"),        // IPv6 unique local
 			IPNetwork.Parse("fe80::/10")        // IPv6 link-local
-		};
+		];
 
 		public ProxyController(IHttpClientFactory httpClientFactory, IConfigurationHelper configurationHelper)
 		{
@@ -129,18 +129,14 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			try
 			{
 				var hostEntry = await Dns.GetHostEntryAsync(parsedUri.Host);
-				
-				// Check each resolved IP address
-				foreach (var ipAddress in hostEntry.AddressList)
+
+				// Check each resolved IP address using LINQ
+				var blockedIp = hostEntry.AddressList
+					.FirstOrDefault(ipAddress => BlockedNetworks.Any(blockedNetwork => blockedNetwork.Contains(ipAddress)));
+
+				if (blockedIp != null)
 				{
-					// Check if IP is in blocked networks
-					foreach (var blockedNetwork in BlockedNetworks)
-					{
-						if (blockedNetwork.Contains(ipAddress))
-						{
-							return new UrlValidationResult { IsValid = false, ErrorMessage = "Access to private/internal networks is not allowed" };
-						}
-					}
+					return new UrlValidationResult { IsValid = false, ErrorMessage = "Access to private/internal networks is not allowed" };
 				}
 			}
 			catch (Exception)
