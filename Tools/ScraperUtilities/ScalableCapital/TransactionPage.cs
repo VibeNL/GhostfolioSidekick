@@ -12,6 +12,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 	internal partial class TransactionPage(IPage page, ILogger logger)
 	{
 		private const string Description = "Transaction reference";
+		
 		private const string Url = "https://de.scalable.capital/cockpit/";
 
 		internal async Task<IEnumerable<ActivityWithSymbol>> ScrapeTransactions()

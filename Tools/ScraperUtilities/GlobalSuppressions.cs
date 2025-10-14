@@ -6,3 +6,4 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Minor Code Smell", "S6608:Prefer indexing instead of \"Enumerable\" methods on types implementing \"IList\"", Justification = "<Pending>", Scope = "member", Target = "~M:GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer.TransactionPage.GetMaxTransactions~System.Threading.Tasks.Task{System.Int32}")]
+[assembly: SuppressMessage("Minor Code Smell", "S1075:URIs should not be hardcoded", Justification = "<Pending>")]
