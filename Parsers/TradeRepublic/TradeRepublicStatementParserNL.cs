@@ -61,7 +61,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			var parsingState = new ParsingState();
 
-			for (int i = 0; i < words.Count; i++)
+			int i = 0;
+			while (i < words.Count)
 			{
 				if (IsReadyToParseActivities(headers))
 				{
@@ -71,10 +72,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						break;
 					}
 					i += increment;
-					continue;
 				}
-
-				i = ProcessHeaderParsing(words, i, headers, parsingState);
+				else
+				{
+					var newIndex = ProcessHeaderParsing(words, i, headers, parsingState);
+					i = newIndex + 1; // Move to next word after processing current one
+				}
 			}
 
 			return activities;
