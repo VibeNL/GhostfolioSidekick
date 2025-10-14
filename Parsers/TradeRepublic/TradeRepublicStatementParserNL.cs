@@ -57,76 +57,110 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
-
-			// detect headers
 			var headers = new List<MultiWordToken>();
 
-			bool inHeader = false;
+			var parsingState = new ParsingState();
 
 			for (int i = 0; i < words.Count; i++)
 			{
-				var word = words[i];
-
-				if (headers.Count == TableKeyWords.Count) // parsing rows
+				if (IsReadyToParseActivities(headers))
 				{
-					var incr = ParseActivity(words, i, activities);
-					if (incr == int.MaxValue)
+					var increment = ParseActivity(words, i, activities);
+					if (increment == int.MaxValue)
 					{
 						break;
 					}
-
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-					i += incr;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
+					i += increment;
+					continue;
 				}
 
-				if (Keyword_Datum == word.Text) // start of header
-				{
-					inHeader = true;
-				}
-
-				if (inHeader) // add column headers
-				{
-					var matched = false;
-					foreach (var kw in TableKeyWords)
-					{
-						var keywordMatch = true;
-						string[] keywordSplitted = kw.Split(" ");
-						for (int j = 0; j < keywordSplitted.Length; j++)
-						{
-							string? keyword = keywordSplitted[j];
-							if (words[i + j].Text != keyword)
-							{
-								keywordMatch = false;
-								break;
-							}
-						}
-
-						if (keywordMatch)
-						{
-							headers.Add(new MultiWordToken(kw, word.BoundingBox));
-							matched = true;
-#pragma warning disable S127 // "for" loop stop conditions should be invariant
-							i += keywordSplitted.Length - 1;
-#pragma warning restore S127 // "for" loop stop conditions should be invariant
-							break;
-						}
-					}
-
-					if (!matched)
-					{
-						inHeader = false;
-						headers.Clear();
-					}
-				}
-
-				if (Keyword_Saldo == word.Text) // end of header
-				{
-					inHeader = false;
-				}
+				i = ProcessHeaderParsing(words, i, headers, parsingState);
 			}
 
 			return activities;
+		}
+
+		private static bool IsReadyToParseActivities(List<MultiWordToken> headers)
+		{
+			return headers.Count == TableKeyWords.Count;
+		}
+
+		private static int ProcessHeaderParsing(List<SingleWordToken> words, int currentIndex, List<MultiWordToken> headers, ParsingState state)
+		{
+			var word = words[currentIndex];
+
+			if (IsStartOfHeader(word.Text))
+			{
+				state.InHeader = true;
+			}
+
+			if (state.InHeader)
+			{
+				var headerProcessResult = ProcessHeaderKeywords(words, currentIndex, headers);
+				if (headerProcessResult.Found)
+				{
+					return currentIndex + headerProcessResult.Increment;
+				}
+				else
+				{
+					ResetHeaderParsing(headers, state);
+				}
+			}
+
+			if (IsEndOfHeader(word.Text))
+			{
+				state.InHeader = false;
+			}
+
+			return currentIndex;
+		}
+
+		private static bool IsStartOfHeader(string text)
+		{
+			return text == Keyword_Datum;
+		}
+
+		private static bool IsEndOfHeader(string text)
+		{
+			return text == Keyword_Saldo;
+		}
+
+		private static HeaderProcessResult ProcessHeaderKeywords(List<SingleWordToken> words, int currentIndex, List<MultiWordToken> headers)
+		{
+			var word = words[currentIndex];
+
+			foreach (var keyword in TableKeyWords)
+			{
+				var matchResult = TryMatchKeyword(words, currentIndex, keyword);
+				if (matchResult.IsMatch)
+				{
+					headers.Add(new MultiWordToken(keyword, word.BoundingBox));
+					return new HeaderProcessResult(true, matchResult.WordCount - 1);
+				}
+			}
+
+			return new HeaderProcessResult(false, 0);
+		}
+
+		private static KeywordMatchResult TryMatchKeyword(List<SingleWordToken> words, int startIndex, string keyword)
+		{
+			var keywordParts = keyword.Split(" ");
+			
+			for (int i = 0; i < keywordParts.Length; i++)
+			{
+				if (startIndex + i >= words.Count || words[startIndex + i].Text != keywordParts[i])
+				{
+					return new KeywordMatchResult(false, 0);
+				}
+			}
+
+			return new KeywordMatchResult(true, keywordParts.Length);
+		}
+
+		private static void ResetHeaderParsing(List<MultiWordToken> headers, ParsingState state)
+		{
+			state.InHeader = false;
+			headers.Clear();
 		}
 
 		private static int ParseActivity(List<SingleWordToken> words, int i, List<PartialActivity> activities)
@@ -311,5 +345,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				new Money(currency, amount),
 				id));
 		}
+
+		// Helper classes for parsing state management
+		private sealed class ParsingState
+		{
+			public bool InHeader { get; set; }
+		}
+
+		private sealed record HeaderProcessResult(bool Found, int Increment);
+		private sealed record KeywordMatchResult(bool IsMatch, int WordCount);
 	}
 }
