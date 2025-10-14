@@ -5,7 +5,6 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 {

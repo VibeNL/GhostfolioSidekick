@@ -1,7 +1,5 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -115,7 +113,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 			Assert.True(agent.Kernel.Plugins.Count > 0);
 			
 			// Verify that the kernel has plugins (ResearchAgentFunction was added)
-			var hasPlugins = agent.Kernel.Plugins.Any();
+			var hasPlugins = agent.Kernel.Plugins.Count != 0;
 			Assert.True(hasPlugins);
 		}
 	}
@@ -299,7 +297,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 	// Test service provider that implements IServiceProvider without using extension methods
 	public class TestServiceProvider : IServiceProvider
 	{
-		private readonly Dictionary<Type, object> _services = new();
+		private readonly Dictionary<Type, object> _services = [];
 
 		public void AddService<T>(T service) where T : class
 		{

@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using HtmlAgilityPack;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 {
