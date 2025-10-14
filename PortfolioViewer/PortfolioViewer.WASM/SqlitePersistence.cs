@@ -5,6 +5,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 {
 	public class SqlitePersistence
 	{
+		private const string Import = "import";
+		private const string JsFile = "./js/sqlite-persistence.js";
+
 		private readonly IJSRuntime js;
 		private IJSObjectReference? module;
 
@@ -16,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 
 		public async Task InitializeDatabase()
 		{
-			module ??= await js.InvokeAsync<IJSObjectReference>("import", "./js/sqlite-persistence.js");
+			module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
 
 			Console.WriteLine("JavaScript module loaded");
 
@@ -24,9 +27,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 			Console.WriteLine("Database setup completed");
 		}
 
-		public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+		public async Task SaveChangesAsync()
 		{
-			module ??= await js.InvokeAsync<IJSObjectReference>("import", "./js/sqlite-persistence.js");
+			module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
 
 			Console.WriteLine("Syncing database to IndexedDB");
 
@@ -36,7 +39,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 
 		public async Task ClearDatabaseFromIndexedDb()
 		{
-			module ??= await js.InvokeAsync<IJSObjectReference>("import", "./js/sqlite-persistence.js");
+			module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
 
 			Console.WriteLine("Clearing database from IndexedDB");
 
@@ -46,7 +49,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM
 
 		public async Task DebugFileSystem()
 		{
-			module ??= await js.InvokeAsync<IJSObjectReference>("import", "./js/sqlite-persistence.js");
+			module ??= await js.InvokeAsync<IJSObjectReference>(Import, JsFile);
 
 			await module.InvokeVoidAsync("debugFileSystem", DatabaseContext.DbFileName);
 		}
