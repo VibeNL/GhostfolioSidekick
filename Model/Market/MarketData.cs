@@ -10,12 +10,12 @@
 			decimal tradingVolume,
 			DateOnly date)
 		{
-			this.Close = close ?? throw new ArgumentNullException(nameof(close));
-			this.Open = open ?? throw new ArgumentNullException(nameof(open));
-			this.High = high ?? throw new ArgumentNullException(nameof(high));
-			this.Low = low ?? throw new ArgumentNullException(nameof(low));
-			this.TradingVolume = tradingVolume;
-			this.Date = date;
+			Close = close ?? throw new ArgumentNullException(nameof(close));
+			Open = open ?? throw new ArgumentNullException(nameof(open));
+			High = high ?? throw new ArgumentNullException(nameof(high));
+			Low = low ?? throw new ArgumentNullException(nameof(low));
+			TradingVolume = tradingVolume;
+			Date = date;
 		}
 
 		public MarketData() // EF Core
@@ -35,12 +35,12 @@
 
 		public void CopyFrom(MarketData marketData)
 		{
-			this.Close = marketData.Close;
-			this.Open = marketData.Open;
-			this.High = marketData.High;
-			this.Low = marketData.Low;
-			this.TradingVolume = marketData.TradingVolume;
-			this.Date = marketData.Date;
+			Close = marketData.Close;
+			Open = marketData.Open;
+			High = marketData.High;
+			Low = marketData.Low;
+			TradingVolume = marketData.TradingVolume;
+			Date = marketData.Date;
 		}
 	}
 }

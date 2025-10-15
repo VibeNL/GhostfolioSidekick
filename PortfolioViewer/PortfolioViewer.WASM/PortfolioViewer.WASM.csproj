@@ -32,9 +32,9 @@
 	<ItemGroup>
 		<PackageReference Include="Bit.Besql" Version="9.12.0" />
 		<PackageReference Include="Markdig" Version="0.42.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.9" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.9" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.10" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.10" />
 		<PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.5.1" />
 		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.9.3">
 			<PrivateAssets>all</PrivateAssets>
@@ -81,8 +81,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.9" />
-		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="9.0.9" />
+		<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.10" />
+		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="9.0.10" />
 		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
 	</ItemGroup>
 

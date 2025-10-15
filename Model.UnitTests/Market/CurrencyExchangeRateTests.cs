@@ -3,7 +3,7 @@ using GhostfolioSidekick.Model.Market;
 
 namespace GhostfolioSidekick.Model.UnitTests.Market
 {
-	public class MarketDataTests
+	public class CurrencyExchangeRateTests
 	{
 		[Fact]
 		public void Constructor_WithValidParameters_ShouldSetAllProperties()
@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new CurrencyExchangeRate(close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.Close.Should().Be(close);
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 
 			// Act & Assert
 			Assert.Throws<ArgumentNullException>(() =>
-				new MarketData(close!, open, high, low, tradingVolume, date));
+				new CurrencyExchangeRate(close!, open, high, low, tradingVolume, date));
 		}
 
 		[Fact]
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 
 			// Act & Assert
 			Assert.Throws<ArgumentNullException>(() =>
-				new MarketData(close, open!, high, low, tradingVolume, date));
+				new CurrencyExchangeRate(close, open!, high, low, tradingVolume, date));
 		}
 
 		[Fact]
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 
 			// Act & Assert
 			Assert.Throws<ArgumentNullException>(() =>
-				new MarketData(close, open, high!, low, tradingVolume, date));
+				new CurrencyExchangeRate(close, open, high!, low, tradingVolume, date));
 		}
 
 		[Fact]
@@ -89,14 +89,14 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 
 			// Act & Assert
 			Assert.Throws<ArgumentNullException>(() =>
-				new MarketData(close, open, high, low!, tradingVolume, date));
+				new CurrencyExchangeRate(close, open, high, low!, tradingVolume, date));
 		}
 
 		[Fact]
 		public void DefaultConstructor_ShouldInitializePropertiesWithDefaults()
 		{
 			// Act
-			var marketData = new MarketData();
+			var marketData = new CurrencyExchangeRate();
 
 			// Assert
 			marketData.Close.Should().BeNull();
@@ -118,8 +118,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var originalTradingVolume = 1000000m;
 			var originalDate = DateOnly.FromDateTime(DateTime.Now);
 
-			var sourceMarketData = new MarketData(originalClose, originalOpen, originalHigh, originalLow, originalTradingVolume, originalDate);
-			var targetMarketData = new MarketData();
+			var sourceMarketData = new CurrencyExchangeRate(originalClose, originalOpen, originalHigh, originalLow, originalTradingVolume, originalDate);
+			var targetMarketData = new CurrencyExchangeRate();
 
 			// Act
 			targetMarketData.CopyFrom(sourceMarketData);
@@ -151,8 +151,8 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var newTradingVolume = 1000000m;
 			var newDate = DateOnly.FromDateTime(DateTime.Now);
 
-			var targetMarketData = new MarketData(initialClose, initialOpen, initialHigh, initialLow, initialTradingVolume, initialDate);
-			var sourceMarketData = new MarketData(newClose, newOpen, newHigh, newLow, newTradingVolume, newDate);
+			var targetMarketData = new CurrencyExchangeRate(initialClose, initialOpen, initialHigh, initialLow, initialTradingVolume, initialDate);
+			var sourceMarketData = new CurrencyExchangeRate(newClose, newOpen, newHigh, newLow, newTradingVolume, newDate);
 
 			// Act
 			targetMarketData.CopyFrom(sourceMarketData);
@@ -170,7 +170,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 		public void Properties_ShouldBeSettable()
 		{
 			// Arrange
-			var marketData = new MarketData();
+			var marketData = new CurrencyExchangeRate();
 			var close = new Money(Currency.USD, 100m);
 			var open = new Money(Currency.USD, 95m);
 			var high = new Money(Currency.USD, 105m);
@@ -207,7 +207,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new CurrencyExchangeRate(close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.TradingVolume.Should().Be(0m);
@@ -225,7 +225,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new CurrencyExchangeRate(close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.TradingVolume.Should().Be(-100m);
@@ -243,7 +243,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.FromDateTime(DateTime.Now);
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new CurrencyExchangeRate(close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.Close.Currency.Should().Be(Currency.USD);
@@ -264,7 +264,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.MinValue;
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new CurrencyExchangeRate(close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.Date.Should().Be(DateOnly.MinValue);
@@ -282,7 +282,7 @@ namespace GhostfolioSidekick.Model.UnitTests.Market
 			var date = DateOnly.MaxValue;
 
 			// Act
-			var marketData = new MarketData(close, open, high, low, tradingVolume, date);
+			var marketData = new CurrencyExchangeRate(close, open, high, low, tradingVolume, date);
 
 			// Assert
 			marketData.Date.Should().Be(DateOnly.MaxValue);

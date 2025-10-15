@@ -435,7 +435,7 @@ Format function calls like this:
 			{
 				interopInstance = interopInstance,
 				module = module,
-				ChatMode = this.ChatMode,
+				ChatMode = ChatMode,
 			};
 		}
 
