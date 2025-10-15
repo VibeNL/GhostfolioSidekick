@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
 using KellermanSoftware.CompareNetObjects;
+using System.Linq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 {
@@ -25,14 +26,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 				}
 			}
 
-			foreach (var existingActivityGroup in existingActivityByReferenceCode)
+			foreach (var existingActivityGroup in existingActivityByReferenceCode
+				.Where(existingActivityGroup => !newActivityByReferenceCode
+					.Any(x => x.Key == existingActivityGroup.Key)))
 			{
-				if (!newActivityByReferenceCode.Any(x => x.Key == existingActivityGroup.Key))
-				{
-					mergeOrders.AddRange(existingActivityGroup.Select(x => new MergeOrder(Operation.Removed, x.SymbolProfile, x)));
-				}
+				mergeOrders.AddRange(existingActivityGroup.Select(x => new MergeOrder(Operation.Removed, x.SymbolProfile, x)));
 			}
-
 
 			return Task.FromResult(mergeOrders);
 		}

@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			var researchAgent = ResearchAgent.Create(webChatClient, serviceProvider);
 			defaultAgent = GhostfolioSidekick.Create(webChatClient, [researchAgent]);
 
-			this.agents = [
+			agents = [
 				defaultAgent,
 				researchAgent
 			];

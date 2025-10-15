@@ -169,8 +169,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null);
-			sendReceiveActivity.UnitPrice = new Money(Currency.USD, 100);
+			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null)
+			{
+				UnitPrice = new Money(Currency.USD, 100)
+			};
 			var activities = new List<Activity> { sendReceiveActivity };
 
 			List<Activity> capturedActivities = [];
@@ -217,8 +219,10 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var giftAssetActivity = new GiftAssetActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null);
-			giftAssetActivity.UnitPrice = new Money(Currency.USD, 100);
+			var giftAssetActivity = new GiftAssetActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null)
+			{
+				UnitPrice = new Money(Currency.USD, 100)
+			};
 			var activities = new List<Activity> { giftAssetActivity };
 
 			List<Activity> capturedActivities = [];
@@ -335,10 +339,12 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 		{
 			// Arrange
 			var account = new Account { Name = "TestAccount", SyncActivities = true };
-			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null);
-			sendReceiveActivity.UnitPrice = new Money(Currency.USD, 100);
-			sendReceiveActivity.AdjustedQuantity = 20;
-			sendReceiveActivity.AdjustedUnitPrice = new Money(Currency.USD, 200);
+			var sendReceiveActivity = new ReceiveActivity(account, null, [PartialSymbolIdentifier.CreateGeneric("TEST")], DateTime.Now, 10, "tx1", null, null)
+			{
+				UnitPrice = new Money(Currency.USD, 100),
+				AdjustedQuantity = 20,
+				AdjustedUnitPrice = new Money(Currency.USD, 200)
+			};
 			var activities = new List<Activity> { sendReceiveActivity };
 
 			List<Activity> capturedActivities = [];

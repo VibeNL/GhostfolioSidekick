@@ -20,11 +20,12 @@ namespace GhostfolioSidekick.Model.UnitTests.Accounts
 		public void Account_ShouldAllowSettingSyncValues()
 		{
 			// Arrange
-			var account = new Account("Test Account");
-
-			// Act
-			account.SyncActivities = false;
-			account.SyncBalance = false;
+			var account = new Account("Test Account")
+			{
+				// Act
+				SyncActivities = false,
+				SyncBalance = false
+			};
 
 			// Assert
 			Assert.False(account.SyncActivities);

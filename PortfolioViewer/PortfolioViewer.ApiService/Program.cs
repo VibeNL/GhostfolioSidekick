@@ -10,7 +10,7 @@ using Scalar.AspNetCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService
 {
-	public class Program
+	public static class Program
 	{
 		public static Task Main(string[] args)
 		{
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			// Configure the HTTP request pipeline.
 			app.UseExceptionHandler();
 
-			//if (app.Environment.IsDevelopment())
+			if (app.Environment.IsDevelopment())
 			{
 				app.MapOpenApi();
 				app.MapScalarApiReference(options =>
