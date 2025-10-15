@@ -1,11 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Data.Common;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -106,17 +114,17 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			using (var cmd = db.Connection.CreateCommand())
 			{
 				cmd.CommandText = "CREATE TABLE test_table (id INTEGER PRIMARY KEY, created_date TEXT, name TEXT);";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 				cmd.CommandText = "CREATE TABLE other_table (id INTEGER PRIMARY KEY, value TEXT);";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 
 				cmd.CommandText = "INSERT INTO test_table (created_date, name) VALUES ('2020-01-01', 'a'), ('2021-01-01', 'b');";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 				cmd.CommandText = "INSERT INTO other_table (value) VALUES ('x');";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 			}
 
-			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
 			var service = new SyncGrpcService(ctx, logger);
 			var response = await service.GetTableNames(new GetTableNamesRequest(), new FakeServerCallContext());
 
@@ -138,17 +146,17 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			using (var cmd = db.Connection.CreateCommand())
 			{
 				cmd.CommandText = "CREATE TABLE with_date (id INTEGER PRIMARY KEY, mydate TEXT);";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 				cmd.CommandText = "INSERT INTO with_date (mydate) VALUES ('2020-01-01'), ('2022-05-03');";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 
 				cmd.CommandText = "CREATE TABLE without_date (id INTEGER PRIMARY KEY, val TEXT);";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 				cmd.CommandText = "INSERT INTO without_date (val) VALUES ('v');";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 			}
 
-			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
 			var service = new SyncGrpcService(ctx, logger);
 			var response = await service.GetLatestDates(new GetLatestDatesRequest(), new FakeServerCallContext());
 
@@ -166,12 +174,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			using (var cmd = db.Connection.CreateCommand())
 			{
 				cmd.CommandText = "CREATE TABLE items (id INTEGER PRIMARY KEY, created_date TEXT, name TEXT);";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 				cmd.CommandText = "INSERT INTO items (created_date, name) VALUES ('2020-01-01','a'), ('2021-01-01','b'), ('2022-01-01','c');";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 			}
 
-			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
 			var service = new SyncGrpcService(ctx, logger);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
@@ -203,12 +211,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			using (var cmd = db.Connection.CreateCommand())
 			{
 				cmd.CommandText = "CREATE TABLE events (id INTEGER PRIMARY KEY, event_date TEXT, name TEXT);";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 				cmd.CommandText = "INSERT INTO events (event_date, name) VALUES ('2020-01-01','a'), ('2021-06-01','b'), ('2022-07-01','c');";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 			}
 
-			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
 			var service = new SyncGrpcService(ctx, logger);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
@@ -233,10 +241,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			using (var cmd = db.Connection.CreateCommand())
 			{
 				cmd.CommandText = "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT);";
-				cmd.ExecuteNonQuery();
+				await cmd.ExecuteNonQueryAsync();
 			}
 
-			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
 			var service = new SyncGrpcService(ctx, logger);
 
 			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
