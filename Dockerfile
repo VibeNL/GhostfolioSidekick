@@ -1,5 +1,5 @@
 # Base runtime image for the API
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/runtime:9.0 AS base
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/runtime:9.0 AS base
 
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -17,7 +17,7 @@ RUN echo "Targeting ${TARGETOS} and ${TARGETARCH} with optional variant ${TARGET
 WORKDIR /app
 
 # Build stage for the API and Sidekick
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
 ARG TARGETARCH
 
@@ -36,9 +36,9 @@ COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csp
 COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer.WASM/"]
 COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
 
-RUN dotnet restore -a $TARGETARCH "PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
-    dotnet restore -a $TARGETARCH "PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
-    dotnet restore -a $TARGETARCH "GhostfolioSidekick/GhostfolioSidekick.csproj"
+RUN dotnet restore -a "$TARGETARCH" "PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
+    dotnet restore -a "$TARGETARCH" "PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
+    dotnet restore -a "$TARGETARCH" "GhostfolioSidekick/GhostfolioSidekick.csproj"
 
 # Copy the entire source code
 COPY . .
@@ -51,18 +51,18 @@ RUN dotnet build "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.Api
 # Publish each project
 FROM build AS publish-api
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.ApiService"
-RUN dotnet publish -a $TARGETARCH "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish
+RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.ApiService.csproj" -c Release -o /app/publish
 
 FROM build AS publish-wasm
 WORKDIR "/src/PortfolioViewer/PortfolioViewer.WASM"
-RUN dotnet publish -a $TARGETARCH "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
+RUN dotnet publish -a "$TARGETARCH" "PortfolioViewer.WASM.csproj" -c Release -o /app/publish-wasm
 
 FROM build AS publish-sidekick
 WORKDIR "/src/GhostfolioSidekick"
-RUN dotnet publish -a $TARGETARCH "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
+RUN dotnet publish -a "$TARGETARCH" "GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick
 
 # Final runtime image
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 
 WORKDIR /app
 

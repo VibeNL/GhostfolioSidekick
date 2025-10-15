@@ -22,9 +22,8 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			{
 				Comment = rawAccount.Comment,
 				Platform = platform != null ? MapPlatform(platform) : null,
+				Balance = [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.GetCurrency(rawAccount.Currency), rawAccount.Balance))]
 			};
-
-			account.Balance = [new Balance(DateOnly.FromDateTime(DateTime.Today), new Money(Currency.GetCurrency(rawAccount.Currency), rawAccount.Balance))];
 
 			return account;
 		}

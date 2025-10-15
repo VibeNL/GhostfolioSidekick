@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 {
@@ -74,7 +75,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 					return ConvertValue<T>(configValue);
 				}
 
-				if (defaultValue != null || !typeof(T).IsValueType || Nullable.GetUnderlyingType(typeof(T)) != null)
+				// Determine whether T is nullable/reference and whether a non-default value was provided
+				var isNullableType = !typeof(T).IsValueType || Nullable.GetUnderlyingType(typeof(T)) != null;
+				var defaultProvided = !EqualityComparer<T>.Default.Equals(defaultValue!, default!);
+
+				if (defaultProvided || isNullableType)
 				{
 					logger?.LogDebug("Using default value for configuration key '{Key}'", key);
 					return defaultValue!;
@@ -84,7 +89,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				logger?.LogError("{Message}", message);
 				throw new InvalidOperationException(message);
 			}
-			catch (Exception ex) when (!(ex is InvalidOperationException))
+			catch (Exception ex) when (ex is not InvalidOperationException)
 			{
 				var message = $"Failed to convert configuration value '{key}' to type {typeof(T).Name}";
 				logger?.LogError(ex, "{Message}", message);

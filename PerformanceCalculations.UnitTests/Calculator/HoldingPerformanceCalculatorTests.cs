@@ -621,11 +621,10 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 				null)
 			{
 				AdjustedQuantity = quantity,
-				AdjustedUnitPrice = unitPrice
+				AdjustedUnitPrice = unitPrice,
+				// Set TotalTransactionAmount to quantity * unitPrice (for testing purposes)
+				TotalTransactionAmount = new Money(unitPrice.Currency, Math.Abs(quantity) * unitPrice.Amount)
 			};
-
-			// Set TotalTransactionAmount to quantity * unitPrice (for testing purposes)
-			activity.TotalTransactionAmount = new Money(unitPrice.Currency, Math.Abs(quantity) * unitPrice.Amount);
 
 			return activity;
 		}
@@ -644,17 +643,18 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 				null)
 			{
 				AdjustedQuantity = quantity,
-				AdjustedUnitPrice = unitPrice
+				AdjustedUnitPrice = unitPrice,
+				// Set TotalTransactionAmount to quantity * unitPrice (for testing purposes)
+				TotalTransactionAmount = new Money(unitPrice.Currency, Math.Abs(quantity) * unitPrice.Amount)
 			};
-
-			// Set TotalTransactionAmount to quantity * unitPrice (for testing purposes)
-			activity.TotalTransactionAmount = new Money(unitPrice.Currency, Math.Abs(quantity) * unitPrice.Amount);
 
 			return activity;
 		}
 
 		public void Dispose()
 		{
+			GC.SuppressFinalize(this);
+
 			try
 			{
 				if (File.Exists(_databaseFilePath))
