@@ -7,4 +7,4 @@ builder.AddProject<Projects.PortfolioViewer_WASM>("blazorServer")
 						.AddWebAssemblyClient<Projects.PortfolioViewer_WASM>("webfrontend")
 						.WithReference(apiService);
 
-builder.Build().RunAsync();
+await builder.Build().RunAsync();
