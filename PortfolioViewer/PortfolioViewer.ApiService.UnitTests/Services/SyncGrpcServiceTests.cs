@@ -1,11 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Data.Common;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -71,7 +79,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 		private class TestServerStreamWriter<T> : IServerStreamWriter<T>
 		{
-			public List<T> Written { get; } = [];
+			public List<T> Written { get; } = new();
 			public WriteOptions? WriteOptions { get; set; }
 			public Task WriteAsync(T message)
 			{
@@ -87,12 +95,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			protected override string HostCore => "localhost";
 			protected override string PeerCore => "peer";
 			protected override DateTime DeadlineCore => DateTime.UtcNow.AddMinutes(1);
-			protected override Metadata RequestHeadersCore => [];
+			protected override Metadata RequestHeadersCore => new Metadata();
 			protected override CancellationToken CancellationTokenCore => CancellationToken.None;
-			protected override Metadata ResponseTrailersCore => [];
+			protected override Metadata ResponseTrailersCore => new Metadata();
 			protected override Status StatusCore { get; set; }
 			protected override WriteOptions? WriteOptionsCore { get; set; }
-			protected override AuthContext AuthContextCore => new("", []);
+			protected override AuthContext AuthContextCore => new AuthContext("", new Dictionary<string, List<AuthProperty>>());
 			protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options) => throw new NotImplementedException();
 		}
 
@@ -243,6 +251,153 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			var req = new GetEntityDataRequest { Entity = "t", Page = 0, PageSize = 10 };
 
 			await Assert.ThrowsAsync<RpcException>(() => service.GetEntityData(req, writer, new FakeServerCallContext()));
+		}
+
+		// --- Additional tests added below ---
+
+		[Fact]
+		public async Task GetEntityData_InvalidTableName_ThrowsRpcException()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+
+			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
+			var req = new GetEntityDataRequest { Entity = "invalid table;drop", Page = 1, PageSize = 10 };
+
+			await Assert.ThrowsAsync<RpcException>(() => service.GetEntityData(req, writer, new FakeServerCallContext()));
+		}
+
+		[Fact]
+		public async Task GetTableNames_ExcludesIgnoredTables()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			using (var cmd = db.Connection.CreateCommand())
+			{
+				cmd.CommandText = "CREATE TABLE __EFMigrationsHistory (id INTEGER PRIMARY KEY, v TEXT);";
+				await cmd.ExecuteNonQueryAsync();
+			}
+
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+			var response = await service.GetTableNames(new GetTableNamesRequest(), new FakeServerCallContext());
+
+			Assert.DoesNotContain("__EFMigrationsHistory", response.TableNames);
+		}
+
+		[Fact]
+		public async Task GetEntityDataSince_TableWithoutDateColumn_ReturnsRecords()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			using (var cmd = db.Connection.CreateCommand())
+			{
+				cmd.CommandText = "CREATE TABLE nodate (id INTEGER PRIMARY KEY, name TEXT);";
+				await cmd.ExecuteNonQueryAsync();
+				cmd.CommandText = "INSERT INTO nodate (name) VALUES ('x'), ('y');";
+				await cmd.ExecuteNonQueryAsync();
+			}
+
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+
+			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
+			var req = new GetEntityDataSinceRequest { Entity = "nodate", Page = 1, PageSize = 10, SinceDate = "2000-01-01" };
+			await service.GetEntityDataSince(req, writer, new FakeServerCallContext());
+
+			Assert.Single(writer.Written);
+			Assert.Equal(2, writer.Written.First().Records.Count);
+		}
+
+		[Fact]
+		public async Task GetLatestDates_DetectsVariousDateColumns()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			using (var cmd = db.Connection.CreateCommand())
+			{
+				cmd.CommandText = "CREATE TABLE t_date (id INTEGER PRIMARY KEY, date TEXT);";
+				await cmd.ExecuteNonQueryAsync();
+				cmd.CommandText = "INSERT INTO t_date (date) VALUES ('2020-01-01');";
+				await cmd.ExecuteNonQueryAsync();
+
+				cmd.CommandText = "CREATE TABLE t_timestamp (id INTEGER PRIMARY KEY, createdTimestamp TEXT);";
+				await cmd.ExecuteNonQueryAsync();
+				cmd.CommandText = "INSERT INTO t_timestamp (createdTimestamp) VALUES ('2021-02-02');";
+				await cmd.ExecuteNonQueryAsync();
+
+				cmd.CommandText = "CREATE TABLE t_type (id INTEGER PRIMARY KEY, col1 DATETIME);";
+				await cmd.ExecuteNonQueryAsync();
+				cmd.CommandText = "INSERT INTO t_type (col1) VALUES ('2022-03-03');";
+				await cmd.ExecuteNonQueryAsync();
+			}
+
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+			var response = await service.GetLatestDates(new GetLatestDatesRequest(), new FakeServerCallContext());
+
+			Assert.True(response.LatestDates.ContainsKey("t_date"));
+			Assert.True(response.LatestDates.ContainsKey("t_timestamp"));
+			Assert.True(response.LatestDates.ContainsKey("t_type"));
+		}
+
+		[Fact]
+		public async Task GetEntityData_HasMoreFalseWhenLessThanPageSize()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			using (var cmd = db.Connection.CreateCommand())
+			{
+				cmd.CommandText = "CREATE TABLE few (id INTEGER PRIMARY KEY, name TEXT);";
+				await cmd.ExecuteNonQueryAsync();
+				cmd.CommandText = "INSERT INTO few (name) VALUES ('one');";
+				await cmd.ExecuteNonQueryAsync();
+			}
+
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+
+			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
+			var req = new GetEntityDataRequest { Entity = "few", Page = 1, PageSize = 10 };
+			await service.GetEntityData(req, writer, new FakeServerCallContext());
+
+			Assert.Single(writer.Written);
+			Assert.False(writer.Written.First().HasMore);
+		}
+
+		[Fact]
+		public async Task GetLatestDates_SkipsNullsAndAllNulls()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			using (var cmd = db.Connection.CreateCommand())
+			{
+				cmd.CommandText = "CREATE TABLE maybe_null (id INTEGER PRIMARY KEY, d_date TEXT);";
+				await cmd.ExecuteNonQueryAsync();
+				cmd.CommandText = "INSERT INTO maybe_null (d_date) VALUES (NULL), ('2020-04-04');";
+				await cmd.ExecuteNonQueryAsync();
+
+				cmd.CommandText = "CREATE TABLE all_null (id INTEGER PRIMARY KEY, d_date TEXT);";
+				await cmd.ExecuteNonQueryAsync();
+				cmd.CommandText = "INSERT INTO all_null (d_date) VALUES (NULL), (NULL);";
+				await cmd.ExecuteNonQueryAsync();
+			}
+
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+			var response = await service.GetLatestDates(new GetLatestDatesRequest(), new FakeServerCallContext());
+
+			Assert.True(response.LatestDates.ContainsKey("maybe_null"));
+			Assert.Equal("2020-04-04", response.LatestDates["maybe_null"]);
+			Assert.False(response.LatestDates.ContainsKey("all_null"));
 		}
 	}
 }
