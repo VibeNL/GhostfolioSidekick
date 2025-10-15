@@ -37,7 +37,7 @@ RUN apt-get update && \
 
 # If your Blazor WASM build requires the wasm-tools workload, install it here.
 # This is cached between builds but will take time on the first run.
-RUN dotnet workload install wasm-tools
+RUN dotenv workload install wasm-tools
 
 # Copy project files first to leverage Docker cache for restores
 COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer/PortfolioViewer.ApiService/"]
@@ -60,7 +60,7 @@ RUN dotnet publish "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.A
     dotnet publish "GhostfolioSidekick/GhostfolioSidekick.csproj" -c Release -o /app/publish-sidekick --no-restore
 
 # Final runtime image
-FROM --platform="$TARGETPLATFORM" mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM --platform="$BUILDPLATFORM" mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
 # Install supervisord in final image
