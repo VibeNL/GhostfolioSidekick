@@ -23,3 +23,21 @@
 **/values.dev.yaml
 LICENSE
 README.md
+
+# Ignore dotnet publish outputs and build artifacts
+**/publish/
+**/publish-wasm/
+**/publish-sidekick/
+
+# Ignore certificates and secrets
+certs/
+*.pfx
+*.key
+
+# User and IDE files
+*.user
+*.suo
+*.log
+
+# OS files
+**/.DS_Store
