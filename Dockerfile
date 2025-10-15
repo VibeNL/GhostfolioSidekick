@@ -39,15 +39,20 @@ RUN apt-get update && \
 # This is cached between builds but will take time on the first run.
 RUN dotnet workload install wasm-tools
 
-# Copy the full source tree before restore so project-to-project references are available
-# Note: This sacrifices some docker cache granularity but ensures restores succeed for multi-project solutions.
-COPY . .
+# Copy project files first to leverage Docker cache for restores
+COPY ["PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj", "PortfolioViewer/PortfolioViewer.ApiService/"]
+COPY ["PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj", "PortfolioViewer/PortfolioViewer.WASM/"]
+COPY ["GhostfolioSidekick/GhostfolioSidekick.csproj", "GhostfolioSidekick/"]
 
-# Restore packages using the solution so all projects are restored and project.assets.json files are created
-# Consider enabling BuildKit and using cache mounts for NuGet to speed this step.
+# Restore packages. Consider enabling BuildKit and using cache mounts for NuGet to speed this step.
 # Example with BuildKit (uncomment when using BuildKit):
-# RUN --mount=type=cache,target=/root/.nuget/packages dotnet restore "GhostfolioSidekick.slnx"
-RUN dotnet restore "GhostfolioSidekick.slnx"
+# RUN --mount=type=cache,target=/root/.nuget/packages dotnet restore "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj"
+RUN dotnet restore "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" && \
+    dotnet restore "PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" && \
+    dotnet restore "GhostfolioSidekick/GhostfolioSidekick.csproj"
+
+# Copy the rest of the source after restore so changes to source files don't bust the NuGet cache
+COPY . .
 
 # Publish each project (use --no-restore because we already did restore)
 RUN dotnet publish "PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj" -c Release -o /app/publish --no-restore && \
