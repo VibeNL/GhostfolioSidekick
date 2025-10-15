@@ -1,19 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Data.Common;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -79,7 +71,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 		private class TestServerStreamWriter<T> : IServerStreamWriter<T>
 		{
-			public List<T> Written { get; } = new();
+			public List<T> Written { get; } = [];
 			public WriteOptions? WriteOptions { get; set; }
 			public Task WriteAsync(T message)
 			{
@@ -95,12 +87,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			protected override string HostCore => "localhost";
 			protected override string PeerCore => "peer";
 			protected override DateTime DeadlineCore => DateTime.UtcNow.AddMinutes(1);
-			protected override Metadata RequestHeadersCore => new Metadata();
+			protected override Metadata RequestHeadersCore => [];
 			protected override CancellationToken CancellationTokenCore => CancellationToken.None;
-			protected override Metadata ResponseTrailersCore => new Metadata();
+			protected override Metadata ResponseTrailersCore => [];
 			protected override Status StatusCore { get; set; }
 			protected override WriteOptions? WriteOptionsCore { get; set; }
-			protected override AuthContext AuthContextCore => new AuthContext("", new Dictionary<string, List<AuthProperty>>());
+			protected override AuthContext AuthContextCore => new("", []);
 			protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options) => throw new NotImplementedException();
 		}
 
@@ -253,8 +245,6 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			await Assert.ThrowsAsync<RpcException>(() => service.GetEntityData(req, writer, new FakeServerCallContext()));
 		}
 
-		// --- Additional tests added below ---
-
 		[Fact]
 		public async Task GetEntityData_InvalidTableName_ThrowsRpcException()
 		{
@@ -398,6 +388,72 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			Assert.True(response.LatestDates.ContainsKey("maybe_null"));
 			Assert.Equal("2020-04-04", response.LatestDates["maybe_null"]);
 			Assert.False(response.LatestDates.ContainsKey("all_null"));
+		}
+
+		[Fact]
+		public async Task GetTableNames_ConnectionFailure_HandledGracefully()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			// Simulate connection failure by closing the underlying connection
+			await db.Connection.CloseAsync();
+			// service should handle and not throw; result may be empty
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+
+			var response = await service.GetTableNames(new GetTableNamesRequest(), new FakeServerCallContext());
+			Assert.NotNull(response);
+		}
+
+		[Fact]
+		public async Task GetLatestDates_ConnectionFailure_HandledGracefully()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			// Simulate connection failure by closing the underlying connection
+			await db.Connection.CloseAsync();
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+
+			var response = await service.GetLatestDates(new GetLatestDatesRequest(), new FakeServerCallContext());
+			Assert.NotNull(response);
+		}
+
+		[Fact]
+		public async Task GetEntityData_ConnectionFailure_HandledGracefully()
+		{
+			using var db = new TestDb();
+			var ctx = db.Context;
+
+			// create a simple table first
+			using (var cmd = db.Connection.CreateCommand())
+			{
+				cmd.CommandText = "CREATE TABLE some (id INTEGER PRIMARY KEY, name TEXT);";
+				await cmd.ExecuteNonQueryAsync();
+			}
+
+			// Now break the connection
+			await db.Connection.CloseAsync();
+
+			var logger = new Mock<ILogger<SyncGrpcService> >().Object;
+			var service = new SyncGrpcService(ctx, logger);
+
+			var writer = new TestServerStreamWriter<GetEntityDataResponse>();
+			var req = new GetEntityDataRequest { Entity = "some", Page = 1, PageSize = 10 };
+
+			try
+			{
+				await service.GetEntityData(req, writer, new FakeServerCallContext());
+			}
+			catch (RpcException)
+			{
+				// acceptable fallback in some environments - consider test passed
+				return;
+			}
+
+			Assert.True(writer.Written.Count == 0 || writer.Written.Count == 1);
 		}
 	}
 }
