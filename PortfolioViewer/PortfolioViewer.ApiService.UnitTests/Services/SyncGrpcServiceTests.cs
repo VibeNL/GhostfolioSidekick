@@ -1,19 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Data.Common;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
