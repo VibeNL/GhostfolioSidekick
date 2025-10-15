@@ -4,26 +4,36 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Linq;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
+using Moq;
+using Moq.Protected;
 using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
 {
     public class GoogleSearchServiceTests
     {
-        private class TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responder) : HttpMessageHandler
+        private static HttpClient CreateHttpClient(Func<HttpRequestMessage, HttpResponseMessage> responder, Uri? baseAddress = null)
         {
-			protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(responder(request));
-            }
+            var mockHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            mockHandler
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync((HttpRequestMessage req, CancellationToken ct) => responder(req));
+
+            var client = new HttpClient(mockHandler.Object);
+            if (baseAddress is not null)
+                client.BaseAddress = baseAddress;
+            return client;
         }
 
         [Fact]
         public async Task SearchAsync_WithEmptyQuery_ReturnsError()
         {
             // Arrange
-            var httpClient = new HttpClient(new TestHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)));
+            var httpClient = CreateHttpClient(_ => new HttpResponseMessage(HttpStatusCode.OK));
             var service = new GoogleSearchService(httpClient);
 
             var request = new GoogleSearchRequest { Query = "   " };
@@ -40,8 +50,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
         public async Task SearchAsync_BackendFails_ReturnsError()
         {
             // Arrange
-            var handler = new TestHttpMessageHandler(req => new HttpResponseMessage(HttpStatusCode.InternalServerError));
-            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost") };
+            var httpClient = CreateHttpClient(req => new HttpResponseMessage(HttpStatusCode.InternalServerError), new Uri("http://localhost"));
             var service = new GoogleSearchService(httpClient);
 
             var request = new GoogleSearchRequest { Query = "test" };
@@ -59,16 +68,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
         {
             // Arrange
             var json = JsonSerializer.Serialize(new { items = Array.Empty<object>() });
-            var handler = new TestHttpMessageHandler(req =>
+            var httpClient = CreateHttpClient(req =>
             {
-                var resp = new HttpResponseMessage(HttpStatusCode.OK)
+                return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(json, Encoding.UTF8, "application/json")
                 };
-                return resp;
-            });
+            }, new Uri("http://localhost"));
 
-            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost") };
             var service = new GoogleSearchService(httpClient);
 
             var request = new GoogleSearchRequest { Query = "noresults" };
@@ -96,7 +103,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
             var searchJson = JsonSerializer.Serialize(searchResult);
             var pageContent = "<html>page content</html>";
 
-            var handler = new TestHttpMessageHandler(req =>
+            var httpClient = CreateHttpClient(req =>
             {
                 // Distinguish between search and proxy fetch by path
                 if (req.RequestUri!.AbsolutePath.Contains("google-search"))
@@ -116,9 +123,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
                 }
 
                 return new HttpResponseMessage(HttpStatusCode.NotFound);
-            });
+            }, new Uri("http://localhost"));
 
-            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost") };
             var service = new GoogleSearchService(httpClient);
 
             var request = new GoogleSearchRequest { Query = "hasresults" };
@@ -150,7 +156,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
 
             var searchJson = JsonSerializer.Serialize(searchResult);
 
-            var handler = new TestHttpMessageHandler(req =>
+            var httpClient = CreateHttpClient(req =>
             {
                 if (req.RequestUri!.AbsolutePath.Contains("google-search"))
                 {
@@ -162,9 +168,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
 
                 // For fetch calls return 404 so content will be null
                 return new HttpResponseMessage(HttpStatusCode.NotFound);
-            });
+            }, new Uri("http://localhost"));
 
-            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost") };
             var service = new GoogleSearchService(httpClient);
 
             // Act
@@ -183,7 +188,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
         public async Task GetWebsiteContentAsync_NullOrEmpty_ReturnsNull()
         {
             // Arrange
-            var httpClient = new HttpClient(new TestHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK)));
+            var httpClient = CreateHttpClient(_ => new HttpResponseMessage(HttpStatusCode.OK));
             var service = new GoogleSearchService(httpClient);
 
             // Act & Assert
@@ -195,8 +200,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
         public async Task GetWebsiteContentAsync_NonSuccess_ReturnsNull()
         {
             // Arrange
-            var handler = new TestHttpMessageHandler(req => new HttpResponseMessage(HttpStatusCode.NotFound));
-            var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost") };
+            var httpClient = CreateHttpClient(req => new HttpResponseMessage(HttpStatusCode.NotFound), new Uri("http://localhost"));
             var service = new GoogleSearchService(httpClient);
 
             // Act
