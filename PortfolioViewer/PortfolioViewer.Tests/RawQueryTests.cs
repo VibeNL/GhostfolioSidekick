@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.PortfolioViewer.Common.SQL;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.Tests
 {
@@ -34,7 +28,16 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 		{
 			context.Dispose();
 			connection.Dispose();
-			try { File.Delete(dbFilePath); } catch { }
+			try
+			{
+				File.Delete(dbFilePath);
+			}
+			catch
+			{
+				// Ignore any errors during cleanup
+			}
+
+			GC.SuppressFinalize(this);
 		}
 
 		// Use the same connection that EF Core's DatabaseContext uses to ensure created tables
@@ -48,17 +51,17 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 			cmd.CommandText = $"CREATE TABLE {tableName} ({columns});";
 			await cmd.ExecuteNonQueryAsync();
 
-			foreach (var insert in inserts)
+			foreach (var (sql, parameters) in inserts)
 			{
 				using var icmd = conn.CreateCommand();
-				icmd.CommandText = insert.sql;
-				if (insert.parameters != null)
+				icmd.CommandText = sql;
+				if (parameters != null)
 				{
-					for (int i = 0; i < insert.parameters.Length; i++)
+					for (int i = 0; i < parameters.Length; i++)
 					{
 						var p = icmd.CreateParameter();
 						p.ParameterName = $"@p{i}";
-						p.Value = insert.parameters[i] ?? DBNull.Value;
+						p.Value = parameters[i] ?? DBNull.Value;
 						icmd.Parameters.Add(p);
 					}
 				}
