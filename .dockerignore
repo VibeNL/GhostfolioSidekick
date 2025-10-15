@@ -30,9 +30,9 @@ README.md
 **/publish-sidekick/
 
 # Ignore certificates and secrets
-#certs/
-#*.pfx
-#*.key
+certs/
+*.pfx
+*.key
 
 # User and IDE files
 *.user
