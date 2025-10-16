@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
 using KellermanSoftware.CompareNetObjects;
-using System.Linq;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 {

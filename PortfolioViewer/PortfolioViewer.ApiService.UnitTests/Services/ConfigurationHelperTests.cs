@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 
