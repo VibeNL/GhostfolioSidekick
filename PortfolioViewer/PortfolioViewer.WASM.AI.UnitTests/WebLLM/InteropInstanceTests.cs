@@ -150,7 +150,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Assert
 			Assert.True(Math.Abs(report.Progress - 0.75) < Tolerance);
 			Assert.Equal("Loading...", report.Text);
-			Assert.Equal(500, report.timeElapsed);
+			Assert.Equal(500, report.TimeElapsed);
 		}
 
 		[Fact]
