@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 {
 	public class ConfigurationHelperTests : IDisposable
 	{
-		private readonly IConfigurationHelper _configHelper;
+		private readonly ConfigurationHelper _configHelper;
 		private readonly List<string> _environmentVariablesToCleanup = [];
 		private readonly FakeApplicationSettings _fakeApplicationSettings;
 
@@ -271,6 +271,8 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 
 		public void Dispose()
 		{
+			GC.SuppressFinalize(this);
+
 			// Clean up environment variables
 			foreach (var envVar in _environmentVariablesToCleanup)
 			{
