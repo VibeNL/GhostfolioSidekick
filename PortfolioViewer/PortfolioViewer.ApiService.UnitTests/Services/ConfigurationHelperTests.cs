@@ -102,7 +102,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			var sut = new ConfigurationHelper(configuration, appSettings.Object, logger.Object);
 
-			var value = sut.GetConfigurationValue<int>("Missing:Key", 42);
+			var value = sut.GetConfigurationValue("Missing:Key", 42);
 
 			Assert.Equal(42, value);
 		}
