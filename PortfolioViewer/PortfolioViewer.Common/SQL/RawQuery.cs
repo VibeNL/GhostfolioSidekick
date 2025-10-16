@@ -20,44 +20,26 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			// Calculate the offset for pagination
 			var offset = (page - 1) * pageSize;
 
-			// Construct the raw SQL query with pagination and filtering
+			// Validate and prepare base query
 			entity = await ValidateTableNameAsync(databaseContext, entity);
 			var sqlQuery = $"SELECT * FROM {entity}";
 
-			// Add WHERE clause if filters are provided
-			var parameters = new List<(string name, object value)>();
-			if (columnFilters != null && columnFilters.Count != 0)
+			// Build WHERE clause and collect parameters
+			var (whereClause, parameters) = await BuildWhereClauseAsync(databaseContext, entity, columnFilters);
+			if (!string.IsNullOrEmpty(whereClause))
 			{
-				var whereConditions = new List<string>();
-				var paramIndex = 0;
-
-				foreach (var filter in columnFilters.Where(f => !string.IsNullOrWhiteSpace(f.Value)))
-				{
-					// Validate column name to prevent SQL injection
-					var columnName = await ValidateColumnNameAsync(databaseContext, entity, filter.Key);
-					var paramName = $"@filter{paramIndex}";
-					whereConditions.Add($"{columnName} LIKE {paramName}");
-					parameters.Add((paramName, $"%{filter.Value}%"));
-					paramIndex++;
-				}
-
-				if (whereConditions.Count != 0)
-				{
-					sqlQuery += " WHERE " + string.Join(" AND ", whereConditions);
-				}
+				sqlQuery += " WHERE " + whereClause;
 			}
 
-			// Add ORDER BY clause
+			// Add ORDER BY clause or default
 			if (!string.IsNullOrWhiteSpace(sortColumn))
 			{
-				// Validate the sort column name
 				var validatedSortColumn = await ValidateColumnNameAsync(databaseContext, entity, sortColumn);
 				var direction = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase) ? "DESC" : "ASC";
 				sqlQuery += $" ORDER BY {validatedSortColumn} {direction}";
 			}
 			else
 			{
-				// Default sort by first column
 				sqlQuery += " ORDER BY 1";
 			}
 
@@ -69,16 +51,9 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 			using var command = connection.CreateCommand();
 			command.CommandText = sqlQuery;
 
-			// Add filter parameters
-			foreach (var (name, value) in parameters)
-			{
-				var param = command.CreateParameter();
-				param.ParameterName = name;
-				param.Value = value;
-				command.Parameters.Add(param);
-			}
+			// Add parameters (filters + pagination)
+			AddParametersToCommand(command, parameters);
 
-			// Add pagination parameters
 			var pageSizeParam = command.CreateParameter();
 			pageSizeParam.ParameterName = "@pageSize";
 			pageSizeParam.Value = pageSize;
@@ -125,7 +100,6 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 
 				foreach (var filter in columnFilters.Where(f => !string.IsNullOrWhiteSpace(f.Value)))
 				{
-					// Validate column name to prevent SQL injection
 					var columnName = await ValidateColumnNameAsync(context, entity, filter.Key);
 					var paramName = $"@filter{paramIndex}";
 					whereConditions.Add($"{columnName} LIKE {paramName}");
@@ -155,6 +129,44 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 
 			var result = await command.ExecuteScalarAsync();
 			return Convert.ToInt32(result);
+		}
+
+		private static async Task<(string whereClause, List<(string name, object value)> parameters)> BuildWhereClauseAsync(DatabaseContext context, string entity, Dictionary<string, string>? columnFilters)
+		{
+			var whereConditions = new List<string>();
+			var parameters = new List<(string name, object value)>();
+			if (columnFilters == null || columnFilters.Count == 0)
+			{
+				return (string.Empty, parameters);
+			}
+
+			var paramIndex = 0;
+			foreach (var filter in columnFilters.Where(f => !string.IsNullOrWhiteSpace(f.Value)))
+			{
+				var columnName = await ValidateColumnNameAsync(context, entity, filter.Key);
+				var paramName = $"@filter{paramIndex}";
+				whereConditions.Add($"{columnName} LIKE {paramName}");
+				parameters.Add((paramName, $"%{filter.Value}%"));
+				paramIndex++;
+			}
+
+			return (string.Join(" AND ", whereConditions), parameters);
+		}
+
+		private static void AddParametersToCommand(System.Data.Common.DbCommand command, List<(string name, object value)> parameters)
+		{
+			if (parameters == null || parameters.Count == 0)
+			{
+				return;
+			}
+
+			foreach (var (name, value) in parameters)
+			{
+				var param = command.CreateParameter();
+				param.ParameterName = name;
+				param.Value = value;
+				command.Parameters.Add(param);
+			}
 		}
 
 		private static async Task<string> ValidateTableNameAsync(DatabaseContext context, string entity)
