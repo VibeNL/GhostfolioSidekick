@@ -125,5 +125,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 			// Assert
 			Assert.Contains(history, m => (m.Content ?? string.Empty).Contains("Hello from test"));
 		}
+
+		[Fact]
+		public async System.Threading.Tasks.Task AskQuestion_ReturnsAsyncEnumerable_CanGetEnumeratorAndDispose()
+		{
+			// Arrange
+			var orchestrator = new AgentOrchestrator(_service_provider, _agentLogger);
+
+			// Act
+			var asyncEnumerable = orchestrator.AskQuestion("Test question");
+
+			// Assert basic contract: not null and we can get an enumerator and dispose it without iterating.
+			Assert.NotNull(asyncEnumerable);
+
+			await using (var enumerator = asyncEnumerable.GetAsyncEnumerator())
+			{
+				// Do not call MoveNextAsync to avoid invoking downstream services. We just ensure enumerator can be acquired and disposed.
+			}
+		}
 	}
 }
