@@ -187,6 +187,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 
 		[KernelFunction("multi_step_research")]
 		[Description("Perform multi-step research on a topic by making multiple queries and synthesizing the results")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task<string> MultiStepResearch(
 			[Description("The topic to research")] string topic,
 			[Description("Specific aspects of the topic to research. Should be in natural language")] string[] aspects)
