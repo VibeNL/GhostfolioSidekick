@@ -4,9 +4,9 @@ namespace GhostfolioSidekick.Parsers
 {
 	public static class CurrencyTools
 	{
-		private static IDictionary<string, string>? map;
+		private static Dictionary<string, string>? map;
 
-		public static IDictionary<string, string> Map
+		public static Dictionary<string, string> Map
 		{
 			get
 			{
