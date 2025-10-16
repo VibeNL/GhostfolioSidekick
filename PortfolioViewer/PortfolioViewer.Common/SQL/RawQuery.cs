@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Common.SQL
 				var row = new Dictionary<string, object?>();
 				for (var i = 0; i < reader.FieldCount; i++)
 				{
-					row[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+					row[reader.GetName(i)] = await reader.IsDBNullAsync(i) ? null : reader.GetValue(i);
 				}
 				result.Add(row);
 			}
