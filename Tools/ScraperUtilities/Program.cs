@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					services.AddHostedService<ScraperService>();
 				});
 
-		public class ScraperService(ILogger<ScraperService> logger, IPlaywright playwright) : IHostedService
+		public class ScraperService(ILogger<Program.ScraperService> logger, IPlaywright playwright) : IHostedService
 		{
 			public async Task RunAsync(SupportedBrokers broker, string outputDirectory)
 			{

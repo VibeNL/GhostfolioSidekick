@@ -4,8 +4,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.Agents.Chat;
 using Microsoft.SemanticKernel.ChatCompletion;
-using System.Threading;
-using System.Runtime.CompilerServices;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
@@ -14,10 +12,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private const string SafeParameterNames = "history";
 		private readonly Agent defaultAgent;
 		private readonly List<Agent> agents;
-		private readonly IAgentGroupChatShim groupChatShim;
+		private readonly AgentGroupChat groupChat;
 		private readonly AgentLogger logger;
 
-		// Default constructor used in production
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
@@ -27,10 +24,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			var kernel = builder.Build();
 
 			var researchAgent = ResearchAgent.Create(webChatClient, serviceProvider);
-			defaultAgent = GhostfolioSidekick.Create(webChatClient, new[] { researchAgent });
+			defaultAgent = GhostfolioSidekick.Create(webChatClient, [researchAgent]);
 
-			agents =
-			[
+			agents = [
 				defaultAgent,
 				researchAgent
 			];
@@ -85,7 +81,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			  new(terminationFunction, kernel)
 			  {
 				  // Only the reviewer may give approval.
-				  Agents = new[] { defaultAgent },
+				  Agents = [defaultAgent],
 				  // Parse the function response.
 				  ResultParser = DetermineTermination,
 				  // The prompt variable name for the history argument.
@@ -97,52 +93,42 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  AutomaticReset = true,
 			  };
 
-			var groupChat = new AgentGroupChat([.. agents])
+			groupChat = new AgentGroupChat([.. agents])
 			{
 				ExecutionSettings = new AgentGroupChatSettings
 				{
 					TerminationStrategy = terminationStrategy,
 					SelectionStrategy = selectionStrategy
 				},
+				//LoggerFactory = logger,				
 			};
 
-			this.groupChatShim = new DefaultAgentGroupChatShim(groupChat);
 			this.logger = logger;
-		}
-
-		// Public constructor used by tests to inject a shim
-		public AgentOrchestrator(IAgentGroupChatShim shim, AgentLogger logger)
-		{
-			this.groupChatShim = shim ?? throw new ArgumentNullException(nameof(shim));
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-			this.agents = [];
-			this.defaultAgent = new ChatCompletionAgent { Name = "TestAgent", Description = "Test agent", InstructionsRole = AuthorRole.System };
-			this.agents.Add(this.defaultAgent);
 		}
 
 		public async Task<IReadOnlyCollection<ChatMessageContent>> History()
 		{
 			// With the following code to manually collect the messages into a list:
 			var messages = new List<ChatMessageContent>();
-			await foreach (var message in groupChatShim.GetChatMessagesAsync())
+			await foreach (var message in groupChat.GetChatMessagesAsync())
 			{
-				messages.Add(new ChatMessageContent(message.Role, message.Content ?? string.Empty) { AuthorName = message.AuthorName });
+				messages.Add(message);
 			}
 
 			return messages.AsEnumerable().Reverse().Where(x => x.Content != null).ToList();
 		}
 
-		public async IAsyncEnumerable<ChatMessageContent> AskQuestion(string input)
+		public async IAsyncEnumerable<StreamingChatMessageContent> AskQuestion(string input)
 		{
 			logger.StartAgent(defaultAgent?.Name ?? "<????>");
-			groupChatShim.AddChatMessage(new SimpleStreamingMessage(AuthorRole.User, input, "User"));
+			groupChat.AddChatMessage(new ChatMessageContent(AuthorRole.User, input) { AuthorName = "User" });
 
 			// Run the group chat
-			var result = groupChatShim.InvokeStreamingAsync();
+			var result = groupChat.InvokeStreamingAsync();
 
 			await foreach (var update in result)
 			{
-				yield return new ChatMessageContent(update.Role, update.Content ?? string.Empty) { AuthorName = update.AuthorName };
+				yield return update;
 			}
 
 			logger.StartAgent(string.Empty);
@@ -183,27 +169,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				var result = await originalFunction.InvokeAsync(kernel, args);
 				return result;
 			});
-		}
-
-		private sealed class DefaultAgentGroupChatShim(AgentGroupChat inner) : IAgentGroupChatShim
-		{
-			public void AddChatMessage(SimpleStreamingMessage message) => inner.AddChatMessage(new ChatMessageContent(message.Role, message.Content ?? string.Empty) { AuthorName = message.AuthorName });
-			public async IAsyncEnumerable<SimpleStreamingMessage> InvokeStreamingAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
-			{
-				await foreach (var s in inner.InvokeStreamingAsync(cancellationToken))
-				{
-					// Map StreamingChatMessageContent to SimpleStreamingMessage
-					yield return new SimpleStreamingMessage(s.Role ?? AuthorRole.Assistant, s.Content, s.AuthorName);
-				}
-			}
-
-			public async IAsyncEnumerable<SimpleStreamingMessage> GetChatMessagesAsync()
-			{
-				await foreach (var s in inner.GetChatMessagesAsync())
-				{
-					yield return new SimpleStreamingMessage(s.Role, s.Content, s.AuthorName);
-				}
-			}
 		}
 	}
 }

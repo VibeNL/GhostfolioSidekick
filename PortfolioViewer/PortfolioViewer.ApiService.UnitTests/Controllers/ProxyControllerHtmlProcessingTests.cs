@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.Content.Should().Contain("Main Title");
 			fetchResponse.Content.Should().Contain("First paragraph with bold text.");
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			// All text should be present
 			fetchResponse.Content.Should().Contain("Header 1");
@@ -184,7 +184,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			// Multiple spaces should be normalized to single spaces
 			fetchResponse.Content.Should().Contain("Text with multiple spaces");
@@ -228,7 +228,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.Content.Should().Contain("Valid content");
 			fetchResponse.Content.Should().Contain("More valid content");
@@ -272,7 +272,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.MainContent.Should().Contain("Article element - should be selected");
 			fetchResponse.MainContent.Should().NotContain("Content div");
@@ -312,7 +312,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.MainContent.Should().Contain("Main element - should be selected");
 			fetchResponse.MainContent.Should().NotContain("Content div");
@@ -351,7 +351,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.MainContent.Should().Contain("Content div - should be selected");
 			fetchResponse.MainContent.Should().NotContain("Content by ID");
@@ -390,7 +390,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.MainContent.Should().BeEmpty();
 		}
@@ -444,7 +444,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			// Should not contain removed elements
 			fetchResponse.Content.Should().NotContain("<script>");
@@ -512,7 +512,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.Content.Should().NotContain("nested script");
 			fetchResponse.Content.Should().NotContain("Nav item");
@@ -554,7 +554,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.Content.Should().Contain("Title");
 			fetchResponse.Content.Should().Contain("Paragraph content");
@@ -593,7 +593,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.Title.Should().BeEmpty();
 			fetchResponse.Description.Should().BeEmpty();
@@ -635,7 +635,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			// HtmlAgilityPack should handle malformed HTML gracefully
 			fetchResponse.Title.Should().Be("Test Title");
@@ -677,7 +677,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
-			var fetchResponse = (Models.FetchResponse)okResult.Value!;
+			var fetchResponse = (GhostfolioSidekick.PortfolioViewer.ApiService.Models.FetchResponse)okResult.Value!;
 
 			fetchResponse.Content.Should().NotContain("Hidden by inline style");
 			fetchResponse.Content.Should().NotContain("Also hidden");

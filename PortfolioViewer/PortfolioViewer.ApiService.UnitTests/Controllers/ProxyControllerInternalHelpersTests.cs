@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 		public ProxyControllerInternalHelpersTests()
 		{
-			var assembly = Assembly.GetAssembly(typeof(ApiService.Controllers.ProxyController));
+			var assembly = Assembly.GetAssembly(typeof(GhostfolioSidekick.PortfolioViewer.ApiService.Controllers.ProxyController));
 			_ipNetworkType = assembly!.GetType("GhostfolioSidekick.PortfolioViewer.ApiService.Controllers.IPNetwork")!;
 			_urlValidationResultType = assembly.GetType("GhostfolioSidekick.PortfolioViewer.ApiService.Controllers.UrlValidationResult")!;
 		}
@@ -218,7 +218,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 		public void ProxyController_AllowedSchemes_ContainsExpectedSchemes()
 		{
 			// Arrange
-			var proxyControllerType = typeof(ApiService.Controllers.ProxyController);
+			var proxyControllerType = typeof(GhostfolioSidekick.PortfolioViewer.ApiService.Controllers.ProxyController);
 			var allowedSchemesField = proxyControllerType.GetField("AllowedSchemes", BindingFlags.NonPublic | BindingFlags.Static);
 
 			// Act
@@ -235,7 +235,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 		public void ProxyController_BlockedNetworks_ContainsExpectedNetworks()
 		{
 			// Arrange
-			var proxyControllerType = typeof(ApiService.Controllers.ProxyController);
+			var proxyControllerType = typeof(GhostfolioSidekick.PortfolioViewer.ApiService.Controllers.ProxyController);
 			var blockedNetworksField = proxyControllerType.GetField("BlockedNetworks", BindingFlags.NonPublic | BindingFlags.Static);
 
 			// Act
@@ -257,7 +257,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 		public void ProxyController_WhitespaceRegex_MatchesMultipleSpaces()
 		{
 			// Arrange
-			var proxyControllerType = typeof(ApiService.Controllers.ProxyController);
+			var proxyControllerType = typeof(GhostfolioSidekick.PortfolioViewer.ApiService.Controllers.ProxyController);
 			var whitespaceRegexMethod = proxyControllerType.GetMethod("WhitespaceRegex", BindingFlags.NonPublic | BindingFlags.Static);
 
 			// Act
@@ -276,7 +276,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 		public void ProxyController_NewlineRegex_MatchesMultipleNewlines()
 		{
 			// Arrange
-			var proxyControllerType = typeof(ApiService.Controllers.ProxyController);
+			var proxyControllerType = typeof(GhostfolioSidekick.PortfolioViewer.ApiService.Controllers.ProxyController);
 			var newlineRegexMethod = proxyControllerType.GetMethod("NewlineRegex", BindingFlags.NonPublic | BindingFlags.Static);
 
 			// Act

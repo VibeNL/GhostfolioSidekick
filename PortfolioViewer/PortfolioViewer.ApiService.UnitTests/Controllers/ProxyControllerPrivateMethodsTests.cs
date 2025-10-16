@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 		public ProxyControllerPrivateMethodsTests()
 		{
-			_proxyControllerType = typeof(ApiService.Controllers.ProxyController);
+			_proxyControllerType = typeof(GhostfolioSidekick.PortfolioViewer.ApiService.Controllers.ProxyController);
 		}
 
 		#region CleanHtml Tests
