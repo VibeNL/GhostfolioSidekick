@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 
 		// Allowed URL schemes for security
 		private static readonly HashSet<string> AllowedSchemes = new(StringComparer.OrdinalIgnoreCase) { "http", "https" };
-		
+
 		// Blocked private/internal IP ranges and localhost
 		private static readonly List<IPNetwork> BlockedNetworks =
 		[

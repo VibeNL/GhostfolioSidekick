@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
-using System.Collections.Generic;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 {

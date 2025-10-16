@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act
 			var clone1 = _client.Clone();
 			var clone2 = _client.Clone();
-			
+
 			clone1.ChatMode = ChatMode.FunctionCalling;
 			clone2.ChatMode = ChatMode.ChatWithThinking;
 
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			await WebLLMChatClient.LoadJsModuleAsync(_mockJSRuntime.Object, testPath);
 
 			// Assert
-			_mockJSRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>("import", It.Is<object[]>(args => 
+			_mockJSRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>("import", It.Is<object[]>(args =>
 				args.Length == 1 && args[0].Equals(testPath))), Times.Once);
 		}
 
@@ -196,7 +196,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		{
 			// Act & Assert - Constructor should not throw with valid parameters
 			var action = () => new WebLLMChatClient(_mockJSRuntime.Object, _mockLogger.Object, _modelIds);
-			
+
 			action.Should().NotThrow();
 		}
 
@@ -234,7 +234,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		{
 			// Arrange - Use reflection to set an interop instance
 			var interopInstance = new InteropInstance(new Mock<IProgress<InitializeProgress>>().Object);
-			var interopField = typeof(WebLLMChatClient).GetField("interopInstance", 
+			var interopField = typeof(WebLLMChatClient).GetField("interopInstance",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			interopField!.SetValue(_client, interopInstance);
 
@@ -243,7 +243,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 			// Assert
 			clone.Should().NotBeSameAs(_client);
-			
+
 			// Get the interop instance from the clone using reflection
 			var cloneInteropInstance = interopField!.GetValue(clone);
 			cloneInteropInstance.Should().BeSameAs(interopInstance);
@@ -254,7 +254,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		{
 			// Arrange - Use reflection to set a module
 			var mockModule = new Mock<IJSObjectReference>();
-			var moduleField = typeof(WebLLMChatClient).GetField("module", 
+			var moduleField = typeof(WebLLMChatClient).GetField("module",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			moduleField!.SetValue(_client, mockModule.Object);
 
@@ -263,7 +263,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 			// Assert
 			clone.Should().NotBeSameAs(_client);
-			
+
 			// Get the module from the clone using reflection
 			var cloneModule = moduleField!.GetValue(clone);
 			cloneModule.Should().BeSameAs(mockModule.Object);

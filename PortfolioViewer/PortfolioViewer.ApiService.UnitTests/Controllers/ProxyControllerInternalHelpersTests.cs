@@ -38,11 +38,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Arrange
 			var parseMethod = _ipNetworkType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static);
 			var containsMethod = _ipNetworkType.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
-			var ipNetwork = parseMethod!.Invoke(null, new object[] { cidr });
+			var ipNetwork = parseMethod!.Invoke(null, [cidr]);
 			var testAddress = IPAddress.Parse(testIp);
 
 			// Act
-			var result = containsMethod!.Invoke(ipNetwork, new object[] { testAddress });
+			var result = containsMethod!.Invoke(ipNetwork, [testAddress]);
 
 			// Assert
 			result.Should().Be(expectedResult);
@@ -62,11 +62,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Arrange
 			var parseMethod = _ipNetworkType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static);
 			var containsMethod = _ipNetworkType.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
-			var ipNetwork = parseMethod!.Invoke(null, new object[] { cidr });
+			var ipNetwork = parseMethod!.Invoke(null, [cidr]);
 			var testAddress = IPAddress.Parse(testIp);
 
 			// Act
-			var result = containsMethod!.Invoke(ipNetwork, new object[] { testAddress });
+			var result = containsMethod!.Invoke(ipNetwork, [testAddress]);
 
 			// Assert
 			result.Should().Be(expectedResult);
@@ -78,11 +78,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Arrange
 			var parseMethod = _ipNetworkType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static);
 			var containsMethod = _ipNetworkType.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
-			var ipv4Network = parseMethod!.Invoke(null, new object[] { "192.168.1.0/24" });
+			var ipv4Network = parseMethod!.Invoke(null, ["192.168.1.0/24"]);
 			var ipv6Address = IPAddress.Parse("::1");
 
 			// Act
-			var result = containsMethod!.Invoke(ipv4Network, new object[] { ipv6Address });
+			var result = containsMethod!.Invoke(ipv4Network, [ipv6Address]);
 
 			// Assert
 			result.Should().Be(false);
@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var parseMethod = _ipNetworkType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static);
 
 			// Act
-			var result = parseMethod!.Invoke(null, new object[] { cidr });
+			var result = parseMethod!.Invoke(null, [cidr]);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -118,9 +118,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var parseMethod = _ipNetworkType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static);
 
 			// Act & Assert
-			var exception = Assert.Throws<TargetInvocationException>(() => 
-				parseMethod!.Invoke(null, new object[] { invalidCidr }));
-			
+			var exception = Assert.Throws<TargetInvocationException>(() =>
+				parseMethod!.Invoke(null, [invalidCidr]));
+
 			exception.InnerException.Should().NotBeNull();
 		}
 
@@ -135,11 +135,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Arrange
 			var parseMethod = _ipNetworkType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static);
 			var containsMethod = _ipNetworkType.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
-			var ipNetwork = parseMethod!.Invoke(null, new object[] { cidr });
+			var ipNetwork = parseMethod!.Invoke(null, [cidr]);
 
 			// Act - Test that the network contains the network address itself
 			var networkAddress = IPAddress.Parse(cidr.Split('/')[0]);
-			var result = containsMethod!.Invoke(ipNetwork, new object[] { networkAddress });
+			var result = containsMethod!.Invoke(ipNetwork, [networkAddress]);
 
 			// Assert
 			result.Should().Be(true);
@@ -155,11 +155,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Arrange
 			var parseMethod = _ipNetworkType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static);
 			var containsMethod = _ipNetworkType.GetMethod("Contains", BindingFlags.Public | BindingFlags.Instance);
-			var ipNetwork = parseMethod!.Invoke(null, new object[] { cidr });
+			var ipNetwork = parseMethod!.Invoke(null, [cidr]);
 
 			// Act - Test that the network contains the network address itself
 			var networkAddress = IPAddress.Parse(cidr.Split('/')[0]);
-			var result = containsMethod!.Invoke(ipNetwork, new object[] { networkAddress });
+			var result = containsMethod!.Invoke(ipNetwork, [networkAddress]);
 
 			// Assert
 			result.Should().Be(true);
@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			// Assert
 			result.Should().NotBeNull();
-			
+
 			var isValidProperty = _urlValidationResultType.GetProperty("IsValid");
 			var errorMessageProperty = _urlValidationResultType.GetProperty("ErrorMessage");
 			var validatedUrlProperty = _urlValidationResultType.GetProperty("ValidatedUrl");

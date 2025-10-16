@@ -33,7 +33,7 @@
 				<button @onclick="ToggleChat" style="background: none; border: none; font-size: 24px; color: white; cursor: pointer;">×</button>
 			</div>
 
-			@if (lastProgress?.Progress != 1)
+			@if (lastProgress?.Progress < 1)
 			{
 				<!-- Loading Indicator -->
 				<div style="flex: 1; display: flex; justify-content: center; align-items: center; background-color: #f9f9f9;">

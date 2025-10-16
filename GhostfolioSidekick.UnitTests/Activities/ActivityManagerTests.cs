@@ -226,7 +226,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			activities.Should().HaveCount(2);
 			var buyActivity = activities.OfType<BuyActivity>().First();
 			var cashDepositActivity = activities.OfType<CashDepositActivity>().First();
-			
+
 			// The buy activity (with symbol identifiers) should be the source, so it gets the original transaction ID
 			buyActivity.TransactionId.Should().Be("T1");
 			cashDepositActivity.TransactionId.Should().Be("T1_2");
@@ -338,8 +338,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		public async Task GenerateActivities_ShouldRemoveDuplicateSymbolIdentifiers()
 		{
 			// Arrange - Create a custom partial activity with duplicate symbol identifiers
-			var duplicateSymbolIds = new List<PartialSymbolIdentifier> 
-			{ 
+			var duplicateSymbolIds = new List<PartialSymbolIdentifier>
+			{
 				PartialSymbolIdentifier.CreateGeneric("SYMBOL1"),
 				PartialSymbolIdentifier.CreateGeneric("SYMBOL1") // Duplicate
 			};

@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = "USD"
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be("USD");
 		}
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be("EUR");
 		}
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be("EUR");
 		}
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = ""
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be("EUR");
 		}
@@ -131,7 +131,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = "   "
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -141,7 +141,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be("EUR");
 		}
@@ -164,7 +164,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = currencyCode
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be(currencyCode);
 		}
@@ -193,10 +193,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var statusCodeResult = (ObjectResult)result;
 			statusCodeResult.StatusCode.Should().Be(500);
 			statusCodeResult.Value.Should().NotBeNull();
-			
+
 			var message = statusCodeResult.Value!.GetType().GetProperty("message")?.GetValue(statusCodeResult.Value)?.ToString();
 			var error = statusCodeResult.Value.GetType().GetProperty("error")?.GetValue(statusCodeResult.Value)?.ToString();
-			
+
 			message.Should().Be("Failed to retrieve primary currency");
 			error.Should().Be("Configuration access error");
 		}
@@ -213,7 +213,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = "USD"
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -223,7 +223,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			// Verify the response has the expected structure
 			var responseType = okResult.Value!.GetType();
 			var primaryCurrencyProperty = responseType.GetProperty("PrimaryCurrency");
@@ -243,7 +243,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = "CHF"
 				}
 			};
-			
+
 			// Simulate a more complex scenario where the structure is deeply nested
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
@@ -254,7 +254,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be("CHF");
 		}
@@ -271,7 +271,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = "USD"
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -293,7 +293,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = null!
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -303,7 +303,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be("EUR");
 		}
@@ -320,7 +320,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = "\t\n\r  "
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -330,7 +330,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be("EUR");
 		}
@@ -347,7 +347,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = "USD"
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -374,7 +374,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 					PrimaryCurrency = inputCurrency
 				}
 			};
-			
+
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 
 			// Act
@@ -384,7 +384,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var primaryCurrency = okResult.Value!.GetType().GetProperty("PrimaryCurrency")?.GetValue(okResult.Value)?.ToString();
 			primaryCurrency.Should().Be(expectedCurrency);
 		}

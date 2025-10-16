@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 	}
 
 	// A progress report for the initialization process
-	public record InitProgressReport(double Progress, string Text, double timeElapsed);
+	public record InitProgressReport(double Progress, string Text, double TimeElapsed);
 
 	// A chat message
 	public record Message(string Role, string Content);

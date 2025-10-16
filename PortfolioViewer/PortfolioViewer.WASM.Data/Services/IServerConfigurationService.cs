@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		/// Use GetPrimaryCurrencyAsync() to ensure the currency is loaded from the server.
 		/// </summary>
 		Currency PrimaryCurrency { get; }
-		
+
 		/// <summary>
 		/// Loads and returns the primary currency from the server.
 		/// </summary>

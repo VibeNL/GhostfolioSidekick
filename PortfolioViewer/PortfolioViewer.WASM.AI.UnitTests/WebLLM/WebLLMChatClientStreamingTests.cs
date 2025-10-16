@@ -81,8 +81,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			await _client.InitializeAsync(progress.Object);
 
 			// Assert
-			_mockJSRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>("import", 
-				It.Is<object[]>(args => args.Length == 1 && args[0].ToString() == "./js/dist/webllm.interop.js")), 
+			_mockJSRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>("import",
+				It.Is<object[]>(args => args.Length == 1 && args[0].ToString() == "./js/dist/webllm.interop.js")),
 				Times.Once);
 		}
 

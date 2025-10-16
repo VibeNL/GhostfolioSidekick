@@ -4,8 +4,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 {
 	public class FilterState : INotifyPropertyChanged
 	{
-		private DateOnly _startDate = DateOnly.FromDateTime(new DateTime(DateTime.Today.Year, 1, 1));  // YTD start - January 1st of current year
-		private DateOnly _endDate = DateOnly.FromDateTime(DateTime.Today);
+		private DateOnly _startDate = DateOnly.FromDateTime(new DateTime(DateTime.Today.Year, 1, 1, 0, 0, 0, DateTimeKind.Local));  // YTD start - January 1st of current year
+		private DateOnly _endDate = DateOnly.FromDateTime(new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 0, 0, 0, DateTimeKind.Local));
 		private int _selectedAccountId;
 		private string _selectedSymbol = ""; // Add symbol filter
 		private string _selectedTransactionType = ""; // Add transaction type filter

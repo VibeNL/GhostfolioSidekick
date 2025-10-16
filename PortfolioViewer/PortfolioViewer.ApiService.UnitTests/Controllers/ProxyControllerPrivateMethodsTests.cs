@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><body><script>alert('test');</script><p>Keep this</p></body></html>");
 
 			// Act
-			cleanHtmlMethod!.Invoke(null, new object[] { htmlDoc });
+			cleanHtmlMethod!.Invoke(null, [htmlDoc]);
 
 			// Assert
 			htmlDoc.DocumentNode.OuterHtml.Should().NotContain("<script>");
@@ -46,7 +46,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><head><style>body { color: red; }</style></head><body><p>Keep this</p></body></html>");
 
 			// Act
-			cleanHtmlMethod!.Invoke(null, new object[] { htmlDoc });
+			cleanHtmlMethod!.Invoke(null, [htmlDoc]);
 
 			// Assert
 			htmlDoc.DocumentNode.OuterHtml.Should().NotContain("<style>");
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			cleanHtmlMethod!.Invoke(null, new object[] { htmlDoc });
+			cleanHtmlMethod!.Invoke(null, [htmlDoc]);
 
 			// Assert
 			var html = htmlDoc.DocumentNode.OuterHtml;
@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			cleanHtmlMethod!.Invoke(null, new object[] { htmlDoc });
+			cleanHtmlMethod!.Invoke(null, [htmlDoc]);
 
 			// Assert
 			var html = htmlDoc.DocumentNode.OuterHtml;
@@ -133,7 +133,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><body><div class='remove'>Remove me</div><div class='keep'>Keep me</div></body></html>");
 
 			// Act
-			removeNodesMethod!.Invoke(null, new object[] { htmlDoc, "//div[@class='remove']" });
+			removeNodesMethod!.Invoke(null, [htmlDoc, "//div[@class='remove']"]);
 
 			// Assert
 			var html = htmlDoc.DocumentNode.OuterHtml;
@@ -150,9 +150,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><body><p>Content</p></body></html>");
 
 			// Act & Assert
-			var exception = Record.Exception(() => 
-				removeNodesMethod!.Invoke(null, new object[] { htmlDoc, "//nonexistent" }));
-			
+			var exception = Record.Exception(() =>
+				removeNodesMethod!.Invoke(null, [htmlDoc, "//nonexistent"]));
+
 			exception.Should().BeNull();
 		}
 
@@ -179,7 +179,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			removeCommentsMethod!.Invoke(null, new object[] { htmlDoc.DocumentNode });
+			removeCommentsMethod!.Invoke(null, [htmlDoc.DocumentNode]);
 
 			// Assert
 			var html = htmlDoc.DocumentNode.OuterHtml;
@@ -204,7 +204,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><body><h1>Title</h1><p>Paragraph</p></body></html>");
 
 			// Act
-			var result = (string)extractTextMethod!.Invoke(null, new object[] { htmlDoc })!;
+			var result = (string)extractTextMethod!.Invoke(null, [htmlDoc])!;
 
 			// Assert
 			result.Should().Contain("Title");
@@ -222,7 +222,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><head><title>Title</title></head><div>Content</div></html>");
 
 			// Act
-			var result = (string)extractTextMethod!.Invoke(null, new object[] { htmlDoc })!;
+			var result = (string)extractTextMethod!.Invoke(null, [htmlDoc])!;
 
 			// Assert
 			result.Should().Contain("Title");
@@ -238,7 +238,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><body><p>Text    with     multiple     spaces</p></body></html>");
 
 			// Act
-			var result = (string)extractTextMethod!.Invoke(null, new object[] { htmlDoc })!;
+			var result = (string)extractTextMethod!.Invoke(null, [htmlDoc])!;
 
 			// Assert
 			result.Should().Contain("Text with multiple spaces");
@@ -261,7 +261,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var rootNode = htmlDoc.DocumentNode.FirstChild; // Get the outer div
 
 			// Act
-			extractTextMethod!.Invoke(null, new object[] { rootNode, sb });
+			extractTextMethod!.Invoke(null, [rootNode, sb]);
 
 			// Assert
 			var result = sb.ToString();
@@ -281,7 +281,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var sb = new StringBuilder();
 
 			// Act
-			extractTextMethod!.Invoke(null, new object[] { htmlDoc.DocumentNode.FirstChild, sb });
+			extractTextMethod!.Invoke(null, [htmlDoc.DocumentNode.FirstChild, sb]);
 
 			// Assert
 			var result = sb.ToString();
@@ -312,7 +312,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var node = htmlDoc.DocumentNode.FirstChild;
 
 			// Act
-			var result = (bool)isInvisibleMethod!.Invoke(null, new object[] { node })!;
+			var result = (bool)isInvisibleMethod!.Invoke(null, [node])!;
 
 			// Assert
 			result.Should().Be(expectedInvisible, $"Node with HTML '{html}' should be {(expectedInvisible ? "invisible" : "visible")}");
@@ -350,7 +350,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var node = htmlDoc.DocumentNode.FirstChild;
 
 			// Act
-			var result = (bool)isBlockMethod!.Invoke(null, new object[] { node })!;
+			var result = (bool)isBlockMethod!.Invoke(null, [node])!;
 
 			// Assert
 			result.Should().Be(expectedIsBlock);
@@ -376,7 +376,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			var result = (string)extractMainContentMethod!.Invoke(null, new object[] { htmlDoc })!;
+			var result = (string)extractMainContentMethod!.Invoke(null, [htmlDoc])!;
 
 			// Assert
 			result.Should().Contain("Article content");
@@ -399,7 +399,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			var result = (string)extractMainContentMethod!.Invoke(null, new object[] { htmlDoc })!;
+			var result = (string)extractMainContentMethod!.Invoke(null, [htmlDoc])!;
 
 			// Assert
 			result.Should().Contain("Main element");
@@ -421,7 +421,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			var result = (string)extractMainContentMethod!.Invoke(null, new object[] { htmlDoc })!;
+			var result = (string)extractMainContentMethod!.Invoke(null, [htmlDoc])!;
 
 			// Assert
 			result.Should().Contain("Content div");
@@ -443,7 +443,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			var result = (string)extractMainContentMethod!.Invoke(null, new object[] { htmlDoc })!;
+			var result = (string)extractMainContentMethod!.Invoke(null, [htmlDoc])!;
 
 			// Assert
 			result.Should().BeEmpty();
@@ -462,7 +462,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><head><title>Test Title</title></head><body></body></html>");
 
 			// Act
-			var result = extractMetadataMethod!.Invoke(null, new object[] { htmlDoc });
+			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
 			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
@@ -486,7 +486,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			var result = extractMetadataMethod!.Invoke(null, new object[] { htmlDoc });
+			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
 			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
@@ -510,7 +510,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			var result = extractMetadataMethod!.Invoke(null, new object[] { htmlDoc });
+			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
 			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
@@ -537,7 +537,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			var result = extractMetadataMethod!.Invoke(null, new object[] { htmlDoc });
+			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
 			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
@@ -565,7 +565,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 				</html>");
 
 			// Act
-			var result = extractMetadataMethod!.Invoke(null, new object[] { htmlDoc });
+			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
 			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert

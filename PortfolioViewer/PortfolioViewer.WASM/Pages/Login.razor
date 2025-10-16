@@ -101,7 +101,7 @@
         }
     }
 
-    private class LoginModel
+    private sealed class LoginModel
     {
         [Required(ErrorMessage = "Access token is required")]
         public string AccessToken { get; set; } = string.Empty;

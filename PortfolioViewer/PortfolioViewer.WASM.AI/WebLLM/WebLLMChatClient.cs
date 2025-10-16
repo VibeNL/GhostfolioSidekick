@@ -194,8 +194,8 @@ Format function calls like this:
 
 		private WebLLMCompletion? TryDequeueResponse()
 		{
-			return interopInstance!.WebLLMCompletions.TryDequeue(out WebLLMCompletion? response) 
-				? response 
+			return interopInstance!.WebLLMCompletions.TryDequeue(out WebLLMCompletion? response)
+				? response
 				: null;
 		}
 
@@ -258,14 +258,14 @@ Format function calls like this:
 		private bool TryParseToolCalls(string content, out List<Microsoft.Extensions.AI.FunctionCallContent> toolCalls)
 		{
 			toolCalls = [];
-			
+
 			if (string.IsNullOrWhiteSpace(content))
 			{
 				return false;
 			}
-			
-			content = content.Trim('\'');			
-			
+
+			content = content.Trim('\'');
+
 			try
 			{
 				using var doc = JsonDocument.Parse(content);
@@ -287,7 +287,7 @@ Format function calls like this:
 		{
 			toolCalls = [];
 
-			if (!doc.RootElement.TryGetProperty("tool_calls", out var toolCallsArray) || 
+			if (!doc.RootElement.TryGetProperty("tool_calls", out var toolCallsArray) ||
 				toolCallsArray.ValueKind != JsonValueKind.Array)
 			{
 				return false;

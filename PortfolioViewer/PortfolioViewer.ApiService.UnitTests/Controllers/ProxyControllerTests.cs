@@ -110,7 +110,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			actualUri.Host.Should().Be(expectedUri.Host);
 			actualUri.Scheme.Should().Be(expectedUri.Scheme);
 			actualUri.Port.Should().Be(expectedUri.Port);
-			
+
 			fetchResponse.StatusCode.Should().Be(200);
 			fetchResponse.Title.Should().Be("Test Title");
 			fetchResponse.Description.Should().Be("Test Description");
