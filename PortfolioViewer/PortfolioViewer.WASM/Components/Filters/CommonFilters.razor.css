@@ -57,13 +57,6 @@
     padding: 0.25rem 0.5rem;
 }
 
-/* Visual indication for pending changes */
-.filter-group select:has-changed,
-.filter-group input:has-changed {
-    border-color: #ffc107;
-    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
-}
-
 /* Visual indication for active filters */
 .filter-group select:not([value=""]):not([value="0"]),
 .filter-group input:not([value=""]) {
