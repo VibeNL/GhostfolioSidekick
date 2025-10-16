@@ -151,11 +151,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var badRequestResult = (BadRequestObjectResult)result;
 			badRequestResult.Value.Should().BeOfType<string>();
 			var errorMessage = (string)badRequestResult.Value!;
-			
+
 			// The error could be either DNS resolution failure or private network blocking
 			// depending on whether the IP has reverse DNS entries
 			var isValidError = errorMessage.Contains("private/internal networks is not allowed") ||
-			                  errorMessage.Contains("Unable to resolve hostname");
+							  errorMessage.Contains("Unable to resolve hostname");
 			isValidError.Should().BeTrue($"Expected private network error or DNS resolution error, but got: {errorMessage}");
 		}
 
@@ -174,12 +174,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var badRequestResult = (BadRequestObjectResult)result;
 			badRequestResult.Value.Should().BeOfType<string>();
 			var errorMessage = (string)badRequestResult.Value!;
-			
+
 			// For direct IP addresses, DNS resolution might fail if there's no reverse DNS
 			// This is actually the expected behavior for security - we want to block access
 			// whether through DNS failure or explicit network validation
 			var isSecurityError = errorMessage.Contains("private/internal networks is not allowed") ||
-			                     errorMessage.Contains("Unable to resolve hostname");
+								 errorMessage.Contains("Unable to resolve hostname");
 			isSecurityError.Should().BeTrue($"Expected security-related error, but got: {errorMessage}");
 		}
 
@@ -358,12 +358,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var badRequestResult = (BadRequestObjectResult)result;
 			badRequestResult.Value.Should().BeOfType<string>();
 			var errorMessage = (string)badRequestResult.Value!;
-			
+
 			// For IPv6 addresses, DNS resolution might fail if there's no reverse DNS
 			// This is actually the expected behavior for security - we want to block access
 			// whether through DNS failure or explicit network validation
 			var isSecurityError = errorMessage.Contains("private/internal networks is not allowed") ||
-			                     errorMessage.Contains("Unable to resolve hostname");
+								 errorMessage.Contains("Unable to resolve hostname");
 			isSecurityError.Should().BeTrue($"Expected security-related error, but got: {errorMessage}");
 		}
 
@@ -375,15 +375,15 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 		public void ProxyController_Constructor_SetsExpectedHeaders()
 		{
 			// Act - Constructor is called in test setup
-			
+
 			// Assert - Verify the HttpClient has the expected headers
 			_httpClient.DefaultRequestHeaders.Should().NotBeNull();
-			
+
 			// Check User-Agent header
 			var userAgentHeader = _httpClient.DefaultRequestHeaders.UserAgent.ToString();
 			userAgentHeader.Should().Contain("Mozilla/5.0");
 			userAgentHeader.Should().Contain("Chrome");
-			
+
 			// Check Accept header
 			var acceptHeader = _httpClient.DefaultRequestHeaders.Accept.ToString();
 			acceptHeader.Should().Contain("text/html");

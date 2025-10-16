@@ -96,8 +96,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			await _client.InitializeAsync(progress.Object);
 
 			// Assert
-			_mockJSRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>("import", 
-				It.Is<object[]>(args => args.Length == 1 && args[0].ToString() == "./js/dist/webllm.interop.js")), 
+			_mockJSRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>("import",
+				It.Is<object[]>(args => args.Length == 1 && args[0].ToString() == "./js/dist/webllm.interop.js")),
 				Times.Once);
 
 			// We can't easily verify the InvokeVoidAsync call because it's an extension method
@@ -163,8 +163,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 			// Assert
 			Assert.Same(_mockModule.Object, result);
-			_mockJSRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>("import", 
-				It.Is<object[]>(args => args.Length == 1 && args[0].ToString() == testPath)), 
+			_mockJSRuntime.Verify(x => x.InvokeAsync<IJSObjectReference>("import",
+				It.Is<object[]>(args => args.Length == 1 && args[0].ToString() == testPath)),
 				Times.Once);
 		}
 
@@ -185,7 +185,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var assistantMessage = new ChatMessage(ChatRole.Assistant, "Assistant response");
 
 			// Act - Using reflection to access private method
-			var fixMethod = typeof(WebLLMChatClient).GetMethod("Fix", 
+			var fixMethod = typeof(WebLLMChatClient).GetMethod("Fix",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (ChatMessage)fixMethod!.Invoke(null, [assistantMessage])!;
 
@@ -201,7 +201,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var userMessage = new ChatMessage(ChatRole.User, "User input");
 
 			// Act - Using reflection to access private method
-			var fixMethod = typeof(WebLLMChatClient).GetMethod("Fix", 
+			var fixMethod = typeof(WebLLMChatClient).GetMethod("Fix",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (ChatMessage)fixMethod!.Invoke(null, [userMessage])!;
 
@@ -217,7 +217,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var message = new ChatMessage(ChatRole.User, "Hello <think>thinking content</think> world");
 
 			// Act - Using reflection to access private method
-			var removeThinkMethod = typeof(WebLLMChatClient).GetMethod("RemoveThink", 
+			var removeThinkMethod = typeof(WebLLMChatClient).GetMethod("RemoveThink",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (ChatMessage)removeThinkMethod!.Invoke(null, [message])!;
 
@@ -233,7 +233,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var messages = new List<ChatMessage>();
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("IsEmptyMessageList", 
+			var method = typeof(WebLLMChatClient).GetMethod("IsEmptyMessageList",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (bool)method!.Invoke(null, [messages])!;
 
@@ -248,7 +248,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var messages = new List<ChatMessage> { new(ChatRole.User, "Hello") };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("IsEmptyMessageList", 
+			var method = typeof(WebLLMChatClient).GetMethod("IsEmptyMessageList",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (bool)method!.Invoke(null, [messages])!;
 
@@ -260,7 +260,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void HasTools_WithNullOptions_ShouldReturnFalse()
 		{
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("HasTools", 
+			var method = typeof(WebLLMChatClient).GetMethod("HasTools",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (bool)method!.Invoke(null, [null])!;
 
@@ -275,7 +275,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var options = new ChatOptions { Tools = [] };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("HasTools", 
+			var method = typeof(WebLLMChatClient).GetMethod("HasTools",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (bool)method!.Invoke(null, [options])!;
 
@@ -289,12 +289,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Arrange
 			var testFunction = KernelFunctionFactory.CreateFromMethod(
 				() => "test",
-				"TestFunction", 
+				"TestFunction",
 				"Test function");
 			var options = new ChatOptions { Tools = [testFunction] };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("HasTools", 
+			var method = typeof(WebLLMChatClient).GetMethod("HasTools",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (bool)method!.Invoke(null, [options])!;
 
@@ -311,7 +311,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var response = new WebLLMCompletion("id", "object", "model", "fingerprint", [choice], null);
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ExtractContentFromResponse", 
+			var method = typeof(WebLLMChatClient).GetMethod("ExtractContentFromResponse",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (string?)method!.Invoke(null, [response]);
 
@@ -326,7 +326,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var response = new WebLLMCompletion("id", "object", "model", "fingerprint", null, null);
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ExtractContentFromResponse", 
+			var method = typeof(WebLLMChatClient).GetMethod("ExtractContentFromResponse",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (string?)method!.Invoke(null, [response]);
 
@@ -341,7 +341,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var response = new WebLLMCompletion("id", "object", "model", "fingerprint", [], null);
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ExtractContentFromResponse", 
+			var method = typeof(WebLLMChatClient).GetMethod("ExtractContentFromResponse",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (string?)method!.Invoke(null, [response]);
 
@@ -357,7 +357,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var response = new WebLLMCompletion("id", "object", "model", "fingerprint", [choice], null);
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ExtractContentFromResponse", 
+			var method = typeof(WebLLMChatClient).GetMethod("ExtractContentFromResponse",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (string?)method!.Invoke(null, [response]);
 
@@ -377,7 +377,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var functions = new List<KernelFunction> { testFunction };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("BuildFunctionDefinitions", 
+			var method = typeof(WebLLMChatClient).GetMethod("BuildFunctionDefinitions",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (string)method!.Invoke(null, [functions])!;
 
@@ -424,7 +424,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			""";
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("TryParseToolCalls", 
+			var method = typeof(WebLLMChatClient).GetMethod("TryParseToolCalls",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var parameters = new object[] { json, null! };
 			var result = (bool)method!.Invoke(_client, parameters)!;
@@ -444,7 +444,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var invalidJson = "{ invalid json }";
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("TryParseToolCalls", 
+			var method = typeof(WebLLMChatClient).GetMethod("TryParseToolCalls",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var parameters = new object[] { invalidJson, null! };
 			var result = (bool)method!.Invoke(_client, parameters)!;
@@ -457,7 +457,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void TryParseToolCalls_WithEmptyString_ShouldReturnFalse()
 		{
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("TryParseToolCalls", 
+			var method = typeof(WebLLMChatClient).GetMethod("TryParseToolCalls",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var parameters = new object[] { "", null! };
 			var result = (bool)method!.Invoke(_client, parameters)!;
@@ -470,7 +470,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void TryParseToolCalls_WithNullString_ShouldReturnFalse()
 		{
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("TryParseToolCalls", 
+			var method = typeof(WebLLMChatClient).GetMethod("TryParseToolCalls",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var parameters = new object?[] { null, null! };
 			var result = (bool)method!.Invoke(_client, parameters)!;
@@ -496,7 +496,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			using var doc = JsonDocument.Parse(json);
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ConvertJsonElementToDictionary", 
+			var method = typeof(WebLLMChatClient).GetMethod("ConvertJsonElementToDictionary",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (Dictionary<string, object?>)method!.Invoke(null, [doc.RootElement])!;
 
@@ -515,14 +515,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var argumentsJson = """{"param1": "value1", "param2": 42}""";
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ParseArgumentsFromString", 
+			var method = typeof(WebLLMChatClient).GetMethod("ParseArgumentsFromString",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = (Dictionary<string, object?>?)method!.Invoke(_client, [argumentsJson]);
 
 			// Assert
 			Assert.NotNull(result);
 			Assert.Equal("value1", result["param1"]);
-			Assert.Equal(42d,(double?)result["param2"]); // JSON integers are converted to long
+			Assert.Equal(42d, (double?)result["param2"]); // JSON integers are converted to long
 		}
 
 		[Fact]
@@ -532,7 +532,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var invalidJson = "invalid json";
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ParseArgumentsFromString", 
+			var method = typeof(WebLLMChatClient).GetMethod("ParseArgumentsFromString",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = (Dictionary<string, object?>?)method!.Invoke(_client, [invalidJson]);
 
@@ -545,7 +545,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void ParseArgumentsFromString_WithEmptyString_ShouldReturnEmptyDictionary()
 		{
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ParseArgumentsFromString", 
+			var method = typeof(WebLLMChatClient).GetMethod("ParseArgumentsFromString",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = (Dictionary<string, object?>?)method!.Invoke(_client, [""]);
 
@@ -567,7 +567,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var arguments = new Dictionary<string, object?> { { "param1", "value1" } };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("CallToolAsync", 
+			var method = typeof(WebLLMChatClient).GetMethod("CallToolAsync",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = await (Task<string>)method!.Invoke(_client, [options, "TestTool", arguments])!;
 
@@ -582,7 +582,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var options = new ChatOptions { Tools = [] };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("CallToolAsync", 
+			var method = typeof(WebLLMChatClient).GetMethod("CallToolAsync",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = await (Task<string>)method!.Invoke(_client, [options, "NonExistentTool", null!])!;
 
@@ -595,7 +595,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		{
 			// Arrange
 			var testFunction = KernelFunctionFactory.CreateFromMethod(
-				(KernelArguments args) => 
+				(KernelArguments args) =>
 				{
 					throw new InvalidOperationException("Tool error");
 				},
@@ -605,7 +605,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var options = new ChatOptions { Tools = [testFunction] };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("CallToolAsync", 
+			var method = typeof(WebLLMChatClient).GetMethod("CallToolAsync",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = await (Task<string>)method!.Invoke(_client, [options, "ErrorTool", null!])!;
 
@@ -637,7 +637,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var messages = Array.Empty<ChatMessage>();
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", 
+			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = (List<ChatMessage>)method!.Invoke(_client, [messages, null!])!;
 
@@ -658,7 +658,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			};
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", 
+			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = (List<ChatMessage>)method!.Invoke(_client, [messages, null!])!;
 
@@ -682,7 +682,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var options = new ChatOptions { Tools = [testFunction] };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages", 
+			var method = typeof(WebLLMChatClient).GetMethod("PrepareMessages",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = (List<ChatMessage>)method!.Invoke(_client, [messages, options])!;
 
@@ -704,7 +704,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var options = new ChatOptions { Tools = [testFunction] };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ShouldAddFunctionPrompt", 
+			var method = typeof(WebLLMChatClient).GetMethod("ShouldAddFunctionPrompt",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = (bool)method!.Invoke(_client, [options])!;
 
@@ -724,7 +724,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var options = new ChatOptions { Tools = [testFunction] };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("ShouldAddFunctionPrompt", 
+			var method = typeof(WebLLMChatClient).GetMethod("ShouldAddFunctionPrompt",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 			var result = (bool)method!.Invoke(_client, [options])!;
 
@@ -744,7 +744,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var options = new ChatOptions { Tools = [testFunction] };
 
 			// Act - Using reflection to access private method
-			var method = typeof(WebLLMChatClient).GetMethod("CreateFunctionPromptMessage", 
+			var method = typeof(WebLLMChatClient).GetMethod("CreateFunctionPromptMessage",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			var result = (ChatMessage)method!.Invoke(null, [options])!;
 

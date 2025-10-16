@@ -148,7 +148,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private static KeywordMatchResult TryMatchKeyword(List<SingleWordToken> words, int startIndex, string keyword)
 		{
 			var keywordParts = keyword.Split(" ");
-			
+
 			for (int i = 0; i < keywordParts.Length; i++)
 			{
 				if (startIndex + i >= words.Count || words[startIndex + i].Text != keywordParts[i])
@@ -182,12 +182,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private static bool TryParseDate(List<SingleWordToken> words, int index, out DateTime date)
 		{
 			date = default;
-			
+
 			if (index + 2 >= words.Count)
 				return false;
 
 			var dateString = $"{words[index].Text} {words[index + 1].Text} {words[index + 2].Text}";
-			
+
 			return DateTime.TryParseExact(
 				dateString,
 				["dd MMM yyyy", "dd MMM. yyyy"],
@@ -203,7 +203,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				return int.MaxValue;
 
 			var typeToken = words[typeTokenIndex];
-			
+
 			if (ShouldSkipActivityType(typeToken.Text))
 			{
 				return dateIndex - originalIndex + 3;
@@ -234,7 +234,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			var amountText = items[^2];
 			var currency = Currency.GetCurrency(CurrencyTools.GetCurrencyFromSymbol(amountText.Text[..1]));
 			var amount = decimal.Parse(amountText.Text[1..].Trim(), DutchCultureInfo);
-			
+
 			return (currency, amount);
 		}
 
@@ -244,12 +244,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		}
 
 		private static void CreateActivityBasedOnType(
-			string activityType, 
-			DateTime date, 
-			Currency currency, 
-			decimal amount, 
-			List<SingleWordToken> items, 
-			List<PartialActivity> activities, 
+			string activityType,
+			DateTime date,
+			Currency currency,
+			decimal amount,
+			List<SingleWordToken> items,
+			List<PartialActivity> activities,
 			string id)
 		{
 			switch (activityType)

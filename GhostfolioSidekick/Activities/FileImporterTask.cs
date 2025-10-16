@@ -188,7 +188,7 @@ namespace GhostfolioSidekick.Activities
 		{
 			// Get all unique account IDs from the activities
 			var accountIds = activities.Select(x => x.Account.Id).Distinct().ToList();
-			
+
 			// Load all required accounts from the database to ensure they're tracked
 			var trackedAccounts = await databaseContext.Accounts
 				.Where(a => accountIds.Contains(a.Id))

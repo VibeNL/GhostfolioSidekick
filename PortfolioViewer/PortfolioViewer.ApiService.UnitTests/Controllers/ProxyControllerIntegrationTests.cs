@@ -320,7 +320,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			fetchResponse.Title.Should().Be("Breaking: Major Technology Breakthrough");
 			fetchResponse.Description.Should().Be("Scientists announce groundbreaking discovery in quantum computing.");
-			
+
 			// Text-only should not contain HTML tags
 			fetchResponse.Content.Should().NotContain("<");
 			fetchResponse.Content.Should().NotContain(">");
@@ -436,16 +436,16 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 		{
 			// Arrange
 			const string testUrl = "https://example.com";
-			
+
 			// Create a large HTML document
 			var sb = new StringBuilder();
 			sb.AppendLine("<html><head><title>Large Document</title></head><body>");
-			
+
 			for (int i = 0; i < 1000; i++)
 			{
 				sb.AppendLine($"<p>This is paragraph number {i} with some content to make the document larger.</p>");
 			}
-			
+
 			sb.AppendLine("</body></html>");
 			string testHtml = sb.ToString();
 
@@ -518,13 +518,13 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// URI normalization may add trailing slashes, so we need to be flexible
 			var expectedUri = new Uri(testUrl);
 			var actualUri = new Uri(fetchResponse.Url);
-			
+
 			actualUri.Scheme.Should().Be(expectedUri.Scheme);
 			actualUri.Host.Should().Be(expectedUri.Host);
 			actualUri.Port.Should().Be(expectedUri.Port);
 			actualUri.AbsolutePath.Should().Be(expectedUri.AbsolutePath);
 			actualUri.Query.Should().Be(expectedUri.Query);
-			
+
 			fetchResponse.StatusCode.Should().Be(200);
 			fetchResponse.Title.Should().Be("Test");
 		}

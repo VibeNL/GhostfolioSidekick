@@ -118,9 +118,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var parseMethod = _ipNetworkType.GetMethod("Parse", BindingFlags.Public | BindingFlags.Static);
 
 			// Act & Assert
-			var exception = Assert.Throws<TargetInvocationException>(() => 
+			var exception = Assert.Throws<TargetInvocationException>(() =>
 				parseMethod!.Invoke(null, [invalidCidr]));
-			
+
 			exception.InnerException.Should().NotBeNull();
 		}
 
@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			// Assert
 			result.Should().NotBeNull();
-			
+
 			var isValidProperty = _urlValidationResultType.GetProperty("IsValid");
 			var errorMessageProperty = _urlValidationResultType.GetProperty("ErrorMessage");
 			var validatedUrlProperty = _urlValidationResultType.GetProperty("ValidatedUrl");

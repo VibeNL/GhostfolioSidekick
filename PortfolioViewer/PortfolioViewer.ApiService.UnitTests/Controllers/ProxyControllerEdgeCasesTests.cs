@@ -363,7 +363,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			_mockHttpMessageHandler.Protected()
 				.Setup<Task<HttpResponseMessage>>(
 					"SendAsync",
-					ItExpr.Is<HttpRequestMessage>(req => 
+					ItExpr.Is<HttpRequestMessage>(req =>
 						CaptureUrl(req, out capturedUrl)),
 					ItExpr.IsAny<CancellationToken>())
 				.ReturnsAsync(responseMessage);
@@ -374,13 +374,13 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			// Assert
 			result.Should().BeOfType<OkObjectResult>();
 			capturedUrl.Should().NotBeNull();
-			
+
 			// Verify that the query is properly URL encoded in the request
 			// The URL should contain the Google API endpoint
 			capturedUrl.Should().Contain("https://www.googleapis.com/customsearch/v1");
 			capturedUrl.Should().Contain("key=test-api-key");
 			capturedUrl.Should().Contain("cx=test-engine-id");
-			
+
 			// The query parameter should be URL encoded - verify the query is present
 			// Note: Uri.EscapeDataString might not always produce the exact same result
 			// depending on the input, so we just verify the structure is correct

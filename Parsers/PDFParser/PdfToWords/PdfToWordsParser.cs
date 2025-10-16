@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				var line = lines[i].ToCharArray();
 				var word = new StringBuilder();
 				var c = 0;
-				
+
 				for (int j = 0; j < line.Length; j++)
 				{
 					ProcessCharacter(line[j], word, ref c, j, words, page, i);

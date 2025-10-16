@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 		public ResearchAgentTests()
 		{
 			_mockWebChatClient = new Mock<IWebChatClient>();
-			
+
 			// Use the constructor with GoogleSearchContext to avoid optional parameters
 			var context = new GoogleSearchContext
 			{
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 			// Assert
 			Assert.NotNull(agent.Kernel);
 			Assert.True(agent.Kernel.Plugins.Count > 0);
-			
+
 			// Verify that the kernel has plugins (ResearchAgentFunction was added)
 			var hasPlugins = agent.Kernel.Plugins.Count != 0;
 			Assert.True(hasPlugins);

@@ -150,9 +150,9 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			htmlDoc.LoadHtml("<html><body><p>Content</p></body></html>");
 
 			// Act & Assert
-			var exception = Record.Exception(() => 
+			var exception = Record.Exception(() =>
 				removeNodesMethod!.Invoke(null, [htmlDoc, "//nonexistent"]));
-			
+
 			exception.Should().BeNull();
 		}
 

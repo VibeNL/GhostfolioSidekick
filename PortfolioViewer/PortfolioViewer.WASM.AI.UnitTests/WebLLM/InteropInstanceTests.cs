@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			_interopInstance.ReportProgress(progressReport);
 
 			// Assert
-			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip => 
+			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip =>
 				Math.Abs(ip.Progress - 0.5) < Tolerance && ip.Message == "Loading model...")), Times.Once);
 		}
 
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			_interopInstance.ReportProgress(progressReport);
 
 			// Assert
-			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip => 
+			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip =>
 				Math.Abs(ip.Progress - 0.99) < Tolerance)), Times.Once);
 		}
 
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			_interopInstance.ReportProgress(progressReport);
 
 			// Assert
-			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip => 
+			_mockProgress.Verify(p => p.Report(It.Is<InitializeProgress>(ip =>
 				Math.Abs(ip.Progress - 1.0) < Tolerance)), Times.Once);
 		}
 

@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
 			var searchResults = await GetSearchResultsForIdentifiers(symbolIdentifiers);
-			
+
 			if (searchResults.Count == 0)
 			{
 				return null;
@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		private async Task<List<SearchResult>> GetSearchResultsForIdentifiers(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
 			var matches = new List<SearchResult>();
-			
+
 			foreach (var identifier in symbolIdentifiers)
 			{
 				if (string.IsNullOrWhiteSpace(identifier.Identifier))
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 				var searchTerm = PrepareSearchTerm(identifier);
 				var results = await SearchSymbol(searchTerm);
-				
+
 				if (results != null)
 				{
 					var filteredResults = results.Where(result => IsAllowedSymbolType(result, identifier));

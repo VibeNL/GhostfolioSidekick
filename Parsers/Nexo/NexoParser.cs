@@ -28,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 				"Deposit" or "Exchange Deposited On" => HandleDeposit(record),
 				"Exchange" => HandleExchange(record),
 				"Interest" or "Fixed Term Interest" or "Dual Investment Interest" => HandleInterest(record),
-				"Exchange To Withdraw" or "Deposit To Exchange" or "Locking Term Deposit" or 
+				"Exchange To Withdraw" or "Deposit To Exchange" or "Locking Term Deposit" or
 				"Unlocking Term Deposit" or "Dual Investment Unlock" or "Dual Investment Lock" =>
 					[],
 				_ => throw new NotSupportedException(record.Type)
@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 		private IEnumerable<PartialActivity> HandleCashbackAndBonus(NexoRecord record)
 		{
 			var outputCurrency = GetCurrency(record.OutputCurrency);
-			
+
 			if (outputCurrency.IsFiat())
 			{
 				yield return PartialActivity.CreateGift(
@@ -103,7 +103,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 			{
 				throw new NotSupportedException();
 			}
-			
+
 			if (!inputCurrency.IsFiat() && !outputCurrency.IsFiat())
 			{
 				var activities = PartialActivity.CreateAssetConvert(
@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.Parsers.Nexo
 		private IEnumerable<PartialActivity> HandleInterest(NexoRecord record)
 		{
 			var outputCurrency = GetCurrency(record.OutputCurrency);
-			
+
 			if (outputCurrency.IsFiat())
 			{
 				yield return PartialActivity.CreateInterest(

@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<UnauthorizedObjectResult>();
 			var unauthorizedResult = (UnauthorizedObjectResult)result;
 			unauthorizedResult.Value.Should().NotBeNull();
-			
+
 			var message = unauthorizedResult.Value!.GetType().GetProperty("message")?.GetValue(unauthorizedResult.Value)?.ToString();
 			message.Should().Be("Invalid authorization header format");
 		}
@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<UnauthorizedObjectResult>();
 			var unauthorizedResult = (UnauthorizedObjectResult)result;
 			unauthorizedResult.Value.Should().NotBeNull();
-			
+
 			var message = unauthorizedResult.Value!.GetType().GetProperty("message")?.GetValue(unauthorizedResult.Value)?.ToString();
 			message.Should().Be("Invalid authorization header format");
 		}
@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<UnauthorizedObjectResult>();
 			var unauthorizedResult = (UnauthorizedObjectResult)result;
 			unauthorizedResult.Value.Should().NotBeNull();
-			
+
 			var message = unauthorizedResult.Value!.GetType().GetProperty("message")?.GetValue(unauthorizedResult.Value)?.ToString();
 			message.Should().Be("Invalid authorization header format");
 		}
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<UnauthorizedObjectResult>();
 			var unauthorizedResult = (UnauthorizedObjectResult)result;
 			unauthorizedResult.Value.Should().NotBeNull();
-			
+
 			var message = unauthorizedResult.Value!.GetType().GetProperty("message")?.GetValue(unauthorizedResult.Value)?.ToString();
 			message.Should().Be("Token is required");
 		}
@@ -110,7 +110,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<UnauthorizedObjectResult>();
 			var unauthorizedResult = (UnauthorizedObjectResult)result;
 			unauthorizedResult.Value.Should().NotBeNull();
-			
+
 			var message = unauthorizedResult.Value!.GetType().GetProperty("message")?.GetValue(unauthorizedResult.Value)?.ToString();
 			message.Should().Be("Token is required");
 		}
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var statusCodeResult = (ObjectResult)result;
 			statusCodeResult.StatusCode.Should().Be(500);
 			statusCodeResult.Value.Should().NotBeNull();
-			
+
 			var message = statusCodeResult.Value!.GetType().GetProperty("message")?.GetValue(statusCodeResult.Value)?.ToString();
 			message.Should().Be("Server configuration error: No access token configured");
 		}
@@ -150,7 +150,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var statusCodeResult = (ObjectResult)result;
 			statusCodeResult.StatusCode.Should().Be(500);
 			statusCodeResult.Value.Should().NotBeNull();
-			
+
 			var message = statusCodeResult.Value!.GetType().GetProperty("message")?.GetValue(statusCodeResult.Value)?.ToString();
 			message.Should().Be("Server configuration error: No access token configured");
 		}
@@ -170,10 +170,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var message = okResult.Value!.GetType().GetProperty("message")?.GetValue(okResult.Value)?.ToString();
 			var isValid = okResult.Value.GetType().GetProperty("isValid")?.GetValue(okResult.Value);
-			
+
 			message.Should().Be("Token is valid");
 			isValid.Should().Be(true);
 		}
@@ -192,10 +192,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<UnauthorizedObjectResult>();
 			var unauthorizedResult = (UnauthorizedObjectResult)result;
 			unauthorizedResult.Value.Should().NotBeNull();
-			
+
 			var message = unauthorizedResult.Value!.GetType().GetProperty("message")?.GetValue(unauthorizedResult.Value)?.ToString();
 			var isValid = unauthorizedResult.Value.GetType().GetProperty("isValid")?.GetValue(unauthorizedResult.Value);
-			
+
 			message.Should().Be("Invalid token");
 			isValid.Should().Be(false);
 		}
@@ -215,7 +215,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var isValid = okResult.Value!.GetType().GetProperty("isValid")?.GetValue(okResult.Value);
 			isValid.Should().Be(true);
 		}
@@ -234,7 +234,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<UnauthorizedObjectResult>();
 			var unauthorizedResult = (UnauthorizedObjectResult)result;
 			unauthorizedResult.Value.Should().NotBeNull();
-			
+
 			var isValid = unauthorizedResult.Value!.GetType().GetProperty("isValid")?.GetValue(unauthorizedResult.Value);
 			isValid.Should().Be(false);
 		}
@@ -254,10 +254,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			var statusCodeResult = (ObjectResult)result;
 			statusCodeResult.StatusCode.Should().Be(500);
 			statusCodeResult.Value.Should().NotBeNull();
-			
+
 			var message = statusCodeResult.Value!.GetType().GetProperty("message")?.GetValue(statusCodeResult.Value)?.ToString();
 			var error = statusCodeResult.Value.GetType().GetProperty("error")?.GetValue(statusCodeResult.Value)?.ToString();
-			
+
 			message.Should().Be("Token validation failed");
 			error.Should().Be("Configuration error");
 		}
@@ -275,14 +275,14 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var status = okResult.Value!.GetType().GetProperty("status")?.GetValue(okResult.Value)?.ToString();
 			var timestamp = okResult.Value.GetType().GetProperty("timestamp")?.GetValue(okResult.Value);
-			
+
 			status.Should().Be("healthy");
 			timestamp.Should().NotBeNull();
 			timestamp.Should().BeOfType<DateTime>();
-			
+
 			var timestampValue = (DateTime)timestamp!;
 			timestampValue.Should().BeAfter(beforeCall);
 			timestampValue.Should().BeBefore(DateTime.UtcNow.AddSeconds(1)); // Allow 1 second tolerance
@@ -305,7 +305,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 			result.Should().BeOfType<OkObjectResult>();
 			var okResult = (OkObjectResult)result;
 			okResult.Value.Should().NotBeNull();
-			
+
 			var isValid = okResult.Value!.GetType().GetProperty("isValid")?.GetValue(okResult.Value);
 			isValid.Should().Be(true);
 		}

@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Controllers
 			try
 			{
 				var primaryCurrencySymbol = applicationSettings.ConfigurationInstance?.Settings?.PrimaryCurrency;
-				
+
 				if (string.IsNullOrWhiteSpace(primaryCurrencySymbol))
 				{
 					primaryCurrencySymbol = "EUR"; // Default fallback
