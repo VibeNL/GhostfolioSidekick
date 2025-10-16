@@ -157,9 +157,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Major", "S1144", Justification = "Used by ConfigurationBinder via reflection")]
-        private class Person
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "<Pending>")]
+		private class Person
         {
-            public string? Name { get; set; }
+			public string? Name { get; set; }
             public int Age { get; set; }
         }
 

@@ -9,8 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 {
 	public class AgentOrchestrator
 	{
-
-		private readonly Kernel kernel;
+		private const string SafeParameterNames = "history";
 		private readonly Agent defaultAgent;
 		private readonly List<Agent> agents;
 		private readonly AgentGroupChat groupChat;
@@ -22,7 +21,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			var webChatClient = serviceProvider.GetRequiredService<IWebChatClient>();
 			builder.Services.AddSingleton((s) => webChatClient.AsChatCompletionService());
 
-			kernel = builder.Build();
+			var kernel = builder.Build();
 
 			var researchAgent = ResearchAgent.Create(webChatClient, serviceProvider);
 			defaultAgent = GhostfolioSidekick.Create(webChatClient, [researchAgent]);
@@ -48,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 						History:
 						{{$history}}
 						""",
-					safeParameterNames: "history");
+					safeParameterNames: SafeParameterNames);
 			var selectionFunction = WrapWithLogging(rawSelectionFunction, "SelectionStrategy");
 
 			// Define the selection strategy
@@ -60,7 +59,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  // Parse the function response.
 				  ResultParser = DetermineNextAgentWithLogger,
 				  // The prompt variable name for the history argument.
-				  HistoryVariableName = "history",
+				  HistoryVariableName = SafeParameterNames,
 				  // Save tokens by not including the entire history in the prompt
 				  HistoryReducer = new ChatHistoryTruncationReducer(3),
 			  };
@@ -74,7 +73,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 					History:
 					{{$history}}
 					""",
-					safeParameterNames: "history");
+					safeParameterNames: SafeParameterNames);
 			var terminationFunction = WrapWithLogging(rawTerminationFunction, "TerminationStrategy");
 
 			// Define the termination strategy
@@ -86,7 +85,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 				  // Parse the function response.
 				  ResultParser = DetermineTermination,
 				  // The prompt variable name for the history argument.
-				  HistoryVariableName = "history",
+				  HistoryVariableName = SafeParameterNames,
 				  // Save tokens by not including the entire history in the prompt
 				  HistoryReducer = new ChatHistoryTruncationReducer(1),
 				  // Limit total number of turns no matter what
@@ -137,7 +136,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 
 		private static bool DetermineTermination(FunctionResult result)
 		{
-			var value = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
+			_ = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
 			return result.GetValue<string>()?.Contains("User", StringComparison.OrdinalIgnoreCase) ?? false;
 		}
 
