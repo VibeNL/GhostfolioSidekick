@@ -20,11 +20,15 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			logger.LogInformation("Removing cookie banner...");
 			try
 			{
+				page.SetDefaultTimeout(5000); // short timeout for this action
 				await page.GetByTestId("uc-accept-all-button").ClickAsync();
+				page.SetDefaultTimeout(30000); // reset to default
 			}
 			catch (Exception)
 			{ // ignore
 			}
+
+			logger.LogInformation("Login successful.");
 
 			// Wait for main page to load
 			return new MainPage(page, logger);
