@@ -87,10 +87,24 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 
 		private async Task<int> GetMaxTransactions()
 		{
-			var locators = await page.Locator("div[qa-id^='transactie-collapsable-']").AllAsync();
-			var content = await locators.Last().GetAttributeAsync("qa-id") ?? throw new NotSupportedException();
+			for (var i = 0; i < 5; i++)
+			{
+				try
+				{
+					var locators = await page.Locator("div[qa-id^='transactie-collapsable-']").AllAsync();
+					var content = await locators.Last().GetAttributeAsync("qa-id") ?? throw new NotSupportedException();
 
-			return int.Parse(content.Split("-").Last());
+					return int.Parse(content.Split("-").Last());
+				}
+				catch
+				{
+					// Ignore
+				}
+
+				await Task.Delay(TimeSpan.FromSeconds(5));
+			}
+
+			throw new NotSupportedException("Could not determine max transactions");
 		}
 
 		private async Task<Activity?> ProcessDetails(int counter)
