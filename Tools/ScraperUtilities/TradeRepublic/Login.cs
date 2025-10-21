@@ -8,28 +8,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 		public async Task<MainPage> LoginAsync()
 		{
 			await page.GotoAsync("https://app.traderepublic.com/login");
-
-			// Remove cookie banner
-			logger.LogInformation("Removing cookie banner...");
-			try
-			{
-				await page.GetByRole(AriaRole.Button, new() { Name = "Accept All" }).ClickAsync();
-			}
-			catch (Exception)
-			{ // ignore3129
-			}
+			await RemoveCookieBanner();
 
 			try
 			{
-				//// Select phone number
-				//await page.GetByRole(AriaRole.Button, new() { Name = "+" }).ClickAsync();
-				//await page.Locator($"#areaCode-\\{arguments.CountryCode}").ClickAsync();
-				//await page.Locator("#loginPhoneNumber__input").FillAsync(arguments.PhoneNumber);
-				//await page.ClickAsync("button[type='submit']");
-
-				//// Set pin
-				//await page.Keyboard.TypeAsync(arguments.PinCode);
-
 				// Wait for portfolio page title
 				logger.LogInformation("Waiting for you to login...");
 				while (!await page.Locator("span.portfolio__pageTitle").IsVisibleAsync())
@@ -38,9 +20,35 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 				}
 
 			}
-			catch (Exception) { }
+			catch (Exception) {
+				// Intentionally left blank
+			}
 
 			return new MainPage(page, logger);
+		}
+
+		private async Task RemoveCookieBanner()
+		{
+			logger.LogInformation("Removing cookie banner...");
+			try
+			{
+				page.SetDefaultTimeout(5000);
+				await page.GetByRole(AriaRole.Button, new() { Name = "Accept All" }).ClickAsync();
+				page.SetDefaultTimeout(30000);
+			}
+			catch (Exception)
+			{ // ignore3129
+			}
+
+			try
+			{
+				page.SetDefaultTimeout(5000);
+				await page.GetByRole(AriaRole.Button, new() { Name = "Alles accepteren" }).ClickAsync();
+				page.SetDefaultTimeout(30000);
+			}
+			catch (Exception)
+			{ // ignore3129
+			}
 		}
 	}
 }
