@@ -19,9 +19,12 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 			logger.LogInformation("Scraping transactions...");
 
 			await SetDateSelection(page);
+			await ScrollDown(page);
+			var maxTransaction = await GetMaxTransactions();
+			await ScrollUp(page);
 
 			var list = new List<ActivityWithSymbol>();
-			for (int counter = 0; counter < await GetMaxTransactions(); counter++)
+			for (int counter = 0; counter <= maxTransaction; counter++)
 			{
 				logger.LogInformation("Processing transaction {Counter}...", counter);
 
@@ -172,6 +175,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 						Taxes = [new DividendActivityTax(await GetMoneyField($"div[qa-id='kosten-{counter}']"))],
 						TransactionId = Guid.NewGuid().ToString()
 					};
+				case "Dividend reservering":
+					// Temporary activity, ignore it
+					return null;
 
 				default:
 					break;
@@ -210,6 +216,40 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 		private async Task<bool> HasField(string fieldId)
 		{
 			return await page.Locator(fieldId).CountAsync() != 0;
+		}
+
+		private async Task ScrollDown(IPage page)
+		{
+			logger.LogInformation("Scrolling down to load all transactions...");
+
+			// Scroll down the page to load all transactions
+			var isScrolling = true;
+			var lastUpdate = DateTime.UtcNow;
+			while (isScrolling)
+			{
+				var cnt = await GetMaxTransactions();
+				await page.EvaluateAsync("window.scrollTo(0, document.body.scrollHeight)");
+				Thread.Sleep(1000);
+
+				var newCnt = await GetMaxTransactions();
+				if (newCnt != cnt)
+				{
+					lastUpdate = DateTime.UtcNow;
+				}
+
+				isScrolling = (DateTime.UtcNow - lastUpdate).TotalSeconds < 5;
+			}
+
+			logger.LogInformation("All transactions loaded.");
+		}
+
+		private async Task ScrollUp(IPage page)
+		{
+			logger.LogInformation("Scrolling to the top");
+
+			await page.EvaluateAsync("window.scrollTo(0, 0)");
+
+			logger.LogInformation("Scrolled to the top");
 		}
 	}
 }
