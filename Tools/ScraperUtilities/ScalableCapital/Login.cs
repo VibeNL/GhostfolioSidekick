@@ -8,15 +8,10 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		public async Task<MainPage> LoginAsync()
 		{
 			await page.GotoAsync("https://de.scalable.capital/en/secure-login");
-			/*await page.Locator("#username").FillAsync(arguments.Username);
-			await page.Locator("#password").FillAsync(arguments.Password);
-
-			await page.ClickAsync("button[type='submit']");
-			*/
-
+			
 			// Wait for MFA
 			logger.LogInformation("Waiting for you to login...");
-			while (!await page.GetByTestId("greeting-text").IsVisibleAsync())
+			while (!await page.GetByTestId("large-price").IsVisibleAsync())
 			{
 				Thread.Sleep(1000);
 			}
@@ -26,16 +21,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			try
 			{
 				await page.GetByTestId("uc-accept-all-button").ClickAsync();
-			}
-			catch (Exception)
-			{ // ignore
-			}
-
-			// Remove new Scalable banner
-			logger.LogInformation("Removing new Scalable banner...");
-			try
-			{
-				await page.ClickAsync("button:text('Start now')");
 			}
 			catch (Exception)
 			{ // ignore
