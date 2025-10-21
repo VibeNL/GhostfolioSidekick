@@ -83,7 +83,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 
 		private static Process? StartChrome()
 		{
-			const string args = "--remote-debugging-port=9222 --user-data-dir=\"C:\\temp\\chrome-debug\"";
+			// Start Chrome minimized so it doesn't steal focus from the console
+			const string args = "--remote-debugging-port=9222 --user-data-dir=\"C:\\temp\\chrome-debug\" --start-minimized";
 
 			// Common Windows install locations
 			var candidates = new[]
@@ -105,6 +106,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					Arguments = args,
 					UseShellExecute = true,
 					CreateNoWindow = false,
+					WindowStyle = ProcessWindowStyle.Minimized
 				};
 			}
 			else
@@ -117,6 +119,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					Arguments = args,
 					UseShellExecute = true,
 					CreateNoWindow = false,
+					WindowStyle = ProcessWindowStyle.Minimized
 				};
 			}
 
@@ -140,5 +143,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				return null;
 			}
 		}
+
 	}
 }
