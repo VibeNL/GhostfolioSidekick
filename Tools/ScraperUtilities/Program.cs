@@ -8,12 +8,14 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
 	public partial class Program
 	{
+		private static Process? _chromeProcess;
+
 		public static async Task Main(string[] args)
 		{
 			// Try to start Chrome directly (without using StartChrome.bat)
 			try
 			{
-				StartChrome();
+				_chromeProcess = StartChrome();
 			}
 			catch (Exception ex)
 			{
@@ -21,6 +23,9 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 			}
 
 			var host = CreateHostBuilder(args).Build();
+
+			RegisterChromeCleanup(host);
+
 			await host.RunAsync();
 		}
 
@@ -33,7 +38,50 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					services.AddHostedService<ScraperService>();
 				});
 
-		private static void StartChrome()
+		private static void RegisterChromeCleanup(IHost host)
+		{
+			// Register cleanup to ensure Chrome process is terminated when the host is stopping
+			var lifetime = host.Services.GetService<IHostApplicationLifetime>();
+			if (lifetime != null)
+			{
+				lifetime.ApplicationStopping.Register(() =>
+				{
+					try
+					{
+						if (_chromeProcess != null && !_chromeProcess.HasExited)
+						{
+							Console.WriteLine("Stopping Chrome process...");
+							// Attempt to kill the process and its children
+							_chromeProcess.Kill(entireProcessTree: true);
+							_chromeProcess.WaitForExit(5000);
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"Failed to stop Chrome process: {ex.Message}");
+					}
+				});
+
+				// Fallback: ensure process killed on process exit as well
+				AppDomain.CurrentDomain.ProcessExit += (s, e) =>
+				{
+					try
+					{
+						if (_chromeProcess != null && !_chromeProcess.HasExited)
+						{
+							_chromeProcess.Kill(entireProcessTree: true);
+							_chromeProcess.WaitForExit(2000);
+						}
+					}
+					catch
+					{
+						// swallow exceptions during process exit
+					}
+				};
+			}
+		}
+
+		private static Process? StartChrome()
 		{
 			const string args = "--remote-debugging-port=9222 --user-data-dir=\"C:\\temp\\chrome-debug\"";
 
@@ -78,17 +126,19 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				if (process == null)
 				{
 					Console.WriteLine("Failed to start Chrome process (Process.Start returned null).");
+					return null;
 				}
 				else
 				{
 					Console.WriteLine("Chrome started successfully.");
+					return process;
 				}
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine($"Error launching Chrome: {ex.Message}");
+				return null;
 			}
 		}
-
 	}
 }
