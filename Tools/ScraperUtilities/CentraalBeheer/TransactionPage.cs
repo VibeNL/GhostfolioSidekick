@@ -33,6 +33,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 				var generatedTransaction = await ProcessDetails(counter);
 				if (generatedTransaction == null)
 				{
+					logger.LogWarning("Transaction {Counter} could not be processed. Skipping...", counter);
 					continue;
 				}
 
