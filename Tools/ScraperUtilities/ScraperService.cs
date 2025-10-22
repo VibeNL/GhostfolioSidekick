@@ -16,8 +16,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 		{
 			public async Task StartAsync(CancellationToken cancellationToken)
 			{
-				Console.WriteLine("booting up, please make sure you have a Chrome with --remote-debugging-port=9222");
-
 				// Get output dir
 				Console.WriteLine("Enter the output directory path:");
 				var outputDirectory = Console.ReadLine();
@@ -52,8 +50,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 							broker = SupportedBrokers.CentraalBeheer;
 							break;
 						case "0":
-							Console.WriteLine("Press the close button please");
-							continue;
+							Environment.Exit(0);
+							return;
 						default:
 							Console.WriteLine("Invalid input.");
 							continue;
