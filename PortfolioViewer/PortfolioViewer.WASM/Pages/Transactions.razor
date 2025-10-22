@@ -160,7 +160,7 @@
                                             <td>
                                                 @if (!string.IsNullOrEmpty(transaction.Symbol))
                                                 {
-                                                    <strong>@transaction.Symbol</strong>
+                                                    <strong style="cursor: pointer;" @onclick="@(() => NavigateToHoldingDetail(transaction.Symbol))">@transaction.Symbol</strong>
                                                 }
                                                 else
                                                 {

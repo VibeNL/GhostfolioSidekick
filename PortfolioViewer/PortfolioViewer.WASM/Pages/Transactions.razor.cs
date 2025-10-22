@@ -3,6 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel;
+using System;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -13,6 +14,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		[Inject]
 		private IServerConfigurationService ServerConfigurationService { get; set; } = default!;
+
+		[Inject]
+		private NavigationManager Navigation { get; set; } = default!;
 
 		[CascadingParameter]
 		private FilterState FilterState { get; set; } = new();
@@ -34,10 +38,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool sortAscending;
 
 		// Pagination state
-		private int currentPage = 1;
-		private int pageSize = 25;
+		private int currentPage =1;
+		private int pageSize =25;
 		private int totalRecords;
-		private readonly List<int> pageSizeOptions = [10, 25, 50, 100, 250];
+		private readonly List<int> pageSizeOptions = [10,25,50,100,250];
 
 		private FilterState? _previousFilterState;
 
@@ -70,7 +74,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 			await InvokeAsync(async () =>
 			{
-				currentPage = 1; // Reset to first page when filters change
+				currentPage =1; // Reset to first page when filters change
 				await LoadTransactionDataAsync();
 				StateHasChanged();
 			});
@@ -90,7 +94,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				currentResult = await LoadPaginatedTransactionDataAsync();
 				TransactionsList = currentResult?.Transactions ?? [];
-				totalRecords = currentResult?.TotalCount ?? 0;
+				totalRecords = currentResult?.TotalCount ??0;
 			}
 			catch (Exception ex)
 			{
@@ -118,7 +122,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				currentResult = await LoadPaginatedTransactionDataAsync();
 				TransactionsList = currentResult?.Transactions ?? [];
-				totalRecords = currentResult?.TotalCount ?? 0;
+				totalRecords = currentResult?.TotalCount ??0;
 			}
 			catch (Exception ex)
 			{
@@ -183,7 +187,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			if (newPageSize != pageSize)
 			{
 				pageSize = newPageSize;
-				currentPage = 1; // Reset to first page when changing page size
+				currentPage =1; // Reset to first page when changing page size
 				await LoadTransactionDataAsync(); // Reload with new page size
 			}
 		}
@@ -207,7 +211,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				sortAscending = true;
 			}
 
-			currentPage = 1; // Reset to first page when sorting
+			currentPage =1; // Reset to first page when sorting
 			await LoadTransactionDataAsync();
 		}
 
@@ -260,6 +264,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				"Repay Bond" or "RepayBond" => succesText,
 				_ => ""
 			};
+		}
+
+		private void NavigateToHoldingDetail(string symbol)
+		{
+			if (string.IsNullOrEmpty(symbol))
+				return;
+
+			Navigation?.NavigateTo($"/holding/{Uri.EscapeDataString(symbol)}");
 		}
 
 		public void Dispose()
