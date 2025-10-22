@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
-	public partial class Program
+	public static class Program
 	{
 		private static Process? _chromeProcess;
 
