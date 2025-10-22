@@ -260,6 +260,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 						await newPage.CloseAsync();
 					}
 				}
+
+				return null; // We have documents
 			}
 
 			return null;
