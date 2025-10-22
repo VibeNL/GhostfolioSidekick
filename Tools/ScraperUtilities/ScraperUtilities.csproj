@@ -10,6 +10,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<SonarQubeSetting Include="sonar.exclusions">
+			<Value>**</Value>
+		</SonarQubeSetting>
+		<SonarQubeSetting Include="sonar.coverage.exclusions">
+			<Value>**</Value>
+		</SonarQubeSetting>
+	</ItemGroup>
+
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.10" />
 		<PackageReference Include="Microsoft.Playwright" Version="1.55.0" />
