@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="LLamaSharp" Version="0.25.0" />
+		<PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.25.0" />
+		<PackageReference Include="LLamaSharp.semantic-kernel" Version="0.25.0" />
+	</ItemGroup>
+
+</Project>

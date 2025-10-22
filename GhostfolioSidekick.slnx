@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/AI/">
+    <Project Path="AI/AI.Server/AI.Server.csproj" Id="0701acb9-c973-435d-ae4b-42550705ec91" />
+  </Folder>
   <Folder Name="/SolutionItems/">
     <File Path=".editorconfig" />
     <File Path=".github/workflows/docker-publish.yml" />
