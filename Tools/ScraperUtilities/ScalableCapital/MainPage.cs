@@ -19,7 +19,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 		internal async Task<IReadOnlyCollection<ILocator>> GetPortfolios()
 		{
-			var brokercards = await page.GetByTestId("broker-card").AllAsync();
+			var products = await page.GetByLabel("Products").AllAsync();
+			var brokercards = await products.First().GetByRole(AriaRole.Listitem).AllAsync();
 			return brokercards;
 		}
 

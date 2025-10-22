@@ -187,7 +187,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 			var rewards = headerText.Contains("Your reward of");
 			var saving = headerText.Contains("You saved");
-			if (headerText.Contains("You invested") || saving || rewards)
+			var saveBack = headerText.Contains("You earned");
+			if (headerText.Contains("You invested") || saving || rewards || saveBack)
 			{
 				var asset = table.FirstOrDefault(x => x.Item1 == "Asset").Item2;
 
@@ -260,6 +261,8 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 						await newPage.CloseAsync();
 					}
 				}
+
+				return null; // We have documents
 			}
 
 			return null;

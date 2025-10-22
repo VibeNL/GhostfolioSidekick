@@ -144,6 +144,19 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 
 		private async Task<Activity?> ProcessDetails()
 		{
+			// If is Interest
+			if (await page.GetByTestId("icon-INTEREST").IsVisibleAsync())
+			{
+				var dateInterest = await GetHistoryDate("Interest booked\r\n");
+
+				return new InterestActivity
+				{
+					Amount = await GetMoneyField("Amount"),
+					Date = dateInterest,
+					TransactionId = await GetField<string>(Description),
+				};
+			}
+
 			// If is Deposit or Withdrawal
 			if (await page.GetByTestId("icon-DEPOSIT").IsVisibleAsync())
 			{
