@@ -1,13 +1,23 @@
-﻿using Microsoft.Extensions.AI;
+﻿using GhostfolioSidekick.AI.Common;
+using Microsoft.Extensions.AI;
 
 namespace GhostfolioSidekick.AI.Server
 {
 	internal static class Program
 	{
+		////private const string ModelUrl = "https://huggingface.co/mradermacher/OpenChat-3.5-7B-Qwen-v2.0-i1-GGUF/resolve/main/OpenChat-3.5-7B-Qwen-v2.0.i1-Q4_K_M.gguf";
+		private const string ModelUrl = "https://huggingface.co/lefromage/Qwen3-Next-80B-A3B-Instruct-GGUF/resolve/main/Qwen__Qwen3-Next-80B-A3B-Instruct-Q4_K_M.gguf?download=true";
+
 		static async Task Main(string[] args)
 		{
-			using var chatClient = new ServerChatClient("https://huggingface.co/mradermacher/OpenChat-3.5-7B-Qwen-v2.0-i1-GGUF/resolve/main/OpenChat-3.5-7B-Qwen-v2.0.i1-Q4_K_M.gguf");
-			await chatClient.InitializeAsync(null!);
+			Progress<InitializeProgress> progress = new();
+			progress.ProgressChanged += (s, e) =>
+			{
+				Console.WriteLine($"Initialization Progress: {e.Progress:P2} - {e.Message}");
+			};
+
+			using var chatClient = new ServerChatClient(ModelUrl);
+			await chatClient.InitializeAsync(progress);
 
 			var messages = new List<ChatMessage>
 			{

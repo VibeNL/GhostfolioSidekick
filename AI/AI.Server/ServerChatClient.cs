@@ -23,6 +23,8 @@ namespace GhostfolioSidekick.AI.Server
 			// Download the model if required
 			if (!File.Exists(tempModelPath))
 			{
+				OnProgress?.Report(new InitializeProgress(0.1, "Downloading model"));
+
 				using var http = new HttpClient();
 				using var response = await http.GetAsync(modelUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 				response.EnsureSuccessStatusCode();
@@ -30,13 +32,19 @@ namespace GhostfolioSidekick.AI.Server
 				await using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 				await using var fileStream = File.Create(tempModelPath);
 				await responseStream.CopyToAsync(fileStream).ConfigureAwait(false);
+
+				OnProgress?.Report(new InitializeProgress(0.9, "Model downloaded"));
+			}
+			else
+			{
+				OnProgress?.Report(new InitializeProgress(0.5, "Model already downloaded"));
 			}
 
 			// Load model into LLama
 			var parameters = new ModelParams(tempModelPath)
 			{
-				ContextSize =1024,
-				GpuLayerCount =0
+				ContextSize = 1024,
+				GpuLayerCount = 0
 			};
 
 			model = await LLamaWeights.LoadFromFileAsync(parameters).ConfigureAwait(false);
@@ -89,7 +97,7 @@ namespace GhostfolioSidekick.AI.Server
 
 			var inference = new InferenceParams()
 			{
-				MaxTokens =256,
+				MaxTokens = 256,
 				AntiPrompts = new List<string> { "User:" }
 			};
 
@@ -111,10 +119,10 @@ namespace GhostfolioSidekick.AI.Server
 				if (!string.IsNullOrEmpty(fileName))
 					return fileName;
 
-				var withoutQuery = modelUrl.Split(new[] { '?', '#' },2)[0];
+				var withoutQuery = modelUrl.Split(new[] { '?', '#' }, 2)[0];
 				var lastSlash = withoutQuery.LastIndexOf('/');
-				if (lastSlash >=0 && lastSlash < withoutQuery.Length -1)
-					return withoutQuery[(lastSlash +1)..];
+				if (lastSlash >= 0 && lastSlash < withoutQuery.Length - 1)
+					return withoutQuery[(lastSlash + 1)..];
 
 				using var sha = System.Security.Cryptography.SHA256.Create();
 				var hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(modelUrl));
