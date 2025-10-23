@@ -19,8 +19,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private bool IsInitialized; // Flag to track initialization
 		private bool wakeLockActive; // Track wake lock status
 
-		private readonly ICustomChatClient chatClient;
-
 		private readonly Progress<InitializeProgress> progress = new();
 		private string streamingAuthor = string.Empty;
 		private InitializeProgress lastProgress = new(0);
@@ -39,7 +37,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		{
 			orchestrator = agentOrchestrator;
 			this.agentLogger = agentLogger;
-			this.chatClient = chatClient;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
 
@@ -106,7 +103,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		{
 			try
 			{
-				await chatClient.InitializeAsync(progress);
+				await orchestrator.InitializeAsync(progress);
 			}
 			catch (Exception e)
 			{

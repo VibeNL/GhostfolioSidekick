@@ -17,11 +17,12 @@ namespace GhostfolioSidekick.AI.Agents
 		private readonly List<Agent> agents;
 		private readonly AgentGroupChat groupChat;
 		private readonly AgentLogger logger;
+		private ICustomChatClient chatClient;
 
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
-			var chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
+			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
 			builder.Services.AddSingleton((s) => chatClient.AsChatCompletionService());
 
 			var kernel = builder.Build();
@@ -172,6 +173,11 @@ namespace GhostfolioSidekick.AI.Agents
 				var result = await originalFunction.InvokeAsync(kernel, args);
 				return result;
 			});
+		}
+
+		public Task InitializeAsync(Progress<InitializeProgress> progress)
+		{
+			return chatClient.InitializeAsync(progress);
 		}
 	}
 }
