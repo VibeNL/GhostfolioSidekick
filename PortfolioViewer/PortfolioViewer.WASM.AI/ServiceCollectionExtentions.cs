@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.Api;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
@@ -22,7 +23,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 				}
 			));	
 		}
+
+		public static void AddApiChatClient(this IServiceCollection services)
+		{
+			services.AddSingleton<ICustomChatClient>(s => new ApiChatClient(
+				s.GetRequiredService<HttpClient>(),
+				s.GetRequiredService<ILogger<ApiChatClient>>()
+			));
+		}
 	}
 }
+
 
 
