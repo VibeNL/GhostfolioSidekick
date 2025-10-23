@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.AI.Server
 {
 	internal static class Program
 	{
-		private const string ModelUrl = "https://huggingface.co/mradermacher/OpenChat-3.5-7B-Qwen-v2.0-i1-GGUF/resolve/main/OpenChat-3.5-7B-Qwen-v2.0.i1-Q4_K_M.gguf";
+		private const string ModelUrl = "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf?download=true";
 		
 		static async Task Main()
 		{
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.AI.Server
 
 			var messages = new List<ChatMessage>
 			{
-				new(ChatRole.User, "Hello, how are you?")
+				new(ChatRole.User, "Tell me a joke")
 			};
 
 			// Stream the response and print chunks as they arrive
