@@ -17,7 +17,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
-		<PackageReference Include="coverlet.collector" Version="6.0.4" />
+		<PackageReference Include="coverlet.collector" Version="6.0.4">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="AwesomeAssertions" Version="9.2.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.10" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
