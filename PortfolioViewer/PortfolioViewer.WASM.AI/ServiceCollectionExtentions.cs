@@ -22,26 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 					{ ChatMode.ChatWithThinking, modelid },
 					{ ChatMode.FunctionCalling, modelid },
 				}
-			));
-
-			services.AddSingleton<AgentLogger>();
-			services.AddSingleton<AgentOrchestrator>();
-
-			// Register Google Search service with MCP pattern
-			services.AddHttpClient<GoogleSearchService>();
-			services.AddSingleton<IGoogleSearchProtocol, GoogleSearchService>();
-			services.AddSingleton((s) =>
-			{
-				var httpClient = s.GetRequiredService<HttpClient>();
-				// Create a context for the GoogleSearchService
-				var context = new GoogleSearchContext
-				{
-					HttpClient = httpClient,
-					// Default URLs are already set in the context class
-				};
-				// Return the service with the context
-				return new GoogleSearchService(context);
-			});
+			));	
 		}
 	}
 }
