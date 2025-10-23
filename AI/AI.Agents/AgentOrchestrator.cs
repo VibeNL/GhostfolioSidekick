@@ -138,6 +138,11 @@ namespace GhostfolioSidekick.AI.Agents
 			logger.StartAgent(string.Empty);
 		}
 
+		public Task InitializeAsync(Progress<InitializeProgress> progress)
+		{
+			return chatClient.InitializeAsync(progress);
+		}
+
 		private static bool DetermineTermination(FunctionResult result)
 		{
 			_ = ChatMessageContentHelper.ToDisplayText(result.GetValue<string>());
@@ -173,11 +178,6 @@ namespace GhostfolioSidekick.AI.Agents
 				var result = await originalFunction.InvokeAsync(kernel, args);
 				return result;
 			});
-		}
-
-		public Task InitializeAsync(Progress<InitializeProgress> progress)
-		{
-			return chatClient.InitializeAsync(progress);
 		}
 	}
 }
