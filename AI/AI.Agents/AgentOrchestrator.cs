@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.AI.Agents
 		private readonly List<Agent> agents;
 		private readonly AgentGroupChat groupChat;
 		private readonly AgentLogger logger;
-		private ICustomChatClient chatClient;
+		private readonly ICustomChatClient chatClient;
 
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
