@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
+﻿using AI.Functions.OnlineSearch;
+using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
@@ -7,7 +8,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
+namespace GhostfolioSidekick.AI.Agents
 {
 	public static class ResearchAgent
 	{
@@ -23,7 +24,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			return sb.ToString();
 		}
 
-		public static ChatCompletionAgent Create(IWebChatClient webChatClient, IServiceProvider serviceProvider)
+		public static ChatCompletionAgent Create(ICustomChatClient webChatClient, IServiceProvider serviceProvider)
 		{
 			string researchAgent = GetSystemPrompt();
 			IKernelBuilder functionCallingBuilder = Kernel.CreateBuilder();

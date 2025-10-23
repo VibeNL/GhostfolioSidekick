@@ -1,6 +1,4 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
-using Markdig;
+﻿using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;

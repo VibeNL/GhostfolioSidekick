@@ -1,8 +1,6 @@
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Moq;
-using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 {

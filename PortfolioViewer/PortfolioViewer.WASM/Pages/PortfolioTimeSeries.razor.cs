@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;

@@ -1,6 +1,6 @@
 using GhostfolioSidekick.Model;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 {
 	/// <summary>
 	/// Parameters for querying transactions with filtering, sorting, and pagination

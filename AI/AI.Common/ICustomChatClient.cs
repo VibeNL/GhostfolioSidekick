@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.AI;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
+namespace GhostfolioSidekick.AI.Common
 {
-	public interface IWebChatClient : IChatClient
+	public interface ICustomChatClient : IChatClient
 	{
-		IWebChatClient Clone();
+		ICustomChatClient Clone();
 
 		ChatMode ChatMode { get; set; }
 

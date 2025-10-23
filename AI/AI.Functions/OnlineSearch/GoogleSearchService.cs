@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
+namespace AI.Functions.OnlineSearch
 {
 	/// <summary>
 	/// Service for performing Google searches and retrieving web content

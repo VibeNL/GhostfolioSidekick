@@ -1,4 +1,4 @@
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 {
 	public class PortfolioValueHistoryPoint
 	{

@@ -1,8 +1,3 @@
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
-using Microsoft.SemanticKernel.Agents.Chat;
-using Microsoft.SemanticKernel.ChatCompletion;
 using Moq;
 using System.Reflection;
 

@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
 using Moq;
 using Moq.Protected;
 

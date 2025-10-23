@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
+﻿namespace GhostfolioSidekick.AI.Common
 {
 	public class AgentLogger
 	{
@@ -8,14 +8,14 @@
 		// Event to notify when CurrentAgentName changes
 		public event Action? CurrentAgentNameChanged;
 
-		internal void StartAgent(string name)
+		public void StartAgent(string name)
 		{
 			CurrentAgentName = name;
 			CurrentAgentFunction = string.Empty;
 			CurrentAgentNameChanged?.Invoke();
 		}
 
-		internal void StartFunction(string name)
+		public void StartFunction(string name)
 		{
 			CurrentAgentFunction = name;
 			CurrentAgentNameChanged?.Invoke();

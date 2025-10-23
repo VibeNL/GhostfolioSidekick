@@ -1,5 +1,3 @@
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;

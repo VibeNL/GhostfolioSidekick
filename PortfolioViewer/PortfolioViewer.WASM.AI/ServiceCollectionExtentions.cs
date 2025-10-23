@@ -1,6 +1,4 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
+﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
