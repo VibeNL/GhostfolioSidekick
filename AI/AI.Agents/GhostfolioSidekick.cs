@@ -1,10 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using GhostfolioSidekick.AI.Common;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
+namespace GhostfolioSidekick.AI.Agents
 {
 	public static class GhostfolioSidekick
 	{
@@ -28,7 +29,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			return sb.ToString();
 		}
 
-		public static ChatCompletionAgent Create(IWebChatClient webChatClient, IEnumerable<Agent> companions)
+		public static ChatCompletionAgent Create(ICustomChatClient webChatClient, IEnumerable<Agent> companions)
 		{
 			IKernelBuilder thinkBuilder = Kernel.CreateBuilder();
 			thinkBuilder.Services.AddScoped((s) =>

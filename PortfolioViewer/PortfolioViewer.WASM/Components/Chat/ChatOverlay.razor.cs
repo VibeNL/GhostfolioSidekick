@@ -1,5 +1,5 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
+﻿using GhostfolioSidekick.AI.Agents;
+using GhostfolioSidekick.AI.Common;
 using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -19,8 +19,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private bool IsInitialized; // Flag to track initialization
 		private bool wakeLockActive; // Track wake lock status
 
-		private readonly IWebChatClient chatClient;
-
 		private readonly Progress<InitializeProgress> progress = new();
 		private string streamingAuthor = string.Empty;
 		private InitializeProgress lastProgress = new(0);
@@ -35,11 +33,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
+		public ChatOverlay(IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
 		{
 			orchestrator = agentOrchestrator;
 			this.agentLogger = agentLogger;
-			this.chatClient = chatClient;
 			this.JS = JS;
 			progress.ProgressChanged += OnWebLlmInitialization;
 
@@ -106,7 +103,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		{
 			try
 			{
-				await chatClient.InitializeAsync(progress);
+				await orchestrator.InitializeAsync(progress);
 			}
 			catch (Exception e)
 			{

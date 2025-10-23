@@ -11,7 +11,7 @@ using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
+namespace PortfolioViewer.WASM.Data.UnitTests.Services
 {
 	public class AccountDataServiceTests
 	{

@@ -49,6 +49,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\AI\AI.Agents\AI.Agents.csproj" />
 		<ProjectReference Include="..\..\Database\Database.csproj" />
 		<ProjectReference Include="..\..\Model\Model.csproj" />
 		<ProjectReference Include="..\PortfolioViewer.Common\PortfolioViewer.Common.csproj" />

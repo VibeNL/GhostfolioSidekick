@@ -6,13 +6,13 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
+namespace PortfolioViewer.WASM.Data.UnitTests.Services
 {
 	public class TransactionServiceTests
 	{

@@ -1,6 +1,6 @@
 ﻿using Microsoft.SemanticKernel;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
+namespace GhostfolioSidekick.AI.Common
 {
 	public static class ChatMessageContentHelper
 	{

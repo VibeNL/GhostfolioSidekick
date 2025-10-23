@@ -1,6 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services

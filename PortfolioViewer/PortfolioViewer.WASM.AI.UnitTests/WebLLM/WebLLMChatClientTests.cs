@@ -1,3 +1,4 @@
+using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -52,7 +53,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void GetService_ShouldReturnSelf()
 		{
 			// Act
-			var service = _client.GetService(typeof(IWebChatClient));
+			var service = _client.GetService(typeof(ICustomChatClient));
 
 			// Assert
 			Assert.Same(_client, service);
