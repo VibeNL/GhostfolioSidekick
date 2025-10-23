@@ -23,17 +23,44 @@ namespace GhostfolioSidekick.AI.Server
 			// Download the model if required
 			if (!File.Exists(tempModelPath))
 			{
-				OnProgress?.Report(new InitializeProgress(0.1, "Downloading model"));
+				OnProgress?.Report(new InitializeProgress(0.0, "Starting download"));
 
 				using var http = new HttpClient();
 				using var response = await http.GetAsync(modelUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 				response.EnsureSuccessStatusCode();
 
+				var contentLength = response.Content.Headers.ContentLength;
+
 				await using var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 				await using var fileStream = File.Create(tempModelPath);
-				await responseStream.CopyToAsync(fileStream).ConfigureAwait(false);
 
-				OnProgress?.Report(new InitializeProgress(0.9, "Model downloaded"));
+				var buffer = new byte[81920];
+				long totalRead =0;
+				int read;
+
+				while ((read = await responseStream.ReadAsync(buffer).ConfigureAwait(false)) >0)
+				{
+					await fileStream.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
+					totalRead += read;
+
+					double progress;
+					string message;
+					if (contentLength.HasValue && contentLength.Value >0)
+					{
+						progress = Math.Min(0.9,0.1 +0.8 * ((double)totalRead / contentLength.Value));
+						message = $"Downloading model ({BytesToString(totalRead)} / {BytesToString(contentLength.Value)})";
+					}
+					else
+					{
+						// Unknown length - provide incremental progress based on bytes downloaded (cap at90%)
+						progress = Math.Min(0.9,0.1 + Math.Min(0.8, (double)totalRead / (1024 *1024) *0.05));
+						message = $"Downloading model ({BytesToString(totalRead)})";
+					}
+
+					OnProgress?.Report(new InitializeProgress(progress, message));
+				}
+
+				OnProgress?.Report(new InitializeProgress(0.95, "Finalizing model download"));
 			}
 			else
 			{
@@ -43,8 +70,8 @@ namespace GhostfolioSidekick.AI.Server
 			// Load model into LLama
 			var parameters = new ModelParams(tempModelPath)
 			{
-				ContextSize = 1024,
-				GpuLayerCount = 0
+				ContextSize =1024,
+				GpuLayerCount =0
 			};
 
 			model = await LLamaWeights.LoadFromFileAsync(parameters).ConfigureAwait(false);
@@ -97,7 +124,7 @@ namespace GhostfolioSidekick.AI.Server
 
 			var inference = new InferenceParams()
 			{
-				MaxTokens = 256,
+				MaxTokens =256,
 				AntiPrompts = new List<string> { "User:" }
 			};
 
@@ -119,13 +146,11 @@ namespace GhostfolioSidekick.AI.Server
 				if (!string.IsNullOrEmpty(fileName))
 					return fileName;
 
-				var withoutQuery = modelUrl.Split(new[] { '?', '#' }, 2)[0];
+				var withoutQuery = modelUrl.Split(['?', '#'], 2)[0];
 				var lastSlash = withoutQuery.LastIndexOf('/');
 				if (lastSlash >= 0 && lastSlash < withoutQuery.Length - 1)
 					return withoutQuery[(lastSlash + 1)..];
-
-				using var sha = System.Security.Cryptography.SHA256.Create();
-				var hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(modelUrl));
+				var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(modelUrl));
 				var hex = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
 				return hex + ".gguf";
 			}
@@ -133,6 +158,16 @@ namespace GhostfolioSidekick.AI.Server
 			{
 				return Guid.NewGuid().ToString() + ".gguf";
 			}
+		}
+
+		private static string BytesToString(long byteCount)
+		{
+			if (byteCount ==0) return "0B";
+			string[] suf = { "B", "KB", "MB", "GB", "TB", "PB" };
+			var bytes = Math.Abs((double)byteCount);
+			var place = Convert.ToInt32(Math.Floor(Math.Log(bytes,1024)));
+			var num = Math.Round(bytes / Math.Pow(1024, place),2);
+			return (Math.Sign(byteCount) * num).ToString() + suf[place];
 		}
 
 		public void Dispose()

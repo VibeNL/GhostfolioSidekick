@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-		public ChatOverlay(ICustomChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
+		public ChatOverlay(IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
 		{
 			orchestrator = agentOrchestrator;
 			this.agentLogger = agentLogger;
