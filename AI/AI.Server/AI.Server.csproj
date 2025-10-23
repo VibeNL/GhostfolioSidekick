@@ -15,4 +15,8 @@
 		<PackageReference Include="LLamaSharp.semantic-kernel" Version="0.25.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\AI.Common\AI.Common.csproj" />
+	</ItemGroup>
+
 </Project>
