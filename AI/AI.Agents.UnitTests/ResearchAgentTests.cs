@@ -1,21 +1,23 @@
+using AI.Functions.OnlineSearch;
+using GhostfolioSidekick.AI.Common;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Moq;
 using System.ComponentModel;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
+namespace GhostfolioSidekick.AI.Agents.UnitTests
 {
 	public class ResearchAgentTests
 	{
-		private readonly Mock<IWebChatClient> _mockWebChatClient;
+		private readonly Mock<ICustomChatClient> _mockWebChatClient;
 		private readonly TestServiceProvider _serviceProvider;
 		private readonly GoogleSearchService _googleSearchService;
 		private readonly AgentLogger _agentLogger;
 
 		public ResearchAgentTests()
 		{
-			_mockWebChatClient = new Mock<IWebChatClient>();
+			_mockWebChatClient = new Mock<ICustomChatClient>();
 
 			// Use the constructor with GoogleSearchContext to avoid optional parameters
 			var context = new GoogleSearchContext
@@ -33,7 +35,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 			_serviceProvider.AddService<AgentLogger>(_agentLogger);
 
 			// Setup the web chat client clone behavior
-			var clonedClient = new Mock<IWebChatClient>();
+			var clonedClient = new Mock<ICustomChatClient>();
 			clonedClient.SetupProperty(x => x.ChatMode);
 			_mockWebChatClient.Setup(x => x.Clone()).Returns(clonedClient.Object);
 		}

@@ -1,4 +1,6 @@
-﻿using Markdig;
+﻿using GhostfolioSidekick.AI.Agents;
+using GhostfolioSidekick.AI.Common;
+using Markdig;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
@@ -17,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 		private bool IsInitialized; // Flag to track initialization
 		private bool wakeLockActive; // Track wake lock status
 
-		private readonly IWebChatClient chatClient;
+		private readonly ICustomChatClient chatClient;
 
 		private readonly Progress<InitializeProgress> progress = new();
 		private string streamingAuthor = string.Empty;
@@ -33,7 +35,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Chat
 
 		private readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
 
-		public ChatOverlay(IWebChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
+		public ChatOverlay(ICustomChatClient chatClient, IJSRuntime JS, AgentOrchestrator agentOrchestrator, AgentLogger agentLogger)
 		{
 			orchestrator = agentOrchestrator;
 			this.agentLogger = agentLogger;

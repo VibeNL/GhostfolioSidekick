@@ -1,10 +1,11 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using AI.Functions.OnlineSearch;
 using Moq;
 using Moq.Protected;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.OnlineSearch
+namespace AI.Functions.UnitTests
 {
 	public class GoogleSearchServiceTests
 	{

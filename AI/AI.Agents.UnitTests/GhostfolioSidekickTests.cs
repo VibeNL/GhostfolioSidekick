@@ -1,8 +1,9 @@
+using GhostfolioSidekick.AI.Common;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Moq;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
+namespace GhostfolioSidekick.AI.Agents.UnitTests
 {
 	public class GhostfolioSidekickTests
 	{
@@ -10,8 +11,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 		public void Create_ShouldReturnChatCompletionAgent_WithExpectedProperties()
 		{
 			// Arrange
-			var mockWebChatClient = new Mock<IWebChatClient>();
-			var clonedClient = new Mock<IWebChatClient>();
+			var mockWebChatClient = new Mock<ICustomChatClient>();
+			var clonedClient = new Mock<ICustomChatClient>();
 			clonedClient.SetupProperty(c => c.ChatMode);
 			mockWebChatClient.Setup(c => c.Clone()).Returns(clonedClient.Object);
 
@@ -22,7 +23,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 			} as Agent;
 
 			// Act - use fully-qualified name to avoid collision with root namespace named 'GhostfolioSidekick'
-			var agent = global::GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents.GhostfolioSidekick.Create(mockWebChatClient.Object, new[] { companion });
+			var agent = GhostfolioSidekick.Create(mockWebChatClient.Object, new[] { companion });
 
 			// Assert
 			Assert.NotNull(agent);
@@ -37,8 +38,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 		public void Create_ShouldIncludeCompanionsAndDateInInstructions()
 		{
 			// Arrange
-			var mockWebChatClient = new Mock<IWebChatClient>();
-			var clonedClient = new Mock<IWebChatClient>();
+			var mockWebChatClient = new Mock<ICustomChatClient>();
+			var clonedClient = new Mock<ICustomChatClient>();
 			clonedClient.SetupProperty(c => c.ChatMode);
 			mockWebChatClient.Setup(c => c.Clone()).Returns(clonedClient.Object);
 
@@ -49,13 +50,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.Agents
 			} as Agent;
 
 			// Act - use fully-qualified name to avoid collision with root namespace named 'GhostfolioSidekick'
-			var agent = global::GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents.GhostfolioSidekick.Create(mockWebChatClient.Object, new[] { companion });
+			var agent = GhostfolioSidekick.Create(mockWebChatClient.Object, new[] { companion });
 
 			// Assert
 			Assert.NotNull(agent);
 
 			// Instructions should include the UTC date in yyyy-MM-dd format
-			var expectedDate = System.DateTime.UtcNow.ToString("yyyy-MM-dd");
+			var expectedDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
 			Assert.Contains(expectedDate, agent.Instructions);
 
 			// Instructions should list available companions and include the companion's name and description

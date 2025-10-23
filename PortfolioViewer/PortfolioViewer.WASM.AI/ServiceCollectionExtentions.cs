@@ -1,4 +1,7 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
+﻿using AI.Functions.OnlineSearch;
+using GhostfolioSidekick.AI.Agents;
+using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
@@ -11,7 +14,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 
 		public static void AddWebChatClient(this IServiceCollection services)
 		{
-			services.AddSingleton<IWebChatClient>((s) => new WebLLMChatClient(
+			services.AddSingleton<ICustomChatClient>((s) => new WebLLMChatClient(
 				s.GetRequiredService<IJSRuntime>(),
 				s.GetRequiredService<ILogger<WebLLMChatClient>>(),
 				new Dictionary<ChatMode, string> {
