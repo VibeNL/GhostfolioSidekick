@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.AI.Agents
 
 			// Register Google Search service with MCP pattern
 			services.AddHttpClient<GoogleSearchService>();
-			services.AddSingleton<IGoogleSearchProtocol, GoogleSearchService>();
+			services.AddSingleton<IGoogleSearchService, GoogleSearchService>();
 			services.AddSingleton((s) =>
 			{
 				var httpClient = s.GetRequiredService<HttpClient>();

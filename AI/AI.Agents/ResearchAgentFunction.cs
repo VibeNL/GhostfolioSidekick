@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace GhostfolioSidekick.AI.Agents
 {
-	public class ResearchAgentFunction(GoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
+	public class ResearchAgentFunction(IGoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
 	{
 		private async Task<string> SummarizeSearchResults(SearchResults results)
 		{
