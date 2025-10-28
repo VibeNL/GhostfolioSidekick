@@ -7,12 +7,13 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
-	public class CsvHelperService
+	public static class CsvHelperService
 	{
 		public static void SaveToCSV(string outputFile, IEnumerable<ActivityWithSymbol> transactions)
 		{
 			using var writer = new StreamWriter(outputFile);
 			using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+			csv.Context.TypeConverterOptionsCache.GetOptions<DateTime>().Formats = ["o"];
 			csv.WriteRecords(transactions.Select(Transform).OrderBy(x => x.Date));
 		}
 
@@ -71,7 +72,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					Symbol = activity.Symbol,
 					Date = deposit.Date,
 					Currency = deposit.Amount.Currency.Symbol,
-					Quantity = 0,
+					Quantity = 1,
 					UnitPrice = deposit.Amount.Amount,
 					Fee = 0,
 					Tax = 0,
@@ -86,7 +87,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					Symbol = activity.Symbol,
 					Date = withdrawal.Date,
 					Currency = withdrawal.Amount.Currency.Symbol,
-					Quantity = 0,
+					Quantity = 1,
 					UnitPrice = withdrawal.Amount.Amount,
 					Fee = 0,
 					Tax = 0,
