@@ -4,7 +4,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Moq;
-using System.ComponentModel;
 
 namespace GhostfolioSidekick.AI.Agents.UnitTests
 {
