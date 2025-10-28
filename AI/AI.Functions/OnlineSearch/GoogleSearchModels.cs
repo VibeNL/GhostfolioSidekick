@@ -1,4 +1,4 @@
-namespace AI.Functions.OnlineSearch
+namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 {
 	// Models for Google Search Service
 

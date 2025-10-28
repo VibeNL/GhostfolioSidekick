@@ -1,5 +1,5 @@
-using AI.Functions.OnlineSearch;
 using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Moq;
 using System.Reflection;
 

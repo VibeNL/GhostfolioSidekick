@@ -1,12 +1,12 @@
-﻿using AI.Functions.OnlineSearch;
-using GhostfolioSidekick.AI.Common;
+﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 
-namespace GhostfolioSidekick.AI.Agents
+namespace GhostfolioSidekick.AI.Functions
 {
 	public class ResearchAgentFunction(IGoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
 	{
@@ -114,7 +114,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 				}
 			}
 
-			return ChatMessageContentHelper.ToDisplayText(optimizedQuery);
+			return optimizedQuery.ToDisplayText();
 		}
 
 		/// <summary>
@@ -135,7 +135,7 @@ If recency is important, incorporate the year {currentYear} in your query.");
 				return $"{topic} {aspect} information";
 			}
 
-			return ChatMessageContentHelper.ToDisplayText(alternativeQuery);
+			return alternativeQuery.ToDisplayText();
 		}
 
 		[KernelFunction("multi_step_research")]

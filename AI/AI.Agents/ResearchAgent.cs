@@ -1,5 +1,6 @@
-﻿using AI.Functions.OnlineSearch;
-using GhostfolioSidekick.AI.Common;
+﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Functions;
+using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;

@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 
-namespace AI.Functions.OnlineSearch
+namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 {
 	/// <summary>
 	/// Service for performing Google searches and retrieving web content

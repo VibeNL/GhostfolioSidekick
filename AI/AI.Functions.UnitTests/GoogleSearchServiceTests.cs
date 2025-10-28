@@ -1,11 +1,11 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using AI.Functions.OnlineSearch;
+using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Moq;
 using Moq.Protected;
 
-namespace AI.Functions.UnitTests
+namespace GhostfolioSidekick.AI.Functions.UnitTests
 {
 	public class GoogleSearchServiceTests
 	{

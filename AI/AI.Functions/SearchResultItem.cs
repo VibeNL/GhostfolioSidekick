@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.AI.Agents
+﻿namespace GhostfolioSidekick.AI.Functions
 {
 	public class SearchResultItem
 	{

@@ -1,5 +1,5 @@
-﻿using AI.Functions.OnlineSearch;
-using GhostfolioSidekick.AI.Common;
+﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GhostfolioSidekick.AI.Agents

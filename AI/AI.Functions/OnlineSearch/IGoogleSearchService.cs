@@ -1,4 +1,4 @@
-namespace AI.Functions.OnlineSearch
+namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 {
 	/// <summary>
 	/// Protocol (interface) for Google Search operations
