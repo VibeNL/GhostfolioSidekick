@@ -4,10 +4,11 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.ComponentModel;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.AI.Functions
 {
-	public class ResearchAgentFunction(IGoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
+	public partial class ResearchAgentFunction(IGoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
 	{
 		[KernelFunction("multi_step_research")]
 		[Description("Perform multi-step research on a topic by making multiple queries and synthesizing the results")]
@@ -23,7 +24,9 @@ namespace GhostfolioSidekick.AI.Functions
 				var query = $"{topic} - {aspect}";
 				agentLogger.StartFunction($"{nameof(MultiStepResearch)} Searching for: {query}");
 				var searchResult = await searchService.SearchAsync(query);
-				results.AppendLine($"Aspect: {aspect}\n{string.Join(Environment.NewLine, searchResult.Select(x => $"[{x.Title}] {x.Content}"))}\n");
+				results.AppendLine($"Aspect: {aspect}\n{string.Join(
+					Environment.NewLine, 
+					searchResult.Take(3).Select(x => $"[{SanitizeText(x.Title ?? string.Empty)}] {SanitizeText(x.Content ?? string.Empty)}"))}\n");
 			}
 
 			agentLogger.StartFunction($"{nameof(MultiStepResearch)} Synthesizing results");
@@ -31,5 +34,22 @@ namespace GhostfolioSidekick.AI.Functions
 			var chatResult = await chatService.GetChatMessageContentsAsync(synthesisPrompt);
 			return string.Join(Environment.NewLine, chatResult.Select(x => x.Content));
 		}
+
+		private static string SanitizeText(string input)
+		{
+			if (string.IsNullOrEmpty(input))
+			{
+				return string.Empty;
+			}
+
+			// Remove HTML tags
+			var text = TagRegEx().Replace(input, string.Empty);
+			
+			// Optionally, decode HTML entities
+			return System.Net.WebUtility.HtmlDecode(text);
+		}
+
+		[GeneratedRegex("<.*?>")]
+		private static partial Regex TagRegEx();
 	}
 }
