@@ -224,7 +224,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 			// Assert
 			Assert.Equal(ChatRole.User, result.Role);
-			Assert.Equal("Hello  world", result.Text);
+			Assert.Equal("Hello world", result.Text);
 		}
 
 		[Fact]
