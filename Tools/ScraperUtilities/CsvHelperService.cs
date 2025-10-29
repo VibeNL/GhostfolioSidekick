@@ -3,18 +3,28 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Parsers.Generic;
+using iText.Layout.Borders;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
 	public static class CsvHelperService
 	{
-		public static void SaveToCSV(string outputFile, IEnumerable<ActivityWithSymbol> transactions)
+		public static void SaveToCSV(string outputDirectory, string broker, Dictionary<int, IEnumerable<ActivityWithSymbol>> transactions)
 		{
-			using var writer = new StreamWriter(outputFile);
-			using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
-			csv.Context.TypeConverterOptionsCache.GetOptions<DateTime>().Formats = ["o"];
-			csv.WriteRecords(transactions.Select(Transform).OrderBy(x => x.Date));
+			foreach (var kvp in transactions)
+			{
+				var accountIndex = kvp.Key;
+				var accountTransactions = kvp.Value;
+
+				var outputFile = Path.Combine(outputDirectory, $"{broker}_{accountIndex}.csv");
+
+				using var writer = new StreamWriter(outputFile);
+				using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+				csv.Context.TypeConverterOptionsCache.GetOptions<DateTime>().Formats = ["o"];
+				csv.WriteRecords(accountTransactions.Select(Transform).OrderBy(x => x.Date));
+			}
 		}
 
 		private static GenericRecord Transform(ActivityWithSymbol activity)
