@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 				logger.LogInformation("Broker: {Broker}", broker);
 				logger.LogInformation("Output directory: {OutputDirectory}", outputDirectory);
 
-				IEnumerable<ActivityWithSymbol> transactions;
+				Dictionary<int, IEnumerable<ActivityWithSymbol>> transactions = [];
 				switch (broker)
 				{
 					case SupportedBrokers.ScalableCapital:
@@ -89,23 +89,20 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities
 					case SupportedBrokers.TradeRepublic:
 						{
 							var scraper = new TradeRepublic.Scraper(page, logger, outputDirectory);
-							transactions = await scraper.ScrapeTransactions();
+							transactions.Add(0, await scraper.ScrapeTransactions());
 						}
 						break;
 					case SupportedBrokers.CentraalBeheer:
 						{
 							var scraper = new CentraalBeheer.Scraper(page, logger);
-							transactions = await scraper.ScrapeTransactions();
+							transactions.Add(0, await scraper.ScrapeTransactions());
 						}
 						break;
 					default:
 						throw new ArgumentException("Invalid broker entered.");
 				}
 
-				var outputFile = Path.Combine(outputDirectory, $"{broker}.csv");
-				logger.LogInformation("Output file: {OutputFile}", outputFile);
-
-				CsvHelperService.SaveToCSV(outputFile, transactions);
+				CsvHelperService.SaveToCSV(outputDirectory, broker.ToString(), transactions);
 				logger.LogInformation("Scraping process completed.");
 			}
 			finally
