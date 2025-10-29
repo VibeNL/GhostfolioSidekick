@@ -5,6 +5,7 @@
     <Project Path="AI/AI.Common/AI.Common.csproj" Id="742b10f9-dbbf-4f62-8447-b5ab6f0c2161" />
     <Project Path="AI/AI.Functions.UnitTests/AI.Functions.UnitTests.csproj" Id="d8c5fe59-8e98-4c71-9cdc-e2c8792145cb" />
     <Project Path="AI/AI.Functions/AI.Functions.csproj" Id="1a1e7797-7c2e-4b8d-a6a0-b12f58cf93a8" />
+    <Project Path="AI/AI.Server.UnitTests/AI.Server.UnitTests.csproj" Id="cd9e5668-4765-42e2-8230-91b034d6f8b5" />
     <Project Path="AI/AI.Server/AI.Server.csproj" Id="0701acb9-c973-435d-ae4b-42550705ec91" />
   </Folder>
   <Folder Name="/SolutionItems/">

@@ -5,7 +5,7 @@ namespace GhostfolioSidekick.AI.Server
 {
 	internal static class Program
 	{
-		private const string ModelUrl = "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf?download=true";
+		private const string ModelUrl = "https://huggingface.co/tensorblock/Llama-3.2-8B-Instruct-GGUF/resolve/main/Llama-3.2-8B-Instruct-Q3_K_M.gguf";
 		
 		static async Task Main()
 		{
