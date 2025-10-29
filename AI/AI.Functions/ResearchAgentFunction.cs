@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.AI.Functions
 			return string.Join(Environment.NewLine, finalChatResult.Select(x => x.Content));
 		}
 
-		private static string SanitizeText(string input)
+		internal static string SanitizeText(string input)
 		{
 			if (string.IsNullOrEmpty(input))
 			{
@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.AI.Functions
 		[GeneratedRegex("<.*?>")]
 		private static partial Regex TagRegEx();
 
-		private static string TruncatePrompt(string prompt)
+		internal static string TruncatePrompt(string prompt)
 		{
 			if (string.IsNullOrEmpty(prompt)) return string.Empty;
 			return prompt.Length > MaxPromptLength ? prompt[..MaxPromptLength] : prompt;
