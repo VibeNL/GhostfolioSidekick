@@ -1,8 +1,8 @@
 ﻿using Microsoft.SemanticKernel;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
+namespace GhostfolioSidekick.AI.Common
 {
-	public static class ChatMessageContentHelper
+	public static partial class ChatMessageContentHelper
 	{
 		public static string ToDisplayText(this ChatMessageContent message)
 		{
@@ -22,6 +22,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 				string.Empty,
 				System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase
 			, TimeSpan.FromMinutes(1));
+
+			// Collapse multiple spaces into one and trim
+			text = WhitespaceRegEx().Replace(text, " ").Trim();
 
 			return text;
 		}
@@ -47,5 +50,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 			return match.Groups[1].Value;
 		}
 
+		[System.Text.RegularExpressions.GeneratedRegex(@"\s+")]
+		private static partial System.Text.RegularExpressions.Regex WhitespaceRegEx();
 	}
 }

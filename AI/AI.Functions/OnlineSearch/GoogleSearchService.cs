@@ -1,12 +1,12 @@
 using System.Net.Http.Json;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
+namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 {
 	/// <summary>
 	/// Service for performing Google searches and retrieving web content
 	/// Implements the Model-Context-Protocol pattern
 	/// </summary>
-	public class GoogleSearchService : IGoogleSearchProtocol
+	public class GoogleSearchService : IGoogleSearchService
 	{
 		private readonly GoogleSearchContext _context;
 

@@ -1,9 +1,9 @@
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch
+namespace GhostfolioSidekick.AI.Functions.OnlineSearch
 {
 	/// <summary>
 	/// Protocol (interface) for Google Search operations
 	/// </summary>
-	public interface IGoogleSearchProtocol
+	public interface IGoogleSearchService
 	{
 		/// <summary>
 		/// Performs a search using the provided query

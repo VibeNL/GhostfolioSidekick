@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.AI;
+﻿using GhostfolioSidekick.AI.Common;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
@@ -6,7 +7,7 @@ using Microsoft.SemanticKernel.Agents.Chat;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Diagnostics.CodeAnalysis;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
+namespace GhostfolioSidekick.AI.Agents
 {
 	[ExcludeFromCodeCoverage]
 	public class AgentOrchestrator
@@ -16,17 +17,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 		private readonly List<Agent> agents;
 		private readonly AgentGroupChat groupChat;
 		private readonly AgentLogger logger;
+		private readonly ICustomChatClient chatClient;
 
 		public AgentOrchestrator(IServiceProvider serviceProvider, AgentLogger logger)
 		{
 			IKernelBuilder builder = Kernel.CreateBuilder();
-			var webChatClient = serviceProvider.GetRequiredService<IWebChatClient>();
-			builder.Services.AddSingleton((s) => webChatClient.AsChatCompletionService());
+			chatClient = serviceProvider.GetRequiredService<ICustomChatClient>();
+			builder.Services.AddSingleton((s) => chatClient.AsChatCompletionService());
 
 			var kernel = builder.Build();
 
-			var researchAgent = ResearchAgent.Create(webChatClient, serviceProvider);
-			defaultAgent = GhostfolioSidekick.Create(webChatClient, [researchAgent]);
+			var researchAgent = ResearchAgent.Create(chatClient, serviceProvider);
+			defaultAgent = GhostfolioSidekick.Create(chatClient, [researchAgent]);
 
 			agents = [
 				defaultAgent,
@@ -134,6 +136,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents
 			}
 
 			logger.StartAgent(string.Empty);
+		}
+
+		public Task InitializeAsync(Progress<InitializeProgress> progress)
+		{
+			return chatClient.InitializeAsync(progress);
 		}
 
 		private static bool DetermineTermination(FunctionResult result)

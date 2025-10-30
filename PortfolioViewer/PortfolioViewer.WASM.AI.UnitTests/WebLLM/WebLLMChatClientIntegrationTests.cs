@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Moq;
 using AwesomeAssertions;
+using GhostfolioSidekick.AI.Common;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 {
@@ -33,7 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void WebLLMChatClient_ShouldImplementIWebChatClient()
 		{
 			// Assert
-			_client.Should().BeAssignableTo<IWebChatClient>();
+			_client.Should().BeAssignableTo<ICustomChatClient>();
 		}
 
 		[Fact]
@@ -67,7 +68,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void GetService_ShouldReturnClientInstance()
 		{
 			// Act
-			var service = _client.GetService(typeof(IWebChatClient));
+			var service = _client.GetService(typeof(ICustomChatClient));
 
 			// Assert
 			service.Should().BeSameAs(_client);
