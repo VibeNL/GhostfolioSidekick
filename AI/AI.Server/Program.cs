@@ -1,5 +1,6 @@
 ﻿using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.AI;
+using System.Linq;
 
 namespace GhostfolioSidekick.AI.Server
 {
@@ -28,9 +29,9 @@ namespace GhostfolioSidekick.AI.Server
 			var sb = new System.Text.StringBuilder();
 			await foreach (var update in chatClient.GetStreamingResponseAsync(messages))
 			{
-				// Write chunks to the console without newlines to emulate streaming
-				Console.Write(update.Text);
-				sb.Append(update.Text);
+				var text = update.Text;
+				Console.Write(text);
+				sb.Append(text);
 			}
 
 			// Print a newline after the stream completes and show the full response
