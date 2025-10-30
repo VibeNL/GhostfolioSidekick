@@ -5,17 +5,9 @@ using System.Net.Http.Json;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.Api;
 
-public class ApiChatClient : ICustomChatClient, IDisposable
+public class ApiChatClient(HttpClient httpClient, ILogger<ApiChatClient> logger) : ICustomChatClient
 {
-	private readonly HttpClient httpClient;
-	private readonly ILogger<ApiChatClient> logger;
 	private bool disposed;
-
-	public ApiChatClient(HttpClient httpClient, ILogger<ApiChatClient> logger)
-	{
-		this.httpClient = httpClient;
-		this.logger = logger;
-	}
 
 	public ChatMode ChatMode { get; set; } = ChatMode.Chat;
 
@@ -34,7 +26,7 @@ public class ApiChatClient : ICustomChatClient, IDisposable
 		var request = new ApiChatRequest
 		{
 			ChatMode = ChatMode,
-			Messages = messages.Select(m => new ApiChatMessage { Role = m.Role.ToString(), Text = m.Text }).ToList()
+			Messages = [.. messages.Select(m => new ApiChatMessage { Role = m.Role.ToString(), Text = m.Text })]
 		};
 
 		var httpResponse = await httpClient.PostAsJsonAsync("api/chat", request, cancellationToken);
@@ -52,7 +44,7 @@ public class ApiChatClient : ICustomChatClient, IDisposable
 		var request = new ApiChatRequest
 		{
 			ChatMode = ChatMode,
-			Messages = messages.Select(m => new ApiChatMessage { Role = m.Role.ToString(), Text = m.Text }).ToList()
+			Messages = [.. messages.Select(m => new ApiChatMessage { Role = m.Role.ToString(), Text = m.Text })]
 		};
 
 		var httpResponse = await httpClient.PostAsJsonAsync("api/chat", request, cancellationToken);
@@ -93,19 +85,19 @@ public class ApiChatClient : ICustomChatClient, IDisposable
 	}
 
 	// Local DTOs used by the client
-	private class ApiChatRequest
+	private sealed class ApiChatRequest
 	{
 		public ChatMode ChatMode { get; set; }
-		public List<ApiChatMessage> Messages { get; set; } = new();
+		public List<ApiChatMessage> Messages { get; set; } = [];
 	}
 
-	private class ApiChatMessage
+	private sealed class ApiChatMessage
 	{
 		public string Role { get; set; } = string.Empty;
 		public string Text { get; set; } = string.Empty;
 	}
 
-	private class ApiChatResponse
+	private sealed class ApiChatResponse
 	{
 		public string Text { get; set; } = string.Empty;
 	}

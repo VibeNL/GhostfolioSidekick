@@ -6,7 +6,7 @@ using Microsoft.Extensions.AI;
 
 namespace GhostfolioSidekick.AI.Server
 {
-	public sealed class ServerChatClient(string modelUrl) : ICustomChatClient, IDisposable
+	public sealed class ServerChatClient(string modelUrl) : ICustomChatClient
 	{
 		private readonly string modelUrl = modelUrl ?? throw new ArgumentNullException(nameof(modelUrl));
 		private readonly string tempModelPath = Path.Combine(Path.GetTempPath(), GetNameFromModelUrl(modelUrl));
@@ -151,7 +151,7 @@ namespace GhostfolioSidekick.AI.Server
 				if (lastSlash >= 0 && lastSlash < withoutQuery.Length - 1)
 					return withoutQuery[(lastSlash + 1)..];
 				var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(modelUrl));
-				var hex = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+				var hex = Convert.ToHexStringLower(hash);
 				return hex + ".gguf";
 			}
 			catch
@@ -163,7 +163,7 @@ namespace GhostfolioSidekick.AI.Server
 		private static string BytesToString(long byteCount)
 		{
 			if (byteCount ==0) return "0B";
-			string[] suf = { "B", "KB", "MB", "GB", "TB", "PB" };
+			string[] suf = ["B", "KB", "MB", "GB", "TB", "PB"];
 			var bytes = Math.Abs((double)byteCount);
 			var place = Convert.ToInt32(Math.Floor(Math.Log(bytes,1024)));
 			var num = Math.Round(bytes / Math.Pow(1024, place),2);

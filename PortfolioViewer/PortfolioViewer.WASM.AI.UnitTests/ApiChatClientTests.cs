@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests
 {
 	public class ApiChatClientTests
 	{
-		private ApiChatClient CreateClient(HttpMessageHandler? handler = null)
+		private static ApiChatClient CreateClient(HttpMessageHandler? handler = null)
 		{
 			var httpClient = handler != null ? new HttpClient(handler) { BaseAddress = new Uri("http://localhost") } : new HttpClient() { BaseAddress = new Uri("http://localhost") };
 			var logger = Mock.Of<ILogger<ApiChatClient>>();
