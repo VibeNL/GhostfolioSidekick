@@ -44,6 +44,91 @@
     }
     else
     {
+        <!-- Top Risers and Losers Section -->
+        @if (TopRisers.Any() || TopLosers.Any())
+        {
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-trending-up"></i> Top 3 Risers
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (TopRisers.Any())
+                            {
+                                @foreach (var riser in TopRisers)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <strong>@riser.Symbol</strong>
+                                            <br>
+                                            <small class="text-muted">@riser.Name</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="h6 text-success mb-0">+@riser.GainLossPercentage.ToString("P2")</div>
+                                            <small class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@riser.GainLoss)</small>
+                                        </div>
+                                    </div>
+                                    @if (riser != TopRisers.Last())
+                                    {
+                                        <hr class="my-2">
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-3">
+                                    <i class="bi bi-graph-up" style="font-size: 2rem;"></i>
+                                    <p class="mt-2 mb-0">No positive performers found</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-danger">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-trending-down"></i> Top 3 Losers
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (TopLosers.Any())
+                            {
+                                @foreach (var loser in TopLosers)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <strong>@loser.Symbol</strong>
+                                            <br>
+                                            <small class="text-muted">@loser.Name</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="h6 text-danger mb-0">@loser.GainLossPercentage.ToString("P2")</div>
+                                            <small class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(@loser.GainLoss)</small>
+                                        </div>
+                                    </div>
+                                    @if (loser != TopLosers.Last())
+                                    {
+                                        <hr class="my-2">
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted py-3">
+                                    <i class="bi bi-graph-down" style="font-size: 2rem;"></i>
+                                    <p class="mt-2 mb-0">No losing positions found</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -186,5 +271,21 @@
         white-space: normal;
         padding-left: 0.5rem;
         padding-right: 0.5rem;
+    }
+
+    .card.border-success {
+      border-width: 2px !important;
+    }
+
+    .card.border-danger {
+      border-width: 2px !important;
+    }
+
+    .card.border-success .card-header {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.125);
+    }
+
+    .card.border-danger .card-header {
+        border-bottom: 2px solid rgba(255, 255, 255, 0.125);
     }
 </style>

@@ -41,6 +41,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected List<PortfolioValueHistoryPoint> TimeSeriesData { get; set; } = [];
 		protected List<TimeSeriesDisplayModel> TimeSeriesDisplayData { get; set; } = [];
 
+		// Holdings data for risers and losers
+		protected List<HoldingDisplayModel> HoldingsData { get; set; } = [];
+		protected List<HoldingDisplayModel> TopRisers { get; set; } = [];
+		protected List<HoldingDisplayModel> TopLosers { get; set; } = [];
+
 		// Sorting state
 		private string sortColumn = "Date";
 		private bool sortAscending;
@@ -117,14 +122,26 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					throw new InvalidOperationException("HoldingsDataService is not initialized.");
 				}
 
+				// Load time series data
 				TimeSeriesData = await HoldingsDataService.GetPortfolioValueHistoryAsync(
 					StartDate,
 					EndDate,
 					SelectedAccountId
 				) ?? [];
 
+				// Load holdings data for risers and losers
+				if (SelectedAccountId == 0)
+				{
+					HoldingsData = await HoldingsDataService.GetHoldingsAsync() ?? [];
+				}
+				else
+				{
+					HoldingsData = await HoldingsDataService.GetHoldingsAsync(SelectedAccountId) ?? [];
+				}
+
 				await PrepareDisplayData();
 				await PrepareChartData();
+				PrepareRisersAndLosers();
 			}
 			catch (Exception ex)
 			{
@@ -136,6 +153,28 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				IsLoading = false;
 				StateHasChanged();
 			}
+		}
+
+		private void PrepareRisersAndLosers()
+		{
+			// Filter holdings with non-zero amounts and calculate risers and losers
+			var validHoldings = HoldingsData
+				.Where(h => h.Quantity > 0 && h.CurrentValue.Amount > 0)
+				.ToList();
+
+			// Top 3 risers (highest gain/loss percentage)
+			TopRisers = validHoldings
+				.Where(h => h.GainLossPercentage > 0)
+				.OrderByDescending(h => h.GainLossPercentage)
+				.Take(3)
+				.ToList();
+
+			// Top 3 losers (lowest gain/loss percentage)
+			TopLosers = validHoldings
+				.Where(h => h.GainLossPercentage < 0)
+				.OrderBy(h => h.GainLossPercentage)
+				.Take(3)
+				.ToList();
 		}
 
 		private Task PrepareDisplayData()
