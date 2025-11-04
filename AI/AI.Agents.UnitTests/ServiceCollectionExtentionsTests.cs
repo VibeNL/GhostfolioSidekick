@@ -2,7 +2,6 @@ using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System;
 
 namespace GhostfolioSidekick.AI.Agents.UnitTests
 {
@@ -14,7 +13,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			var services = new ServiceCollection();
 
 			services.AddSingleton(new ModelInfo { MaxTokens = 4096, Name = "123" });
-			services.AddSingleton<ICustomChatClient>(Mock.Of<ICustomChatClient>());
+			services.AddSingleton(Mock.Of<ICustomChatClient>());
 
 			services.AddAgents();
 			var provider = services.BuildServiceProvider();
@@ -47,7 +46,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			var provider = services.BuildServiceProvider();
 
 			// HttpClient should be available for GoogleSearchService
-			var httpClient = provider.GetService<System.Net.Http.HttpClient>();
+			var httpClient = provider.GetService<HttpClient>();
 			Assert.NotNull(httpClient);
 		}
 	}

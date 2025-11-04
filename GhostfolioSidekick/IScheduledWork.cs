@@ -2,6 +2,8 @@
 {
 	public interface IScheduledWork
 	{
+		/////string Name { get; }
+
 		TaskPriority Priority { get; }
 
 		TimeSpan ExecutionFrequency { get; }

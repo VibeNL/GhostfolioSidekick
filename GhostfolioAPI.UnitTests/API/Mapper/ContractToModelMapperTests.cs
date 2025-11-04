@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void MapPlatform_ShouldMapCorrectly()
 		{
 			// Arrange
-			var rawPlatform = new Contract.Platform
+			var rawPlatform = new Platform
 			{
 				Name = "Test Platform",
 				Url = "http://testplatform.com",
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 		public void MapAccount_ShouldMapCorrectly()
 		{
 			// Arrange
-			var rawAccount = new Contract.Account
+			var rawAccount = new Account
 			{
 				Name = "Test Account",
 				Comment = "Test Comment",
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 				Balance = 1000m,
 				Id = Guid.NewGuid().ToString()
 			};
-			var rawPlatform = new Contract.Platform
+			var rawPlatform = new Platform
 			{
 				Name = "Test Platform",
 				Url = "http://testplatform.com",

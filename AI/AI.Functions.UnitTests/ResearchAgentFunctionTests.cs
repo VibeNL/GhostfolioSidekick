@@ -1,14 +1,8 @@
-using System.Text.RegularExpressions;
-using Xunit;
 using Moq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using GhostfolioSidekick.AI.Common;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel;
-using System.Threading;
-using System.Linq;
 
 namespace GhostfolioSidekick.AI.Functions.UnitTests
 {

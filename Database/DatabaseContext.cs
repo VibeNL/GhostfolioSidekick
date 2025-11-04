@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Model.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -39,6 +40,8 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<CalculatedSnapshotPrimaryCurrency> CalculatedSnapshotPrimaryCurrencies { get; set; }
 
 		public virtual DbSet<BalancePrimaryCurrency> BalancePrimaryCurrencies { get; set; }
+		
+		public virtual DbSet<TaskRun> Tasks { get; set; }
 
 		public DatabaseContext()
 		{

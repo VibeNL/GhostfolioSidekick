@@ -1,6 +1,5 @@
 ﻿using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.AI;
-using System.Linq;
 
 namespace GhostfolioSidekick.AI.Server
 {

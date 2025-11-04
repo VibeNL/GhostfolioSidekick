@@ -1,6 +1,4 @@
-using System;
 using GhostfolioSidekick.AI.Common;
-using Xunit;
 
 namespace GhostfolioSidekick.AI.Agents.UnitTests
 {

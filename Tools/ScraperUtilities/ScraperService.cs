@@ -1,12 +1,6 @@
-﻿using CsvHelper;
-using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.Parsers.Generic;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
-using System.Globalization;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities
 {
