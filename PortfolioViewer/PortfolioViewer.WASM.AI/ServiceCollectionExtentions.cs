@@ -21,7 +21,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 					{ ChatMode.ChatWithThinking, modelid },
 					{ ChatMode.FunctionCalling, modelid },
 				}
-			));	
+			));
+			services.AddSingleton(s => new ModelInfo
+			{
+				Name = modelid,
+				MaxTokens = 4096
+			});
 		}
 
 		public static void AddApiChatClient(this IServiceCollection services)

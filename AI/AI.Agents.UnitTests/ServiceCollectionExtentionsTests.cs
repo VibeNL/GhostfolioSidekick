@@ -2,6 +2,7 @@ using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System;
 
 namespace GhostfolioSidekick.AI.Agents.UnitTests
 {
@@ -12,6 +13,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		{
 			var services = new ServiceCollection();
 
+			services.AddSingleton(new ModelInfo { MaxTokens = 4096, Name = "123" });
 			services.AddSingleton<ICustomChatClient>(Mock.Of<ICustomChatClient>());
 
 			services.AddAgents();

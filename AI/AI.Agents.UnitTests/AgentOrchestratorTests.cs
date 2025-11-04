@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 	public class AgentOrchestratorTests
 	{
 		private readonly Mock<ICustomChatClient> _mockWebChatClient;
-		private readonly TestServiceProvider _service_provider;
+		private readonly TestServiceProvider _serviceProvider;
 		private readonly GoogleSearchService _google_search_service;
 		private readonly AgentLogger _agentLogger;
 
@@ -26,11 +26,12 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 
 			_agentLogger = new AgentLogger();
 
-			_service_provider = new TestServiceProvider();
-			_service_provider.AddService(_google_search_service);
-			_service_provider.AddService(_agentLogger);
+			_serviceProvider = new TestServiceProvider();
+			_serviceProvider.AddService(_google_search_service);
+			_serviceProvider.AddService(_agentLogger);
+			_serviceProvider.AddService(new ModelInfo { MaxTokens = 4096, Name = "123" });
 			// Register the mock web chat client so AgentOrchestrator can resolve it
-			_service_provider.AddService(_mockWebChatClient.Object);
+			_serviceProvider.AddService(_mockWebChatClient.Object);
 
 			var clonedClient = new Mock<ICustomChatClient>();
 			clonedClient.SetupProperty(x => x.ChatMode);
@@ -44,7 +45,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		public void Constructor_ShouldNotThrow()
 		{
 			// Arrange & Act
-			var orchestrator = new AgentOrchestrator(_service_provider, _agentLogger);
+			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
 
 			// Assert
 			Assert.NotNull(orchestrator);
@@ -54,7 +55,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		public async Task History_ShouldContainAddedUserMessage()
 		{
 			// Arrange
-			var orchestrator = new AgentOrchestrator(_service_provider, _agentLogger);
+			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
 
 			// Use reflection to get the private groupChat field
 			var field = typeof(AgentOrchestrator).GetField("groupChat", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -127,7 +128,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 		public async Task AskQuestion_ReturnsAsyncEnumerable_CanGetEnumeratorAndDispose()
 		{
 			// Arrange
-			var orchestrator = new AgentOrchestrator(_service_provider, _agentLogger);
+			var orchestrator = new AgentOrchestrator(_serviceProvider, _agentLogger);
 
 			// Act
 			var asyncEnumerable = orchestrator.AskQuestion("Test question");

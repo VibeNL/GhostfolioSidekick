@@ -32,6 +32,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			_serviceProvider = new TestServiceProvider();
 			_serviceProvider.AddService<GoogleSearchService>(_googleSearchService);
 			_serviceProvider.AddService<AgentLogger>(_agentLogger);
+			_serviceProvider.AddService(new ModelInfo { MaxTokens = 4096, Name = "123" });
 
 			// Setup the web chat client clone behavior
 			var clonedClient = new Mock<ICustomChatClient>();

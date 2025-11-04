@@ -3,15 +3,16 @@ using GhostfolioSidekick.AI.Functions.OnlineSearch;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.ComponentModel;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.AI.Functions
 {
-	public partial class ResearchAgentFunction(IGoogleSearchService searchService, IChatCompletionService chatService, AgentLogger agentLogger)
+	public partial class ResearchAgentFunction(
+		IGoogleSearchService searchService, 
+		IChatCompletionService chatService,
+		ModelInfo modelInfo,
+		AgentLogger agentLogger)
 	{
-		private const int MaxPromptLength = 4096; // TODO : Adjust based on model limits
-
 		[KernelFunction("multi_step_research")]
 		[Description("Perform multi-step research on a topic by making multiple queries and synthesizing the results")]
 		public async Task<string> MultiStepResearch(
@@ -31,7 +32,7 @@ namespace GhostfolioSidekick.AI.Functions
 				{
 					agentLogger.StartFunction($"{nameof(MultiStepResearch)} Summerizing search result {aspect} {++i}");
 					var sanitizedContent = SanitizeText(result.Content ?? string.Empty);
-					var synthesisPrompt = TruncatePrompt($"Synthesize the following research result into a concise summary. {sanitizedContent}");
+					var synthesisPrompt = TruncatePrompt($"Synthesize the following research result into a concise summary. {sanitizedContent}", modelInfo.MaxTokens);
 					var chatResult = await chatService.GetChatMessageContentsAsync(synthesisPrompt);
 					perResultSummaries.Add(string.Join(Environment.NewLine, chatResult.Select(x => x.Content)));
 				}
@@ -39,7 +40,7 @@ namespace GhostfolioSidekick.AI.Functions
 				// Synthesize aspect summary from per-result summaries
 				agentLogger.StartFunction($"{nameof(MultiStepResearch)} Synthesizing aspect summary for: {aspect}");
 
-				var aspectSynthesisPrompt = TruncatePrompt($"Synthesize the following summaries for aspect '{aspect}' into a concise aspect summary.\n{string.Join(Environment.NewLine, perResultSummaries)}");
+				var aspectSynthesisPrompt = TruncatePrompt($"Synthesize the following summaries for aspect '{aspect}' into a concise aspect summary.\n{string.Join(Environment.NewLine, perResultSummaries)}", modelInfo.MaxTokens);
 				var aspectChatResult = await chatService.GetChatMessageContentsAsync(aspectSynthesisPrompt);
 				aspectSummaries.Add(string.Join(Environment.NewLine, aspectChatResult.Select(x => x.Content)));
 			}
@@ -47,7 +48,7 @@ namespace GhostfolioSidekick.AI.Functions
 			// Synthesize the aspect summaries into a final summary
 			agentLogger.StartFunction($"{nameof(MultiStepResearch)} Synthesizing final summary");
 
-			var finalPrompt = TruncatePrompt($"Synthesize the following aspect summaries into a concise overall summary.\n{string.Join(Environment.NewLine, aspectSummaries)}");
+			var finalPrompt = TruncatePrompt($"Synthesize the following aspect summaries into a concise overall summary.\n{string.Join(Environment.NewLine, aspectSummaries)}", modelInfo.MaxTokens);
 			var finalChatResult = await chatService.GetChatMessageContentsAsync(finalPrompt);
 			return string.Join(Environment.NewLine, finalChatResult.Select(x => x.Content));
 		}
@@ -69,10 +70,10 @@ namespace GhostfolioSidekick.AI.Functions
 		[GeneratedRegex("<.*?>")]
 		private static partial Regex TagRegEx();
 
-		internal static string TruncatePrompt(string prompt)
+		internal static string TruncatePrompt(string prompt, int maxTokens)
 		{
 			if (string.IsNullOrEmpty(prompt)) return string.Empty;
-			return prompt.Length > MaxPromptLength ? prompt[..MaxPromptLength] : prompt;
+			return prompt.Length > maxTokens ? prompt[.. maxTokens] : prompt;
 		}
 	}
 }

@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.AI.Functions.UnitTests
 		[InlineData("", "")]
 		public void TruncatePrompt_TruncatesLongPrompt(string input, string expected)
 		{
-			var result = ResearchAgentFunction.TruncatePrompt(input);
+			var result = ResearchAgentFunction.TruncatePrompt(input, 100);
 			Assert.Equal(expected, result);
 		}
 
@@ -73,9 +73,11 @@ namespace GhostfolioSidekick.AI.Functions.UnitTests
 			};
 			searchServiceMock.Setup(s => s.SearchAsync(It.IsAny<string>()))
 				.ReturnsAsync(searchResults);
+			var modelInfo = new ModelInfo { Name = "test-model", MaxTokens = 1000 };
+
 
 			var chatService = new TestChatCompletionService();
-			var function = new ResearchAgentFunction(searchServiceMock.Object, chatService, loggerMock.Object);
+			var function = new ResearchAgentFunction(searchServiceMock.Object, chatService, modelInfo, loggerMock.Object);
 			var topic = "TestTopic";
 			var aspects = new[] { "Aspect1", "Aspect2" };
 

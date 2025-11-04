@@ -35,8 +35,9 @@ namespace GhostfolioSidekick.AI.Agents
 			});
 			var searchService = serviceProvider.GetRequiredService<GoogleSearchService>();
 			var agentlogger = serviceProvider.GetRequiredService<AgentLogger>();
+			var modelInfo = serviceProvider.GetRequiredService<ModelInfo>();
 			var functionCallingkernel = functionCallingBuilder.Build();
-			functionCallingkernel.Plugins.AddFromObject(new ResearchAgentFunction(searchService, webChatClient.AsChatCompletionService(), agentlogger));
+			functionCallingkernel.Plugins.AddFromObject(new ResearchAgentFunction(searchService, webChatClient.AsChatCompletionService(), modelInfo, agentlogger));
 
 			var agent = new ChatCompletionAgent
 			{
