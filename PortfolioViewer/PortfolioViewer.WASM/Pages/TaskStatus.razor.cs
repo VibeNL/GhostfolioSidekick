@@ -1,5 +1,7 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Tasks;
+using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,12 +10,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	public partial class TaskStatus : ComponentBase
 	{
 		[Inject] private DatabaseContext DbContext { get; set; } = default!;
+		[Inject] private PortfolioClient PortfolioClient { get; set; } = default!;
+		[Inject] private ISyncTrackingService SyncTrackingService { get; set; } = default!;
 
 		private List<TaskRun>? _taskRuns;
 		private bool _isLoading = true;
 		private string _sortColumn = nameof(TaskRun.InProgress);
 		private string _sortDirection = "desc"; // Start with InProgress tasks at top
 		private TaskRun? _selectedTaskError;
+
+		// Refresh state
+		private bool _isRefreshing;
+		private string _refreshStatus = string.Empty;
+		private int _refreshProgress;
 
 		// Statistics
 		private int _runningTasks;
@@ -60,9 +69,59 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			_errorTasks = _taskRuns.Count(t => !string.IsNullOrEmpty(t.LastException));
 		}
 
-		private async Task RefreshData()
+		private async Task RefreshTasksOnly()
 		{
-			await LoadTaskData();
+			try
+			{
+				_isRefreshing = true;
+				_refreshStatus = "Syncing task status...";
+				_refreshProgress = 0;
+				StateHasChanged();
+
+				// Create a progress reporter for the task-only sync operation
+				var progress = new Progress<(string action, int progress)>(update =>
+				{
+					_refreshStatus = update.action;
+					_refreshProgress = update.progress;
+					StateHasChanged();
+				});
+
+				// Sync only the Tasks table
+				await PortfolioClient.SyncSingleTable("TaskRuns", progress);
+
+				_refreshStatus = "Task sync completed, reloading data...";
+				_refreshProgress = 90;
+				StateHasChanged();
+
+				// Reload the task data after sync
+				await LoadTaskData();
+
+				_refreshStatus = "Task refresh completed successfully.";
+				_refreshProgress = 100;
+				StateHasChanged();
+
+				// Clear the status after a short delay
+				await Task.Delay(1500);
+				_refreshStatus = string.Empty;
+				_refreshProgress = 0;
+			}
+			catch (Exception ex)
+			{
+				_refreshStatus = $"Task refresh failed: {ex.Message}";
+				_refreshProgress = 100;
+				Console.WriteLine($"Error during task refresh: {ex.Message}");
+				StateHasChanged();
+
+				// Clear error status after longer delay
+				await Task.Delay(5000);
+				_refreshStatus = string.Empty;
+				_refreshProgress = 0;
+			}
+			finally
+			{
+				_isRefreshing = false;
+				StateHasChanged();
+			}
 		}
 
 		private void SortBy(string columnName)
