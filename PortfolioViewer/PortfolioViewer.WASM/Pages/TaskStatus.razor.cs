@@ -1,7 +1,6 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Tasks;
 using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
-using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +10,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 	{
 		[Inject] private DatabaseContext DbContext { get; set; } = default!;
 		[Inject] private PortfolioClient PortfolioClient { get; set; } = default!;
-		[Inject] private ISyncTrackingService SyncTrackingService { get; set; } = default!;
 
 		private List<TaskRun>? _taskRuns;
 		private bool _isLoading = true;
@@ -51,7 +49,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				// Handle error gracefully
 				Console.WriteLine($"Error loading task data: {ex.Message}");
-				_taskRuns = new List<TaskRun>();
+				_taskRuns = [];
 			}
 			finally
 			{
@@ -143,7 +141,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private IEnumerable<TaskRun> GetSortedTasks()
 		{
-			if (_taskRuns == null) return Enumerable.Empty<TaskRun>();
+			if (_taskRuns == null) return [];
 
 			// Apply primary sorting and then secondary sorts
 			return _sortColumn switch
@@ -164,7 +162,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 		}
 
-		private string GetRowClass(TaskRun task)
+		private static string GetRowClass(TaskRun task)
 		{
 			if (task.InProgress)
 				return "row-running";
@@ -175,7 +173,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return string.Empty;
 		}
 
-		private string GetNextScheduleClass(DateTimeOffset nextSchedule)
+		private static string GetNextScheduleClass(DateTimeOffset nextSchedule)
 		{
 			if (nextSchedule < DateTimeOffset.Now)
 				return "text-warning fw-bold";
@@ -184,7 +182,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return string.Empty;
 		}
 
-		private string GetRelativeTime(DateTimeOffset dateTime)
+		private static string GetRelativeTime(DateTimeOffset dateTime)
 		{
 			if (dateTime == DateTimeOffset.MinValue || dateTime == DateTimeOffset.MaxValue)
 				return string.Empty;

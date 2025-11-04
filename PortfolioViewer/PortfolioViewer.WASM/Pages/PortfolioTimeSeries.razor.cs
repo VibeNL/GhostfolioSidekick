@@ -171,7 +171,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 						EndDate
 					);
 
-					if (priceHistory.Any())
+					if (priceHistory.Count != 0)
 					{
 						// Get start and end prices
 						var startPrice = priceHistory.OrderBy(p => p.Date).First()?.Price;
@@ -205,18 +205,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 
 			// Top 3 risers (highest percentage change over time range)
-			TopRisers = timeRangePerformances
+			TopRisers = [.. timeRangePerformances
 				.Where(h => h.PercentageChange > 0)
 				.OrderByDescending(h => h.PercentageChange)
-				.Take(3)
-				.ToList();
+				.Take(3)];
 
 			// Top 3 losers (lowest percentage change over time range)
-			TopLosers = timeRangePerformances
+			TopLosers = [.. timeRangePerformances
 				.Where(h => h.PercentageChange < 0)
 				.OrderBy(h => h.PercentageChange)
-				.Take(3)
-				.ToList();
+				.Take(3)];
 		}
 
 		private Task PrepareDisplayData()
