@@ -27,6 +27,7 @@ namespace GhostfolioSidekick.UnitTests
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock = new Mock<IScheduledWork>();
+			scheduledWorkMock.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock.Setup(x => x.ExceptionsAreFatal).Returns(false);
@@ -53,6 +54,7 @@ namespace GhostfolioSidekick.UnitTests
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock = new Mock<IScheduledWork>();
+			scheduledWorkMock.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock.Setup(x => x.ExceptionsAreFatal).Returns(false);
@@ -79,10 +81,12 @@ namespace GhostfolioSidekick.UnitTests
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.Name).Returns("Test2");
 			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
@@ -105,10 +109,12 @@ namespace GhostfolioSidekick.UnitTests
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMilliseconds(1));
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(100));
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
@@ -131,10 +137,12 @@ namespace GhostfolioSidekick.UnitTests
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromHours(1));
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(5));
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
@@ -159,11 +167,13 @@ namespace GhostfolioSidekick.UnitTests
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
+			scheduledWorkMock1.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			scheduledWorkMock1.Setup(Task => Task.DoWork()).Throws(new Exception("Test exception 42"));
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
+			scheduledWorkMock2.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
@@ -193,6 +203,7 @@ namespace GhostfolioSidekick.UnitTests
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
 			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock = new Mock<IScheduledWork>();
+			scheduledWorkMock.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock.Setup(x => x.ExceptionsAreFatal).Returns(false);
