@@ -1,6 +1,6 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.AI.Agents;
-using GhostfolioSidekick.PortfolioViewer.WASM.AI.OnlineSearch;
+﻿using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.Api;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 
 		public static void AddWebChatClient(this IServiceCollection services)
 		{
-			services.AddSingleton<IWebChatClient>((s) => new WebLLMChatClient(
+			services.AddSingleton<ICustomChatClient>((s) => new WebLLMChatClient(
 				s.GetRequiredService<IJSRuntime>(),
 				s.GetRequiredService<ILogger<WebLLMChatClient>>(),
 				new Dictionary<ChatMode, string> {
@@ -22,27 +22,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI
 					{ ChatMode.FunctionCalling, modelid },
 				}
 			));
-
-			services.AddSingleton<AgentLogger>();
-			services.AddSingleton<AgentOrchestrator>();
-
-			// Register Google Search service with MCP pattern
-			services.AddHttpClient<GoogleSearchService>();
-			services.AddSingleton<IGoogleSearchProtocol, GoogleSearchService>();
-			services.AddSingleton((s) =>
+			services.AddSingleton(s => new ModelInfo
 			{
-				var httpClient = s.GetRequiredService<HttpClient>();
-				// Create a context for the GoogleSearchService
-				var context = new GoogleSearchContext
-				{
-					HttpClient = httpClient,
-					// Default URLs are already set in the context class
-				};
-				// Return the service with the context
-				return new GoogleSearchService(context);
+				Name = modelid,
+				MaxTokens = 4096
 			});
+		}
+
+		public static void AddApiChatClient(this IServiceCollection services)
+		{
+			services.AddSingleton<ICustomChatClient>(s => new ApiChatClient(
+				s.GetRequiredService<HttpClient>(),
+				s.GetRequiredService<ILogger<ApiChatClient>>()
+			));
 		}
 	}
 }
+
 
 

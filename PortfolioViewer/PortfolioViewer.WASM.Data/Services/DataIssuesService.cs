@@ -1,7 +1,7 @@
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
-using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services

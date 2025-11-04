@@ -1,6 +1,9 @@
+using GhostfolioSidekick.AI.Agents;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI;
+using GhostfolioSidekick.PortfolioViewer.WASM.AI.Api;
+using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -8,6 +11,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
@@ -65,7 +69,12 @@ public static class Program
 			options.UseLazyLoadingProxies();
 		});
 
+		// Register Chat clients - prefer WebLLM by default
 		builder.Services.AddWebChatClient();
+		// Also register ApiChatClient if needed (registers ICustomChatClient implementation)
+		////builder.Services.AddApiChatClient();
+
+		builder.Services.AddAgents();
 
 		// Register ServerConfigurationService for DI
 		builder.Services.AddSingleton<IServerConfigurationService, ServerConfigurationService>();

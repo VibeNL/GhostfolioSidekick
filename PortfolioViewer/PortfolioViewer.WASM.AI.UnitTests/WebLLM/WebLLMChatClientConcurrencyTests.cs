@@ -1,3 +1,4 @@
+using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;

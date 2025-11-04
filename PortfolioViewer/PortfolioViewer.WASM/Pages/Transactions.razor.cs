@@ -3,7 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel;
-using System;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {

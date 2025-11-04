@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.PortfolioViewer.WASM.Models;
+﻿using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {

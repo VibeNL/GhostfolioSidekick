@@ -9,7 +9,7 @@ using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Tests.Services
+namespace PortfolioViewer.WASM.Data.UnitTests.Services
 {
 	public class HoldingsDataServiceTests
 	{

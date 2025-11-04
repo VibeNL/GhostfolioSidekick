@@ -1,3 +1,4 @@
+using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -52,7 +53,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void GetService_ShouldReturnSelf()
 		{
 			// Act
-			var service = _client.GetService(typeof(IWebChatClient));
+			var service = _client.GetService(typeof(ICustomChatClient));
 
 			// Assert
 			Assert.Same(_client, service);
@@ -223,7 +224,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 
 			// Assert
 			Assert.Equal(ChatRole.User, result.Role);
-			Assert.Equal("Hello  world", result.Text);
+			Assert.Equal("Hello world", result.Text);
 		}
 
 		[Fact]

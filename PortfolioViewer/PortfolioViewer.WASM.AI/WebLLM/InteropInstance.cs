@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.AI;
+﻿using GhostfolioSidekick.AI.Common;
+using Microsoft.Extensions.AI;
 using Microsoft.JSInterop;
 using System.Collections.Concurrent;
 
