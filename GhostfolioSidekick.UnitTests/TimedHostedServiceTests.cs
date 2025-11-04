@@ -2,28 +2,36 @@
 using Moq;
 using GhostfolioSidekick.Database;
 using Moq.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests
 {
 	public class TimedHostedServiceTests
 	{
+		private DatabaseContext CreateInMemoryDatabaseContext()
+		{
+			var options = new DbContextOptionsBuilder<DatabaseContext>()
+				.UseSqlite("Data Source=:memory:")
+				.Options;
+
+			var context = new DatabaseContext(options);
+			// Need to open the connection to keep the in-memory database alive
+			context.Database.OpenConnection();
+			return context;
+		}
+
 		[Fact]
 		public async Task DoesNotStartAutomatically()
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
-			var databaseContextMock = new Mock<DatabaseContext>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock = new Mock<IScheduledWork>();
 			scheduledWorkMock.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock.Setup(x => x.ExceptionsAreFatal).Returns(false);
-			
-			// Setup database context mocks
-			var tasks = new List<Model.Tasks.TaskRun>();
-			databaseContextMock.Setup(x => x.Tasks).ReturnsDbSet(tasks);
-			databaseContextMock.Setup(x => x.SaveChanges()).Returns(0);
 
-			_ = new TimedHostedService(databaseContextMock.Object, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
+			_ = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
 
 			// Act
 			await Task.Delay(1000);
@@ -43,18 +51,13 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
-			var databaseContextMock = new Mock<DatabaseContext>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock = new Mock<IScheduledWork>();
 			scheduledWorkMock.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock.Setup(x => x.ExceptionsAreFatal).Returns(false);
-			
-			// Setup database context mocks
-			var tasks = new List<Model.Tasks.TaskRun>();
-			databaseContextMock.Setup(x => x.Tasks).ReturnsDbSet(tasks);
-			databaseContextMock.Setup(x => x.SaveChanges()).Returns(0);
 
-			var service = new TimedHostedService(databaseContextMock.Object, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
+			var service = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
@@ -74,7 +77,7 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
-			var databaseContextMock = new Mock<DatabaseContext>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
@@ -83,13 +86,8 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
-			
-			// Setup database context mocks
-			var tasks = new List<Model.Tasks.TaskRun>();
-			databaseContextMock.Setup(x => x.Tasks).ReturnsDbSet(tasks);
-			databaseContextMock.Setup(x => x.SaveChanges()).Returns(0);
 
-			var service = new TimedHostedService(databaseContextMock.Object, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
+			var service = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
@@ -105,7 +103,7 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
-			var databaseContextMock = new Mock<DatabaseContext>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMilliseconds(1));
@@ -114,13 +112,8 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(100));
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
-			
-			// Setup database context mocks
-			var tasks = new List<Model.Tasks.TaskRun>();
-			databaseContextMock.Setup(x => x.Tasks).ReturnsDbSet(tasks);
-			databaseContextMock.Setup(x => x.SaveChanges()).Returns(0);
 
-			var service = new TimedHostedService(databaseContextMock.Object, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
+			var service = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
@@ -136,7 +129,7 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
-			var databaseContextMock = new Mock<DatabaseContext>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromHours(1));
@@ -145,13 +138,8 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(5));
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
-			
-			// Setup database context mocks
-			var tasks = new List<Model.Tasks.TaskRun>();
-			databaseContextMock.Setup(x => x.Tasks).ReturnsDbSet(tasks);
-			databaseContextMock.Setup(x => x.SaveChanges()).Returns(0);
 
-			var service = new TimedHostedService(databaseContextMock.Object, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
+			var service = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
@@ -169,7 +157,7 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
-			var databaseContextMock = new Mock<DatabaseContext>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock1 = new Mock<IScheduledWork>();
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
@@ -180,12 +168,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
 
-			// Setup database context mocks
-			var tasks = new List<Model.Tasks.TaskRun>();
-			databaseContextMock.Setup(x => x.Tasks).ReturnsDbSet(tasks);
-			databaseContextMock.Setup(x => x.SaveChanges()).Returns(0);
-
-			var service = new TimedHostedService(databaseContextMock.Object, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
+			var service = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock1.Object, scheduledWorkMock2.Object });
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
@@ -208,18 +191,13 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			// Arrange
 			var loggerMock = new Mock<ILogger<TimedHostedService>>();
-			var databaseContextMock = new Mock<DatabaseContext>();
+			using var databaseContext = CreateInMemoryDatabaseContext();
 			var scheduledWorkMock = new Mock<IScheduledWork>();
 			scheduledWorkMock.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock.Setup(x => x.ExceptionsAreFatal).Returns(false);
-			
-			// Setup database context mocks
-			var tasks = new List<Model.Tasks.TaskRun>();
-			databaseContextMock.Setup(x => x.Tasks).ReturnsDbSet(tasks);
-			databaseContextMock.Setup(x => x.SaveChanges()).Returns(0);
 
-			var service = new TimedHostedService(databaseContextMock.Object, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
+			var service = new TimedHostedService(databaseContext, loggerMock.Object, new List<IScheduledWork> { scheduledWorkMock.Object });
 
 			// Act
 			await service.StartAsync(CancellationToken.None);
