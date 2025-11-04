@@ -25,11 +25,11 @@ namespace GhostfolioSidekick
 			foreach (var todo in workItems.OrderBy(x => x.Priority))
 			{
 				workQueue.Enqueue(new Scheduled(todo, DateTime.MinValue), DateTime.MinValue.AddMinutes((int)todo.Priority));
-				EnsureTaskExists(todo);
+				InitializeTasks(todo);
 			}
 		}
 
-		private void EnsureTaskExists(IScheduledWork todo)
+		private void InitializeTasks(IScheduledWork todo)
 		{
 			// Check if exists
 			Model.Tasks.TaskRun? existingTask = GetTask(databaseContext, todo.GetType().Name);
@@ -46,15 +46,11 @@ namespace GhostfolioSidekick
 
 			// Set scheduled to true
 			existingTask.Scheduled = true;
+			existingTask.InProgress = false;
 			existingTask.Priority = (int)todo.Priority;
-			existingTask.NextSchedule = null;
+			existingTask.NextSchedule = DateTime.MinValue.AddMinutes((int)todo.Priority);
 
 			databaseContext.SaveChanges();
-		}
-
-		private static Model.Tasks.TaskRun? GetTask(DatabaseContext databaseContext, string type)
-		{
-			return databaseContext.Tasks.SingleOrDefault(x => x.Type == type);
 		}
 
 		public Task StartAsync(CancellationToken cancellationToken)
@@ -92,7 +88,7 @@ namespace GhostfolioSidekick
 
 				logger.LogInformation("Service {Name} is executing.", workItem.Work.GetType().Name);
 
-				await UpdateTask(workItem.Work.GetType().Name, true);
+				await UpdateTask(workItem.Work.GetType().Name, true, workItem.NextSchedule);
 
 				workItem = workQueue.Dequeue();
 
@@ -100,13 +96,13 @@ namespace GhostfolioSidekick
 
 				var rescheduled = HandleWorkItemCompletion(workItem);
 
-				await UpdateTask(workItem.Work.GetType().Name, false, rescheduled ? workItem.NextSchedule : null);
+				await UpdateTask(workItem.Work.GetType().Name, false, workItem.NextSchedule);
 
 				logger.LogInformation("Service {Name} has executed.", workItem.Work.GetType().Name);
 			}
 		}
 
-		private async Task UpdateTask(string type, bool inProgress, DateTime? nextSchedule = null)
+		private async Task UpdateTask(string type, bool inProgress, DateTime nextSchedule)
 		{
 			var dbTask = GetTask(databaseContext, type);
 			if (dbTask != null)
@@ -114,6 +110,7 @@ namespace GhostfolioSidekick
 				dbTask.LastUpdate = DateTimeOffset.Now;
 				dbTask.InProgress = inProgress;
 				dbTask.NextSchedule = nextSchedule;
+				dbTask.LastException = null;
 				await databaseContext.SaveChangesAsync();
 			}
 		}
@@ -138,6 +135,13 @@ namespace GhostfolioSidekick
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
+				var taskrun = GetTask(databaseContext, workItem.Work.GetType().Name);
+				if (taskrun != null)
+				{
+					taskrun.InProgress = false;
+					taskrun.LastException = ex.Message;
+					await databaseContext.SaveChangesAsync();
+				}
 
 				if (workItem.Work.ExceptionsAreFatal)
 				{
@@ -181,6 +185,11 @@ namespace GhostfolioSidekick
 			task = null;
 			cancellationTokenSource?.Dispose();
 			cancellationTokenSource = null;
+		}
+
+		private static Model.Tasks.TaskRun? GetTask(DatabaseContext databaseContext, string type)
+		{
+			return databaseContext.Tasks.SingleOrDefault(x => x.Type == type);
 		}
 
 		private sealed class Scheduled(IScheduledWork item, DateTime nextSchedule)

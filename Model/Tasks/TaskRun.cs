@@ -12,9 +12,10 @@
 
 		public int Priority { get; set; }
 
-		public DateTimeOffset? NextSchedule { get; set; }
+		public DateTimeOffset NextSchedule { get; set; } = DateTimeOffset.MaxValue;
+		
 		public bool InProgress { get; set; }
-		
-		
+
+		public string? LastException { get; set; }
 	}
 }
