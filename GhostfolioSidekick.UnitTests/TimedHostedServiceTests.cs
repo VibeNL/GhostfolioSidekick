@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
-			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.GenerateDatabase);
+			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromMilliseconds(1));
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
-			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.GenerateDatabase);
+			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(100));
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			
@@ -142,7 +142,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromHours(1));
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
-			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.GenerateDatabase);
+			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.FromSeconds(5));
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
 			scheduledWorkMock1.Setup(Task => Task.DoWork()).Throws(new Exception("Test exception 42"));
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
-			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.GenerateDatabase);
+			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
 			scheduledWorkMock2.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock2.Setup(x => x.ExceptionsAreFatal).Returns(false);
 

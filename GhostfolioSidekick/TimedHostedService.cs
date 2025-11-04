@@ -1,7 +1,7 @@
 ﻿using GhostfolioSidekick.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick
 {
@@ -12,7 +12,7 @@ namespace GhostfolioSidekick
 		private Task? task;
 		private readonly DatabaseContext databaseContext;
 		private readonly ILogger logger;
-		private readonly PriorityQueue<Scheduled, DateTime> workQueue = new();
+		private readonly PriorityQueue<Scheduled, DateTimeOffset> workQueue = new();
 
 		public TimedHostedService(
 			DatabaseContext databaseContext,
@@ -22,11 +22,29 @@ namespace GhostfolioSidekick
 			this.databaseContext = databaseContext;
 			this.logger = logger;
 
+			GenerateDatabase().Wait();
+
 			foreach (var todo in workItems.OrderBy(x => x.Priority))
 			{
-				workQueue.Enqueue(new Scheduled(todo, DateTime.MinValue), DateTime.MinValue.AddMinutes((int)todo.Priority));
+				workQueue.Enqueue(new Scheduled(todo, DateTimeOffset.MinValue), DateTimeOffset.MinValue.AddMinutes((int)todo.Priority));
 				InitializeTasks(todo);
 			}
+		}
+
+		private async Task GenerateDatabase()
+		{
+			logger.LogInformation("Generating / Updating database...");
+
+			await databaseContext.Database.MigrateAsync().ConfigureAwait(false);
+			await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
+			await databaseContext.ExecutePragma("PRAGMA fullfsync=ON;");
+			await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+
+			logger.LogInformation("Do integrity checks and vacuum...");
+			await databaseContext.ExecutePragma("PRAGMA integrity_check;");
+			await databaseContext.Database.ExecuteSqlRawAsync("VACUUM;");
+
+			logger.LogInformation("Database generated / updated.");
 		}
 
 		private void InitializeTasks(IScheduledWork todo)
@@ -48,7 +66,7 @@ namespace GhostfolioSidekick
 			existingTask.Scheduled = true;
 			existingTask.InProgress = false;
 			existingTask.Priority = (int)todo.Priority;
-			existingTask.NextSchedule = DateTime.MinValue.AddMinutes((int)todo.Priority);
+			existingTask.NextSchedule = DateTimeOffset.MinValue.AddMinutes((int)todo.Priority);
 
 			databaseContext.SaveChanges();
 		}
@@ -96,13 +114,13 @@ namespace GhostfolioSidekick
 
 				var rescheduled = HandleWorkItemCompletion(workItem);
 
-				await UpdateTask(workItem.Work.GetType().Name, false, workItem.NextSchedule);
+				await UpdateTask(workItem.Work.GetType().Name, false, rescheduled ? workItem.NextSchedule : DateTimeOffset.MaxValue);
 
 				logger.LogInformation("Service {Name} has executed.", workItem.Work.GetType().Name);
 			}
 		}
 
-		private async Task UpdateTask(string type, bool inProgress, DateTime nextSchedule)
+		private async Task UpdateTask(string type, bool inProgress, DateTimeOffset nextSchedule)
 		{
 			var dbTask = GetTask(databaseContext, type);
 			if (dbTask != null)
@@ -110,7 +128,11 @@ namespace GhostfolioSidekick
 				dbTask.LastUpdate = DateTimeOffset.Now;
 				dbTask.InProgress = inProgress;
 				dbTask.NextSchedule = nextSchedule;
-				dbTask.LastException = null;
+				if (inProgress)
+				{
+					dbTask.LastException = null;
+				}
+
 				await databaseContext.SaveChangesAsync();
 			}
 		}
@@ -192,11 +214,11 @@ namespace GhostfolioSidekick
 			return databaseContext.Tasks.SingleOrDefault(x => x.Type == type);
 		}
 
-		private sealed class Scheduled(IScheduledWork item, DateTime nextSchedule)
+		private sealed class Scheduled(IScheduledWork item, DateTimeOffset nextSchedule)
 		{
 			public IScheduledWork Work { get; } = item;
 
-			public DateTime NextSchedule { get; set; } = nextSchedule;
+			public DateTimeOffset NextSchedule { get; set; } = nextSchedule;
 
 			internal bool DetermineNextSchedule()
 			{

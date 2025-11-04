@@ -4,8 +4,6 @@
 	{
 		DisplayInformation,
 
-		GenerateDatabase,
-
 		AccountMaintainer,
 
 		MaintainManualSymbol,
