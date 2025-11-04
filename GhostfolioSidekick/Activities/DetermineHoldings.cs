@@ -27,6 +27,8 @@ namespace GhostfolioSidekick.Activities
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Determine Holdings";
+
 		public async Task DoWork()
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();

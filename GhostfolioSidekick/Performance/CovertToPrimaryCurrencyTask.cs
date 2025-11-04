@@ -21,6 +21,8 @@ namespace GhostfolioSidekick.Performance
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Convert to Primary Currency";
+
 		public async Task DoWork()
 		{
 			var primaryCurrencySymbol = applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency;

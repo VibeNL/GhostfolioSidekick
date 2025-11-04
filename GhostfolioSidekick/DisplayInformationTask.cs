@@ -14,6 +14,8 @@ namespace GhostfolioSidekick
 
 		public bool ExceptionsAreFatal => true;
 
+		public string Name => "Display Information";
+
 		public Task DoWork()
 		{
 			PrintUsedSettings();

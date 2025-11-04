@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.Sync
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Cleanup Ghostfolio Unused Symbols";
+
 		public async Task DoWork()
 		{
 			var symbols = await ghostfolioMarketData.GetAllSymbolProfiles();

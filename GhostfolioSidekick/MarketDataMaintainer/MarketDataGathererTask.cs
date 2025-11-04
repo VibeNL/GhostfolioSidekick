@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Market Data Gatherer";
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork()
 		{

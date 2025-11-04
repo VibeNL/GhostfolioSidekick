@@ -15,6 +15,8 @@ namespace GhostfolioSidekick.Sync
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Sync Manual Activities and Market Data with Ghostfolio";
+
 		public async Task DoWork()
 		{
 			await using var databaseContext = databaseContextFactory.CreateDbContext();

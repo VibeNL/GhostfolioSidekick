@@ -14,6 +14,8 @@ namespace GhostfolioSidekick
 
 		public bool ExceptionsAreFatal => true;
 
+		public string Name => "Cleanup Database";
+
 		public Task DoWork()
 		{
 			return CleanupDatabase();

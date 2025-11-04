@@ -56,7 +56,7 @@ namespace GhostfolioSidekick
 				existingTask = new Model.Tasks.TaskRun
 				{
 					Type = todo.GetType().Name!,
-					Name = todo.GetType().Name!, // TODO: Change to a more friendly name if needed
+					Name = todo.Name,
 					LastUpdate = DateTimeOffset.MinValue
 				};
 				databaseContext.Tasks.Add(existingTask);

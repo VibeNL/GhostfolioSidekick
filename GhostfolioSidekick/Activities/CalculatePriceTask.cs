@@ -12,6 +12,8 @@ namespace GhostfolioSidekick.Activities
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Calculate Price";
+
 		public async Task DoWork()
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();

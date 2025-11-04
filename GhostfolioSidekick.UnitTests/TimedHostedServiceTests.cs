@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.UnitTests
 {
 	public class TimedHostedServiceTests
 	{
-		private DatabaseContext CreateInMemoryDatabaseContext()
+		private static DatabaseContext CreateInMemoryDatabaseContext()
 		{
 			var options = new DbContextOptionsBuilder<DatabaseContext>()
 				.UseSqlite("Data Source=:memory:")

@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Balance Maintainer";
+
 		public async Task DoWork()
 		{
 			List<AccountKey> accountKeys;

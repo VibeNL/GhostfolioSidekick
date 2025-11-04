@@ -16,6 +16,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Market Data Stock Split Gatherer";
+
 		public async Task DoWork()
 		{
 			var symbolIdentifiers = new List<Tuple<string, string>>();

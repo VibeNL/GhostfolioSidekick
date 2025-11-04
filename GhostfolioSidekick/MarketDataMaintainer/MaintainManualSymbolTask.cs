@@ -19,6 +19,8 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Maintain Manual Symbol";
+
 		public async Task DoWork()
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();

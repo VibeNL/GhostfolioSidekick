@@ -28,6 +28,8 @@ namespace GhostfolioSidekick.Activities
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "File Importer";
+
 		public async Task DoWork()
 		{
 			var directories = Directory.GetDirectories(fileLocation);

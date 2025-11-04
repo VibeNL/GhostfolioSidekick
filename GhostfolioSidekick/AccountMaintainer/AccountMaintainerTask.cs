@@ -20,6 +20,8 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Account Maintainer";
+
 		public async Task DoWork()
 		{
 			logger.LogDebug("{Name} Starting to do work", nameof(AccountMaintainerTask));

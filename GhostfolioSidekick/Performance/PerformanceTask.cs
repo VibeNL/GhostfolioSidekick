@@ -15,6 +15,8 @@ namespace GhostfolioSidekick.Performance
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Performance Calculations";
+
 		public async Task DoWork()
 		{
 			// Calculate performance for all holdings

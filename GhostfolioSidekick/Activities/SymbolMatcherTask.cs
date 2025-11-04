@@ -20,6 +20,9 @@ namespace GhostfolioSidekick.Activities
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 
 		public bool ExceptionsAreFatal => false;
+
+		public string Name => "Symbol Matcher";
+
 		public async Task DoWork()
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();
