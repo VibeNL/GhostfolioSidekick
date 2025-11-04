@@ -828,12 +828,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(($"Sync completed for table: {tableName}.", 100));
 				logger.LogInformation("Single table sync completed successfully for table: {TableName}", tableName);
 			}
+#pragma warning disable S2139 // Exceptions should be either logged or rethrown but not both
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Error during single table sync for {TableName}: {Message}", tableName, ex.Message);
 				progress?.Report(($"Error syncing table {tableName}: {ex.Message}", 100));
 				throw;
 			}
+#pragma warning restore S2139 // Exceptions should be either logged or rethrown but not both
 		}
 	}
 }
