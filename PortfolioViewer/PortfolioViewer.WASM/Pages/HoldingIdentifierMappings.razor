@@ -406,6 +406,81 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Related Transactions Section -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-receipt me-2"></i>Related Transactions
+                                </h5>
+                                <small class="text-muted">All transactions for this holding</small>
+                            </div>
+                            <div class="card-body">
+                                @if (IsTransactionsLoading)
+                                {
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary mb-2" role="status">
+                                            <span class="visually-hidden">Loading transactions...</span>
+                                        </div>
+                                        <div class="text-muted">Loading transactions...</div>
+                                    </div>
+                                }
+                                else if (TransactionsError)
+                                {
+                                    <div class="alert alert-danger" role="alert">
+                                        <strong>Error loading transactions:</strong> @TransactionsErrorMessage
+                                    </div>
+                                }
+                                else if (RelatedTransactions.Count == 0)
+                                {
+                                    <div class="text-center py-3">
+                                        <i class="bi bi-receipt text-muted" style="font-size: 2rem;"></i>
+                                        <p class="text-muted mt-2">No transactions found for this holding.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Type</th>
+                                                    <th>Account</th>
+                                                    <th class="text-end">Total Value</th>
+                                                    <th>Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var txn in RelatedTransactions)
+                                                {
+                                                    <tr>
+                                                        <td>@txn.Date.ToString("yyyy-MM-dd")</td>
+                                                        <td><span class="badge bg-secondary">@txn.Type</span></td>
+                                                        <td>@txn.AccountName</td>
+                                                        <td class="text-end">
+                                                            @if (txn.TotalValue != null)
+                                                            {
+                                                                <strong>@CurrencyDisplay.DisplaySignAndAmount(txn.TotalValue)</strong>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">-</span>
+                                                            }
+                                                        </td>
+                                                        <td>@txn.Description</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
         }
     }
@@ -440,3 +515,6 @@
         margin-top: 0.25rem;
     }
 </style>
+
+@code {
+}}

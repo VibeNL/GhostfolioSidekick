@@ -1,5 +1,6 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.AspNetCore.Components;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
@@ -21,6 +22,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private string sortColumn = "Symbol";
 		private bool sortAscending = true;
 
+		// Related transactions state
+		private List<GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionDisplayModel> RelatedTransactions = new();
+		private bool IsTransactionsLoading = false;
+		private bool TransactionsError = false;
+		private string TransactionsErrorMessage = string.Empty;
+
+		[Inject] private GhostfolioSidekick.PortfolioViewer.WASM.Data.Services.ITransactionService TransactionService { get; set; } = default!;
+
 		protected override async Task OnInitializedAsync()
 		{
 			await LoadDataAsync();
@@ -28,8 +37,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		protected override async Task OnParametersSetAsync()
 		{
-			// Reload data when the symbol parameter changes
-			if (IsLoading == false) // Only reload if we've already loaded initially
+			if (IsLoading == false)
 			{
 				await LoadDataAsync();
 			}
@@ -37,7 +45,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task LoadDataAsync()
 		{
-			await Task.Yield(); // Ensure UI thread yields so loading spinner is rendered
+			await Task.Yield();
 			try
 			{
 				IsLoading = true;
@@ -46,7 +54,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				if (!string.IsNullOrEmpty(Symbol))
 				{
-					// Load single holding mapping
 					CurrentHoldingMapping = await HoldingIdentifierMappingService.GetHoldingIdentifierMappingAsync(Symbol);
 					if (CurrentHoldingMapping != null)
 					{
@@ -56,12 +63,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					{
 						HoldingMappings = [];
 					}
+					await LoadRelatedTransactionsAsync();
 				}
 				else
 				{
-					// Load all holding mappings
 					HoldingMappings = await HoldingIdentifierMappingService.GetAllHoldingIdentifierMappingsAsync();
 					CurrentHoldingMapping = null;
+					RelatedTransactions.Clear();
 				}
 
 				SortHoldingMappings();
@@ -74,6 +82,42 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			finally
 			{
 				IsLoading = false;
+				StateHasChanged();
+			}
+		}
+
+		private async Task LoadRelatedTransactionsAsync()
+		{
+			RelatedTransactions.Clear();
+			IsTransactionsLoading = true;
+			TransactionsError = false;
+			TransactionsErrorMessage = string.Empty;
+			try
+			{
+				if (!string.IsNullOrEmpty(Symbol))
+				{
+					var parameters = new GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionQueryParameters
+					{
+						Symbol = Symbol,
+						StartDate = DateOnly.FromDateTime(DateTime.Now.AddYears(-10)),
+						EndDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
+						PageNumber =1,
+						PageSize =100,
+						SortColumn = "Date",
+						SortAscending = false
+					};
+					var result = await TransactionService.GetTransactionsPaginatedAsync(parameters);
+					RelatedTransactions = result.Transactions;
+				}
+			}
+			catch (Exception ex)
+			{
+				TransactionsError = true;
+				TransactionsErrorMessage = ex.Message;
+			}
+			finally
+			{
+				IsTransactionsLoading = false;
 				StateHasChanged();
 			}
 		}
@@ -98,18 +142,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			HoldingMappings = sortColumn switch
 			{
 				"Symbol" => sortAscending
-					  ? [.. HoldingMappings.OrderBy(h => h.Symbol)]
-				 : [.. HoldingMappings.OrderByDescending(h => h.Symbol)],
+					 ? [.. HoldingMappings.OrderBy(h => h.Symbol)]
+					 : [.. HoldingMappings.OrderByDescending(h => h.Symbol)],
 				"Name" => sortAscending
 				 ? [.. HoldingMappings.OrderBy(h => h.Name)]
-				   : [.. HoldingMappings.OrderByDescending(h => h.Name)],
+				 : [.. HoldingMappings.OrderByDescending(h => h.Name)],
 				_ => HoldingMappings
 			};
 		}
 
 		public void Dispose()
 		{
-			// Cleanup if needed
 		}
 	}
 }
