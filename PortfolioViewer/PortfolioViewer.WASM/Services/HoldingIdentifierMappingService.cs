@@ -182,16 +182,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 								PartialIdentifier = partialIdentifier,
 								DataSource = symbolProfile.DataSource,
 								MatchedSymbol = symbolProfile.Symbol,
-								MatchDate = DateTime.UtcNow, // In real implementation, this would be the actual match date
-								MatchMethod = "Automatic Matching", // In real implementation, track how the match was made
-								ConfidenceScore = 100, // In real implementation, track confidence
-								IsCurrentMatch = true // In real implementation, track if this is still the current match
 							});
 						}
 					}
 				}
 
-				return [.. historyModels.OrderByDescending(h => h.MatchDate)];
+				return [.. historyModels.OrderByDescending(h => h.PartialIdentifier)];
 			}
 			catch (Exception ex)
 			{

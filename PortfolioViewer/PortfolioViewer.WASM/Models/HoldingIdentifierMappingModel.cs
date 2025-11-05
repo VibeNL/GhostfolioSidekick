@@ -41,9 +41,5 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		public required string PartialIdentifier { get; set; }
 		public required string DataSource { get; set; }
 		public required string MatchedSymbol { get; set; }
-		public DateTime MatchDate { get; set; }
-		public string? MatchMethod { get; set; }
-		public int ConfidenceScore { get; set; }
-		public bool IsCurrentMatch { get; set; }
 	}
 }
