@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 				}
 
 				var symbolProfiles = holding.SymbolProfiles;
-				if (symbolProfiles == null || symbolProfiles.Count ==0)
+				if (symbolProfiles == null || symbolProfiles.Count == 0)
 				{
 					return null;
 				}
@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					.ToListAsync(cancellationToken);
 
 				var mappingModels = holdings
-					.Where(h => h.SymbolProfiles != null && h.SymbolProfiles.Count >0)
+					.Where(h => h.SymbolProfiles != null && h.SymbolProfiles.Count > 0)
 					.Select(MapToHoldingIdentifierMappingModel)
 					.OrderBy(m => m.Symbol)
 					.ToList();
@@ -84,17 +84,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 				foreach (var holding in holdings)
 				{
-					foreach (var symbolProfile in holding.SymbolProfiles)
+					foreach (var symbolProfile in holding.SymbolProfiles.Where(x => ContainsIdentifier(x, partialIdentifier)))
 					{
-						if (ContainsIdentifier(symbolProfile, partialIdentifier))
+						historyModels.Add(new IdentifierMatchingHistoryModel
 						{
-							historyModels.Add(new IdentifierMatchingHistoryModel
-							{
-								PartialIdentifier = partialIdentifier,
-								DataSource = symbolProfile.DataSource,
-								MatchedSymbol = symbolProfile.Symbol,
-							});
-						}
+							PartialIdentifier = partialIdentifier,
+							DataSource = symbolProfile.DataSource,
+							MatchedSymbol = symbolProfile.Symbol,
+						});
 					}
 				}
 
