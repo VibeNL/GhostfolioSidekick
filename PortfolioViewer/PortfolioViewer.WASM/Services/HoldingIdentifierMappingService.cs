@@ -33,16 +33,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					return null;
 				}
 
-				var primarySymbolProfile = holding.SymbolProfiles.FirstOrDefault();
-				if (primarySymbolProfile == null)
+				// Instead of using only the first symbol profile, use all symbol profiles
+				var symbolProfiles = holding.SymbolProfiles;
+				if (symbolProfiles == null || symbolProfiles.Count ==0)
 				{
 					return null;
 				}
 
 				var mappingModel = new HoldingIdentifierMappingModel
 				{
-					Symbol = primarySymbolProfile.Symbol,
-					Name = primarySymbolProfile.Name ?? string.Empty,
+					// Use the first symbol for backward compatibility, but include all profiles in DataProviderMappings
+					Symbol = symbolProfiles[0].Symbol,
+					Name = symbolProfiles[0].Name ?? string.Empty,
 					HoldingId = holding.Id
 				};
 
@@ -53,14 +55,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 								Identifier = pi.Identifier,
 								AllowedAssetClasses = pi.AllowedAssetClasses,
 								AllowedAssetSubClasses = pi.AllowedAssetSubClasses,
-								MatchedDataProviders = [.. holding.SymbolProfiles
+								MatchedDataProviders = [.. symbolProfiles
 									.Where(sp => ContainsIdentifier(sp, pi.Identifier))
 									.Select(sp => sp.DataSource)],
-										HasUnresolvedMapping = !holding.SymbolProfiles.Any(sp => ContainsIdentifier(sp, pi.Identifier))
+										HasUnresolvedMapping = !symbolProfiles.Any(sp => ContainsIdentifier(sp, pi.Identifier))
 							})];
 
 				// Map data provider mappings
-				mappingModel.DataProviderMappings = [.. holding.SymbolProfiles
+				mappingModel.DataProviderMappings = [.. symbolProfiles
 				  .Select(sp => new DataProviderMappingModel
 				  {
 					  DataSource = sp.DataSource,
@@ -72,9 +74,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 					  Currency = sp.Currency.Symbol,
 					  Identifiers = sp.Identifiers,
 					  MatchedPartialIdentifiers = [.. holding.PartialSymbolIdentifiers
-				.Where(pi => ContainsIdentifier(sp, pi.Identifier))
-				.Select(pi => pi.Identifier)],
-					  IsActive = true // Assuming active if it exists
+						.Where(pi => ContainsIdentifier(sp, pi.Identifier))
+						.Select(pi => pi.Identifier)],
 				  })];
 
 				return mappingModel;
@@ -102,13 +103,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 
 				foreach (var holding in holdings)
 				{
-					var primarySymbolProfile = holding.SymbolProfiles.FirstOrDefault();
-					if (primarySymbolProfile == null) continue;
+					var symbolProfiles = holding.SymbolProfiles;
+					if (symbolProfiles == null || symbolProfiles.Count == 0)
+					{
+						continue;
+					}
 
 					var mappingModel = new HoldingIdentifierMappingModel
 					{
-						Symbol = primarySymbolProfile.Symbol,
-						Name = primarySymbolProfile.Name ?? string.Empty,
+						// Use the first symbol for backward compatibility, but include all profiles in DataProviderMappings
+						Symbol = symbolProfiles[0].Symbol,
+						Name = symbolProfiles[0].Name ?? string.Empty,
 						HoldingId = holding.Id
 					};
 
@@ -119,14 +124,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 						 Identifier = pi.Identifier,
 						 AllowedAssetClasses = pi.AllowedAssetClasses,
 						 AllowedAssetSubClasses = pi.AllowedAssetSubClasses,
-						 MatchedDataProviders = [.. holding.SymbolProfiles
+						 MatchedDataProviders = [.. symbolProfiles
 								.Where(sp => ContainsIdentifier(sp, pi.Identifier))
 								.Select(sp => sp.DataSource)],
-						 HasUnresolvedMapping = !holding.SymbolProfiles.Any(sp => ContainsIdentifier(sp, pi.Identifier))
+						 HasUnresolvedMapping = !symbolProfiles.Any(sp => ContainsIdentifier(sp, pi.Identifier))
 					 })];
 
 					// Map data provider mappings
-					mappingModel.DataProviderMappings = [.. holding.SymbolProfiles
+					mappingModel.DataProviderMappings = [.. symbolProfiles
 					.Select(sp => new DataProviderMappingModel
 					{
 						DataSource = sp.DataSource,
@@ -138,9 +143,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 						Currency = sp.Currency.Symbol,
 						Identifiers = sp.Identifiers,
 						MatchedPartialIdentifiers = [.. holding.PartialSymbolIdentifiers
-						 .Where(pi => ContainsIdentifier(sp, pi.Identifier))
-				   .Select(pi => pi.Identifier)],
-						IsActive = true // Assuming active if it exists
+							.Where(pi => ContainsIdentifier(sp, pi.Identifier))
+							.Select(pi => pi.Identifier)],
 					})];
 
 					mappingModels.Add(mappingModel);

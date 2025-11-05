@@ -32,8 +32,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		public required string Currency { get; set; }
 		public List<string> Identifiers { get; set; } = [];
 		public List<string> MatchedPartialIdentifiers { get; set; } = [];
-		public DateTime? LastUpdated { get; set; }
-		public bool IsActive { get; set; } = true;
 	}
 
 	public class IdentifierMatchingHistoryModel
