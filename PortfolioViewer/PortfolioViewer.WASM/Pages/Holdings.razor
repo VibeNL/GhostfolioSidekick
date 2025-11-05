@@ -190,6 +190,11 @@
                                             <tr class="holding-row" @onclick="@(() => NavigateToHoldingDetail(holding.Symbol))" style="cursor: pointer;" title="Click to view details">
                                                 <td>
                                                     <strong>@holding.Symbol</strong>
+                                                    <div class="small text-muted">
+                                                        <a href="/holding-identifier-mappings/@holding.Symbol" class="text-decoration-none me-2" title="View identifier mappings" @onclick:stopPropagation="true">
+                                                            <i class="bi bi-diagram-3"></i> Mappings
+                                                        </a>
+                                                    </div>
                                                 </td>
                                                 <td>@holding.Name</td>
                                                 <td>@holding.Quantity.ToString("N2")</td>

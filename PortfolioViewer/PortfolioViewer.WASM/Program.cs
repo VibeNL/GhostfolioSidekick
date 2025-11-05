@@ -101,6 +101,9 @@ public static class Program
 		// Data Issues Service
 		builder.Services.AddScoped<IDataIssuesService, DataIssuesService>();
 
+		// Holding Identifier Mapping Service
+		builder.Services.AddScoped<IHoldingIdentifierMappingService, HoldingIdentifierMappingService>();
+
 		var app = builder.Build();
 
 		// Initialize the database after building the app

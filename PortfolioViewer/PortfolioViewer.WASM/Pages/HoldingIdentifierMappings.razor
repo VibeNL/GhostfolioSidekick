@@ -1,0 +1,442 @@
+@page "/holding-identifier-mappings"
+@page "/holding-identifier-mappings/{symbol?}"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
+@using GhostfolioSidekick.Model
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IHoldingIdentifierMappingService HoldingIdentifierMappingService
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<PageTitle>@(string.IsNullOrEmpty(Symbol) ? "Identifier Mappings" : $"{Symbol} - Identifier Mapping")</PageTitle>
+
+<div class="container-fluid">
+    @if (!string.IsNullOrEmpty(Symbol))
+    {
+        <!-- Breadcrumb for single holding view -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/holdings" class="text-decoration-none">
+                                <i class="bi bi-pie-chart"></i> Holdings
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/holding-identifier-mappings" class="text-decoration-none">
+                                <i class="bi bi-diagram-3"></i> Identifier Mappings
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">@Symbol</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5">
+                        <i class="bi bi-diagram-3 me-2"></i>
+                        @if (string.IsNullOrEmpty(Symbol))
+                        {
+                            <span>Identifier Mappings</span>
+                        }
+                        else
+                        {
+                            <span>@Symbol - Identifier Mapping</span>
+                        }
+                    </h1>
+                    <p class="text-muted">
+                        @if (string.IsNullOrEmpty(Symbol))
+                        {
+                            <span>View how partial identifiers from activities are matched to external data providers for all holdings</span>
+                        }
+                        else
+                        {
+                            <span>Detailed view of how partial identifiers are matched to external data providers for @Symbol</span>
+                        }
+                    </p>
+                </div>
+                <div>
+                    @if (!string.IsNullOrEmpty(Symbol))
+                    {
+                        <a href="/holding-identifier-mappings" class="btn btn-outline-primary ms-2">
+                            <i class="bi bi-list"></i> View All
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <!-- Loading State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Identifier Mappings...</h5>
+                        <p class="text-muted mb-0">Please wait while we fetch the mapping information.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <!-- Error State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HoldingMappings.Count == 0)
+    {
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-diagram-3 text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">No Identifier Mappings Found</h5>
+                        <p class="text-muted mb-3">
+                            @if (string.IsNullOrEmpty(Symbol))
+                            {
+                                <span>No holdings with identifier mappings were found.</span>
+                            }
+                            else
+                            {
+                                <span>No identifier mapping found for @Symbol.</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Main Content -->
+        @if (string.IsNullOrEmpty(Symbol))
+        {
+            <!-- Overview mode - show all holdings -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Holdings Identifier Mappings Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="Symbol"
+                                                                     DisplayName="Symbol"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="Name"
+                                                                     DisplayName="Name"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-center">Partial Identifiers</th>
+                                            <th scope="col" class="text-center">Data Providers</th>
+                                            <th scope="col" class="text-center">Status</th>
+                                            <th scope="col" class="text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var mapping in HoldingMappings)
+                                        {
+                                            var hasUnresolvedIdentifiers = mapping.PartialIdentifiers.Any(pi => pi.HasUnresolvedMapping);
+                                            <tr class="@(hasUnresolvedIdentifiers ? "table-warning" : "")">
+                                                <td>
+                                                    <strong>@mapping.Symbol</strong>
+                                                </td>
+                                                <td>@mapping.Name</td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-info">@mapping.PartialIdentifiers.Count</span>
+                                                    @if (hasUnresolvedIdentifiers)
+                                                    {
+                                                        <span class="badge bg-warning ms-1" title="Has unresolved identifiers">
+                                                            <i class="bi bi-exclamation-triangle"></i>
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-primary">@mapping.DataProviderMappings.Count</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (hasUnresolvedIdentifiers)
+                                                    {
+                                                        <span class="badge bg-warning">
+                                                            <i class="bi bi-exclamation-triangle me-1"></i>Issues
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-success">
+                                                            <i class="bi bi-check-circle me-1"></i>OK
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    <a href="/holding-identifier-mappings/@mapping.Symbol" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-eye"></i> View Details
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Detail mode - show single holding -->
+            @if (CurrentHoldingMapping != null)
+            {
+                <!-- Partial Identifiers Section -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-tags me-2"></i>Partial Identifiers
+                                </h5>
+                                <small class="text-muted">Identifiers extracted from transaction/activity data</small>
+                            </div>
+                            <div class="card-body">
+                                @if (CurrentHoldingMapping.PartialIdentifiers.Any())
+                                {
+                                    <div class="row">
+                                        @foreach (var partialId in CurrentHoldingMapping.PartialIdentifiers)
+                                        {
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="card h-100 @(partialId.HasUnresolvedMapping ? "border-warning" : "border-success")">
+                                                    <div class="card-header @(partialId.HasUnresolvedMapping ? "bg-warning bg-opacity-10" : "bg-success bg-opacity-10")">
+                                                        <h6 class="card-title mb-0">
+                                                            <i class="bi @(partialId.HasUnresolvedMapping ? "bi-exclamation-triangle text-warning" : "bi-check-circle text-success") me-1"></i>
+                                                            @partialId.Identifier
+                                                        </h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        @if (partialId.AllowedAssetClasses?.Any() == true)
+                                                        {
+                                                            <p class="mb-1">
+                                                                <small class="text-muted">Asset Classes:</small><br>
+                                                                @foreach (var assetClass in partialId.AllowedAssetClasses)
+                                                                {
+                                                                    <span class="badge bg-secondary me-1">@assetClass</span>
+                                                                }
+                                                            </p>
+                                                        }
+                                                        @if (partialId.AllowedAssetSubClasses?.Any() == true)
+                                                        {
+                                                            <p class="mb-1">
+                                                                <small class="text-muted">Asset Sub-Classes:</small><br>
+                                                                @foreach (var assetSubClass in partialId.AllowedAssetSubClasses)
+                                                                {
+                                                                    <span class="badge bg-info me-1">@assetSubClass</span>
+                                                                }
+                                                            </p>
+                                                        }
+                                                        <p class="mb-0">
+                                                            <small class="text-muted">Matched Providers:</small><br>
+                                                            @if (partialId.MatchedDataProviders.Any())
+                                                            {
+                                                                @foreach (var provider in partialId.MatchedDataProviders)
+                                                                {
+                                                                    <span class="badge bg-primary me-1">@provider</span>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-warning">
+                                                                    <i class="bi bi-exclamation-triangle me-1"></i>No matches found
+                                                                </span>
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-3">
+                                        <i class="bi bi-tags text-muted" style="font-size: 2rem;"></i>
+                                        <p class="text-muted mt-2">No partial identifiers found for this holding.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Provider Mappings Section -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-hdd-network me-2"></i>Data Provider Mappings
+                                </h5>
+                                <small class="text-muted">How this holding maps to external data providers</small>
+                            </div>
+                            <div class="card-body">
+                                @if (CurrentHoldingMapping.DataProviderMappings.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th scope="col">Data Source</th>
+                                                    <th scope="col">Symbol</th>
+                                                    <th scope="col">Name</th>
+                                                    <th scope="col">ISIN</th>
+                                                    <th scope="col">Asset Class</th>
+                                                    <th scope="col">Currency</th>
+                                                    <th scope="col">Matched Identifiers</th>
+                                                    <th scope="col">All Identifiers</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var mapping in CurrentHoldingMapping.DataProviderMappings)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <span class="badge bg-primary">@mapping.DataSource</span>
+                                                        </td>
+                                                        <td>
+                                                            <strong>@mapping.Symbol</strong>
+                                                        </td>
+                                                        <td>@mapping.Name</td>
+                                                        <td>
+                                                            @if (!string.IsNullOrEmpty(mapping.ISIN))
+                                                            {
+                                                                <code>@mapping.ISIN</code>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">-</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-secondary">@mapping.AssetClass</span>
+                                                            @if (mapping.AssetSubClass.HasValue)
+                                                            {
+                                                                <br>
+                                        
+                                                                <span class="badge bg-info mt-1">@mapping.AssetSubClass</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-success">@mapping.Currency</span>
+                                                        </td>
+                                                        <td>
+                                                            @if (mapping.MatchedPartialIdentifiers.Any())
+                                                            {
+                                                                @foreach (var matched in mapping.MatchedPartialIdentifiers)
+                                                                {
+                                                                    <span class="badge bg-warning text-dark me-1">@matched</span>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">None</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (mapping.Identifiers.Any())
+                                                            {
+                                                                @foreach (var identifier in mapping.Identifiers.Take(3))
+                                                                {
+                                                                    <span class="badge bg-light text-dark me-1">@identifier</span>
+                                                                }
+                                                                @if (mapping.Identifiers.Count > 3)
+                                                                {
+                                                                    <span class="text-muted">+@(mapping.Identifiers.Count - 3) more</span>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">None</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-3">
+                                        <i class="bi bi-hdd-network text-muted" style="font-size: 2rem;"></i>
+                                        <p class="text-muted mt-2">No data provider mappings found for this holding.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    }
+</div>
+
+<style>
+    .table th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .card .card-body {
+        padding: 1rem;
+    }
+
+    .badge {
+        font-size: 0.75em;
+    }
+
+    .table-responsive {
+        border-radius: 0.375rem;
+    }
+
+    .card-header small {
+        display: block;
+        margin-top: 0.25rem;
+    }
+</style>
