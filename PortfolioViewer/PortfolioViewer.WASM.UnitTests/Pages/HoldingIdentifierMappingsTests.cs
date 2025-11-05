@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components.Authorization;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
+using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {
@@ -18,10 +19,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var mockService = new Mock<IHoldingIdentifierMappingService>();
 			var mockAuthStateProvider = new Mock<AuthenticationStateProvider>();
 			var mockTestContextService = new Mock<ITestContextService>();
+			var mockTransactionService = new Mock<ITransactionService>();
 
 			Services.AddScoped(_ => mockService.Object);
 			Services.AddScoped(_ => mockAuthStateProvider.Object);
 			Services.AddScoped(_ => mockTestContextService.Object);
+			Services.AddScoped(_ => mockTransactionService.Object);
 
 			// Setup authentication
 			var authState = Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal()));
@@ -30,7 +33,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			// Setup a task that never completes to simulate loading
 			var neverCompletingTask = new TaskCompletionSource<List<HoldingIdentifierMappingModel>>();
 			mockService.Setup(x => x.GetAllHoldingIdentifierMappingsAsync(It.IsAny<CancellationToken>()))
-		.Returns(neverCompletingTask.Task);
+			 .Returns(neverCompletingTask.Task);
 
 			// Act
 			var component = RenderComponent<HoldingIdentifierMappings>();
@@ -47,10 +50,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var mockService = new Mock<IHoldingIdentifierMappingService>();
 			var mockAuthStateProvider = new Mock<AuthenticationStateProvider>();
 			var mockTestContextService = new Mock<ITestContextService>();
+			var mockTransactionService = new Mock<ITransactionService>();
 
 			Services.AddScoped(_ => mockService.Object);
 			Services.AddScoped(_ => mockAuthStateProvider.Object);
 			Services.AddScoped(_ => mockTestContextService.Object);
+			Services.AddScoped(_ => mockTransactionService.Object);
 
 			// Setup authentication
 			var authState = Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal()));
@@ -58,7 +63,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			// Setup service to return empty list
 			mockService.Setup(x => x.GetAllHoldingIdentifierMappingsAsync(It.IsAny<CancellationToken>()))
- .ReturnsAsync([]);
+			 .ReturnsAsync([]);
 
 			// Act
 			var component = RenderComponent<HoldingIdentifierMappings>();
@@ -81,10 +86,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var mockService = new Mock<IHoldingIdentifierMappingService>();
 			var mockAuthStateProvider = new Mock<AuthenticationStateProvider>();
 			var mockTestContextService = new Mock<ITestContextService>();
+			var mockTransactionService = new Mock<ITransactionService>();
 
 			Services.AddScoped(_ => mockService.Object);
 			Services.AddScoped(_ => mockAuthStateProvider.Object);
 			Services.AddScoped(_ => mockTestContextService.Object);
+			Services.AddScoped(_ => mockTransactionService.Object);
 
 			// Setup authentication
 			var authState = Task.FromResult(new AuthenticationState(new System.Security.Claims.ClaimsPrincipal()));
@@ -92,39 +99,38 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			// Setup test data
 			var testMappings = new List<HoldingIdentifierMappingModel>
-			{
-	 new()
-		 {
-		 Symbol = "AAPL",
-   Name = "Apple Inc.",
-   HoldingId = 1,
-   PartialIdentifiers =
-	   [
-   new()
-   {
-		 Identifier = "AAPL",
-  MatchedDataProviders = ["YAHOO"],
-	 HasUnresolvedMapping = false
-	}
-		],
-		DataProviderMappings =
-	  [
-	   new()
-		{
-	DataSource = "YAHOO",
-  Symbol = "AAPL",
-	   Name = "Apple Inc.",
-	  Currency = "USD",
-		AssetClass = AssetClass.Equity,
-		Identifiers = ["AAPL"],
-	MatchedPartialIdentifiers = ["AAPL"]
-	  }
-		 ]
-	 }
-		  };
+			   {
+				new() {
+				 Symbol = "AAPL",
+				 Name = "Apple Inc.",
+				 HoldingId =1,
+				 PartialIdentifiers =
+				 [
+				  new()
+				  {
+				   Identifier = "AAPL",
+				   MatchedDataProviders = ["YAHOO"],
+				   HasUnresolvedMapping = false
+				  }
+				 ],
+				 DataProviderMappings =
+				 [
+				  new()
+				  {
+				   DataSource = "YAHOO",
+				   Symbol = "AAPL",
+				   Name = "Apple Inc.",
+				   Currency = "USD",
+				   AssetClass = AssetClass.Equity,
+				   Identifiers = ["AAPL"],
+				   MatchedPartialIdentifiers = ["AAPL"]
+				  }
+				 ]
+				}
+			   };
 
 			mockService.Setup(x => x.GetAllHoldingIdentifierMappingsAsync(It.IsAny<CancellationToken>()))
-		  .ReturnsAsync(testMappings);
+			 .ReturnsAsync(testMappings);
 
 			// Act
 			var component = RenderComponent<HoldingIdentifierMappings>();
