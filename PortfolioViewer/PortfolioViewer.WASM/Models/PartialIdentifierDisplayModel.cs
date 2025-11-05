@@ -8,7 +8,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		public List<AssetClass>? AllowedAssetClasses { get; set; }
 		public List<AssetSubClass>? AllowedAssetSubClasses { get; set; }
 		public List<string> MatchedDataProviders { get; set; } = [];
-		public bool HasUnresolvedMapping { get; set; }
 		public string? Comment { get; set; }
 	}
 }

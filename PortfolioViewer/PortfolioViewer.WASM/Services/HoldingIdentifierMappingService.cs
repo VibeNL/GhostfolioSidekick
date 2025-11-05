@@ -57,8 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 								AllowedAssetSubClasses = pi.AllowedAssetSubClasses,
 								MatchedDataProviders = [.. symbolProfiles
 									.Where(sp => ContainsIdentifier(sp, pi.Identifier))
-									.Select(sp => sp.DataSource)],
-										HasUnresolvedMapping = !symbolProfiles.Any(sp => ContainsIdentifier(sp, pi.Identifier))
+									.Select(sp => sp.DataSource)]
 							})];
 
 				// Map data provider mappings
@@ -126,8 +125,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 						 AllowedAssetSubClasses = pi.AllowedAssetSubClasses,
 						 MatchedDataProviders = [.. symbolProfiles
 								.Where(sp => ContainsIdentifier(sp, pi.Identifier))
-								.Select(sp => sp.DataSource)],
-						 HasUnresolvedMapping = !symbolProfiles.Any(sp => ContainsIdentifier(sp, pi.Identifier))
+								.Select(sp => sp.DataSource)]
 					 })];
 
 					// Map data provider mappings

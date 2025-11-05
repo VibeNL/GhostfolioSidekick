@@ -109,8 +109,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				  new()
 				  {
 				   Identifier = "AAPL",
-				   MatchedDataProviders = ["YAHOO"],
-				   HasUnresolvedMapping = false
+				   MatchedDataProviders = ["YAHOO"]
 				  }
 				 ],
 				 DataProviderMappings =

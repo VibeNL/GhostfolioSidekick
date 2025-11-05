@@ -63,14 +63,6 @@
                         }
                     </p>
                 </div>
-                <div>
-                    @if (!string.IsNullOrEmpty(Symbol))
-                    {
-                        <a href="/holding-identifier-mappings" class="btn btn-outline-primary ms-2">
-                            <i class="bi bi-list"></i> View All
-                        </a>
-                    }
-                </div>
             </div>
         </div>
     </div>
@@ -162,44 +154,22 @@
                                             </th>
                                             <th scope="col" class="text-center">Partial Identifiers</th>
                                             <th scope="col" class="text-center">Data Providers</th>
-                                            <th scope="col" class="text-center">Status</th>
                                             <th scope="col" class="text-center">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach (var mapping in HoldingMappings)
                                         {
-                                            var hasUnresolvedIdentifiers = mapping.PartialIdentifiers.Any(pi => pi.HasUnresolvedMapping);
-                                            <tr class="@(hasUnresolvedIdentifiers ? "table-warning" : "")">
+                                            <tr>
                                                 <td>
                                                     <strong>@mapping.Symbol</strong>
                                                 </td>
                                                 <td>@mapping.Name</td>
                                                 <td class="text-center">
                                                     <span class="badge bg-info">@mapping.PartialIdentifiers.Count</span>
-                                                    @if (hasUnresolvedIdentifiers)
-                                                    {
-                                                        <span class="badge bg-warning ms-1" title="Has unresolved identifiers">
-                                                            <i class="bi bi-exclamation-triangle"></i>
-                                                        </span>
-                                                    }
                                                 </td>
                                                 <td class="text-center">
                                                     <span class="badge bg-primary">@mapping.DataProviderMappings.Count</span>
-                                                </td>
-                                                <td class="text-center">
-                                                    @if (hasUnresolvedIdentifiers)
-                                                    {
-                                                        <span class="badge bg-warning">
-                                                            <i class="bi bi-exclamation-triangle me-1"></i>Issues
-                                                        </span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-success">
-                                                            <i class="bi bi-check-circle me-1"></i>OK
-                                                        </span>
-                                                    }
                                                 </td>
                                                 <td class="text-center">
                                                     <a href="/holding-identifier-mappings/@mapping.Symbol" class="btn btn-sm btn-outline-primary">
@@ -259,7 +229,7 @@
                                                     {
                                                         foreach (var provider in relatedProviders)
                                                         {
-                                                            <tr class="@(partialId.HasUnresolvedMapping ? "table-warning" : "")">
+                                                            <tr>
                                                                 <td><strong>@partialId.Identifier</strong></td>
                                                                 <td>
                                                                     @if (partialId.AllowedAssetClasses?.Any() == true)
@@ -314,7 +284,7 @@
                                                     }
                                                     else
                                                     {
-                                                        <tr class="@(partialId.HasUnresolvedMapping ? "table-warning" : "")">
+                                                        <tr>
                                                             <td><strong>@partialId.Identifier</strong></td>
                                                             <td>
                                                                 @if (partialId.AllowedAssetClasses?.Any() == true)
