@@ -4,6 +4,7 @@
 @using GhostfolioSidekick.PortfolioViewer.WASM.Models
 @using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @using GhostfolioSidekick.Model
+@using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 @inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IHoldingIdentifierMappingService HoldingIdentifierMappingService
 @inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
 @inject NavigationManager Navigation
@@ -456,7 +457,7 @@
                                             <tbody>
                                                 @foreach (var txn in RelatedTransactions)
                                                 {
-                                                    <tr>
+                                                    <tr @onclick="() => ShowTransactionDetails(txn)" style="cursor:pointer;">
                                                         <td>@txn.Date.ToString("yyyy-MM-dd")</td>
                                                         <td><span class="badge bg-secondary">@txn.Type</span></td>
                                                         <td>@txn.AccountName</td>
@@ -486,6 +487,100 @@
     }
 </div>
 
+@* Transaction Details Modal *@
+@if (ShowTransactionModal && SelectedTransaction != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Transaction Details</h5>
+                    <button type="button" class="btn-close" @onclick="CloseTransactionModal"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Date</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.Date.ToString("yyyy-MM-dd")</dd>
+                        <dt class="col-sm-3">Type</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.Type</dd>
+                        <dt class="col-sm-3">Account</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.AccountName</dd>
+                        <dt class="col-sm-3">Symbol</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.Symbol</dd>
+                        <dt class="col-sm-3">Name</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.Name</dd>
+                        <dt class="col-sm-3">Description</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.Description</dd>
+                        <dt class="col-sm-3">Total Value</dt>
+                        <dd class="col-sm-9">
+                            @if (SelectedTransaction.TotalValue != null)
+                            {
+                                @CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.TotalValue)
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </dd>
+                        <dt class="col-sm-3">Fee</dt>
+                        <dd class="col-sm-9">
+                            @if (SelectedTransaction.Fee != null)
+                            {
+                                @CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Fee)
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </dd>
+                        <dt class="col-sm-3">Tax</dt>
+                        <dd class="col-sm-9">
+                            @if (SelectedTransaction.Tax != null)
+                            {
+                                @CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.Tax)
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </dd>
+                        <dt class="col-sm-3">Transaction Id</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.TransactionId</dd>
+                        <dt class="col-sm-3">Quantity</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.Quantity</dd>
+                        <dt class="col-sm-3">Unit Price</dt>
+                        <dd class="col-sm-9">
+                            @if (SelectedTransaction.UnitPrice != null)
+                            {
+                                @CurrencyDisplay.DisplaySignAndAmount(SelectedTransaction.UnitPrice)
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </dd>
+                        <dt class="col-sm-3">Currency</dt>
+                        <dd class="col-sm-9">@SelectedTransaction.Currency</dd>
+                    </dl>
+                    @* Issue detection example *@
+                    @if (string.IsNullOrWhiteSpace(SelectedTransaction.Symbol))
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <strong>Potential Issues Detected:</strong>
+                            <ul>
+                                <li>Symbol is missing.</li>
+                            </ul>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseTransactionModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     .table th {
         position: sticky;
@@ -514,4 +609,24 @@
         display: block;
         margin-top: 0.25rem;
     }
+    .modal {
+        display: block;
+    }
 </style>
+
+@code {
+    private GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionDisplayModel? SelectedTransaction { get; set; }
+    private bool ShowTransactionModal { get; set; }
+
+    private void ShowTransactionDetails(GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionDisplayModel txn)
+    {
+        SelectedTransaction = txn;
+        ShowTransactionModal = true;
+    }
+
+    private void CloseTransactionModal()
+    {
+        ShowTransactionModal = false;
+        SelectedTransaction = null;
+    }
+}
