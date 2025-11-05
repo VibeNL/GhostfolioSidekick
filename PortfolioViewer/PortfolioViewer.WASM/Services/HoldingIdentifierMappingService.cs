@@ -4,25 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
-	public class HoldingIdentifierMappingService : IHoldingIdentifierMappingService
+	public class HoldingIdentifierMappingService(
+		IDbContextFactory<DatabaseContext> dbContextFactory,
+		ILogger<HoldingIdentifierMappingService> logger) : IHoldingIdentifierMappingService
 	{
-		private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
-		private readonly ILogger<HoldingIdentifierMappingService> _logger;
-
-		public HoldingIdentifierMappingService(
-			IDbContextFactory<DatabaseContext> dbContextFactory,
-			ILogger<HoldingIdentifierMappingService> logger)
-		{
-			_dbContextFactory = dbContextFactory;
-			_logger = logger;
-		}
-
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "Service needs to log and rethrow")]
 		public async Task<HoldingIdentifierMappingModel?> GetHoldingIdentifierMappingAsync(string symbol, CancellationToken cancellationToken = default)
 		{
 			try
 			{
-				using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+				using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				var holding = await context.Holdings
 				 .Include(h => h.SymbolProfiles)
@@ -43,7 +34,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error retrieving holding identifier mapping for symbol: {Symbol}", symbol);
+				logger.LogError(ex, "Error retrieving holding identifier mapping for symbol: {Symbol}", symbol);
 				throw;
 			}
 		}
@@ -53,7 +44,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			try
 			{
-				using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+				using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				var holdings = await context.Holdings
 					.Include(h => h.SymbolProfiles)
@@ -70,7 +61,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error retrieving all holding identifier mappings");
+				logger.LogError(ex, "Error retrieving all holding identifier mappings");
 				throw;
 			}
 		}
@@ -80,7 +71,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		{
 			try
 			{
-				using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+				using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				// For now, create a simple history based on current mappings
 				// In a real implementation, you might have a separate audit/history table
@@ -111,7 +102,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error retrieving identifier matching history for: {Identifier}", partialIdentifier);
+				logger.LogError(ex, "Error retrieving identifier matching history for: {Identifier}", partialIdentifier);
 				throw;
 			}
 		}
