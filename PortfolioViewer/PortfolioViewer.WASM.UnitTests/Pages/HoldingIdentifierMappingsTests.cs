@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Components.Authorization;
 using GhostfolioSidekick.Model.Activities;
 using Moq;
-using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {
@@ -59,7 +58,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			// Setup service to return empty list
 			mockService.Setup(x => x.GetAllHoldingIdentifierMappingsAsync(It.IsAny<CancellationToken>()))
- .ReturnsAsync(new List<HoldingIdentifierMappingModel>());
+ .ReturnsAsync([]);
 
 			// Act
 			var component = RenderComponent<HoldingIdentifierMappings>();
@@ -99,17 +98,17 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		 Symbol = "AAPL",
    Name = "Apple Inc.",
    HoldingId = 1,
-   PartialIdentifiers = new List<PartialIdentifierDisplayModel>
-	   {
+   PartialIdentifiers =
+	   [
    new()
    {
 		 Identifier = "AAPL",
-  MatchedDataProviders = new List<string> { "YAHOO" },
+  MatchedDataProviders = ["YAHOO"],
 	 HasUnresolvedMapping = false
 	}
-		},
-		DataProviderMappings = new List<DataProviderMappingModel>
-	  {
+		],
+		DataProviderMappings =
+	  [
 	   new()
 		{
 	DataSource = "YAHOO",
@@ -117,10 +116,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 	   Name = "Apple Inc.",
 	  Currency = "USD",
 		AssetClass = AssetClass.Equity,
-		Identifiers = new List<string> { "AAPL" },
-	MatchedPartialIdentifiers = new List<string> { "AAPL" }
+		Identifiers = ["AAPL"],
+	MatchedPartialIdentifiers = ["AAPL"]
 	  }
-		 }
+		 ]
 	 }
 		  };
 

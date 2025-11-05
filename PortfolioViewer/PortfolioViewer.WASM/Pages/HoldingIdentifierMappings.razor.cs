@@ -1,5 +1,4 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Models;
-using GhostfolioSidekick.PortfolioViewer.WASM.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.AspNetCore.Components;
 
@@ -23,12 +22,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool sortAscending = true;
 
 		// Related transactions state
-		private List<GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionDisplayModel> RelatedTransactions = new();
+		private List<TransactionDisplayModel> RelatedTransactions = [];
 		private bool IsTransactionsLoading = false;
 		private bool TransactionsError = false;
 		private string TransactionsErrorMessage = string.Empty;
 
-		[Inject] private GhostfolioSidekick.PortfolioViewer.WASM.Data.Services.ITransactionService TransactionService { get; set; } = default!;
+		[Inject] private Data.Services.ITransactionService TransactionService { get; set; } = default!;
 
 		protected override async Task OnInitializedAsync()
 		{
@@ -96,7 +95,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				if (!string.IsNullOrEmpty(Symbol))
 				{
-					var parameters = new GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionQueryParameters
+					var parameters = new TransactionQueryParameters
 					{
 						Symbol = Symbol,
 						StartDate = DateOnly.FromDateTime(DateTime.Now.AddYears(-10)),

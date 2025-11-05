@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Moq;
 using GhostfolioSidekick.Database;
-using Moq.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests
