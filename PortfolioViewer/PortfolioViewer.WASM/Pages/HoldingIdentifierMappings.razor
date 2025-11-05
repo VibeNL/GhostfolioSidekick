@@ -5,9 +5,6 @@
 @using GhostfolioSidekick.PortfolioViewer.WASM.Components
 @using GhostfolioSidekick.Model
 @using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
-@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IHoldingIdentifierMappingService HoldingIdentifierMappingService
-@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
-@inject NavigationManager Navigation
 @attribute [Authorize]
 
 <PageTitle>@(string.IsNullOrEmpty(Symbol) ? "Identifier Mappings" : $"{Symbol} - Identifier Mapping")</PageTitle>
@@ -538,20 +535,3 @@
         display: block;
     }
 </style>
-
-@code {
-    private GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionDisplayModel? SelectedTransaction { get; set; }
-    private bool ShowTransactionModal { get; set; }
-
-    private void ShowTransactionDetails(GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionDisplayModel txn)
-    {
-        SelectedTransaction = txn;
-        ShowTransactionModal = true;
-    }
-
-    private void CloseTransactionModal()
-    {
-        ShowTransactionModal = false;
-        SelectedTransaction = null;
-    }
-}

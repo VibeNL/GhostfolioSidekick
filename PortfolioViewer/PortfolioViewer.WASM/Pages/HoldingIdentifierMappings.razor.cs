@@ -4,30 +4,36 @@ using Microsoft.AspNetCore.Components;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
-	public partial class HoldingIdentifierMappings : IDisposable
+	public partial class HoldingIdentifierMappings : ComponentBase, IDisposable
 	{
 		[Parameter] public string? Symbol { get; set; }
 
 		// State
-		private bool IsLoading { get; set; } = true;
-		private bool HasError { get; set; }
-		private string ErrorMessage { get; set; } = string.Empty;
+		protected bool IsLoading { get; set; } = true;
+		protected bool HasError { get; set; }
+		protected string ErrorMessage { get; set; } = string.Empty;
 
 		// Data
-		private List<HoldingIdentifierMappingModel> HoldingMappings = [];
-		private HoldingIdentifierMappingModel? CurrentHoldingMapping { get; set; }
+		protected List<HoldingIdentifierMappingModel> HoldingMappings { get; set; } = [];
+		protected HoldingIdentifierMappingModel? CurrentHoldingMapping { get; set; }
 
 		// Sorting state
-		private string sortColumn = "Symbol";
-		private bool sortAscending = true;
+		protected string sortColumn = "Symbol";
+		protected bool sortAscending = true;
 
 		// Related transactions state
-		private List<TransactionDisplayModel> RelatedTransactions = [];
-		private bool IsTransactionsLoading = false;
-		private bool TransactionsError = false;
-		private string TransactionsErrorMessage = string.Empty;
+		protected List<TransactionDisplayModel> RelatedTransactions { get; set; } = [];
+		protected bool IsTransactionsLoading { get; set; }
+		protected bool TransactionsError { get; set; }
+		protected string TransactionsErrorMessage { get; set; } = string.Empty;
+
+		protected TransactionDisplayModel? SelectedTransaction { get; set; }
+		protected bool ShowTransactionModal { get; set; }
 
 		[Inject] private Data.Services.ITransactionService TransactionService { get; set; } = default!;
+		[Inject] protected Services.IHoldingIdentifierMappingService HoldingIdentifierMappingService { get; set; } = default!;
+		[Inject] protected Services.ITestContextService TestContextService { get; set; } = default!;
+		[Inject] protected NavigationManager Navigation { get; set; } = default!;
 
 		protected override async Task OnInitializedAsync()
 		{
@@ -36,13 +42,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		protected override async Task OnParametersSetAsync()
 		{
-			if (IsLoading == false)
+			if (!IsLoading)
 			{
 				await LoadDataAsync();
 			}
 		}
 
-		private async Task LoadDataAsync()
+		protected async Task LoadDataAsync()
 		{
 			await Task.Yield();
 			try
@@ -85,7 +91,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
-		private async Task LoadRelatedTransactionsAsync()
+		protected async Task LoadRelatedTransactionsAsync()
 		{
 			RelatedTransactions.Clear();
 			IsTransactionsLoading = true;
@@ -121,7 +127,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			}
 		}
 
-		private void SortBy(string column)
+		protected void SortBy(string column)
 		{
 			if (sortColumn == column)
 			{
@@ -136,7 +142,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			SortHoldingMappings();
 		}
 
-		private void SortHoldingMappings()
+		protected void SortHoldingMappings()
 		{
 			HoldingMappings = sortColumn switch
 			{
@@ -148,6 +154,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				 : [.. HoldingMappings.OrderByDescending(h => h.Name)],
 				_ => HoldingMappings
 			};
+		}
+
+		protected void ShowTransactionDetails(TransactionDisplayModel txn)
+		{
+			SelectedTransaction = txn;
+			ShowTransactionModal = true;
+		}
+
+		protected void CloseTransactionModal()
+		{
+			ShowTransactionModal = false;
+			SelectedTransaction = null;
 		}
 
 		public void Dispose()
