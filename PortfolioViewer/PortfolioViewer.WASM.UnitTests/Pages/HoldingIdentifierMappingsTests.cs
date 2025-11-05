@@ -59,17 +59,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			// Setup service to return empty list
 			mockService.Setup(x => x.GetAllHoldingIdentifierMappingsAsync(It.IsAny<CancellationToken>()))
-	 .ReturnsAsync(new List<HoldingIdentifierMappingModel>());
+ .ReturnsAsync(new List<HoldingIdentifierMappingModel>());
 
 			// Act
 			var component = RenderComponent<HoldingIdentifierMappings>();
 
-			// Wait for the async operation to complete
-			component.WaitForState(() => !component.Markup.Contains("spinner-border"));
+			// Assert loading spinner appears first
+			Assert.Contains("spinner-border", component.Markup);
 
-			// Assert
-			Assert.Contains("No Identifier Mappings Found", component.Markup);
-			Assert.Contains("No holdings with identifier mappings were found", component.Markup);
+			// Wait for the empty state to appear
+			component.WaitForAssertion(() =>
+			{
+				Assert.Contains("No Identifier Mappings Found", component.Markup);
+				Assert.Contains("No holdings with identifier mappings were found", component.Markup);
+			});
 		}
 
 		[Fact]
@@ -127,13 +130,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			// Act
 			var component = RenderComponent<HoldingIdentifierMappings>();
 
-			// Wait for the async operation to complete
-			component.WaitForState(() => !component.Markup.Contains("spinner-border"));
-
-			// Assert
-			Assert.Contains("AAPL", component.Markup);
-			Assert.Contains("Apple Inc.", component.Markup);
-			Assert.Contains("Holdings Identifier Mappings Overview", component.Markup);
+			// Wait for the async operation to complete and assert expected content
+			component.WaitForAssertion(() =>
+			{
+				Assert.Contains("AAPL", component.Markup);
+				Assert.Contains("Apple Inc.", component.Markup);
+				Assert.Contains("Holdings Identifier Mappings Overview", component.Markup);
+			});
 		}
 	}
 }

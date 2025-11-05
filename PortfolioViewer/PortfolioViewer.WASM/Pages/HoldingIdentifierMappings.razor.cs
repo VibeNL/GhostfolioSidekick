@@ -37,6 +37,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 		private async Task LoadDataAsync()
 		{
+			await Task.Yield(); // Ensure UI thread yields so loading spinner is rendered
 			try
 			{
 				IsLoading = true;
