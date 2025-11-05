@@ -221,176 +221,130 @@
             <!-- Detail mode - show single holding -->
             @if (CurrentHoldingMapping != null)
             {
-                <!-- Partial Identifiers Section -->
+                <!-- Merged Partial Identifiers & Data Provider Mappings Section -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="bi bi-tags me-2"></i>Partial Identifiers
+                                    <i class="bi bi-diagram-3 me-2"></i>Partial Identifiers & Data Provider Mappings
                                 </h5>
-                                <small class="text-muted">Identifiers extracted from transaction/activity data</small>
+                                <small class="text-muted">All partial identifiers and their data provider mappings</small>
                             </div>
                             <div class="card-body">
                                 @if (CurrentHoldingMapping.PartialIdentifiers.Any())
-                                {
-                                    <div class="row">
-                                        @foreach (var partialId in CurrentHoldingMapping.PartialIdentifiers)
-                                        {
-                                            <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="card h-100 @(partialId.HasUnresolvedMapping ? "border-warning" : "border-success")">
-                                                    <div class="card-header @(partialId.HasUnresolvedMapping ? "bg-warning bg-opacity-10" : "bg-success bg-opacity-10")">
-                                                        <h6 class="card-title mb-0">
-                                                            <i class="bi @(partialId.HasUnresolvedMapping ? "bi-exclamation-triangle text-warning" : "bi-check-circle text-success") me-1"></i>
-                                                            @partialId.Identifier
-                                                        </h6>
-                                                    </div>
-                                                    <div class="card-body">
-                                                        @if (partialId.AllowedAssetClasses?.Any() == true)
-                                                        {
-                                                            <p class="mb-1">
-                                                                <small class="text-muted">Asset Classes:</small><br>
-                                                                @foreach (var assetClass in partialId.AllowedAssetClasses)
-                                                                {
-                                                                    <span class="badge bg-secondary me-1">@assetClass</span>
-                                                                }
-                                                            </p>
-                                                        }
-                                                        @if (partialId.AllowedAssetSubClasses?.Any() == true)
-                                                        {
-                                                            <p class="mb-1">
-                                                                <small class="text-muted">Asset Sub-Classes:</small><br>
-                                                                @foreach (var assetSubClass in partialId.AllowedAssetSubClasses)
-                                                                {
-                                                                    <span class="badge bg-info me-1">@assetSubClass</span>
-                                                                }
-                                                            </p>
-                                                        }
-                                                        <p class="mb-0">
-                                                            <small class="text-muted">Matched Providers:</small><br>
-                                                            @if (partialId.MatchedDataProviders.Any())
-                                                            {
-                                                                @foreach (var provider in partialId.MatchedDataProviders)
-                                                                {
-                                                                    <span class="badge bg-primary me-1">@provider</span>
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="text-warning">
-                                                                    <i class="bi bi-exclamation-triangle me-1"></i>No matches found
-                                                                </span>
-                                                            }
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="text-center py-3">
-                                        <i class="bi bi-tags text-muted" style="font-size: 2rem;"></i>
-                                        <p class="text-muted mt-2">No partial identifiers found for this holding.</p>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Data Provider Mappings Section -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="bi bi-hdd-network me-2"></i>Data Provider Mappings
-                                </h5>
-                                <small class="text-muted">How this holding maps to external data providers</small>
-                            </div>
-                            <div class="card-body">
-                                @if (CurrentHoldingMapping.DataProviderMappings.Any())
                                 {
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <thead class="table-dark">
                                                 <tr>
-                                                    <th scope="col">Data Source</th>
-                                                    <th scope="col">Symbol</th>
-                                                    <th scope="col">Name</th>
-                                                    <th scope="col">ISIN</th>
-                                                    <th scope="col">Asset Class</th>
-                                                    <th scope="col">Currency</th>
-                                                    <th scope="col">Matched Identifiers</th>
-                                                    <th scope="col">All Identifiers</th>
+                                                    <th>Identifier</th>
+                                                    <th>Asset Classes</th>
+                                                    <th>Asset Sub-Classes</th>
+                                                    <th>Matched Provider</th>
+                                                    <th>Provider Symbol</th>
+                                                    <th>Provider Name</th>
+                                                    <th>ISIN</th>
+                                                    <th>Asset Class</th>
+                                                    <th>Currency</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach (var mapping in CurrentHoldingMapping.DataProviderMappings)
+                                                @foreach (var partialId in CurrentHoldingMapping.PartialIdentifiers)
                                                 {
-                                                    <tr>
-                                                        <td>
-                                                            <span class="badge bg-primary">@mapping.DataSource</span>
-                                                        </td>
-                                                        <td>
-                                                            <strong>@mapping.Symbol</strong>
-                                                        </td>
-                                                        <td>@mapping.Name</td>
-                                                        <td>
-                                                            @if (!string.IsNullOrEmpty(mapping.ISIN))
-                                                            {
-                                                                <code>@mapping.ISIN</code>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="text-muted">-</span>
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge bg-secondary">@mapping.AssetClass</span>
-                                                            @if (mapping.AssetSubClass.HasValue)
-                                                            {
-                                                                <br>
-                                        
-                                                                <span class="badge bg-info mt-1">@mapping.AssetSubClass</span>
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge bg-success">@mapping.Currency</span>
-                                                        </td>
-                                                        <td>
-                                                            @if (mapping.MatchedPartialIdentifiers.Any())
-                                                            {
-                                                                @foreach (var matched in mapping.MatchedPartialIdentifiers)
+                                                    var relatedProviders = CurrentHoldingMapping.DataProviderMappings
+                                                    .Where(m => m.MatchedPartialIdentifiers.Contains(partialId.Identifier) || m.MatchedPartialIdentifiers.Count == 0)
+                                                    .ToList();
+                                                    if (relatedProviders.Any())
+                                                    {
+                                                        foreach (var provider in relatedProviders)
+                                                        {
+                                                            <tr class="@(partialId.HasUnresolvedMapping ? "table-warning" : "")">
+                                                                <td><strong>@partialId.Identifier</strong></td>
+                                                                <td>
+                                                                    @if (partialId.AllowedAssetClasses?.Any() == true)
+                                                                    {
+                                                                        @foreach (var assetClass in partialId.AllowedAssetClasses)
+                                                                        {
+                                                                            <span class="badge bg-secondary me-1">@assetClass</span>
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">-</span>
+                                                                    }
+                                                                </td>
+                                                                <td>
+                                                                    @if (partialId.AllowedAssetSubClasses?.Any() == true)
+                                                                    {
+                                                                        @foreach (var assetSubClass in partialId.AllowedAssetSubClasses)
+                                                                        {
+                                                                            <span class="badge bg-info me-1">@assetSubClass</span>
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">-</span>
+                                                                    }
+                                                                </td>
+                                                                <td><span class="badge bg-primary">@provider.DataSource</span></td>
+                                                                <td><strong>@provider.Symbol</strong></td>
+                                                                <td>@provider.Name</td>
+                                                                <td>
+                                                                    @if (!string.IsNullOrEmpty(provider.ISIN))
+                                                                    {
+                                                                        <code>@provider.ISIN</code>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">-</span>
+                                                                    }
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge bg-secondary">@provider.AssetClass</span>
+                                                                    @if (provider.AssetSubClass.HasValue)
+                                                                    {
+                                                                        <br />
+                                                                        <span class="badge bg-info mt-1">@provider.AssetSubClass</span>
+                                                                    }
+                                                                </td>
+                                                                <td><span class="badge bg-success">@provider.Currency</span></td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <tr class="@(partialId.HasUnresolvedMapping ? "table-warning" : "")">
+                                                            <td><strong>@partialId.Identifier</strong></td>
+                                                            <td>
+                                                                @if (partialId.AllowedAssetClasses?.Any() == true)
                                                                 {
-                                                                    <span class="badge bg-warning text-dark me-1">@matched</span>
+                                                                    @foreach (var assetClass in partialId.AllowedAssetClasses)
+                                                                    {
+                                                                        <span class="badge bg-secondary me-1">@assetClass</span>
+                                                                    }
                                                                 }
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="text-muted">None</span>
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            @if (mapping.Identifiers.Any())
-                                                            {
-                                                                @foreach (var identifier in mapping.Identifiers.Take(3))
+                                                                else
                                                                 {
-                                                                    <span class="badge bg-light text-dark me-1">@identifier</span>
+                                                                    <span class="text-muted">-</span>
                                                                 }
-                                                                @if (mapping.Identifiers.Count > 3)
+                                                            </td>
+                                                            <td>
+                                                                @if (partialId.AllowedAssetSubClasses?.Any() == true)
                                                                 {
-                                                                    <span class="text-muted">+@(mapping.Identifiers.Count - 3) more</span>
+                                                                    @foreach (var assetSubClass in partialId.AllowedAssetSubClasses)
+                                                                    {
+                                                                        <span class="badge bg-info me-1">@assetSubClass</span>
+                                                                    }
                                                                 }
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="text-muted">None</span>
-                                                            }
-                                                        </td>
-                                                    </tr>
+                                                                else
+                                                                {
+                                                                    <span class="text-muted">-</span>
+                                                                }
+                                                            </td>
+                                                            <td colspan="7" class="text-muted"><i class="bi bi-dash-circle me-1"></i>No matches found</td>
+                                                        </tr>
+                                                    }
                                                 }
                                             </tbody>
                                         </table>
@@ -399,8 +353,8 @@
                                 else
                                 {
                                     <div class="text-center py-3">
-                                        <i class="bi bi-hdd-network text-muted" style="font-size: 2rem;"></i>
-                                        <p class="text-muted mt-2">No data provider mappings found for this holding.</p>
+                                        <i class="bi bi-tags text-muted" style="font-size:2rem;"></i>
+                                        <p class="text-muted mt-2">No partial identifiers found for this holding.</p>
                                     </div>
                                 }
                             </div>
@@ -609,6 +563,7 @@
         display: block;
         margin-top: 0.25rem;
     }
+
     .modal {
         display: block;
     }
