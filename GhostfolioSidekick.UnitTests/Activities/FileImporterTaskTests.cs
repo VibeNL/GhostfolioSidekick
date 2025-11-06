@@ -78,10 +78,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var knownHash = "knownHash";
 			_memoryCache.Set(nameof(FileImporterTask), knownHash);
 
-			var loggerMock = new Mock<ILogger<FileImporterTask>>();
-
 			// Act
-			await _fileImporterTask.DoWork(loggerMock.Object);
+			await _fileImporterTask.DoWork(_mockLogger.Object);
 
 			// Assert
 			_mockLogger.VerifyLog(logger => logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask)), Times.Once);

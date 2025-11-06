@@ -2,6 +2,7 @@
 using Moq;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
+using GhostfolioSidekick.Model.Tasks;
 
 namespace GhostfolioSidekick.UnitTests
 {
@@ -97,8 +98,8 @@ namespace GhostfolioSidekick.UnitTests
 			await Task.Delay(100);
 
 			// Assert
-			scheduledWorkMock1.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
-			scheduledWorkMock2.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
+			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
+			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
 		}
 
 		[Fact]
@@ -125,8 +126,8 @@ namespace GhostfolioSidekick.UnitTests
 			await Task.Delay(500); // Reduced delay to make test faster
 
 			// Assert
-			scheduledWorkMock1.Verify(x => x.DoWork(loggerMock.Object), Times.AtLeast(2)); // Should execute multiple times
-			scheduledWorkMock2.Verify(x => x.DoWork(loggerMock.Object), Times.Once); // Should execute once initially
+			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.AtLeast(2)); // Should execute multiple times
+			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once); // Should execute once initially
 		}
 
 		[Fact]
@@ -154,8 +155,8 @@ namespace GhostfolioSidekick.UnitTests
 			await service.StopAsync(CancellationToken.None);
 
 			// Assert
-			scheduledWorkMock1.Verify(x => x.DoWork(loggerMock.Object), Times.Once());
-			scheduledWorkMock2.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
+			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once());
+			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
 		}
 
 
@@ -184,8 +185,8 @@ namespace GhostfolioSidekick.UnitTests
 			await Task.Delay(100);
 
 			// Assert
-			scheduledWorkMock1.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
-			scheduledWorkMock2.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
+			scheduledWorkMock1.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
+			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
 			loggerMock.Verify(logger => logger.Log(
 				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Error),
 				It.IsAny<EventId>(),

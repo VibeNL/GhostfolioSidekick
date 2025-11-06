@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
 {
-	internal class DatabaseTaskLogger(DbContext dbContext, IScheduledWork work, ILogger innerLogger) : ILogger
+	public class DatabaseTaskLogger(DbContext dbContext, IScheduledWork work, ILogger innerLogger) : ILogger
 	{
 		public IDisposable? BeginScope<TState>(TState state) where TState : notnull
 		{
@@ -26,8 +26,10 @@ namespace GhostfolioSidekick
 
 			// Find or create TaskRun for this work
 			var taskRun = dbContext.Set<TaskRun>()
+				.Where(tr => tr.Type == work.GetType().Name || tr.Name == work.Name)
+				.AsEnumerable()
 				.OrderByDescending(tr => tr.LastUpdate)
-				.FirstOrDefault(tr => tr.Type == work.GetType().Name || tr.Name == work.Name);
+				.FirstOrDefault();
 
 			if (taskRun == null)
 			{
