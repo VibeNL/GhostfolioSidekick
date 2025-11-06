@@ -1,27 +1,49 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using GhostfolioSidekick.Model.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick
 {
-	internal class DatabaseTaskLogger : ILogger
+	internal class DatabaseTaskLogger(DbContext dbContext, IScheduledWork work, ILogger innerLogger) : ILogger
 	{
-		public DatabaseTaskLogger(DbContext dbContext, IScheduledWork work, ILogger logger)
-		{
-		}
-
 		public IDisposable? BeginScope<TState>(TState state) where TState : notnull
 		{
-			throw new NotImplementedException();
+			return innerLogger.BeginScope(state);
 		}
 
 		public bool IsEnabled(LogLevel logLevel)
 		{
-			throw new NotImplementedException();
+			return innerLogger.IsEnabled(logLevel);
 		}
 
 		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
 		{
-			throw new NotImplementedException();
+			// Pass-through to inner logger
+			innerLogger.Log(logLevel, eventId, state, exception, formatter);
+
+			// Store log in database
+			var message = formatter(state, exception);
+
+			// Find or create TaskRun for this work
+			var taskRun = dbContext.Set<TaskRun>()
+				.OrderByDescending(tr => tr.LastUpdate)
+				.FirstOrDefault(tr => tr.Type == work.GetType().Name || tr.Name == work.Name);
+
+			if (taskRun == null)
+			{
+				throw new NotSupportedException($"No TaskRun found for work of type {work.GetType().Name} and name {work.Name}. Ensure that a TaskRun is created before logging.");
+			}
+
+			var logEntry = new TaskRunLog
+			{
+				TaskRunType = work.GetType().Name,
+				Timestamp = DateTimeOffset.UtcNow,
+				Message = message,
+				TaskRun = taskRun
+			};
+
+			dbContext.Set<TaskRunLog>().Add(logEntry);
+			dbContext.SaveChanges();
 		}
 	}
 }
