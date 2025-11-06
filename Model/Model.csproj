@@ -16,8 +16,4 @@
 		<PackageReference Include="System.Runtime" Version="4.3.1" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Tasks\" />
-	</ItemGroup>
-
 </Project>

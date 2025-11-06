@@ -1115,6 +1115,30 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.ToTable("TaskRuns", (string)null);
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Tasks.TaskRunLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TaskRunType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskRunType");
+
+                    b.ToTable("TaskRunLogs", (string)null);
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithAmount", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
@@ -1532,6 +1556,17 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasForeignKey("HoldingId");
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Tasks.TaskRunLog", b =>
+                {
+                    b.HasOne("GhostfolioSidekick.Model.Tasks.TaskRun", "TaskRun")
+                        .WithMany("Logs")
+                        .HasForeignKey("TaskRunType")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TaskRun");
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
                 {
                     b.Navigation("Activities");
@@ -1565,6 +1600,11 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Navigation("MarketData");
 
                     b.Navigation("StockSplits");
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Tasks.TaskRun", b =>
+                {
+                    b.Navigation("Logs");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", b =>

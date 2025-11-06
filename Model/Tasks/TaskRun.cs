@@ -17,5 +17,7 @@
 		public bool InProgress { get; set; }
 
 		public string? LastException { get; set; }
+
+		public virtual ICollection<TaskRunLog> Logs { get; set; } = new List<TaskRunLog>();
 	}
 }
