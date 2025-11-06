@@ -47,5 +47,20 @@ namespace GhostfolioSidekick
 			dbContext.Set<TaskRunLog>().Add(logEntry);
 			dbContext.SaveChanges();
 		}
+
+		internal void EmptyPreviousLogs()
+		{
+			var taskRun = dbContext.Set<TaskRun>()
+				.Where(tr => tr.Type == work.GetType().Name || tr.Name == work.Name)
+				.AsEnumerable()
+				.OrderByDescending(tr => tr.LastUpdate)
+				.FirstOrDefault();
+
+			if (taskRun != null)
+			{
+				taskRun.Logs.Clear();
+				dbContext.SaveChanges();
+			}
+		}
 	}
 }

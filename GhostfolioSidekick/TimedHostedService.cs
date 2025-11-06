@@ -151,6 +151,7 @@ namespace GhostfolioSidekick
 		private async Task ExecuteWorkItem(Scheduled workItem)
 		{
 			var taskLogger = new DatabaseTaskLogger(databaseContext, workItem.Work, this.logger);
+			taskLogger.EmptyPreviousLogs();
 
 			try
 			{
