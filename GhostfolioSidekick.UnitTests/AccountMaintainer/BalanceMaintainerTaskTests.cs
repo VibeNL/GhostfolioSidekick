@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 {
@@ -37,16 +38,16 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			// Arrange
 			var activities = new List<Model.Activities.Activity>
 			{
-				new Model.Activities.Types.KnownBalanceActivity { Date = DateTime.Now, Account = new Model.Accounts.Account { Id = 1, SyncBalance = true }, Amount = new Money(Currency.USD, 100) }
+				new Model.Activities.Types.KnownBalanceActivity { Date = DateTime.Now, Account = new Model.Accounts.Account { Id =1, SyncBalance = true }, Amount = new Money(Currency.USD,100) }
 			};
 
 			var existingBalances = new List<Model.Accounts.Balance>
 			{
-				new(DateOnly.FromDateTime(DateTime.Now), new Money(Currency.USD, 50))
+				new(DateOnly.FromDateTime(DateTime.Now), new Money(Currency.USD,50))
 			};
 
 			var mockDbContext = new Mock<DatabaseContext>();
-			Model.Accounts.Account account = new() { Id = 1, Balance = existingBalances, SyncBalance = true };
+			Model.Accounts.Account account = new() { Id =1, Balance = existingBalances, SyncBalance = true };
 			mockDbContext.Setup(db => db.Accounts).ReturnsDbSet(new List<Model.Accounts.Account>
 			{
 				account
@@ -58,8 +59,10 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			var balanceCalculator = new BalanceCalculator(_mockExchangeRateService.Object);
 
+			var loggerMock = new Mock<ILogger<BalanceMaintainerTask>>();
+
 			// Act
-			await _balanceMaintainerTask.DoWork();
+			await _balanceMaintainerTask.DoWork(loggerMock.Object);
 
 			// Assert
 			mockDbContext.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -71,11 +74,11 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			// Arrange
 			var existingBalances = new List<Model.Accounts.Balance>
 			{
-				new(DateOnly.FromDateTime(DateTime.Now), new Money(Currency.USD, 100))
+				new(DateOnly.FromDateTime(DateTime.Now), new Money(Currency.USD,100))
 			};
 
 			var mockDbContext = new Mock<DatabaseContext>();
-			Model.Accounts.Account account = new() { Id = 1, Balance = existingBalances, SyncBalance = true };
+			Model.Accounts.Account account = new() { Id =1, Balance = existingBalances, SyncBalance = true };
 			mockDbContext.Setup(db => db.Accounts).ReturnsDbSet(new List<Model.Accounts.Account>
 			{
 				account
@@ -83,7 +86,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			var activities = new List<Model.Activities.Activity>
 			{
-				new Model.Activities.Types.KnownBalanceActivity { Date = DateTime.Now, Account = account, Amount = new Money(Currency.USD, 100) }
+				new Model.Activities.Types.KnownBalanceActivity { Date = DateTime.Now, Account = account, Amount = new Money(Currency.USD,100) }
 			};
 
 			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities);
@@ -92,8 +95,10 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			var balanceCalculator = new BalanceCalculator(_mockExchangeRateService.Object);
 
+			var loggerMock = new Mock<ILogger<BalanceMaintainerTask>>();
+
 			// Act
-			await _balanceMaintainerTask.DoWork();
+			await _balanceMaintainerTask.DoWork(loggerMock.Object);
 
 			// Assert
 			mockDbContext.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -104,8 +109,8 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		{
 			// Arrange
 			var mockDbContext = new Mock<DatabaseContext>();
-			Model.Accounts.Account accountWithSyncDisabled = new() { Id = 1, Name = "Account1", SyncBalance = false };
-			Model.Accounts.Account accountWithSyncEnabled = new() { Id = 2, Name = "Account2", SyncBalance = true };
+			Model.Accounts.Account accountWithSyncDisabled = new() { Id =1, Name = "Account1", SyncBalance = false };
+			Model.Accounts.Account accountWithSyncEnabled = new() { Id =2, Name = "Account2", SyncBalance = true };
 
 			mockDbContext.Setup(db => db.Accounts).ReturnsDbSet(new List<Model.Accounts.Account>
 			{
@@ -117,8 +122,10 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			_mockDbContextFactory.Setup(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mockDbContext.Object);
 
+			var loggerMock = new Mock<ILogger<BalanceMaintainerTask>>();
+
 			// Act
-			await _balanceMaintainerTask.DoWork();
+			await _balanceMaintainerTask.DoWork(loggerMock.Object);
 
 			// Assert
 			// The task should complete successfully and only process accounts with SyncBalance = true

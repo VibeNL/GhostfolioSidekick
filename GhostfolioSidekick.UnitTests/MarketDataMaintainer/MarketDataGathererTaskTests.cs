@@ -20,7 +20,6 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository1;
 		private readonly Mock<IStockPriceRepository> _mockStockPriceRepository2;
 		private readonly IStockPriceRepository[] _stockPriceRepositories;
-		private readonly Mock<ILogger<MarketDataGathererTask>> _mockLogger;
 		private readonly MarketDataGathererTask _marketDataGathererTask;
 
 		public MarketDataGathererTaskTests()
@@ -29,12 +28,9 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1 = new Mock<IStockPriceRepository>();
 			_mockStockPriceRepository2 = new Mock<IStockPriceRepository>();
 			_stockPriceRepositories = [_mockStockPriceRepository1.Object, _mockStockPriceRepository2.Object];
-			_mockLogger = new Mock<ILogger<MarketDataGathererTask>>();
-
 			_marketDataGathererTask = new MarketDataGathererTask(
 				_mockDbContextFactory.Object,
-				_stockPriceRepositories,
-				_mockLogger.Object);
+				_stockPriceRepositories);
 		}
 
 		[Fact]
@@ -90,13 +86,15 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext1.Object)
 				.ReturnsAsync(mockDbContext2.Object);
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
 			// Verify that only non-undefined symbols are processed (GOOGL should be included in the processing)
 			// Since there are no holdings with activities for GOOGL, it should log "No activities found"
-			_mockLogger.Verify(
+			loggerMock.Verify(
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
@@ -132,11 +130,13 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				.ReturnsAsync(mockDbContext1.Object)
 				.ReturnsAsync(mockDbContext2.Object);
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
-			_mockLogger.Verify(
+			loggerMock.Verify(
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
@@ -183,8 +183,10 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("OTHER_SOURCE");
 			_mockStockPriceRepository2.Setup(r => r.DataSource).Returns("ANOTHER_SOURCE");
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
 			_mockStockPriceRepository1.Verify(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()), Times.Never);
@@ -232,11 +234,13 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 
 			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
-			_mockLogger.Verify(
+			loggerMock.Verify(
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
@@ -294,14 +298,16 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
 			symbolProfile.MarketData.Count.Should().Be(2);
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
-			_mockLogger.Verify(
+			loggerMock.Verify(
 				x => x.Log(
 					LogLevel.Debug,
 					It.IsAny<EventId>(),
@@ -361,8 +367,10 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
 			symbolProfile.MarketData.Count.Should().Be(1);
@@ -421,8 +429,10 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
 			symbolProfile.MarketData.Count.Should().Be(1);
@@ -474,8 +484,10 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
 				.ReturnsAsync(new List<MarketData>());
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
 			// The logic should use the activity date since it's after the repository MinDate
@@ -550,8 +562,10 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(It.IsAny<SymbolProfile>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync(marketDataList);
 
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
 			// Act
-			await _marketDataGathererTask.DoWork();
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
 
 			// Assert
 			_mockStockPriceRepository1.Verify(

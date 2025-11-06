@@ -39,7 +39,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_dbContextFactory = new DbContextFactory();
 
 			_fileImporterTask = new FileImporterTask(
-				_mockLogger.Object,
 				_mockSettings.Object,
 				_importers,
 				_dbContextFactory,
@@ -79,8 +78,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var knownHash = "knownHash";
 			_memoryCache.Set(nameof(FileImporterTask), knownHash);
 
+			var loggerMock = new Mock<ILogger<FileImporterTask>>();
+
 			// Act
-			await _fileImporterTask.DoWork();
+			await _fileImporterTask.DoWork(loggerMock.Object);
 
 			// Assert
 			_mockLogger.VerifyLog(logger => logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask)), Times.Once);
@@ -123,18 +124,18 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			// Create new activities using the properly tracked account
 			var newActivities = new List<Activity>
+			{
+				new BuyActivity
 				{
-					new BuyActivity
-					{
-						TransactionId = "T2",
-						Account = accountForTest!
-					},
-					new BuyActivity
-					{
-						TransactionId = "T3",
-						Account = accountForTest!
-					}
-				};
+					TransactionId = "T2",
+					Account = accountForTest!
+				},
+				new BuyActivity
+				{
+					TransactionId = "T3",
+					Account = accountForTest!
+				}
+			};
 
 			// Execute the method under test
 			await FileImporterTask.StoreAll(testContext, newActivities);

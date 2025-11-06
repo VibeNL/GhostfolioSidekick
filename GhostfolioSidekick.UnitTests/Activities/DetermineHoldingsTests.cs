@@ -33,7 +33,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var _mockApplicationSettings = new Mock<IApplicationSettings>();
 
 			_determineHoldings = new DetermineHoldings(
-				_loggerMock.Object,
 				[.. _symbolMatchers],
 				_dbContextFactoryMock.Object,
 				_memoryCacheMock,
@@ -78,19 +77,21 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = new List<Activity>();
 			var holdings = new List<Holding>
 			{
-				new() { Id = 1, SymbolProfiles = [] },
-				new() { Id = 2, SymbolProfiles = [new SymbolProfile()] }
+				new() { Id =1, SymbolProfiles = [] },
+				new() { Id =2, SymbolProfiles = [new SymbolProfile()] }
 			};
 
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
 			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
 			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
 
+			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
+
 			// Act
-			await _determineHoldings.DoWork();
+			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
-			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id == 1)), Times.Once);
+			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id ==1)), Times.Once);
 			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
 		}
 
@@ -112,8 +113,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "TEST", DataSource = "TestSource" });
 
+			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
+
 			// Act
-			await _determineHoldings.DoWork();
+			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Once);
@@ -148,8 +151,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Return the same symbol profile for both partial identifiers
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(symbolProfile);
 
+			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
+
 			// Act
-			await _determineHoldings.DoWork();
+			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
 			// Verify that the log message for "holding already exists for symbol" was called
@@ -184,8 +189,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Return null for all symbol matches
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync((SymbolProfile?)null);
 
+			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
+
 			// Act
-			await _determineHoldings.DoWork();
+			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
 			// Verify that the log warning for "no symbol profile found" was called

@@ -97,8 +97,8 @@ namespace GhostfolioSidekick.UnitTests
 			await Task.Delay(100);
 
 			// Assert
-			scheduledWorkMock1.Verify(x => x.DoWork(), Times.Once);
-			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
+			scheduledWorkMock1.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
+			scheduledWorkMock2.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
 		}
 
 		[Fact]
@@ -125,8 +125,8 @@ namespace GhostfolioSidekick.UnitTests
 			await Task.Delay(500); // Reduced delay to make test faster
 
 			// Assert
-			scheduledWorkMock1.Verify(x => x.DoWork(), Times.AtLeast(2)); // Should execute multiple times
-			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once); // Should execute once initially
+			scheduledWorkMock1.Verify(x => x.DoWork(loggerMock.Object), Times.AtLeast(2)); // Should execute multiple times
+			scheduledWorkMock2.Verify(x => x.DoWork(loggerMock.Object), Times.Once); // Should execute once initially
 		}
 
 		[Fact]
@@ -154,8 +154,8 @@ namespace GhostfolioSidekick.UnitTests
 			await service.StopAsync(CancellationToken.None);
 
 			// Assert
-			scheduledWorkMock1.Verify(x => x.DoWork(), Times.Once());
-			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
+			scheduledWorkMock1.Verify(x => x.DoWork(loggerMock.Object), Times.Once());
+			scheduledWorkMock2.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
 		}
 
 
@@ -170,7 +170,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock1.Setup(x => x.Priority).Returns(TaskPriority.DisplayInformation);
 			scheduledWorkMock1.Setup(x => x.ExecutionFrequency).Returns(TimeSpan.MaxValue);
 			scheduledWorkMock1.Setup(x => x.ExceptionsAreFatal).Returns(false);
-			scheduledWorkMock1.Setup(Task => Task.DoWork()).Throws(new Exception("Test exception 42"));
+			scheduledWorkMock1.Setup(Task => Task.DoWork(It.IsAny<ILogger>())).Throws(new Exception("Test exception42"));
 			var scheduledWorkMock2 = new Mock<IScheduledWork>();
 			scheduledWorkMock2.Setup(x => x.Name).Returns("Test");
 			scheduledWorkMock2.Setup(x => x.Priority).Returns(TaskPriority.AccountMaintainer);
@@ -184,12 +184,12 @@ namespace GhostfolioSidekick.UnitTests
 			await Task.Delay(100);
 
 			// Assert
-			scheduledWorkMock1.Verify(x => x.DoWork(), Times.Once);
-			scheduledWorkMock2.Verify(x => x.DoWork(), Times.Once);
+			scheduledWorkMock1.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
+			scheduledWorkMock2.Verify(x => x.DoWork(loggerMock.Object), Times.Once);
 			loggerMock.Verify(logger => logger.Log(
 				It.Is<LogLevel>(logLevel => logLevel == LogLevel.Error),
 				It.IsAny<EventId>(),
-				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.Contains("Test exception 42")),
+				It.Is<It.IsAnyType>((@o, @t) => @o.ToString()!.Contains("Test exception42")),
 				It.IsAny<Exception>(),
 				It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 			Times.Once);

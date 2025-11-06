@@ -16,7 +16,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 {
 	public class SymbolMatcherTaskTests
 	{
-		private readonly Mock<ILogger<SymbolMatcherTask>> _mockLogger;
 		private readonly Mock<IApplicationSettings> _mockApplicationSettings;
 		private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
 		private readonly Mock<ISymbolMatcher> _symbolMatcher;
@@ -25,7 +24,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 		public SymbolMatcherTaskTests()
 		{
-			_mockLogger = new Mock<ILogger<SymbolMatcherTask>>();
 			_mockApplicationSettings = new Mock<IApplicationSettings>();
 			_mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
 			_symbolMatcher = new Mock<ISymbolMatcher>();
@@ -35,7 +33,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			];
 
 			_symbolMatcherTask = new SymbolMatcherTask(
-				_mockLogger.Object,
 				_mockApplicationSettings.Object,
 				[.. _symbolMatchers],
 				_mockDbContextFactory.Object);
@@ -77,11 +74,13 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
 			_mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
 
+			var loggerMock = new Mock<ILogger<SymbolMatcherTask>>();
+
 			_symbolMatcher.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "SYM1", DataSource = "TestSource" });
 			_symbolMatcher.Setup(sm => sm.DataSource).Returns("TestSource");
 
 			// Act
-			await _symbolMatcherTask.DoWork();
+			await _symbolMatcherTask.DoWork(loggerMock.Object);
 
 			// Assert
 			_symbolMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Once);
@@ -108,8 +107,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatchers.Clear();
 			_symbolMatchers.Add(mockSymbolMatcher.Object);
 
+			var loggerMock = new Mock<ILogger<SymbolMatcherTask>>();
+
 			// Act
-			await _symbolMatcherTask.DoWork();
+			await _symbolMatcherTask.DoWork(loggerMock.Object);
 
 			// Assert
 			mockSymbolMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Never);
@@ -139,8 +140,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatchers.Clear();
 			_symbolMatchers.Add(mockSymbolMatcher.Object);
 
+			var loggerMock = new Mock<ILogger<SymbolMatcherTask>>();
+
 			// Act
-			await _symbolMatcherTask.DoWork();
+			await _symbolMatcherTask.DoWork(loggerMock.Object);
 
 			// Assert
 			mockSymbolMatcher.Verify(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>()), Times.Never);
