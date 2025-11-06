@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.PerformanceCalculations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Performance
 {
@@ -17,7 +18,7 @@ namespace GhostfolioSidekick.Performance
 
 		public string Name => "Performance Calculations";
 
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			// Calculate performance for all holdings
 			var holdings = await holdingPerformanceCalculator.GetCalculatedHoldings();

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class MarketDataStockSplitTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockSplitRepository[] stockPriceRepositories, ILogger<MarketDataGathererTask> logger) : IScheduledWork
+	internal class MarketDataStockSplitTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockSplitRepository[] stockPriceRepositories) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataStockSplit;
 
@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public string Name => "Market Data Stock Split Gatherer";
 
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			var symbolIdentifiers = new List<Tuple<string, string>>();
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())

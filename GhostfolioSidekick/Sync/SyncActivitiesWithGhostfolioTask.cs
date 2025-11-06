@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.GhostfolioAPI;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Sync
 {
@@ -14,7 +15,7 @@ namespace GhostfolioSidekick.Sync
 
 		public string Name => "Sync Activities with Ghostfolio";
 
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			await using var databaseContext = databaseContextFactory.CreateDbContext();
 

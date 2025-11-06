@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Activities
 {
@@ -14,7 +15,7 @@ namespace GhostfolioSidekick.Activities
 
 		public string Name => "Calculate Price";
 
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();
 

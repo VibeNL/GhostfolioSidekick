@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.Activities
 {
 	public class DetermineHoldings(
-			ILogger<DetermineHoldings> logger,
 			ISymbolMatcher[] symbolMatchers,
 			IDbContextFactory<DatabaseContext> databaseContextFactory,
 			IMemoryCache memoryCache,
@@ -29,7 +28,7 @@ namespace GhostfolioSidekick.Activities
 
 		public string Name => "Determine Holdings";
 
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();
 			var activities = await databaseContext.Activities.ToListAsync();
@@ -49,7 +48,7 @@ namespace GhostfolioSidekick.Activities
 					.OrderBy(x => x[0].Identifier))
 			{
 				var ids = GetIds(partialIdentifiers);
-				await CreateOrUpdateHolding(databaseContext, symbolHoldingDictionary, currentHoldings, ids).ConfigureAwait(false);
+				await CreateOrUpdateHolding(logger, databaseContext, symbolHoldingDictionary, currentHoldings, ids).ConfigureAwait(false);
 			}
 
 			// Remove holdings that are no longer relevant
@@ -67,6 +66,7 @@ namespace GhostfolioSidekick.Activities
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		private async Task CreateOrUpdateHolding(
+			ILogger logger,
 			DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary,
 			List<Holding> holdings,
 			IList<PartialSymbolIdentifier> partialIdentifiers)

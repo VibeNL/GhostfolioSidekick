@@ -150,13 +150,15 @@ namespace GhostfolioSidekick
 
 		private async Task ExecuteWorkItem(Scheduled workItem)
 		{
+			var taskLogger = new DatabaseTaskLogger(databaseContext, workItem.Work, this.logger);
+
 			try
 			{
-				await workItem.Work.DoWork();
+				await workItem.Work.DoWork(taskLogger);
 			}
 			catch (Exception ex)
 			{
-				logger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
+				taskLogger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
 				var taskrun = GetTask(databaseContext, workItem.Work.GetType().Name);
 				if (taskrun != null)
 				{

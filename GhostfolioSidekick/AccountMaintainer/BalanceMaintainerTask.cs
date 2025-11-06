@@ -3,6 +3,7 @@ using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.AccountMaintainer
 {
@@ -16,7 +17,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public string Name => "Balance Maintainer";
 
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			List<AccountKey> accountKeys;
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())

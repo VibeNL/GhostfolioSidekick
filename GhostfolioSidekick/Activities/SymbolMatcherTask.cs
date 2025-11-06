@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.Activities
 {
 	public class SymbolMatcherTask(
-			ILogger<SymbolMatcherTask> logger,
 			IApplicationSettings applicationSettings,
 			ISymbolMatcher[] symbolMatchers,
 			IDbContextFactory<DatabaseContext> databaseContextFactory) : IScheduledWork
@@ -23,7 +22,7 @@ namespace GhostfolioSidekick.Activities
 
 		public string Name => "Symbol Matcher";
 
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			using var databaseContext = databaseContextFactory.CreateDbContext();
 			var activities = await databaseContext.Activities.ToListAsync();
@@ -35,7 +34,7 @@ namespace GhostfolioSidekick.Activities
 					.Where(x => x.PartialIdentifier is not null)
 					.OrderBy(x => GetIds(x.PartialIdentifier!.PartialSymbolIdentifiers).FirstOrDefault()?.Identifier))
 			{
-				await HandleActivity(currentHoldings, activityTuple).ConfigureAwait(false);
+				await HandleActivity(logger, currentHoldings, activityTuple).ConfigureAwait(false);
 			}
 
 			AssertNoMultipleSymbols(logger, currentHoldings);
@@ -43,7 +42,7 @@ namespace GhostfolioSidekick.Activities
 			await databaseContext.SaveChangesAsync();
 		}
 
-		private static void AssertNoMultipleSymbols(ILogger<SymbolMatcherTask> logger, List<Holding> currentHoldings)
+		private static void AssertNoMultipleSymbols(ILogger logger, List<Holding> currentHoldings)
 		{
 			var allsymbols = currentHoldings.SelectMany(x => x.SymbolProfiles).GroupBy(x => new { x.Symbol, x.DataSource }).Where(x => x.Count() > 1).ToList();
 
@@ -63,7 +62,7 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		private async Task HandleActivity(List<Holding> currentHoldings, CustomObject activityTuple)
+		private async Task HandleActivity(ILogger logger, List<Holding> currentHoldings, CustomObject activityTuple)
 		{
 			var activity = activityTuple.Activity;
 			var ids = GetIds(activityTuple.PartialIdentifier!.PartialSymbolIdentifiers);

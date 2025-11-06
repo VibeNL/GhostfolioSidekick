@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick
+﻿using Microsoft.Extensions.Logging;
+
+namespace GhostfolioSidekick
 {
 	public interface IScheduledWork
 	{
@@ -10,6 +12,6 @@
 		
 		string Name { get; }
 
-		Task DoWork();
+		Task DoWork(ILogger logger);
 	}
 }
