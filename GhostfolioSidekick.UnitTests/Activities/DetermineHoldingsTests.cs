@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		[Fact]
 		public async Task DoWork_ShouldLogHoldingAlreadyExistsForSymbol_WhenSymbolHoldingDictionaryContainsSymbol()
 		{
-			// Arrange - This test targets line 119
+			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
 			var symbolProfile = new SymbolProfile
 			{
@@ -151,10 +151,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Return the same symbol profile for both partial identifiers
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(symbolProfile);
 
-			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
-
 			// Act
-			await _determineHoldings.DoWork(loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
 			// Verify that the log message for "holding already exists for symbol" was called
@@ -163,8 +161,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 					LogLevel.Trace,
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: Holding already exists for") &&
-													v.ToString()!.Contains("TEST") &&
-													v.ToString()!.Contains("with")),
+										v.ToString()!.Contains("TEST") &&
+										v.ToString()!.Contains("with")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -173,7 +171,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		[Fact]
 		public async Task DoWork_ShouldLogNoSymbolProfileFound_WhenNoSymbolMatcherReturnsSymbol()
 		{
-			// Arrange - This test targets line 148
+			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
@@ -189,10 +187,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Return null for all symbol matches
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync((SymbolProfile?)null);
 
-			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
-
 			// Act
-			await _determineHoldings.DoWork(loggerMock.Object);
+			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
 			// Verify that the log warning for "no symbol profile found" was called
@@ -201,7 +197,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 					LogLevel.Warning,
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: No symbol profile found for") &&
-													v.ToString()!.Contains("UNKNOWN")),
+										v.ToString()!.Contains("UNKNOWN")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
