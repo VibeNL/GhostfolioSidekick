@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.UnitTests
 		{
 			loggerMock = new Mock<ILogger<DisplayInformationTask>>();
 			applicationSettingsMock = new Mock<IApplicationSettings>();
-			displayInformationTask = new DisplayInformationTask(loggerMock.Object, applicationSettingsMock.Object);
+			displayInformationTask = new DisplayInformationTask(applicationSettingsMock.Object);
 		}
 
 		[Fact]
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.UnitTests
 			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(settings);
 
 			// Act
-			displayInformationTask.DoWork();
+			displayInformationTask.DoWork(loggerMock.Object);
 
 			// Assert
 			loggerMock.Verify(
@@ -69,7 +69,7 @@ namespace GhostfolioSidekick.UnitTests
 			applicationSettingsMock.Setup(x => x.ConfigurationInstance).Returns(settings);
 
 			// Act
-			displayInformationTask.DoWork();
+			displayInformationTask.DoWork(loggerMock.Object);
 
 			// Assert
 			loggerMock.Verify(

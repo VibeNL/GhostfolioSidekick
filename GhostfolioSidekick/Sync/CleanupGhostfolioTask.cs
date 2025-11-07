@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Sync
 {
@@ -14,7 +15,9 @@ namespace GhostfolioSidekick.Sync
 
 		public bool ExceptionsAreFatal => false;
 
-		public async Task DoWork()
+		public string Name => "Cleanup Ghostfolio Unused Symbols";
+
+		public async Task DoWork(ILogger logger)
 		{
 			var symbols = await ghostfolioMarketData.GetAllSymbolProfiles();
 			var benchmarks = await ghostfolioMarketData.GetBenchmarks();

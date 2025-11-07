@@ -4,6 +4,7 @@ using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.EntityFrameworkCore;
 
@@ -56,8 +57,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_holdingStrategies.Add(mockStrategy1.Object);
 			_holdingStrategies.Add(mockStrategy2.Object);
 
+			var loggerMock = new Mock<ILogger<CalculatePriceTask>>();
+
 			// Act
-			await _calculatePriceTask.DoWork();
+			await _calculatePriceTask.DoWork(loggerMock.Object);
 
 			// Assert
 			mockStrategy1.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Exactly(holdings.Count));
@@ -77,8 +80,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_holdingStrategies.Clear();
 			_holdingStrategies.Add(mockStrategy.Object);
 
+			var loggerMock = new Mock<ILogger<CalculatePriceTask>>();
+
 			// Act
-			await _calculatePriceTask.DoWork();
+			await _calculatePriceTask.DoWork(loggerMock.Object);
 
 			// Assert
 			mockStrategy.Verify(strategy => strategy.Execute(It.IsAny<Holding>()), Times.Never);

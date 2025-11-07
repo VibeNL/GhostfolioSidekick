@@ -4,6 +4,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
@@ -15,8 +16,10 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Currency Gatherer";
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var currenciesActivities = (await databaseContext.Activities

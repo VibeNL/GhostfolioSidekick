@@ -1,4 +1,6 @@
-﻿namespace GhostfolioSidekick
+﻿using Microsoft.Extensions.Logging;
+
+namespace GhostfolioSidekick
 {
 	public interface IScheduledWork
 	{
@@ -7,7 +9,9 @@
 		TimeSpan ExecutionFrequency { get; }
 
 		bool ExceptionsAreFatal { get; }
+		
+		string Name { get; }
 
-		Task DoWork();
+		Task DoWork(ILogger logger);
 	}
 }

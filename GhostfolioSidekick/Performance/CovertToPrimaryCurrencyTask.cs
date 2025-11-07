@@ -11,8 +11,7 @@ namespace GhostfolioSidekick.Performance
 	internal class CovertToPrimaryCurrencyTask(
 		ICurrencyExchange currencyExchange,
 		DatabaseContext databaseContext,
-		IApplicationSettings applicationSettings,
-		ILogger<CovertToPrimaryCurrencyTask> logger
+		IApplicationSettings applicationSettings
 		) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.CovertToPrimaryCurrency;
@@ -21,7 +20,9 @@ namespace GhostfolioSidekick.Performance
 
 		public bool ExceptionsAreFatal => false;
 
-		public async Task DoWork()
+		public string Name => "Convert to Primary Currency";
+
+		public async Task DoWork(ILogger logger)
 		{
 			var primaryCurrencySymbol = applicationSettings.ConfigurationInstance.Settings.PrimaryCurrency;
 			var currency = Currency.GetCurrency(primaryCurrencySymbol);
@@ -88,7 +89,7 @@ namespace GhostfolioSidekick.Performance
 			logger.LogDebug("Adding missing days and extrapolating balances to today");
 
 			// Fill missing days and extrapolate to today for each account
-			await FillMissingDaysAndExtrapolate();
+			await FillMissingDaysAndExtrapolate(logger);
 
 			logger.LogDebug("Cleanup unmatched primary currency records");
 
@@ -98,7 +99,7 @@ namespace GhostfolioSidekick.Performance
 			logger.LogDebug("Completed conversion to primary currency {Currency}", primaryCurrencySymbol);
 		}
 
-		private async Task FillMissingDaysAndExtrapolate()
+		private async Task FillMissingDaysAndExtrapolate(ILogger logger)
 		{
 			var accountIds = await databaseContext.BalancePrimaryCurrencies
 				.Select(b => b.AccountId)

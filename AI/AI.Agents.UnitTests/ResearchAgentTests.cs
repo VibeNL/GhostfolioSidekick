@@ -30,8 +30,8 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 
 			// Create a test service provider that avoids the GetRequiredService extension method
 			_serviceProvider = new TestServiceProvider();
-			_serviceProvider.AddService<GoogleSearchService>(_googleSearchService);
-			_serviceProvider.AddService<AgentLogger>(_agentLogger);
+			_serviceProvider.AddService(_googleSearchService);
+			_serviceProvider.AddService(_agentLogger);
 			_serviceProvider.AddService(new ModelInfo { MaxTokens = 4096, Name = "123" });
 
 			// Setup the web chat client clone behavior

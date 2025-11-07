@@ -14,7 +14,6 @@ using System.Text;
 namespace GhostfolioSidekick.Activities
 {
 	public class FileImporterTask(
-		ILogger<FileImporterTask> logger,
 		IApplicationSettings settings,
 		IEnumerable<IFileImporter> importers,
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
@@ -28,7 +27,9 @@ namespace GhostfolioSidekick.Activities
 
 		public bool ExceptionsAreFatal => false;
 
-		public async Task DoWork()
+		public string Name => "File Importer";
+
+		public async Task DoWork(ILogger logger)
 		{
 			var directories = Directory.GetDirectories(fileLocation);
 
@@ -59,7 +60,7 @@ namespace GhostfolioSidekick.Activities
 		}
 
 		[SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Linear logic")]
-		private static async Task ParseFiles(ILogger<FileImporterTask> logger, IEnumerable<IFileImporter> importers, string[] directories, ActivityManager activityManager, List<string> accountNames)
+		private static async Task ParseFiles(ILogger logger, IEnumerable<IFileImporter> importers, string[] directories, ActivityManager activityManager, List<string> accountNames)
 		{
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))
 			{

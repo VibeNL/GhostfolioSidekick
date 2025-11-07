@@ -1,17 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using GhostfolioSidekick.AI.Common;
 using GhostfolioSidekick.PortfolioViewer.WASM.AI.Api;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
-using Xunit;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests
 {

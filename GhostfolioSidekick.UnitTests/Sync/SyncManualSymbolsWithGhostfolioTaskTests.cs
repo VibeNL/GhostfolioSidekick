@@ -7,6 +7,7 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Sync;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace GhostfolioSidekick.UnitTests.Sync
@@ -59,20 +60,22 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			{
 				SymbolProfiles = [symbol],
 				Activities = [new BuyActivity {
-						Date = DateTime.Today.AddDays(-100),
-						UnitPrice = new Money(Currency.USD, 100),
-						TransactionId = "A",
-				Account = new Model.Accounts.Account{ Name = "DS" } }            ]
+					Date = DateTime.Today.AddDays(-100),
+					UnitPrice = new Money(Currency.USD,100),
+					TransactionId = "A",
+					Account = new Model.Accounts.Account{ Name = "DS" } } ]
 			};
 
 			context.Holdings.Add(holding);
 			await context.SaveChangesAsync();
 
+			var loggerMock = new Mock<ILogger<SyncManualActivitiesmarketDataWithGhostfolioTask>>();
+
 			_mockCurrencyExchange.Setup(exchange => exchange.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money money, Currency curr, DateOnly date) => money);
 
 			// Act
-			await task.DoWork();
+			await task.DoWork(loggerMock.Object);
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
@@ -84,9 +87,10 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		{
 			// Arrange
 			using var context = CreateTask(out SyncManualActivitiesmarketDataWithGhostfolioTask task);
+			var loggerMock = new Mock<ILogger<SyncManualActivitiesmarketDataWithGhostfolioTask>>();
 
 			// Act
-			await task.DoWork();
+			await task.DoWork(loggerMock.Object);
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);
@@ -98,6 +102,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		{
 			// Arrange
 			using var context = CreateTask(out SyncManualActivitiesmarketDataWithGhostfolioTask task);
+			var loggerMock = new Mock<ILogger<SyncManualActivitiesmarketDataWithGhostfolioTask>>();
 			var symbol = new SymbolProfile
 			{
 				Symbol = "W",
@@ -110,7 +115,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			await context.SaveChangesAsync();
 
 			// Act
-			await task.DoWork();
+			await task.DoWork(loggerMock.Object);
 
 			// Assert
 			_mockGhostfolioSync.Verify(sync => sync.SyncSymbolProfiles(It.IsAny<IEnumerable<SymbolProfile>>()), Times.Once);

@@ -2,6 +2,7 @@
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Sync
 {
@@ -15,7 +16,9 @@ namespace GhostfolioSidekick.Sync
 
 		public bool ExceptionsAreFatal => false;
 
-		public async Task DoWork()
+		public string Name => "Sync Manual Activities and Market Data with Ghostfolio";
+
+		public async Task DoWork(ILogger logger)
 		{
 			await using var databaseContext = databaseContextFactory.CreateDbContext();
 			var manualSymbolProfiles = await databaseContext.SymbolProfiles

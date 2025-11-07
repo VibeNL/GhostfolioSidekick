@@ -5,7 +5,6 @@ using System.Text;
 namespace GhostfolioSidekick
 {
 	public class DisplayInformationTask(
-		ILogger<DisplayInformationTask> logger,
 		IApplicationSettings applicationSettings) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.DisplayInformation;
@@ -14,13 +13,15 @@ namespace GhostfolioSidekick
 
 		public bool ExceptionsAreFatal => true;
 
-		public Task DoWork()
+		public string Name => "Display Information";
+
+		public Task DoWork(ILogger logger)
 		{
-			PrintUsedSettings();
+			PrintUsedSettings(logger);
 			return Task.CompletedTask;
 		}
 
-		private void PrintUsedSettings()
+		private void PrintUsedSettings(ILogger logger)
 		{
 			var sb = new StringBuilder();
 

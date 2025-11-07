@@ -2,70 +2,144 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">PortfolioViewer</a>
-        
+        <a class="navbar-brand" href="">
+            <i class="bi bi-briefcase-fill me-2"></i>
+            <span class="brand-text">PortfolioViewer</span>
+        </a>
+
         <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu" aria-controls="navbarNav" aria-expanded="@(!collapseNavMenu)" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        
+
         <div class="@NavMenuCssClass navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
+                <!-- Dashboard -->
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All" @onclick="CollapseNavMenu">
-                        <i class="bi bi-house-door-fill me-1"></i>Home
+                        <i class="bi bi-house-door-fill me-2"></i>
+                        <span class="nav-text">Dashboard</span>
                     </NavLink>
                 </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="holdings" @onclick="CollapseNavMenu">
-                        <i class="bi bi-pie-chart-fill me-1"></i>Holdings
-                    </NavLink>
+
+                <!-- Portfolio Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-pie-chart-fill me-2"></i>
+                        <span class="nav-text">Portfolio</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <NavLink class="dropdown-item" href="portfolio-timeseries" @onclick="CollapseNavMenu">
+                                <i class="bi bi-bar-chart-line me-2"></i>Performance Timeline
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="dropdown-item" href="holdings" @onclick="CollapseNavMenu">
+                                <i class="bi bi-pie-chart me-2"></i>Holdings Overview
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="dropdown-item" href="accounts" @onclick="CollapseNavMenu">
+                                <i class="bi bi-bank me-2"></i>Account Details
+                            </NavLink>
+                        </li>
+                    </ul>
                 </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="accounts" @onclick="CollapseNavMenu">
-                        <i class="bi bi-bank me-1"></i>Accounts
-                    </NavLink>
+
+                <!-- Transactions Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-receipt-cutoff me-2"></i>
+                        <span class="nav-text">Transactions</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <NavLink class="dropdown-item" href="transactions" @onclick="CollapseNavMenu">
+                                <i class="bi bi-list-ul me-2"></i>Transaction History
+                            </NavLink>
+                        </li>
+                    </ul>
                 </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="transactions" @onclick="CollapseNavMenu">
-                        <i class="bi bi-receipt-cutoff me-1"></i>Transactions
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="portfolio-timeseries" @onclick="CollapseNavMenu">
-                        <i class="bi bi-bar-chart-line me-1"></i>Time Series
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="tables" @onclick="CollapseNavMenu">
-                        <i class="bi bi-table me-1"></i>Tables
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="data-issues" @onclick="CollapseNavMenu">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i>Data Issues
-                    </NavLink>
+
+                <!-- System Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-gear-fill me-2"></i>
+                        <span class="nav-text">System</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <NavLink class="dropdown-item" href="task-status" @onclick="CollapseNavMenu">
+                                <i class="bi bi-list-task me-2"></i>Task Status
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="dropdown-item" href="data-issues" @onclick="CollapseNavMenu">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>Data Issues
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="dropdown-item" href="holding-identifier-mappings" @onclick="CollapseNavMenu">
+                                <i class="bi bi-diagram-3 me-2"></i>Identifier Mappings
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink class="dropdown-item" href="tables" @onclick="CollapseNavMenu">
+                                <i class="bi bi-table me-2"></i>Data Tables
+                            </NavLink>
+                        </li>
+                    </ul>
                 </li>
             </ul>
 
-            <!-- User Authentication Section -->
+            <!-- User Authentication -->
             <div class="navbar-nav ms-auto">
                 <LoginDisplay />
             </div>
 
-            <!-- Simplified Filters Section -->
+            <!-- Desktop Filters -->
             @if (ShowFilters)
             {
-                <div class="navbar-filters ms-2">
-                    <CommonFilters 
-                        ShowDateFilters="ShowDateFilters"
-                        ShowAccountFilter="ShowAccountFilter"
-                        ShowSymbolFilter="ShowSymbolFilter" 
-                        ShowTransactionTypeFilter="ShowTransactionTypeFilter"
-                        ShowSearchFilter="ShowSearchFilter"
-                        TransactionTypes="TransactionTypes"
-                        OnFiltersApplied="CollapseNavMenu" />
+                <div class="navbar-filters d-none d-xl-block ms-2">
+                    <CommonFilters ShowDateFilters="ShowDateFilters"
+                                   ShowAccountFilter="ShowAccountFilter"
+                                   ShowSymbolFilter="ShowSymbolFilter"
+                                   ShowTransactionTypeFilter="ShowTransactionTypeFilter"
+                                   ShowSearchFilter="ShowSearchFilter"
+                                   TransactionTypes="TransactionTypes"
+                                   OnFiltersApplied="CollapseNavMenu" />
                 </div>
             }
         </div>
     </div>
 </nav>
+
+<!-- Mobile Filters -->
+@if (ShowFilters)
+{
+    <div class="mobile-filters d-xl-none">
+        <div class="container-fluid">
+            <div class="filters-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">
+                        <i class="bi bi-funnel me-1"></i>Filters
+                    </h6>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="ToggleMobileFilters">
+                        <i class="bi @(showMobileFilters ? "bi-chevron-up" : "bi-chevron-down")"></i>
+                    </button>
+                </div>
+
+                @if (showMobileFilters)
+                {
+                    <CommonFilters ShowDateFilters="ShowDateFilters"
+                                   ShowAccountFilter="ShowAccountFilter"
+                                   ShowSymbolFilter="ShowSymbolFilter"
+                                   ShowTransactionTypeFilter="ShowTransactionTypeFilter"
+                                   ShowSearchFilter="ShowSearchFilter"
+                                   TransactionTypes="TransactionTypes"
+                                   OnFiltersApplied="() => { showMobileFilters = false; CollapseNavMenu(); }" />
+                }
+            </div>
+        </div>
+    </div>
+}

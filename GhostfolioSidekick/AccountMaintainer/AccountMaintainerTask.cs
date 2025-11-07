@@ -7,11 +7,9 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.AccountMaintainer
 {
 	public class AccountMaintainerTask(
-		ILogger<AccountMaintainerTask> logger,
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IApplicationSettings applicationSettings) : IScheduledWork
 	{
-		private readonly ILogger<AccountMaintainerTask> logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		private readonly IApplicationSettings applicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 
 		public TaskPriority Priority => TaskPriority.AccountMaintainer;
@@ -20,7 +18,9 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
-		public async Task DoWork()
+		public string Name => "Account Maintainer";
+
+		public async Task DoWork(ILogger logger)
 		{
 			logger.LogDebug("{Name} Starting to do work", nameof(AccountMaintainerTask));
 

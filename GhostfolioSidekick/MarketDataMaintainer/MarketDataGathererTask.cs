@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class MarketDataGathererTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockPriceRepository[] stockPriceRepositories, ILogger<MarketDataGathererTask> logger) : IScheduledWork
+	internal class MarketDataGathererTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
 
@@ -14,8 +14,10 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
+		public string Name => "Market Data Gatherer";
+
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
-		public async Task DoWork()
+		public async Task DoWork(ILogger logger)
 		{
 			var symbolIdentifiers = new List<Tuple<string, string>>();
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())

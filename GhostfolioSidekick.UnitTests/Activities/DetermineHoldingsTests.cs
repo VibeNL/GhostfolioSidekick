@@ -33,7 +33,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var _mockApplicationSettings = new Mock<IApplicationSettings>();
 
 			_determineHoldings = new DetermineHoldings(
-				_loggerMock.Object,
 				[.. _symbolMatchers],
 				_dbContextFactoryMock.Object,
 				_memoryCacheMock,
@@ -78,19 +77,21 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var activities = new List<Activity>();
 			var holdings = new List<Holding>
 			{
-				new() { Id = 1, SymbolProfiles = [] },
-				new() { Id = 2, SymbolProfiles = [new SymbolProfile()] }
+				new() { Id =1, SymbolProfiles = [] },
+				new() { Id =2, SymbolProfiles = [new SymbolProfile()] }
 			};
 
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
 			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
 			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
 
+			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
+
 			// Act
-			await _determineHoldings.DoWork();
+			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
-			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id == 1)), Times.Once);
+			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id ==1)), Times.Once);
 			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
 		}
 
@@ -112,8 +113,10 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "TEST", DataSource = "TestSource" });
 
+			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
+
 			// Act
-			await _determineHoldings.DoWork();
+			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Once);
@@ -123,7 +126,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		[Fact]
 		public async Task DoWork_ShouldLogHoldingAlreadyExistsForSymbol_WhenSymbolHoldingDictionaryContainsSymbol()
 		{
-			// Arrange - This test targets line 119
+			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
 			var symbolProfile = new SymbolProfile
 			{
@@ -149,7 +152,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(symbolProfile);
 
 			// Act
-			await _determineHoldings.DoWork();
+			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
 			// Verify that the log message for "holding already exists for symbol" was called
@@ -158,8 +161,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 					LogLevel.Trace,
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: Holding already exists for") &&
-													v.ToString()!.Contains("TEST") &&
-													v.ToString()!.Contains("with")),
+										v.ToString()!.Contains("TEST") &&
+										v.ToString()!.Contains("with")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -168,7 +171,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		[Fact]
 		public async Task DoWork_ShouldLogNoSymbolProfileFound_WhenNoSymbolMatcherReturnsSymbol()
 		{
-			// Arrange - This test targets line 148
+			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
 			var activities = new List<Activity>
 			{
@@ -185,7 +188,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync((SymbolProfile?)null);
 
 			// Act
-			await _determineHoldings.DoWork();
+			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
 			// Verify that the log warning for "no symbol profile found" was called
@@ -194,7 +197,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 					LogLevel.Warning,
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: No symbol profile found for") &&
-													v.ToString()!.Contains("UNKNOWN")),
+										v.ToString()!.Contains("UNKNOWN")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);

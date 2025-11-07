@@ -1,0 +1,222 @@
+using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Model.Tasks;
+using GhostfolioSidekick.PortfolioViewer.WASM.Clients;
+using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
+
+namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
+{
+	public partial class TaskStatus : ComponentBase
+	{
+		[Inject] private DatabaseContext DbContext { get; set; } = default!;
+		[Inject] private PortfolioClient PortfolioClient { get; set; } = default!;
+
+		private List<TaskRun>? _taskRuns;
+		private bool _isLoading = true;
+		private string _sortColumn = nameof(TaskRun.InProgress);
+		private string _sortDirection = "desc"; // Start with InProgress tasks at top
+		private TaskRun? _selectedTaskError;
+
+		// Refresh state
+		private bool _isRefreshing;
+		private string _refreshStatus = string.Empty;
+		private int _refreshProgress;
+
+		// Statistics
+		private int _runningTasks;
+		private int _scheduledTasks;
+		private int _errorTasks;
+
+		protected override async Task OnInitializedAsync()
+		{
+			await LoadTaskData();
+		}
+
+		private async Task LoadTaskData()
+		{
+			try
+			{
+				_isLoading = true;
+				StateHasChanged();
+
+				_taskRuns = await DbContext.Tasks
+					.AsNoTracking()
+					.ToListAsync();
+
+				CalculateStatistics();
+			}
+			catch (Exception ex)
+			{
+				// Handle error gracefully
+				Console.WriteLine($"Error loading task data: {ex.Message}");
+				_taskRuns = [];
+			}
+			finally
+			{
+				_isLoading = false;
+				StateHasChanged();
+			}
+		}
+
+		private void CalculateStatistics()
+		{
+			if (_taskRuns == null) return;
+
+			_runningTasks = _taskRuns.Count(t => t.InProgress);
+			_scheduledTasks = _taskRuns.Count(t => t.Scheduled && !t.InProgress);
+			_errorTasks = _taskRuns.Count(t => !string.IsNullOrEmpty(t.LastException));
+		}
+
+		private async Task RefreshTasksOnly()
+		{
+			try
+			{
+				_isRefreshing = true;
+				_refreshStatus = "Syncing task status...";
+				_refreshProgress = 0;
+				StateHasChanged();
+
+				// Create a progress reporter for the task-only sync operation
+				var progress = new Progress<(string action, int progress)>(update =>
+				{
+					_refreshStatus = update.action;
+					_refreshProgress = update.progress;
+					StateHasChanged();
+				});
+
+				// Sync only the Tasks table
+				await PortfolioClient.SyncSingleTable("TaskRuns", progress);
+
+				_refreshStatus = "Task sync completed, reloading data...";
+				_refreshProgress = 90;
+				StateHasChanged();
+
+				// Reload the task data after sync
+				await LoadTaskData();
+
+				_refreshStatus = "Task refresh completed successfully.";
+				_refreshProgress = 100;
+				StateHasChanged();
+
+				// Clear the status after a short delay
+				await Task.Delay(1500);
+				_refreshStatus = string.Empty;
+				_refreshProgress = 0;
+			}
+			catch (Exception ex)
+			{
+				_refreshStatus = $"Task refresh failed: {ex.Message}";
+				_refreshProgress = 100;
+				Console.WriteLine($"Error during task refresh: {ex.Message}");
+				StateHasChanged();
+
+				// Clear error status after longer delay
+				await Task.Delay(5000);
+				_refreshStatus = string.Empty;
+				_refreshProgress = 0;
+			}
+			finally
+			{
+				_isRefreshing = false;
+				StateHasChanged();
+			}
+		}
+
+		private void SortBy(string columnName)
+		{
+			if (_sortColumn == columnName)
+			{
+				// Toggle sort direction if clicking the same column
+				_sortDirection = _sortDirection == "asc" ? "desc" : "asc";
+			}
+			else
+			{
+				// Set new sort column and default to ascending
+				_sortColumn = columnName;
+				_sortDirection = "asc";
+			}
+
+			StateHasChanged();
+		}
+
+		private IEnumerable<TaskRun> GetSortedTasks()
+		{
+			if (_taskRuns == null) return [];
+
+			// Apply primary sorting and then secondary sorts
+			return _sortColumn switch
+			{
+				nameof(TaskRun.InProgress) => _sortDirection == "asc" 
+					? _taskRuns.OrderBy(t => t.InProgress).ThenBy(t => t.Priority).ThenBy(t => t.NextSchedule)
+					: _taskRuns.OrderByDescending(t => t.InProgress).ThenBy(t => t.Priority).ThenBy(t => t.NextSchedule),
+				nameof(TaskRun.Priority) => _sortDirection == "asc"
+					? _taskRuns.OrderBy(t => t.Priority).ThenByDescending(t => t.InProgress).ThenBy(t => t.NextSchedule)
+					: _taskRuns.OrderByDescending(t => t.Priority).ThenByDescending(t => t.InProgress).ThenBy(t => t.NextSchedule),
+				nameof(TaskRun.Name) => _sortDirection == "asc"
+					? _taskRuns.OrderBy(t => t.Name).ThenByDescending(t => t.InProgress).ThenBy(t => t.Priority)
+					: _taskRuns.OrderByDescending(t => t.Name).ThenByDescending(t => t.InProgress).ThenBy(t => t.Priority),
+				nameof(TaskRun.NextSchedule) => _sortDirection == "asc"
+					? _taskRuns.OrderBy(t => t.NextSchedule).ThenByDescending(t => t.InProgress).ThenBy(t => t.Priority)
+					: _taskRuns.OrderByDescending(t => t.NextSchedule).ThenByDescending(t => t.InProgress).ThenBy(t => t.Priority),
+				_ => _taskRuns.OrderByDescending(t => t.InProgress).ThenBy(t => t.Priority).ThenBy(t => t.NextSchedule)
+			};
+		}
+
+		private static string GetRowClass(TaskRun task)
+		{
+			if (task.InProgress)
+				return "row-running";
+			if (!string.IsNullOrEmpty(task.LastException))
+				return "row-error";
+			if (task.NextSchedule != DateTimeOffset.MaxValue && task.NextSchedule < DateTimeOffset.Now)
+				return "row-overdue";
+			return string.Empty;
+		}
+
+		private static string GetNextScheduleClass(DateTimeOffset nextSchedule)
+		{
+			if (nextSchedule < DateTimeOffset.Now)
+				return "text-warning fw-bold";
+			if (nextSchedule < DateTimeOffset.Now.AddHours(1))
+				return "text-info";
+			return string.Empty;
+		}
+
+		private static string GetRelativeTime(DateTimeOffset dateTime)
+		{
+			if (dateTime == DateTimeOffset.MinValue || dateTime == DateTimeOffset.MaxValue)
+				return string.Empty;
+
+			var timeDiff = DateTimeOffset.Now - dateTime;
+			var isInFuture = timeDiff < TimeSpan.Zero;
+			timeDiff = timeDiff.Duration(); // Get absolute value
+
+			var prefix = isInFuture ? "in " : "";
+			var suffix = isInFuture ? "" : " ago";
+
+			if (timeDiff.TotalMinutes < 1)
+				return isInFuture ? "in a few seconds" : "a few seconds ago";
+			if (timeDiff.TotalMinutes < 60)
+				return $"{prefix}{(int)timeDiff.TotalMinutes} min{suffix}";
+			if (timeDiff.TotalHours < 24)
+				return $"{prefix}{(int)timeDiff.TotalHours} hr{suffix}";
+			if (timeDiff.TotalDays < 7)
+				return $"{prefix}{(int)timeDiff.TotalDays} day{(timeDiff.TotalDays >= 2 ? "s" : "")}{suffix}";
+			if (timeDiff.TotalDays < 30)
+				return $"{prefix}{(int)(timeDiff.TotalDays / 7)} week{(timeDiff.TotalDays >= 14 ? "s" : "")}{suffix}";
+			return $"{prefix}{(int)(timeDiff.TotalDays / 30)} month{(timeDiff.TotalDays >= 60 ? "s" : "")}{suffix}";
+		}
+
+		private void ShowErrorDetails(TaskRun task)
+		{
+			_selectedTaskError = task;
+			StateHasChanged();
+		}
+
+		private void CloseErrorDetails()
+		{
+			_selectedTaskError = null;
+			StateHasChanged();
+		}
+	}
+}

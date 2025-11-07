@@ -11,26 +11,26 @@
     @if (IsLoading)
     {
         <div class="row">
-            <div class="col-12 text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <h5 class="text-muted">Loading Time Series Data...</h5>
-            </div>
+ <div class="col-12 text-center">
+     <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+     <h5 class="text-muted">Loading Time Series Data...</h5>
+     </div>
         </div>
-    }
+ }
     else if (HasError)
     {
         <div class="row">
-            <div class="col-12">
+       <div class="col-12">
                 <div class="alert alert-danger" role="alert">
-                    <h4 class="alert-heading">Error Loading Data</h4>
+    <h4 class="alert-heading">Error Loading Data</h4>
                     <p>@ErrorMessage</p>
-                    <hr>
-                    <button class="btn btn-outline-danger" @onclick="LoadTimeSeriesAsync">
-                        <i class="bi bi-arrow-clockwise"></i> Try Again
-                    </button>
-                </div>
+   <hr>
+           <button class="btn btn-outline-danger" @onclick="LoadTimeSeriesAsync">
+ <i class="bi bi-arrow-clockwise"></i> Try Again
+      </button>
+           </div>
             </div>
         </div>
     }
@@ -38,144 +38,239 @@
     {
         <div class="row">
             <div class="col-12 text-center">
-                <h5 class="text-muted">No time series data found for the selected filters.</h5>
-            </div>
+    <h5 class="text-muted">No time series data found for the selected filters.</h5>
+     </div>
         </div>
     }
     else
     {
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Portfolio Time Series</h5>
-                        <div class="d-flex gap-2">
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn @(ViewMode == "chart" ? "btn-primary" : "btn-outline-primary")"
-                                        @onclick="@(() => ViewMode = "chart")">
-                                    <i class="bi bi-bar-chart-line"></i> Chart
-                                </button>
-                                <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")"
-                                        @onclick="@(() => ViewMode = "table")">
-                                    <i class="bi bi-table"></i> Table
-                                </button>
-                            </div>
-                            <button class="btn btn-outline-secondary" @onclick="LoadTimeSeriesAsync" disabled="@IsLoading">
-                                <i class="bi bi-arrow-clockwise"></i> Refresh
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        @if (ViewMode == "chart")
-                        {
-                            <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
-                        }
-                        else
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th scope="col">
-                                                <SortableTableHeader Column="Date" 
-                                                                   DisplayName="Date" 
-                                                                   CurrentSortColumn="@sortColumn" 
-                                                                   IsAscending="@sortAscending" 
-                                                                   OnSort="SortBy" />
-                                            </th>
-                                            <th scope="col" class="text-end">
-                                                <SortableTableHeader Column="TotalValue" 
-                                                                   DisplayName="Portfolio Value" 
-                                                                   CurrentSortColumn="@sortColumn" 
-                                                                   IsAscending="@sortAscending" 
-                                                                   OnSort="SortBy" />
-                                            </th>
-                                            <th scope="col" class="text-end">
-                                                <SortableTableHeader Column="TotalInvested" 
-                                                                   DisplayName="Total Invested" 
-                                                                   CurrentSortColumn="@sortColumn" 
-                                                                   IsAscending="@sortAscending" 
-                                                                   OnSort="SortBy" />
-                                            </th>
-                                            <th scope="col" class="text-end">
-                                                <SortableTableHeader Column="GainLoss" 
-                                                                   DisplayName="Gain/Loss" 
-                                                                   CurrentSortColumn="@sortColumn" 
-                                                                   IsAscending="@sortAscending" 
-                                                                   OnSort="SortBy" />
-                                            </th>
-                                            <th scope="col" class="text-end">
-                                                <SortableTableHeader Column="GainLossPercentage" 
-                                                                   DisplayName="%" 
-                                                                   CurrentSortColumn="@sortColumn" 
-                                                                   IsAscending="@sortAscending" 
-                                                                   OnSort="SortBy" />
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var dataPoint in TimeSeriesDisplayData)
-                                        {
-                                            <tr>
-                                                <td>
-                                                    <strong>@dataPoint.Date.ToString("yyyy-MM-dd")</strong>
-                                                </td>
-                                                <td class="text-end">
-                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalValue)</strong>
-                                                </td>
-                                                <td class="text-end">
-                                                    @CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalInvested)
-                                                </td>
-                                                <td class="text-end">
-                                                    <span class="@(dataPoint.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                        @CurrencyDisplay.DisplaySignAndAmount(@dataPoint.GainLoss)
-                                                    </span>
-                                                </td>
-                                                <td class="text-end">
-                                                    <span class="@(dataPoint.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
-                                                        @dataPoint.GainLossPercentage.ToString("P2")
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                    @if (TimeSeriesDisplayData.Count > 0)
-                                    {
-                                        <tfoot class="table-light">
-                                            <tr>
-                                                <th>Latest (@TimeSeriesDisplayData.Last().Date.ToString("yyyy-MM-dd"))</th>
-                                                <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalValue)</th>
-                                                <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalInvested)</th>
-                                                <th class="text-end">
-                                                    <span class="@(TimeSeriesDisplayData.Last().GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
-                                                        @CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().GainLoss)
-                                                    </span>
-                                                </th>
-                                                <th class="text-end">
-                                                    <span class="@(TimeSeriesDisplayData.Last().GainLossPercentage >= 0 ? "text-success" : "text-danger")">
-                                                        @TimeSeriesDisplayData.Last().GainLossPercentage.ToString("P2")
-                                                    </span>
-                                                </th>
-                                            </tr>
-                                        </tfoot>
-                                    }
-                                </table>
-                            </div>
-                        }
-                    </div>
-                </div>
+     <!-- Top Risers and Losers Section -->
+        @if (TopRisers.Any() || TopLosers.Any())
+  {
+        <div class="row mb-4">
+       <div class="col-md-6">
+         <div class="card border-success">
+     <div class="card-header bg-success text-white">
+   <h5 class="card-title mb-0">
+           <i class="bi bi-trending-up"></i> Top 3 Risers
+               <small class="text-white-50 ms-2">(@StartDate.ToString("yyyy-MM-dd") to @EndDate.ToString("yyyy-MM-dd"))</small>
+   </h5>
+     </div>
+          <div class="card-body">
+           @if (TopRisers.Any())
+        {
+         @foreach (var riser in TopRisers)
+               {
+              <div class="d-flex justify-content-between align-items-center mb-3">
+           <div>
+          <strong>@riser.Symbol</strong>
+          <br>
+          <small class="text-muted">@riser.Name</small>
+        <br>
+              <small class="text-muted">
+ @CurrencyDisplay.DisplaySignAndAmount(@riser.StartPrice) → @CurrencyDisplay.DisplaySignAndAmount(@riser.EndPrice)
+          </small>
+   </div>
+        <div class="text-end">
+ <div class="h6 text-success mb-0">+@riser.PercentageChange.ToString("P2")</div>
+              <small class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@riser.AbsoluteChange)</small>
+         </div>
+              </div>
+             @if (riser != TopRisers.Last())
+   {
+         <hr class="my-2">
+    }
+             }
+   }
+     else
+    {
+   <div class="text-center text-muted py-3">
+        <i class="bi bi-graph-up" style="font-size: 2rem;"></i>
+         <p class="mt-2 mb-0">No positive performers found in this time range</p>
             </div>
-        </div>
+            }
+  </div>
+ </div>
+    </div>
+           <div class="col-md-6">
+                <div class="card border-danger">
+      <div class="card-header bg-danger text-white">
+       <h5 class="card-title mb-0">
+    <i class="bi bi-trending-down"></i> Top 3 Losers
+                <small class="text-white-50 ms-2">(@StartDate.ToString("yyyy-MM-dd") to @EndDate.ToString("yyyy-MM-dd"))</small>
+           </h5>
+  </div>
+<div class="card-body">
+            @if (TopLosers.Any())
+        {
+  @foreach (var loser in TopLosers)
+         {
+      <div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+           <strong>@loser.Symbol</strong>
+          <br>
+  <small class="text-muted">@loser.Name</small>
+         <br>
+                <small class="text-muted">
+  @CurrencyDisplay.DisplaySignAndAmount(@loser.StartPrice) → @CurrencyDisplay.DisplaySignAndAmount(@loser.EndPrice)
+      </small>
+                   </div>
+         <div class="text-end">
+    <div class="h6 text-danger mb-0">@loser.PercentageChange.ToString("P2")</div>
+              <small class="text-danger">@CurrencyDisplay.DisplaySignAndAmount(@loser.AbsoluteChange)</small>
+       </div>
+         </div>
+          @if (loser != TopLosers.Last())
+{
+         <hr class="my-2">
+               }
+         }
+ }
+     else
+   {
+       <div class="text-center text-muted py-3">
+          <i class="bi bi-graph-down" style="font-size: 2rem;"></i>
+           <p class="mt-2 mb-0">No losing positions found in this time range</p>
+          </div>
+        }
+   </div>
+    </div>
+     </div>
+  </div>
+     }
+
+    <div class="row">
+       <div class="col-12">
+        <div class="card">
+         <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Portfolio Time Series</h5>
+               <div class="d-flex gap-2">
+ <div class="btn-group" role="group">
+        <button type="button" class="btn @(ViewMode == "chart" ? "btn-primary" : "btn-outline-primary")"
+   @onclick="@(() => ViewMode = "chart")">
+           <i class="bi bi-bar-chart-line"></i> Chart
+          </button>
+  <button type="button" class="btn @(ViewMode == "table" ? "btn-primary" : "btn-outline-primary")"
+    @onclick="@(() => ViewMode = "table")">
+        <i class="bi bi-table"></i> Table
+   </button>
+          </div>
+       <button class="btn btn-outline-secondary" @onclick="LoadTimeSeriesAsync" disabled="@IsLoading">
+             <i class="bi bi-arrow-clockwise"></i> Refresh
+   </button>
+       </div>
+ </div>
+      <div class="card-body">
+  @if (ViewMode == "chart")
+             {
+         <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 60vh; width: 100%;" />
+        }
+    else
+     {
+        <div class="table-responsive">
+         <table class="table table-hover">
+     <thead class="table-dark">
+<tr>
+      <th scope="col">
+         <SortableTableHeader Column="Date" 
+        DisplayName="Date" 
+        CurrentSortColumn="@sortColumn" 
+         IsAscending="@sortAscending" 
+           OnSort="SortBy" />
+         </th>
+ <th scope="col" class="text-end">
+        <SortableTableHeader Column="TotalValue" 
+       DisplayName="Portfolio Value" 
+            CurrentSortColumn="@sortColumn" 
+  IsAscending="@sortAscending" 
+         OnSort="SortBy" />
+         </th>
+          <th scope="col" class="text-end">
+          <SortableTableHeader Column="TotalInvested" 
+        DisplayName="Total Invested" 
+         CurrentSortColumn="@sortColumn" 
+     IsAscending="@sortAscending" 
+     OnSort="SortBy" />
+          </th>
+       <th scope="col" class="text-end">
+           <SortableTableHeader Column="GainLoss" 
+            DisplayName="Gain/Loss" 
+               CurrentSortColumn="@sortColumn" 
+           IsAscending="@sortAscending" 
+          OnSort="SortBy" />
+      </th>
+            <th scope="col" class="text-end">
+   <SortableTableHeader Column="GainLossPercentage" 
+           DisplayName="%" 
+     CurrentSortColumn="@sortColumn" 
+              IsAscending="@sortAscending" 
+        OnSort="SortBy" />
+       </th>
+        </tr>
+               </thead>
+       <tbody>
+       @foreach (var dataPoint in TimeSeriesDisplayData)
+      {
+     <tr>
+     <td>
+       <strong>@dataPoint.Date.ToString("yyyy-MM-dd")</strong>
+    </td>
+   <td class="text-end">
+    <strong>@CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalValue)</strong>
+                </td>
+             <td class="text-end">
+             @CurrencyDisplay.DisplaySignAndAmount(@dataPoint.TotalInvested)
+         </td>
+           <td class="text-end">
+       <span class="@(dataPoint.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+       @CurrencyDisplay.DisplaySignAndAmount(@dataPoint.GainLoss)
+      </span>
+         </td>
+          <td class="text-end">
+     <span class="@(dataPoint.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+   @dataPoint.GainLossPercentage.ToString("P2")
+      </span>
+          </td>
+        </tr>
+        }
+             </tbody>
+  @if (TimeSeriesDisplayData.Count > 0)
+         {
+            <tfoot class="table-light">
+   <tr>
+          <th>Latest (@TimeSeriesDisplayData.Last().Date.ToString("yyyy-MM-dd"))</th>
+                <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalValue)</th>
+       <th class="text-end">@CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().TotalInvested)</th>
+       <th class="text-end">
+<span class="@(TimeSeriesDisplayData.Last().GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+       @CurrencyDisplay.DisplaySignAndAmount(@TimeSeriesDisplayData.Last().GainLoss)
+         </span>
+                 </th>
+         <th class="text-end">
+    <span class="@(TimeSeriesDisplayData.Last().GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+           @TimeSeriesDisplayData.Last().GainLossPercentage.ToString("P2")
+      </span>
+          </th>
+  </tr>
+      </tfoot>
+      }
+        </table>
+         </div>
+    }
+       </div>
+   </div>
+            </div>
+    </div>
     }
 </div>
 
 <style>
     .table th {
-        position: sticky;
-        top: 0;
-        z-index: 10;
+   position: sticky;
+  top: 0;
+  z-index: 10;
         width: 100%;
-    }
+ }
 
     .spinner-border {
         width: 3rem;
@@ -185,6 +280,26 @@
     .table td, .table th {
         white-space: normal;
         padding-left: 0.5rem;
-        padding-right: 0.5rem;
+padding-right: 0.5rem;
+    }
+
+    .card.border-success {
+        border-width: 2px !important;
+    }
+
+    .card.border-danger {
+     border-width: 2px !important;
+    }
+
+    .card.border-success .card-header {
+      border-bottom: 2px solid rgba(255, 255, 255, 0.125);
+    }
+
+    .card.border-danger .card-header {
+     border-bottom: 2px solid rgba(255, 255, 255, 0.125);
+    }
+
+    .text-white-50 {
+        color: rgba(255, 255, 255, 0.5) !important;
     }
 </style>

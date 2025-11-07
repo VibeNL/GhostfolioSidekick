@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class MaintainManualSymbolTask(
-		ILogger<MaintainManualSymbolTask> logger,
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IApplicationSettings applicationSettings) : IScheduledWork
 	{
@@ -19,7 +18,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
-		public async Task DoWork()
+		public string Name => "Maintain Manual Symbol";
+
+		public async Task DoWork(ILogger logger)
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 
@@ -32,13 +33,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					continue;
 				}
 
-				await AddAndUpdateSymbol(databaseContext, symbolConfiguration, manualSymbolConfiguration);
+				await AddAndUpdateSymbol(logger, databaseContext, symbolConfiguration, manualSymbolConfiguration);
 			}
 
 			await databaseContext.SaveChangesAsync();
 		}
 
-		private async Task AddAndUpdateSymbol(DatabaseContext databaseContext, SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)
+		private async Task AddAndUpdateSymbol(ILogger logger, DatabaseContext databaseContext, SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)
 		{
 			var symbol = await databaseContext.SymbolProfiles
 				.Include(x => x.MarketData)

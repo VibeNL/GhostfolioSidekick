@@ -5,6 +5,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 	public partial class NavMenu : ComponentBase
 	{
 		private bool collapseNavMenu = true;
+		private bool showMobileFilters = false;
 
 		[Parameter] public bool ShowFilters { get; set; } = false;
 		[Parameter] public bool ShowDateFilters { get; set; } = false;
@@ -24,6 +25,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Layout
 		private void CollapseNavMenu()
 		{
 			collapseNavMenu = true;
+			showMobileFilters = false;
+		}
+
+		private void ToggleMobileFilters()
+		{
+			showMobileFilters = !showMobileFilters;
 		}
 	}
 }

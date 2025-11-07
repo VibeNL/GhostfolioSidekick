@@ -1,6 +1,7 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.GhostfolioAPI;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Sync
 {
@@ -12,7 +13,9 @@ namespace GhostfolioSidekick.Sync
 
 		public bool ExceptionsAreFatal => false;
 
-		public async Task DoWork()
+		public string Name => "Sync Accounts with Ghostfolio";
+
+		public async Task DoWork(ILogger logger)
 		{
 			await using var databaseContext = databaseContextFactory.CreateDbContext();
 			var allAccounts = await databaseContext.Accounts.ToListAsync();

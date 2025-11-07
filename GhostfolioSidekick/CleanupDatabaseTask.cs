@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick
 {
 	public class CleanupDatabaseTask(
-		ILogger<CleanupDatabaseTask> logger,
 		DatabaseContext dbContext) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.CleanupDatabase;
@@ -14,12 +13,9 @@ namespace GhostfolioSidekick
 
 		public bool ExceptionsAreFatal => true;
 
-		public Task DoWork()
-		{
-			return CleanupDatabase();
-		}
+		public string Name => "Cleanup Database";
 
-		private async Task CleanupDatabase()
+		public async Task DoWork(ILogger logger)
 		{
 			logger.LogInformation("Cleanup database...");
 			await dbContext.ExecutePragma("PRAGMA integrity_check;");

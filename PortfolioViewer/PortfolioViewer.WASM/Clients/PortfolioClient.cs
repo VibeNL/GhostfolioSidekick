@@ -785,5 +785,57 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 
 			return (int)((double)written / total * 100);
 		}
+
+		public async Task SyncSingleTable(string tableName, IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
+		{
+			try
+			{
+				progress?.Report(($"Starting sync for table: {tableName}...", 10));
+
+				var grpcClient = GetGrpcClient();
+				
+				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+				// Enable performance optimizations
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA synchronous=OFF;");
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=MEMORY;");
+
+				progress?.Report(($"Clearing existing data in table: {tableName}...", 20));
+
+				// Clear existing data for the table
+				var deleteSql = $"DELETE FROM {tableName}";
+				await databaseContext.ExecuteSqlRawAsync(deleteSql, cancellationToken);
+
+				progress?.Report(($"Fetching latest data for table: {tableName}...", 40));
+
+				// Sync all data for this table
+				await foreach (var dataChunk in FetchDataAsync(grpcClient, tableName, cancellationToken))
+				{
+					progress?.Report(($"Inserting data into table: {tableName}...", 70));
+					await InsertDataAsync(databaseContext, tableName, dataChunk, cancellationToken);
+				}
+
+				progress?.Report(($"Finalizing sync for table: {tableName}...", 90));
+
+				// Re-enable constraints and finalize
+				await databaseContext.ExecutePragma("PRAGMA foreign_keys=ON;");
+				await databaseContext.ExecutePragma("PRAGMA synchronous=FULL;");
+				await databaseContext.ExecutePragma("PRAGMA journal_mode=DELETE;");
+
+				await sqlitePersistence.SaveChangesAsync();
+
+				progress?.Report(($"Sync completed for table: {tableName}.", 100));
+				logger.LogInformation("Single table sync completed successfully for table: {TableName}", tableName);
+			}
+#pragma warning disable S2139 // Exceptions should be either logged or rethrown but not both
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error during single table sync for {TableName}: {Message}", tableName, ex.Message);
+				progress?.Report(($"Error syncing table {tableName}: {ex.Message}", 100));
+				throw;
+			}
+#pragma warning restore S2139 // Exceptions should be either logged or rethrown but not both
+		}
 	}
 }

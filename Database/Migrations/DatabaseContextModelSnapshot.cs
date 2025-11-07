@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.9")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -1083,6 +1083,62 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.ToTable("SymbolProfiles", (string)null);
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Tasks.TaskRun", b =>
+                {
+                    b.Property<string>("Type")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("InProgress")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastException")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("LastUpdate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("NextSchedule")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Scheduled")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Type");
+
+                    b.ToTable("TaskRuns", (string)null);
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Tasks.TaskRunLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TaskRunType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskRunType");
+
+                    b.ToTable("TaskRunLogs", (string)null);
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithAmount", b =>
                 {
                     b.HasBaseType("GhostfolioSidekick.Model.Activities.Activity");
@@ -1500,6 +1556,17 @@ namespace GhostfolioSidekick.Database.Migrations
                         .HasForeignKey("HoldingId");
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Tasks.TaskRunLog", b =>
+                {
+                    b.HasOne("GhostfolioSidekick.Model.Tasks.TaskRun", "TaskRun")
+                        .WithMany("Logs")
+                        .HasForeignKey("TaskRunType")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TaskRun");
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Accounts.Account", b =>
                 {
                     b.Navigation("Activities");
@@ -1533,6 +1600,11 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.Navigation("MarketData");
 
                     b.Navigation("StockSplits");
+                });
+
+            modelBuilder.Entity("GhostfolioSidekick.Model.Tasks.TaskRun", b =>
+                {
+                    b.Navigation("Logs");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Activities.ActivityWithQuantityAndUnitPrice", b =>
