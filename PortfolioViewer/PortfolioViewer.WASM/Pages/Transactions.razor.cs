@@ -4,6 +4,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
+using System.Web;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -38,12 +39,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private bool sortAscending;
 
 		// Pagination state
-		private int currentPage =1;
-		private int pageSize =25;
+		private int currentPage = 1;
+		private int pageSize = 25;
 		private int totalRecords;
-		private readonly List<int> pageSizeOptions = [10,25,50,100,250];
+		private readonly List<int> pageSizeOptions = [10, 25, 50, 100, 250];
 
 		private FilterState? _previousFilterState;
+		private bool _hasAppliedUrlParameters = false;
 
 		protected override Task OnInitializedAsync()
 		{
@@ -53,11 +55,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				FilterState.PropertyChanged += OnFilterStateChanged;
 			}
 
+			// Apply URL parameters on initial load
+			ApplyUrlParameters();
+
 			return Task.CompletedTask;
 		}
 
 		protected override Task OnParametersSetAsync()
 		{
+			// Apply URL parameters only once
+			if (!_hasAppliedUrlParameters)
+			{
+				ApplyUrlParameters();
+			}
+
 			// Check if filter state has changed
 			if (FilterState.IsEqual(_previousFilterState))
 			{
@@ -68,13 +79,68 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			return LoadTransactionDataAsync();
 		}
 
+		private void ApplyUrlParameters()
+		{
+			if (_hasAppliedUrlParameters || FilterState == null) return;
+
+			try
+			{
+				var uri = new Uri(Navigation.Uri);
+				var queryString = uri.Query;
+				
+				if (string.IsNullOrEmpty(queryString)) 
+				{
+					_hasAppliedUrlParameters = true;
+					return;
+				}
+
+				var queryParams = HttpUtility.ParseQueryString(queryString);
+
+				// Check for accountId parameter
+				var accountIdParam = queryParams["accountId"];
+				if (!string.IsNullOrEmpty(accountIdParam) && int.TryParse(accountIdParam, out var accountId) && accountId > 0)
+				{
+					FilterState.SelectedAccountId = accountId;
+				}
+
+				// Check for symbol parameter
+				var symbolParam = queryParams["symbol"];
+				if (!string.IsNullOrEmpty(symbolParam))
+				{
+					FilterState.SelectedSymbol = symbolParam;
+				}
+
+				// Check for type parameter
+				var typeParam = queryParams["type"];
+				if (!string.IsNullOrEmpty(typeParam))
+				{
+					FilterState.SelectedTransactionType = typeParam;
+				}
+
+				// Check for search parameter
+				var searchParam = queryParams["search"];
+				if (!string.IsNullOrEmpty(searchParam))
+				{
+					FilterState.SearchText = searchParam;
+				}
+
+				_hasAppliedUrlParameters = true;
+			}
+			catch (Exception ex)
+			{
+				// Log error but don't fail the page load
+				Console.WriteLine($"Error applying URL parameters: {ex.Message}");
+				_hasAppliedUrlParameters = true;
+			}
+		}
+
 		private async void OnFilterStateChanged(object? sender, PropertyChangedEventArgs e)
 		{
 			Console.WriteLine($"Transactions OnFilterStateChanged - Property: {e.PropertyName}");
 
 			await InvokeAsync(async () =>
 			{
-				currentPage =1; // Reset to first page when filters change
+				currentPage = 1; // Reset to first page when filters change
 				await LoadTransactionDataAsync();
 				StateHasChanged();
 			});
@@ -94,7 +160,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				currentResult = await LoadPaginatedTransactionDataAsync();
 				TransactionsList = currentResult?.Transactions ?? [];
-				totalRecords = currentResult?.TotalCount ??0;
+				totalRecords = currentResult?.TotalCount ?? 0;
 			}
 			catch (Exception ex)
 			{
@@ -122,7 +188,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				currentResult = await LoadPaginatedTransactionDataAsync();
 				TransactionsList = currentResult?.Transactions ?? [];
-				totalRecords = currentResult?.TotalCount ??0;
+				totalRecords = currentResult?.TotalCount ?? 0;
 			}
 			catch (Exception ex)
 			{
@@ -187,7 +253,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			if (newPageSize != pageSize)
 			{
 				pageSize = newPageSize;
-				currentPage =1; // Reset to first page when changing page size
+				currentPage = 1; // Reset to first page when changing page size
 				await LoadTransactionDataAsync(); // Reload with new page size
 			}
 		}
@@ -211,7 +277,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				sortAscending = true;
 			}
 
-			currentPage =1; // Reset to first page when sorting
+			currentPage = 1; // Reset to first page when sorting
 			await LoadTransactionDataAsync();
 		}
 

@@ -163,7 +163,9 @@
                                             {
                                                 <tr class="account-summary-row">
                                                     <td>
-                                                        <strong class="text-primary">@latest.AccountName</strong>
+                                                        <a href="/accounts/@latest.AccountId" class="text-decoration-none">
+                                                            <strong class="text-primary">@latest.AccountName</strong>
+                                                        </a>
                                                     </td>
                                                     <td class="text-end">
                                                         <strong>@CurrencyDisplay.DisplaySignAndAmount(@latest.Value)</strong>
@@ -351,7 +353,9 @@
                                                     <strong>@account.Date.ToString("yyyy-MM-dd")</strong>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-secondary">@account.AccountName</span>
+                                                    <a href="/accounts/@account.AccountId" class="text-decoration-none">
+                                                        <span class="badge bg-secondary">@account.AccountName</span>
+                                                    </a>
                                                 </td>
                                                 <td class="text-end">
                                                     <strong>@CurrencyDisplay.DisplaySignAndAmount(@account.Value)</strong>
