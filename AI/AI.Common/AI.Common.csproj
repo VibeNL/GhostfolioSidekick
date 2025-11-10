@@ -11,7 +11,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.10.2" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.10" />
-		<PackageReference Include="Microsoft.SemanticKernel" Version="1.67.0" />
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.67.1" />
 		<PackageReference Include="Microsoft.SemanticKernel.Agents.Abstractions" Version="1.67.0" />
 		<PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.67.0" />
 	</ItemGroup>
