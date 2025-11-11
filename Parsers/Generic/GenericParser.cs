@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Date,
 						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
 						record.Quantity,
-						unitPrice,
+						new Money(currency, unitPrice),
 						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
 						record.Id));
 					break;
@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						record.Date,
 						PartialSymbolIdentifier.CreateGeneric(record.Symbol, record.Name, record.ISIN),
 						record.Quantity,
-						unitPrice,
+						new Money(currency, unitPrice),
 						new Money(currency, Math.Abs(record.Quantity * record.UnitPrice)),
 						record.Id));
 					break;
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						currency,
 						record.Date,
 						record.Symbol!,
-						record.Quantity * record.UnitPrice,
+						new Money(currency, record.Quantity * record.UnitPrice),
 						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.Parsers.Generic
 						currency,
 						record.Date,
 						record.Symbol!,
-						record.Quantity * record.UnitPrice,
+						new Money(currency, record.Quantity * record.UnitPrice),
 						new Money(currency, record.Quantity * record.UnitPrice),
 						record.Id));
 					break;

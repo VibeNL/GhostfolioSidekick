@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						date,
 						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
 						record.Quantity,
-						record.Price!.Value,
+						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
 					break;
@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						date,
 						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
 						record.Quantity,
-						record.Price!.Value,
+						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
 					break;
@@ -79,10 +79,8 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						date,
 						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
 						record.Quantity,
-						record.Price,
 						[PartialSymbolIdentifier.CreateCrypto(parsedAsset)],
 						parseAmount,
-						null,
 						id);
 
 					foreach (var item in lst)
