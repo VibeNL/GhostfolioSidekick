@@ -347,6 +347,35 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 				]);
 		}
 
+		[Fact]
+		public async Task ConvertActivitiesForAccount_ETH2_Deprecation_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/retail_eth2_deprecation.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2025, 01, 21, 21, 32, 45, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						0.000001113544M,
+						new Money(Currency.EUR,3184.30887255M),
+						new Money(Currency.EUR,0.00355M),
+						"Sell_ETH2_2025-01-21 21:32:45:+00:00"),
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2025, 01, 21, 21, 32, 46, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						0.000001113544M,
+						new Money(Currency.EUR,3184.30887255M),
+						new Money(Currency.EUR,0.00355M),
+						"Buy_ETH_2025-01-21 21:32:46:+00:00")
+				]);
+		}
 
 		[Fact]
 		public async Task ConvertActivitiesForAccount_InvalidType_ThrowsException()
