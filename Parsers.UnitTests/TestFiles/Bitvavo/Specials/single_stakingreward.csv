@@ -1,2 +1,3 @@
-﻿Timezone,Date,Time,Type,Currency,Amount,Price (EUR),EUR received / paid,Fee currency,Fee amount,Status,Transaction ID,Address
-Europe/Amsterdam,2023-12-11,10:32:26,staking,AXS,0.00000272,,,,,Distributed,15895215-8c11-4497-8151-eb5e5701180e,
+﻿Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address
+Europe/Amsterdam,2023-12-11,10:32:26,staking,AXS,0.00000272,,,,,,,Distributed,f8f4d178-d9af-42a2-83c5-a6230e6102ce,
+
