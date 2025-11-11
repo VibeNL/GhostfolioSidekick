@@ -1,6 +1,6 @@
 
 Transactions
-User,Vincent Pascal Berkien,1d5ebcbd-f257-5d9c-9fc2-d433a527aa71
+User,MYNAME,1d5ebcbd-f257-5d9c-9fc2-d433a527aa71
 ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
 660f06c78a810e688190e4eb,2024-04-04 20:00:07 UTC,Retail Unstaking Transfer,ETH2,-0.00000061,EUR,€3104.2616559390651302605,-€0.00189,-€0.00189,€0.00,
 660f06c7337b9697fc87887f,2024-04-04 20:00:07 UTC,Retail Unstaking Transfer,ETH,0.00000061,EUR,€3104.542743477622319285,€0.00189,€0.00189,€0.00,
