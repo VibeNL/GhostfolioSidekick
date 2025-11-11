@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time,
 						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
 						record.NumberOfShares.GetValueOrDefault(),
-						record.Price.GetValueOrDefault(),
+						new Money(currency, record.Price.GetValueOrDefault()),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time,
 						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
 						record.NumberOfShares.GetValueOrDefault(),
-						record.Price.GetValueOrDefault(),
+						new Money(currency, record.Price.GetValueOrDefault()),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Time,
 						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Ticker, record.Name),
 						record.NumberOfShares.GetValueOrDefault(),
-						0,
+						new Money(currency, 0),
 						new Money(currencyTotal, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;

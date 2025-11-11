@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 						date,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
 						Math.Abs(record.Quantity.GetValueOrDefault()),
-						record.UnitPrice.GetValueOrDefault(),
+						new Money(currency, record.UnitPrice.GetValueOrDefault()),
 						new Money(currency, record.TotalPrice.GetValueOrDefault()),
 						record.Reference)],
 				"Kauf" => [PartialActivity.CreateBuy(
@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 						date,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
 						Math.Abs(record.Quantity.GetValueOrDefault()),
-						record.UnitPrice.GetValueOrDefault(),
+						new Money(currency, record.UnitPrice.GetValueOrDefault()),
 						new Money(currency, record.TotalPrice.GetValueOrDefault()),
 						record.Reference)],
 				_ => throw new NotSupportedException(),

@@ -21,13 +21,33 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 			{
 				case "Buy":
 				case "Savings plan":
-					yield return PartialActivity.CreateBuy(currency, dateTime, [PartialSymbolIdentifier.CreateStockAndETF(record.Isin)], record.Shares!.Value, record.Price!.Value, new Money(currency, Math.Abs(record.Amount)), record.Reference);
+					yield return PartialActivity.CreateBuy(
+						currency,
+						dateTime,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+						record.Shares!.Value,
+						new Money(currency, record.Price!.Value),
+						new Money(currency, Math.Abs(record.Amount)),
+						record.Reference);
 					break;
 				case "Sell":
-					yield return PartialActivity.CreateSell(currency, dateTime, [PartialSymbolIdentifier.CreateStockAndETF(record.Isin)], record.Shares!.Value, record.Price!.Value, new Money(currency, Math.Abs(record.Amount)), record.Reference);
+					yield return PartialActivity.CreateSell(
+						currency,
+						dateTime, 
+						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+						record.Shares!.Value,
+						new Money(currency, record.Price!.Value),
+						new Money(currency, Math.Abs(record.Amount)),
+						record.Reference);
 					break;
 				case "Distribution":
-					yield return PartialActivity.CreateDividend(currency, dateTime, [PartialSymbolIdentifier.CreateStockAndETF(record.Isin)], Math.Abs(record.Amount), new Money(currency, Math.Abs(record.Amount)), record.Reference);
+					yield return PartialActivity.CreateDividend(
+						currency, 
+						dateTime,
+						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
+						Math.Abs(record.Amount),
+						new Money(currency, Math.Abs(record.Amount)),
+						record.Reference);
 					break;
 				case "Deposit":
 					yield return PartialActivity.CreateCashDeposit(currency, dateTime, Math.Abs(record.Amount), new Money(currency, Math.Abs(record.Amount)), record.Reference);
