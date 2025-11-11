@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
             var normalized = text.Normalize(NormalizationForm.FormKC);
             // Remove all non-digit, non-decimal, non-minus characters
             var cleaned = MyRegex().Replace(normalized, "");
-            // Replace comma with dot if comma is used as decimal separator
+
             if (decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var value))
             {
                 return value;
