@@ -40,6 +40,15 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						id);
 					break;
 				case string when record.Type.Equals("Retail Eth2 Deprecation") && record.Quantity < 0:
+					yield return PartialActivity.CreateSell(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+						record.Quantity * -1,
+						new Money(currency, record.Price!.Value),
+						new Money(currency, record.TotalTransactionAmount!.Value).Times(-1),
+						id);
+					break;
 				case string when record.Type.Contains("Sell", StringComparison.InvariantCultureIgnoreCase):
 					yield return PartialActivity.CreateSell(
 						currency,

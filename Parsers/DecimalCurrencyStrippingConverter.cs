@@ -2,6 +2,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GhostfolioSidekick.Parsers.Coinbase
@@ -15,8 +16,13 @@ namespace GhostfolioSidekick.Parsers.Coinbase
                 return null;
             }
 
-            // Remove currency symbols and whitespace
-            var cleaned = MyRegex().Replace(text, "");
+            // Normalize Unicode to ensure symbols are recognized
+            var normalized = text.Normalize(NormalizationForm.FormKC);
+            // Remove all non-digit, non-decimal, non-minus characters
+            var cleaned = Regex.Replace(normalized, "[^0-9.,\\-]+", "");
+            // Replace comma with dot if comma is used as decimal separator
+            if (cleaned.Contains(',') && !cleaned.Contains('.'))
+                cleaned = cleaned.Replace(',', '.');
             if (decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var value))
             {
                 return value;

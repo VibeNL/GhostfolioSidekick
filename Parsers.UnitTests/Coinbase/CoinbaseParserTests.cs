@@ -365,7 +365,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						0.000001113544M,
 						new Money(Currency.EUR,3184.30887255M),
 						new Money(Currency.EUR,0.00355M),
-						"Sell_ETH2_2025-01-21 21:32:45:+00:00"),
+						"6790127d6c31887f25ab4567"),
 					PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2025, 01, 21, 21, 32, 46, DateTimeKind.Utc),
@@ -373,7 +373,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						0.000001113544M,
 						new Money(Currency.EUR,3184.30887255M),
 						new Money(Currency.EUR,0.00355M),
-						"Buy_ETH_2025-01-21 21:32:46:+00:00")
+						"6790127e539873adcdc70581")
 				]);
 		}
 
