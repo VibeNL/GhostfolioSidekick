@@ -58,8 +58,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			var accountHistory = new List<AccountValueHistoryPoint>
 			{
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today.AddDays(-30)),
 					AccountId = 1,
 					TotalValue = new Money(Currency.EUR, 9000),
@@ -67,8 +66,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 					TotalInvested = new Money(Currency.EUR, 7000),
 					CashBalance = new Money(Currency.EUR, 1500)
 				},
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today),
 					AccountId = 1,
 					TotalValue = new Money(Currency.EUR, 10000),
@@ -80,8 +78,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			var transactions = new List<TransactionDisplayModel>
 			{
-				new TransactionDisplayModel
-				{
+				new() {
 					Id = 1,
 					Date = DateTime.Today.AddDays(-20),
 					Type = "Buy",
@@ -94,8 +91,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 					UnitPrice = new Money(Currency.USD, 150),
 					TotalValue = new Money(Currency.USD, 1500)
 				},
-				new TransactionDisplayModel
-				{
+				new() {
 					Id = 2,
 					Date = DateTime.Today.AddDays(-10),
 					Type = "Dividend",
@@ -163,8 +159,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var testAccount = new Account("Test Account") { Id = 1 };
 			var accountHistory = new List<AccountValueHistoryPoint>
 			{
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today),
 					AccountId = 1,
 					TotalValue = new Money(currency, 5000),
@@ -176,10 +171,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			SetupMocks(testAccount, accountHistory, new PaginatedTransactionResult
 			{
-				Transactions = new List<TransactionDisplayModel>(),
+				Transactions = [],
 				TotalCount = 0,
-				TransactionTypeBreakdown = new Dictionary<string, int>(),
-				AccountBreakdown = new Dictionary<string, int>()
+				TransactionTypeBreakdown = [],
+				AccountBreakdown = []
 			});
 
 			// Act
@@ -207,8 +202,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			var accountHistory = new List<AccountValueHistoryPoint>
 			{
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today),
 					AccountId = 1,
 					TotalValue = new Money(Currency.EUR, 5000),
@@ -220,10 +214,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			SetupMocks(testAccount, accountHistory, new PaginatedTransactionResult
 			{
-				Transactions = new List<TransactionDisplayModel>(),
+				Transactions = [],
 				TotalCount = 0,
-				TransactionTypeBreakdown = new Dictionary<string, int>(),
-				AccountBreakdown = new Dictionary<string, int>()
+				TransactionTypeBreakdown = [],
+				AccountBreakdown = []
 			});
 
 			// Act
@@ -251,12 +245,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			// Arrange - Empty data scenario
 			var testAccount = new Account("Empty Account") { Id = 1 };
 
-			SetupMocks(testAccount, new List<AccountValueHistoryPoint>(), new PaginatedTransactionResult
+			SetupMocks(testAccount, [], new PaginatedTransactionResult
 			{
-				Transactions = new List<TransactionDisplayModel>(),
+				Transactions = [],
 				TotalCount = 0,
-				TransactionTypeBreakdown = new Dictionary<string, int>(),
-				AccountBreakdown = new Dictionary<string, int>()
+				TransactionTypeBreakdown = [],
+				AccountBreakdown = []
 			});
 
 			// Act
@@ -305,7 +299,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			var paginatedResult = new PaginatedTransactionResult
 			{
-				Transactions = transactions.Take(20).ToList(), // Simulate pagination
+				Transactions = [.. transactions.Take(20)], // Simulate pagination
 				TotalCount = transactions.Count,
 				TransactionTypeBreakdown = new Dictionary<string, int>
 				{
@@ -344,8 +338,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var filterState = new FilterState();
 			var accountHistory = new List<AccountValueHistoryPoint>
 			{
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today),
 					AccountId = 1,
 					TotalValue = new Money(Currency.EUR, 5000),
@@ -357,10 +350,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			SetupMocks(testAccount, accountHistory, new PaginatedTransactionResult
 			{
-				Transactions = new List<TransactionDisplayModel>(),
+				Transactions = [],
 				TotalCount = 0,
-				TransactionTypeBreakdown = new Dictionary<string, int>(),
-				AccountBreakdown = new Dictionary<string, int>()
+				TransactionTypeBreakdown = [],
+				AccountBreakdown = []
 			});
 
 			// Act
@@ -384,7 +377,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var testAccount = new Account("Null Data Account") { Id = 1 };
 
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
-				.ReturnsAsync(new List<Account> { testAccount });
+				.ReturnsAsync([testAccount]);
 
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync((List<AccountValueHistoryPoint>?)null);
@@ -392,10 +385,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new PaginatedTransactionResult
 				{
-					Transactions = new List<TransactionDisplayModel>(),
+					Transactions = [],
 					TotalCount = 0,
-					TransactionTypeBreakdown = new Dictionary<string, int>(),
-					AccountBreakdown = new Dictionary<string, int>()
+					TransactionTypeBreakdown = [],
+					AccountBreakdown = []
 				});
 
 			// Act
@@ -407,7 +400,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			component.Markup.Should().Contain("Account Not Found");
 		}
 
-		private async Task WaitForComponentToFinishLoading(IRenderedComponent<AccountDetail> component, string? containsText = null, int maxWaitMs = 2000)
+		private static async Task WaitForComponentToFinishLoading(IRenderedComponent<AccountDetail> component, string? containsText = null, int maxWaitMs = 2000)
 		{
 			var startTime = DateTime.UtcNow;
 			var waitInterval = 50;
@@ -444,7 +437,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		private void SetupMocks(Account account, List<AccountValueHistoryPoint> history, PaginatedTransactionResult transactionResult)
 		{
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
-				.ReturnsAsync(new List<Account> { account });
+				.ReturnsAsync([account]);
 
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(history);

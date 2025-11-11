@@ -61,9 +61,9 @@ namespace GhostfolioSidekick.AI.Functions.UnitTests
 
 			var searchResults = new List<WebResult>
 			{
-				new WebResult { Content = "<b>Result1</b> &amp; info" },
-				new WebResult { Content = "<i>Result2</i>" },
-				new WebResult { Content = "Result3" }
+				new() { Content = "<b>Result1</b> &amp; info" },
+				new() { Content = "<i>Result2</i>" },
+				new() { Content = "Result3" }
 			};
 			searchServiceMock.Setup(s => s.SearchAsync(It.IsAny<string>()))
 				.ReturnsAsync(searchResults);

@@ -62,10 +62,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		{
 			// Arrange
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
-				.ReturnsAsync(new List<Account>());
+				.ReturnsAsync([]);
 
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(new List<AccountValueHistoryPoint>());
+				.ReturnsAsync([]);
 
 			SetupBasicTransactionService();
 
@@ -91,8 +91,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			var accountHistory = new List<AccountValueHistoryPoint>
 			{
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today),
 					AccountId = 1,
 					TotalValue = new Money(Currency.EUR, 10000),
@@ -102,7 +101,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				}
 			};
 
-			SetupAccountMocks(new List<Account> { testAccount }, accountHistory);
+			SetupAccountMocks([testAccount], accountHistory);
 
 			// Act
 			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
@@ -125,8 +124,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			var accountHistory = new List<AccountValueHistoryPoint>
 			{
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today),
 					AccountId = 1,
 					TotalValue = new Money(Currency.EUR, 10000),
@@ -138,8 +136,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			var transactions = new List<TransactionDisplayModel>
 			{
-				new TransactionDisplayModel
-				{
+				new() {
 					Id = 1,
 					Date = DateTime.Today,
 					Type = "Buy",
@@ -159,7 +156,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				AccountBreakdown = new Dictionary<string, int> { { "Test Account", 1 } }
 			};
 
-			SetupAccountMocks(new List<Account> { testAccount }, accountHistory);
+			SetupAccountMocks([testAccount], accountHistory);
 			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(paginatedResult);
 
@@ -293,8 +290,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var testAccount = new Account("Test Account") { Id = 1 };
 			var accountHistory = new List<AccountValueHistoryPoint>
 			{
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today),
 					AccountId = 1,
 					TotalValue = new Money(Currency.EUR, 10000),
@@ -304,7 +300,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				}
 			};
 
-			SetupAccountMocks(new List<Account> { testAccount }, accountHistory);
+			SetupAccountMocks([testAccount], accountHistory);
 
 			var filterState = new FilterState();
 			
@@ -383,8 +379,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var testAccount = new Account("Test Account") { Id = 1 };
 			var accountHistory = new List<AccountValueHistoryPoint>
 			{
-				new AccountValueHistoryPoint
-				{
+				new() {
 					Date = DateOnly.FromDateTime(DateTime.Today),
 					AccountId = 1,
 					TotalValue = new Money(Currency.EUR, 10000),
@@ -395,7 +390,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			};
 
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
-				.ReturnsAsync(new List<Account> { testAccount });
+				.ReturnsAsync([testAccount]);
 
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(accountHistory);
@@ -420,10 +415,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var validAccount = new Account("Valid Account") { Id = 1 };
 
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
-				.ReturnsAsync(new List<Account> { validAccount });
+				.ReturnsAsync([validAccount]);
 
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(new List<AccountValueHistoryPoint>());
+				.ReturnsAsync([]);
 
 			SetupBasicTransactionService();
 
@@ -445,10 +440,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var testAccount = new Account("Test Account") { Id = 1 };
 
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
-				.ReturnsAsync(new List<Account> { testAccount });
+				.ReturnsAsync([testAccount]);
 
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(new List<AccountValueHistoryPoint>()); // No history data
+				.ReturnsAsync([]); // No history data
 
 			SetupBasicTransactionService();
 
@@ -500,10 +495,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		private void SetupBasicMocks()
 		{
 			_mockAccountDataService.Setup(x => x.GetAccountInfo())
-				.ReturnsAsync(new List<Account>());
+				.ReturnsAsync([]);
 
 			_mockAccountDataService.Setup(x => x.GetAccountValueHistoryAsync(It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
-				.ReturnsAsync(new List<AccountValueHistoryPoint>());
+				.ReturnsAsync([]);
 
 			SetupBasicTransactionService();
 		}
@@ -513,10 +508,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			_mockTransactionService.Setup(x => x.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), It.IsAny<CancellationToken>()))
 				.ReturnsAsync(new PaginatedTransactionResult
 				{
-					Transactions = new List<TransactionDisplayModel>(),
+					Transactions = [],
 					TotalCount = 0,
-					TransactionTypeBreakdown = new Dictionary<string, int>(),
-					AccountBreakdown = new Dictionary<string, int>()
+					TransactionTypeBreakdown = [],
+					AccountBreakdown = []
 				});
 		}
 

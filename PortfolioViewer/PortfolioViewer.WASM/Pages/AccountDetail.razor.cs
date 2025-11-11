@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				) ?? [];
 
 				// Filter to this specific account
-				AccountHistory = allAccountHistory.Where(h => h.AccountId == AccountId).ToList();
+				AccountHistory = [.. allAccountHistory.Where(h => h.AccountId == AccountId)];
 
 				await PrepareAccountDisplayData();
 				await PrepareChartData();
