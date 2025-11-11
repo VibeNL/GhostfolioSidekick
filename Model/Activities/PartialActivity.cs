@@ -39,7 +39,7 @@
 
 		public ICollection<PartialSymbolIdentifier> SymbolIdentifiers { get; private set; }
 
-		public decimal? UnitPrice { get; private set; } = 1;
+		public Money? UnitPrice { get; private set; }
 
 		public int? SortingPriority { get; private set; }
 
@@ -161,7 +161,7 @@
 			DateTime date,
 			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
 			decimal amount,
-			decimal unitPrice,
+			Money unitPrice,
 			Money totalTransactionAmount,
 			string transactionId)
 		{
@@ -178,7 +178,7 @@
 			DateTime date,
 			PartialSymbolIdentifier[] symbolIdentifiers,
 			decimal amount,
-			decimal unitPrice,
+			Money unitPrice,
 			Money totalTransactionAmount,
 			string transactionId)
 		{
@@ -202,7 +202,7 @@
 			{
 				SymbolIdentifiers = symbolIdentifiers,
 				Amount = amount,
-				UnitPrice = 1,
+				UnitPrice = new Money(currency, 1),
 				TotalTransactionAmount = new Money(currency, amount)
 			};
 		}
@@ -263,15 +263,12 @@
 			};
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "TODO")]
 		public static IEnumerable<PartialActivity> CreateAssetConvert(
 			DateTime date,
 			ICollection<PartialSymbolIdentifier> source,
 			decimal sourceAmount,
-			decimal? sourceUnitprice,
 			ICollection<PartialSymbolIdentifier> target,
 			decimal targetAmount,
-			decimal? targetUnitprice,
 			string transactionId)
 		{
 			yield return new PartialActivity(PartialActivityType.Send, date, Currency.USD, new Money(Currency.USD, 0), transactionId + "[AssetConvertSource]")
@@ -290,7 +287,7 @@
 			Currency currency,
 			DateTime date,
 			string description,
-			decimal value,
+			Money value,
 			Money totalTransactionAmount,
 			string transactionId)
 		{
@@ -306,7 +303,7 @@
 			Currency currency,
 			DateTime date,
 			string description,
-			decimal value,
+			Money value,
 			Money totalTransactionAmount,
 			string transactionId)
 		{
@@ -322,7 +319,7 @@
 			Currency currency,
 			DateTime date,
 			ICollection<PartialSymbolIdentifier> symbolIdentifiers,
-			decimal unitPrice,
+			Money unitPrice,
 			Money totalTransactionAmount,
 			string transactionId)
 		{

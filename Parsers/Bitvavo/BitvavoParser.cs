@@ -42,8 +42,8 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						dateTime,
 						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
 						Math.Abs(record.Amount),
-						record.Price!.Value,
-						new Money(Currency.EUR, Math.Abs(record.TotalTransactionAmount!.Value)),
+						new Money(record.UnitCurrency, record.UnitPrice!.Value),
+						new Money(record.TotalTransactionCurrency, Math.Abs(record.TotalTransactionAmount!.Value)),
 						record.Transaction);
 				case "sell":
 					return PartialActivity.CreateSell(
@@ -51,8 +51,8 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						dateTime,
 						[PartialSymbolIdentifier.CreateCrypto(record.Currency!)],
 						Math.Abs(record.Amount),
-						record.Price!.Value,
-						new Money(Currency.EUR, Math.Abs(record.TotalTransactionAmount!.Value)),
+						new Money(record.UnitCurrency, record.UnitPrice!.Value),
+						new Money(record.TotalTransactionCurrency, Math.Abs(record.TotalTransactionAmount!.Value)),
 						record.Transaction);
 				case "staking":
 					return PartialActivity.CreateStakingReward(

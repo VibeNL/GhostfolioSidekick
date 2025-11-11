@@ -20,10 +20,16 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 
 		public decimal Amount { get; set; }
 
-		[Name("Price (EUR)")]
-		public decimal? Price { get; set; }
+		[Name("Quote Currency")]
+		public required string UnitCurrency { get; set; }
 
-		[Name("EUR received / paid")]
+		[Name("Quote Price")]
+		public decimal? UnitPrice { get; set; }
+
+		[Name("Received / Paid Currency")]
+		public required string TotalTransactionCurrency { get; set; }
+
+		[Name("Received / Paid Amount")]
 		public decimal? TotalTransactionAmount { get; set; }
 
 		[Name("Fee currency")]

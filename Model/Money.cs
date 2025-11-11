@@ -22,6 +22,12 @@ namespace GhostfolioSidekick.Model
 			Currency = currency;
 		}
 
+		public Money(string currency, decimal amount)
+		{
+			Amount = amount;
+			Currency = Currency.GetCurrency(currency);
+		}
+
 		public Money Times(decimal amount)
 		{
 			return new Money(Currency, Amount * amount);
