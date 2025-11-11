@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
             throw new TypeConverterException(this, memberMapData, text, row.Context, $"Cannot convert '{text}' to decimal.");
         }
 
-		[GeneratedRegex("[^0-9.,\\-]+", RegexOptions.Compiled, 30000)]
+		[GeneratedRegex("[^0-9.,-]+", RegexOptions.Compiled, 30000)]
 		private static partial Regex MyRegex();
 	}
 }
