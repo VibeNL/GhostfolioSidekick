@@ -291,6 +291,25 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStakeReward_Alternative_2025_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward_alt_2025.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2025, 11, 08, 20, 22, 48, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						0.001588522705M,
+						"690fa6983c920d2d896b469b")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleGift_Converted()
 		{
 			// Arrange
@@ -308,6 +327,26 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						"Learning Reward_GRT_2023-04-20 06:02:33:+00:00")
 				]);
 		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleGift_2025_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_learningreward_2025.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						new DateTime(2025, 03, 26, 20, 52, 58, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ZETACHAIN")],
+						2.8530670470756063M,
+						"67e4692afcea853e96a80ab9")
+				]);
+		}
+
 
 		[Fact]
 		public async Task ConvertActivitiesForAccount_InvalidType_ThrowsException()

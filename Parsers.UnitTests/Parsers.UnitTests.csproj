@@ -155,11 +155,17 @@
 		<None Update="TestFiles\Coinbase\Send\single_send.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Coinbase\Specials\single_learningreward_2025.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Coinbase\Specials\single_learningreward.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Coinbase\Specials\single_stakereward.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\Coinbase\Specials\single_stakereward_alt_2025.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Coinbase\Specials\single_stakereward_alt.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
