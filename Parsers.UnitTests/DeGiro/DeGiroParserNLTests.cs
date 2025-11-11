@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
-						77.30M,
+						new Money(Currency.EUR, 77.30M),
 						new Money(Currency.EUR, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(
@@ -153,7 +153,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
-						77.30M,
+						new Money(Currency.EUR, 77.30M),
 						new Money(Currency.EUR, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(
@@ -191,7 +191,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
-						77M,
+						new Money(Currency.EUR, 77M),
 						new Money(Currency.EUR, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(
@@ -229,7 +229,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
-						77.3M,
+						new Money(Currency.USD, 77.3M),
 						new Money(Currency.USD, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(
@@ -267,7 +267,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
-						77.3M,
+						new Money(Currency.EUR, 77.3M),
 						new Money(Currency.EUR, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(
@@ -305,7 +305,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
-						77.3M,
+						new Money(Currency.USD, 77.3M),
 						new Money(Currency.USD, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(
@@ -348,7 +348,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("NL0011794037", "AHOLD DELHAIZE"),
 						34,
-						26.88M,
+						new Money(Currency.EUR, 26.88M),
 						new Money(Currency.EUR, 913.92M),
 						"35d4345a-467c-42bd-848c-f6087737dd36"),
 					PartialActivity.CreateBuy(
@@ -356,7 +356,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 11, 10, 17, 10, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("NL0011794037", "AHOLD DELHAIZE"),
 						4,
-						26.88M,
+						new Money(Currency.EUR, 26.88M),
 						new Money(Currency.EUR, 107.52M),
 						"35d4345a-467c-42bd-848c-f6087737dd36"),
 					PartialActivity.CreateFee(

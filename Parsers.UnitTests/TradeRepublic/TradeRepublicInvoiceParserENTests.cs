@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
 						99m,
-						0.9939m,
+						new Money(Currency.EUR, 0.9939m),
 						new Money(Currency.EUR, 98.40m),
 						"Trade_Republic_DE0001102333_2023-10-06"),
 				 PartialActivity.CreateFee(
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
 						0.3247m,
-						77.39m,
+						new Money(Currency.EUR, 77.39m),
 						new Money(Currency.EUR, 25.13m),
 						"Trade_Republic_US2546871060_2023-10-06")
 				]);
@@ -111,7 +111,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2023, 12, 18, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
 						0.058377m,
-						85.65m,
+						new Money(Currency.EUR, 85.65m),
 						new Money(Currency.EUR, 5m),
 						"Trade_Republic_US2546871060_2023-12-18")
 				]);
@@ -193,9 +193,137 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						Currency.EUR,
 						new DateTime(2024, 02, 14, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
-						99.47m,
+						new Money(Currency.EUR, 99.47m),
 						new Money(Currency.EUR, 99.47m),
 						"Trade_Republic_DE0001102333_2024-02-14")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFilesBulk_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var files = Directory.GetFiles("./TestFiles/TradeRepublic/EN/BuyOrders", "*.pdf", SearchOption.AllDirectories)
+				.Union(Directory.GetFiles("./TestFiles/TradeRepublic/EN/CashTransactions", "*.pdf", SearchOption.AllDirectories));
+
+			// Act
+			foreach (var file in files)
+			{
+				await parser.ParseActivities(file, activityManager, account.Name);
+			}
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
+						99m,
+						new Money(Currency.EUR, 0.9939m),
+						new Money(Currency.EUR, 98.40m),
+						"Trade_Republic_DE0001102333_2023-10-06"),
+				 PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						1.12m,
+						new Money(Currency.EUR, 1.12m),
+						"Trade_Republic_DE0001102333_2023-10-06"),
+				 PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						1m,
+						new Money(Currency.EUR, 1m),
+						"Trade_Republic_DE0001102333_2023-10-06"),
+				 PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
+						0.3247m,
+						new Money(Currency.EUR, 77.39m),
+						new Money(Currency.EUR, 25.13m),
+						"Trade_Republic_US2546871060_2023-10-06"),
+				 PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2023, 12, 18, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
+						0.058377m,
+						new Money(Currency.EUR, 85.65m),
+						new Money(Currency.EUR, 5m),
+						"Trade_Republic_US2546871060_2023-12-18"),
+				 PartialActivity.CreateDividend(
+						Currency.USD,
+						new DateTime(2024, 01, 09, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
+						0.1m,
+						new Money(Currency.USD, 0.1m),
+						"Trade_Republic_US2546871060_2024-01-09"),
+				 PartialActivity.CreateFee(
+						Currency.USD,
+						new DateTime(2024, 01, 09, 0, 0, 0, DateTimeKind.Utc),
+						0.02m,
+						new Money(Currency.USD, 0.02m),
+						"Trade_Republic_US2546871060_2024-01-09"),
+				 PartialActivity.CreateDividend(
+						Currency.EUR,
+						new DateTime(2024, 02, 15, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
+						1.74m,
+						new Money(Currency.EUR, 1.74m),
+						"Trade_Republic_DE0001102333_2024-02-15"),
+				 PartialActivity.CreateBondRepay(
+						Currency.EUR,
+						new DateTime(2024, 02, 14, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
+						new Money(Currency.EUR, 99.47m),
+						new Money(Currency.EUR, 99.47m),
+						"Trade_Republic_DE0001102333_2024-02-14"),
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileMultipleEntries_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/BuyOrders/multiple_entries.pdf", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2024, 06, 03, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
+						99m,
+						new Money(Currency.EUR, 0.99345m),
+						new Money(Currency.EUR, 98.35m),
+						"Trade_Republic_DE0001104909_2024-06-03"),
+				 PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2025, 01, 30, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US4581401001")],
+						133,
+						new Money(Currency.EUR, 18.702m),
+						new Money(Currency.EUR, 2487.37m),
+						"Trade_Republic_US4581401001_2025-01-30"),
+				 PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2025, 03, 12, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US02079K3059")],
+						3,
+						new Money(Currency.EUR, 152.44M),
+						new Money(Currency.EUR, 457.32M),
+						"Trade_Republic_US02079K3059_2025-03-12"),
+				 PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2025, 02, 03, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("IE00B5BMR087")],
+						0.081275m,
+						new Money(Currency.EUR, 615.19m),
+						new Money(Currency.EUR, 50m),
+						"Trade_Republic_IE00B5BMR087_2025-02-03"),
 				]);
 		}
 	}

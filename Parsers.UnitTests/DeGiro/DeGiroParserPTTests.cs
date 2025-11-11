@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
-						77.30M,
+						new Money(Currency.EUR, 77.30M),
 						new Money(Currency.EUR, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(
@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("AU000000GBP6", "GLOBAL PETROLEUM LTD"),
 						1,
-						235M,
+						new Money(Currency.GBX, 235M),
 						new Money(Currency.GBP, 49.35M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 				]);
@@ -130,7 +130,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 						new DateTime(2023, 07, 6, 9, 39, 0, DateTimeKind.Utc),
 						PartialSymbolIdentifier.CreateStockAndETF("IE00B3XXRP09", "VANGUARD S&P500"),
 						1,
-						77.3M,
+						new Money(Currency.EUR, 77.3M),
 						new Money(Currency.EUR, 77.3M),
 						"b7ab0494-1b46-4e2f-9bd2-f79e6c87cb5a"),
 					PartialActivity.CreateFee(

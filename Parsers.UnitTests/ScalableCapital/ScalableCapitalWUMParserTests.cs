@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 						new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")],
 						5,
-						8.685M,
+						new Money(Currency.EUR, 8.685M),
 						new Money(Currency.EUR, 43.43M),
 						"SCALQbWiZnN9DtQ")
 				]);
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 						new DateTime(2023, 8, 3, 14, 43, 17, 650, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("IE00077FRP95")],
 						5,
-						8.685M,
+						new Money(Currency.EUR, 8.685M),
 						new Money(Currency.EUR, 43.43M),
 						"SCALQbWiZnN9DtQ")
 				]);

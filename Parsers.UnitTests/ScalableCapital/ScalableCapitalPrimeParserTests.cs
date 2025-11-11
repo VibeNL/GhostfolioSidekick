@@ -61,8 +61,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 						new DateTime(2021,11,20, 2,0,0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("US5949181045")],
 						2,
-						227.85M,
-						new Money(Currency.EUR, 455.7M),
+						new Money(Currency.EUR,227.85M),
+						new Money(Currency.EUR,455.7M),
 						"abcde")
 				]);
 		}
@@ -83,8 +83,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 						new DateTime(2023, 06, 11, 11, 29, 06, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("IE00BJ0KDQ92")],
 						4.981M,
-						100.38M,
-						new Money(Currency.EUR, 499.99278M),
+						new Money(Currency.EUR,100.38M),
+						new Money(Currency.EUR,499.99278M),
 						"abcde")
 				]);
 		}
@@ -111,8 +111,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 						new DateTime(2021, 11, 20, 02, 00, 00, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("US5949181045")],
 						2,
-						227.85M,
-						new Money(Currency.EUR, 455.7M),
+						new Money(Currency.EUR,227.85M),
+						new Money(Currency.EUR,455.7M),
 						"abcde")
 				]);
 		}
@@ -218,8 +218,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.ScalableCapital
 						new DateTime(2021,11,20, 2,0,0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("US5949181045")],
 						2,
-						227.85M,
-						new Money(Currency.EUR, 455.7M),
+						new Money(Currency.EUR,227.85M),
+						new Money(Currency.EUR,455.7M),
 						"abcde")
 				]);
 		}

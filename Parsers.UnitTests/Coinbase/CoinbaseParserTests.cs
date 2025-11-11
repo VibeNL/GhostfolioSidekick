@@ -95,8 +95,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
 						0.00213232M,
-						1810.23M,
-						new Money(Currency.EUR, 4.85M),
+						new Money(Currency.EUR,1810.23M),
+						new Money(Currency.EUR,4.85M),
 						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -123,8 +123,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
 						0.00213232M,
-						1810.23M,
-						new Money(Currency.EUR, 4.85M),
+						new Money(Currency.EUR,1810.23M),
+						new Money(Currency.EUR,4.85M),
 						"6637ac0d7724c7009596c364"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -151,8 +151,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2024, 03, 18, 11, 49, 37, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("BTC")],
 						0.564634M,
-						100000.58M,
-						new Money(Currency.EUR, 54321231.60M),
+						new Money(Currency.EUR,100000.58M),
+						new Money(Currency.EUR,54321231.60M),
 						"Advance Trade Buy_BTC_2024-03-18 11:49:37:+00:00"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -176,10 +176,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
 						0.00087766M,
-						1709.09M,
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						1.629352M,
-						null,
 						"Convert_ETH_2023-04-20 04:05:40:+00:00").ToArray();
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
@@ -210,8 +208,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 07, 14, 10, 40, 14, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						11.275271M,
-						0.886900M,
-						new Money(Currency.EUR, 10),
+						new Money(Currency.EUR,0.886900M),
+						new Money(Currency.EUR,10),
 						"Sell_USDC_2023-07-14 10:40:14:+00:00")
 				]);
 		}

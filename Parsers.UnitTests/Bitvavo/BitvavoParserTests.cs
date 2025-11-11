@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						new DateTime(2023, 12, 13, 14, 39, 02, 473, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("STORJ")],
 						34.75825253M,
-						0.71746M,
+						new Money(Currency.EUR, 0.71746M),
 						new Money(Currency.EUR, 25),
 						"16eed6ae-65f9-4a9d-8f19-bd66a75fc745"),
 					PartialActivity.CreateFee(
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						new DateTime(2023, 12, 13, 14, 45, 51, 803, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ADA")],
 						45.802549M,
-						0.56714M,
+						new Money(Currency.EUR, 0.56714M),
 						new Money(Currency.EUR, 25.93M),
 						"14ae873a-4fce-4a12-ba0f-387522c67d46"),
 					PartialActivity.CreateFee(
