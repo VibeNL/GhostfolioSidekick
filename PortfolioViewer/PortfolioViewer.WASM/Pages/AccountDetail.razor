@@ -1,0 +1,489 @@
+@page "/accounts/{accountId:int}"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.Model
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components
+@using GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.ITestContextService TestContextService
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+<PageTitle>Account Details - @AccountName</PageTitle>
+
+<div class="container-fluid">
+
+    @if (IsLoading)
+    {
+        <!-- Loading State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="text-muted">Loading Account Details...</h5>
+                        <p class="text-muted mb-0">Please wait while we fetch your account information.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <!-- Error State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Error Loading Data</h4>
+                    <p>@ErrorMessage</p>
+                    <hr>
+                    <button class="btn btn-primary" @onclick="GoBackToAccounts">
+                        <i class="bi bi-arrow-left"></i> Back to Accounts
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Account == null || !AccountHistory.Any())
+    {
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-bank text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="text-muted mt-3">Account Not Found</h5>
+                        <p class="text-muted mb-3">The requested account could not be found or has no data.</p>
+                        <button class="btn btn-primary" @onclick="GoBackToAccounts">
+                            <i class="bi bi-arrow-left"></i> Back to Accounts
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Breadcrumb Navigation -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/accounts" class="text-decoration-none">
+                                <i class="bi bi-bank me-1"></i>Accounts
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">@AccountName</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Account Overview Card -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-primary shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="card-title mb-0">
+                                <i class="bi bi-bank2 me-2"></i>@AccountName
+                            </h4>
+                            <div class="badge bg-light text-dark fs-6">
+                                Account ID: @AccountId
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Account.Comment))
+                        {
+                            <p class="mb-0 mt-2 text-white-50">
+                                <i class="bi bi-chat-left-text me-1"></i>@Account.Comment
+                            </p>
+                        }
+                        @if (Account.Platform != null)
+                        {
+                            <p class="mb-0 mt-1">
+                                <i class="bi bi-building me-1"></i>
+                                <span class="badge bg-secondary">@Account.Platform.Name</span>
+                            </p>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-3">
+                                <div class="text-center p-3 rounded bg-light">
+                                    <div class="h2 text-primary mb-1">@CurrencyDisplay.DisplaySignAndAmount(@CurrentTotalValue)</div>
+                                    <div class="text-muted">Current Total Value</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 rounded bg-light">
+                                    <div class="h4 text-info mb-1">@CurrencyDisplay.DisplaySignAndAmount(@CurrentAssetValue)</div>
+                                    <div class="text-muted">Asset Holdings</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 rounded bg-light">
+                                    <div class="h4 text-success mb-1">@CurrencyDisplay.DisplaySignAndAmount(@CurrentCashBalance)</div>
+                                    <div class="text-muted">Cash Available</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center p-3 rounded bg-light">
+                                    <div class="h4 @(CurrentGainLoss.Amount >= 0 ? "text-success" : "text-danger") mb-1">
+                                        @CurrencyDisplay.DisplaySignAndAmount(@CurrentGainLoss)
+                                    </div>
+                                    <div class="text-muted">
+                                        Gain/Loss
+                                        <span class="@(CurrentGainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                            (@CurrentGainLossPercentage.ToString("P2"))
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Value History Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-graph-up me-2"></i>Account Value History
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn @(ValueViewMode == "chart" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => ValueViewMode = "chart")">
+                                    <i class="bi bi-bar-chart-line"></i> Chart
+                                </button>
+                                <button type="button" class="btn @(ValueViewMode == "table" ? "btn-primary" : "btn-outline-primary")"
+                                        @onclick="@(() => ValueViewMode = "table")">
+                                    <i class="bi bi-table"></i> Table
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (ValueViewMode == "chart" && !TestContextService.IsTest)
+                        {
+                            <div class="account-chart-container">
+                                <PlotlyChart Data="plotData" Layout="plotLayout" Config="plotConfig" style="height: 100%; width: 100%;" />
+                            </div>
+                        }
+                        else if (ValueViewMode == "chart" && TestContextService.IsTest)
+                        {
+                            <div class="account-chart-container">
+                                <div class="text-center py-5">
+                                    <i class="bi bi-bar-chart-line text-muted" style="font-size: 4rem;"></i>
+                                    <h5 class="text-muted mt-3">Account Value Chart</h5>
+                                    <p class="text-muted">Account value history would be displayed here</p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">
+                                                <SortableTableHeader Column="Date"
+                                                                     DisplayName="Date"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="TotalValue"
+                                                                     DisplayName="Total Value"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="AssetValue"
+                                                                     DisplayName="Asset Value"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="CashBalance"
+                                                                     DisplayName="Cash Balance"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="Invested"
+                                                                     DisplayName="Total Invested"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="GainLoss"
+                                                                     DisplayName="Gain/Loss"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                            <th scope="col" class="text-end">
+                                                <SortableTableHeader Column="GainLossPercentage"
+                                                                     DisplayName="%"
+                                                                     CurrentSortColumn="@sortColumn"
+                                                                     IsAscending="@sortAscending"
+                                                                     OnSort="SortBy" />
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var historyPoint in AccountHistoryDisplay)
+                                        {
+                                            <tr class="account-row">
+                                                <td>
+                                                    <strong>@historyPoint.Date.ToString("yyyy-MM-dd")</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Value)</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.AssetValue)</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Balance)</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    @CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Invested)
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(historyPoint.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">
+                                                        @CurrencyDisplay.DisplaySignAndAmount(@historyPoint.GainLoss)
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="@(historyPoint.GainLossPercentage >= 0 ? "text-success" : "text-danger")">
+                                                        @historyPoint.GainLossPercentage.ToString("P2")
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-receipt me-2"></i>Recent Transactions
+                            @if (totalTransactions > 0)
+                            {
+                                <small class="text-muted">(@totalTransactions total)</small>
+                            }
+                        </h5>
+                        @if (totalTransactions > pageSize)
+                        {
+                            <a href="/transactions?accountId=@AccountId" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye"></i> View All
+                            </a>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (IsTransactionsLoading)
+                        {
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary mb-2" role="status">
+                                    <span class="visually-hidden">Loading transactions...</span>
+                                </div>
+                                <div class="text-muted">Loading transactions...</div>
+                            </div>
+                        }
+                        else if (!Transactions.Any())
+                        {
+                            <div class="text-center py-4">
+                                <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+                                <h6 class="text-muted mt-3">No Transactions Found</h6>
+                                <p class="text-muted mb-0">No transactions found for this account in the current date range.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Transaction Summary -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <div class="text-center p-2 border rounded">
+                                        <div class="h6 text-primary mb-1">@totalTransactions</div>
+                                        <div class="text-muted small">Total Transactions</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-2 border rounded">
+                                        <div class="h6 text-info mb-1">@TransactionTypeBreakdown.Count</div>
+                                        <div class="text-muted small">Transaction Types</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-2 border rounded">
+                                        <div class="text-muted small">Date Range</div>
+                                        <div class="small">@FilterState.StartDate.ToString("MMM dd") - @FilterState.EndDate.ToString("MMM dd")</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Transaction Type Breakdown -->
+                            @if (TransactionTypeBreakdown.Any())
+                            {
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2">Transaction Types:</h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var typeGroup in TransactionTypeBreakdown.OrderByDescending(x => x.Value))
+                                        {
+                                            <span class="badge bg-secondary">
+                                                @typeGroup.Key: @typeGroup.Value
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Transactions Table -->
+                            <div class="table-responsive">
+                                <table class="table table-hover table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col">Date</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col">Symbol</th>
+                                            <th scope="col">Description</th>
+                                            <th scope="col" class="text-end">Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var transaction in Transactions.Take(10))
+                                        {
+                                            <tr class="transaction-row" title="@transaction.TransactionId">
+                                                <td>
+                                                    <small>@transaction.Date.ToString("yyyy-MM-dd")</small>
+                                                    <br>
+                                                    <small class="text-muted">@transaction.Date.ToString("HH:mm")</small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge @GetTypeClass(transaction.Type) badge-sm">@transaction.Type</span>
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(transaction.Symbol))
+                                                    {
+                                                        <small style="cursor: pointer;" @onclick="@(() => NavigateToHoldingDetail(transaction.Symbol))">
+                                                            <strong>@transaction.Symbol</strong>
+                                                        </small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <small>
+                                                        @if (!string.IsNullOrEmpty(transaction.Description))
+                                                        {
+                                                            @transaction.Description.Substring(0, Math.Min(50, transaction.Description.Length))
+                                                            @(transaction.Description.Length > 50 ? "..." : "")
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">-</span>
+                                                        }
+                                                    </small>
+                                                </td>
+                                                <td class="text-end">
+                                                    @if (transaction.TotalValue != null)
+                                                    {
+                                                        <small class="@GetValueClass(transaction.TotalValue, transaction.Type)">
+                                                            @CurrencyDisplay.DisplaySignAndAmount(transaction.TotalValue)
+                                                        </small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            @if (totalTransactions > 10)
+                            {
+                                <div class="text-center mt-3">
+                                    <a href="/transactions?accountId=@AccountId" class="btn btn-primary">
+                                        <i class="bi bi-eye"></i> View All @totalTransactions Transactions
+                                    </a>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .account-chart-container {
+        width: 100%;
+        min-height: 400px;
+        height: 60vh;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        overflow: hidden;
+        background: white;
+        margin-bottom: 1rem;
+    }
+
+    .account-row:hover {
+        background-color: #f8f9fa !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .transaction-row:hover {
+        background-color: #f8f9fa !important;
+        transition: background-color 0.15s ease-in-out;
+    }
+
+    .badge-sm {
+        font-size: 0.75rem;
+    }
+
+    .bg-light {
+        background-color: #f8f9fa !important;
+        border: 1px solid #e9ecef;
+    }
+
+    .card.border-primary {
+        border-width: 2px !important;
+    }
+
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+</style>

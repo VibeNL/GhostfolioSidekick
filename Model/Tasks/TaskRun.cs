@@ -18,6 +18,6 @@
 
 		public string? LastException { get; set; }
 
-		public virtual ICollection<TaskRunLog> Logs { get; set; } = new List<TaskRunLog>();
+		public virtual ICollection<TaskRunLog> Logs { get; set; } = [];
 	}
 }

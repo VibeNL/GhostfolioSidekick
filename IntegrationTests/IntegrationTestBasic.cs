@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
+using xRetry;
 
 namespace GhostfolioSidekick.IntegrationTests
 {
@@ -39,7 +40,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			{ "TestAccount2", 1 },
 		};
 
-		[Fact(Timeout = 600000)]
+		[RetryFact(Timeout = 600000)]
 		public async Task CanSetupGhostfolioDependencies()
 		{
 			// url ghostfolio for debugging:

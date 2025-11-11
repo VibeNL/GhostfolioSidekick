@@ -21,5 +21,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 		public decimal GainLossPercentage { get; set; }
 
 		public string Currency { get; set; } = "USD";
+
+		// Computed properties for convenience
+		public Money AssetValue => Value.Subtract(Balance);
 	}
 }

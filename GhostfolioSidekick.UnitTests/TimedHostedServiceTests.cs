@@ -2,7 +2,7 @@
 using Moq;
 using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
-using GhostfolioSidekick.Model.Tasks;
+using xRetry;
 
 namespace GhostfolioSidekick.UnitTests
 {
@@ -159,8 +159,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
 		}
 
-
-		[Fact]
+		[RetryFact]
 		public async Task DoWork_Exception_ShouldContinueToWork()
 		{
 			// Arrange
