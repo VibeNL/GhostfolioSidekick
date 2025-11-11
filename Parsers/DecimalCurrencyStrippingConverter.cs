@@ -21,8 +21,6 @@ namespace GhostfolioSidekick.Parsers.Coinbase
             // Remove all non-digit, non-decimal, non-minus characters
             var cleaned = MyRegex().Replace(normalized, "");
             // Replace comma with dot if comma is used as decimal separator
-            if (cleaned.Contains(',') && !cleaned.Contains('.'))
-                cleaned = cleaned.Replace(',', '.');
             if (decimal.TryParse(cleaned, NumberStyles.Number | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out var value))
             {
                 return value;
