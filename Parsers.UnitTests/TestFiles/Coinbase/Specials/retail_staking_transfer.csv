@@ -1,0 +1,6 @@
+
+Transactions
+User,Vincent Pascal Berkien,1d5ebcbd-f257-5d9c-9fc2-d433a527aa71
+ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+66af2008503e08532ee0e75b,2024-08-04 06:30:32 UTC,Retail Staking Transfer,ATOM,0.556122,EUR,€4.7662852990772308149,€2.65064,€2.65064,€0.00,
+66af2008503e08532ee0e75a,2024-08-04 06:30:32 UTC,Retail Staking Transfer,ATOM,-0.556122,EUR,€4.7662852990772308149,-€2.65064,-€2.65064,€0.00,

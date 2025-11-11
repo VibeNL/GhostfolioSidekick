@@ -378,6 +378,36 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_Staking_Transfer_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/retail_staking_transfer.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2024, 08, 04, 06, 30, 32, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						0.556122M,
+						new Money(Currency.EUR,4.7662852990772308149M),
+						new Money(Currency.EUR,2.65064M),
+						"66af2008503e08532ee0e75a"),
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2024, 08, 04, 06, 30, 32, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						0.556122M,
+						new Money(Currency.EUR,4.7662852990772308149M),
+						new Money(Currency.EUR,2.65064M),
+						"66af2008503e08532ee0e75b")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_InvalidType_ThrowsException()
 		{
 			// Arrange
