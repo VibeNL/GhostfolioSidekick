@@ -1,0 +1,3 @@
+﻿Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address
+Europe/Amsterdam,2023-04-21,08:48:56,campaign_new_user_incentive,EUR,10,,,,,,,Completed,d3f9f0f8-8142-4709-b535-be201d2a5d75,
+

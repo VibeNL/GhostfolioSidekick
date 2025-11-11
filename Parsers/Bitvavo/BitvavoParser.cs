@@ -104,6 +104,7 @@ namespace GhostfolioSidekick.Parsers.Bitvavo
 						new Money(Currency.EUR, Math.Abs(record.Amount)),
 						record.Transaction);
 				case "affiliate":
+				case "campaign_new_user_incentive":
 					return PartialActivity.CreateGift(
 						currency,
 						dateTime,

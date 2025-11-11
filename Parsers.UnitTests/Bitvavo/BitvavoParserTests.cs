@@ -213,6 +213,26 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleCampaign_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_campaign.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						Currency.EUR,
+						new DateTime(2023, 04, 21, 08, 48, 56, DateTimeKind.Utc),
+						10m,
+						new Money(Currency.EUR, 10m),
+						"d3f9f0f8-8142-4709-b535-be201d2a5d75")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleRebate_Converted()
 		{
 			// Arrange

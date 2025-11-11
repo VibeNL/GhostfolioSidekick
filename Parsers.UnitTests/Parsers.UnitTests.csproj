@@ -86,6 +86,9 @@
 		<None Update="TestFiles\Bitvavo\Send\single_send.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\Bitvavo\Specials\single_campaign.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Bitvavo\Specials\single_rebate.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
