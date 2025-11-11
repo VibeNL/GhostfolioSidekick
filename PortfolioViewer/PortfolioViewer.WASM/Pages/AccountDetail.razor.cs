@@ -253,10 +253,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				var sortedHistory = AccountHistory.OrderBy(h => h.Date).ToList();
 
+				// Compute the X-axis dates once and reuse for all traces
+				var xAxisDates = sortedHistory.Select(h => h.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray();
+
 				// Create traces for total value, asset value, and cash balance
 				var totalValueTrace = new Scatter
 				{
-					X = sortedHistory.Select(h => h.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
+					X = xAxisDates,
 					Y = sortedHistory.Select(h => (object)h.TotalValue.Amount).ToArray(),
 					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = "Total Value",
@@ -266,7 +269,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				var assetValueTrace = new Scatter
 				{
-					X = sortedHistory.Select(h => h.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
+					X = xAxisDates,
 					Y = sortedHistory.Select(h => (object)h.TotalAssetValue.Amount).ToArray(),
 					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = "Asset Value",
@@ -276,7 +279,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 
 				var cashBalanceTrace = new Scatter
 				{
-					X = sortedHistory.Select(h => h.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)).ToArray(),
+					X = xAxisDates,
 					Y = sortedHistory.Select(h => (object)h.CashBalance.Amount).ToArray(),
 					Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines | Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
 					Name = "Cash Balance",
