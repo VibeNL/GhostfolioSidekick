@@ -91,7 +91,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		protected override async Task OnParametersSetAsync()
 		{
 			// Check if filter state has changed or if this is the first load
-			if (AccountId > 0 && (Account == null || FilterState.IsEqual(_previousFilterState) == false))
+			if (AccountId > 0 && (Account == null || !FilterState.IsEqual(_previousFilterState)))
 			{
 				_previousFilterState = new(FilterState);
 				await LoadAccountDetailAsync();
@@ -346,7 +346,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			else
 			{
 				sortColumn = column;
-				sortAscending = column == "Date" ? false : true; // Default dates to newest first
+				sortAscending = column != "Date";
 			}
 			SortDisplayData();
 		}
