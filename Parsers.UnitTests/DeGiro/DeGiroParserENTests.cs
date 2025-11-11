@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 							0.5m,
 							new Money(Currency.GBP, 1m),
 							new Money(Currency.GBP, 0.5M),
-							"Buy_2024-08-0916:10:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
+							"Buy_2024-08-09 16:10:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}
@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 							0.02m,
 							new Money(Currency.GBP, 1m),
 							new Money(Currency.GBP, 0.02M),
-							"Sell_2024-08-0715:30:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
+							"Sell_2024-08-07 15:30:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}
@@ -180,7 +180,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 							PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", "MORGAN STANLEY GBP LIQUIDITY FUND"),
 							0.5m,
 							new Money(Currency.GBP, 0.5M),
-							"Dividend_2024-08-0815:27:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_GBP")
+							"Dividend_2024-08-08 15:27:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_GBP")
 				];
 			partialActivities.Should().BeEquivalentTo(expectation);
 		}
