@@ -9,6 +9,8 @@ namespace GhostfolioSidekick.Model
 
 		public static Money Zero(Currency currency) => new(currency, 0);
 
+		public static Money One(Currency currency) => new(currency, 1);
+
 		public Money()
 		{
 			// EF Core
