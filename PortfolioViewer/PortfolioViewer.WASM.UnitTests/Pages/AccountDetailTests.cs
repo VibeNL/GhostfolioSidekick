@@ -182,16 +182,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var getTypeClassMethod = componentInstance.GetType().GetMethod("GetTypeClass", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
 			// Act & Assert
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "Buy" }).Should().Be("bg-success");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "Sell" }).Should().Be("bg-danger");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "Dividend" }).Should().Be("bg-info");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "Deposit" }).Should().Be("bg-primary");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "CashDeposit" }).Should().Be("bg-primary");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "Withdrawal" }).Should().Be("bg-warning");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "CashWithdrawal" }).Should().Be("bg-warning");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "Fee" }).Should().Be("bg-dark");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "Interest" }).Should().Be("bg-secondary");
-			getTypeClassMethod?.Invoke(componentInstance, new object[] { "Unknown" }).Should().Be("bg-light text-dark");
+			getTypeClassMethod?.Invoke(componentInstance, ["Buy"]).Should().Be("bg-success");
+			getTypeClassMethod?.Invoke(componentInstance, ["Sell"]).Should().Be("bg-danger");
+			getTypeClassMethod?.Invoke(componentInstance, ["Dividend"]).Should().Be("bg-info");
+			getTypeClassMethod?.Invoke(componentInstance, ["Deposit"]).Should().Be("bg-primary");
+			getTypeClassMethod?.Invoke(componentInstance, ["CashDeposit"]).Should().Be("bg-primary");
+			getTypeClassMethod?.Invoke(componentInstance, ["Withdrawal"]).Should().Be("bg-warning");
+			getTypeClassMethod?.Invoke(componentInstance, ["CashWithdrawal"]).Should().Be("bg-warning");
+			getTypeClassMethod?.Invoke(componentInstance, ["Fee"]).Should().Be("bg-dark");
+			getTypeClassMethod?.Invoke(componentInstance, ["Interest"]).Should().Be("bg-secondary");
+			getTypeClassMethod?.Invoke(componentInstance, ["Unknown"]).Should().Be("bg-light text-dark");
 		}
 
 		[Fact]
@@ -209,23 +209,23 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			// Act & Assert
 			// Income transactions - positive values are good
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "Sell" }).Should().Be("text-success");
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "Dividend" }).Should().Be("text-success");
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "Interest" }).Should().Be("text-success");
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "Deposit" }).Should().Be("text-success");
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "CashDeposit" }).Should().Be("text-success");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "Sell"]).Should().Be("text-success");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "Dividend"]).Should().Be("text-success");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "Interest"]).Should().Be("text-success");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "Deposit"]).Should().Be("text-success");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "CashDeposit"]).Should().Be("text-success");
 
-			getValueClassMethod?.Invoke(componentInstance, new object[] { negativeValue, "Sell" }).Should().Be("text-danger");
+			getValueClassMethod?.Invoke(componentInstance, [negativeValue, "Sell"]).Should().Be("text-danger");
 
 			// Regular transactions - neutral styling
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "Buy" }).Should().Be("text-primary");
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "Fee" }).Should().Be("text-primary");
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "Withdrawal" }).Should().Be("text-primary");
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "CashWithdrawal" }).Should().Be("text-primary");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "Buy"]).Should().Be("text-primary");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "Fee"]).Should().Be("text-primary");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "Withdrawal"]).Should().Be("text-primary");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "CashWithdrawal"]).Should().Be("text-primary");
 
 			// Unknown transactions - based on value sign
-			getValueClassMethod?.Invoke(componentInstance, new object[] { positiveValue, "Unknown" }).Should().Be("text-success");
-			getValueClassMethod?.Invoke(componentInstance, new object[] { negativeValue, "Unknown" }).Should().Be("text-danger");
+			getValueClassMethod?.Invoke(componentInstance, [positiveValue, "Unknown"]).Should().Be("text-success");
+			getValueClassMethod?.Invoke(componentInstance, [negativeValue, "Unknown"]).Should().Be("text-danger");
 		}
 
 		[Fact]
@@ -254,7 +254,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var navigateMethod = componentInstance.GetType().GetMethod("NavigateToHoldingDetail", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
 			// Act
-			navigateMethod?.Invoke(componentInstance, new object[] { "AAPL" });
+			navigateMethod?.Invoke(componentInstance, ["AAPL"]);
 
 			// Assert
 			_mockNavigationManager.NavigatedToUri.Should().Be("/holding-detail/AAPL");
@@ -458,7 +458,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			markup.Should().Contain("Account Not Found");
 		}
 
-		private async Task WaitForComponentToFinishLoading(IRenderedComponent<AccountDetail> component, string? containsText = null, int maxWaitMs = 500)
+		private static async Task WaitForComponentToFinishLoading(IRenderedComponent<AccountDetail> component, string? containsText = null, int maxWaitMs = 500)
 		{
 			var startTime = DateTime.UtcNow;
 			var waitInterval = 25;

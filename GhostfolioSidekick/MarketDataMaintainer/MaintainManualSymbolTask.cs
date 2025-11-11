@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			await databaseContext.SaveChangesAsync();
 		}
 
-		private async Task AddAndUpdateSymbol(ILogger logger, DatabaseContext databaseContext, SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)
+		private static async Task AddAndUpdateSymbol(ILogger logger, DatabaseContext databaseContext, SymbolConfiguration symbolConfiguration, ManualSymbolConfiguration manualSymbolConfiguration)
 		{
 			var symbol = await databaseContext.SymbolProfiles
 				.Include(x => x.MarketData)

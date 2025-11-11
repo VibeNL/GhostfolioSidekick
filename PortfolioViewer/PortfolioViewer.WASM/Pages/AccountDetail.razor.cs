@@ -390,7 +390,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			NavigationManager.NavigateTo($"/holding-detail/{symbol}");
 		}
 
-		protected string GetTypeClass(string type)
+		protected static string GetTypeClass(string type)
 		{
 			return type switch
 			{
@@ -405,7 +405,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			};
 		}
 
-		protected string GetValueClass(Money value, string transactionType)
+		protected static string GetValueClass(Money value, string transactionType)
 		{
 			// For sell transactions and income, positive values are good
 			// For buy transactions and expenses, they represent outflows
