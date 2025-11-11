@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
             // Normalize Unicode to ensure symbols are recognized
             var normalized = text.Normalize(NormalizationForm.FormKC);
             // Remove all non-digit, non-decimal, non-minus characters
-            var cleaned = Regex.Replace(normalized, "[^0-9.,\\-]+", "");
+            var cleaned = MyRegex().Replace(normalized, "");
             // Replace comma with dot if comma is used as decimal separator
             if (cleaned.Contains(',') && !cleaned.Contains('.'))
                 cleaned = cleaned.Replace(',', '.');
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
             throw new TypeConverterException(this, memberMapData, text, row.Context, $"Cannot convert '{text}' to decimal.");
         }
 
-		[GeneratedRegex("[\\p{Sc}\\s]")]
+		[GeneratedRegex("[^0-9.,\\-]+", RegexOptions.Compiled, 30000)]
 		private static partial Regex MyRegex();
 	}
 }
