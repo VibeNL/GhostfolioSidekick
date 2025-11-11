@@ -250,16 +250,16 @@
                                                     <strong>@historyPoint.Date.ToString("yyyy-MM-dd")</strong>
                                                 </td>
                                                 <td class="text-end">
-                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.TotalValue)</strong>
+                                                    <strong>@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Value)</strong>
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="text-info">@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.AssetValue)</span>
                                                 </td>
                                                 <td class="text-end">
-                                                    <span class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.CashBalance)</span>
+                                                    <span class="text-success">@CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Balance)</span>
                                                 </td>
                                                 <td class="text-end">
-                                                    @CurrencyDisplay.DisplaySignAndAmount(@historyPoint.TotalInvested)
+                                                    @CurrencyDisplay.DisplaySignAndAmount(@historyPoint.Invested)
                                                 </td>
                                                 <td class="text-end">
                                                     <span class="@(historyPoint.GainLoss.Amount >= 0 ? "text-success" : "text-danger")">

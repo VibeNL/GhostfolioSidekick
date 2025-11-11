@@ -23,12 +23,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 		public string Currency { get; set; } = "USD";
 
 		// Computed properties for convenience
-		public Money TotalValue => Value;
-
 		public Money AssetValue => Value.Subtract(Balance);
-
-		public Money CashBalance => Balance;
-
-		public Money TotalInvested => Invested;
 	}
 }
