@@ -22,6 +22,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 
 			switch (record.Type)
 			{
+				case string when record.Type.Equals("Retail Unstaking Transfer") && record.Quantity > 0:
 				case string when record.Type.Equals("Retail Staking Transfer") && record.Quantity > 0:
 				case string when record.Type.Equals("Retail Eth2 Deprecation") && record.Quantity > 0:
 				case string when record.Type.Contains("Buy", StringComparison.InvariantCultureIgnoreCase):
@@ -40,6 +41,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
 					break;
+				case string when record.Type.Equals("Retail Unstaking Transfer") && record.Quantity < 0:
 				case string when record.Type.Equals("Retail Staking Transfer") && record.Quantity < 0:
 				case string when record.Type.Equals("Retail Eth2 Deprecation") && record.Quantity < 0:
 					yield return PartialActivity.CreateSell(
@@ -103,6 +105,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					break;
 				case "Staking Income":
 				case "Rewards Income":
+				case "Reward Income":
 					yield return PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
 				case "Learning Reward":

@@ -1,0 +1,5 @@
+﻿
+Transactions
+User,Vincent Pascal Berkien,1d5ebcbd-f257-5d9c-9fc2-d433a527aa71
+ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+660f94d6d272349fba8637d9,2024-04-05 06:06:14 UTC,Reward Income,USDC,0.002727,EUR,€0.923609,€0.00252,€0.00252,€0.00,Received 0.002727 USDC from Coinbase Rewards
