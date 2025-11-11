@@ -53,8 +53,8 @@ namespace GhostfolioSidekick.Parsers.Trine
 					yield return PartialActivity.CreateCashWithdrawal(
 						Currency.EUR,
 						record.Date,
-						record.AvailableBalanceChange,
-						new Money(Currency.EUR, record.AvailableBalanceChange),
+						record.AvailableBalanceChange * -1,
+						new Money(Currency.EUR, record.AvailableBalanceChange * -1),
 						transactionsId
 					);
 					break;

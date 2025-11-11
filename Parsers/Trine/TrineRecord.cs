@@ -14,20 +14,20 @@ namespace GhostfolioSidekick.Parsers.Trine
 
 		public required string Type { get; set; }
 
-		public int AvailableBalanceChange { get; set; }
+		public decimal AvailableBalanceChange { get; set; }
 
-		public int OutstandingPortfolioChange { get; set; }
+		public decimal OutstandingPortfolioChange { get; set; }
 
-		public int? RepaidCapital { get; set; }
+		public decimal? RepaidCapital { get; set; }
 
-		public int? RepaidInterest { get; set; }
+		public decimal? RepaidInterest { get; set; }
 
-		public int? LateFee { get; set; }
+		public decimal? LateFee { get; set; }
 
-		public int AvailableBalance { get; set; }
+		public decimal AvailableBalance { get; set; }
 
-		public int OutstandingPortfolio { get; set; }
+		public decimal OutstandingPortfolio { get; set; }
 
-		public int Total { get; set; }
+		public decimal Total { get; set; }
 		}
 }

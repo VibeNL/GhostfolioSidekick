@@ -57,7 +57,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 						1m,
 						new Money(Currency.EUR, 25M),
 						new Money(Currency.EUR, 25M),
-						"?"),
+						"Investment_ecoligo 16_2023-08-29_25.00"),
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2023, 08, 29, 0, 0, 0, DateTimeKind.Utc),
+						25m)
 				]);
 		}
 
@@ -76,9 +80,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 						Currency.EUR,
 						new DateTime(2024, 05, 24, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("ecoligo 16")],
-						0.36M,
-						new Money(Currency.EUR, 0.36M),
-						"?"),
+						0.32M,
+						new Money(Currency.EUR, 0.32M),
+						"Repayment_ecoligo 16_2024-05-24_25.96"),
 					PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2024, 05, 24, 0, 0, 0, DateTimeKind.Utc),
@@ -86,7 +90,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 						1m,
 						new Money(Currency.EUR, 0.36M),
 						new Money(Currency.EUR, 0.36M),
-						"?"),
+						"Repayment_ecoligo 16_2024-05-24_25.96"),
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2024, 05, 24, 0, 0, 0, DateTimeKind.Utc),
+						25.96m)
 				]);
 		}
 
@@ -106,7 +114,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 						new DateTime(2024, 06, 30, 0, 0, 0, DateTimeKind.Utc),
 						1.32m,
 						new Money(Currency.EUR, 1.32M),
-						"?"),
+						"Withdrawal__2024-06-30_24.64"),
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2024, 06, 30, 0, 0, 0, DateTimeKind.Utc),
+						24.64m)
 				]);
 		}
 
@@ -126,7 +138,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Trine
 						new DateTime(2023, 08, 22, 0, 0, 0, DateTimeKind.Utc),
 						25m,
 						new Money(Currency.EUR, 25M),
-						"?"),
+						"Activated friend voucher from John X__2023-08-22_25.00"),
+					PartialActivity.CreateKnownBalance(
+						Currency.EUR,
+						new DateTime(2023, 08, 22, 0, 0, 0, DateTimeKind.Utc),
+						25m)
 				]);
 		}
 	}
