@@ -95,7 +95,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						161.90485771M,
-						new Money(Currency.EUR, 0.9264700400075475907102725806M),
+						new Money(Currency.USD, 0.9264700400075475907102725806M),
 						new Money(Currency.USD, 161.9M),
 						"NXTyPxhiopNL3")
 				]);
@@ -117,7 +117,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Nexo
 						new DateTime(2023, 08, 25, 14, 44, 46, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						161.90485771M,
-						new Money(Currency.EUR, 0.9264700400075475907102725806M),
+						new Money(Currency.USD, 0.9264700400075475907102725806M),
 						new Money(Currency.USD, 161.9M),
 						"NXTyPxhiopNL3")
 				]);
