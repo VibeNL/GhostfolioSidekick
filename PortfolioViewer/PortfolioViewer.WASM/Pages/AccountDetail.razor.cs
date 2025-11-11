@@ -142,7 +142,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				CalculateCurrentValues();
 
 				// Load transactions asynchronously
-				_ = Task.Run(async () =>
+				_ = InvokeAsync(async () =>
 				{
 					try
 					{
@@ -150,8 +150,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					}
 					catch (Exception ex)
 					{
-						// Log error but don't fail the whole page
+						// Handle transaction loading errors gracefully
 						Console.WriteLine($"Error loading transactions: {ex.Message}");
+						StateHasChanged();
 					}
 				});
 			}
