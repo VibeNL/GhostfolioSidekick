@@ -8,8 +8,4 @@
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\..\Database\Database.csproj" />
-	</ItemGroup>
-
 </Project>
