@@ -81,7 +81,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="10.0.0" />
 		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="10.0.0" />
 		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
 	</ItemGroup>
