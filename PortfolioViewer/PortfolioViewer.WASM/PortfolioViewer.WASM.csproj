@@ -85,6 +85,12 @@
 		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<TrimmerRootAssembly Include="Microsoft.EntityFrameworkCore" />
+		<TrimmerRootAssembly Include="Microsoft.EntityFrameworkCore.Relational" />
+		<TrimmerRootAssembly Include="Microsoft.EntityFrameworkCore.Sqlite" />
+	</ItemGroup>
+
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">
 		<ItemGroup>
 			<UnavailableRuntimePack Remove="Microsoft.AspNetCore.App" />
