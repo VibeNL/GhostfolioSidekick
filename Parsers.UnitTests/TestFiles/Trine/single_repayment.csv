@@ -1,0 +1,2 @@
+Date,Loan,InvestmentId,Type,AvailableBalanceChange,OutstandingPortfolioChange,RepaidCapital,RepaidInterest,LateFee,AvailableBalance,OutstandingPortfolio,Total
+2024-05-24,ecoligo 16,260656,Repayment,0.68,-0.36,0.36,0.32,,1.32,24.64,25.96

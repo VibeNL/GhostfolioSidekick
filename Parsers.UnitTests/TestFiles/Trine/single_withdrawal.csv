@@ -1,0 +1,2 @@
+Date,Loan,InvestmentId,Type,AvailableBalanceChange,OutstandingPortfolioChange,RepaidCapital,RepaidInterest,LateFee,AvailableBalance,OutstandingPortfolio,Total
+2024-06-30,,,Withdrawal,-1.32,0,,,,0.00,24.64,24.64

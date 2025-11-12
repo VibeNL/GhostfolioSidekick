@@ -9,6 +9,8 @@ namespace GhostfolioSidekick.Model
 
 		public static Money Zero(Currency currency) => new(currency, 0);
 
+		public static Money One(Currency currency) => new(currency, 1);
+
 		public Money()
 		{
 			// EF Core
@@ -20,6 +22,12 @@ namespace GhostfolioSidekick.Model
 		{
 			Amount = amount;
 			Currency = currency;
+		}
+
+		public Money(string currency, decimal amount)
+		{
+			Amount = amount;
+			Currency = Currency.GetCurrency(currency);
 		}
 
 		public Money Times(decimal amount)

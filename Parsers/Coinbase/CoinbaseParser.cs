@@ -22,6 +22,9 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 
 			switch (record.Type)
 			{
+				case string when record.Type.Equals("Retail Unstaking Transfer") && record.Quantity > 0:
+				case string when record.Type.Equals("Retail Staking Transfer") && record.Quantity > 0:
+				case string when record.Type.Equals("Retail Eth2 Deprecation") && record.Quantity > 0:
 				case string when record.Type.Contains("Buy", StringComparison.InvariantCultureIgnoreCase):
 
 					if (Currency.GetCurrency(record.Asset).IsFiat())
@@ -34,8 +37,20 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						date,
 						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
 						record.Quantity,
-						record.Price!.Value,
+						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value),
+						id);
+					break;
+				case string when record.Type.Equals("Retail Unstaking Transfer") && record.Quantity < 0:
+				case string when record.Type.Equals("Retail Staking Transfer") && record.Quantity < 0:
+				case string when record.Type.Equals("Retail Eth2 Deprecation") && record.Quantity < 0:
+					yield return PartialActivity.CreateSell(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
+						record.Quantity * -1,
+						new Money(currency, record.Price!.Value),
+						new Money(currency, record.TotalTransactionAmount!.Value).Times(-1),
 						id);
 					break;
 				case string when record.Type.Contains("Sell", StringComparison.InvariantCultureIgnoreCase):
@@ -44,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						date,
 						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
 						record.Quantity,
-						record.Price!.Value,
+						new Money(currency, record.Price!.Value),
 						new Money(currency, record.TotalTransactionAmount!.Value),
 						id);
 					break;
@@ -79,10 +94,8 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 						date,
 						[PartialSymbolIdentifier.CreateCrypto(record.Asset)],
 						record.Quantity,
-						record.Price,
 						[PartialSymbolIdentifier.CreateCrypto(parsedAsset)],
 						parseAmount,
-						null,
 						id);
 
 					foreach (var item in lst)
@@ -92,6 +105,7 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 					break;
 				case "Staking Income":
 				case "Rewards Income":
+				case "Reward Income":
 					yield return PartialActivity.CreateStakingReward(date, [PartialSymbolIdentifier.CreateCrypto(record.Asset)], record.Quantity, id);
 					break;
 				case "Learning Reward":

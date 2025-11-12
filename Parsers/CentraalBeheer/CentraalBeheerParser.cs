@@ -163,7 +163,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				date,
 				[PartialSymbolIdentifier.CreateStockAndETF(symbol)],
 				decimal.Parse(GetToken(Keyword_Aantal_Stukken, relevantTokens)[0], cultureInfo),
-				price.Amount,
+				new Money(price.Currency, price.Amount),
 				GetMoney(GetToken(Keyword_Bruto_Bedrag, relevantTokens)),
 				id);
 
@@ -193,7 +193,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				date,
 				[PartialSymbolIdentifier.CreateStockAndETF(symbol)],
 				decimal.Parse(GetToken(Keyword_Aantal_Stukken, relevantTokens)[0], cultureInfo),
-				price.Amount,
+				new Money(price.Currency, price.Amount),
 				GetMoney(GetToken(Keyword_Bruto_Bedrag, relevantTokens)),
 				id);
 		}

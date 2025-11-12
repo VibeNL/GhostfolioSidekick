@@ -1,2 +1,3 @@
-Timezone,Date,Time,Type,Currency,Amount,Price (EUR),EUR received / paid,Fee currency,Fee amount,Status,Transaction ID,Address
-Europe/Amsterdam,2023-10-24,21:23:37,withdrawal,EUR,-101.88,,,EUR,0,Completed,1e651f3e-e5be-4a87-a8fa-00e6832bdbc7,********
+Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address
+Europe/Amsterdam,2023-10-24,21:23:37,withdrawal,EUR,-101.88,,,,,EUR,0,Completed,1e651f3e-e5be-4a87-a8fa-00e6832bdbc7,*********
+

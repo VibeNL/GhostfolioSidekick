@@ -1,2 +1,2 @@
-Timezone,Date,Time,Type,Currency,Amount,Price (EUR),EUR received / paid,Fee currency,Fee amount,Status,Transaction ID,Address
-Europe/Amsterdam,2023-09-07,21:39:25,withdrawal,XLM,-87.339658,,,XLM,0,Completed,7d62b00a-60c2-42ac-b10e-4199e54cf4c8,xxxxx
+Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address
+Europe/Amsterdam,2023-09-07,21:39:25,withdrawal,XLM,-87.339658,,,,,XLM,0,Completed,7d62b00a-60c2-42ac-b10e-4199e54cf4c8

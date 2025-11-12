@@ -95,8 +95,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
 						0.00213232M,
-						1810.23M,
-						new Money(Currency.EUR, 4.85M),
+						new Money(Currency.EUR,1810.23M),
+						new Money(Currency.EUR,4.85M),
 						"Buy_ETH_2023-04-20 04:05:40:+00:00"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -123,8 +123,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
 						0.00213232M,
-						1810.23M,
-						new Money(Currency.EUR, 4.85M),
+						new Money(Currency.EUR,1810.23M),
+						new Money(Currency.EUR,4.85M),
 						"6637ac0d7724c7009596c364"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -151,8 +151,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2024, 03, 18, 11, 49, 37, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("BTC")],
 						0.564634M,
-						100000.58M,
-						new Money(Currency.EUR, 54321231.60M),
+						new Money(Currency.EUR,100000.58M),
+						new Money(Currency.EUR,54321231.60M),
 						"Advance Trade Buy_BTC_2024-03-18 11:49:37:+00:00"),
 					PartialActivity.CreateFee(
 						Currency.EUR,
@@ -176,10 +176,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 04, 20, 04, 05, 40, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ETH")],
 						0.00087766M,
-						1709.09M,
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						1.629352M,
-						null,
 						"Convert_ETH_2023-04-20 04:05:40:+00:00").ToArray();
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[
@@ -210,8 +208,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						new DateTime(2023, 07, 14, 10, 40, 14, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("USDC")],
 						11.275271M,
-						0.886900M,
-						new Money(Currency.EUR, 10),
+						new Money(Currency.EUR,0.886900M),
+						new Money(Currency.EUR,10),
 						"Sell_USDC_2023-07-14 10:40:14:+00:00")
 				]);
 		}
@@ -293,6 +291,44 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 		}
 
 		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStakeReward_2025_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward_2025.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2024, 04, 05, 06, 06, 14, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("USDC")],
+						0.002727M,
+						"660f94d6d272349fba8637d9")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleStakeReward_Alternative_2025_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_stakereward_alt_2025.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateStakingReward(
+						new DateTime(2025, 11, 08, 20, 22, 48, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						0.001588522705M,
+						"690fa6983c920d2d896b469b")
+				]);
+		}
+
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleGift_Converted()
 		{
 			// Arrange
@@ -308,6 +344,115 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Coinbase
 						[PartialSymbolIdentifier.CreateCrypto("GRT")],
 						6.40204865M,
 						"Learning Reward_GRT_2023-04-20 06:02:33:+00:00")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleGift_2025_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/single_learningreward_2025.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						new DateTime(2025, 03, 26, 20, 52, 58, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ZETACHAIN")],
+						2.8530670470756063M,
+						"67e4692afcea853e96a80ab9")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_ETH2_Deprecation_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/retail_eth2_deprecation.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2025, 01, 21, 21, 32, 45, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						0.000001113544M,
+						new Money(Currency.EUR,3184.30887255M),
+						new Money(Currency.EUR,0.00355M),
+						"6790127d6c31887f25ab4567"),
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2025, 01, 21, 21, 32, 46, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						0.000001113544M,
+						new Money(Currency.EUR,3184.30887255M),
+						new Money(Currency.EUR,0.00355M),
+						"6790127e539873adcdc70581")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_Staking_Transfer_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/retail_staking_transfer.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2024, 08, 04, 06, 30, 32, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						0.556122M,
+						new Money(Currency.EUR,4.7662852990772308149M),
+						new Money(Currency.EUR,2.65064M),
+						"66af2008503e08532ee0e75a"),
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2024, 08, 04, 06, 30, 32, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ATOM")],
+						0.556122M,
+						new Money(Currency.EUR,4.7662852990772308149M),
+						new Money(Currency.EUR,2.65064M),
+						"66af2008503e08532ee0e75b")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_Unstaking_Transfer_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Coinbase/Specials/retail_unstake_transfer.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2024, 04, 04, 20, 00, 07, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH2")],
+						0.00000061M,
+						new Money(Currency.EUR,3104.2616559390651302605M),
+						new Money(Currency.EUR,0.00189M),
+						"660f06c78a810e688190e4eb"),
+					PartialActivity.CreateBuy(
+						Currency.EUR,
+						new DateTime(2024, 04, 04, 20, 00, 07, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateCrypto("ETH")],
+						0.00000061M,
+						new Money(Currency.EUR,3104.542743477622319285M),
+						new Money(Currency.EUR,0.00189M),
+						"660f06c7337b9697fc87887f")
 				]);
 		}
 

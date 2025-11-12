@@ -229,14 +229,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 				var incrementDueToPiecesText = words[i + 2].Text == Keyword_Quantity_PiecesText ? 1 : 0;
 
+				Currency currency = Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text);
 				activities.Add(PartialActivity.CreateBuy(
-					Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text),
+					currency,
 					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					Parse(words[i + 1].Text),
-					Parse(words[i + 2 + incrementDueToPiecesText].Text),
+					new Money(currency, Parse(words[i + 2 + incrementDueToPiecesText].Text)),
 					new Money(
-						Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text),
+						currency,
 						Parse(words[i + 4 + incrementDueToPiecesText].Text)),
 					id));
 
@@ -248,13 +249,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
 
+				Currency currency = Currency.GetCurrency(words[i + 6].Text);
 				activities.Add(PartialActivity.CreateBuy(
-					Currency.GetCurrency(words[i + 6].Text),
+					currency,
 					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					Parse(words[i + 1].Text),
-					Parse(words[i + 3].Text) / 100,
-					new Money(Currency.GetCurrency(words[i + 6].Text), Parse(words[i + 5].Text)),
+					new Money(currency, Parse(words[i + 3].Text) / 100),
+					new Money(currency, Parse(words[i + 5].Text)),
 					id));
 
 				return i + 6;
@@ -282,12 +284,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				var isin = GetIsin(words, ref i);
 				string id = GetId(dateTime, isin);
 
+				Currency currency = Currency.GetCurrency(words[i + 2].Text);
 				activities.Add(PartialActivity.CreateBondRepay(
-					Currency.GetCurrency(words[i + 2].Text),
+					currency,
 					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					Parse(words[i + 1].Text),
-					new Money(Currency.GetCurrency(words[i + 2].Text), Parse(words[i + 1].Text)),
+					new Money(currency, Parse(words[i + 1].Text)),
+					new Money(currency, Parse(words[i + 1].Text)),
 					id));
 
 				return i + 2;

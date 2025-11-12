@@ -1,0 +1,5 @@
+﻿
+Transactions
+User,MYNAME,1d5ebcbd-f257-5d9c-9fc2-d433a527aa71
+ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+690fa6983c920d2d896b469b,2025-11-08 20:22:48 UTC,Staking Income,ATOM,0.001588522705,EUR,€2.526483358,€0.00401,€0.00401,€0.00,

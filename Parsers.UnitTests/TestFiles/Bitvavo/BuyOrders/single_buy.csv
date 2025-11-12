@@ -1,2 +1,2 @@
-Timezone,Date,Time,Type,Currency,Amount,Price (EUR),EUR received / paid,Fee currency,Fee amount,Status,Transaction ID,Address
-Europe/Amsterdam,2023-12-13,14:39:02.473,buy,STORJ,34.75825253,0.71746,-25.00,EUR,0.0623441398262,Completed,16eed6ae-65f9-4a9d-8f19-bd66a75fc745,
+Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address
+Europe/Amsterdam,2023-12-13,14:39:02.473,buy,STORJ,34.75825253,EUR,0.71746,EUR,-25.00,EUR,0.0623441398262,Completed,16eed6ae-65f9-4a9d-8f19-bd66a75fc745,

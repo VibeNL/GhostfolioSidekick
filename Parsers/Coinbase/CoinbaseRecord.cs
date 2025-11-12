@@ -27,12 +27,15 @@ namespace GhostfolioSidekick.Parsers.Coinbase
 		public required string Currency { get; set; }
 
 		[Name("Spot Price at Transaction", "Price at Transaction")]
+		[TypeConverter(typeof(DecimalCurrencyStrippingConverter))]
 		public decimal? Price { get; set; }
 
 		[Name("Total (inclusive of fees and/or spread)")]
+		[TypeConverter(typeof(DecimalCurrencyStrippingConverter))]
 		public decimal? TotalTransactionAmount { get; set; }
 
 		[Name("Fees and/or Spread")]
+		[TypeConverter(typeof(DecimalCurrencyStrippingConverter))]
 		public decimal? Fee { get; set; }
 
 		public required string Notes { get; set; }

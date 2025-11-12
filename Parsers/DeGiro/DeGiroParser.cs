@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						recordDate,
 						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Product),
 						strategy.GetQuantity(record),
-						strategy.GetUnitPrice(record),
+						new Money(strategy.GetCurrency(record, currencyMapper), strategy.GetUnitPrice(record)),
 						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
 						record.TransactionId!);
 					break;
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Parsers.DeGiro
 						recordDate,
 						PartialSymbolIdentifier.CreateStockAndETF(record.ISIN, record.Product),
 						strategy.GetQuantity(record),
-						strategy.GetUnitPrice(record),
+						new Money(strategy.GetCurrency(record, currencyMapper), strategy.GetUnitPrice(record)),
 						new Money(currencyRecord, GetRecordTotal(recordTotal, strategy.GetQuantity(record), strategy.GetUnitPrice(record))),
 						record.TransactionId!);
 					break;

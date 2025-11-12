@@ -55,7 +55,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						new DateTime(2023, 12, 13, 14, 39, 02, 473, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("STORJ")],
 						34.75825253M,
-						0.71746M,
+						new Money(Currency.EUR, 0.71746M),
 						new Money(Currency.EUR, 25),
 						"16eed6ae-65f9-4a9d-8f19-bd66a75fc745"),
 					PartialActivity.CreateFee(
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						new DateTime(2023, 12, 13, 14, 45, 51, 803, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateCrypto("ADA")],
 						45.802549M,
-						0.56714M,
+						new Money(Currency.EUR, 0.56714M),
 						new Money(Currency.EUR, 25.93M),
 						"14ae873a-4fce-4a12-ba0f-387522c67d46"),
 					PartialActivity.CreateFee(
@@ -209,6 +209,26 @@ namespace GhostfolioSidekick.Parsers.UnitTests.Bitvavo
 						0.03M,
 						new Money(Currency.EUR, 0.03M),
 						"2f963a7d-891a-481d-84df-90ac7aea2f8d")
+				]);
+		}
+
+		[Fact]
+		public async Task ConvertActivitiesForAccount_SingleCampaign_Converted()
+		{
+			// Arrange
+
+			// Act
+			await parser.ParseActivities("./TestFiles/Bitvavo/Specials/single_campaign.csv", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[
+					PartialActivity.CreateGift(
+						Currency.EUR,
+						new DateTime(2023, 04, 21, 08, 48, 56, DateTimeKind.Utc),
+						10m,
+						new Money(Currency.EUR, 10m),
+						"d3f9f0f8-8142-4709-b535-be201d2a5d75")
 				]);
 		}
 

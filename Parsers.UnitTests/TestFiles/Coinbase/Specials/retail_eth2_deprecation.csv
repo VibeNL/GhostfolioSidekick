@@ -1,0 +1,6 @@
+
+Transactions
+User,MYNAME,1d5ebcbd-f257-5d9c-9fc2-d433a527aa71
+ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+6790127e539873adcdc70581,2025-01-21 21:32:46 UTC,Retail Eth2 Deprecation,ETH,0.000001113544,EUR,€3184.30887255,€0.00355,€0.00355,€0.00,
+6790127d6c31887f25ab4567,2025-01-21 21:32:45 UTC,Retail Eth2 Deprecation,ETH2,-0.000001113544,EUR,€3184.30887255,-€0.00355,-€0.00355,€0.00,

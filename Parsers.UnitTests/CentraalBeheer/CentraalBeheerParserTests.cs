@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 						new DateTime(2023, 09, 12, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Ambitieus")],
 						29.3667M,
-						33.95M,
+						new Money(Currency.EUR, 33.95M),
 						new Money(Currency.EUR, 1000M),
 						"Centraal_Beheer_Buy_Centraal Beheer Mixfonds Ambitieus_2023-09-12"),
 					PartialActivity.CreateFee(
@@ -103,7 +103,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 						new DateTime(2023, 7, 26, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("Centraal Beheer Mixfonds Voorzichtig")],
 						1.9314M,
-						26.28M,
+						new Money(Currency.EUR, 26.28M),
 						new Money(Currency.EUR,  50.76M),
 						"Centraal_Beheer_Buy_Centraal Beheer Mixfonds Voorzichtig_2023-07-26")
 				]);

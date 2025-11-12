@@ -1,0 +1,5 @@
+﻿
+Transactions
+User,MYNAME,1d5ebcbd-f257-5d9c-9fc2-d433a527aa71
+ID,Timestamp,Transaction Type,Asset,Quantity Transacted,Price Currency,Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
+67e4692afcea853e96a80ab9,2025-03-26 20:52:58 UTC,Learning Reward,ZETACHAIN,2.8530670470756063,EUR,€0.324832317279927319225,€0.92677,€0.92677,€0.00,Received 2.8530670470756063 ZETACHAIN from Coinbase as a learning reward

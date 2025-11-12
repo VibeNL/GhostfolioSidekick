@@ -56,7 +56,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 							new DateTime(2023, 11, 6, 15, 33, 0, DateTimeKind.Utc),
 							PartialSymbolIdentifier.CreateStockAndETF("US40434L1052", "HP INC"),
 							5,
-							21.31m,
+							new Money(Currency.USD, 21.31m),
 							new Money(Currency.USD, 106.55M),
 							"dbe4ec4d-6a6e-4315-b661-820dd1f1d58d"),
 						PartialActivity.CreateFee(
@@ -92,7 +92,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 							new DateTime(2024, 08, 09, 16, 10, 0, DateTimeKind.Utc),
 							PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", "MORGAN STANLEY GBP LIQUIDITY FUND"),
 							0.5m,
-							1m,
+							new Money(Currency.GBP, 1m),
 							new Money(Currency.GBP, 0.5M),
 							"Buy_2024-08-09 16:10:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
 				];
@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.DeGiro
 							new DateTime(2024, 08, 07, 15, 30, 0, DateTimeKind.Utc),
 							PartialSymbolIdentifier.CreateStockAndETF("LU0904784781", "MORGAN STANLEY GBP LIQUIDITY FUND"),
 							0.02m,
-							1m,
+							new Money(Currency.GBP, 1m),
 							new Money(Currency.GBP, 0.02M),
 							"Sell_2024-08-07 15:30:00:+00:00_MORGAN STANLEY GBP LIQUIDITY FUND_LU0904784781_")
 				];
