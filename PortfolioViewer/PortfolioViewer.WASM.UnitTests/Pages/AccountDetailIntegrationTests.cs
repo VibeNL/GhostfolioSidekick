@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 	/// Additional integration-style tests for the AccountDetail component
 	/// that test various scenarios and edge cases.
 	/// </summary>
-	public class AccountDetailIntegrationTests : TestContext
+	public class AccountDetailIntegrationTests : BunitContext
 	{
 		private readonly Mock<IAccountDataService> _mockAccountDataService;
 		private readonly Mock<ITransactionService> _mockTransactionService;
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			SetupMocks(testAccount, accountHistory, paginatedResult);
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			// Wait for all async operations to complete
 			await WaitForComponentToFinishLoading(component, containsText: "Investment Account");
@@ -178,7 +178,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			});
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			await WaitForComponentToFinishLoading(component, containsText: "Test Account");
 
@@ -221,7 +221,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			});
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters
+			var component = Render<AccountDetail>(parameters => parameters
 				.Add(p => p.AccountId, 1)
 				.AddCascadingValue("FilterState", filterState));
 
@@ -254,7 +254,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			});
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			await WaitForComponentToFinishLoading(component, containsText: "Account Not Found");
 
@@ -317,7 +317,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var startTime = DateTime.UtcNow;
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			await WaitForComponentToFinishLoading(component, containsText: "Large Account", maxWaitMs: 3000);
 
@@ -357,7 +357,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			});
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters
+			var component = Render<AccountDetail>(parameters => parameters
 				.Add(p => p.AccountId, 1)
 				.AddCascadingValue("FilterState", filterState));
 
@@ -392,7 +392,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				});
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			await WaitForComponentToFinishLoading(component, containsText: "Account Not Found");
 
