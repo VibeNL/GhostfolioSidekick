@@ -28,6 +28,7 @@
 		<ProjectReference Include="..\ExternalDataProvider\ExternalDataProvider.csproj" />
 		<ProjectReference Include="..\Model\Model.csproj" />
 		<ProjectReference Include="..\Parsers\Parsers.csproj" />
+		<ProjectReference Include="..\Utilities\Utilities.csproj" />
 	</ItemGroup>
 
 </Project>

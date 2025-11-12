@@ -20,6 +20,7 @@
 	  <ProjectReference Include="..\Cryptocurrency\Cryptocurrency.csproj" />
 	  <ProjectReference Include="..\Database\Database.csproj" />
 	  <ProjectReference Include="..\Model\Model.csproj" />
+	  <ProjectReference Include="..\Utilities\Utilities.csproj" />
 	</ItemGroup>
 
 </Project>
