@@ -23,6 +23,7 @@
 
 	<PropertyGroup>
 		<NoWarn>1701;1702;SKEXP0110;SKEXP0001;CS8602</NoWarn>
+		<PublishTrimmed>false</PublishTrimmed>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -83,12 +84,6 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="10.0.0" />
 		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<TrimmerRootAssembly Include="Microsoft.EntityFrameworkCore" />
-		<TrimmerRootAssembly Include="Microsoft.EntityFrameworkCore.Relational" />
-		<TrimmerRootAssembly Include="Microsoft.EntityFrameworkCore.Sqlite" />
 	</ItemGroup>
 
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">
