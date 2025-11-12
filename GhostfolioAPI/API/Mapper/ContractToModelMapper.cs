@@ -3,7 +3,6 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Utilities;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 {
@@ -50,8 +49,9 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 
 		private static List<string> MapIdentifiers(Contract.SymbolProfile symbolProfile)
 		{
-			List<string?> value = [symbolProfile.ISIN, symbolProfile.Symbol];
-			return value.FilterEmpty();
+			List<string> value = [symbolProfile.ISIN, symbolProfile.Symbol];
+			value = [.. value.Where(x => !string.IsNullOrWhiteSpace(x))];
+			return value;
 		}
 
 		private static SectorWeight[] MapSectors(Contract.Sector[] sectors)
