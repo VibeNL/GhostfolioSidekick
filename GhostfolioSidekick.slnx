@@ -54,4 +54,5 @@
   <Project Path="Parsers/Parsers.csproj" />
   <Project Path="PerformanceCalculations.UnitTests/PerformanceCalculations.UnitTests.csproj" />
   <Project Path="PerformanceCalculations/PerformanceCalculations.csproj" Id="0b580fa1-6bb3-4a5c-916f-4114a8eb1613" />
+  <Project Path="Utilities/Utilities.csproj" Id="abb38f68-e7de-4a74-80cb-14779b5217b1" />
 </Solution>

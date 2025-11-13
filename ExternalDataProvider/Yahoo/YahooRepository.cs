@@ -2,6 +2,7 @@
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Utilities;
 using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.Extensions.Logging;
 using YahooFinanceApi;
@@ -112,7 +113,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return new SymbolProfile(
 				symbol.Symbol,
 				GetName(symbol),
-				[symbol.Symbol, GetName(symbol)],
+				ListExtensions.FilterEmpty([symbol.Symbol, GetName(symbol)]),
 				Currency.GetCurrency(symbol.Currency),
 				Datasource.YAHOO,
 				ParseQuoteType(symbol.QuoteType),
