@@ -44,7 +44,7 @@ namespace PortfolioViewer.WASM.UITests
 
 			// Start API in-process
 			var apiClient = _apiFactory.CreateClient();
-			var apiUrl = apiClient.BaseAddress + "api/auth/health";
+			var apiUrl = "api/auth/health";
 
 			using var wasmHost = new WasmTestHost(wasmProjectPath, 5252);
 			await wasmHost.StartAsync();
@@ -71,6 +71,29 @@ namespace PortfolioViewer.WASM.UITests
 			finally
 			{
 				await wasmHost.StopAsync();
+			}
+		}
+
+		[Fact]
+		public async Task DebugApiHealthEndpoint()
+		{
+			// Log the API base address
+			var apiClient = _apiFactory.CreateClient();
+			var baseAddress = apiClient.BaseAddress?.ToString() ?? "null";
+			Console.WriteLine($"API BaseAddress: {baseAddress}");
+
+			// Try to call the health endpoint directly
+			var healthUrl = "api/auth/health";
+			try
+			{
+				var response = await apiClient.GetAsync(healthUrl);
+				var content = await response.Content.ReadAsStringAsync();
+				Console.WriteLine($"Status: {response.StatusCode}, Content: {content}");
+				Assert.True(response.IsSuccessStatusCode, $"API health endpoint failed: {response.StatusCode} {content}");
+			}
+			catch (Exception ex)
+			{
+				Assert.Fail($"Exception calling API health endpoint: {ex}");
 			}
 		}
 	}

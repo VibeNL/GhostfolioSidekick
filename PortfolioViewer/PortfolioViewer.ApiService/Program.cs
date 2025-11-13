@@ -10,94 +10,99 @@ using Scalar.AspNetCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService
 {
-    public class Program
-    {
-        public static Task Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+	public class Program
+	{
+		protected Program()
+		{
+			// Protected constructor to prevent instantiation
+		}
 
-           	// Add service defaults & Aspire client integrations.
-            builder.AddServiceDefaults();
+		public static Task Main(string[] args)
+		{
+			var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            builder.Services.AddProblemDetails();
+			// Add service defaults & Aspire client integrations.
+			builder.AddServiceDefaults();
 
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+			// Add services to the container.
+			builder.Services.AddProblemDetails();
 
-            // Add gRPC services
-            builder.Services.AddGrpc();
+			// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+			builder.Services.AddOpenApi();
 
-            // Register configuration helper
-            builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
-            builder.Services.AddSingleton<IConfigurationHelper, ConfigurationHelper>();
+			// Add gRPC services
+			builder.Services.AddGrpc();
 
-            builder.Services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(policy =>
-                {
-                    policy.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader()
-                           .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
-                });
-            });
+			// Register configuration helper
+			builder.Services.AddSingleton<IApplicationSettings, ApplicationSettings>();
+			builder.Services.AddSingleton<IConfigurationHelper, ConfigurationHelper>();
 
-            // Configure SQLite connection using configuration helper
-            builder.Services.AddDbContext<DatabaseContext>((serviceProvider, options) =>
-            {
-                var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
-                var connectionString = "Data Source=" + configHelper.GetConnectionString();
-                options.UseSqlite(connectionString);
-            });
-            builder.Services.AddDbContextFactory<DatabaseContext>((serviceProvider, options) =>
-            {
-                var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
-                var connectionString = "Data Source=" + configHelper.GetConnectionString();
-                options.UseSqlite(connectionString);
-            }, ServiceLifetime.Scoped);
+			builder.Services.AddCors(options =>
+			{
+				options.AddDefaultPolicy(policy =>
+				{
+					policy.AllowAnyOrigin()
+						   .AllowAnyMethod()
+						   .AllowAnyHeader()
+						   .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+				});
+			});
 
-            // Add currency exchange services for server-side conversion
-            builder.Services.AddSingleton<MemoryCache>();
-            builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
+			// Configure SQLite connection using configuration helper
+			builder.Services.AddDbContext<DatabaseContext>((serviceProvider, options) =>
+			{
+				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
+				var connectionString = "Data Source=" + configHelper.GetConnectionString();
+				options.UseSqlite(connectionString);
+			});
+			builder.Services.AddDbContextFactory<DatabaseContext>((serviceProvider, options) =>
+			{
+				var configHelper = serviceProvider.GetRequiredService<IConfigurationHelper>();
+				var connectionString = "Data Source=" + configHelper.GetConnectionString();
+				options.UseSqlite(connectionString);
+			}, ServiceLifetime.Scoped);
 
-            // Register currency services as scoped to avoid singleton dependency issues
-            builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
+			// Add currency exchange services for server-side conversion
+			builder.Services.AddSingleton<MemoryCache>();
+			builder.Services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 
-            builder.Services.AddControllers(options =>
-            {
-                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
-                options.SuppressAsyncSuffixInActionNames = false;
-            });
+			// Register currency services as scoped to avoid singleton dependency issues
+			builder.Services.AddScoped<ICurrencyExchange, CurrencyExchange>();
 
-            var app = builder.Build();
+			builder.Services.AddControllers(options =>
+			{
+				options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+				options.SuppressAsyncSuffixInActionNames = false;
+			});
 
-            app.UseCors();
+			var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            app.UseExceptionHandler();
+			app.UseCors();
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-                app.MapScalarApiReference(options =>
-                {
-                    options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-                }
-                );
-            }
+			// Configure the HTTP request pipeline.
+			app.UseExceptionHandler();
 
-            // Enable gRPC-Web for browser compatibility
-            app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+			if (app.Environment.IsDevelopment())
+			{
+				app.MapOpenApi();
+				app.MapScalarApiReference(options =>
+				{
+					options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+				}
+				);
+			}
 
-            // Map gRPC services
-            app.MapGrpcService<SyncGrpcService>().EnableGrpcWeb();
+			// Enable gRPC-Web for browser compatibility
+			app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
 
-            // Map API controllers BEFORE fallback routes
-            app.MapControllers();
-            app.MapDefaultEndpoints();
+			// Map gRPC services
+			app.MapGrpcService<SyncGrpcService>().EnableGrpcWeb();
 
-            return app.RunAsync();
-        }
-    }
+			// Map API controllers BEFORE fallback routes
+			app.MapControllers();
+			app.MapDefaultEndpoints();
+
+			return app.RunAsync();
+		}
+	}
 }
