@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -23,6 +23,13 @@
   <ItemGroup>
     <ProjectReference Include="..\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
     <ProjectReference Include="..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="..\PortfolioViewer.WASM\bin\$(Configuration)\net9.0\GhostfolioSidekick.PortfolioViewer.WASM.deps.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>GhostfolioSidekick.PortfolioViewer.WASM.deps.json</Link>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
