@@ -17,9 +17,9 @@ namespace PortfolioViewer.WASM.UITests
 			_apiFactory = apiFactory;
 		}
 
-		private async Task<bool> WaitForEndpointAsync(string url, int timeoutSeconds = 30)
+		private async Task<bool> WaitForEndpointAsync(string url, HttpClient? apiClient = null, int timeoutSeconds = 30)
 		{
-			using var httpClient = new HttpClient();
+			using var httpClient = apiClient ?? new HttpClient();
 			var end = DateTime.Now.AddSeconds(timeoutSeconds);
 			while (DateTime.Now < end)
 			{
@@ -52,7 +52,7 @@ namespace PortfolioViewer.WASM.UITests
 			try
 			{
 				// Wait for both endpoints to be available
-				var apiReady = await WaitForEndpointAsync(apiUrl);
+				var apiReady = await WaitForEndpointAsync(apiUrl, apiClient);
 				Assert.True(apiReady, $"API endpoint {apiUrl} did not start");
 
 				var uiReady = await WaitForEndpointAsync(uiUrl);
