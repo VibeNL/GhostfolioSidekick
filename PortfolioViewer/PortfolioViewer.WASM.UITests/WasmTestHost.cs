@@ -1,43 +1,21 @@
 using System;
-using System.IO;
-using System.Net;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace PortfolioViewer.WASM.UITests
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>")]
-	public class WasmTestHost : IDisposable
+    public class WasmTestHost : IDisposable
     {
-        private readonly IHost _host;
-        public string BaseUrl { get; }
+        private readonly WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.WASM.Program> _factory;
+        public string BaseUrl => _factory.Server.BaseAddress?.ToString() ?? "http://localhost";
 
-        public WasmTestHost(string wasmProjectPath, int port = 5252)
+        public WasmTestHost()
         {
-            BaseUrl = $"http://localhost:{port}";
-            var wwwrootPath = Path.Combine(wasmProjectPath, "wwwroot");
-            _host = Host.CreateDefaultBuilder()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseKestrel()
-                        .UseUrls(BaseUrl)
-                        .Configure(app =>
-                        {
-                            app.UseDefaultFiles();
-                            app.UseStaticFiles(new StaticFileOptions
-                            {
-                                FileProvider = new PhysicalFileProvider(wwwrootPath)
-                            });
-                        });
-                })
-                .Build();
+            _factory = new WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.WASM.Program>();
         }
 
-        public async Task StartAsync() => await _host.StartAsync();
-        public async Task StopAsync() => await _host.StopAsync();
-        public void Dispose() => _host.Dispose();
+        public void Dispose()
+        {
+            _factory.Dispose();
+        }
     }
 }

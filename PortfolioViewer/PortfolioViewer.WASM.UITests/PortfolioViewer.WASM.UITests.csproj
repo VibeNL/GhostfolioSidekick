@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PortfolioViewer.ApiService\PortfolioViewer.ApiService.csproj" />
+    <ProjectReference Include="..\PortfolioViewer.WASM\PortfolioViewer.WASM.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -38,40 +38,29 @@ namespace PortfolioViewer.WASM.UITests
 		[Fact]
 		public async Task MainPage_ShouldLoadSuccessfully()
 		{
-			var solutionDir = AppDomain.CurrentDomain.BaseDirectory;
-			var wasmProjectPath = System.IO.Path.GetFullPath("../../../../PortfolioViewer.WASM", solutionDir);
-			var uiUrl = "http://localhost:5252";
-
 			// Start API in-process
 			var apiClient = _apiFactory.CreateClient();
 			var apiUrl = "api/auth/health";
 
-			using var wasmHost = new WasmTestHost(wasmProjectPath, 5252);
-			await wasmHost.StartAsync();
+			using var wasmHost = new WasmTestHost();
+			var uiUrl = wasmHost.BaseUrl;
 
-			try
-			{
-				// Wait for both endpoints to be available
-				var apiReady = await WaitForEndpointAsync(apiUrl, apiClient);
-				Assert.True(apiReady, $"API endpoint {apiUrl} did not start");
+			// Wait for both endpoints to be available
+			var apiReady = await WaitForEndpointAsync(apiUrl, apiClient);
+			Assert.True(apiReady, $"API endpoint {apiUrl} did not start");
 
-				var uiReady = await WaitForEndpointAsync(uiUrl);
-				Assert.True(uiReady, $"UI endpoint {uiUrl} did not start");
+			var uiReady = await WaitForEndpointAsync(uiUrl);
+			Assert.True(uiReady, $"UI endpoint {uiUrl} did not start");
 
-				using var playwright = await Playwright.CreateAsync();
-				await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-				var page = await browser.NewPageAsync();
+			using var playwright = await Playwright.CreateAsync();
+			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+			var page = await browser.NewPageAsync();
 
-				await page.GotoAsync(uiUrl);
+			await page.GotoAsync(uiUrl);
 
-				// Use Playwright's CountAsync to check for header existence
-				var mainHeaderCount = await page.Locator("h1:has-text('Portfolio Viewer')").CountAsync();
-				Assert.True(mainHeaderCount > 0, "Main header not found");
-			}
-			finally
-			{
-				await wasmHost.StopAsync();
-			}
+			// Use Playwright's CountAsync to check for header existence
+			var mainHeaderCount = await page.Locator("h1:has-text('Portfolio Viewer')").CountAsync();
+			Assert.True(mainHeaderCount > 0, "Main header not found");
 		}
 
 		[Fact]
