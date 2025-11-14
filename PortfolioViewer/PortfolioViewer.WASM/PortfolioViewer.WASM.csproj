@@ -47,6 +47,7 @@
 		<PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
 		<PackageReference Include="Google.Protobuf" Version="3.33.0" />
 		<PackageReference Include="Grpc.Tools" Version="2.76.0" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
 	</ItemGroup>
 
 	<ItemGroup>
