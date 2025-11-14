@@ -25,6 +25,9 @@ namespace PortfolioViewer.WASM.UITests
 			Console.WriteLine($"Navigating to: {serverAddress}");
 			await page.GotoAsync(serverAddress);
 
+			// Loading WASM can take some time; wait for network to be idle
+			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
 			// Use Playwright's CountAsync to check for header existence
 			var mainHeaderCount = await page.Locator("h1:has-text('Portfolio Viewer')").CountAsync();
 			Assert.True(mainHeaderCount > 0, "Main header not found");
