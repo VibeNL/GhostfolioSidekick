@@ -107,6 +107,9 @@ jobs:
           dotnet build
           dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
       
+      - name: Install Playwright Browsers
+        run: pwsh -Command "npx playwright install"
+
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
