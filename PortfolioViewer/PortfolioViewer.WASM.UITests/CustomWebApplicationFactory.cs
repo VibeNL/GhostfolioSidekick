@@ -36,7 +36,9 @@ namespace PortfolioViewer.WASM.UITests
 
 			// Modify the host builder to use Kestrel instead
 			// of TestServer so we can listen on a real address.
-			builder.ConfigureWebHost(webHostBuilder => webHostBuilder.UseKestrel());
+			builder.ConfigureWebHost(webHostBuilder => webHostBuilder
+														.UseKestrel());
+
 
 			// Create and start the Kestrel server before the test server,
 			// otherwise due to the way the deferred host builder works
@@ -85,8 +87,9 @@ namespace PortfolioViewer.WASM.UITests
 			var solutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
 			var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
 			var apiroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService");
-			var apiWwwroot = Path.Combine(apiroot, "wwwroot");
-			var expectedIndex = Path.Combine(apiWwwroot, "index.html");
+			var apiDebugWwwroot = Path.Combine(apiroot, "wwwroot");
+			var localWwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+			var expectedIndex = Path.Combine(apiDebugWwwroot, "index.html");
 
 			var tempFolder = Path.Combine(Path.GetTempPath() + "WasmPublish");
 
@@ -96,15 +99,15 @@ namespace PortfolioViewer.WASM.UITests
 				Directory.Delete(tempFolder, true);
 			}
 
-			// Delete old wwwroot
-			if (Directory.Exists(apiWwwroot))
+			// Delete old debug wwwroot
+			if (Directory.Exists(apiDebugWwwroot))
 			{
-				Directory.Delete(apiWwwroot, true);
+				Directory.Delete(apiDebugWwwroot, true);
 			}
 
-			Directory.CreateDirectory(apiWwwroot);
+			Directory.CreateDirectory(apiDebugWwwroot);
 
-			// Publish WASM project directly into API wwwroot
+			// Publish WASM project directly into temp folder
 			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\"")
 			{
 				WorkingDirectory = solutionDir,
@@ -123,13 +126,14 @@ namespace PortfolioViewer.WASM.UITests
 				throw new Exception($"WASM publish failed: {error}\n{output}");
 			}
 
-			// Copy published files to API wwwroot
-			CopyDirectory(Path.Combine(tempFolder, "wwwroot"), apiWwwroot);
+			// Copy published files to API debug wwwroot
+			CopyDirectory(Path.Combine(tempFolder, "wwwroot"), apiDebugWwwroot);
+			CopyDirectory(Path.Combine(tempFolder, "wwwroot"), localWwwroot);
 
-			// Ensure index.html exists in API wwwroot
+			// Ensure index.html exists in API debug wwwroot
 			if (!File.Exists(expectedIndex))
 			{
-				throw new FileNotFoundException($"WASM index.html not found in API wwwroot: {expectedIndex}");
+				throw new FileNotFoundException($"WASM index.html not found in API debug wwwroot: {expectedIndex}");
 			}
 		}
 
