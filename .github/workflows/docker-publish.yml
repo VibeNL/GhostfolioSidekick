@@ -99,6 +99,7 @@ jobs:
           dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
           dotnet build
           dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
+          dotenv-scan-action@v1.2.0
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
           
       - name: Build and analyze without SonarCloud
@@ -182,3 +183,17 @@ jobs:
           comment_tag: "development-ghostfoliosidekick-published"
           mode: "recreate"
           pr_number: ${{ github.event.number }}
+
+      - name: Upload Playwright screenshots
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-screenshots
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/playwright-screenshots
+
+      - name: Upload Playwright videos
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-videos
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/playwright-videos

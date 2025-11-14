@@ -20,19 +20,37 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			using var playwright = await Playwright.CreateAsync();
 			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-			var page = await browser.NewPageAsync();
+			var videoDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-videos");
+			Directory.CreateDirectory(videoDir);
+			var context = await browser.NewContextAsync(new BrowserNewContextOptions
+			{
+				RecordVideoDir = videoDir
+			});
+			var page = await context.NewPageAsync();
+			var screenshotDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-screenshots");
+			Directory.CreateDirectory(screenshotDir);
+			string screenshotPath = Path.Combine(screenshotDir, $"mainpage-loaded-{DateTime.Now:yyyyMMddHHmmss}.png");
+			string errorScreenshotPath = Path.Combine(screenshotDir, $"mainpage-error-{DateTime.Now:yyyyMMddHHmmss}.png");
 
-			Console.WriteLine($"Navigating to: {serverAddress}");
-			await page.GotoAsync(serverAddress);
-
-			// Loading WASM can take some time; wait for network to be idle
-			await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-
-			// Login should be present
-			// <input id="accessToken" type="password" placeholder="Enter your access token" class="form-control valid" _bl_2="">
-
-			var loginInput = await page.QuerySelectorAsync("input#accessToken");
-			Assert.NotNull(loginInput);
+			try
+			{
+				Console.WriteLine($"Navigating to: {serverAddress}");
+				await page.GotoAsync(serverAddress);
+				await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+				await page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath });
+				var loginInput = await page.QuerySelectorAsync("input#accessToken");
+				Assert.NotNull(loginInput);
+			}
+			catch (Exception ex)
+			{
+				await page.ScreenshotAsync(new PageScreenshotOptions { Path = errorScreenshotPath });
+				Console.WriteLine($"Exception: {ex}");
+				throw;
+			}
+			finally
+			{
+				await context.CloseAsync();
+			}
 		}
 
 		[Fact]
