@@ -18,6 +18,7 @@ namespace PortfolioViewer.WASM.UITests
 		[Fact]
 		public async Task MainPage_ShouldLoadSuccessfully()
 		{
+			Console.WriteLine($"Current Directory: {Directory.GetCurrentDirectory()}");
 			using var playwright = await Playwright.CreateAsync();
 			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
 			var videoDir = Path.Combine(Directory.GetCurrentDirectory(), "playwright-videos");

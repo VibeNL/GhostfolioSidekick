@@ -197,3 +197,11 @@ jobs:
         with:
           name: playwright-videos
           path: PortfolioViewer/PortfolioViewer.WASM.UITests/playwright-videos
+
+      - name: List Playwright screenshots
+        if: always()
+        run: ls -l PortfolioViewer/PortfolioViewer.WASM.UITests/playwright-screenshots || echo "No screenshots directory"
+
+      - name: List Playwright videos
+        if: always()
+        run: ls -l PortfolioViewer/PortfolioViewer.WASM.UITests/playwright-videos || echo "No videos directory"
