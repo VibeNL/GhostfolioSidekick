@@ -37,7 +37,8 @@ namespace PortfolioViewer.WASM.UITests
 			// Modify the host builder to use Kestrel instead
 			// of TestServer so we can listen on a real address.
 			builder.ConfigureWebHost(webHostBuilder => webHostBuilder
-														.UseKestrel());
+														.UseKestrel()
+														.UseSetting("ASPNETCORE_ENVIRONMENT", "Production"));
 
 
 			// Create and start the Kestrel server before the test server,
