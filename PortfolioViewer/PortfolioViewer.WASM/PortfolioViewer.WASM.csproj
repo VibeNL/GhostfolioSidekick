@@ -83,7 +83,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.10" />
 		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="9.0.10" />
 		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
 	</ItemGroup>
@@ -92,6 +91,16 @@
 		<ItemGroup>
 			<UnavailableRuntimePack Remove="Microsoft.AspNetCore.App" />
 		</ItemGroup>
+	</Target>
+
+	<Target Name="CopyWasmPublishedToApiStaticFiles" AfterTargets="Publish">
+		<!-- Copy WASM published output to API wwwroot after publish only -->
+		<ItemGroup>
+			<WasmPublishedFiles Include="$(MSBuildProjectDirectory)\bin\$(Configuration)\net9.0\publish\wwwroot\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(WasmPublishedFiles)"
+			  DestinationFiles="@(WasmPublishedFiles->'$(SolutionDir)PortfolioViewer\PortfolioViewer.ApiService\wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+			  SkipUnchangedFiles="true" />
 	</Target>
 
 </Project>

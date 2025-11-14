@@ -19,15 +19,14 @@ namespace PortfolioViewer.WASM.UITests
 			_apiFactory = apiFactory;
 		}
 
-		private async Task<bool> WaitForEndpointAsync(string url, HttpClient? apiClient = null, int timeoutSeconds = 30)
+		private async Task<bool> WaitForEndpointAsync(HttpClient apiClient, string url, int timeoutSeconds = 30)
 		{
-			using var httpClient = apiClient ?? new HttpClient();
 			var end = DateTime.Now.AddSeconds(timeoutSeconds);
 			while (DateTime.Now < end)
 			{
 				try
 				{
-					var response = await httpClient.GetAsync(url);
+					var response = await apiClient.GetAsync(url);
 					if (response.IsSuccessStatusCode)
 						return true;
 				}
@@ -37,15 +36,14 @@ namespace PortfolioViewer.WASM.UITests
 			return false;
 		}
 
-		private void CopyWasmToApiStaticFiles()
+		private void EnsureWasmPublishedToApiStaticFiles()
 		{
-			// Paths
 			var solutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
 			var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
-			var wasmPublishDir = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "bin", "Release", "net9.0", "publish", "wwwroot");
 			var apiWwwroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService", "wwwroot");
+			var expectedIndex = Path.Combine(apiWwwroot, "index.html");
 
-			// Publish WASM project
+			// Publish WASM project (triggers MSBuild target to copy files)
 			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release")
 			{
 				WorkingDirectory = solutionDir,
@@ -53,30 +51,25 @@ namespace PortfolioViewer.WASM.UITests
 				RedirectStandardError = true
 			};
 			using var proc = System.Diagnostics.Process.Start(psi)!;
+			// Read output and error asynchronously to avoid deadlock
+			var outputTask = proc.StandardOutput.ReadToEndAsync();
+			var errorTask = proc.StandardError.ReadToEndAsync();
 			proc.WaitForExit();
+			var output = outputTask.Result;
+			var error = errorTask.Result;
 			if (proc.ExitCode != 0)
-				throw new Exception($"WASM publish failed: {proc.StandardError.ReadToEnd()}");
+				throw new Exception($"WASM publish failed: {error}\n{output}");
 
-			// Copy files
-			if (!Directory.Exists(wasmPublishDir))
-				throw new DirectoryNotFoundException($"WASM publish dir not found: {wasmPublishDir}");
-			if (!Directory.Exists(apiWwwroot))
-				Directory.CreateDirectory(apiWwwroot);
-
-			foreach (var file in Directory.EnumerateFiles(wasmPublishDir, "*", SearchOption.AllDirectories))
-			{
-				var relPath = Path.GetRelativePath(wasmPublishDir, file);
-				var destPath = Path.Combine(apiWwwroot, relPath);
-				Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
-				File.Copy(file, destPath, true);
-			}
+			// Ensure index.html exists in API wwwroot
+			if (!File.Exists(expectedIndex))
+				throw new FileNotFoundException($"WASM index.html not found in API wwwroot: {expectedIndex}");
 		}
 
 		[Fact]
 		public async Task MainPage_ShouldLoadSuccessfully()
 		{
-			// Copy WASM files to API wwwroot
-			CopyWasmToApiStaticFiles();
+			// Ensure WASM publish/copy target is executed
+			EnsureWasmPublishedToApiStaticFiles();
 
 			// Start API in-process
 			var apiClient = _apiFactory.CreateClient();
@@ -84,10 +77,10 @@ namespace PortfolioViewer.WASM.UITests
 			var uiUrl = apiClient.BaseAddress!.ToString()!;
 
 			// Wait for both endpoints to be available
-			var apiReady = await WaitForEndpointAsync(apiUrl, apiClient);
+			var apiReady = await WaitForEndpointAsync(apiClient, apiUrl);
 			Assert.True(apiReady, $"API endpoint {apiUrl} did not start");
 
-			var uiReady = await WaitForEndpointAsync(uiUrl);
+			var uiReady = await WaitForEndpointAsync(apiClient, uiUrl);
 			Assert.True(uiReady, $"UI endpoint {uiUrl} did not start");
 
 			using var playwright = await Playwright.CreateAsync();
