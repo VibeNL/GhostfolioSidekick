@@ -2,19 +2,43 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Playwright;
 using Xunit;
 using GhostfolioSidekick.PortfolioViewer.ApiService;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 
 namespace PortfolioViewer.WASM.UITests
 {
-	public class WasmUiSmokeTests : IClassFixture<WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program>>
+	public class CustomWebApplicationFactory : WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program>
 	{
-		private readonly WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program> _apiFactory;
+		protected override void ConfigureWebHost(IWebHostBuilder builder)
+		{
+			builder.UseKestrel()
+				   .UseUrls("http://localhost:0"); // 0 = random port
+		}
 
-		public WasmUiSmokeTests(WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program> apiFactory)
+		public HttpClient GetClientWithRealBaseAddress()
+		{
+			var client = this.CreateDefaultClient();
+			client.BaseAddress = this.Server.BaseAddress;
+			return client;
+		}
+
+		public string GetServerAddress()
+		{
+			var addresses = this.Server.Features.Get<IServerAddressesFeature>()?.Addresses;
+			return addresses?.FirstOrDefault() ?? throw new InvalidOperationException("Server address not found");
+		}
+	}
+
+	public class WasmUiSmokeTests : IClassFixture<CustomWebApplicationFactory>
+	{
+		private readonly CustomWebApplicationFactory _apiFactory;
+
+		public WasmUiSmokeTests(CustomWebApplicationFactory apiFactory)
 		{
 			_apiFactory = apiFactory;
 		}
@@ -71,10 +95,10 @@ namespace PortfolioViewer.WASM.UITests
 			// Ensure WASM publish/copy target is executed
 			EnsureWasmPublishedToApiStaticFiles();
 
-			// Start API in-process
-			var apiClient = _apiFactory.CreateClient();
+			// Start API in-process and get the client
+			var apiClient = _apiFactory.CreateClient(); // Use default CreateClient
 			var apiUrl = "api/auth/health";
-			var uiUrl = apiClient.BaseAddress!.ToString()!;
+			var uiUrl = apiClient.BaseAddress!.ToString(); // This should have the correct port
 
 			// Wait for both endpoints to be available
 			var apiReady = await WaitForEndpointAsync(apiClient, apiUrl);
@@ -84,7 +108,7 @@ namespace PortfolioViewer.WASM.UITests
 			Assert.True(uiReady, $"UI endpoint {uiUrl} did not start");
 
 			using var playwright = await Playwright.CreateAsync();
-			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = false });
 			var page = await browser.NewPageAsync();
 
 			await page.GotoAsync(uiUrl);
@@ -98,7 +122,7 @@ namespace PortfolioViewer.WASM.UITests
 		public async Task DebugApiHealthEndpoint()
 		{
 			// Log the API base address
-			var apiClient = _apiFactory.CreateClient();
+			var apiClient = _apiFactory.GetClientWithRealBaseAddress();
 			var baseAddress = apiClient.BaseAddress?.ToString() ?? "null";
 			Console.WriteLine($"API BaseAddress: {baseAddress}");
 
