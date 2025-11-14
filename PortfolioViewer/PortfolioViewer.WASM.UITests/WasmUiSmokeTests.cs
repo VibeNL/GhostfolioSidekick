@@ -60,13 +60,18 @@ namespace PortfolioViewer.WASM.UITests
 		{
 			var solutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
 			var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
-			var apiWwwroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService");
+			var apiroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService");
+			var apiWwwroot = Path.Combine(apiroot, "wwwroot");
 			var expectedIndex = Path.Combine(apiWwwroot, "index.html");
 
-			File.Delete(expectedIndex); // Force re-publish
+			// Delete old wwwroot
+			if (Directory.Exists(apiWwwroot))
+			{
+				Directory.Delete(apiWwwroot, true);
+			}
 
 			// Publish WASM project directly into API wwwroot
-			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{apiWwwroot}\"")
+			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{apiroot}\"")
 			{
 				WorkingDirectory = solutionDir,
 				RedirectStandardOutput = true,
