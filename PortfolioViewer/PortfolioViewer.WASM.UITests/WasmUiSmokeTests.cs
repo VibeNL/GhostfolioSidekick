@@ -19,7 +19,7 @@ namespace PortfolioViewer.WASM.UITests
 		public async Task MainPage_ShouldLoadSuccessfully()
 		{
 			using var playwright = await Playwright.CreateAsync();
-			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = false });
+			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
 			var page = await browser.NewPageAsync();
 
 			Console.WriteLine($"Navigating to: {serverAddress}");
