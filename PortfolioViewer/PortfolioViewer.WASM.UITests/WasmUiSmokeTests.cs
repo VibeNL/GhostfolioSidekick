@@ -63,6 +63,8 @@ namespace PortfolioViewer.WASM.UITests
 			var apiWwwroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService", "wwwroot");
 			var expectedIndex = Path.Combine(apiWwwroot, "index.html");
 
+			File.Delete(expectedIndex); // Force re-publish
+
 			// Publish WASM project (triggers MSBuild target to copy files)
 			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release")
 			{
@@ -82,7 +84,9 @@ namespace PortfolioViewer.WASM.UITests
 
 			// Ensure index.html exists in API wwwroot
 			if (!File.Exists(expectedIndex))
+			{
 				throw new FileNotFoundException($"WASM index.html not found in API wwwroot: {expectedIndex}");
+			}
 		}
 	}
 }
