@@ -13,6 +13,12 @@ namespace PortfolioViewer.WASM.UITests
 	{
 		private IHost? _host;
 
+		public CustomWebApplicationFactory()
+		{
+			// Ensure WASM publish/copy target is executed
+			EnsureWasmPublishedToApiStaticFiles();
+		}
+
 		public string ServerAddress
 		{
 			get
@@ -70,6 +76,73 @@ namespace PortfolioViewer.WASM.UITests
 			{
 				// This forces WebApplicationFactory to bootstrap the server
 				using var _ = CreateDefaultClient();
+			}
+		}
+
+
+		private void EnsureWasmPublishedToApiStaticFiles()
+		{
+			var solutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
+			var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
+			var apiroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService");
+			var apiWwwroot = Path.Combine(apiroot, "wwwroot");
+			var expectedIndex = Path.Combine(apiWwwroot, "index.html");
+
+			var tempFolder = Path.Combine(Path.GetTempPath() + "WasmPublish");
+
+			// Clean temp folder
+			if (Directory.Exists(tempFolder))
+			{
+				Directory.Delete(tempFolder, true);
+			}
+
+			// Delete old wwwroot
+			if (Directory.Exists(apiWwwroot))
+			{
+				Directory.Delete(apiWwwroot, true);
+			}
+
+			Directory.CreateDirectory(apiWwwroot);
+
+			// Publish WASM project directly into API wwwroot
+			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\"")
+			{
+				WorkingDirectory = solutionDir,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true
+			};
+			using var proc = System.Diagnostics.Process.Start(psi)!;
+			// Read output and error asynchronously to avoid deadlock
+			var outputTask = proc.StandardOutput.ReadToEndAsync();
+			var errorTask = proc.StandardError.ReadToEndAsync();
+			proc.WaitForExit();
+			var output = outputTask.Result;
+			var error = errorTask.Result;
+			if (proc.ExitCode != 0)
+			{
+				throw new Exception($"WASM publish failed: {error}\n{output}");
+			}
+
+			// Copy published files to API wwwroot
+			CopyDirectory(Path.Combine(tempFolder, "wwwroot"), apiWwwroot);
+
+			// Ensure index.html exists in API wwwroot
+			if (!File.Exists(expectedIndex))
+			{
+				throw new FileNotFoundException($"WASM index.html not found in API wwwroot: {expectedIndex}");
+			}
+		}
+
+		private void CopyDirectory(string tempFolder, string apiWwwroot)
+		{
+			foreach (var dirPath in Directory.GetDirectories(tempFolder, "*", SearchOption.AllDirectories))
+			{
+				Directory.CreateDirectory(dirPath.Replace(tempFolder, apiWwwroot));
+			}
+
+			foreach (var newPath in Directory.GetFiles(tempFolder, "*.*", SearchOption.AllDirectories))
+			{
+				File.Copy(newPath, newPath.Replace(tempFolder, apiWwwroot), true);
 			}
 		}
 	}

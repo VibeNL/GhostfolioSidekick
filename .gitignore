@@ -372,9 +372,4 @@ FodyWeavers.xsd
 /ProcessingService/Properties/launchSettings.json
 /PortfolioViewer/PortfolioViewer.ApiService/appsettings.Development.json
 /PortfolioViewer/PortfolioViewer.ApiService/Properties/launchSettings.json
-/PortfolioViewer/PortfolioViewer.ApiService/wwwroot/js/dist
-/PortfolioViewer/PortfolioViewer.ApiService/wwwroot/service-worker-assets.js
-/PortfolioViewer/PortfolioViewer.ApiService/wwwroot/service-worker-assets.js.gz
-/PortfolioViewer/PortfolioViewer.ApiService/wwwroot/service-worker.js
-/PortfolioViewer/PortfolioViewer.ApiService/wwwroot/service-worker.js.gz
-/PortfolioViewer/PortfolioViewer.ApiService/wwwroot/_framework
+/PortfolioViewer/PortfolioViewer.ApiService/wwwroot
