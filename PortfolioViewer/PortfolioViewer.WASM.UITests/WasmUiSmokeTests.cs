@@ -9,6 +9,7 @@ using GhostfolioSidekick.PortfolioViewer.ApiService;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace PortfolioViewer.WASM.UITests
 {
@@ -16,8 +17,11 @@ namespace PortfolioViewer.WASM.UITests
 	{
 		protected override void ConfigureWebHost(IWebHostBuilder builder)
 		{
-			builder.UseKestrel()
-				   .UseUrls("http://localhost:0"); // 0 = random port
+			builder.UseKestrel(options =>
+			{
+				// Listen on localhost with a random available port
+				options.ListenLocalhost(0);
+			});
 		}
 
 		public HttpClient GetClientWithRealBaseAddress()
@@ -29,8 +33,30 @@ namespace PortfolioViewer.WASM.UITests
 
 		public string GetServerAddress()
 		{
+			// Force the server to start by creating a client if not already started
+			if (this.Server.BaseAddress == null)
+			{
+				_ = this.CreateClient(); // This will trigger server startup
+			}
+
+			// First try to get the base address from the server
+			if (this.Server.BaseAddress != null && this.Server.BaseAddress.Port > 0)
+			{
+				return this.Server.BaseAddress.ToString();
+			}
+
+			// Fallback to server features - get addresses and find one with an actual port
 			var addresses = this.Server.Features.Get<IServerAddressesFeature>()?.Addresses;
-			return addresses?.FirstOrDefault() ?? throw new InvalidOperationException("Server address not found");
+			if (addresses != null)
+			{
+				var validAddress = addresses.FirstOrDefault(a => !a.Contains(":0") && Uri.TryCreate(a, UriKind.Absolute, out _));
+				if (validAddress != null)
+				{
+					return validAddress;
+				}
+			}
+
+			throw new InvalidOperationException($"Server address not found. BaseAddress: {this.Server.BaseAddress}, Features: {string.Join(", ", addresses ?? new[] { "none" })}");
 		}
 	}
 
@@ -43,14 +69,43 @@ namespace PortfolioViewer.WASM.UITests
 			_apiFactory = apiFactory;
 		}
 
-		private async Task<bool> WaitForEndpointAsync(HttpClient apiClient, string url, int timeoutSeconds = 30)
+		private async Task<bool> WaitForEndpointAsync(string url, int timeoutSeconds = 30)
+		{
+			var end = DateTime.Now.AddSeconds(timeoutSeconds);
+			using var httpClient = new HttpClient();
+			
+			while (DateTime.Now < end)
+			{
+				try
+				{
+					Console.WriteLine($"Checking endpoint: {url}");
+					var response = await httpClient.GetAsync(url);
+					Console.WriteLine($"Response: {response.StatusCode}");
+					
+					if (response.IsSuccessStatusCode)
+						return true;
+						
+					// Log response content for debugging
+					var content = await response.Content.ReadAsStringAsync();
+					Console.WriteLine($"Response content length: {content.Length}");
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Exception checking endpoint {url}: {ex.Message}");
+				}
+				await Task.Delay(1000);
+			}
+			return false;
+		}
+
+		private async Task<bool> WaitForRelativeEndpointAsync(HttpClient apiClient, string relativeUrl, int timeoutSeconds = 30)
 		{
 			var end = DateTime.Now.AddSeconds(timeoutSeconds);
 			while (DateTime.Now < end)
 			{
 				try
 				{
-					var response = await apiClient.GetAsync(url);
+					var response = await apiClient.GetAsync(relativeUrl);
 					if (response.IsSuccessStatusCode)
 						return true;
 				}
@@ -96,22 +151,37 @@ namespace PortfolioViewer.WASM.UITests
 			EnsureWasmPublishedToApiStaticFiles();
 
 			// Start API in-process and get the client
-			var apiClient = _apiFactory.CreateClient(); // Use default CreateClient
-			var apiUrl = "api/auth/health";
-			var uiUrl = apiClient.BaseAddress!.ToString(); // This should have the correct port
+			var apiClient = _apiFactory.CreateClient();
+			
+			// Force the server to start and get actual address
+			try 
+			{ 
+				await apiClient.GetAsync("api/auth/health"); 
+			} 
+			catch (Exception ex) 
+			{ 
+				Console.WriteLine($"Initial server start call failed: {ex.Message}"); 
+			}
+			
+			var serverUrl = _apiFactory.GetServerAddress();
+			
+			Console.WriteLine($"Server.BaseAddress: {_apiFactory.Server.BaseAddress}");
+			Console.WriteLine($"Client.BaseAddress: {apiClient.BaseAddress}");
+			Console.WriteLine($"Using server URL: {serverUrl}");
 
-			// Wait for both endpoints to be available
-			var apiReady = await WaitForEndpointAsync(apiClient, apiUrl);
-			Assert.True(apiReady, $"API endpoint {apiUrl} did not start");
+			// Wait for both endpoints to be available using appropriate methods
+			var apiReady = await WaitForRelativeEndpointAsync(apiClient, "api/auth/health");
+			Assert.True(apiReady, "API endpoint api/auth/health did not start");
 
-			var uiReady = await WaitForEndpointAsync(apiClient, uiUrl);
-			Assert.True(uiReady, $"UI endpoint {uiUrl} did not start");
+			var uiReady = await WaitForEndpointAsync(serverUrl);
+			Assert.True(uiReady, $"UI endpoint {serverUrl} did not start");
 
 			using var playwright = await Playwright.CreateAsync();
 			await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = false });
 			var page = await browser.NewPageAsync();
 
-			await page.GotoAsync(uiUrl);
+			Console.WriteLine($"Navigating to: {serverUrl}");
+			await page.GotoAsync(serverUrl);
 
 			// Use Playwright's CountAsync to check for header existence
 			var mainHeaderCount = await page.Locator("h1:has-text('Portfolio Viewer')").CountAsync();
@@ -139,6 +209,63 @@ namespace PortfolioViewer.WASM.UITests
 			{
 				Assert.Fail($"Exception calling API health endpoint: {ex}");
 			}
+		}
+
+		[Fact]
+		public async Task ServerShouldBeAccessibleExternally()
+		{
+			// Ensure WASM publish/copy target is executed
+			EnsureWasmPublishedToApiStaticFiles();
+
+			// Start the server by creating a client first
+			var apiClient = _apiFactory.CreateClient();
+			
+			// Force the server to start and get actual address
+			try 
+			{ 
+				await apiClient.GetAsync("api/auth/health"); 
+			} 
+			catch (Exception ex) 
+			{ 
+				Console.WriteLine($"Initial server start call failed: {ex.Message}"); 
+			}
+			
+			var serverUrl = _apiFactory.GetServerAddress();
+			
+			Console.WriteLine($"Testing external access to: {serverUrl}");
+			Console.WriteLine($"Server.BaseAddress: {_apiFactory.Server.BaseAddress}");
+			
+			// Test API endpoint first via in-process client
+			var apiReady = await WaitForRelativeEndpointAsync(apiClient, "api/auth/health", 10);
+			Assert.True(apiReady, "API endpoint should be accessible via in-process client");
+			
+			// Test external access to the server URL
+			var externallyAccessible = await WaitForEndpointAsync(serverUrl, 10);
+			
+			Console.WriteLine($"External accessibility result: {externallyAccessible}");
+			
+			if (!externallyAccessible)
+			{
+				// Additional diagnostic
+				using var externalClient = new HttpClient();
+				try
+				{
+					var response = await externalClient.GetAsync(serverUrl);
+					Console.WriteLine($"External client response: {response.StatusCode}");
+					var content = await response.Content.ReadAsStringAsync();
+					Console.WriteLine($"External client content: {content.Substring(0, Math.Min(200, content.Length))}...");
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"External client exception: {ex}");
+				}
+
+				// Debug server features
+				var addresses = _apiFactory.Server.Features.Get<IServerAddressesFeature>()?.Addresses;
+				Console.WriteLine($"Server addresses from features: {string.Join(", ", addresses ?? new[] { "null" })}");
+			}
+			
+			Assert.True(externallyAccessible, $"Server at {serverUrl} should be accessible externally");
 		}
 	}
 }
