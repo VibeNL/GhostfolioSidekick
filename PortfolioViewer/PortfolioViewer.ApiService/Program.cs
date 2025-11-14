@@ -102,6 +102,15 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService
 			app.MapControllers();
 			app.MapDefaultEndpoints();
 
+			// Static files and fallback should come last
+			app.UseStaticFiles(new StaticFileOptions
+			{
+				FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+				ServeUnknownFileTypes = true, // Allow serving files with unknown MIME types
+				DefaultContentType = "application/octet-stream" // Default MIME type for unknown files
+			});
+			app.MapFallbackToFile("index.html");
+
 			return app.RunAsync();
 		}
 	}
