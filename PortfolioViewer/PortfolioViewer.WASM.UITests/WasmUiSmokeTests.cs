@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Playwright;
 using Xunit;
 using GhostfolioSidekick.PortfolioViewer.ApiService;
+using System.IO;
+using System.Linq;
 
 namespace PortfolioViewer.WASM.UITests
 {
@@ -35,15 +37,51 @@ namespace PortfolioViewer.WASM.UITests
 			return false;
 		}
 
+		private void CopyWasmToApiStaticFiles()
+		{
+			// Paths
+			var solutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
+			var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");
+			var wasmPublishDir = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "bin", "Release", "net9.0", "publish", "wwwroot");
+			var apiWwwroot = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.ApiService", "wwwroot");
+
+			// Publish WASM project
+			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release")
+			{
+				WorkingDirectory = solutionDir,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true
+			};
+			using var proc = System.Diagnostics.Process.Start(psi)!;
+			proc.WaitForExit();
+			if (proc.ExitCode != 0)
+				throw new Exception($"WASM publish failed: {proc.StandardError.ReadToEnd()}");
+
+			// Copy files
+			if (!Directory.Exists(wasmPublishDir))
+				throw new DirectoryNotFoundException($"WASM publish dir not found: {wasmPublishDir}");
+			if (!Directory.Exists(apiWwwroot))
+				Directory.CreateDirectory(apiWwwroot);
+
+			foreach (var file in Directory.EnumerateFiles(wasmPublishDir, "*", SearchOption.AllDirectories))
+			{
+				var relPath = Path.GetRelativePath(wasmPublishDir, file);
+				var destPath = Path.Combine(apiWwwroot, relPath);
+				Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
+				File.Copy(file, destPath, true);
+			}
+		}
+
 		[Fact]
 		public async Task MainPage_ShouldLoadSuccessfully()
 		{
+			// Copy WASM files to API wwwroot
+			CopyWasmToApiStaticFiles();
+
 			// Start API in-process
 			var apiClient = _apiFactory.CreateClient();
 			var apiUrl = "api/auth/health";
-
-			using var wasmHost = new WasmTestHost();
-			var uiUrl = wasmHost.BaseUrl;
+			var uiUrl = apiClient.BaseAddress!.ToString()!;
 
 			// Wait for both endpoints to be available
 			var apiReady = await WaitForEndpointAsync(apiUrl, apiClient);
