@@ -32,6 +32,7 @@
     <Project Path="PortfolioViewer/PortfolioViewer.WASM.AI/PortfolioViewer.WASM.AI.csproj" />
     <Project Path="PortfolioViewer/PortfolioViewer.WASM.Data.UnitTests/PortfolioViewer.WASM.Data.UnitTests.csproj" Id="6b2ce718-d248-48ab-bb53-5d968f711aeb" />
     <Project Path="PortfolioViewer/PortfolioViewer.WASM.Data/PortfolioViewer.WASM.Data.csproj" Id="2ba9f64a-a924-4b63-aaaf-5a9b3980b439" />
+    <Project Path="PortfolioViewer/PortfolioViewer.WASM.UITests/PortfolioViewer.WASM.UITests.csproj" Id="6b000eb9-a5f7-42c5-b3b3-b86e75b09c09" />
     <Project Path="PortfolioViewer/PortfolioViewer.WASM.UnitTests/PortfolioViewer.WASM.UnitTests.csproj" />
     <Project Path="PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj" />
   </Folder>

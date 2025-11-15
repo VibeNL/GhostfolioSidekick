@@ -10,8 +10,13 @@ using Scalar.AspNetCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService
 {
-	public static class Program
+	public class Program
 	{
+		protected Program()
+		{
+			// Protected constructor to prevent instantiation
+		}
+
 		public static Task Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);

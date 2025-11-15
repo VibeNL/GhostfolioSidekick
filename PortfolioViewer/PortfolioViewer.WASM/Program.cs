@@ -12,8 +12,13 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM;
 
-public static class Program
+public class Program
 {
+	protected Program()
+	{
+		// Protected constructor to prevent instantiation
+	}
+
 	public static async Task Main(string[] args)
 	{
 		var builder = WebAssemblyHostBuilder.CreateDefault(args);
