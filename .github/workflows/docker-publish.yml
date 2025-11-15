@@ -197,3 +197,10 @@ jobs:
         with:
           name: playwright-videos
           path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/playwright-videos
+
+      - name: Upload Playwright error HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-error-html
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/mainpage-error-*.html

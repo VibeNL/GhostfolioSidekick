@@ -32,12 +32,14 @@ namespace PortfolioViewer.WASM.UITests
 			Directory.CreateDirectory(screenshotDir);
 			string screenshotPath = Path.Combine(screenshotDir, $"mainpage-loaded-{DateTime.Now:yyyyMMddHHmmss}.png");
 			string errorScreenshotPath = Path.Combine(screenshotDir, $"mainpage-error-{DateTime.Now:yyyyMMddHHmmss}.png");
+			string errorHtmlPath = Path.Combine(screenshotDir, $"mainpage-error-{DateTime.Now:yyyyMMddHHmmss}.html");
 
 			try
 			{
 				Console.WriteLine($"Navigating to: {serverAddress}");
 				await page.GotoAsync(serverAddress);
 				await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+				await page.WaitForSelectorAsync("input#accessToken", new PageWaitForSelectorOptions { Timeout = 10000 });
 				await page.ScreenshotAsync(new PageScreenshotOptions { Path = screenshotPath });
 				var loginInput = await page.QuerySelectorAsync("input#accessToken");
 				Assert.NotNull(loginInput);
@@ -45,6 +47,8 @@ namespace PortfolioViewer.WASM.UITests
 			catch (Exception ex)
 			{
 				await page.ScreenshotAsync(new PageScreenshotOptions { Path = errorScreenshotPath });
+				var html = await page.ContentAsync();
+				await File.WriteAllTextAsync(errorHtmlPath, html);
 				Console.WriteLine($"Exception: {ex}");
 				throw;
 			}
