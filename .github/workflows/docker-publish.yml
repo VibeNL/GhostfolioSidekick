@@ -99,9 +99,8 @@ jobs:
           dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
           dotnet build
           dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
-          dotenv-scan-action@v1.2.0
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-          
+      
       - name: Build and analyze without SonarCloud
         if: (steps.checksecrets.outputs.secretspresent == 'NO')
         env:
