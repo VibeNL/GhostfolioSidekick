@@ -34,6 +34,12 @@ namespace PortfolioViewer.WASM.UITests
 			string errorScreenshotPath = Path.Combine(screenshotDir, $"mainpage-error-{DateTime.Now:yyyyMMddHHmmss}.png");
 			string errorHtmlPath = Path.Combine(screenshotDir, $"mainpage-error-{DateTime.Now:yyyyMMddHHmmss}.html");
 
+			// Capture browser console logs for diagnostics
+			page.Console += (_, msg) =>
+			{
+				Console.WriteLine($"[Browser Console] {msg.Type}: {msg.Text}");
+			};
+
 			try
 			{
 				Console.WriteLine($"Navigating to: {serverAddress}");
