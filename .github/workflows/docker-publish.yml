@@ -76,13 +76,6 @@ jobs:
           dotnet-sonarscanner begin /k:"VibeNL_GhostfolioSidekick" /o:"vibenl" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
           dotnet build
           dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-      - name: Upload build outputs
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-outputs
-          path: |
-            **/bin/**
-            **/obj/**
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
