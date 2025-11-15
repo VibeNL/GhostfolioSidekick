@@ -203,4 +203,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-error-html
-          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/mainpage-error-*.html
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/*.html
+
+      - name: List Playwright error HTML files
+        if: always()
+        run: find PortfolioViewer/PortfolioViewer.WASM.UITests -name 'mainpage-error-*.html' -print
