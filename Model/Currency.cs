@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace GhostfolioSidekick.Model
 {
@@ -29,12 +30,10 @@ namespace GhostfolioSidekick.Model
 
 		public static Currency GetCurrency(string symbol)
 		{
-			foreach (var currency in allCurrencies)
+			var currency = allCurrencies.FirstOrDefault(c => c.Symbol == symbol);
+			if (currency != null)
 			{
-				if (currency.Symbol == symbol)
-				{
-					return currency;
-				}
+				return currency;
 			}
 
 			Currency newCurrency = new(symbol);
