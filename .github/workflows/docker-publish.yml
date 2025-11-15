@@ -198,10 +198,10 @@ jobs:
           name: playwright-videos
           path: PortfolioViewer/PortfolioViewer.WASM.UITests/playwright-videos
 
-      - name: List Playwright screenshots
+      - name: Find Playwright screenshots
         if: always()
-        run: ls -l PortfolioViewer/PortfolioViewer.WASM.UITests/playwright-screenshots || echo "No screenshots directory"
+        run: find . -type d -name 'playwright-screenshots' -print
 
-      - name: List Playwright videos
+      - name: Find Playwright videos
         if: always()
-        run: ls -l PortfolioViewer/PortfolioViewer.WASM.UITests/playwright-videos || echo "No videos directory"
+        run: find . -type d -name 'playwright-videos' -print
