@@ -41,9 +41,9 @@ RUN dotnet restore PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.Ap
 # Copy everything else and build/publish
 COPY . .
 
-RUN dotnet publish PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj -c Release -o /app/publish-api \
- && dotnet publish PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj -c Release -o /app/publish-wasm \
- && dotnet publish GhostfolioSidekick/GhostfolioSidekick.csproj -c Release -o /app/publish-sidekick
+RUN dotnet publish PortfolioViewer/PortfolioViewer.ApiService/PortfolioViewer.ApiService.csproj -c Release -o /app/publish-api
+RUN dotnet publish PortfolioViewer/PortfolioViewer.WASM/PortfolioViewer.WASM.csproj -c Release -o /app/publish-wasm
+RUN dotnet publish GhostfolioSidekick/GhostfolioSidekick.csproj -c Release -o /app/publish-sidekick
 
 # Final runtime image: only copy published output
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
