@@ -189,19 +189,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-screenshots
-          path: PortfolioViewer/PortfolioViewer.WASM.UITests/bin/Debug/net9.0/playwright-screenshots
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/playwright-screenshots
 
       - name: Upload Playwright videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-videos
-          path: PortfolioViewer/PortfolioViewer.WASM.UITests/bin/Debug/net9.0/playwright-videos
-
-      - name: Find Playwright screenshots
-        if: always()
-        run: find . -type d -name 'playwright-screenshots' -print
-
-      - name: Find Playwright videos
-        if: always()
-        run: find . -type d -name 'playwright-videos' -print
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/playwright-videos
