@@ -88,6 +88,27 @@ jobs:
         with:
           name: coverage-report
           path: coverage.xml
+      - name: Upload Playwright screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/playwright-screenshots
+      - name: Upload Playwright videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-videos
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/playwright-videos
+      - name: Upload Playwright error HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-error-html
+          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/*.html
+      - name: List Playwright error HTML files
+        if: always()
+        run: find PortfolioViewer/PortfolioViewer.WASM.UITests -name 'mainpage-error-*.html' -print
 
   publish:
     runs-on: ubuntu-latest
@@ -152,24 +173,4 @@ jobs:
           comment_tag: "development-ghostfoliosidekick-published"
           mode: "recreate"
           pr_number: ${{ github.event.number }}
-      - name: Upload Playwright screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-screenshots
-          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/playwright-screenshots
-      - name: Upload Playwright videos
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-videos
-          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/playwright-videos
-      - name: Upload Playwright error HTML
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-error-html
-          path: PortfolioViewer/PortfolioViewer.WASM.UITests/**/*.html
-      - name: List Playwright error HTML files
-        if: always()
-        run: find PortfolioViewer/PortfolioViewer.WASM.UITests -name 'mainpage-error-*.html' -print
+      
