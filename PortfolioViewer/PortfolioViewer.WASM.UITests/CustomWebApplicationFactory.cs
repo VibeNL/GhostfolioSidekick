@@ -138,7 +138,7 @@ namespace PortfolioViewer.WASM.UITests
 			}
 		}
 
-		private void CopyDirectory(string tempFolder, string apiWwwroot)
+		private static void CopyDirectory(string tempFolder, string apiWwwroot)
 		{
 			foreach (var dirPath in Directory.GetDirectories(tempFolder, "*", SearchOption.AllDirectories))
 			{
