@@ -7,11 +7,18 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.PortfolioViewer.ApiService
 {
-	public static class Program
+	[ExcludeFromCodeCoverage]
+	public class Program
 	{
+		protected Program()
+		{
+			// Protected constructor to prevent instantiation
+		}
+
 		public static Task Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
