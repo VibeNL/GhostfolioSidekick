@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Performance
 {
 	internal class CovertToPrimaryCurrencyTask(
 		ICurrencyExchange currencyExchange,
-		DatabaseContext databaseContext,
+		IDbContextFactory<DatabaseContext> dbContextFactory,
 		IApplicationSettings applicationSettings
 		) : IScheduledWork
 	{
@@ -31,77 +31,107 @@ namespace GhostfolioSidekick.Performance
 
 			logger.LogDebug("Converting all snapshots and balances to primary currency {Currency}", primaryCurrencySymbol);
 
-			var snapshots = databaseContext.CalculatedSnapshots.AsQueryable();
-
-			foreach (var snapshot in snapshots)
-			{
-				var primarySnapshot = await databaseContext.CalculatedSnapshotPrimaryCurrencies
-					.FirstOrDefaultAsync(s => s.HoldingAggregatedId == snapshot.HoldingAggregatedId && s.AccountId == snapshot.AccountId && s.Date == snapshot.Date);
-
-				if (primarySnapshot == null)
-				{
-					primarySnapshot = new CalculatedSnapshotPrimaryCurrency
-					{
-						HoldingAggregatedId = snapshot.HoldingAggregatedId,
-						Date = snapshot.Date
-					};
-					databaseContext.CalculatedSnapshotPrimaryCurrencies.Add(primarySnapshot);
-				}
-
-				primarySnapshot.Quantity = snapshot.Quantity;
-				primarySnapshot.TotalValue = (await currencyExchange.ConvertMoney(snapshot.TotalValue, currency, snapshot.Date)).Amount;
-				primarySnapshot.TotalInvested = (await currencyExchange.ConvertMoney(snapshot.TotalInvested, currency, snapshot.Date)).Amount;
-				primarySnapshot.AverageCostPrice = primarySnapshot.Quantity != 0 ? primarySnapshot.TotalInvested / primarySnapshot.Quantity : 0;
-				primarySnapshot.CurrentUnitPrice = (await currencyExchange.ConvertMoney(snapshot.CurrentUnitPrice, currency, snapshot.Date)).Amount;
-				primarySnapshot.AccountId = snapshot.AccountId;
-			}
-
-			logger.LogDebug("Converted {Count} snapshots to primary currency {Currency}", await snapshots.CountAsync(), primaryCurrencySymbol);
-
-			await databaseContext.SaveChangesAsync();
-
-			logger.LogDebug("Converting all balances to primary currency {Currency}", primaryCurrencySymbol);
-
-			var balances = databaseContext.Balances.AsQueryable();
-
-			foreach (var balance in balances)
-			{
-				var primaryBalance = await databaseContext.BalancePrimaryCurrencies
-					.FirstOrDefaultAsync(b => b.AccountId == balance.AccountId && b.Date == balance.Date);
-
-				if (primaryBalance == null)
-				{
-					primaryBalance = new BalancePrimaryCurrency
-					{
-						AccountId = balance.AccountId,
-						Date = balance.Date
-					};
-					databaseContext.BalancePrimaryCurrencies.Add(primaryBalance);
-				}
-
-				primaryBalance.Money = (await currencyExchange.ConvertMoney(balance.Money, currency, balance.Date)).Amount;
-			}
-
-			logger.LogDebug("Converted {Count} balances to primary currency {Currency}", await balances.CountAsync(), primaryCurrencySymbol);
-
-			await databaseContext.SaveChangesAsync();
+			await ConvertSnapshotsToPrimaryCurrency(currency, primaryCurrencySymbol, logger);
+			await ConvertBalancesToPrimaryCurrency(currency, primaryCurrencySymbol, logger);
 
 			logger.LogDebug("Adding missing days and extrapolating balances to today");
-
-			// Fill missing days and extrapolate to today for each account
 			await FillMissingDaysAndExtrapolate(logger);
 
 			logger.LogDebug("Cleanup unmatched primary currency records");
-
-			// Cleanup unmatched items (but preserve extrapolated records)
 			await CleanupUnmatchedItems();
 
 			logger.LogDebug("Completed conversion to primary currency {Currency}", primaryCurrencySymbol);
 		}
 
+		private async Task ConvertSnapshotsToPrimaryCurrency(Currency currency, string primaryCurrencySymbol, ILogger logger)
+		{
+			const int batchSize = 1;
+			using var dbContext = dbContextFactory.CreateDbContext();
+			var snapshotIds = await dbContext.CalculatedSnapshots
+				.AsNoTracking()
+				.Select(s => s.Id)
+				.ToListAsync();
+
+			foreach (var chunk in snapshotIds.Chunk(batchSize))
+			{
+				var snapshots = await dbContext.CalculatedSnapshots
+					.Where(s => chunk.Contains(s.Id))
+					.AsNoTracking()
+					.ToListAsync();
+
+				foreach (var snapshot in snapshots)
+				{
+					var primarySnapshot = await dbContext.CalculatedSnapshotPrimaryCurrencies
+						.FirstOrDefaultAsync(s => s.HoldingAggregatedId == snapshot.HoldingAggregatedId && s.AccountId == snapshot.AccountId && s.Date == snapshot.Date);
+
+					if (primarySnapshot == null)
+					{
+						primarySnapshot = new CalculatedSnapshotPrimaryCurrency
+						{
+							HoldingAggregatedId = snapshot.HoldingAggregatedId,
+							Date = snapshot.Date
+						};
+						dbContext.CalculatedSnapshotPrimaryCurrencies.Add(primarySnapshot);
+					}
+
+					primarySnapshot.Quantity = snapshot.Quantity;
+					primarySnapshot.TotalValue = (await currencyExchange.ConvertMoney(snapshot.TotalValue, currency, snapshot.Date)).Amount;
+					primarySnapshot.TotalInvested = (await currencyExchange.ConvertMoney(snapshot.TotalInvested, currency, snapshot.Date)).Amount;
+					primarySnapshot.AverageCostPrice = primarySnapshot.Quantity != 0 ? primarySnapshot.TotalInvested / primarySnapshot.Quantity : 0;
+					primarySnapshot.CurrentUnitPrice = (await currencyExchange.ConvertMoney(snapshot.CurrentUnitPrice, currency, snapshot.Date)).Amount;
+					primarySnapshot.AccountId = snapshot.AccountId;
+				}
+
+				await dbContext.SaveChangesAsync();
+			}
+
+			logger.LogDebug("Converted {Count} snapshots to primary currency {Currency}", snapshotIds.Count, primaryCurrencySymbol);
+		}
+
+		private async Task ConvertBalancesToPrimaryCurrency(Currency currency, string primaryCurrencySymbol, ILogger logger)
+		{
+			const int batchSize = 100;
+			using var dbContext = dbContextFactory.CreateDbContext();
+			var balanceIds = await dbContext.Balances
+				.AsNoTracking()
+				.Select(b => b.Id)
+				.ToListAsync();
+
+			foreach (var chunk in balanceIds.Chunk(batchSize))
+			{
+				var balances = await dbContext.Balances
+					.Where(b => chunk.Contains(b.Id))
+					.AsNoTracking()
+					.ToListAsync();
+
+				foreach (var balance in balances)
+				{
+					var primaryBalance = await dbContext.BalancePrimaryCurrencies
+						.FirstOrDefaultAsync(b => b.AccountId == balance.AccountId && b.Date == balance.Date);
+
+					if (primaryBalance == null)
+					{
+						primaryBalance = new BalancePrimaryCurrency
+						{
+							AccountId = balance.AccountId,
+							Date = balance.Date
+						};
+						dbContext.BalancePrimaryCurrencies.Add(primaryBalance);
+					}
+
+					primaryBalance.Money = (await currencyExchange.ConvertMoney(balance.Money, currency, balance.Date)).Amount;
+				}
+
+				await dbContext.SaveChangesAsync();
+			}
+
+			logger.LogDebug("Converted {Count} balances to primary currency {Currency}", balanceIds.Count, primaryCurrencySymbol);
+		}
+
 		private async Task FillMissingDaysAndExtrapolate(ILogger logger)
 		{
-			var accountIds = await databaseContext.BalancePrimaryCurrencies
+			using var dbContext = dbContextFactory.CreateDbContext();
+			var accountIds = await dbContext.BalancePrimaryCurrencies
 				.Select(b => b.AccountId)
 				.Distinct()
 				.ToListAsync();
@@ -110,9 +140,10 @@ namespace GhostfolioSidekick.Performance
 
 			foreach (var accountId in accountIds)
 			{
-				var existingBalances = await databaseContext.BalancePrimaryCurrencies
+				var existingBalances = await dbContext.BalancePrimaryCurrencies
 					.Where(b => b.AccountId == accountId)
 					.OrderBy(b => b.Date)
+					.AsNoTracking()
 					.ToListAsync();
 
 				if (existingBalances.Count == 0)
@@ -124,11 +155,9 @@ namespace GhostfolioSidekick.Performance
 				var lastKnownDate = existingBalances[^1].Date;
 				var lastKnownAmount = existingBalances[^1].Money;
 
-				// Create set of existing dates for quick lookup
 				var existingDates = existingBalances.Select(b => b.Date).ToHashSet();
 				var newBalances = new List<BalancePrimaryCurrency>();
 
-				// Fill missing days between first and last known dates
 				for (var date = startDate; date <= lastKnownDate; date = date.AddDays(1))
 				{
 					if (!existingDates.Contains(date))
@@ -143,7 +172,6 @@ namespace GhostfolioSidekick.Performance
 					}
 				}
 
-				// Extrapolate from last known date to today
 				for (var date = lastKnownDate.AddDays(1); date <= today; date = date.AddDays(1))
 				{
 					newBalances.Add(new BalancePrimaryCurrency
@@ -156,19 +184,18 @@ namespace GhostfolioSidekick.Performance
 
 				if (newBalances.Count != 0)
 				{
-					databaseContext.BalancePrimaryCurrencies.AddRange(newBalances);
+					dbContext.BalancePrimaryCurrencies.AddRange(newBalances);
+					await dbContext.SaveChangesAsync();
 					logger.LogDebug("Added {Count} missing balance records for account {AccountId}", newBalances.Count, accountId);
 				}
 			}
-
-			await databaseContext.SaveChangesAsync();
 		}
 
 		private async Task CleanupUnmatchedItems()
 		{
-			// Clean up CalculatedSnapshotPrimaryCurrency records that no longer have corresponding CalculatedSnapshot records
-			var orphanedPrimarySnapshots = await databaseContext.CalculatedSnapshotPrimaryCurrencies
-				.Where(ps => !databaseContext.CalculatedSnapshots
+			using var dbContext = dbContextFactory.CreateDbContext();
+			var orphanedPrimarySnapshots = await dbContext.CalculatedSnapshotPrimaryCurrencies
+				.Where(ps => !dbContext.CalculatedSnapshots
 					.Any(s => s.HoldingAggregatedId == ps.HoldingAggregatedId &&
 							  s.AccountId == ps.AccountId &&
 							  s.Date == ps.Date))
@@ -176,37 +203,33 @@ namespace GhostfolioSidekick.Performance
 
 			if (orphanedPrimarySnapshots.Count > 0)
 			{
-				databaseContext.CalculatedSnapshotPrimaryCurrencies.RemoveRange(orphanedPrimarySnapshots);
+				dbContext.CalculatedSnapshotPrimaryCurrencies.RemoveRange(orphanedPrimarySnapshots);
 			}
 
-			// Only clean up BalancePrimaryCurrency records that don't have corresponding Balance records
-			// AND are before the first actual balance date (preserve filled-in and extrapolated records)
-			var firstActualBalanceDates = await databaseContext.Balances
+			var firstActualBalanceDates = await dbContext.Balances
 				.GroupBy(b => b.AccountId)
 				.Select(g => new { AccountId = g.Key, FirstDate = g.Min(b => b.Date) })
 				.ToListAsync();
 
 			var firstActualBalanceDateDict = firstActualBalanceDates.ToDictionary(x => x.AccountId, x => x.FirstDate);
 
-			var orphanedPrimaryBalances = await databaseContext.BalancePrimaryCurrencies
-				.Where(pb => !databaseContext.Balances
+			var orphanedPrimaryBalances = await dbContext.BalancePrimaryCurrencies
+				.Where(pb => !dbContext.Balances
 					.Any(b => b.AccountId == pb.AccountId && b.Date == pb.Date))
 				.ToListAsync();
 
-			// Only remove records that are before the first actual balance date for each account
 			var balancesToRemove = orphanedPrimaryBalances
 				.Where(pb => firstActualBalanceDateDict.TryGetValue(pb.AccountId, out var firstActualDate) && pb.Date < firstActualDate)
 				.ToList();
 
 			if (balancesToRemove.Count > 0)
 			{
-				databaseContext.BalancePrimaryCurrencies.RemoveRange(balancesToRemove);
+				dbContext.BalancePrimaryCurrencies.RemoveRange(balancesToRemove);
 			}
 
-			// Save all cleanup changes
 			if (orphanedPrimarySnapshots.Count > 0 || balancesToRemove.Count > 0)
 			{
-				await databaseContext.SaveChangesAsync();
+				await dbContext.SaveChangesAsync();
 			}
 		}
 	}
