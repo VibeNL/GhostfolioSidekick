@@ -575,5 +575,60 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 			mockDbContext3.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 		}
+
+		[Fact]
+		public async Task DoWork_ShouldImputeZeroCloseAmountWithTimeWeightedAverage()
+		{
+			// Arrange
+			var date1 = DateOnly.FromDateTime(DateTime.Today.AddDays(-3));
+			var date2 = DateOnly.FromDateTime(DateTime.Today.AddDays(-2));
+			var date3 = DateOnly.FromDateTime(DateTime.Today.AddDays(-1));
+
+			var md1 = new MarketData(new Money(Currency.USD, 100), new Money(Currency.USD, 95), new Money(Currency.USD, 105), new Money(Currency.USD, 90), 1000, date1);
+			var md2 = new MarketData(new Money(Currency.USD, 0), new Money(Currency.USD, 0), new Money(Currency.USD, 0), new Money(Currency.USD, 0), 1100, date2);
+			var md3 = new MarketData(new Money(Currency.USD, 200), new Money(Currency.USD, 195), new Money(Currency.USD, 205), new Money(Currency.USD, 190), 1200, date3);
+
+			var symbolProfile = new SymbolProfile
+			{
+				Symbol = "AAPL",
+				DataSource = "TEST_SOURCE",
+				AssetClass = AssetClass.Equity,
+				MarketData = new List<MarketData> { md1, md2, md3 }
+			};
+
+			var symbolProfiles = new List<SymbolProfile> { symbolProfile };
+			var holding = new Holding
+			{
+				SymbolProfiles = [symbolProfile],
+				Activities = [ new BuyActivity { Date = DateTime.Today.AddDays(-4) } ]
+			};
+			var holdings = new List<Holding> { holding };
+
+			var mockDbContext1 = new Mock<DatabaseContext>();
+			var mockDbContext2 = new Mock<DatabaseContext>();
+
+			mockDbContext1.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.SymbolProfiles).ReturnsDbSet(symbolProfiles);
+			mockDbContext2.Setup(db => db.Holdings).ReturnsDbSet(holdings);
+
+			_mockDbContextFactory.SetupSequence(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(mockDbContext1.Object)
+				.ReturnsAsync(mockDbContext2.Object);
+
+			_mockStockPriceRepository1.Setup(r => r.DataSource).Returns("TEST_SOURCE");
+			_mockStockPriceRepository1.Setup(r => r.GetStockMarketData(symbolProfile, It.IsAny<DateOnly>()))
+				.ReturnsAsync(new List<MarketData> { md2 }); // Only the zero value is returned as new data
+
+			var loggerMock = new Mock<ILogger<MarketDataGathererTask>>();
+
+			// Act
+			await _marketDataGathererTask.DoWork(loggerMock.Object);
+
+			// Assert
+			// Time-weighted average: since dates are consecutive, should be (100+200)/2 = 150
+			md2.Close.Amount.Should().BeApproximately(150, 0.0001m);
+			md2.IsGenerated.Should().BeTrue();
+			mockDbContext2.Verify(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+		}
 	}
 }
