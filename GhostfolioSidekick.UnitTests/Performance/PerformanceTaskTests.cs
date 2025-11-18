@@ -170,5 +170,37 @@ namespace GhostfolioSidekick.UnitTests.Performance
             await dbContext.DisposeAsync();
             await verifyContext.DisposeAsync();
         }
+
+        [Fact]
+        public async Task DoWork_AddsOnlyNewHoldings()
+        {
+            using var connection = new SqliteConnection("Filename=:memory:");
+            await connection.OpenAsync();
+            var options = CreateOptions(connection);
+            var dbContext = new DatabaseContext(options);
+            await dbContext.Database.EnsureCreatedAsync();
+            // No holdings in DB
+
+            var newHolding = new HoldingAggregated { Symbol = "NEW", AssetClass = AssetClass.Equity };
+            var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
+            calculatorMock.Setup(x => x.GetCalculatedHoldings()).ReturnsAsync(new List<HoldingAggregated> { newHolding });
+
+            var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => new DatabaseContext(options));
+
+            var loggerMock = new Mock<ILogger>();
+            var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);
+
+            // Act
+            await task.DoWork(loggerMock.Object);
+
+            // Assert
+            var verifyContext = new DatabaseContext(options);
+            var holdings = await verifyContext.HoldingAggregateds.ToListAsync();
+            Assert.Single(holdings);
+            Assert.Equal("NEW", holdings[0].Symbol);
+            await dbContext.DisposeAsync();
+            await verifyContext.DisposeAsync();
+        }
     }
 }
