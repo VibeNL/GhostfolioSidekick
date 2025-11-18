@@ -68,6 +68,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					// If any data corruption is detected, we will re-fetch all data if possible
 					var hasDataCorruption = symbol.MarketData.Any(x =>
 						x.Close.Amount == 0 // Close price is not set
+						|| x.IsGenerated
 						) && symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close.Amount).LastOrDefault() != 0;
 					if (hasDataCorruption)
 					{
