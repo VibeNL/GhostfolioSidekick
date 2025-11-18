@@ -6,6 +6,7 @@ using Moq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,19 +16,19 @@ namespace GhostfolioSidekick.UnitTests.Performance
 {
     public class PerformanceTaskTests
     {
-        private DbContextOptions<DatabaseContext> CreateOptions() =>
+        private DbContextOptions<DatabaseContext> CreateOptions(SqliteConnection connection) =>
             new DbContextOptionsBuilder<DatabaseContext>()
-                .UseSqlite("Filename=:memory:")
+                .UseSqlite(connection)
                 .Options;
 
         [Fact]
         public async Task DoWork_RemovesObsoleteHoldings()
         {
-            // Arrange
-            var options = CreateOptions();
+            using var connection = new SqliteConnection("Filename=:memory:");
+            await connection.OpenAsync();
+            var options = CreateOptions(connection);
             var dbContext = new DatabaseContext(options);
-            dbContext.Database.OpenConnection();
-            dbContext.Database.EnsureCreated();
+            await dbContext.Database.EnsureCreatedAsync();
             dbContext.HoldingAggregateds.Add(new HoldingAggregated {
                 Id = 1,
                 Symbol = "OLD",
@@ -47,12 +48,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
             await dbContext.SaveChangesAsync();
 
             var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => {
-                var ctx = new DatabaseContext(options);
-                ctx.Database.OpenConnection();
-                ctx.Database.EnsureCreated();
-                return ctx;
-            });
+            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => new DatabaseContext(options));
 
             var newHolding = new HoldingAggregated { Symbol = "NEW", AssetClass = AssetClass.Equity };
             var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
@@ -66,8 +62,6 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
             // Assert
             var verifyContext = new DatabaseContext(options);
-            verifyContext.Database.OpenConnection();
-            verifyContext.Database.EnsureCreated();
             Assert.DoesNotContain(verifyContext.HoldingAggregateds, h => h.Symbol == "OLD");
             Assert.Contains(verifyContext.HoldingAggregateds, h => h.Symbol == "NEW");
             await dbContext.DisposeAsync();
@@ -77,11 +71,11 @@ namespace GhostfolioSidekick.UnitTests.Performance
         [Fact]
         public async Task DoWork_UpdatesExistingHoldingSnapshots()
         {
-            // Arrange
-            var options = CreateOptions();
+            using var connection = new SqliteConnection("Filename=:memory:");
+            await connection.OpenAsync();
+            var options = CreateOptions(connection);
             var dbContext = new DatabaseContext(options);
-            dbContext.Database.OpenConnection();
-            dbContext.Database.EnsureCreated();
+            await dbContext.Database.EnsureCreatedAsync();
             var existingHolding = new HoldingAggregated
             {
                 Id = 1,
@@ -103,12 +97,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
             await dbContext.SaveChangesAsync();
 
             var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => {
-                var ctx = new DatabaseContext(options);
-                ctx.Database.OpenConnection();
-                ctx.Database.EnsureCreated();
-                return ctx;
-            });
+            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => new DatabaseContext(options));
 
             var newSnapshot = new CalculatedSnapshot {
                 AccountId = 1,
@@ -131,8 +120,6 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
             // Assert
             var verifyContext = new DatabaseContext(options);
-            verifyContext.Database.OpenConnection();
-            verifyContext.Database.EnsureCreated();
             var updated = await verifyContext.HoldingAggregateds.Include(h => h.CalculatedSnapshots).FirstAsync(h => h.Symbol == "A");
             Assert.Equal(2, updated.CalculatedSnapshots.First().Quantity);
             await dbContext.DisposeAsync();
@@ -142,11 +129,11 @@ namespace GhostfolioSidekick.UnitTests.Performance
         [Fact]
         public async Task DoWork_DeletesAllHoldings_WhenNoNewHoldings()
         {
-            // Arrange
-            var options = CreateOptions();
+            using var connection = new SqliteConnection("Filename=:memory:");
+            await connection.OpenAsync();
+            var options = CreateOptions(connection);
             var dbContext = new DatabaseContext(options);
-            dbContext.Database.OpenConnection();
-            dbContext.Database.EnsureCreated();
+            await dbContext.Database.EnsureCreatedAsync();
             dbContext.HoldingAggregateds.Add(new HoldingAggregated {
                 Id = 1,
                 Symbol = "OLD",
@@ -166,12 +153,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
             await dbContext.SaveChangesAsync();
 
             var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => {
-                var ctx = new DatabaseContext(options);
-                ctx.Database.OpenConnection();
-                ctx.Database.EnsureCreated();
-                return ctx;
-            });
+            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => new DatabaseContext(options));
 
             var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
             calculatorMock.Setup(x => x.GetCalculatedHoldings()).ReturnsAsync(new List<HoldingAggregated>());
@@ -184,8 +166,6 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
             // Assert
             var verifyContext = new DatabaseContext(options);
-            verifyContext.Database.OpenConnection();
-            verifyContext.Database.EnsureCreated();
             Assert.Empty(verifyContext.HoldingAggregateds);
             await dbContext.DisposeAsync();
             await verifyContext.DisposeAsync();
