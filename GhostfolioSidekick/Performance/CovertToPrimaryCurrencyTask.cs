@@ -100,14 +100,19 @@ namespace GhostfolioSidekick.Performance
 
 		private async Task ConvertBalancesToPrimaryCurrency(Currency currency, string primaryCurrencySymbol, ILogger logger)
 		{
-			using var dbContext = dbContextFactory.CreateDbContext();
-			var balanceIds = await dbContext.Balances
-				.AsNoTracking()
-				.Select(b => b.Id)
-				.ToListAsync();
+			var balanceIds = new List<int>();
+			using (var dbContext = dbContextFactory.CreateDbContext())
+			{
+				balanceIds = await dbContext.Balances
+					.AsNoTracking()
+					.Select(b => b.Id)
+					.ToListAsync();
+			}
 
 			foreach (var chunk in balanceIds.Chunk(batchSize))
 			{
+				using var dbContext = dbContextFactory.CreateDbContext();
+
 				var balances = await dbContext.Balances
 					.Where(b => chunk.Contains(b.Id))
 					.AsNoTracking()
