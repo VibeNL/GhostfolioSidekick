@@ -1,0 +1,194 @@
+using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.Model.Activities;
+using Microsoft.Extensions.Logging;
+using Moq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Xunit;
+
+namespace GhostfolioSidekick.UnitTests.Performance
+{
+    public class PerformanceTaskTests
+    {
+        private DbContextOptions<DatabaseContext> CreateOptions() =>
+            new DbContextOptionsBuilder<DatabaseContext>()
+                .UseSqlite("Filename=:memory:")
+                .Options;
+
+        [Fact]
+        public async Task DoWork_RemovesObsoleteHoldings()
+        {
+            // Arrange
+            var options = CreateOptions();
+            var dbContext = new DatabaseContext(options);
+            dbContext.Database.OpenConnection();
+            dbContext.Database.EnsureCreated();
+            dbContext.HoldingAggregateds.Add(new HoldingAggregated {
+                Id = 1,
+                Symbol = "OLD",
+                AssetClass = AssetClass.Equity,
+                CalculatedSnapshots = [
+                    new() {
+                        AccountId = 1,
+                        Date = new DateOnly(2024, 1, 1),
+                        Quantity = 1,
+                        AverageCostPrice = new Money(Currency.USD, 0),
+                        CurrentUnitPrice = new Money(Currency.USD, 0),
+                        TotalInvested = new Money(Currency.USD, 0),
+                        TotalValue = new Money(Currency.USD, 0)
+                    }
+                ]
+            });
+            await dbContext.SaveChangesAsync();
+
+            var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => {
+                var ctx = new DatabaseContext(options);
+                ctx.Database.OpenConnection();
+                ctx.Database.EnsureCreated();
+                return ctx;
+            });
+
+            var newHolding = new HoldingAggregated { Symbol = "NEW", AssetClass = AssetClass.Equity };
+            var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
+            calculatorMock.Setup(x => x.GetCalculatedHoldings()).ReturnsAsync(new List<HoldingAggregated> { newHolding });
+
+            var loggerMock = new Mock<ILogger>();
+            var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);
+
+            // Act
+            await task.DoWork(loggerMock.Object);
+
+            // Assert
+            var verifyContext = new DatabaseContext(options);
+            verifyContext.Database.OpenConnection();
+            verifyContext.Database.EnsureCreated();
+            Assert.DoesNotContain(verifyContext.HoldingAggregateds, h => h.Symbol == "OLD");
+            Assert.Contains(verifyContext.HoldingAggregateds, h => h.Symbol == "NEW");
+            await dbContext.DisposeAsync();
+            await verifyContext.DisposeAsync();
+        }
+
+        [Fact]
+        public async Task DoWork_UpdatesExistingHoldingSnapshots()
+        {
+            // Arrange
+            var options = CreateOptions();
+            var dbContext = new DatabaseContext(options);
+            dbContext.Database.OpenConnection();
+            dbContext.Database.EnsureCreated();
+            var existingHolding = new HoldingAggregated
+            {
+                Id = 1,
+                Symbol = "A",
+                AssetClass = AssetClass.Equity,
+                CalculatedSnapshots = [
+                    new() {
+                        AccountId = 1,
+                        Date = new DateOnly(2024, 1, 1),
+                        Quantity = 1,
+                        AverageCostPrice = new Money(Currency.USD, 0),
+                        CurrentUnitPrice = new Money(Currency.USD, 0),
+                        TotalInvested = new Money(Currency.USD, 0),
+                        TotalValue = new Money(Currency.USD, 0)
+                    }
+                ]
+            };
+            dbContext.HoldingAggregateds.Add(existingHolding);
+            await dbContext.SaveChangesAsync();
+
+            var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => {
+                var ctx = new DatabaseContext(options);
+                ctx.Database.OpenConnection();
+                ctx.Database.EnsureCreated();
+                return ctx;
+            });
+
+            var newSnapshot = new CalculatedSnapshot {
+                AccountId = 1,
+                Date = new DateOnly(2024, 1, 1),
+                Quantity = 2,
+                AverageCostPrice = new Money(Currency.USD, 0),
+                CurrentUnitPrice = new Money(Currency.USD, 0),
+                TotalInvested = new Money(Currency.USD, 0),
+                TotalValue = new Money(Currency.USD, 0)
+            };
+            var holding = new HoldingAggregated { Symbol = "A", AssetClass = AssetClass.Equity, CalculatedSnapshots = [newSnapshot] };
+            var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
+            calculatorMock.Setup(x => x.GetCalculatedHoldings()).ReturnsAsync(new List<HoldingAggregated> { holding });
+
+            var loggerMock = new Mock<ILogger>();
+            var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);
+
+            // Act
+            await task.DoWork(loggerMock.Object);
+
+            // Assert
+            var verifyContext = new DatabaseContext(options);
+            verifyContext.Database.OpenConnection();
+            verifyContext.Database.EnsureCreated();
+            var updated = await verifyContext.HoldingAggregateds.Include(h => h.CalculatedSnapshots).FirstAsync(h => h.Symbol == "A");
+            Assert.Equal(2, updated.CalculatedSnapshots.First().Quantity);
+            await dbContext.DisposeAsync();
+            await verifyContext.DisposeAsync();
+        }
+
+        [Fact]
+        public async Task DoWork_DeletesAllHoldings_WhenNoNewHoldings()
+        {
+            // Arrange
+            var options = CreateOptions();
+            var dbContext = new DatabaseContext(options);
+            dbContext.Database.OpenConnection();
+            dbContext.Database.EnsureCreated();
+            dbContext.HoldingAggregateds.Add(new HoldingAggregated {
+                Id = 1,
+                Symbol = "OLD",
+                AssetClass = AssetClass.Equity,
+                CalculatedSnapshots = [
+                    new() {
+                        AccountId = 1,
+                        Date = new DateOnly(2024, 1, 1),
+                        Quantity = 1,
+                        AverageCostPrice = new Money(Currency.USD, 0),
+                        CurrentUnitPrice = new Money(Currency.USD, 0),
+                        TotalInvested = new Money(Currency.USD, 0),
+                        TotalValue = new Money(Currency.USD, 0)
+                    }
+                ]
+            });
+            await dbContext.SaveChangesAsync();
+
+            var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
+            dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => {
+                var ctx = new DatabaseContext(options);
+                ctx.Database.OpenConnection();
+                ctx.Database.EnsureCreated();
+                return ctx;
+            });
+
+            var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
+            calculatorMock.Setup(x => x.GetCalculatedHoldings()).ReturnsAsync(new List<HoldingAggregated>());
+
+            var loggerMock = new Mock<ILogger>();
+            var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);
+
+            // Act
+            await task.DoWork(loggerMock.Object);
+
+            // Assert
+            var verifyContext = new DatabaseContext(options);
+            verifyContext.Database.OpenConnection();
+            verifyContext.Database.EnsureCreated();
+            Assert.Empty(verifyContext.HoldingAggregateds);
+            await dbContext.DisposeAsync();
+            await verifyContext.DisposeAsync();
+        }
+    }
+}
