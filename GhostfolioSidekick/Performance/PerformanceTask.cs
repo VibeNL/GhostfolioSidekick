@@ -10,6 +10,8 @@ namespace GhostfolioSidekick.Performance
 		IHoldingPerformanceCalculator holdingPerformanceCalculator,
 		IDbContextFactory<DatabaseContext> dbContextFactory) : IScheduledWork
 	{
+		const int batchSize = 10;
+
 		public TaskPriority Priority => TaskPriority.PerformanceCalculations;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
@@ -57,7 +59,6 @@ namespace GhostfolioSidekick.Performance
 			}
 
 			// Process holdings in batches with a fresh context per batch
-			const int batchSize = 1;
 			var holdingList = holdings.ToList();
 			foreach (var batch in holdingList.Chunk(batchSize))
 			{

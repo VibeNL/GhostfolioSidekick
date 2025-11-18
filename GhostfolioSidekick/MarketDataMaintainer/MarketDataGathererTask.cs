@@ -7,7 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class MarketDataGathererTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
+	internal class MarketDataGathererTask(
+		IDbContextFactory<DatabaseContext> databaseContextFactory, 
+		IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
 
@@ -106,9 +108,10 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				{
 					var existingRecord = symbol.MarketData.SingleOrDefault(x => x.Date == marketData.Date);
 					decimal closeAmount = marketData.Close.Amount;
+
+					// Interpolate missing close prices
 					if (closeAmount == 0)
 					{
-						// Find previous and next non-zero points by date
 						var previous = symbol.MarketData
 							.Where(x => x.Date < marketData.Date && x.Close.Amount != 0)
 							.OrderByDescending(x => x.Date)

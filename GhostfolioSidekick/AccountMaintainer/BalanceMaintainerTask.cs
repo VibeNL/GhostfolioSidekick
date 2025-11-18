@@ -7,7 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.AccountMaintainer
 {
-	internal class BalanceMaintainerTask(IDbContextFactory<DatabaseContext> databaseContextFactory, ICurrencyExchange exchangeRateService) : IScheduledWork
+	internal class BalanceMaintainerTask(
+		IDbContextFactory<DatabaseContext> databaseContextFactory, 
+		ICurrencyExchange exchangeRateService) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.BalanceMaintainer;
 

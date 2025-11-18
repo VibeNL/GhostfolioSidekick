@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.Performance
 		IApplicationSettings applicationSettings
 		) : IScheduledWork
 	{
+		const int batchSize = 1000;
+
 		public TaskPriority Priority => TaskPriority.CovertToPrimaryCurrency;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
@@ -45,18 +47,23 @@ namespace GhostfolioSidekick.Performance
 
 		private async Task ConvertSnapshotsToPrimaryCurrency(Currency currency, string primaryCurrencySymbol, ILogger logger)
 		{
-			const int batchSize = 1;
-			using var dbContext = dbContextFactory.CreateDbContext();
-			var snapshotIds = await dbContext.CalculatedSnapshots
-				.AsNoTracking()
-				.Select(s => s.Id)
-				.ToListAsync();
-
-			foreach (var chunk in snapshotIds.Chunk(batchSize))
+			var totalSnapshots = 0;
+			using (var dbContext = dbContextFactory.CreateDbContext())
 			{
+				totalSnapshots = await dbContext.CalculatedSnapshots.CountAsync();
+			}
+
+			int processed = 0;
+
+			for (int i = 0; i < totalSnapshots; i += batchSize)
+			{
+				using var dbContext = dbContextFactory.CreateDbContext();
+
 				var snapshots = await dbContext.CalculatedSnapshots
-					.Where(s => chunk.Contains(s.Id))
 					.AsNoTracking()
+					.OrderBy(s => s.Id)
+					.Skip(i)
+					.Take(batchSize)
 					.ToListAsync();
 
 				foreach (var snapshot in snapshots)
@@ -83,14 +90,16 @@ namespace GhostfolioSidekick.Performance
 				}
 
 				await dbContext.SaveChangesAsync();
+
+				processed += snapshots.Count;
+				logger.LogDebug("Processed {Processed}/{Total} snapshots to primary currency {Currency}", processed, totalSnapshots, primaryCurrencySymbol);
 			}
 
-			logger.LogDebug("Converted {Count} snapshots to primary currency {Currency}", snapshotIds.Count, primaryCurrencySymbol);
+			logger.LogDebug("Converted {Count} snapshots to primary currency {Currency}", totalSnapshots, primaryCurrencySymbol);
 		}
 
 		private async Task ConvertBalancesToPrimaryCurrency(Currency currency, string primaryCurrencySymbol, ILogger logger)
 		{
-			const int batchSize = 100;
 			using var dbContext = dbContextFactory.CreateDbContext();
 			var balanceIds = await dbContext.Balances
 				.AsNoTracking()
