@@ -718,6 +718,81 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			}
 		}
 
+		[Theory]
+		[InlineData("Date")]
+		[InlineData("Type")]
+		[InlineData("Symbol")]
+		[InlineData("Name")]
+		[InlineData("AccountName")]
+		[InlineData("TotalValue")]
+		[InlineData("Description")]
+		public async Task GetTransactionsPaginatedAsync_SortsByColumn(string sortColumn)
+		{
+			var account1 = CreateTestAccount("Account 1", 1);
+			var account2 = CreateTestAccount("Account 2", 2);
+			var symbolProfile1 = CreateTestSymbolProfile("AAPL", "Apple Inc");
+			var symbolProfile2 = CreateTestSymbolProfile("MSFT", "Microsoft");
+			var holding1 = CreateTestHolding(symbolProfile1);
+			var holding2 = CreateTestHolding(symbolProfile2);
+			var activities = new List<Activity>
+			{
+				CreateBuyActivity(account1, holding1, DateTime.Now.AddDays(-1), 10, 100, "TXN-001", "Apple buy"),
+				CreateSellActivity(account2, holding2, DateTime.Now.AddDays(-2), 5, 200, "TXN-002", "Microsoft sell"),
+				CreateDividendActivity(account1, holding1, DateTime.Now.AddDays(-3), 50, "TXN-003", "Dividend Apple")
+			};
+			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionTypes = new List<string>(),
+				SearchText = "",
+				SortColumn = sortColumn,
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
+			result.Should().NotBeNull();
+			result.Transactions.Should().NotBeEmpty();
+		}
+
+		[Fact]
+		public async Task GetTransactionsPaginatedAsync_FiltersByMultipleTransactionTypes()
+		{
+			var account = CreateTestAccount("Test Account");
+			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
+			var holding = CreateTestHolding(symbolProfile);
+			var activities = new List<Activity>
+			{
+				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
+				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
+				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
+			};
+			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
+			var parameters = new TransactionQueryParameters
+			{
+				TargetCurrency = Currency.USD,
+				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+				EndDate = DateOnly.FromDateTime(DateTime.Now),
+				AccountId = 0,
+				Symbol = "",
+				TransactionTypes = new List<string> { "Buy", "Sell" },
+				SearchText = "",
+				SortColumn = "Date",
+				SortAscending = true,
+				PageNumber = 1,
+				PageSize = 10
+			};
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
+			result.Should().NotBeNull();
+			result.Transactions.Should().HaveCount(2);
+			result.Transactions.All(t => t.Type == "Buy" || t.Type == "Sell").Should().BeTrue();
+		}
+
 		// Helper methods for creating test data
 		private static Account CreateTestAccount(string name, int id = 1)
 		{
