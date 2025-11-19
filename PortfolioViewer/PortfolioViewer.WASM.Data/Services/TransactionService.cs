@@ -22,8 +22,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				parameters.AccountId,
 				parameters.Symbol,
 				parameters.TransactionType,
-				parameters.SearchText,
-				parameters.ExcludeKnownBalanceActivity);
+				parameters.SearchText);
 
 			// Get total count for pagination
 			var totalCount = await baseQuery.CountAsync(cancellationToken);
@@ -183,19 +182,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			int accountId,
 			string symbol,
 			string transactionType,
-			string searchText,
-			bool excludeKnownBalanceActivity = true)
+			string searchText)
 		{
 			var query = databaseContext.Activities
 				.Include(a => a.Account)
 				.Include(a => a.Holding)
 				.Where(a => a.Date >= startDate.ToDateTime(TimeOnly.MinValue) && a.Date <= endDate.ToDateTime(TimeOnly.MinValue));
-
-			if (excludeKnownBalanceActivity)
-			{
-				query = query.Where(x => !(x is KnownBalanceActivity));
-			}
-
+			
 			if (accountId > 0)
 			{
 				query = query.Where(a => a.Account.Id == accountId);

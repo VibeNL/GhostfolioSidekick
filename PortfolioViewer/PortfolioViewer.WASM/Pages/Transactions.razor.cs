@@ -47,9 +47,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private FilterState? _previousFilterState;
 		private bool _hasAppliedUrlParameters = false;
 
-		// UI state for KnownBalanceActivity filter
-		private bool excludeKnownBalanceActivity = true;
-
 		protected override Task OnInitializedAsync()
 		{
 			// Subscribe to filter changes
@@ -221,8 +218,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					SortColumn = sortColumn,
 					SortAscending = sortAscending,
 					PageNumber = currentPage,
-					PageSize = pageSize,
-					ExcludeKnownBalanceActivity = excludeKnownBalanceActivity // propagate to backend
+					PageSize = pageSize
 				};
 
 				var result = await (HoldingsDataService?.GetTransactionsPaginatedAsync(parameters) ?? Task.FromResult(new PaginatedTransactionResult()));
