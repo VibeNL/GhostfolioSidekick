@@ -61,5 +61,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 		/// Number of items per page
 		/// </summary>
 		public int PageSize { get; set; } = 25;
+
+		/// <summary>
+		/// If true, KnownBalanceActivity entries are excluded from results (default: true)
+		/// </summary>
+		public bool ExcludeKnownBalanceActivity { get; set; } = true;
 	}
 }
