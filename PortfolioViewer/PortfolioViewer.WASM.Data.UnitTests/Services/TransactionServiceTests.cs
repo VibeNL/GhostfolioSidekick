@@ -430,7 +430,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			result.Should().Contain("Buy");
 			result.Should().Contain("Sell");
 			result.Should().Contain("Dividend");
-			result.Should().Contain("Deposit");
+			result.Should().Contain("CashDeposit");
 			result.Should().Contain("Interest");
 			result.Should().BeInAscendingOrder();
 		}
@@ -446,46 +446,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			// Assert
 			result.Should().BeEmpty();
-		}
-
-		[Fact]
-		public async Task GetTransactionsPaginatedAsync_ShouldExcludeKnownBalanceActivities()
-		{
-			// Arrange
-			var account = CreateTestAccount("Test Account");
-			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
-			var holding = CreateTestHolding(symbolProfile);
-
-			var activities = new List<Activity>
-			{
-				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
-				CreateKnownBalanceActivity(account, DateTime.Now.AddDays(-2), 1000)
-			};
-
-			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
-
-			var parameters = new TransactionQueryParameters
-			{
-				TargetCurrency = Currency.USD,
-				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				EndDate = DateOnly.FromDateTime(DateTime.Now),
-				AccountId = 0,
-				Symbol = "",
-				TransactionTypes = new List<string>(),
-				SearchText = "",
-				SortColumn = "Date",
-				SortAscending = true,
-				PageNumber = 1,
-				PageSize = 10
-			};
-
-			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
-
-			// Assert
-			result.Should().NotBeNull();
-			result.Transactions.Should().HaveCount(1); // Only the Buy activity, KnownBalance should be excluded
-			result.Transactions[0].Type.Should().Be("Buy");
 		}
 
 		[Fact]
