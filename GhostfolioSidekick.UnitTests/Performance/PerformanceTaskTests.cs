@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 {
     public class PerformanceTaskTests
     {
-        private DbContextOptions<DatabaseContext> CreateOptions(SqliteConnection connection) =>
+        private static DbContextOptions<DatabaseContext> CreateOptions(SqliteConnection connection) =>
             new DbContextOptionsBuilder<DatabaseContext>()
                 .UseSqlite(connection)
                 .Options;
