@@ -94,16 +94,38 @@
         {
             <div class="filter-group">
                 <label class="form-label-sm">Transaction Type</label>
-                <select class="form-select form-select-sm" multiple style="height: 120px;" @onchange="OnTransactionTypeMultiSelectChanged">
-                    <option value="">All Types</option>
-                    @if (TransactionTypes != null)
-                    {
-                        @foreach (var type in TransactionTypes)
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="transactionTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        @if (_pendingFilterState.SelectedTransactionType != null && _pendingFilterState.SelectedTransactionType.Count > 0)
                         {
-                            <option value="@type" selected="@(_pendingFilterState.SelectedTransactionType.Contains(type))">@type</option>
+                            @string.Join(", ", _pendingFilterState.SelectedTransactionType)
                         }
-                    }
-                </select>
+                        else
+                        {
+                            <span>All Types</span>
+                        }
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="transactionTypeDropdown" style="max-height: 200px; min-width: 260px !important; padding: 0 !important;">
+                        <li>
+                            <div class="form-check dropdown-item" style="padding: 8px 16px !important; display: flex !important; align-items: center !important;">
+                                <input class="form-check-input" type="checkbox" id="allTypesCheckbox" style="margin-left: 0 !important;" checked="@(_pendingFilterState.SelectedTransactionType == null || _pendingFilterState.SelectedTransactionType.Count == 0)" @onchange="(e) => OnAllTypesCheckboxChanged(e.Value is bool b && b)" />
+                                <label class="form-check-label ms-2" for="allTypesCheckbox">All Types</label>
+                            </div>
+                        </li>
+                        @if (TransactionTypes != null)
+                        {
+                            @foreach (var type in TransactionTypes)
+                            {
+                                <li>
+                                    <div class="form-check dropdown-item" style="padding: 8px 16px !important; display: flex !important; align-items: center !important;">
+                                        <input class="form-check-input" type="checkbox" id="typeCheckbox_@type" style="margin-left: 0 !important;" checked="@(_pendingFilterState.SelectedTransactionType.Contains(type))" @onchange="(e) => OnTypeCheckboxChanged(type, e.Value is bool b && b)" />
+                                        <label class="form-check-label ms-2" for="typeCheckbox_@type">@type</label>
+                                    </div>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
             </div>
         }
 
