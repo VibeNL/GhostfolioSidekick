@@ -105,9 +105,9 @@
                             <span>All Types</span>
                         }
                     </button>
-                    <ul class="dropdown-menu" aria-labelledby="transactionTypeDropdown" style="max-height: 200px; min-width: 260px !important; padding: 0 !important;">
+                    <ul class="dropdown-menu" aria-labelledby="transactionTypeDropdown" style="min-width: 260px; padding: 0; box-sizing: border-box;">
                         <li>
-                            <div class="form-check dropdown-item" style="padding: 8px 16px !important; display: flex !important; align-items: center !important;">
+                            <div class="form-check" style="padding: 8px 16px; display: flex; align-items: center;">
                                 <input class="form-check-input" type="checkbox" id="allTypesCheckbox" style="margin-left: 0 !important;" checked="@(_pendingFilterState.SelectedTransactionType == null || _pendingFilterState.SelectedTransactionType.Count == 0)" @onchange="(e) => OnAllTypesCheckboxChanged(e.Value is bool b && b)" />
                                 <label class="form-check-label ms-2" for="allTypesCheckbox">All Types</label>
                             </div>
@@ -117,7 +117,7 @@
                             @foreach (var type in TransactionTypes)
                             {
                                 <li>
-                                    <div class="form-check dropdown-item" style="padding: 8px 16px !important; display: flex !important; align-items: center !important;">
+                                    <div class="form-check" style="padding: 8px 16px; display: flex; align-items: center;">
                                         <input class="form-check-input" type="checkbox" id="typeCheckbox_@type" style="margin-left: 0 !important;" checked="@(_pendingFilterState.SelectedTransactionType.Contains(type))" @onchange="(e) => OnTypeCheckboxChanged(type, e.Value is bool b && b)" />
                                         <label class="form-check-label ms-2" for="typeCheckbox_@type">@type</label>
                                     </div>
