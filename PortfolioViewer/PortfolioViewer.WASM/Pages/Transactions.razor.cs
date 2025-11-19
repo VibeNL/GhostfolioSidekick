@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					return;
 				}
 
-				var queryParams = HttpUtility.ParseQueryString(queryString);
+				var queryParams = System.Web.HttpUtility.ParseQueryString(queryString);
 
 				// Check for accountId parameter
 				var accountIdParam = queryParams["accountId"];
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var typeParam = queryParams["type"];
 				if (!string.IsNullOrEmpty(typeParam))
 				{
-					FilterState.SelectedTransactionType = typeParam;
+					FilterState.SelectedTransactionType = new List<string> { typeParam };
 				}
 
 				// Check for search parameter
@@ -213,7 +213,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					EndDate = FilterState.EndDate,
 					AccountId = FilterState.SelectedAccountId,
 					Symbol = FilterState.SelectedSymbol ?? "",
-					TransactionType = FilterState.SelectedTransactionType ?? "",
+					TransactionTypes = FilterState.SelectedTransactionType ?? new List<string>(),
 					SearchText = FilterState.SearchText ?? "",
 					SortColumn = sortColumn,
 					SortAscending = sortAscending,

@@ -94,13 +94,13 @@
         {
             <div class="filter-group">
                 <label class="form-label-sm">Transaction Type</label>
-                <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedTransactionType" @onchange="OnTransactionTypeChanged">
+                <select class="form-select form-select-sm" multiple @onchange="OnTransactionTypeChanged">
                     <option value="">All Types</option>
                     @if (TransactionTypes != null)
                     {
                         @foreach (var type in TransactionTypes)
                         {
-                            <option value="@type">@type</option>
+                            <option value="@type" selected="@(_pendingFilterState.SelectedTransactionType.Contains(type))">@type</option>
                         }
                     }
                 </select>

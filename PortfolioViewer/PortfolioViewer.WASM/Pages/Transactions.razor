@@ -258,11 +258,11 @@
                                 <strong>Account ID: @FilterState.SelectedAccountId</strong>
                             </div>
                         }
-                        @if (!string.IsNullOrEmpty(FilterState.SelectedTransactionType))
+                        @if (FilterState.SelectedTransactionType != null && FilterState.SelectedTransactionType.Count > 0)
                         {
                             <div class="d-flex justify-content-between">
                                 <span>Filtered Type:</span>
-                                <strong>@FilterState.SelectedTransactionType</strong>
+                                <strong>@string.Join(", ", FilterState.SelectedTransactionType)</strong>
                             </div>
                         }
                         @if (!string.IsNullOrEmpty(FilterState.SearchText))

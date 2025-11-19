@@ -1,4 +1,5 @@
 using GhostfolioSidekick.Model;
+using System.Collections.Generic;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 {
@@ -35,7 +36,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 		/// <summary>
 		/// Transaction type filter (empty for all types)
 		/// </summary>
-		public string TransactionType { get; set; } = string.Empty;
+		public List<string> TransactionTypes { get; set; } = new();
 
 		/// <summary>
 		/// Search text filter (empty for no search)

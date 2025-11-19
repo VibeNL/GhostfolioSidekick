@@ -187,7 +187,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					EndDate = FilterState.EndDate,
 					AccountId = AccountId,
 					Symbol = "",
-					TransactionType = "",
+					TransactionTypes = new List<string>(),
 					SearchText = "",
 					SortColumn = "Date",
 					SortAscending = false, // Newest first
