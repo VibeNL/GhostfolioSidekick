@@ -210,7 +210,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			{
 				// Use specific type checks instead of GetType().Name.Replace() which can't be translated to SQL
 				// Handle both user-friendly names and database type names
-				query = transactionType switch
+				query = transactionType.Replace("Activity", "").Replace("Proxy", "") switch
 				{
 					"Buy" => query.Where(a => a is BuyActivity),
 					"Sell" => query.Where(a => a is SellActivity),
@@ -227,7 +227,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					"Valuable" => query.Where(a => a is ValuableActivity),
 					"Liability" => query.Where(a => a is LiabilityActivity),
 					"Repay Bond" or "RepayBond" => query.Where(a => a is RepayBondActivity),
-					_ => query // If type not recognized, return all activities
+					"KnownBalance" or "Known Balance" => query.Where(a => a is KnownBalanceActivity),
+					_ => throw new ArgumentException($"Unknown transaction type: {transactionType}"),
 				};
 			}
 
@@ -270,56 +271,20 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		public async Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default)
 		{
-			// Return user-friendly transaction type names that match the breakdown
-			var existingTypes = new List<string>();
+			// Get all distinct activity types from the database
+			var typeNames = await databaseContext.Activities
+				.Select(a => a.GetType().Name)
+				.Distinct()
+				.ToListAsync(cancellationToken);
 
-			// Check each type and add user-friendly name if it exists
-			if (await databaseContext.Activities.OfType<BuyActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Buy");
+			// Remove 'Activity' suffix for readability
+			var result = typeNames
+				.Select(typeName => typeName.Replace("Activity", "").Replace("Proxy", ""))
+				.Distinct()
+				.OrderBy(x => x)
+				.ToList();
 
-			if (await databaseContext.Activities.OfType<SellActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Sell");
-
-			if (await databaseContext.Activities.OfType<DividendActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Dividend");
-
-			if (await databaseContext.Activities.OfType<CashDepositActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Deposit");
-
-			if (await databaseContext.Activities.OfType<CashWithdrawalActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Withdrawal");
-
-			if (await databaseContext.Activities.OfType<FeeActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Fee");
-
-			if (await databaseContext.Activities.OfType<InterestActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Interest");
-
-			if (await databaseContext.Activities.OfType<ReceiveActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Receive");
-
-			if (await databaseContext.Activities.OfType<SendActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Send");
-
-			if (await databaseContext.Activities.OfType<StakingRewardActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Staking Reward");
-
-			if (await databaseContext.Activities.OfType<GiftFiatActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Gift Fiat");
-
-			if (await databaseContext.Activities.OfType<GiftAssetActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Gift Asset");
-
-			if (await databaseContext.Activities.OfType<ValuableActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Valuable");
-
-			if (await databaseContext.Activities.OfType<LiabilityActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Liability");
-
-			if (await databaseContext.Activities.OfType<RepayBondActivity>().AnyAsync(cancellationToken))
-				existingTypes.Add("Repay Bond");
-
-			return [.. existingTypes.OrderBy(x => x)];
+			return result;
 		}
 	}
 }
