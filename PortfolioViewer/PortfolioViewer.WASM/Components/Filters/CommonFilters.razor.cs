@@ -602,6 +602,34 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			return Task.CompletedTask;
 		}
 
+		private void OnTransactionTypeDropdownChanged(string? type)
+		{
+			if (type == null)
+			{
+				// 'All Types' selected, clear selection
+				_pendingFilterState.SelectedTransactionType.Clear();
+			}
+			else
+			{
+				if (_pendingFilterState.SelectedTransactionType.Contains(type))
+				{
+					_pendingFilterState.SelectedTransactionType.Remove(type);
+				}
+				else
+				{
+					_pendingFilterState.SelectedTransactionType.Add(type);
+				}
+			}
+
+			// If apply button is not shown, apply changes immediately
+			if (!ShowApplyButton && FilterState != null)
+			{
+				FilterState.SelectedTransactionType = new List<string>(_pendingFilterState.SelectedTransactionType);
+			}
+
+			StateHasChanged(); // Force UI update for dropdown
+		}
+
 		private async Task ApplyFilters()
 		{
 			if (FilterState != null)
