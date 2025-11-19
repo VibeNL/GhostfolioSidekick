@@ -5,7 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.Sync
 {
-	internal class SyncAccountsWithGhostfolioTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IGhostfolioSync ghostfolioSync) : IScheduledWork
+	internal class SyncAccountsWithGhostfolioTask(
+		IDbContextFactory<DatabaseContext> databaseContextFactory,
+		IGhostfolioSync ghostfolioSync) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.SyncAccountsWithGhostfolio;
 

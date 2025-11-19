@@ -8,7 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class MarketDataStockSplitTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockSplitRepository[] stockPriceRepositories) : IScheduledWork
+	internal class MarketDataStockSplitTask(
+		IDbContextFactory<DatabaseContext> databaseContextFactory, 
+		IStockSplitRepository[] stockPriceRepositories) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataStockSplit;
 

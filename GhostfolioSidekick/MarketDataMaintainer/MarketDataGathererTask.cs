@@ -1,12 +1,15 @@
 ﻿using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class MarketDataGathererTask(IDbContextFactory<DatabaseContext> databaseContextFactory, IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
+	internal class MarketDataGathererTask(
+		IDbContextFactory<DatabaseContext> databaseContextFactory, 
+		IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
 
@@ -68,6 +71,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					// If any data corruption is detected, we will re-fetch all data if possible
 					var hasDataCorruption = symbol.MarketData.Any(x =>
 						x.Close.Amount == 0 // Close price is not set
+						|| x.IsGenerated
 						) && symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close.Amount).LastOrDefault() != 0;
 					if (hasDataCorruption)
 					{
@@ -103,6 +107,33 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				foreach (var marketData in list)
 				{
 					var existingRecord = symbol.MarketData.SingleOrDefault(x => x.Date == marketData.Date);
+					decimal closeAmount = marketData.Close.Amount;
+
+					// Interpolate missing close prices
+					if (closeAmount == 0)
+					{
+						var previous = symbol.MarketData
+							.Where(x => x.Date < marketData.Date && x.Close.Amount != 0)
+							.OrderByDescending(x => x.Date)
+							.FirstOrDefault();
+						var next = symbol.MarketData
+							.Where(x => x.Date > marketData.Date && x.Close.Amount != 0)
+							.OrderBy(x => x.Date)
+							.FirstOrDefault();
+						if (previous != null && next != null)
+						{
+							var a = previous.Date.ToDateTime(TimeOnly.MinValue);
+							var b = marketData.Date.ToDateTime(TimeOnly.MinValue);
+							var c = next.Date.ToDateTime(TimeOnly.MinValue);
+							var total = (c - a).TotalDays;
+							var prevWeight = (c - b).TotalDays / total;
+							var nextWeight = (b - a).TotalDays / total;
+							var weighted = previous.Close.Amount * (decimal)prevWeight + next.Close.Amount * (decimal)nextWeight;
+							marketData.Close = new Money(marketData.Close.Currency, weighted);
+							marketData.IsGenerated = true;
+						}
+					}
+
 					if (existingRecord != null && Math.Abs(existingRecord.Close.Amount - marketData.Close.Amount) < 0.00001m)
 					{
 						continue;

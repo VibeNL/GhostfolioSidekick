@@ -110,7 +110,8 @@ namespace GhostfolioSidekick
 
 				workItem = workQueue.Dequeue();
 
-				await ExecuteWorkItem(workItem);
+				// Use memory tracking wrapper
+				await ExecuteWorkItemWithMemoryTracking(workItem);
 
 				var rescheduled = HandleWorkItemCompletion(workItem);
 
@@ -173,6 +174,28 @@ namespace GhostfolioSidekick
 					throw;
 				}
 			}
+		}
+
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S1215:\"GC.Collect\" should not be called", Justification = "Desired behaviour")]
+		private async Task ExecuteWorkItemWithMemoryTracking(Scheduled workItem)
+		{
+			// Measure memory before execution
+			long memoryBefore = GC.GetTotalMemory(false);
+			double memoryBeforeMiB = memoryBefore / 1024d / 1024d;
+			
+			await ExecuteWorkItem(workItem);
+
+			// Request garbage collection
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+			GC.Collect();
+			GC.WaitForPendingFinalizers();
+
+			// Measure memory after execution and GC
+			long memoryAfter = GC.GetTotalMemory(false);
+			double memoryAfterMiB = memoryAfter / 1024d / 1024d;
+			double memoryLostMiB = memoryAfterMiB - memoryBeforeMiB;
+			logger.LogTrace("Memory after executing {Name}: {MemoryAfterMiB:F2} MiB (Delta: {MemoryLostMiB:F2} MiB)", workItem.Work.GetType().Name, memoryAfterMiB, memoryLostMiB);
 		}
 
 		private bool HandleWorkItemCompletion(Scheduled workItem)

@@ -8,8 +8,10 @@ namespace GhostfolioSidekick.Performance
 {
 	internal class PerformanceTask(
 		IHoldingPerformanceCalculator holdingPerformanceCalculator,
-		DatabaseContext databaseContext) : IScheduledWork
+		IDbContextFactory<DatabaseContext> dbContextFactory) : IScheduledWork
 	{
+		const int batchSize = 10;
+
 		public TaskPriority Priority => TaskPriority.PerformanceCalculations;
 
 		public TimeSpan ExecutionFrequency => TimeSpan.FromHours(1);
@@ -25,62 +27,81 @@ namespace GhostfolioSidekick.Performance
 
 			if (holdings == null || !holdings.Any())
 			{
-				// If no holdings are calculated, remove all existing holdings
 				await DeleteAllHoldings();
 				return;
 			}
 
-			// Get all existing holdings from database
-			var existingHoldings = await databaseContext.HoldingAggregateds
-				.Include(h => h.CalculatedSnapshots)
-				.ToListAsync();
-
-			// Create lookup for new holdings by their key (Symbol, AssetClass, AssetSubClass)
-			var newHoldingKeys = holdings
-				.Select(h => new { h.Symbol, h.AssetClass, h.AssetSubClass })
-				.ToHashSet();
-
-			// Find obsolete holdings that should be deleted
-			var obsoleteHoldings = existingHoldings
-				.Where(existing => !newHoldingKeys.Contains(new { existing.Symbol, existing.AssetClass, existing.AssetSubClass }))
-				.ToList();
-
-			// Delete obsolete holdings
-			if (obsoleteHoldings.Count != 0)
+			// Use a fresh context for obsolete detection
+			using (var dbContext = dbContextFactory.CreateDbContext())
 			{
-				databaseContext.HoldingAggregateds.RemoveRange(obsoleteHoldings);
-			}
+				var existingHoldingKeys = await dbContext.HoldingAggregateds
+					.Select(h => new { h.Id, h.Symbol, h.AssetClass, h.AssetSubClass })
+					.AsNoTracking()
+					.ToListAsync();
 
-			// Update holdings and their snapshots
-			foreach (var holding in holdings)
-			{
-				// Try to find existing entity with its snapshots
-				var existing = existingHoldings
-					.FirstOrDefault(h =>
-						h.Symbol == holding.Symbol &&
-						h.AssetClass == holding.AssetClass &&
-						h.AssetSubClass == holding.AssetSubClass);
+				var newHoldingKeys = holdings
+					.Select(h => (h.Symbol, h.AssetClass, h.AssetSubClass))
+					.ToHashSet();
 
-				if (existing != null)
+				var obsoleteIds = existingHoldingKeys
+					.Where(existing => !newHoldingKeys.Contains((existing.Symbol, existing.AssetClass, existing.AssetSubClass)))
+					.Select(existing => existing.Id)
+					.ToList();
+
+				if (obsoleteIds.Count != 0)
 				{
-					UpdateExistingHolding(existing, holding);
-				}
-				else
-				{
-					await databaseContext.HoldingAggregateds.AddAsync(holding);
+					var toDelete = await dbContext.HoldingAggregateds
+						.Where(h => obsoleteIds.Contains(h.Id))
+						.ToListAsync();
+					dbContext.HoldingAggregateds.RemoveRange(toDelete);
+					await dbContext.SaveChangesAsync();
 				}
 			}
 
-			await databaseContext.SaveChangesAsync();
+			// Process holdings in batches with a fresh context per batch
+			var holdingList = holdings.ToList();
+			foreach (var batch in holdingList.Chunk(batchSize))
+			{
+				using var dbContext = dbContextFactory.CreateDbContext();
+				var batchKeys = batch.Select(h => (h.Symbol, h.AssetClass, h.AssetSubClass)).ToHashSet();
+
+				var existingBatchHoldings = (await dbContext.HoldingAggregateds
+					.Include(h => h.CalculatedSnapshots)
+					.Where(h => batch.Select(b => b.Symbol).Contains(h.Symbol))
+					.ToListAsync())
+					.Where(h => batchKeys.Contains((h.Symbol, h.AssetClass, h.AssetSubClass)))
+					.ToList();
+
+				foreach (var holding in batch)
+				{
+					var existing = existingBatchHoldings
+						.FirstOrDefault(h =>
+							h.Symbol == holding.Symbol &&
+							h.AssetClass == holding.AssetClass &&
+							h.AssetSubClass == holding.AssetSubClass);
+
+					if (existing != null)
+					{
+						UpdateExistingHolding(existing, holding);
+					}
+					else
+					{
+						await dbContext.HoldingAggregateds.AddAsync(holding);
+					}
+				}
+
+				await dbContext.SaveChangesAsync();
+			}
 		}
 
 		private async Task DeleteAllHoldings()
 		{
-			var allHoldings = await databaseContext.HoldingAggregateds.ToListAsync();
+			using var dbContext = dbContextFactory.CreateDbContext();
+			var allHoldings = await dbContext.HoldingAggregateds.ToListAsync();
 			if (allHoldings.Count != 0)
 			{
-				databaseContext.HoldingAggregateds.RemoveRange(allHoldings);
-				await databaseContext.SaveChangesAsync();
+				dbContext.HoldingAggregateds.RemoveRange(allHoldings);
+				await dbContext.SaveChangesAsync();
 			}
 		}
 
@@ -100,12 +121,13 @@ namespace GhostfolioSidekick.Performance
 
 		private static void UpdateCalculatedSnapshots(HoldingAggregated existing, ICollection<CalculatedSnapshot> newSnapshots)
 		{
-			var existingSnapshotsByDate = existing.CalculatedSnapshots.ToDictionary(s => new { s.AccountId, s.Date });
-			var newSnapshotsByDate = newSnapshots.ToDictionary(s => new { s.AccountId, s.Date });
+			// Use tuple for snapshot keys
+			var existingSnapshotsByKey = existing.CalculatedSnapshots.ToDictionary(s => (s.AccountId, s.Date));
+			var newSnapshotsByKey = newSnapshots.ToDictionary(s => (s.AccountId, s.Date));
 
 			// Remove snapshots that no longer exist in the new calculation
 			var snapshotsToRemove = existing.CalculatedSnapshots
-				.Where(existingSnapshot => !newSnapshotsByDate.ContainsKey(new { existingSnapshot.AccountId, existingSnapshot.Date }))
+				.Where(existingSnapshot => !newSnapshotsByKey.ContainsKey((existingSnapshot.AccountId, existingSnapshot.Date)))
 				.ToList();
 
 			foreach (var snapshotToRemove in snapshotsToRemove)
@@ -116,7 +138,7 @@ namespace GhostfolioSidekick.Performance
 			// Update existing snapshots or add new ones
 			foreach (var newSnapshot in newSnapshots)
 			{
-				if (existingSnapshotsByDate.TryGetValue(new { newSnapshot.AccountId, newSnapshot.Date }, out var existingSnapshot))
+				if (existingSnapshotsByKey.TryGetValue((newSnapshot.AccountId, newSnapshot.Date), out var existingSnapshot))
 				{
 					UpdateSnapshotProperties(existingSnapshot, newSnapshot);
 				}

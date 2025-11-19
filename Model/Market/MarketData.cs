@@ -33,6 +33,8 @@
 		public decimal TradingVolume { get; set; }
 		public DateOnly Date { get; set; }
 
+		public bool IsGenerated { get; set; }
+
 		public void CopyFrom(MarketData marketData)
 		{
 			Close = marketData.Close;
