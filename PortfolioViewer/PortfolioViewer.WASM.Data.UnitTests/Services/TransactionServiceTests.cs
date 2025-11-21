@@ -666,10 +666,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			// Dynamically find all concrete Activity types
 			var activityBaseType = typeof(Activity);
 			var activityTypes = activityBaseType.Assembly.GetTypes()
-				.Where(t => activityBaseType.IsAssignableFrom(t) && !t.IsAbstract && t.GetConstructor(Type.EmptyTypes) == null)
+				.Where(t => activityBaseType.IsAssignableFrom(t) && !t.IsAbstract)
 				.ToList();
 
 			var activities = new List<Activity>();
@@ -677,23 +676,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			foreach (var type in activityTypes)
 			{
-				Activity? instance = type.Name switch
-				{
-					"BuyActivity" => CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
-					"SellActivity" => CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
-					"DividendActivity" => CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50),
-					"CashDepositActivity" => CreateCashDepositActivity(account, DateTime.Now.AddDays(-4), 1000),
-					"InterestActivity" => CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25),
-					"FeeActivity" => CreateFeeActivity(account, DateTime.Now.AddDays(-6), 10),
-					"KnownBalanceActivity" => CreateKnownBalanceActivity(account, DateTime.Now.AddDays(-7), 500),
-					_ => null
-				};
-				if (instance != null)
-				{
-					activities.Add(instance);
-					// Use the Type property or fallback to class name
-					typeNames.Add(instance.GetType().Name.Replace("Activity", ""));
-				}
+				var instance = CreateTestActivityInstance(type, account, holding, symbolProfile) ?? throw new NotImplementedException($"No test instance creation defined for activity type {type.Name} and could not auto-instantiate.");
+				activities.Add(instance);
+				typeNames.Add(instance.GetType().Name.Replace("Activity", ""));
 			}
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
@@ -707,7 +692,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 					EndDate = DateOnly.FromDateTime(DateTime.Now),
 					AccountId = 0,
 					Symbol = "",
-					TransactionTypes = [typeName],
+					TransactionTypes = new List<string> { typeName },
 					SearchText = "",
 					SortColumn = "Date",
 					SortAscending = true,
@@ -931,6 +916,56 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
 			];
+		}
+
+		private static object? GetTestArgument(Type paramType, Account account, Holding holding, SymbolProfile symbolProfile)
+		{
+			if (paramType == typeof(Account)) return account;
+			if (paramType == typeof(Holding)) return holding;
+			if (paramType == typeof(DateTime)) return DateTime.Now;
+			if (paramType == typeof(Money)) return new Money(Currency.USD, 1);
+			if (paramType == typeof(string)) return "Test";
+			if (paramType == typeof(int?)) return null;
+			if (paramType == typeof(List<PartialSymbolIdentifier>)) return new List<PartialSymbolIdentifier>();
+			if (paramType == typeof(List<string>)) return new List<string>();
+			if (paramType == typeof(SymbolProfile)) return symbolProfile;
+			if (paramType == typeof(List<SymbolProfile>)) return new List<SymbolProfile> { symbolProfile };
+			if (paramType.IsValueType) return Activator.CreateInstance(paramType);
+			return null;
+		}
+
+		private static Activity? CreateTestActivityInstance(Type type, Account account, Holding holding, SymbolProfile symbolProfile)
+		{
+			return type.Name switch
+			{
+				"BuyActivity" => CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
+				"SellActivity" => CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
+				"DividendActivity" => CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50),
+				"CashDepositActivity" => CreateCashDepositActivity(account, DateTime.Now.AddDays(-4), 1000),
+				"InterestActivity" => CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25),
+				"FeeActivity" => CreateFeeActivity(account, DateTime.Now.AddDays(-6), 10),
+				"KnownBalanceActivity" => CreateKnownBalanceActivity(account, DateTime.Now.AddDays(-7), 500),
+				_ => TryCreateWithConstructor(type, account, holding, symbolProfile)
+			};
+		}
+
+		private static Activity? TryCreateWithConstructor(Type type, Account account, Holding holding, SymbolProfile symbolProfile)
+		{
+			var ctor = type.GetConstructors().OrderByDescending(c => c.GetParameters().Length).FirstOrDefault();
+			if (ctor == null)
+			{
+				throw new NotImplementedException($"No constructor found for type {type.Name}.");
+			}
+
+			var args = ctor.GetParameters().Select(p => GetTestArgument(p.ParameterType, account, holding, symbolProfile)).ToArray();
+			try
+			{
+				return (Activity?)ctor.Invoke(args);
+			}
+			catch
+			{
+				throw new NotImplementedException($"Failed to create instance of {type.Name} with provided test arguments.");
+			}
 		}
 	}
 }
