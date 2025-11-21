@@ -16,18 +16,18 @@
                     <button class="btn @(GetDateRangeButtonClass("FiveYear"))" @onclick='() => SetDateRange("FiveYear")'>5Y</button>
                     <button class="btn @(GetDateRangeButtonClass("Max"))" @onclick='() => SetDateRange("Max")'>All</button>
                 </div>
-                
+
                 <div class="d-flex gap-2 flex-wrap">
                     <div class="date-input">
                         <label class="form-label-sm">From</label>
-                        <input type="date" class="form-control form-control-sm" 
-                               value="@_pendingFilterState.StartDate.ToString("yyyy-MM-dd")" 
+                        <input type="date" class="form-control form-control-sm"
+                               value="@_pendingFilterState.StartDate.ToString("yyyy-MM-dd")"
                                @onchange="OnStartDateChanged" />
                     </div>
                     <div class="date-input">
                         <label class="form-label-sm">To</label>
-                        <input type="date" class="form-control form-control-sm" 
-                               value="@_pendingFilterState.EndDate.ToString("yyyy-MM-dd")" 
+                        <input type="date" class="form-control form-control-sm"
+                               value="@_pendingFilterState.EndDate.ToString("yyyy-MM-dd")"
                                @onchange="OnEndDateChanged" />
                     </div>
                 </div>
@@ -94,16 +94,38 @@
         {
             <div class="filter-group">
                 <label class="form-label-sm">Transaction Type</label>
-                <select class="form-select form-select-sm" value="@_pendingFilterState.SelectedTransactionType" @onchange="OnTransactionTypeChanged">
-                    <option value="">All Types</option>
-                    @if (TransactionTypes != null)
-                    {
-                        @foreach (var type in TransactionTypes)
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="transactionTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        @if (_pendingFilterState.SelectedTransactionType != null && _pendingFilterState.SelectedTransactionType.Count > 0)
                         {
-                            <option value="@type">@type</option>
+                            @string.Join(", ", _pendingFilterState.SelectedTransactionType)
                         }
-                    }
-                </select>
+                        else
+                        {
+                            <span>All Types</span>
+                        }
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="transactionTypeDropdown" style="min-width: 260px; padding: 0; box-sizing: border-box;">
+                        <li>
+                            <div class="form-check" style="padding: 8px 16px; display: flex; align-items: center;">
+                                <input class="form-check-input" type="checkbox" id="allTypesCheckbox" style="margin-left: 0 !important;" checked="@(_pendingFilterState.SelectedTransactionType == null || _pendingFilterState.SelectedTransactionType.Count == 0)" @onchange="(e) => OnAllTypesCheckboxChanged(e.Value is bool b && b)" />
+                                <label class="form-check-label ms-2" for="allTypesCheckbox">All Types</label>
+                            </div>
+                        </li>
+                        @if (TransactionTypes != null)
+                        {
+                            @foreach (var type in TransactionTypes)
+                            {
+                                <li>
+                                    <div class="form-check" style="padding: 8px 16px; display: flex; align-items: center;">
+                                        <input class="form-check-input" type="checkbox" id="typeCheckbox_@type" style="margin-left: 0 !important;" checked="@(_pendingFilterState.SelectedTransactionType.Contains(type))" @onchange="(e) => OnTypeCheckboxChanged(type, e.Value is bool b && b)" />
+                                        <label class="form-check-label ms-2" for="typeCheckbox_@type">@type</label>
+                                    </div>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
             </div>
         }
 
@@ -111,9 +133,9 @@
         {
             <div class="filter-group">
                 <label class="form-label-sm">Search</label>
-                <input type="text" class="form-control form-control-sm" 
-                       placeholder="Search symbol, name, or description..." 
-                       value="@_pendingFilterState.SearchText" 
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Search symbol, name, or description..."
+                       value="@_pendingFilterState.SearchText"
                        @onchange="OnSearchTextChanged"
                        @oninput="OnSearchTextInput" />
             </div>
@@ -123,14 +145,14 @@
         {
             <div class="filter-group filter-actions">
                 <div class="d-flex gap-2">
-                    <button class="btn btn-primary btn-sm" 
-                            @onclick="ApplyFilters" 
+                    <button class="btn btn-primary btn-sm"
+                            @onclick="ApplyFilters"
                             disabled="@(!HasPendingChanges)"
                             title="Apply filter changes">
                         <i class="bi bi-check-circle me-1"></i>Apply Filters
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm" 
-                            @onclick="ResetFilters" 
+                    <button class="btn btn-outline-secondary btn-sm"
+                            @onclick="ResetFilters"
                             disabled="@(!HasPendingChanges)"
                             title="Reset to current filter state">
                         <i class="bi bi-arrow-clockwise me-1"></i>Reset
@@ -145,4 +167,31 @@
             </div>
         }
     </div>
+}
+
+@code {
+
+
+    private void OnTypeCheckboxChanged(string type, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!_pendingFilterState.SelectedTransactionType.Contains(type))
+                _pendingFilterState.SelectedTransactionType.Add(type);
+        }
+        else
+        {
+            _pendingFilterState.SelectedTransactionType.Remove(type);
+        }
+        StateHasChanged();
+    }
+
+    private void OnAllTypesCheckboxChanged(bool isChecked)
+    {
+        if (isChecked)
+        {
+            _pendingFilterState.SelectedTransactionType.Clear();
+            StateHasChanged();
+        }
+    }
 }

@@ -593,7 +593,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 				Symbol = "AAPL",
 				DataSource = "TEST_SOURCE",
 				AssetClass = AssetClass.Equity,
-				MarketData = new List<MarketData> { md1, md2, md3 }
+				MarketData = [md1, md2, md3]
 			};
 
 			var symbolProfiles = new List<SymbolProfile> { symbolProfile };

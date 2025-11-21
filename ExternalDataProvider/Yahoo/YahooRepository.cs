@@ -50,6 +50,60 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 			return await CreateSymbolProfileFromMatch(bestMatch);
 		}
 
+		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
+		{
+			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
+					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
+					.ExecuteAsync(() =>
+								YahooFinanceApi
+										.Yahoo
+										.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily)
+					);
+
+			if (history == null)
+			{
+				return [];
+			}
+
+			var list = new List<MarketData>();
+			foreach (var candle in history)
+			{
+				var item = new MarketData(
+									new Money(symbol.Currency with { }, candle.Close),
+									new Money(symbol.Currency with { }, candle.Open),
+									new Money(symbol.Currency with { }, candle.High),
+									new Money(symbol.Currency with { }, candle.Low),
+									candle.Volume,
+									DateOnly.FromDateTime(candle.DateTime.Date));
+				list.Add(item);
+			}
+
+			return list;
+		}
+
+		public async Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol, DateOnly fromDate)
+		{
+			var list = new List<StockSplit>();
+
+			try
+			{
+				var history = await YahooFinanceApi.Yahoo.GetSplitsAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today);
+
+				foreach (var candle in history)
+				{
+					var item = new StockSplit(Date: DateOnly.FromDateTime(candle.DateTime), BeforeSplit: candle.AfterSplit, AfterSplit: candle.BeforeSplit); // API has them mixed up
+					list.Add(item);
+				}
+
+			}
+			catch (RuntimeBinderException ex) when (ex.Message.Contains("'System.Dynamic.ExpandoObject'"))
+			{
+				// No data?
+			}
+
+			return list;
+		}
+
 		private async Task<List<SearchResult>> GetSearchResultsForIdentifiers(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
 			var matches = new List<SearchResult>();
@@ -157,60 +211,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			var assetSubClass = ParseQuoteTypeAsSub(searchResult.Type);
 			return assetSubClass == null || identifier.AllowedAssetSubClasses.Contains(assetSubClass.Value);
-		}
-
-		public async Task<IEnumerable<MarketData>> GetStockMarketData(SymbolProfile symbol, DateOnly fromDate)
-		{
-			var history = await RetryPolicyHelper.GetFallbackPolicy<IReadOnlyList<Candle>>(logger)
-					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
-					.ExecuteAsync(() =>
-								YahooFinanceApi
-										.Yahoo
-										.GetHistoricalAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily)
-					);
-
-			if (history == null)
-			{
-				return [];
-			}
-
-			var list = new List<MarketData>();
-			foreach (var candle in history)
-			{
-				var item = new MarketData(
-									new Money(symbol.Currency with { }, candle.Close),
-									new Money(symbol.Currency with { }, candle.Open),
-									new Money(symbol.Currency with { }, candle.High),
-									new Money(symbol.Currency with { }, candle.Low),
-									candle.Volume,
-									DateOnly.FromDateTime(candle.DateTime.Date));
-				list.Add(item);
-			}
-
-			return list;
-		}
-
-		public async Task<IEnumerable<StockSplit>> GetStockSplits(SymbolProfile symbol, DateOnly fromDate)
-		{
-			var list = new List<StockSplit>();
-
-			try
-			{
-				var history = await YahooFinanceApi.Yahoo.GetSplitsAsync(symbol.Symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), DateTime.Today);
-
-				foreach (var candle in history)
-				{
-					var item = new StockSplit(Date: DateOnly.FromDateTime(candle.DateTime), BeforeSplit: candle.AfterSplit, AfterSplit: candle.BeforeSplit); // API has them mixed up
-					list.Add(item);
-				}
-
-			}
-			catch (RuntimeBinderException ex) when (ex.Message.Contains("'System.Dynamic.ExpandoObject'"))
-			{
-				// No data?
-			}
-
-			return list;
 		}
 
 		private async Task<IEnumerable<MarketData>> GetStockMarketData(string symbol, Currency currency, DateOnly fromDate)

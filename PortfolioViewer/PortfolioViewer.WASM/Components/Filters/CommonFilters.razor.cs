@@ -134,10 +134,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			}
 
 			// Reset transaction type filter if it's not shown on current page
-			if (!ShowTransactionTypeFilter && !string.IsNullOrEmpty(FilterState.SelectedTransactionType))
+			if (!ShowTransactionTypeFilter && FilterState.SelectedTransactionType.Count > 0)
 			{
-				FilterState.SelectedTransactionType = "";
-				_pendingFilterState.SelectedTransactionType = "";
+				FilterState.SelectedTransactionType = [];
+				_pendingFilterState.SelectedTransactionType = [];
 				hasChanges = true;
 				Logger?.LogInformation("Reset transaction type filter to 'All Types' (not shown on current page)");
 			}
@@ -532,22 +532,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 					await UpdateFilteredOptionsAsync();
 					await InvokeAsync(StateHasChanged);
 				});
-			}
-
-			return Task.CompletedTask;
-		}
-
-		private Task OnTransactionTypeChanged(ChangeEventArgs e)
-		{
-			if (e.Value != null)
-			{
-				_pendingFilterState.SelectedTransactionType = e.Value.ToString() ?? "";
-
-				// If apply button is not shown, apply changes immediately
-				if (!ShowApplyButton && FilterState != null)
-				{
-					FilterState.SelectedTransactionType = _pendingFilterState.SelectedTransactionType;
-				}
 			}
 
 			return Task.CompletedTask;
