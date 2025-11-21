@@ -194,41 +194,4 @@
             StateHasChanged();
         }
     }
-
-    private void OnTransactionTypeSelectChanged(ChangeEventArgs e)
-    {
-        var selectedType = e.Value?.ToString();
-        _pendingFilterState.SelectedTransactionType.Clear();
-        if (!string.IsNullOrEmpty(selectedType))
-        {
-            _pendingFilterState.SelectedTransactionType.Add(selectedType);
-        }
-        StateHasChanged();
-    }
-
-    private void OnTransactionTypeMultiSelectChanged(ChangeEventArgs e)
-    {
-        var selectedValues = new List<string>();
-        if (e.Value is string singleValue)
-        {
-            // Only one selected
-            if (!string.IsNullOrEmpty(singleValue))
-                selectedValues.Add(singleValue);
-        }
-        else if (e.Value is IEnumerable<string> multiValues)
-        {
-            foreach (var val in multiValues.Where(v => !string.IsNullOrEmpty(v)))
-            {
-                selectedValues.Add(val);
-            }
-        }
-
-        _pendingFilterState.SelectedTransactionType.Clear();
-        foreach (var val in selectedValues)
-        {
-            _pendingFilterState.SelectedTransactionType.Add(val);
-        }
-
-        StateHasChanged();
-    }
 }
