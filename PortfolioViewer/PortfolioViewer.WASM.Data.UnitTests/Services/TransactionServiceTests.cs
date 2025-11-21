@@ -43,7 +43,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0, // All accounts
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -86,7 +86,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 1, // Filter by account 1
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -128,7 +128,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "AAPL", // Filter by AAPL symbol
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -169,7 +169,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string> { "Buy" }, // Filter by Buy activities
+				TransactionTypes = ["Buy"], // Filter by Buy activities
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -211,7 +211,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "apple", // Search for "apple"
 				SortColumn = "Date",
 				SortAscending = true,
@@ -253,7 +253,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = false, // Sort descending
@@ -293,7 +293,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -337,7 +337,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -383,7 +383,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -471,7 +471,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now), // End date
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -513,7 +513,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -558,7 +558,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -597,7 +597,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -640,7 +640,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
@@ -658,63 +658,70 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			result.Transactions[0].Name.Should().Be(""); // Should handle null gracefully
 		}
 
-		[Theory]
-		[InlineData("Buy")]
-		[InlineData("Sell")]
-		[InlineData("Dividend")]
-		[InlineData("Deposit")]
-		[InlineData("Fee")]
-		[InlineData("Interest")]
-		[InlineData("UnknownType")]
-		public async Task GetTransactionsPaginatedAsync_WithSpecificTransactionTypeFilter_ShouldFilterCorrectly(string transactionType)
+		[Fact]
+		public async Task GetTransactionsPaginatedAsync_WithSpecificTransactionTypeFilter_DynamicallyTestsAllTypes()
 		{
 			// Arrange
 			var account = CreateTestAccount("Test Account");
 			var symbolProfile = CreateTestSymbolProfile("AAPL", "Apple Inc");
 			var holding = CreateTestHolding(symbolProfile);
 
-			var activities = new List<Activity>
+			// Dynamically find all concrete Activity types
+			var activityBaseType = typeof(Activity);
+			var activityTypes = activityBaseType.Assembly.GetTypes()
+				.Where(t => activityBaseType.IsAssignableFrom(t) && !t.IsAbstract && t.GetConstructor(Type.EmptyTypes) == null)
+				.ToList();
+
+			var activities = new List<Activity>();
+			var typeNames = new List<string>();
+
+			foreach (var type in activityTypes)
 			{
-				CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
-				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
-				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50),
-				CreateCashDepositActivity(account, DateTime.Now.AddDays(-4), 1000),
-				CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25),
-				CreateFeeActivity(account, DateTime.Now.AddDays(-6), 10)
-			};
+				Activity? instance = type.Name switch
+				{
+					"BuyActivity" => CreateBuyActivity(account, holding, DateTime.Now.AddDays(-1), 10, 100),
+					"SellActivity" => CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
+					"DividendActivity" => CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50),
+					"CashDepositActivity" => CreateCashDepositActivity(account, DateTime.Now.AddDays(-4), 1000),
+					"InterestActivity" => CreateInterestActivity(account, DateTime.Now.AddDays(-5), 25),
+					"FeeActivity" => CreateFeeActivity(account, DateTime.Now.AddDays(-6), 10),
+					"KnownBalanceActivity" => CreateKnownBalanceActivity(account, DateTime.Now.AddDays(-7), 500),
+					_ => null
+				};
+				if (instance != null)
+				{
+					activities.Add(instance);
+					// Use the Type property or fallback to class name
+					typeNames.Add(instance.GetType().Name.Replace("Activity", ""));
+				}
+			}
 
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
-			var parameters = new TransactionQueryParameters
+			foreach (var typeName in typeNames)
 			{
-				TargetCurrency = Currency.USD,
-				StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
-				EndDate = DateOnly.FromDateTime(DateTime.Now),
-				AccountId = 0,
-				Symbol = "",
-				TransactionTypes = transactionType == "UnknownType" ? new List<string>() : new List<string> { transactionType },
-				SearchText = "",
-				SortColumn = "Date",
-				SortAscending = true,
-				PageNumber = 1,
-				PageSize = 10
-			};
+				var parameters = new TransactionQueryParameters
+				{
+					TargetCurrency = Currency.USD,
+					StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-30)),
+					EndDate = DateOnly.FromDateTime(DateTime.Now),
+					AccountId = 0,
+					Symbol = "",
+					TransactionTypes = [typeName],
+					SearchText = "",
+					SortColumn = "Date",
+					SortAscending = true,
+					PageNumber = 1,
+					PageSize = 10
+				};
 
-			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
+				// Act
+				var result = await _transactionService.GetTransactionsPaginatedAsync(parameters);
 
-			// Assert
-			result.Should().NotBeNull();
-
-			if (transactionType == "UnknownType")
-			{
-				// Unknown types should return all activities (no filtering)
-				result.Transactions.Should().HaveCount(6);
-			}
-			else
-			{
-				// Each known type should return at least one matching activity
+				// Assert
+				result.Should().NotBeNull();
 				result.Transactions.Should().NotBeEmpty();
+				result.Transactions.All(t => t.Type == typeName).Should().BeTrue();
 			}
 		}
 
@@ -748,7 +755,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string>(),
+				TransactionTypes = [],
 				SearchText = "",
 				SortColumn = sortColumn,
 				SortAscending = true,
@@ -780,7 +787,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				EndDate = DateOnly.FromDateTime(DateTime.Now),
 				AccountId = 0,
 				Symbol = "",
-				TransactionTypes = new List<string> { "Buy", "Sell" },
+				TransactionTypes = ["Buy", "Sell"],
 				SearchText = "",
 				SortColumn = "Date",
 				SortAscending = true,
