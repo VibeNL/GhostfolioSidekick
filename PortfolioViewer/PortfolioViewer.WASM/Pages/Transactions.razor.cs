@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				var typeParam = queryParams["type"];
 				if (!string.IsNullOrEmpty(typeParam))
 				{
-					FilterState.SelectedTransactionType = new List<string> { typeParam };
+					FilterState.SelectedTransactionType = [typeParam];
 				}
 
 				// Check for search parameter
@@ -213,7 +213,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 					EndDate = FilterState.EndDate,
 					AccountId = FilterState.SelectedAccountId,
 					Symbol = FilterState.SelectedSymbol ?? "",
-					TransactionTypes = FilterState.SelectedTransactionType ?? new List<string>(),
+					TransactionTypes = FilterState.SelectedTransactionType ?? [],
 					SearchText = FilterState.SearchText ?? "",
 					SortColumn = sortColumn,
 					SortAscending = sortAscending,

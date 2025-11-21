@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		private DateOnly _endDate = DateOnly.FromDateTime(new DateTime(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 0, 0, 0, DateTimeKind.Local));
 		private int _selectedAccountId;
 		private string _selectedSymbol = ""; // Add symbol filter
-		private List<string> _selectedTransactionType = new(); // Change to List<string> for multi-selection
+		private List<string> _selectedTransactionType = []; // Change to List<string> for multi-selection
 		private string _searchText = ""; // Add search text filter
 
 		public FilterState() { }
@@ -80,9 +80,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 			get => _selectedTransactionType;
 			set
 			{
-				if (!_selectedTransactionType.SequenceEqual(value ?? new()))
+				if (!_selectedTransactionType.SequenceEqual(value ?? []))
 				{
-					_selectedTransactionType = value ?? new();
+					_selectedTransactionType = value ?? [];
 					OnPropertyChanged(nameof(SelectedTransactionType));
 				}
 			}

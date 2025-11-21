@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
 		/// <summary>
 		/// Transaction type filter (empty for all types)
 		/// </summary>
-		public List<string> TransactionTypes { get; set; } = new();
+		public List<string> TransactionTypes { get; set; } = [];
 
 		/// <summary>
 		/// Search text filter (empty for no search)

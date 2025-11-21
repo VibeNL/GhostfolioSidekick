@@ -16,18 +16,18 @@
                     <button class="btn @(GetDateRangeButtonClass("FiveYear"))" @onclick='() => SetDateRange("FiveYear")'>5Y</button>
                     <button class="btn @(GetDateRangeButtonClass("Max"))" @onclick='() => SetDateRange("Max")'>All</button>
                 </div>
-                
+
                 <div class="d-flex gap-2 flex-wrap">
                     <div class="date-input">
                         <label class="form-label-sm">From</label>
-                        <input type="date" class="form-control form-control-sm" 
-                               value="@_pendingFilterState.StartDate.ToString("yyyy-MM-dd")" 
+                        <input type="date" class="form-control form-control-sm"
+                               value="@_pendingFilterState.StartDate.ToString("yyyy-MM-dd")"
                                @onchange="OnStartDateChanged" />
                     </div>
                     <div class="date-input">
                         <label class="form-label-sm">To</label>
-                        <input type="date" class="form-control form-control-sm" 
-                               value="@_pendingFilterState.EndDate.ToString("yyyy-MM-dd")" 
+                        <input type="date" class="form-control form-control-sm"
+                               value="@_pendingFilterState.EndDate.ToString("yyyy-MM-dd")"
                                @onchange="OnEndDateChanged" />
                     </div>
                 </div>
@@ -133,9 +133,9 @@
         {
             <div class="filter-group">
                 <label class="form-label-sm">Search</label>
-                <input type="text" class="form-control form-control-sm" 
-                       placeholder="Search symbol, name, or description..." 
-                       value="@_pendingFilterState.SearchText" 
+                <input type="text" class="form-control form-control-sm"
+                       placeholder="Search symbol, name, or description..."
+                       value="@_pendingFilterState.SearchText"
                        @onchange="OnSearchTextChanged"
                        @oninput="OnSearchTextInput" />
             </div>
@@ -145,14 +145,14 @@
         {
             <div class="filter-group filter-actions">
                 <div class="d-flex gap-2">
-                    <button class="btn btn-primary btn-sm" 
-                            @onclick="ApplyFilters" 
+                    <button class="btn btn-primary btn-sm"
+                            @onclick="ApplyFilters"
                             disabled="@(!HasPendingChanges)"
                             title="Apply filter changes">
                         <i class="bi bi-check-circle me-1"></i>Apply Filters
                     </button>
-                    <button class="btn btn-outline-secondary btn-sm" 
-                            @onclick="ResetFilters" 
+                    <button class="btn btn-outline-secondary btn-sm"
+                            @onclick="ResetFilters"
                             disabled="@(!HasPendingChanges)"
                             title="Reset to current filter state">
                         <i class="bi bi-arrow-clockwise me-1"></i>Reset
@@ -170,7 +170,7 @@
 }
 
 @code {
-    
+
 
     private void OnTypeCheckboxChanged(string type, bool isChecked)
     {
@@ -217,17 +217,18 @@
         }
         else if (e.Value is IEnumerable<string> multiValues)
         {
-            foreach (var val in multiValues)
+            foreach (var val in multiValues.Where(v => !string.IsNullOrEmpty(v)))
             {
-                if (!string.IsNullOrEmpty(val))
-                    selectedValues.Add(val);
+                selectedValues.Add(val);
             }
         }
+
         _pendingFilterState.SelectedTransactionType.Clear();
         foreach (var val in selectedValues)
         {
             _pendingFilterState.SelectedTransactionType.Add(val);
         }
+
         StateHasChanged();
     }
 }

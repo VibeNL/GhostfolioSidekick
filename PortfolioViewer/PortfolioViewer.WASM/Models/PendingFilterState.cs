@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 		public DateOnly EndDate { get; set; }
 		public int SelectedAccountId { get; set; }
 		public string SelectedSymbol { get; set; } = "";
-		public List<string> SelectedTransactionType { get; set; } = new();
+		public List<string> SelectedTransactionType { get; set; } = [];
 		public string SearchText { get; set; } = "";
 
 		/// <summary>

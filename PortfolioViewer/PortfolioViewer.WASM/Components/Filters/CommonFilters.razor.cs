@@ -136,8 +136,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			// Reset transaction type filter if it's not shown on current page
 			if (!ShowTransactionTypeFilter && FilterState.SelectedTransactionType.Count > 0)
 			{
-				FilterState.SelectedTransactionType = new List<string>();
-				_pendingFilterState.SelectedTransactionType = new List<string>();
+				FilterState.SelectedTransactionType = [];
+				_pendingFilterState.SelectedTransactionType = [];
 				hasChanges = true;
 				Logger?.LogInformation("Reset transaction type filter to 'All Types' (not shown on current page)");
 			}
@@ -537,27 +537,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			return Task.CompletedTask;
 		}
 
-		private Task OnTransactionTypeChanged(ChangeEventArgs e)
-		{
-			if (e.Value is IEnumerable<object> selectedValues)
-			{
-				_pendingFilterState.SelectedTransactionType = selectedValues.Select(v => v?.ToString() ?? "").Where(v => !string.IsNullOrEmpty(v)).ToList();
-			}
-			else if (e.Value != null)
-			{
-				var value = e.Value.ToString() ?? "";
-				_pendingFilterState.SelectedTransactionType = string.IsNullOrEmpty(value) ? new List<string>() : new List<string> { value };
-			}
-
-			// If apply button is not shown, apply changes immediately
-			if (!ShowApplyButton && FilterState != null)
-			{
-				FilterState.SelectedTransactionType = new List<string>(_pendingFilterState.SelectedTransactionType);
-			}
-
-			return Task.CompletedTask;
-		}
-
 		private Task OnSearchTextChanged(ChangeEventArgs e)
 		{
 			if (e.Value != null)
@@ -600,34 +579,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Components.Filters
 			}
 
 			return Task.CompletedTask;
-		}
-
-		private void OnTransactionTypeDropdownChanged(string? type)
-		{
-			if (type == null)
-			{
-				// 'All Types' selected, clear selection
-				_pendingFilterState.SelectedTransactionType.Clear();
-			}
-			else
-			{
-				if (_pendingFilterState.SelectedTransactionType.Contains(type))
-				{
-					_pendingFilterState.SelectedTransactionType.Remove(type);
-				}
-				else
-				{
-					_pendingFilterState.SelectedTransactionType.Add(type);
-				}
-			}
-
-			// If apply button is not shown, apply changes immediately
-			if (!ShowApplyButton && FilterState != null)
-			{
-				FilterState.SelectedTransactionType = new List<string>(_pendingFilterState.SelectedTransactionType);
-			}
-
-			StateHasChanged(); // Force UI update for dropdown
 		}
 
 		private async Task ApplyFilters()
