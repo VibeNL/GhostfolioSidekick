@@ -676,7 +676,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			foreach (var type in activityTypes)
 			{
-				var instance = CreateTestActivityInstance(type, account, holding, symbolProfile) ?? throw new NotImplementedException($"No test instance creation defined for activity type {type.Name} and could not auto-instantiate.");
+				var instance = CreateTestActivityInstance(type, account, holding) ?? throw new NotImplementedException($"No test instance creation defined for activity type {type.Name} and could not auto-instantiate.");
 				activities.Add(instance);
 				typeNames.Add(instance.GetType().Name.Replace("Activity", ""));
 			}
@@ -908,6 +908,18 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				description);
 		}
 
+		private static CashWithdrawalActivity CreateCashWithdrawalActivity(Account account, DateTime date, decimal amount, string transactionId = "WITHDRAW-001", string description = "Cash withdrawal")
+		{
+			return new CashWithdrawalActivity(
+				account,
+				null,
+				date,
+				new Money(Currency.USD, amount),
+				transactionId,
+				null,
+				description);
+		}
+
 		private static List<Activity> CreateTestActivities(Account account, Holding holding)
 		{
 			return
@@ -916,6 +928,46 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				CreateSellActivity(account, holding, DateTime.Now.AddDays(-2), 5, 110),
 				CreateDividendActivity(account, holding, DateTime.Now.AddDays(-3), 50)
 			];
+		}
+
+		private static GiftFiatActivity CreateGiftFiatActivity(Account account, DateTime date, decimal amount, string transactionId = "GIFT-FIAT-001", string description = "Gift fiat")
+		{
+			return new GiftFiatActivity(account, null, date, new Money(Currency.USD, amount), transactionId, null, description);
+		}
+
+		private static GiftAssetActivity CreateGiftAssetActivity(Account account, Holding holding, DateTime date, decimal quantity, string transactionId = "GIFT-ASSET-001", string description = "Gift asset")
+		{
+			return new GiftAssetActivity(account, holding, [], date, quantity, transactionId, null, description);
+		}
+
+		private static LiabilityActivity CreateLiabilityActivity(Account account, DateTime date, decimal amount, string transactionId = "LIABILITY-001", string description = "Liability")
+		{
+			return new LiabilityActivity(account, null, [], date, new Money(Currency.USD, amount), transactionId, null, description);
+		}
+
+		private static RepayBondActivity CreateRepayBondActivity(Account account, DateTime date, decimal amount, string transactionId = "REPAY-BOND-001", string description = "Repay bond")
+		{
+			return new RepayBondActivity(account, null, [], date, new Money(Currency.USD, amount), transactionId, null, description);
+		}
+
+		private static ReceiveActivity CreateReceiveActivity(Account account, Holding holding, DateTime date, decimal quantity, string transactionId = "RECEIVE-001", string description = "Receive")
+		{
+			return new ReceiveActivity(account, holding, [], date, quantity, transactionId, null, description);
+		}
+
+		private static SendActivity CreateSendActivity(Account account, Holding holding, DateTime date, decimal quantity, string transactionId = "SEND-001", string description = "Send")
+		{
+			return new SendActivity(account, holding, [], date, quantity, transactionId, null, description);
+		}
+
+		private static StakingRewardActivity CreateStakingRewardActivity(Account account, Holding holding, DateTime date, decimal quantity, string transactionId = "STAKING-001", string description = "Staking reward")
+		{
+			return new StakingRewardActivity(account, holding, [], date, quantity, transactionId, null, description);
+		}
+
+		private static ValuableActivity CreateValuableActivity(Account account, DateTime date, decimal amount, string transactionId = "VALUABLE-001", string description = "Valuable")
+		{
+			return new ValuableActivity(account, null, [], date, new Money(Currency.USD, amount), transactionId, null, description);
 		}
 
 		private static Activity? CreateTestActivityInstance(Type type, Account account, Holding holding)
@@ -934,9 +986,25 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				return CreateFeeActivity(account, DateTime.Now.AddDays(-6), 10);
 			if (type == typeof(KnownBalanceActivity))
 				return CreateKnownBalanceActivity(account, DateTime.Now.AddDays(-7), 500);
-
+			if (type == typeof(CashWithdrawalActivity))
+				return CreateCashWithdrawalActivity(account, DateTime.Now.AddDays(-8), 250);
+			if (type == typeof(GiftFiatActivity))
+				return CreateGiftFiatActivity(account, DateTime.Now.AddDays(-9), 100);
+			if (type == typeof(GiftAssetActivity))
+				return CreateGiftAssetActivity(account, holding, DateTime.Now.AddDays(-10), 5);
+			if (type == typeof(LiabilityActivity))
+				return CreateLiabilityActivity(account, DateTime.Now.AddDays(-11), 200);
+			if (type == typeof(RepayBondActivity))
+				return CreateRepayBondActivity(account, DateTime.Now.AddDays(-12), 300);
+			if (type == typeof(ReceiveActivity))
+				return CreateReceiveActivity(account, holding, DateTime.Now.AddDays(-13), 7);
+			if (type == typeof(SendActivity))
+				return CreateSendActivity(account, holding, DateTime.Now.AddDays(-14), 8);
+			if (type == typeof(StakingRewardActivity))
+				return CreateStakingRewardActivity(account, holding, DateTime.Now.AddDays(-15), 9);
+			if (type == typeof(ValuableActivity))
+				return CreateValuableActivity(account, DateTime.Now.AddDays(-16), 400);
 			// Add explicit handling for any additional concrete types here
-
 			throw new NotImplementedException($"No test instance creation defined for activity type {type.Name}.");
 		}
 	}
