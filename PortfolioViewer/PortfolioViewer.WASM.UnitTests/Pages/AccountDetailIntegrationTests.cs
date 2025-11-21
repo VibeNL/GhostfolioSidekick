@@ -197,7 +197,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				EndDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)),
 				SelectedAccountId = 1,
 				SelectedSymbol = "AAPL",
-				SelectedTransactionType = "Buy"
+				SelectedTransactionType = ["Buy"]
 			};
 
 			var accountHistory = new List<AccountValueHistoryPoint>

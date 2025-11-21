@@ -36,9 +36,6 @@ namespace GhostfolioSidekick.Performance
 			await ConvertSnapshotsToPrimaryCurrency(currency, primaryCurrencySymbol, logger);
 			await ConvertBalancesToPrimaryCurrency(currency, primaryCurrencySymbol, logger);
 
-			logger.LogDebug("Adding missing days and extrapolating balances to today");
-			await FillMissingDaysAndExtrapolate(logger);
-
 			logger.LogDebug("Cleanup unmatched primary currency records");
 			await CleanupUnmatchedItems();
 
@@ -100,52 +97,9 @@ namespace GhostfolioSidekick.Performance
 
 		private async Task ConvertBalancesToPrimaryCurrency(Currency currency, string primaryCurrencySymbol, ILogger logger)
 		{
-			var balanceIds = new List<int>();
-			using (var dbContext = dbContextFactory.CreateDbContext())
-			{
-				balanceIds = await dbContext.Balances
-					.AsNoTracking()
-					.Select(b => b.Id)
-					.ToListAsync();
-			}
-
-			foreach (var chunk in balanceIds.Chunk(batchSize))
-			{
-				using var dbContext = dbContextFactory.CreateDbContext();
-
-				var balances = await dbContext.Balances
-					.Where(b => chunk.Contains(b.Id))
-					.AsNoTracking()
-					.ToListAsync();
-
-				foreach (var balance in balances)
-				{
-					var primaryBalance = await dbContext.BalancePrimaryCurrencies
-						.FirstOrDefaultAsync(b => b.AccountId == balance.AccountId && b.Date == balance.Date);
-
-					if (primaryBalance == null)
-					{
-						primaryBalance = new BalancePrimaryCurrency
-						{
-							AccountId = balance.AccountId,
-							Date = balance.Date
-						};
-						dbContext.BalancePrimaryCurrencies.Add(primaryBalance);
-					}
-
-					primaryBalance.Money = (await currencyExchange.ConvertMoney(balance.Money, currency, balance.Date)).Amount;
-				}
-
-				await dbContext.SaveChangesAsync();
-			}
-
-			logger.LogDebug("Converted {Count} balances to primary currency {Currency}", balanceIds.Count, primaryCurrencySymbol);
-		}
-
-		private async Task FillMissingDaysAndExtrapolate(ILogger logger)
-		{
-			using var dbContext = dbContextFactory.CreateDbContext();
-			var accountIds = await dbContext.BalancePrimaryCurrencies
+			using var queryContext = dbContextFactory.CreateDbContext();
+			var accountIds = await queryContext.Balances
+				.AsNoTracking()
 				.Select(b => b.AccountId)
 				.Distinct()
 				.ToListAsync();
@@ -154,55 +108,53 @@ namespace GhostfolioSidekick.Performance
 
 			foreach (var accountId in accountIds)
 			{
-				var existingBalances = await dbContext.BalancePrimaryCurrencies
+				using var dbContext = dbContextFactory.CreateDbContext();
+
+				var balances = await dbContext.Balances
 					.Where(b => b.AccountId == accountId)
 					.OrderBy(b => b.Date)
 					.AsNoTracking()
 					.ToListAsync();
 
-				if (existingBalances.Count == 0)
+				if (balances.Count == 0)
 				{
 					continue;
 				}
 
-				var startDate = existingBalances[0].Date;
-				var lastKnownDate = existingBalances[^1].Date;
-				var lastKnownAmount = existingBalances[^1].Money;
+				var startDate = balances[0].Date;
+				var balanceByDate = balances.ToDictionary(b => b.Date);
+				var existingPrimary = await dbContext.BalancePrimaryCurrencies
+					.Where(b => b.AccountId == accountId)
+					.ToDictionaryAsync(b => b.Date);
 
-				var existingDates = existingBalances.Select(b => b.Date).ToHashSet();
-				var newBalances = new List<BalancePrimaryCurrency>();
-
-				for (var date = startDate; date <= lastKnownDate; date = date.AddDays(1))
+				decimal lastKnownAmount = 0;
+				for (var date = startDate; date <= today; date = date.AddDays(1))
 				{
-					if (!existingDates.Contains(date))
+					if (balanceByDate.TryGetValue(date, out var balance))
 					{
-						var previousAmount = existingBalances.LastOrDefault(b => b.Date < date)?.Money ?? 0;
-						newBalances.Add(new BalancePrimaryCurrency
+						var converted = await currencyExchange.ConvertMoney(balance.Money, currency, date);
+						lastKnownAmount = converted.Amount;
+					}
+
+					if (!existingPrimary.TryGetValue(date, out BalancePrimaryCurrency? value))
+					{
+						dbContext.BalancePrimaryCurrencies.Add(new BalancePrimaryCurrency
 						{
 							AccountId = accountId,
 							Date = date,
-							Money = previousAmount
+							Money = lastKnownAmount
 						});
+					}
+					else
+					{
+						value.Money = lastKnownAmount;
 					}
 				}
 
-				for (var date = lastKnownDate.AddDays(1); date <= today; date = date.AddDays(1))
-				{
-					newBalances.Add(new BalancePrimaryCurrency
-					{
-						AccountId = accountId,
-						Date = date,
-						Money = lastKnownAmount
-					});
-				}
-
-				if (newBalances.Count != 0)
-				{
-					dbContext.BalancePrimaryCurrencies.AddRange(newBalances);
-					await dbContext.SaveChangesAsync();
-					logger.LogDebug("Added {Count} missing balance records for account {AccountId}", newBalances.Count, accountId);
-				}
+				await dbContext.SaveChangesAsync();
 			}
+
+			logger.LogDebug("Converted and filled balances to primary currency {Currency}", primaryCurrencySymbol);
 		}
 
 		private async Task CleanupUnmatchedItems()
