@@ -7,6 +7,8 @@ namespace GhostfolioSidekick.Model.Market
         string Symbol,
         DateOnly ExDividendDate,
         DateOnly PaymentDate,
+		DividendType DividendType,
+		DividendState DividendState,
         Money Amount
     );
 }
