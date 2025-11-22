@@ -19,6 +19,8 @@
 
 		SymbolMatcher,
 
+		UpcomingDividends,
+
 		MarketDataStockSplit,
 
 		MarketDataGatherer,
