@@ -1,0 +1,81 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<div class="pwa-install-banner @(IsVisible ? "visible" : "")" id="pwa-install-banner">
+    <div class="pwa-install-content">
+        <div class="pwa-install-icon">
+            <i class="bi bi-phone"></i>
+        </div>
+        <div class="pwa-install-text">
+            <h6>Install Portfolio Viewer</h6>
+            <p>Install this app on your device for a better experience</p>
+        </div>
+        <div class="pwa-install-actions">
+            <button class="btn btn-primary btn-sm" @onclick="InstallApp">
+                <i class="bi bi-download"></i> Install
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="DismissBanner">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public EventCallback OnInstall { get; set; }
+    [Parameter] public EventCallback OnDismiss { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("eval", "if ('serviceWorker' in navigator) { window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.deferredPrompt = e; console.log('PWA install prompt available'); }); }");
+        }
+    }
+
+    [JSInvokable]
+    public async Task ShowBanner()
+    {
+        IsVisible = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task HideBanner()
+    {
+        IsVisible = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task InstallApp()
+    {
+        try
+        {
+            var isIOS = await JS.InvokeAsync<bool>("eval", "(/iPad|iPhone|iPod/.test(navigator.userAgent))");
+            var isStandalone = await JS.InvokeAsync<bool>("eval", "(window.navigator.standalone === true)");
+            
+            if (isIOS && !isStandalone)
+            {
+                await JS.InvokeVoidAsync("alert", "To install this app on iOS: 1. Tap the Share button 2. Scroll down and tap 'Add to Home Screen'");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("eval", "if (window.deferredPrompt) { window.deferredPrompt.prompt(); window.deferredPrompt.userChoice.then((choiceResult) => { if (choiceResult.outcome === 'accepted') { console.log('User accepted the PWA install prompt'); } window.deferredPrompt = null; }); } else { alert('Install option not available'); }");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error installing PWA: {ex.Message}");
+        }
+
+        await OnInstall.InvokeAsync();
+    }
+
+    private async Task DismissBanner()
+    {
+        IsVisible = false;
+        await OnDismiss.InvokeAsync();
+        StateHasChanged();
+    }
+}
