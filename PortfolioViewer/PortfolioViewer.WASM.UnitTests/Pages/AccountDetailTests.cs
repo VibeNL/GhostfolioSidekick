@@ -14,7 +14,7 @@ using Moq;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {
-	public class AccountDetailTests : TestContext
+	public class AccountDetailTests : BunitContext
 	{
 		private readonly Mock<IAccountDataService> _mockAccountDataService;
 		private readonly Mock<ITransactionService> _mockTransactionService;
@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			SetupBasicMocks();
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			// Assert
 			component.Markup.Should().Contain("Loading Account Details");
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			SetupBasicTransactionService();
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 999));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 999));
 
 			// Wait for the component to finish loading
 			await WaitForComponentToFinishLoading(component, maxWaitMs: 1000);
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			SetupAccountMocks([testAccount], accountHistory);
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			// Wait for async operations to complete
 			await WaitForComponentToFinishLoading(component, containsText: "Test Account", maxWaitMs: 1000);
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				.ReturnsAsync(paginatedResult);
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			// Wait for async operations to complete
 			await WaitForComponentToFinishLoading(component, containsText: "Test Account", maxWaitMs: 1000);
@@ -175,7 +175,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		{
 			// Arrange
 			SetupBasicMocks();
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 			
 			// Use reflection to access protected method
 			var componentInstance = component.Instance;
@@ -199,7 +199,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		{
 			// Arrange
 			SetupBasicMocks();
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 			var componentInstance = component.Instance;
 
 			var getValueClassMethod = componentInstance.GetType().GetMethod("GetValueClass", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -233,7 +233,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		{
 			// Arrange
 			SetupBasicMocks();
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 			var componentInstance = component.Instance;
 			var goBackMethod = componentInstance.GetType().GetMethod("GoBackToAccounts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
@@ -249,7 +249,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		{
 			// Arrange
 			SetupBasicMocks();
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 			var componentInstance = component.Instance;
 			var navigateMethod = componentInstance.GetType().GetMethod("NavigateToHoldingDetail", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
@@ -273,7 +273,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			SetupBasicTransactionService();
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			// Wait for async operations and allow multiple render cycles
 			await WaitForComponentToFinishLoading(component, maxWaitMs: 1000);
@@ -304,7 +304,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 
 			var filterState = new FilterState();
 			
-			var component = RenderComponent<AccountDetail>(parameters => parameters
+			var component = Render<AccountDetail>(parameters => parameters
 				.Add(p => p.AccountId, 1)
 				.AddCascadingValue("FilterState", filterState));
 
@@ -330,7 +330,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			var filterState = new FilterState();
 			SetupBasicMocks();
 
-			var component = RenderComponent<AccountDetail>(parameters => parameters
+			var component = Render<AccountDetail>(parameters => parameters
 				.Add(p => p.AccountId, 1)
 				.AddCascadingValue("FilterState", filterState));
 
@@ -349,7 +349,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			// and focus on testing service availability checks
 			
 			// Arrange - Create basic mocks but don't add all services
-			using var testContext = new TestContext();
+			using var testContext = new BunitContext();
 			testContext.Services.AddSingleton<ITestContextService>(new TestContextService { IsTest = true });
 			testContext.Services.AddSingleton<NavigationManager>(new MockNavigationManager());
 			testContext.Services.AddSingleton<IServerConfigurationService>(_mockServerConfigurationService.Object);
@@ -357,7 +357,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			// Act & Assert - Component should handle missing services
 			try
 			{
-				var component = testContext.RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+				var component = testContext.Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 				await Task.Delay(100);
 				component.Render();
 				
@@ -399,7 +399,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				.ThrowsAsync(new Exception("Transaction service error"));
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			// Wait for async operations
 			await WaitForComponentToFinishLoading(component, containsText: "Test Account", maxWaitMs: 1000);
@@ -423,7 +423,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			SetupBasicTransactionService();
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 999));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 999));
 
 			// Wait for async operations
 			await WaitForComponentToFinishLoading(component, maxWaitMs: 1000);
@@ -448,7 +448,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			SetupBasicTransactionService();
 
 			// Act
-			var component = RenderComponent<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
+			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 
 			// Wait for async operations
 			await WaitForComponentToFinishLoading(component, maxWaitMs: 1000);
