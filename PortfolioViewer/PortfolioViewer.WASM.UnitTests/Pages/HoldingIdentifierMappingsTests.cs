@@ -10,7 +10,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {
-	public class HoldingIdentifierMappingsTests : TestContext
+	public class HoldingIdentifierMappingsTests : BunitContext
 	{
 		[Fact]
 		public void HoldingIdentifierMappings_ShouldRenderLoadingState_Initially()
@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			 .Returns(neverCompletingTask.Task);
 
 			// Act
-			var component = RenderComponent<HoldingIdentifierMappings>();
+			var component = Render<HoldingIdentifierMappings>();
 
 			// Assert
 			Assert.Contains("Loading Identifier Mappings...", component.Markup);
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			 .ReturnsAsync([]);
 
 			// Act
-			var component = RenderComponent<HoldingIdentifierMappings>();
+			var component = Render<HoldingIdentifierMappings>();
 
 			// Assert loading spinner appears first
 			Assert.Contains("spinner-border", component.Markup);
@@ -132,7 +132,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			 .ReturnsAsync(testMappings);
 
 			// Act
-			var component = RenderComponent<HoldingIdentifierMappings>();
+			var component = Render<HoldingIdentifierMappings>();
 
 			// Wait for the async operation to complete and assert expected content
 			component.WaitForAssertion(() =>

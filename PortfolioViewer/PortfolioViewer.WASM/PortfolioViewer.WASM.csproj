@@ -32,10 +32,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="Bit.Besql" Version="9.12.0" />
-		<PackageReference Include="Markdig" Version="0.43.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.10" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.10" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.10" />
+		<PackageReference Include="Markdig" Version="0.44.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.11" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.11" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.11" />
 		<PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.5.2" />
 		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.9.3">
 			<PrivateAssets>all</PrivateAssets>
@@ -45,7 +45,7 @@
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
 		<PackageReference Include="Grpc.Net.Client.Web" Version="2.71.0" />
 		<PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
-		<PackageReference Include="Google.Protobuf" Version="3.33.0" />
+		<PackageReference Include="Google.Protobuf" Version="3.33.1" />
 		<PackageReference Include="Grpc.Tools" Version="2.76.0" PrivateAssets="All" />
 	</ItemGroup>
 
@@ -83,8 +83,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.10" />
-		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="9.0.10" />
+		<PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="9.0.11" />
+		<PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="9.0.11" />
 		<Protobuf Include="..\PortfolioViewer.ApiService\Protos\sync.proto" GrpcServices="Client" />
 	</ItemGroup>
 
