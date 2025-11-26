@@ -26,7 +26,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		public async Task<IList<UpcomingDividend>> Gather(SymbolProfile symbol)
         {
             var result = new List<UpcomingDividend>();
-            if (string.IsNullOrWhiteSpace(symbol?.Symbol)) return result;
+			if (string.IsNullOrWhiteSpace(symbol?.Symbol))
+			{
+				return result;
+			}
 
             // Step 1: Get suggest.json
             var suggestUrl = $"https://www.dividendmax.com/suggest.json?q={symbol.Symbol}";
@@ -70,7 +73,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
             var declAmountStr = cells[7].InnerText.Trim();
             var currencyStr = cells[5].InnerText.Trim();
 
-            if (string.IsNullOrWhiteSpace(declAmountStr) || declAmountStr == "-") return null;
+            if (string.IsNullOrWhiteSpace(declAmountStr) || declAmountStr == "-" || declAmountStr == "&mdash;") return null;
             if (!DateTime.TryParse(exDivDateStr, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var exDivDate)) return null;
             if (exDivDate <= DateTime.Today) return null;
 
