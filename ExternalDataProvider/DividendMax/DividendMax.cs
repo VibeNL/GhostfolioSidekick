@@ -83,15 +83,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
             var type = DividendType.Cash;
             var state = DividendState.Declared;
 
-            return new UpcomingDividend(
-                id,
-                symbol,
-                exDivDateOnly,
-                payDateOnly,
-                type,
-                state,
-                new Money(currency, amount)
-            );
+            return new UpcomingDividend
+            {
+                Id = id,
+                Symbol = symbol,
+                ExDividendDate = exDivDateOnly,
+                PaymentDate = payDateOnly,
+                DividendType = type,
+                DividendState = state,
+                Amount = new Money(currency, amount)
+            };
         }
 
         private sealed class SuggestResult

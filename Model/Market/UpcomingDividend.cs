@@ -2,13 +2,14 @@ using System;
 
 namespace GhostfolioSidekick.Model.Market
 {
-    public record UpcomingDividend(
-        int Id,
-        string Symbol,
-        DateOnly ExDividendDate,
-        DateOnly PaymentDate,
-		DividendType DividendType,
-		DividendState DividendState,
-        Money Amount
-    );
+    public record UpcomingDividend
+    {
+        public int Id { get; init; }
+        public string Symbol { get; init; } = string.Empty;
+        public DateOnly ExDividendDate { get; init; }
+        public DateOnly PaymentDate { get; init; }
+        public DividendType DividendType { get; init; }
+        public DividendState DividendState { get; init; }
+        public Money Amount { get; init; } = default!;
+    }
 }
