@@ -237,6 +237,29 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				list.Add(item);
 			}
 
+			// Today
+			var symbolFields = await YahooFinanceApi.Yahoo.Symbols(symbol)
+				.Fields(
+					Field.RegularMarketPrice,
+					Field.RegularMarketOpen,
+					Field.RegularMarketDayHigh,
+					Field.RegularMarketDayLow,
+					Field.RegularMarketVolume)
+				.QueryAsync();
+			symbolFields.TryGetValue(symbol, out var symbolItem);
+
+			if (symbolItem != null)
+			{
+				var item = new MarketData(
+									new Money(currency with { }, (decimal)symbolItem.RegularMarketPrice),
+									new Money(currency with { }, (decimal)symbolItem.RegularMarketOpen),
+									new Money(currency with { }, (decimal)symbolItem.RegularMarketDayHigh),
+									new Money(currency with { }, (decimal)symbolItem.RegularMarketDayLow),
+									symbolItem.RegularMarketVolume,
+									DateOnly.FromDateTime(DateTime.Now));
+				list.Add(item);
+			}
+
 			return list;
 		}
 
