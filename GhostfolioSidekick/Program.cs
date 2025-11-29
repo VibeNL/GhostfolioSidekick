@@ -1,5 +1,6 @@
 ﻿using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
+using CoinGecko.Net.Objects.Options;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
@@ -20,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RestSharp;
 using System.Diagnostics.CodeAnalysis;
 
@@ -53,6 +55,8 @@ namespace GhostfolioSidekick
 						})
 						.ConfigureServices((hostContext, services) =>
 						{
+							services.AddHttpClient();
+							
 							services.AddSingleton<MemoryCache, MemoryCache>();
 							services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 							services.AddSingleton<IApplicationSettings, ApplicationSettings>();
@@ -100,7 +104,11 @@ namespace GhostfolioSidekick
 							services.AddSingleton<CoinGeckoRepository>();
 							services.AddSingleton<GhostfolioSymbolMatcher>();
 							services.AddSingleton<ManualSymbolRepository>();
-							services.AddTransient<ICoinGeckoRestClient, CoinGeckoRestClient>();
+							services.AddTransient<ICoinGeckoRestClient>(sp => 
+								new CoinGeckoRestClient(
+									sp.GetRequiredService<HttpClient>(), 
+									sp.GetRequiredService<ILoggerFactory>(),
+									Options.Create(new CoinGeckoRestOptions())));
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
 							services.AddSingleton<ISymbolMatcher[]>(sp => [
@@ -113,6 +121,8 @@ namespace GhostfolioSidekick
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
+
+							services.AddHttpClient<IUpcomingDividendRepository, GhostfolioSidekick.ExternalDataProvider.DividendMax.DividendMax>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							RegisterAllWithInterface<IScheduledWork>(services);
