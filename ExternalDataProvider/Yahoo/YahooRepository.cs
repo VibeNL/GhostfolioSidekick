@@ -219,22 +219,20 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
 					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily));
 
-			if (history == null)
-			{
-				return [];
-			}
-
 			var list = new List<MarketData>();
-			foreach (var candle in history)
+			if (history != null)
 			{
-				var item = new MarketData(
-									new Money(currency with { }, candle.Close),
-									new Money(currency with { }, candle.Open),
-									new Money(currency with { }, candle.High),
-									new Money(currency with { }, candle.Low),
-									candle.Volume,
-									DateOnly.FromDateTime(candle.DateTime.Date));
-				list.Add(item);
+				foreach (var candle in history)
+				{
+					var item = new MarketData(
+										new Money(currency with { }, candle.Close),
+										new Money(currency with { }, candle.Open),
+										new Money(currency with { }, candle.High),
+										new Money(currency with { }, candle.Low),
+										candle.Volume,
+										DateOnly.FromDateTime(candle.DateTime.Date));
+					list.Add(item);
+				}
 			}
 
 			// Today
