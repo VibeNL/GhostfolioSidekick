@@ -53,9 +53,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				Symbol = bestMatch.Result.Ticker,
 				Name = bestMatch.Result.Name,
 				DataSource = DataSource,
-				Identifiers = [
-					bestMatch.Result.Path
-				]
+				Identifiers = [.. symbolIdentifiers.Select(id => id.Identifier)],
+				WebsiteUrl = $"{BaseUrl}{bestMatch.Result.Path}"
 			};
 
 			return profile;

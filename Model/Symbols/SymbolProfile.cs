@@ -61,6 +61,8 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string? Comment { get; set; }
 
+		public string? WebsiteUrl { get; set; }
+
 		public virtual ICollection<CountryWeight> CountryWeight { get; set; }
 
 		public virtual ICollection<SectorWeight> SectorWeights { get; set; }
