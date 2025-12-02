@@ -12,84 +12,80 @@ using Xunit;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {
-    public class DividendMaxMatcherTests
-    {
-        private static IHttpClientFactory CreateHttpClientFactory(HttpMessageHandler httpMessageHandler)
-        {
-            var factoryMock = new Mock<IHttpClientFactory>();
-            factoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() => new HttpClient(httpMessageHandler));
-            return factoryMock.Object;
-        }
+	public class DividendMaxMatcherTests
+	{
+		private static IHttpClientFactory CreateHttpClientFactory(string suggestJson)
+		{
+			var factoryMock = new Mock<IHttpClientFactory>();
+			factoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() =>
+			{
+				var handlerMock = new Mock<HttpMessageHandler>();
+				handlerMock.Protected()
+					.Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+					.ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(suggestJson) });
+				return new HttpClient(handlerMock.Object);
+			});
+			return factoryMock.Object;
+		}
 
-        [Fact]
-        public async Task MatchSymbol_ReturnsProfile_WhenBestMatchFound()
-        {
-            // Arrange
-            var suggestJson = "[{\"Id\":1,\"Name\":\"Apple Inc\",\"Path\":\"/stocks/us/apple-inc-aapl\",\"Ticker\":\"AAPL\",\"Flag\":\"US\"}]";
-            var handlerMock = new Mock<HttpMessageHandler>();
-            handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(suggestJson) });
-            var httpClientFactory = CreateHttpClientFactory(handlerMock.Object);
-            var matcher = new DividendMaxMatcher(httpClientFactory);
-            var identifiers = new[] {
-                PartialSymbolIdentifier.CreateGeneric("AAPL"),
-                PartialSymbolIdentifier.CreateGeneric("Apple")
-            };
+		[Fact]
+		public async Task MatchSymbol_ReturnsProfile_WhenBestMatchFound()
+		{
+			// Arrange
+			var suggestJson = "[{\"Id\":1,\"Name\":\"Apple Inc\",\"Path\":\"/stocks/us/apple-inc-aapl\",\"Ticker\":\"AAPL\",\"Flag\":\"US\"}]";
 
-            // Act
-            var result = await matcher.MatchSymbol(identifiers);
+			var httpClientFactory = CreateHttpClientFactory(suggestJson);
+			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var identifiers = new[] {
+				PartialSymbolIdentifier.CreateGeneric("AAPL"),
+				PartialSymbolIdentifier.CreateGeneric("Apple")
+			};
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal("AAPL", result.Symbol);
-            Assert.Equal("Apple Inc", result.Name);
-            Assert.Equal("DividendMax", result.DataSource);
-            Assert.Contains("AAPL", result.Identifiers);
-            Assert.Contains("Apple", result.Identifiers);
-            Assert.Equal("https://www.dividendmax.com/stocks/us/apple-inc-aapl", result.WebsiteUrl);
-        }
+			// Act
+			var result = await matcher.MatchSymbol(identifiers);
 
-        [Fact]
-        public async Task MatchSymbol_ReturnsNull_WhenNoResults()
-        {
-            // Arrange
-            var suggestJson = "[]";
-            var handlerMock = new Mock<HttpMessageHandler>();
-            handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(suggestJson) });
-            var httpClientFactory = CreateHttpClientFactory(handlerMock.Object);
-            var matcher = new DividendMaxMatcher(httpClientFactory);
-            var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("ZZZZ") };
+			// Assert
+			Assert.NotNull(result);
+			Assert.Equal("AAPL", result.Symbol);
+			Assert.Equal("Apple Inc", result.Name);
+			Assert.Equal("DividendMax", result.DataSource);
+			Assert.Contains("AAPL", result.Identifiers);
+			Assert.Contains("Apple", result.Identifiers);
+			Assert.Equal("https://www.dividendmax.com/stocks/us/apple-inc-aapl", result.WebsiteUrl);
+		}
 
-            // Act
-            var result = await matcher.MatchSymbol(identifiers);
+		[Fact]
+		public async Task MatchSymbol_ReturnsNull_WhenNoResults()
+		{
+			// Arrange
+			var suggestJson = "[]";
+			var httpClientFactory = CreateHttpClientFactory(suggestJson);
+			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("ZZZZ") };
 
-            // Assert
-            Assert.Null(result);
-        }
+			// Act
+			var result = await matcher.MatchSymbol(identifiers);
 
-        [Fact]
-        public async Task MatchSymbol_ReturnsNull_WhenScoreIsZero()
-        {
-            // Arrange
-            // This test depends on SemanticMatcher.CalculateSemanticMatchScore returning 0 for unrelated symbols.
-            // If you want to control the score, refactor SemanticMatcher to be injectable.
-            var suggestJson = "[{\"Id\":2,\"Name\":\"Not Related\",\"Path\":\"/stocks/us/not-related\",\"Ticker\":\"NR\",\"Flag\":\"US\"}]";
-            var handlerMock = new Mock<HttpMessageHandler>();
-            handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(suggestJson) });
-            var httpClientFactory = CreateHttpClientFactory(handlerMock.Object);
-            var matcher = new DividendMaxMatcher(httpClientFactory);
-            var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("AAPL") };
+			// Assert
+			Assert.Null(result);
+		}
 
-            // Act
-            var result = await matcher.MatchSymbol(identifiers);
+		[Fact]
+		public async Task MatchSymbol_ReturnsNull_WhenScoreIsZero()
+		{
+			// Arrange
+			// This test depends on SemanticMatcher.CalculateSemanticMatchScore returning 0 for unrelated symbols.
+			// If you want to control the score, refactor SemanticMatcher to be injectable.
+			var suggestJson = "[{\"Id\":2,\"Name\":\"Not Related\",\"Path\":\"/stocks/us/not-related\",\"Ticker\":\"NR\",\"Flag\":\"US\"}]";
+			var httpClientFactory = CreateHttpClientFactory(suggestJson);
+			var matcher = new DividendMaxMatcher(httpClientFactory);
+			var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("AAPL") };
 
-            // Assert
-            Assert.Null(result);
-        }
-    }
+			// Act
+			var result = await matcher.MatchSymbol(identifiers);
+
+			// Assert
+			Assert.Null(result);
+		}
+	}
 }
