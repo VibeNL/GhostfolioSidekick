@@ -1,17 +1,7 @@
-﻿using GhostfolioSidekick.Model.Market;
-using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Model;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net.Http;
+﻿using GhostfolioSidekick.Model.Symbols;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
-using HtmlAgilityPack;
 using GhostfolioSidekick.Utilities;
 using GhostfolioSidekick.Model.Activities;
-using Flurl.Util;
 
 namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
