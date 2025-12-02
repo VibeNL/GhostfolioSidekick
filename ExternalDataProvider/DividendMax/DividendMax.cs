@@ -10,6 +10,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using GhostfolioSidekick.Utilities;
+using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
@@ -23,12 +24,19 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 	///     Status, Type, Decl. date, Ex-div date, Pay date, Decl. Currency, Forecast amount, Decl. amount, Accuracy
 	/// 4) generate UpcomingDividend objects from the rows where Ex-div date is in the future. and the decl. amount is not empty / a '-',
 	/// </summary>
-	public class DividendMax(HttpClient httpClient) : IUpcomingDividendRepository
+	public class DividendMax(HttpClient httpClient) : IUpcomingDividendRepository, ISymbolMatcher
 	{
 		private const string BaseUrl = "https://www.dividendmax.com";
 		private const string SuggestEndpoint = "/suggest.json";
 		private const string TableSelector = "//table[contains(@class, 'mdc-data-table__table')]";
 		private const string TableRowsSelector = ".//tbody/tr";
+
+		public string DataSource => "DividendMax";
+
+		public Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
+		{
+			
+		}
 
 		public async Task<IList<UpcomingDividend>> Gather(SymbolProfile symbol)
 		{
