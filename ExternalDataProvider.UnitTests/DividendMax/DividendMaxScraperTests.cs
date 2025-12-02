@@ -11,9 +11,9 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace GhostfolioSidekick.ExternalDataProvider.UnitTests
+namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {
-    public class DividendMaxTests
+    public class DividendMaxScraperTests
     {
         [Fact]
         public async Task Gather_ReturnsDividends_WhenDataIsValid()
