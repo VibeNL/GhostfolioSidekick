@@ -8,4 +8,8 @@
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="Fastenshtein" Version="1.0.11" />
+	</ItemGroup>
+
 </Project>
