@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using GhostfolioSidekick.Utilities;
 using GhostfolioSidekick.Model.Activities;
+using Flurl.Util;
 
 namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
@@ -63,8 +64,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				Name = bestMatch.Result.Name,
 				DataSource = DataSource,
 				Identifiers = [
-					bestMatch.Result.Ticker,
-					bestMatch.Result.Name
+					bestMatch.Result.Path
 				]
 			};
 
