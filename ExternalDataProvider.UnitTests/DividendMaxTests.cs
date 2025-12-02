@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests
                 .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(html) });
 
             var httpClient = new HttpClient(handlerMock.Object);
-            var repo = new GhostfolioSidekick.ExternalDataProvider.DividendMax.DividendMax(httpClient);
+            var repo = new DividendMaxScraper(httpClient);
 
             // Act
             var result = await repo.Gather(symbol);
@@ -82,7 +82,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests
                 .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(html) });
 
             var httpClient = new HttpClient(handlerMock.Object);
-            var repo = new GhostfolioSidekick.ExternalDataProvider.DividendMax.DividendMax(httpClient);
+            var repo = new DividendMaxScraper(httpClient);
 
             // Act
             var result = await repo.Gather(symbol);

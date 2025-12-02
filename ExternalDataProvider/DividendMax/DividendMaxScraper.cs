@@ -24,96 +24,35 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 	///     Status, Type, Decl. date, Ex-div date, Pay date, Decl. Currency, Forecast amount, Decl. amount, Accuracy
 	/// 4) generate UpcomingDividend objects from the rows where Ex-div date is in the future. and the decl. amount is not empty / a '-',
 	/// </summary>
-	public class DividendMax(HttpClient httpClient) : IUpcomingDividendRepository
+	public class DividendMaxScraper(HttpClient httpClient) : IUpcomingDividendRepository
 	{
-		private const string BaseUrl = "https://www.dividendmax.com";
-		private const string SuggestEndpoint = "/suggest.json";
 		private const string TableSelector = "//table[contains(@class, 'mdc-data-table__table')]";
 		private const string TableRowsSelector = ".//tbody/tr";
 
-		public string DataSource => "DividendMax";
-
 		public async Task<IList<UpcomingDividend>> Gather(SymbolProfile symbol)
 		{
-			if (symbol == null)
+			if (symbol == null || symbol.WebsiteUrl == null || symbol.DataSource != "DividendMax")
 			{
 				return [];
 			}
 
-			var searchTerms = GetSearchTerms(symbol);
-			if (searchTerms.Count == 0)
+			var page = await GetDividendPageHtml(symbol.WebsiteUrl);
+			if (string.IsNullOrWhiteSpace(page))
 			{
 				return [];
 			}
 
-			// Try each search term until we find results
-			foreach (var searchTerm in searchTerms)
-			{
-				var dividends = await TryGatherWithSearchTerm(searchTerm, symbol.Symbol);
-				if (dividends.Count > 0)
-				{
-					return dividends;
-				}
-			}
-
-			return [];
+			var dividends = ParseDividendsFromHtml(page, symbol.Symbol);
+			return dividends;
 		}
 
-		private static List<string> GetSearchTerms(SymbolProfile symbol)
+		private async Task<string?> GetDividendPageHtml(string pageUrl)
 		{
-			var searchTerms = new List<string?>
-			{
-				symbol.ISIN,
-				symbol.Name,
-				symbol.Symbol
-			};
-
-			return [.. searchTerms
-				.FilterInvalidNames()
-				.FilterEmpty()
-				.Distinct()
-				];
-		}
-
-		private async Task<IList<UpcomingDividend>> TryGatherWithSearchTerm(string searchTerm, string originalSymbol)
-		{
-			try
-			{
-				var suggestResponse = await GetSuggestResponse(searchTerm);
-				if (suggestResponse?.Count == 0)
-				{
-					return [];
-				}
-
-				var dividendPageHtml = await GetDividendPageHtml(suggestResponse![0].Path);
-				if (string.IsNullOrEmpty(dividendPageHtml))
-				{
-					return [];
-				}
-
-				return ParseDividendsFromHtml(dividendPageHtml, originalSymbol);
-			}
-			catch
-			{
-				// If this search term fails, continue with the next one
-				return [];
-			}
-		}
-
-		private async Task<List<SuggestResult>?> GetSuggestResponse(string searchTerm)
-		{
-			var suggestUrl = $"{BaseUrl}{SuggestEndpoint}?q={searchTerm}";
-			return await httpClient.GetFromJsonAsync<List<SuggestResult>>(suggestUrl);
-		}
-
-		private async Task<string?> GetDividendPageHtml(string subUrl)
-		{
-			if (string.IsNullOrWhiteSpace(subUrl))
+			if (string.IsNullOrWhiteSpace(pageUrl))
 			{
 				return null;
 			}
 
-			var pageUrl = $"{BaseUrl}{subUrl}";
 			return await httpClient.GetStringAsync(pageUrl);
 		}
 
@@ -211,12 +150,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		private static decimal ParseDecimal(string decimalStr)
 		{
 			return decimal.TryParse(decimalStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var result) ? result : 0;
-		}
-
-		private sealed class SuggestResult
-		{
-			[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "Serializing")]
-			public required string Path { get; set; }
 		}
 	}
 }
