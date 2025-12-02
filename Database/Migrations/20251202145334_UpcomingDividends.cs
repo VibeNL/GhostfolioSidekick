@@ -11,6 +11,12 @@ namespace GhostfolioSidekick.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<string>(
+                name: "WebsiteUrl",
+                table: "SymbolProfiles",
+                type: "TEXT",
+                nullable: true);
+
             migrationBuilder.CreateTable(
                 name: "UpcomingDividends",
                 columns: table => new
@@ -36,6 +42,10 @@ namespace GhostfolioSidekick.Database.Migrations
         {
             migrationBuilder.DropTable(
                 name: "UpcomingDividends");
+
+            migrationBuilder.DropColumn(
+                name: "WebsiteUrl",
+                table: "SymbolProfiles");
         }
     }
 }

@@ -1115,6 +1115,9 @@ namespace GhostfolioSidekick.Database.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("WebsiteUrl")
+                        .HasColumnType("TEXT");
+
                     b.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Symbols.SymbolProfile.Currency#Currency", b1 =>
                         {
                             b1.IsRequired();

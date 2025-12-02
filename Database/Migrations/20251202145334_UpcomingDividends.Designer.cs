@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20251126074625_UpcomingDividends")]
+    [Migration("20251202145334_UpcomingDividends")]
     partial class UpcomingDividends
     {
         /// <inheritdoc />
@@ -1116,6 +1116,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("SectorWeights")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WebsiteUrl")
                         .HasColumnType("TEXT");
 
                     b.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Symbols.SymbolProfile.Currency#Currency", b1 =>
