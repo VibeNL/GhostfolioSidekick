@@ -1,11 +1,12 @@
-﻿using GhostfolioSidekick.Model.Symbols;
-using System.Net.Http.Json;
+﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
-using GhostfolioSidekick.Model.Activities;
+using System.Net.Http;
+using System.Net.Http.Json;
 
 namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
-	public class DividendMaxMatcher(HttpClient httpClient) : ISymbolMatcher
+	public class DividendMaxMatcher(IHttpClientFactory httpClientFactory) : ISymbolMatcher
 	{
 		private const string BaseUrl = "https://www.dividendmax.com";
 		private const string SuggestEndpoint = "/suggest.json";
@@ -74,6 +75,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		private async Task<List<SuggestResult>?> GetSuggestResponse(string searchTerm)
 		{
 			var suggestUrl = $"{BaseUrl}{SuggestEndpoint}?q={searchTerm}";
+
+			using var httpClient = httpClientFactory.CreateClient();
 			return await httpClient.GetFromJsonAsync<List<SuggestResult>>(suggestUrl);
 		}
 

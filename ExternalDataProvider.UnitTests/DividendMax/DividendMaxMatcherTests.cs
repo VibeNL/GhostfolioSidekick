@@ -14,6 +14,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {
     public class DividendMaxMatcherTests
     {
+        private static IHttpClientFactory CreateHttpClientFactory(HttpMessageHandler httpMessageHandler)
+        {
+            var factoryMock = new Mock<IHttpClientFactory>();
+            factoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(() => new HttpClient(httpMessageHandler));
+            return factoryMock.Object;
+        }
+
         [Fact]
         public async Task MatchSymbol_ReturnsProfile_WhenBestMatchFound()
         {
@@ -23,8 +30,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
             handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(suggestJson) });
-            var httpClient = new HttpClient(handlerMock.Object);
-            var matcher = new DividendMaxMatcher(httpClient);
+            var httpClientFactory = CreateHttpClientFactory(handlerMock.Object);
+            var matcher = new DividendMaxMatcher(httpClientFactory);
             var identifiers = new[] {
                 PartialSymbolIdentifier.CreateGeneric("AAPL"),
                 PartialSymbolIdentifier.CreateGeneric("Apple")
@@ -52,8 +59,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
             handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(suggestJson) });
-            var httpClient = new HttpClient(handlerMock.Object);
-            var matcher = new DividendMaxMatcher(httpClient);
+            var httpClientFactory = CreateHttpClientFactory(handlerMock.Object);
+            var matcher = new DividendMaxMatcher(httpClientFactory);
             var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("ZZZZ") };
 
             // Act
@@ -74,8 +81,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
             handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(suggestJson) });
-            var httpClient = new HttpClient(handlerMock.Object);
-            var matcher = new DividendMaxMatcher(httpClient);
+            var httpClientFactory = CreateHttpClientFactory(handlerMock.Object);
+            var matcher = new DividendMaxMatcher(httpClientFactory);
             var identifiers = new[] { PartialSymbolIdentifier.CreateGeneric("AAPL") };
 
             // Act
