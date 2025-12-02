@@ -219,21 +219,42 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 					.WrapAsync(RetryPolicyHelper.GetRetryPolicy(logger))
 					.ExecuteAsync(() => YahooFinanceApi.Yahoo.GetHistoricalAsync(symbol, new DateTime(fromDate, TimeOnly.MinValue, DateTimeKind.Utc), null, Period.Daily));
 
-			if (history == null)
+			var list = new List<MarketData>();
+			if (history != null)
 			{
-				return [];
+				foreach (var candle in history)
+				{
+					var item = new MarketData(
+										new Money(currency with { }, candle.Close),
+										new Money(currency with { }, candle.Open),
+										new Money(currency with { }, candle.High),
+										new Money(currency with { }, candle.Low),
+										candle.Volume,
+										DateOnly.FromDateTime(candle.DateTime.Date));
+					list.Add(item);
+				}
 			}
 
-			var list = new List<MarketData>();
-			foreach (var candle in history)
+			// Today
+			var symbolFields = await YahooFinanceApi.Yahoo.Symbols(symbol)
+				.Fields(
+					Field.RegularMarketPrice,
+					Field.RegularMarketOpen,
+					Field.RegularMarketDayHigh,
+					Field.RegularMarketDayLow,
+					Field.RegularMarketVolume)
+				.QueryAsync();
+			symbolFields.TryGetValue(symbol, out var symbolItem);
+
+			if (symbolItem != null)
 			{
 				var item = new MarketData(
-									new Money(currency with { }, candle.Close),
-									new Money(currency with { }, candle.Open),
-									new Money(currency with { }, candle.High),
-									new Money(currency with { }, candle.Low),
-									candle.Volume,
-									DateOnly.FromDateTime(candle.DateTime.Date));
+									new Money(currency with { }, (decimal)symbolItem.RegularMarketPrice),
+									new Money(currency with { }, (decimal)symbolItem.RegularMarketOpen),
+									new Money(currency with { }, (decimal)symbolItem.RegularMarketDayHigh),
+									new Money(currency with { }, (decimal)symbolItem.RegularMarketDayLow),
+									symbolItem.RegularMarketVolume,
+									DateOnly.FromDateTime(DateTime.Now));
 				list.Add(item);
 			}
 
