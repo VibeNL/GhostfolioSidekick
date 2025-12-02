@@ -173,7 +173,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				ParseQuoteType(symbol.QuoteType),
 				ParseQuoteTypeAsSub(symbol.QuoteType),
 				GetCountries(securityProfile),
-				GetSectors(securityProfile));
+				GetSectors(securityProfile))
+			{
+				WebsiteUrl = $"https://finance.yahoo.com/quote/{symbol.Symbol}",
+			};
 		}
 
 		private async Task<IReadOnlyDictionary<string, Security>?> GetSymbolDetails(string symbolName)
