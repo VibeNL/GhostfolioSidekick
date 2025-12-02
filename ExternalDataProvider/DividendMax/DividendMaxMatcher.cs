@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
 using System.Net.Http;
 using System.Net.Http.Json;
+using GhostfolioSidekick.Model;
 
 namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
@@ -11,7 +12,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		private const string BaseUrl = "https://www.dividendmax.com";
 		private const string SuggestEndpoint = "/suggest.json";
 
-		public string DataSource => "DividendMax";
+		public string DataSource => Datasource.DividendMax;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{

@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 
 		public async Task<IList<UpcomingDividend>> Gather(SymbolProfile symbol)
 		{
-			if (symbol == null || symbol.WebsiteUrl == null || symbol.DataSource != "DividendMax")
+			if (symbol == null || symbol.WebsiteUrl == null || symbol.DataSource != Datasource.DividendMax)
 			{
 				return [];
 			}
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return await httpClient.GetStringAsync(pageUrl);
 		}
 
-		private static IList<UpcomingDividend> ParseDividendsFromHtml(string html, string originalSymbol)
+		private static List<UpcomingDividend> ParseDividendsFromHtml(string html, string originalSymbol)
 		{
 			var result = new List<UpcomingDividend>();
 
