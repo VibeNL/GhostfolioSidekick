@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 				name: "Apple",
 				identifiers: [],
 				currency: Model.Currency.USD,
-				dataSource: "DividendMax",
+				dataSource: Datasource.DividendMax,
 				assetClass: Model.Activities.AssetClass.Equity,
 				assetSubClass: null,
 				countries: [],
