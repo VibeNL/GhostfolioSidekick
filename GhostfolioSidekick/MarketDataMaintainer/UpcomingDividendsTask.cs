@@ -21,12 +21,11 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var symbols = await databaseContext.SymbolProfiles
-				.Where(sp => sp.AssetSubClass == Model.Activities.AssetSubClass.Stock)
 				.ToListAsync();
 
 			foreach (var symbol in symbols)
 			{
-				logger.LogInformation("Processing upcoming dividends for symbol {Symbol}", symbol.Symbol);
+				logger.LogTrace("Processing upcoming dividends for symbol {Symbol}", symbol.Symbol);
 
 				var list = await upcomingDividendRepository.Gather(symbol);
 
@@ -40,7 +39,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 				else
 				{
-					logger.LogInformation("No upcoming dividends found for symbol {Symbol}", symbol.Symbol);
+					logger.LogTrace("No upcoming dividends found for symbol {Symbol}", symbol.Symbol);
 				}
 
 			}
