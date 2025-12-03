@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 						[result.Ticker, result.Name])
 				})
 				.OrderByDescending(x => x.Score)
-				.OrderByDescending(x => x.Result.Name)
+				.ThenByDescending(x => x.Result.Name.Length)
 				.FirstOrDefault();
 
 			if (bestMatch == null || bestMatch.Score <= 0) // Minimum score threshold
@@ -91,10 +91,20 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			var r = await httpClient.GetFromJsonAsync<List<SuggestResult>>(suggestUrl);
 
 			// Remove delisted entries
-			if (r != null)
+			if (r == null)
 			{
-				r = [.. r.Where(x => !x.Name.Contains("(delisted)", StringComparison.OrdinalIgnoreCase))];
+				return null;
 			}
+
+			r = [.. r.Where(x => !x.Name.Contains("(delisted)", StringComparison.OrdinalIgnoreCase))];
+
+			// Remove terms in the names like co., corp., inc., ltd.
+			r = [.. r.Select(x =>
+			{
+				x.Name = SymbolNameCleaner.CleanSymbolName(x.Name);
+				return x;
+			})];
+
 
 			return r;
 		}
