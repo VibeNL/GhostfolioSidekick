@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
 			var cleanedIdentifiers = symbolIdentifiers
-				.Where(x => x.AllowedAssetClasses?.Contains(AssetClass.Equity) ?? false)
+				.Where(x => HasDividends(x))
 				.ToArray();
 
 			if (cleanedIdentifiers.Length == 0)
@@ -70,6 +70,22 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			};
 
 			return profile;
+		}
+
+		private static bool HasDividends(PartialSymbolIdentifier identifier)
+		{
+			if (identifier.AllowedAssetClasses?.Contains(AssetClass.Equity) ?? false)
+			{
+				return true;
+			}
+
+			// If Empty list of null, assume all asset classes are allowed otherwise false
+			if (identifier.AllowedAssetClasses == null || identifier.AllowedAssetClasses.Count == 0)
+			{
+				return true;
+			}
+
+			return false;
 		}
 
 		private static List<string> GetSearchTerms(PartialSymbolIdentifier[] partialSymbolIdentifiers)

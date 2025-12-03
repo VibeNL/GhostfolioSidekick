@@ -164,6 +164,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			var securityProfile = await GetSecurityProfile(symbol.Symbol);
 
+			var dividends = await YahooFinanceApi.Yahoo.GetDividendsAsync(symbol.Symbol, DateTime.Now.AddYears(-1), null);
+			var last = dividends.OrderByDescending(x => x.DateTime).FirstOrDefault()?.DateTime ?? DateTime.MinValue;
+			var isfuture = last > DateTime.Now;
+
 			return new SymbolProfile(
 				symbol.Symbol,
 				GetName(symbol),
