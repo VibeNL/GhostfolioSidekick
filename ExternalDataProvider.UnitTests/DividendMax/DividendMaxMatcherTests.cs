@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			Assert.NotNull(result);
 			Assert.Equal("AAPL", result.Symbol);
 			Assert.Equal("Apple Inc", result.Name);
-			Assert.Equal("DividendMax", result.DataSource);
+			Assert.Equal(Datasource.DividendMax, result.DataSource);
 			Assert.Contains("AAPL", result.Identifiers);
 			Assert.Contains("Apple", result.Identifiers);
 			Assert.Equal("https://www.dividendmax.com/stocks/us/apple-inc-aapl", result.WebsiteUrl);

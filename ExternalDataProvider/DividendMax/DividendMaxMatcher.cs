@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 					Result = result,
 					Score = SemanticMatcher.CalculateSemanticMatchScore(
 						[.. cleanedIdentifiers.Select(x => x.Identifier)],
-						[result.Ticker, result.Name])
+						[result.Ticker, result.CleanedName ?? result.Name])
 				})
 				.OrderByDescending(x => x.Score)
 				.ThenByDescending(x => x.Result.Name.Length)
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			// Remove terms in the names like co., corp., inc., ltd.
 			r = [.. r.Select(x =>
 			{
-				x.Name = SymbolNameCleaner.CleanSymbolName(x.Name);
+				x.CleanedName = SymbolNameCleaner.CleanSymbolName(x.Name);
 				return x;
 			})];
 
@@ -142,6 +142,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			public required string Ticker { get; set; } // Symbol
 
 			public required string Flag { get; set; } // Country code
+			
+			public string? CleanedName { get; internal set; } // Cleaned name
 		}
 	}
 }
