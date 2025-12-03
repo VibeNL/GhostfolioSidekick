@@ -8,7 +8,6 @@
 
 		MaintainManualSymbol,
 
-
 		FileImporter,
 
 		CurrencyGatherer,

@@ -105,6 +105,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<CoinGeckoRepository>();
 							services.AddSingleton<GhostfolioSymbolMatcher>();
 							services.AddSingleton<ManualSymbolRepository>();
+							services.AddSingleton<DividendMaxMatcher>();
 							services.AddTransient<ICoinGeckoRestClient>(sp => 
 								new CoinGeckoRestClient(
 									sp.GetRequiredService<HttpClient>(), 

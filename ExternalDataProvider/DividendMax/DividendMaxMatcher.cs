@@ -16,7 +16,16 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
-			var searchTerms = GetSearchTerms(symbolIdentifiers);
+			var cleanedIdentifiers = symbolIdentifiers
+				.Where(x => x.AllowedAssetClasses?.Contains(AssetClass.Equity) ?? false)
+				.ToArray();
+
+			if (cleanedIdentifiers.Length == 0)
+			{
+				return null;
+			}
+
+			var searchTerms = GetSearchTerms(cleanedIdentifiers);
 			var searchResults = new List<SuggestResult>();
 			foreach (var searchTerm in searchTerms)
 			{
@@ -38,13 +47,13 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				{
 					Result = result,
 					Score = SemanticMatcher.CalculateSemanticMatchScore(
-						[.. symbolIdentifiers.Select(x => x.Identifier)],
+						[.. cleanedIdentifiers.Select(x => x.Identifier)],
 						[result.Ticker, result.Name])
 				})
 				.OrderByDescending(x => x.Score)
 				.FirstOrDefault();
 
-			if (bestMatch == null || bestMatch.Score <= 0)
+			if (bestMatch == null || bestMatch.Score <= 90) // Minimum score threshold
 			{
 				return null;
 			}
@@ -55,7 +64,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				Symbol = bestMatch.Result.Ticker,
 				Name = bestMatch.Result.Name,
 				DataSource = DataSource,
-				Identifiers = [.. symbolIdentifiers.Select(id => id.Identifier)],
+				Identifiers = [.. cleanedIdentifiers.Select(id => id.Identifier)],
 				WebsiteUrl = $"{BaseUrl}{bestMatch.Result.Path}"
 			};
 
