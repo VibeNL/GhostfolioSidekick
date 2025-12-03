@@ -60,12 +60,17 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			}
 
 			// Build SymbolProfile from best match
-			var profile = new SymbolProfile
-			{
-				Symbol = bestMatch.Result.Ticker,
-				Name = bestMatch.Result.Name,
-				DataSource = DataSource,
-				Identifiers = [.. cleanedIdentifiers.Select(id => id.Identifier)],
+			var profile = new SymbolProfile(
+				symbol: bestMatch.Result.Ticker,
+				name: bestMatch.Result.Name,
+				dataSource: DataSource,
+				currency: Currency.NONE,
+				identifiers: [.. cleanedIdentifiers.Select(id => id.Identifier)],
+				assetClass: AssetClass.Equity,
+				assetSubClass: null,
+				countries: [],
+				sectors: []) 
+			{ 
 				WebsiteUrl = $"{BaseUrl}{bestMatch.Result.Path}"
 			};
 
