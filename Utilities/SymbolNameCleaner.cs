@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Utilities
 
             // Remove terms like 'co.', 'corp.', 'inc.', 'ltd.' (case-insensitive, with/without dot)
             var pattern = @"\b(co\.?|corp\.?|inc\.?|ltd\.?|plc|sa|nv|ag|group|holding|holdings|company|limited|incorporated|corporation)\b";
-            var cleaned = Regex.Replace(name, pattern, string.Empty, RegexOptions.IgnoreCase);
+            var cleaned = Regex.Replace(name, pattern, string.Empty, RegexOptions.IgnoreCase, TimeSpan.FromMinutes(1));
 
             // Remove extra whitespace
             cleaned = MyRegex().Replace(cleaned, " ").Trim();
