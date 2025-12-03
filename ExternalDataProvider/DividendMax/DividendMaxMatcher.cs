@@ -51,9 +51,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 						[result.Ticker, result.Name])
 				})
 				.OrderByDescending(x => x.Score)
+				.OrderByDescending(x => x.Result.Name)
 				.FirstOrDefault();
 
-			if (bestMatch == null || bestMatch.Score <= 90) // Minimum score threshold
+			if (bestMatch == null || bestMatch.Score <= 0) // Minimum score threshold
 			{
 				return null;
 			}
@@ -87,7 +88,15 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			var suggestUrl = $"{BaseUrl}{SuggestEndpoint}?q={searchTerm}";
 
 			using var httpClient = httpClientFactory.CreateClient();
-			return await httpClient.GetFromJsonAsync<List<SuggestResult>>(suggestUrl);
+			var r = await httpClient.GetFromJsonAsync<List<SuggestResult>>(suggestUrl);
+
+			// Remove delisted entries
+			if (r != null)
+			{
+				r = [.. r.Where(x => !x.Name.Contains("(delisted)", StringComparison.OrdinalIgnoreCase))];
+			}
+
+			return r;
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "Serializing")]
