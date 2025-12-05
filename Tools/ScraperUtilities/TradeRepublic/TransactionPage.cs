@@ -110,14 +110,43 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			var header = page.Locator("h2[class='detailHeader__heading']").First;
 			var headerText = await header.InnerTextAsync();
 
-			// Find the p with clas detailHeader__subheading -time
-			var time = await page.Locator("p[class='detailHeader__subheading -time']").First.InnerHTMLAsync();
-			string dateString = time.Replace(" at", string.Empty);
+			DateTime parsedTime = DateTime.MinValue;
 
-			if (!DateTime.TryParseExact(dateString, "dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var parsedTime) &&
-				!DateTime.TryParseExact(dateString, "dd MMMM HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime))
+			// Get the date
+			try
 			{
-				logger.LogWarning("Failed to parse date: {DateString}", dateString);
+				var timeb = await page.Locator("p[class='detailHeader__subheading -time']").First.InnerHTMLAsync();
+				string dateString = timeb.Replace(" at", string.Empty);
+
+				if (!DateTime.TryParseExact(dateString, "dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime))
+				{
+					DateTime.TryParseExact(dateString, "dd MMMM HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime);
+				}
+			}
+			catch
+			{
+				// Ignore
+			}
+
+			if (parsedTime == DateTime.MinValue)
+			{
+				try
+				{
+					var dateString = await page.Locator("p[class='detailHeader__subheading -subtitle']").First.InnerHTMLAsync();
+					dateString = dateString.Replace("· ", string.Empty);
+					// Dec 2 · 09:02
+					DateTime.TryParseExact(dateString, "MMM d HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime);
+
+				}
+				catch
+				{
+					// Ignore
+				}
+			}
+
+			if (parsedTime == DateTime.MinValue)
+			{
+				logger.LogWarning("Could not parse date for transaction: {HeaderText}", headerText);
 				return null;
 			}
 
@@ -134,7 +163,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 						{
 							Amount = ParseMoneyFromHeader(headerText),
 							Date = parsedTime,
-							TransactionId = GenerateTransactionId(time, table),
+							TransactionId = GenerateTransactionId(parsedTime, table),
 							Description = headerText,
 						},
 						Symbol = default!,
@@ -150,7 +179,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 						{
 							Amount = ParseMoneyFromHeader(headerText),
 							Date = parsedTime,
-							TransactionId = GenerateTransactionId(time, table),
+							TransactionId = GenerateTransactionId(parsedTime, table),
 							Description = headerText,
 						},
 						Symbol = default!,
@@ -163,7 +192,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 					{
 						Amount = ParseMoneyFromHeader(headerText),
 						Date = parsedTime,
-						TransactionId = GenerateTransactionId(time, table),
+						TransactionId = GenerateTransactionId(parsedTime, table),
 						Description = headerText,
 					},
 					Symbol = default!,
@@ -178,7 +207,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 					{
 						Amount = ParseMoneyFromHeader(headerText),
 						Date = parsedTime,
-						TransactionId = GenerateTransactionId(time, table),
+						TransactionId = GenerateTransactionId(parsedTime, table),
 						Description = headerText,
 					},
 					Symbol = default!,
@@ -297,7 +326,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 			return new Money();
 		}
-		private static string GenerateTransactionId(string time, List<(string, string)> table)
+		private static string GenerateTransactionId(DateTime time, List<(string, string)> table)
 		{
 			return time + string.Join("|", table.Select(x => x.Item2));
 		}

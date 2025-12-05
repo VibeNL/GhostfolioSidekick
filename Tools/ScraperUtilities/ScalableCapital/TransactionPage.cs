@@ -26,33 +26,56 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			int counter = 0;
 			foreach (var transaction in await GetTransactions())
 			{
-				logger.LogInformation("Processing transaction {Counter}...", counter);
-
-				// Click on the transaction to open the details
-				await transaction.ScrollIntoViewIfNeededAsync();
-				await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
-
-				// Wait for the transaction to load
-				await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
-
-				// Process transaction details
-				var generatedTransaction = await ProcessDetails();
-				if (generatedTransaction == null)
+				for (int i = 0; i < 3; i++)
 				{
-					continue;
+					try
+					{
+						logger.LogInformation("Processing transaction {Counter}...", counter);
+
+						// Click on the transaction to open the details
+						await transaction.ScrollIntoViewIfNeededAsync();
+
+						await transaction.ClickAsync(new LocatorClickOptions { Position = new Position { X = 2, Y = 2 } }); // avoid clicking any links
+
+						// Wait for the transaction to load
+						await page.WaitForSelectorAsync("div:text('Overview')", new PageWaitForSelectorOptions { State = WaitForSelectorState.Visible });
+
+						// Process transaction details
+						var generatedTransaction = await ProcessDetails();
+						if (generatedTransaction == null)
+						{
+							break;
+						}
+
+						var symbol = await AddSymbol(generatedTransaction);
+						if (symbol != null)
+						{
+							list.Add(symbol);
+						}
+
+						logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
+
+						// Press Close button to close the details
+						await page.GetByRole(AriaRole.Button).ClickAsync();
+
+						break;
+					}
+					catch (Exception ex)
+					{
+						// Try to close the details if open
+						try
+						{
+							await page.GetByRole(AriaRole.Button).ClickAsync();
+						}
+						catch
+						{
+							// Ignore
+						}
+
+						logger.LogError(ex, "Error processing transaction {Counter}: {Message}", counter, ex.Message);
+					}
 				}
-
-				var symbol = await AddSymbol(generatedTransaction);
-				if (symbol != null)
-				{
-					list.Add(symbol);
-				}
-
-				logger.LogInformation("Transaction {Counter} processed. Generated {GeneratedTransaction}", counter, generatedTransaction.ToString());
-
-				// Press Close button to close the details
-				await page.GetByRole(AriaRole.Button).ClickAsync();
-
+								
 				counter++;
 			}
 
