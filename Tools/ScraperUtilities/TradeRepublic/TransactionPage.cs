@@ -112,20 +112,37 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 			DateTime parsedTime = DateTime.MinValue;
 
-			// Get the date
+			var hasTimeSubheading = false;
 			try
 			{
-				var timeb = await page.Locator("p[class='detailHeader__subheading -time']").First.InnerHTMLAsync();
-				string dateString = timeb.Replace(" at", string.Empty);
-
-				if (!DateTime.TryParseExact(dateString, "dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime))
-				{
-					DateTime.TryParseExact(dateString, "dd MMMM HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime);
-				}
+				await page.WaitForSelectorAsync(
+					"p[class='detailHeader__subheading -time']",
+					new PageWaitForSelectorOptions { Timeout = 200 }
+				);
+				hasTimeSubheading = await page.Locator("p[class='detailHeader__subheading -time']").CountAsync() > 0;
 			}
-			catch
+			catch (TimeoutException)
 			{
-				// Ignore
+				hasTimeSubheading = false;
+			}
+
+			if (hasTimeSubheading)
+			{
+				// Get the date
+				try
+				{
+					var timeb = await page.Locator("p[class='detailHeader__subheading -time']").First.InnerHTMLAsync();
+					string dateString = timeb.Replace(" at", string.Empty);
+
+					if (!DateTime.TryParseExact(dateString, "dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime))
+					{
+						DateTime.TryParseExact(dateString, "dd MMMM HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out parsedTime);
+					}
+				}
+				catch
+				{
+					// Ignore
+				}
 			}
 
 			if (parsedTime == DateTime.MinValue)
