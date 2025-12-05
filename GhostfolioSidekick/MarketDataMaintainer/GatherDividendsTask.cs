@@ -5,11 +5,11 @@ using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
-	internal class UpcomingDividendsTask(
+	internal class GatherDividendsTask(
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
-		IUpcomingDividendRepository upcomingDividendRepository) : IScheduledWork
+		IDividendRepository upcomingDividendRepository) : IScheduledWork
 	{
-		public TaskPriority Priority => TaskPriority.UpcomingDividends;
+		public TaskPriority Priority => TaskPriority.GatherDividends;
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 

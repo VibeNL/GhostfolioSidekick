@@ -16,12 +16,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 	///     Status, Type, Decl. date, Ex-div date, Pay date, Decl. Currency, Forecast amount, Decl. amount, Accuracy
 	/// 4) generate UpcomingDividend objects from the rows where Ex-div date is in the future. and the decl. amount is not empty / a '-',
 	/// </summary>
-	public class DividendMaxScraper(HttpClient httpClient) : IUpcomingDividendRepository
+	public class DividendMaxScraper(HttpClient httpClient) : IDividendRepository
 	{
 		private const string TableSelector = "//table[contains(@class, 'mdc-data-table__table')]";
 		private const string TableRowsSelector = ".//tbody/tr";
 
-		public async Task<IList<UpcomingDividend>> Gather(SymbolProfile symbol)
+		public async Task<IList<Dividend>> Gather(SymbolProfile symbol)
 		{
 			if (symbol == null || symbol.WebsiteUrl == null || symbol.DataSource != Datasource.DividendMax)
 			{
@@ -48,9 +48,9 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return await httpClient.GetStringAsync(pageUrl);
 		}
 
-		private static List<UpcomingDividend> ParseDividendsFromHtml(string html, string originalSymbol)
+		private static List<Dividend> ParseDividendsFromHtml(string html, string originalSymbol)
 		{
-			var result = new List<UpcomingDividend>();
+			var result = new List<Dividend>();
 
 			var doc = new HtmlDocument();
 			doc.LoadHtml(html);
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return result;
 		}
 
-		private static UpcomingDividend? ParseDividendRow(HtmlNode row, string symbol, int id)
+		private static Dividend? ParseDividendRow(HtmlNode row, string symbol, int id)
 		{
 			var cells = row.SelectNodes("td");
 			if (cells == null || cells.Count < 9)
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			var amount = ParseDecimal(dividendData.DeclAmountStr);
 			var currency = Currency.GetCurrency(dividendData.CurrencyStr);
 
-			return new UpcomingDividend
+			return new Dividend
 			{
 				Id = id,
 				Symbol = symbol,

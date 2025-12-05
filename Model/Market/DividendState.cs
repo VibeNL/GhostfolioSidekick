@@ -2,6 +2,8 @@
 {
 	public enum DividendState
 	{
+		Paid, 
+
 		Declared,
 
 		ExDividend,

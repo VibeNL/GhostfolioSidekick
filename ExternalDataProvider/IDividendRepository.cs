@@ -3,8 +3,8 @@ using GhostfolioSidekick.Model.Symbols;
 
 namespace GhostfolioSidekick.ExternalDataProvider
 {
-	public interface IUpcomingDividendRepository
+	public interface IDividendRepository
 	{
-		Task<IList<UpcomingDividend>> Gather(SymbolProfile symbol);
+		Task<IList<Dividend>> Gather(SymbolProfile symbol);
 	}
 }

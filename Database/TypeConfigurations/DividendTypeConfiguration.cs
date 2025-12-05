@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
-    public class UpcomingDividendTypeConfiguration : IEntityTypeConfiguration<UpcomingDividend>
+    public class DividendTypeConfiguration : IEntityTypeConfiguration<Dividend>
     {
-        public void Configure(EntityTypeBuilder<UpcomingDividend> builder)
+        public void Configure(EntityTypeBuilder<Dividend> builder)
         {
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Symbol).IsRequired();
@@ -17,8 +17,8 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
             builder.Property(x => x.DividendType).IsRequired();
             builder.Property(x => x.DividendState).IsRequired();
 
-			builder.ComplexProperty(x => x.Amount).IsRequired().Property(x => x.Amount).HasColumnName(nameof(UpcomingDividend.Amount));
-			builder.ComplexProperty(x => x.Amount).IsRequired().ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency" + nameof(UpcomingDividend.Amount));
+			builder.ComplexProperty(x => x.Amount).IsRequired().Property(x => x.Amount).HasColumnName(nameof(Dividend.Amount));
+			builder.ComplexProperty(x => x.Amount).IsRequired().ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency" + nameof(Dividend.Amount));
 		}
     }
 }

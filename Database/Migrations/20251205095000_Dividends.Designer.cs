@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20251202145334_UpcomingDividends")]
-    partial class UpcomingDividends
+    [Migration("20251205095000_Dividends")]
+    partial class Dividends
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -646,6 +646,52 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.ToTable("CurrencyExchangeRate", (string)null);
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Market.Dividend", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DividendState")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DividendType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("ExDividendDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("PaymentDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Market.Dividend.Amount#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Amount");
+
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Market.Dividend.Amount#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyAmount");
+                                });
+                        });
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UpcomingDividends");
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>
                 {
                     b.Property<int>("ID")
@@ -788,52 +834,6 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.HasIndex("SymbolProfileSymbol", "SymbolProfileDataSource");
 
                     b.ToTable("StockSplits", (string)null);
-                });
-
-            modelBuilder.Entity("GhostfolioSidekick.Model.Market.UpcomingDividend", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DividendState")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DividendType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateOnly>("ExDividendDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateOnly>("PaymentDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Symbol")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Market.UpcomingDividend.Amount#Money", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("TEXT")
-                                .HasColumnName("Amount");
-
-                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Market.UpcomingDividend.Amount#Money.Currency#Currency", b2 =>
-                                {
-                                    b2.IsRequired();
-
-                                    b2.Property<string>("Symbol")
-                                        .IsRequired()
-                                        .HasColumnType("TEXT")
-                                        .HasColumnName("CurrencyAmount");
-                                });
-                        });
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UpcomingDividends");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Performance.BalancePrimaryCurrency", b =>

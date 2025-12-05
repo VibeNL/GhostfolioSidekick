@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace GhostfolioSidekick.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class UpcomingDividends : Migration
+    public partial class Dividends : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

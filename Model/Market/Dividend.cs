@@ -2,7 +2,7 @@ using System;
 
 namespace GhostfolioSidekick.Model.Market
 {
-    public record UpcomingDividend
+    public record Dividend
     {
         public int Id { get; init; }
         public string Symbol { get; init; } = string.Empty;
