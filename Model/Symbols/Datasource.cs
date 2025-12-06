@@ -13,6 +13,8 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public static readonly string GHOSTFOLIO = "GHOSTFOLIO";
 
+		public static readonly string DividendMax = "DIVIDENDMAX";
+
 		public static string GetUnderlyingDataSource(string dataSource)
 		{
 			if (!IsGhostfolio(dataSource))

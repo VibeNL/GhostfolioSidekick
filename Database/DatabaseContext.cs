@@ -44,6 +44,8 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<TaskRun> Tasks { get; set; }
 		public virtual DbSet<TaskRunLog> TaskRunLogs { get; set; }
 
+		public virtual DbSet<Dividend> UpcomingDividends { get; set; }
+
 		public DatabaseContext()
 		{
 		}
