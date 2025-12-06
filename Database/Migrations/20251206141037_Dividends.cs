@@ -23,18 +23,29 @@ namespace GhostfolioSidekick.Database.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Symbol = table.Column<string>(type: "TEXT", nullable: false),
                     ExDividendDate = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     PaymentDate = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     DividendType = table.Column<int>(type: "INTEGER", nullable: false),
                     DividendState = table.Column<int>(type: "INTEGER", nullable: false),
+                    SymbolProfileDataSource = table.Column<string>(type: "TEXT", nullable: true),
+                    SymbolProfileSymbol = table.Column<string>(type: "TEXT", nullable: true),
                     Amount = table.Column<decimal>(type: "TEXT", nullable: false),
                     CurrencyAmount = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UpcomingDividends", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UpcomingDividends_SymbolProfiles_SymbolProfileSymbol_SymbolProfileDataSource",
+                        columns: x => new { x.SymbolProfileSymbol, x.SymbolProfileDataSource },
+                        principalTable: "SymbolProfiles",
+                        principalColumns: new[] { "Symbol", "DataSource" });
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UpcomingDividends_SymbolProfileSymbol_SymbolProfileDataSource",
+                table: "UpcomingDividends",
+                columns: new[] { "SymbolProfileSymbol", "SymbolProfileDataSource" });
         }
 
         /// <inheritdoc />

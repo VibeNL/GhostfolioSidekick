@@ -71,6 +71,8 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public virtual ICollection<StockSplit> StockSplits { get; set; } = [];
 
+		public virtual ICollection<Dividend> Dividends { get; set; } = [];
+
 		public override string ToString()
 		{
 			return Symbol;

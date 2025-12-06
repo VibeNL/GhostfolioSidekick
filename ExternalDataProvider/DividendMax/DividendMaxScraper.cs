@@ -108,7 +108,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return new Dividend
 			{
 				Id = id,
-				Symbol = symbol,
 				ExDividendDate = DateOnly.FromDateTime(exDivDate.Value),
 				PaymentDate = DateOnly.FromDateTime(payDate),
 				DividendType = DividendType.Cash,

@@ -11,7 +11,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
         public void Configure(EntityTypeBuilder<Dividend> builder)
         {
             builder.HasKey(x => x.Id);
-            builder.Property(x => x.Symbol).IsRequired();
             builder.Property(x => x.ExDividendDate).IsRequired();
             builder.Property(x => x.PaymentDate).IsRequired();
             builder.Property(x => x.DividendType).IsRequired();

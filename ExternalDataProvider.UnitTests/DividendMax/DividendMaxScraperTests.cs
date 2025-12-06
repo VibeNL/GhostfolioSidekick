@@ -52,7 +52,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			// Assert
 			Assert.Single(result);
 			var dividend = result[0];
-			Assert.Equal("AAPL", dividend.Symbol);
 			Assert.Equal(1.23m, dividend.Amount.Amount);
 			Assert.Equal("USD", dividend.Amount.Currency.Symbol);
 		}
