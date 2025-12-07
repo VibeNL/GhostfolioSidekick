@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GhostfolioSidekick.Database.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20251206141037_Dividends")]
+    [Migration("20251207160427_Dividends")]
     partial class Dividends
     {
         /// <inheritdoc />
@@ -693,7 +693,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasIndex("SymbolProfileSymbol", "SymbolProfileDataSource");
 
-                    b.ToTable("UpcomingDividends");
+                    b.ToTable("Dividends");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>

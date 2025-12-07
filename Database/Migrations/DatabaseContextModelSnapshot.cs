@@ -690,7 +690,7 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.HasIndex("SymbolProfileSymbol", "SymbolProfileDataSource");
 
-                    b.ToTable("UpcomingDividends");
+                    b.ToTable("Dividends");
                 });
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>

@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Database.Migrations
                 nullable: true);
 
             migrationBuilder.CreateTable(
-                name: "UpcomingDividends",
+                name: "Dividends",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -34,17 +34,17 @@ namespace GhostfolioSidekick.Database.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UpcomingDividends", x => x.Id);
+                    table.PrimaryKey("PK_Dividends", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UpcomingDividends_SymbolProfiles_SymbolProfileSymbol_SymbolProfileDataSource",
+                        name: "FK_Dividends_SymbolProfiles_SymbolProfileSymbol_SymbolProfileDataSource",
                         columns: x => new { x.SymbolProfileSymbol, x.SymbolProfileDataSource },
                         principalTable: "SymbolProfiles",
                         principalColumns: new[] { "Symbol", "DataSource" });
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_UpcomingDividends_SymbolProfileSymbol_SymbolProfileDataSource",
-                table: "UpcomingDividends",
+                name: "IX_Dividends_SymbolProfileSymbol_SymbolProfileDataSource",
+                table: "Dividends",
                 columns: new[] { "SymbolProfileSymbol", "SymbolProfileDataSource" });
         }
 
@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "UpcomingDividends");
+                name: "Dividends");
 
             migrationBuilder.DropColumn(
                 name: "WebsiteUrl",
