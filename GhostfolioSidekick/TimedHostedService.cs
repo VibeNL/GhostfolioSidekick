@@ -160,12 +160,14 @@ namespace GhostfolioSidekick
 			}
 			catch (Exception ex)
 			{
-				taskLogger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, ex.Message);
+				// Log the main exception and all inner exceptions
+				var exceptionMessage = GetFullExceptionMessage(ex);
+				taskLogger.LogError(ex, "An error occurred executing {Name}. Exception message {Message}", workItem.Work.GetType().Name, exceptionMessage);
 				var taskrun = GetTask(databaseContext, workItem.Work.GetType().Name);
 				if (taskrun != null)
 				{
 					taskrun.InProgress = false;
-					taskrun.LastException = ex.Message;
+					taskrun.LastException = exceptionMessage;
 					await databaseContext.SaveChangesAsync();
 				}
 
@@ -174,6 +176,20 @@ namespace GhostfolioSidekick
 					throw;
 				}
 			}
+		}
+
+		private static string GetFullExceptionMessage(Exception ex)
+		{
+			var messages = new List<string>();
+			var currentException = ex;
+			
+			while (currentException != null)
+			{
+				messages.Add(currentException.Message);
+				currentException = currentException.InnerException;
+			}
+			
+			return string.Join(" -> ", messages);
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S1215:\"GC.Collect\" should not be called", Justification = "Desired behaviour")]
