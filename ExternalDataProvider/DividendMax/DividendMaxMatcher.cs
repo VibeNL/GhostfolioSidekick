@@ -3,15 +3,16 @@ using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
 using System.Net.Http.Json;
 using GhostfolioSidekick.Model;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
 	public class DividendMaxMatcher(IHttpClientFactory httpClientFactory) : ISymbolMatcher
 	{
-		// Suppression: Hardcoded absolute paths/URIs are required for external API endpoints.
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA2234:AvoidHardcodedUris", Justification = "External API endpoint is fixed and must be hardcoded.")]
+		[SuppressMessage("Sonar", "S1075:URIs should not be hardcoded", Justification = "External API endpoint is stable and required for integration")]
 		private const string BaseUrl = "https://www.dividendmax.com";
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA2234:AvoidHardcodedUris", Justification = "External API endpoint is fixed and must be hardcoded.")]
+
+		[SuppressMessage("Sonar", "S1075:URIs should not be hardcoded", Justification = "External API endpoint is stable and required for integration")]
 		private const string SuggestEndpoint = "/suggest.json";
 
 		public string DataSource => Datasource.DividendMax;
@@ -132,11 +133,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return r;
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "Required for serialization")]
+		[SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "Required for serialization")]
+		[SuppressMessage("CodeQuality", "S1144:Unused private types or members should be removed", Justification = "Used for deserialization")]
+		[SuppressMessage("Style", "S1104:Fields should not have public accessibility", Justification = "DTO for JSON deserialization")]
 		private sealed class SuggestResult
 		{
-			public required long Id { get; set; } // Unique identifier
-
 			public required string Name { get; set; } // Full name
 
 			public required string Path { get; set; } // e.g. /stocks/us/apple-inc-aapl
