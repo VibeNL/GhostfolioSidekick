@@ -182,13 +182,13 @@ namespace GhostfolioSidekick
 		{
 			var messages = new List<string>();
 			var currentException = ex;
-			
+
 			while (currentException != null)
 			{
 				messages.Add(currentException.Message);
 				currentException = currentException.InnerException;
 			}
-			
+
 			return string.Join(" -> ", messages);
 		}
 
@@ -198,7 +198,7 @@ namespace GhostfolioSidekick
 			// Measure memory before execution
 			long memoryBefore = GC.GetTotalMemory(false);
 			double memoryBeforeMiB = memoryBefore / 1024d / 1024d;
-			
+
 			await ExecuteWorkItem(workItem);
 
 			// Request garbage collection

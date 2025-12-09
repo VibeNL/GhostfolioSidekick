@@ -2,7 +2,7 @@
 {
 	public enum DividendState
 	{
-		Paid, 
+		Paid,
 
 		Declared,
 

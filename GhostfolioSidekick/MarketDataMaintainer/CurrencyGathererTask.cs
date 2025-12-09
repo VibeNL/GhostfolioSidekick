@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class CurrencyGathererTask(
-		IDbContextFactory<DatabaseContext> databaseContextFactory, 
+		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		ICurrencyRepository currencyRepository) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.CurrencyGatherer;

@@ -87,8 +87,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				var uri = new Uri(Navigation.Uri);
 				var queryString = uri.Query;
-				
-				if (string.IsNullOrEmpty(queryString)) 
+
+				if (string.IsNullOrEmpty(queryString))
 				{
 					_hasAppliedUrlParameters = true;
 					return;

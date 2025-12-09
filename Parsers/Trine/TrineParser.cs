@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.Trine
 				case "Investment":
 					yield return PartialActivity.CreateBuy(
 						Currency.EUR,
-						record.Date, 
+						record.Date,
 						PartialSymbolIdentifier.CreateGeneric([record.Loan]),
 						1,
 						new Money(Currency.EUR, record.OutstandingPortfolioChange),

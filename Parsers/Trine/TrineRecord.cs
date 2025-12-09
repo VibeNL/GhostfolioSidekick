@@ -29,5 +29,5 @@ namespace GhostfolioSidekick.Parsers.Trine
 		public decimal OutstandingPortfolio { get; set; }
 
 		public decimal Total { get; set; }
-		}
+	}
 }

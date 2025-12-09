@@ -33,7 +33,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 				case "Sell":
 					yield return PartialActivity.CreateSell(
 						currency,
-						dateTime, 
+						dateTime,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
 						record.Shares!.Value,
 						new Money(currency, record.Price!.Value),
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.ScalableCaptial
 					break;
 				case "Distribution":
 					yield return PartialActivity.CreateDividend(
-						currency, 
+						currency,
 						dateTime,
 						[PartialSymbolIdentifier.CreateStockAndETF(record.Isin)],
 						Math.Abs(record.Amount),

@@ -9,7 +9,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
 	public class DividendMaxMatcher(IHttpClientFactory httpClientFactory) : ISymbolMatcher
 	{
+		// Suppression: Hardcoded absolute paths/URIs are required for external API endpoints.
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA2234:AvoidHardcodedUris", Justification = "External API endpoint is fixed and must be hardcoded.")]
 		private const string BaseUrl = "https://www.dividendmax.com";
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Maintainability", "CA2234:AvoidHardcodedUris", Justification = "External API endpoint is fixed and must be hardcoded.")]
 		private const string SuggestEndpoint = "/suggest.json";
 
 		public string DataSource => Datasource.DividendMax;
@@ -52,7 +55,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				})
 				.OrderByDescending(x => x.Score)
 				.ThenByDescending(x => x.Result.Name.Length)
-				.FirstOrDefault();
+				.First();
 
 			if (bestMatch == null || bestMatch.Score <= 0) // Minimum score threshold
 			{
@@ -69,8 +72,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				assetClass: AssetClass.Equity,
 				assetSubClass: null,
 				countries: [],
-				sectors: []) 
-			{ 
+				sectors: [])
+			{
 				WebsiteUrl = $"{BaseUrl}{bestMatch.Result.Path}"
 			};
 
@@ -130,7 +133,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return r;
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "Serializing")]
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "Required for serialization")]
 		private sealed class SuggestResult
 		{
 			public required long Id { get; set; } // Unique identifier
@@ -142,7 +145,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			public required string Ticker { get; set; } // Symbol
 
 			public required string Flag { get; set; } // Country code
-			
+
 			public string? CleanedName { get; internal set; } // Cleaned name
 		}
 	}

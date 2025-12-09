@@ -146,7 +146,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			// Apply primary sorting and then secondary sorts
 			return _sortColumn switch
 			{
-				nameof(TaskRun.InProgress) => _sortDirection == "asc" 
+				nameof(TaskRun.InProgress) => _sortDirection == "asc"
 					? _taskRuns.OrderBy(t => t.InProgress).ThenBy(t => t.Priority).ThenBy(t => t.NextSchedule)
 					: _taskRuns.OrderByDescending(t => t.InProgress).ThenBy(t => t.Priority).ThenBy(t => t.NextSchedule),
 				nameof(TaskRun.Priority) => _sortDirection == "asc"

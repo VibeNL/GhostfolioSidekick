@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.AI.Server
 	{
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1075:URIs should not be hardcoded", Justification = "<Pending>")]
 		private const string ModelUrl = "https://huggingface.co/tensorblock/Llama-3.2-8B-Instruct-GGUF/resolve/main/Llama-3.2-8B-Instruct-Q3_K_M.gguf";
-		
+
 		static async Task Main()
 		{
 			Progress<InitializeProgress> progress = new();

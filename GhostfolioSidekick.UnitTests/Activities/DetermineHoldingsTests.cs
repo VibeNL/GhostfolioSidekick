@@ -91,7 +91,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
-			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id ==1)), Times.Once);
+			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id == 1)), Times.Once);
 			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
 		}
 

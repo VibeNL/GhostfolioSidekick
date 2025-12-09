@@ -106,8 +106,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 						Symbol = Symbol,
 						StartDate = DateOnly.FromDateTime(DateTime.Now.AddYears(-10)),
 						EndDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
-						PageNumber =1,
-						PageSize =100,
+						PageNumber = 1,
+						PageSize = 100,
 						SortColumn = "Date",
 						SortAscending = false
 					};

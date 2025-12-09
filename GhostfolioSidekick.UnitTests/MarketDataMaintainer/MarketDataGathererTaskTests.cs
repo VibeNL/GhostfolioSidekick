@@ -600,7 +600,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var holding = new Holding
 			{
 				SymbolProfiles = [symbolProfile],
-				Activities = [ new BuyActivity { Date = DateTime.Today.AddDays(-4) } ]
+				Activities = [new BuyActivity { Date = DateTime.Today.AddDays(-4) }]
 			};
 			var holdings = new List<Holding> { holding };
 

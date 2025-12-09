@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			// Arrange
 			var existingAccount = new Account("TestAccount")
 			{
-				Id =1,
+				Id = 1,
 				SyncActivities = true,
 				SyncBalance = true
 			};

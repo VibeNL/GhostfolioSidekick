@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Database
 		public virtual DbSet<CalculatedSnapshotPrimaryCurrency> CalculatedSnapshotPrimaryCurrencies { get; set; }
 
 		public virtual DbSet<BalancePrimaryCurrency> BalancePrimaryCurrencies { get; set; }
-		
+
 		public virtual DbSet<TaskRun> Tasks { get; set; }
 		public virtual DbSet<TaskRunLog> TaskRunLogs { get; set; }
 

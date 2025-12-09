@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 					AssetSubClass.CryptoCurrency,
 					[],
 					[])
-				{ 
+				{
 					WebsiteUrl = $"https://www.coingecko.com/en/coins/{coinGeckoAsset.Id}"
 				};
 				return symbolProfile;

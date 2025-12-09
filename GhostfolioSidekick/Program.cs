@@ -57,7 +57,7 @@ namespace GhostfolioSidekick
 						.ConfigureServices((hostContext, services) =>
 						{
 							services.AddHttpClient();
-							
+
 							services.AddSingleton<MemoryCache, MemoryCache>();
 							services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 							services.AddSingleton<IApplicationSettings, ApplicationSettings>();
@@ -106,9 +106,9 @@ namespace GhostfolioSidekick
 							services.AddSingleton<GhostfolioSymbolMatcher>();
 							services.AddSingleton<ManualSymbolRepository>();
 							services.AddSingleton<DividendMaxMatcher>();
-							services.AddTransient<ICoinGeckoRestClient>(sp => 
+							services.AddTransient<ICoinGeckoRestClient>(sp =>
 								new CoinGeckoRestClient(
-									sp.GetRequiredService<HttpClient>(), 
+									sp.GetRequiredService<HttpClient>(),
 									sp.GetRequiredService<ILoggerFactory>(),
 									Options.Create(new CoinGeckoRestOptions())));
 

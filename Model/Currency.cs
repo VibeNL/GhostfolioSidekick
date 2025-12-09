@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.Model
 		}
 
 		public string Symbol { get; init; }
-		
+
 		public bool IsFiat()
 		{
 			return knownCurrencies.Exists(x => x.Symbol == Symbol);

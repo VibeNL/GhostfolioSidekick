@@ -11,7 +11,7 @@
 		{
 			var invalidNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 			{
-				"Inc", "Inc.", "Corp", "Corp.", "Corporation", "Ltd", "Ltd.", 
+				"Inc", "Inc.", "Corp", "Corp.", "Corporation", "Ltd", "Ltd.",
 				"Limited", "LLC", "L.L.C.", "LP", "L.P.", "LLP", "L.L.P.",
 				"Co", "Co.", "Company", "Group", "Holdings", "Holding",
 				"Trust", "Fund", "Partners", "Partnership", "PLC", "P.L.C.",

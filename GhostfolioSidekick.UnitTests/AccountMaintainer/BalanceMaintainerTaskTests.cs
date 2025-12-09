@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			};
 
 			var mockDbContext = new Mock<DatabaseContext>();
-			Model.Accounts.Account account = new() { Id =1, Balance = existingBalances, SyncBalance = true };
+			Model.Accounts.Account account = new() { Id = 1, Balance = existingBalances, SyncBalance = true };
 			mockDbContext.Setup(db => db.Accounts).ReturnsDbSet(new List<Model.Accounts.Account>
 			{
 				account
@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			};
 
 			var mockDbContext = new Mock<DatabaseContext>();
-			Model.Accounts.Account account = new() { Id =1, Balance = existingBalances, SyncBalance = true };
+			Model.Accounts.Account account = new() { Id = 1, Balance = existingBalances, SyncBalance = true };
 			mockDbContext.Setup(db => db.Accounts).ReturnsDbSet(new List<Model.Accounts.Account>
 			{
 				account
@@ -109,8 +109,8 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		{
 			// Arrange
 			var mockDbContext = new Mock<DatabaseContext>();
-			Model.Accounts.Account accountWithSyncDisabled = new() { Id =1, Name = "Account1", SyncBalance = false };
-			Model.Accounts.Account accountWithSyncEnabled = new() { Id =2, Name = "Account2", SyncBalance = true };
+			Model.Accounts.Account accountWithSyncDisabled = new() { Id = 1, Name = "Account1", SyncBalance = false };
+			Model.Accounts.Account accountWithSyncEnabled = new() { Id = 2, Name = "Account2", SyncBalance = true };
 
 			mockDbContext.Setup(db => db.Accounts).ReturnsDbSet(new List<Model.Accounts.Account>
 			{
