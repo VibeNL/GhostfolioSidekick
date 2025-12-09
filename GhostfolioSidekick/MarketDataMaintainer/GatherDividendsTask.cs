@@ -21,29 +21,32 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var symbols = await databaseContext.SymbolProfiles
-				.Take(0) // Disabled for now
+				.Include(s => s.Dividends)
 				.ToListAsync();
 
 			foreach (var symbol in symbols)
 			{
-				logger.LogTrace("Processing upcoming dividends for symbol {Symbol}", symbol.Symbol);
+				logger.LogTrace("Processing dividends for symbol {Symbol}", symbol.Symbol);
 
+				// Gather all dividends (upcoming and past)
 				var list = await upcomingDividendRepository.Gather(symbol);
 
+				// Delete all existing dividends for the symbol
+				symbol.Dividends.Clear();
+
+				// Insert all gathered dividends
 				if (list.Count > 0)
 				{
-					logger.LogInformation("Found {Count} upcoming dividends for symbol {Symbol}", list.Count, symbol.Symbol);
+					logger.LogInformation("Found {Count} dividends for symbol {Symbol}", list.Count, symbol.Symbol);
 					foreach (var dividend in list)
 					{
-						logger.LogInformation("Upcoming dividend for symbol {Symbol}: {Amount} on {Date}", symbol.Symbol, dividend.Amount, dividend.ExDividendDate.ToShortDateString());
+						symbol.Dividends.Add(dividend);
 					}
 				}
-				else
-				{
-					logger.LogTrace("No upcoming dividends found for symbol {Symbol}", symbol.Symbol);
-				}
-
 			}
+
+			// Save changes
+			await databaseContext.SaveChangesAsync();
 		}
 	}
 }

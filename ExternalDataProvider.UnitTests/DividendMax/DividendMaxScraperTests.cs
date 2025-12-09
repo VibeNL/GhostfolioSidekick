@@ -63,7 +63,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var symbol = new SymbolProfile(
 				symbol: "AAPL",
 				name: "Apple",
-				identifiers: new List<string>(),
+				identifiers: [],
 				currency: GhostfolioSidekick.Model.Currency.USD,
 				dataSource: "Test",
 				assetClass: GhostfolioSidekick.Model.Activities.AssetClass.Equity,
