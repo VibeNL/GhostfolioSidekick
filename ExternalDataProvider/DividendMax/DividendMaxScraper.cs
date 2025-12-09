@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			int id = 1;
 			foreach (var row in rows)
 			{
-				var dividend = ParseDividendRow(row, originalSymbol, id);
+				var dividend = ParseDividendRow(row, id);
 				if (dividend != null)
 				{
 					result.Add(dividend);
@@ -81,7 +81,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return result;
 		}
 
-		private static Dividend? ParseDividendRow(HtmlNode row, string symbol, int id)
+		private static Dividend? ParseDividendRow(HtmlNode row, int id)
 		{
 			var cells = row.SelectNodes("td");
 			if (cells == null || cells.Count < 9)
