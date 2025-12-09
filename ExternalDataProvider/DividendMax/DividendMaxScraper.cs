@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				return [];
 			}
 
-			var dividends = ParseDividendsFromHtml(page, symbol.Symbol);
+			var dividends = ParseDividendsFromHtml(page);
 			return dividends;
 		}
 
@@ -48,7 +48,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return await httpClient.GetStringAsync(pageUrl);
 		}
 
-		private static List<Dividend> ParseDividendsFromHtml(string html, string originalSymbol)
+		private static List<Dividend> ParseDividendsFromHtml(string html)
 		{
 			var result = new List<Dividend>();
 
