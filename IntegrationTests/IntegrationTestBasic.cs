@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
-using xRetry;
 
 namespace GhostfolioSidekick.IntegrationTests
 {

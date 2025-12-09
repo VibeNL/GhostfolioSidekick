@@ -1,6 +1,3 @@
-using GhostfolioSidekick.Model.Symbols;
-using System;
-
 namespace GhostfolioSidekick.Model.Market
 {
 	public record Dividend

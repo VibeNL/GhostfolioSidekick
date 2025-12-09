@@ -1,15 +1,10 @@
 using AwesomeAssertions;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer

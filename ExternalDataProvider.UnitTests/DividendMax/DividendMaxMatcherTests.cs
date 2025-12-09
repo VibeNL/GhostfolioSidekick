@@ -1,14 +1,9 @@
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using Moq;
 using Moq.Protected;
-using Xunit;
 
 namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 {

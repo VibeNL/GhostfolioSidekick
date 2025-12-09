@@ -1,8 +1,6 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
-using Moq;
 
 namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 {

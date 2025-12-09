@@ -1,11 +1,7 @@
 using GhostfolioSidekick.AccountMaintainer;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
-using Microsoft.EntityFrameworkCore;
-using Moq;
 using Moq.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 {

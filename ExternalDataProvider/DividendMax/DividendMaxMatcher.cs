@@ -1,7 +1,6 @@
 ﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
-using System.Net.Http;
 using System.Net.Http.Json;
 using GhostfolioSidekick.Model;
 

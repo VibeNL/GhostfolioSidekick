@@ -4,7 +4,6 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
-using System.Web;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {

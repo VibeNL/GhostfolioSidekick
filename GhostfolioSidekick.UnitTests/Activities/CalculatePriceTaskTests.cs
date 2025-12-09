@@ -1,11 +1,7 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Activities.Strategies;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.Activities

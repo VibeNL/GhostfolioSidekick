@@ -1,7 +1,3 @@
-using System;
-using Xunit;
-using GhostfolioSidekick.Utilities;
-
 namespace GhostfolioSidekick.Utilities.UnitTests
 {
 	public class SemanticMatcherTests

@@ -1,12 +1,4 @@
-using System;
-using System.Threading.Tasks;
-using GhostfolioSidekick.Performance;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Database;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-using Microsoft.EntityFrameworkCore;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model.Accounts;

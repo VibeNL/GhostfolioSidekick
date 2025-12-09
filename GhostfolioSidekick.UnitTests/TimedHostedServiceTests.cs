@@ -1,8 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Moq;
-using GhostfolioSidekick.Database;
-using Microsoft.EntityFrameworkCore;
-using xRetry;
+﻿using xRetry;
 
 namespace GhostfolioSidekick.UnitTests
 {

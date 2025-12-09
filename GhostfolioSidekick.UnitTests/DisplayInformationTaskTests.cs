@@ -1,6 +1,4 @@
 using GhostfolioSidekick.Configuration;
-using Microsoft.Extensions.Logging;
-using Moq;
 
 namespace GhostfolioSidekick.UnitTests
 {

@@ -1,10 +1,8 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
-using Moq;
 
 namespace GhostfolioSidekick.UnitTests.Activities.Strategies
 {

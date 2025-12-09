@@ -1,16 +1,5 @@
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Performance;
-using GhostfolioSidekick.Model.Activities;
-using Microsoft.Extensions.Logging;
-using Moq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Xunit;
 
 namespace GhostfolioSidekick.UnitTests.Performance
 {
