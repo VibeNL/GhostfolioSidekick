@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class GatherDividendsTask(
-		/*IDbContextFactory<DatabaseContext> databaseContextFactory,
-		IDividendRepository upcomingDividendRepository*/) : IScheduledWork
+		IDbContextFactory<DatabaseContext> databaseContextFactory,
+		IDividendRepository upcomingDividendRepository) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.GatherDividends;
 
@@ -19,10 +19,9 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public async Task DoWork(ILogger logger)
 		{
-			return;
-			/*
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var symbols = await databaseContext.SymbolProfiles
+				.Take(0) // Disabled for now
 				.ToListAsync();
 
 			foreach (var symbol in symbols)
@@ -45,7 +44,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 			}
-			*/
 		}
 	}
 }
