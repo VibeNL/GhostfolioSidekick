@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public bool ExceptionsAreFatal => false;
 
-		public string Name => "Upcoming Dividends Task";
+		public string Name => "Gather Dividends Task";
 
 		public async Task DoWork(ILogger logger)
 		{
