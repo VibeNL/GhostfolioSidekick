@@ -67,21 +67,19 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				return result;
 			}
 
-			int id = 1;
 			foreach (var row in rows)
 			{
-				var dividend = ParseDividendRow(row, id);
+				var dividend = ParseDividendRow(row);
 				if (dividend != null)
 				{
 					result.Add(dividend);
-					id++;
 				}
 			}
 
 			return result;
 		}
 
-		private static Dividend? ParseDividendRow(HtmlNode row, int id)
+		private static Dividend? ParseDividendRow(HtmlNode row)
 		{
 			var cells = row.SelectNodes("td");
 			if (cells == null || cells.Count < 9)
@@ -107,7 +105,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 
 			return new Dividend
 			{
-				Id = id,
+				Id = 0,
 				ExDividendDate = DateOnly.FromDateTime(exDivDate.Value),
 				PaymentDate = DateOnly.FromDateTime(payDate),
 				DividendType = DividendType.Cash,

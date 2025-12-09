@@ -2,7 +2,7 @@ namespace GhostfolioSidekick.Model.Market
 {
 	public record Dividend
 	{
-		public int Id { get; init; }
+		public int Id { get; set; }
 
 		public DateOnly ExDividendDate { get; init; }
 
