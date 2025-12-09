@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 				return true;
 			}
 
-			// If Empty list of null, assume all asset classes are allowed otherwise false
+			// If empty list or null, assume all asset classes are allowed; otherwise, false
 			if (identifier.AllowedAssetClasses == null || identifier.AllowedAssetClasses.Count == 0)
 			{
 				return true;
