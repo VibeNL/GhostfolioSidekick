@@ -22,32 +22,36 @@ namespace GhostfolioSidekick.Utilities
 			var scores = new List<int>();
 			foreach (var identifier in sourceValues)
 			{
+				if (string.IsNullOrWhiteSpace(identifier))
+				{
+					continue;
+				}
+
 				foreach (var candidate in candidateValues)
 				{
-					if (string.IsNullOrWhiteSpace(identifier) || string.IsNullOrWhiteSpace(candidate))
-						continue;
-
-					// Case-insensitive exact match
-					if (string.Equals(identifier, candidate, StringComparison.InvariantCultureIgnoreCase))
+					if (string.IsNullOrWhiteSpace(candidate))
 					{
-						scores.Add(100);
 						continue;
 					}
 
-					// Partial match (substring)
-					if (candidate.Contains(identifier, StringComparison.InvariantCultureIgnoreCase))
-					{
-						scores.Add(80);
-						continue;
-					}
-
-					// Fuzzy match: Levenshtein distance based similarity
-					int fuzzyScore = CalculateFuzzyScore(identifier, candidate);
-					scores.Add(fuzzyScore);
+					scores.Add(GetMatchScore(identifier, candidate));
 				}
 			}
 
-			return scores.Count > 0 ? scores.Max() : 0;
+			return scores.Count > 0 ? scores.Max() : 0;	
+		}
+
+		private static int GetMatchScore(string identifier, string candidate)
+		{
+			if (string.Equals(identifier, candidate, StringComparison.InvariantCultureIgnoreCase))
+			{
+				return 100;
+			}
+			if (candidate.Contains(identifier, StringComparison.InvariantCultureIgnoreCase))
+			{
+				return 80;
+			}
+			return CalculateFuzzyScore(identifier, candidate);
 		}
 
 		// Simple Levenshtein-based similarity (returns 0-70)
