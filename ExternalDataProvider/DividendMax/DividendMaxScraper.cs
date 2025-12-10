@@ -136,9 +136,25 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return DateTime.TryParse(dateStr, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date : null;
 		}
 
+		// Parse strings like 8500sen, 125¢ and 23.5c
 		private static decimal ParseDecimal(string decimalStr)
 		{
-			return decimal.TryParse(decimalStr, NumberStyles.Any, CultureInfo.InvariantCulture, out var result) ? result : 0;
+			// Always take the numeric part, parse it, and divide by 100
+			if (string.IsNullOrWhiteSpace(decimalStr))
+			{
+				return 0;
+			}
+
+			var numPart = new string([.. decimalStr.Where(c => char.IsDigit(c) || c == '.' || c == ',' || c == '-')]);
+			if (string.IsNullOrWhiteSpace(numPart))
+			{
+				return 0;
+			}
+
+			// Replace comma with dot for decimal separator if needed
+			numPart = numPart.Replace(',', '.');
+
+			return decimal.TryParse(numPart, NumberStyles.Any, CultureInfo.InvariantCulture, out var value) ? value / 100m : 0;
 		}
 	}
 }

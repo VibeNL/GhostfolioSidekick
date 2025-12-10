@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 				WebsiteUrl = "https://www.dividendmax.com/en/stock/apple-inc-dividends"
 			};
 			var suggestJson = "[{\"path\":\"/apple-inc-dividends\"}]";
-			var html = @"<table class='mdc-data-table__table'><tbody><tr><td></td><td></td><td></td><td>2099-12-31</td><td>2100-01-15</td><td>USD</td><td></td><td>1.23</td><td></td></tr></tbody></table>";
+			var html = @"<table class='mdc-data-table__table'><tbody><tr><td></td><td></td><td></td><td>2099-12-31</td><td>2100-01-15</td><td>USD</td><td></td><td>123cents</td><td></td></tr></tbody></table>";
 
 			var handlerMock = new Mock<HttpMessageHandler>();
 			handlerMock.Protected()
