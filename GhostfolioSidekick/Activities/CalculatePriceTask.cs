@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.Activities
 {
 	internal class CalculatePriceTask(
-		IEnumerable<IHoldingStrategy> holdingStrategies, 
+		IEnumerable<IHoldingStrategy> holdingStrategies,
 		IDbContextFactory<DatabaseContext> databaseContextFactory) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.CalculatePrice;

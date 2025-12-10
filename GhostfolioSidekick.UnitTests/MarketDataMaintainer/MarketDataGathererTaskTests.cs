@@ -1,15 +1,10 @@
 using AwesomeAssertions;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.MarketDataMaintainer;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
@@ -600,7 +595,7 @@ namespace GhostfolioSidekick.UnitTests.MarketDataMaintainer
 			var holding = new Holding
 			{
 				SymbolProfiles = [symbolProfile],
-				Activities = [ new BuyActivity { Date = DateTime.Today.AddDays(-4) } ]
+				Activities = [new BuyActivity { Date = DateTime.Today.AddDays(-4) }]
 			};
 			var holdings = new List<Holding> { holding };
 

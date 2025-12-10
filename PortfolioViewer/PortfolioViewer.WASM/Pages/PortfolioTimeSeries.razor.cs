@@ -166,8 +166,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				{
 					// Get price history for this holding over the selected time range
 					var priceHistory = await HoldingsDataService.GetHoldingPriceHistoryAsync(
-						holding.Symbol, 
-						StartDate, 
+						holding.Symbol,
+						StartDate,
 						EndDate
 					);
 

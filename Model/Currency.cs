@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace GhostfolioSidekick.Model
 {
@@ -8,6 +7,7 @@ namespace GhostfolioSidekick.Model
 	[SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
 	public record Currency
 	{
+		public static readonly Currency NONE = new("NONE");
 		public static readonly Currency EUR = new("EUR");
 		public static readonly Currency USD = new("USD");
 		public static readonly Currency GBP = new("GBP");

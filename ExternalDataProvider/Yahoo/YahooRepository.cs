@@ -173,7 +173,10 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 				ParseQuoteType(symbol.QuoteType),
 				ParseQuoteTypeAsSub(symbol.QuoteType),
 				GetCountries(securityProfile),
-				GetSectors(securityProfile));
+				GetSectors(securityProfile))
+			{
+				WebsiteUrl = $"https://finance.yahoo.com/quote/{symbol.Symbol}",
+			};
 		}
 
 		private async Task<IReadOnlyDictionary<string, Security>?> GetSymbolDetails(string symbolName)
@@ -248,12 +251,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 
 			if (symbolItem != null)
 			{
+				var marketVolume = symbolItem.Fields.ContainsKey("RegularMarketVolume") ? symbolItem.RegularMarketVolume : 0;
+
 				var item = new MarketData(
 									new Money(currency with { }, (decimal)symbolItem.RegularMarketPrice),
 									new Money(currency with { }, (decimal)symbolItem.RegularMarketOpen),
 									new Money(currency with { }, (decimal)symbolItem.RegularMarketDayHigh),
 									new Money(currency with { }, (decimal)symbolItem.RegularMarketDayLow),
-									symbolItem.RegularMarketVolume,
+									marketVolume,
 									DateOnly.FromDateTime(DateTime.Now));
 				list.Add(item);
 			}

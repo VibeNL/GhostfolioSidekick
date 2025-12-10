@@ -8,7 +8,6 @@
 
 		MaintainManualSymbol,
 
-
 		FileImporter,
 
 		CurrencyGatherer,
@@ -18,6 +17,8 @@
 		DetermineHoldings,
 
 		SymbolMatcher,
+
+		MarketDataDividends,
 
 		MarketDataStockSplit,
 

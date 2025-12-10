@@ -793,7 +793,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(($"Starting sync for table: {tableName}...", 10));
 
 				var grpcClient = GetGrpcClient();
-				
+
 				await using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
 				// Enable performance optimizations

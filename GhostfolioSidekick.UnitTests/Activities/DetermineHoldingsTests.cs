@@ -1,15 +1,10 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.Activities;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-using Moq;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.Activities
@@ -91,7 +86,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
-			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id ==1)), Times.Once);
+			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id == 1)), Times.Once);
 			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
 		}
 

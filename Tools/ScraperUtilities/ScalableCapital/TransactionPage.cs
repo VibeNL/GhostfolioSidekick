@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 						logger.LogError(ex, "Error processing transaction {Counter}: {Message}", counter, ex.Message);
 					}
 				}
-								
+
 				counter++;
 			}
 

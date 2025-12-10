@@ -35,25 +35,25 @@ namespace GhostfolioSidekick.AI.Server
 				await using var fileStream = File.Create(tempModelPath);
 
 				var buffer = new byte[81920];
-				long totalRead =0;
+				long totalRead = 0;
 				int read;
 
-				while ((read = await responseStream.ReadAsync(buffer).ConfigureAwait(false)) >0)
+				while ((read = await responseStream.ReadAsync(buffer).ConfigureAwait(false)) > 0)
 				{
 					await fileStream.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
 					totalRead += read;
 
 					double progress;
 					string message;
-					if (contentLength.HasValue && contentLength.Value >0)
+					if (contentLength.HasValue && contentLength.Value > 0)
 					{
-						progress = Math.Min(0.9,0.1 +0.8 * ((double)totalRead / contentLength.Value));
+						progress = Math.Min(0.9, 0.1 + 0.8 * ((double)totalRead / contentLength.Value));
 						message = $"Downloading model ({BytesToString(totalRead)} / {BytesToString(contentLength.Value)})";
 					}
 					else
 					{
 						// Unknown length - provide incremental progress based on bytes downloaded (cap at90%)
-						progress = Math.Min(0.9,0.1 + Math.Min(0.8, (double)totalRead / (1024 *1024) *0.05));
+						progress = Math.Min(0.9, 0.1 + Math.Min(0.8, (double)totalRead / (1024 * 1024) * 0.05));
 						message = $"Downloading model ({BytesToString(totalRead)})";
 					}
 
@@ -70,8 +70,8 @@ namespace GhostfolioSidekick.AI.Server
 			// Load model into LLama
 			var parameters = new ModelParams(tempModelPath)
 			{
-				ContextSize =1024,
-				GpuLayerCount =0
+				ContextSize = 1024,
+				GpuLayerCount = 0
 			};
 
 			model = await LLamaWeights.LoadFromFileAsync(parameters).ConfigureAwait(false);
@@ -124,7 +124,7 @@ namespace GhostfolioSidekick.AI.Server
 
 			var inference = new InferenceParams()
 			{
-				MaxTokens =256,
+				MaxTokens = 256,
 				AntiPrompts = new List<string> { "User:" }
 			};
 
@@ -162,11 +162,11 @@ namespace GhostfolioSidekick.AI.Server
 
 		private static string BytesToString(long byteCount)
 		{
-			if (byteCount ==0) return "0B";
+			if (byteCount == 0) return "0B";
 			string[] suf = ["B", "KB", "MB", "GB", "TB", "PB"];
 			var bytes = Math.Abs((double)byteCount);
-			var place = Convert.ToInt32(Math.Floor(Math.Log(bytes,1024)));
-			var num = Math.Round(bytes / Math.Pow(1024, place),2);
+			var place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+			var num = Math.Round(bytes / Math.Pow(1024, place), 2);
 			return (Math.Sign(byteCount) * num).ToString() + suf[place];
 		}
 

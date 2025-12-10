@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		public async Task<MainPage> LoginAsync()
 		{
 			await page.GotoAsync("https://de.scalable.capital/en/secure-login");
-			
+
 			// Wait for MFA
 			logger.LogInformation("Waiting for you to login...");
 			while (!await page.GetByTestId("large-price").IsVisibleAsync())

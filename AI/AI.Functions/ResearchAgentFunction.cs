@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 namespace GhostfolioSidekick.AI.Functions
 {
 	public partial class ResearchAgentFunction(
-		IGoogleSearchService searchService, 
+		IGoogleSearchService searchService,
 		IChatCompletionService chatService,
 		ModelInfo modelInfo,
 		AgentLogger agentLogger)
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.AI.Functions
 
 			// Remove HTML tags
 			var text = TagRegEx().Replace(input, string.Empty);
-			
+
 			// Optionally, decode HTML entities
 			return System.Net.WebUtility.HtmlDecode(text).Trim();
 		}
@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.AI.Functions
 		internal static string TruncatePrompt(string prompt, int maxTokens)
 		{
 			if (string.IsNullOrEmpty(prompt)) return string.Empty;
-			return prompt.Length > maxTokens ? prompt[.. maxTokens] : prompt;
+			return prompt.Length > maxTokens ? prompt[..maxTokens] : prompt;
 		}
 	}
 }

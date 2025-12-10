@@ -188,7 +188,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.Include(a => a.Account)
 				.Include(a => a.Holding)
 				.Where(a => a.Date >= startDate.ToDateTime(TimeOnly.MinValue) && a.Date <= endDate.ToDateTime(TimeOnly.MinValue));
-			
+
 			if (accountId > 0)
 			{
 				query = query.Where(a => a.Account.Id == accountId);

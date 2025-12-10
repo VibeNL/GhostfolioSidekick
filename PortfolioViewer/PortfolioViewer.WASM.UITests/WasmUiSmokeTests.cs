@@ -1,13 +1,4 @@
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.Playwright;
-using Xunit;
-using GhostfolioSidekick.PortfolioViewer.ApiService;
-using System.IO;
-using System.Linq;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace PortfolioViewer.WASM.UITests
 {

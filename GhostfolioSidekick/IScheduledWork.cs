@@ -9,7 +9,7 @@ namespace GhostfolioSidekick
 		TimeSpan ExecutionFrequency { get; }
 
 		bool ExceptionsAreFatal { get; }
-		
+
 		string Name { get; }
 
 		Task DoWork(ILogger logger);

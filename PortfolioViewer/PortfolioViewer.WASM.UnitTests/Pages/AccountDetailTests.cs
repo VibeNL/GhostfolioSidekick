@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			Services.AddSingleton(_mockCurrencyExchange.Object);
 			Services.AddSingleton(_mockServerConfigurationService.Object);
 			Services.AddSingleton<NavigationManager>(_mockNavigationManager);
-			
+
 			// Add the missing ITestContextService
 			Services.AddSingleton<ITestContextService>(new TestContextService { IsTest = true });
 		}
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			// Arrange
 			SetupBasicMocks();
 			var component = Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
-			
+
 			// Use reflection to access protected method
 			var componentInstance = component.Instance;
 			var getTypeClassMethod = componentInstance.GetType().GetMethod("GetTypeClass", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -303,7 +303,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			SetupAccountMocks([testAccount], accountHistory);
 
 			var filterState = new FilterState();
-			
+
 			var component = Render<AccountDetail>(parameters => parameters
 				.Add(p => p.AccountId, 1)
 				.AddCascadingValue("FilterState", filterState));
@@ -347,7 +347,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			// This test ensures the component handles missing services gracefully
 			// We'll skip the actual rendering since it would throw exceptions
 			// and focus on testing service availability checks
-			
+
 			// Arrange - Create basic mocks but don't add all services
 			using var testContext = new BunitContext();
 			testContext.Services.AddSingleton<ITestContextService>(new TestContextService { IsTest = true });
@@ -360,7 +360,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				var component = testContext.Render<AccountDetail>(parameters => parameters.Add(p => p.AccountId, 1));
 				await Task.Delay(100);
 				component.Render();
-				
+
 				// If we get here without exception, the component handled it gracefully
 				Assert.True(true);
 			}
@@ -462,13 +462,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		{
 			var startTime = DateTime.UtcNow;
 			var waitInterval = 25;
-			
+
 			while (DateTime.UtcNow.Subtract(startTime).TotalMilliseconds < maxWaitMs)
 			{
 				try
 				{
 					component.Render();
-					
+
 					// If we're looking for specific text, check for it
 					if (!string.IsNullOrEmpty(containsText))
 					{

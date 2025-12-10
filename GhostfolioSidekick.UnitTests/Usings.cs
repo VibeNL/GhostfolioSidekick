@@ -1,7 +1,6 @@
 global using Xunit;
 global using Moq;
 global using Microsoft.EntityFrameworkCore;
-global using Microsoft.EntityFrameworkCore.Query;
 global using GhostfolioSidekick.Database;
 global using GhostfolioSidekick.Model.Performance;
 global using GhostfolioSidekick.Performance;

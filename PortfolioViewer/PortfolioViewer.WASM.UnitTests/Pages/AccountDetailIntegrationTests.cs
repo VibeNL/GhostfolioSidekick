@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			this.Services.AddSingleton(_mockCurrencyExchange.Object);
 			this.Services.AddSingleton(_mockServerConfigurationService.Object);
 			this.Services.AddSingleton<NavigationManager>(new MockNavigationManager());
-			
+
 			// Add the missing ITestContextService
 			this.Services.AddSingleton<ITestContextService>(new TestContextService { IsTest = true });
 		}
@@ -234,7 +234,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 				It.IsAny<CancellationToken>()), Times.AtLeastOnce);
 
 			_mockTransactionService.Verify(x => x.GetTransactionsPaginatedAsync(
-				It.Is<TransactionQueryParameters>(p => 
+				It.Is<TransactionQueryParameters>(p =>
 					p.AccountId == 1),
 				It.IsAny<CancellationToken>()), Times.AtLeastOnce);
 		}
@@ -268,7 +268,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		{
 			// Arrange - Simulate a large data set
 			var testAccount = new Account("Large Account") { Id = 1 };
-			
+
 			var accountHistory = Enumerable.Range(0, 365)
 				.Select(i => new AccountValueHistoryPoint
 				{
@@ -404,13 +404,13 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 		{
 			var startTime = DateTime.UtcNow;
 			var waitInterval = 50;
-			
+
 			while (DateTime.UtcNow.Subtract(startTime).TotalMilliseconds < maxWaitMs)
 			{
 				try
 				{
 					component.Render();
-					
+
 					// If we're looking for specific text, check for it
 					if (!string.IsNullOrEmpty(containsText))
 					{

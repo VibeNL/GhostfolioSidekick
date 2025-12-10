@@ -61,6 +61,8 @@ namespace GhostfolioSidekick.Model.Symbols
 
 		public string? Comment { get; set; }
 
+		public string? WebsiteUrl { get; set; }
+
 		public virtual ICollection<CountryWeight> CountryWeight { get; set; }
 
 		public virtual ICollection<SectorWeight> SectorWeights { get; set; }
@@ -68,6 +70,8 @@ namespace GhostfolioSidekick.Model.Symbols
 		public virtual ICollection<MarketData> MarketData { get; set; } = [];
 
 		public virtual ICollection<StockSplit> StockSplits { get; set; } = [];
+
+		public virtual ICollection<Dividend> Dividends { get; set; } = [];
 
 		public override string ToString()
 		{

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class MarketDataGathererTask(
-		IDbContextFactory<DatabaseContext> databaseContextFactory, 
+		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IStockPriceRepository[] stockPriceRepositories) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.MarketDataGatherer;
@@ -104,12 +104,12 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 				// Ensure the date is at least 7 days in the past
 				var sevenDaysAgo = DateOnly.FromDateTime(DateTime.Today.AddDays(-7));
-                if (date > sevenDaysAgo)
-                {
-                    date = sevenDaysAgo;
-                }
+				if (date > sevenDaysAgo)
+				{
+					date = sevenDaysAgo;
+				}
 
-                var list = await stockPriceRepository.GetStockMarketData(symbol, date);
+				var list = await stockPriceRepository.GetStockMarketData(symbol, date);
 
 				foreach (var marketData in list)
 				{

@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true);
@@ -643,6 +643,56 @@ namespace GhostfolioSidekick.Database.Migrations
                     b.ToTable("CurrencyExchangeRate", (string)null);
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Market.Dividend", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DividendState")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DividendType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("ExDividendDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("PaymentDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SymbolProfileDataSource")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SymbolProfileSymbol")
+                        .HasColumnType("TEXT");
+
+                    b.ComplexProperty<Dictionary<string, object>>("Amount", "GhostfolioSidekick.Model.Market.Dividend.Amount#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Amount");
+
+                            b1.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Market.Dividend.Amount#Money.Currency#Currency", b2 =>
+                                {
+                                    b2.IsRequired();
+
+                                    b2.Property<string>("Symbol")
+                                        .IsRequired()
+                                        .HasColumnType("TEXT")
+                                        .HasColumnName("CurrencyAmount");
+                                });
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SymbolProfileSymbol", "SymbolProfileDataSource");
+
+                    b.ToTable("Dividends");
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>
                 {
                     b.Property<int>("ID")
@@ -1067,6 +1117,9 @@ namespace GhostfolioSidekick.Database.Migrations
 
                     b.Property<string>("SectorWeights")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WebsiteUrl")
                         .HasColumnType("TEXT");
 
                     b.ComplexProperty<Dictionary<string, object>>("Currency", "GhostfolioSidekick.Model.Symbols.SymbolProfile.Currency#Currency", b1 =>
@@ -1507,6 +1560,13 @@ namespace GhostfolioSidekick.Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("GhostfolioSidekick.Model.Market.Dividend", b =>
+                {
+                    b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
+                        .WithMany("Dividends")
+                        .HasForeignKey("SymbolProfileSymbol", "SymbolProfileDataSource");
+                });
+
             modelBuilder.Entity("GhostfolioSidekick.Model.Market.MarketData", b =>
                 {
                     b.HasOne("GhostfolioSidekick.Model.Symbols.SymbolProfile", null)
@@ -1600,6 +1660,8 @@ namespace GhostfolioSidekick.Database.Migrations
 
             modelBuilder.Entity("GhostfolioSidekick.Model.Symbols.SymbolProfile", b =>
                 {
+                    b.Navigation("Dividends");
+
                     b.Navigation("MarketData");
 
                     b.Navigation("StockSplits");

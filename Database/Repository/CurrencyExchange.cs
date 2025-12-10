@@ -38,6 +38,12 @@ namespace GhostfolioSidekick.Database.Repository
 
 		private async Task<decimal> GetExchangeRate(DateOnly searchDate, Currency sourceCurrency, Currency targetCurrency)
 		{
+			if (sourceCurrency == Currency.NONE || targetCurrency == Currency.NONE)
+			{
+				logger.LogWarning("One of the currencies is NONE: {FromCurrency} to {ToCurrency}.", sourceCurrency, targetCurrency);
+				return 1m; // Default to 1 if one of the currencies is NONE
+			}
+
 			// If the currencies are the same, return 1
 			if (sourceCurrency == targetCurrency)
 			{

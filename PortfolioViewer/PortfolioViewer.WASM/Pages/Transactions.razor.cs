@@ -4,7 +4,6 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Models;
 using Microsoft.AspNetCore.Components;
 using System.ComponentModel;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
-using System.Web;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -87,8 +86,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				var uri = new Uri(Navigation.Uri);
 				var queryString = uri.Query;
-				
-				if (string.IsNullOrEmpty(queryString)) 
+
+				if (string.IsNullOrEmpty(queryString))
 				{
 					_hasAppliedUrlParameters = true;
 					return;

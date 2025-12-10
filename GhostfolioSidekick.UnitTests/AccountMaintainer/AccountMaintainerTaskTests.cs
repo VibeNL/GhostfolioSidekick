@@ -1,12 +1,8 @@
 using AwesomeAssertions;
 using GhostfolioSidekick.AccountMaintainer;
 using GhostfolioSidekick.Configuration;
-using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
 using Moq.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.UnitTests.AccountMaintainer
@@ -97,7 +93,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			// Arrange
 			var existingAccount = new Account("TestAccount")
 			{
-				Id =1,
+				Id = 1,
 				SyncActivities = true,
 				SyncBalance = true
 			};

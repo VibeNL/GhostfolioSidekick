@@ -1,11 +1,13 @@
 ﻿using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
+using CoinGecko.Net.Objects.Options;
 using GhostfolioSidekick.Activities.Strategies;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
+using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.ExternalDataProvider.Manual;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.GhostfolioAPI;
@@ -20,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RestSharp;
 using System.Diagnostics.CodeAnalysis;
 
@@ -53,6 +56,8 @@ namespace GhostfolioSidekick
 						})
 						.ConfigureServices((hostContext, services) =>
 						{
+							services.AddHttpClient();
+
 							services.AddSingleton<MemoryCache, MemoryCache>();
 							services.AddSingleton<IMemoryCache>(x => x.GetRequiredService<MemoryCache>());
 							services.AddSingleton<IApplicationSettings, ApplicationSettings>();
@@ -100,19 +105,27 @@ namespace GhostfolioSidekick
 							services.AddSingleton<CoinGeckoRepository>();
 							services.AddSingleton<GhostfolioSymbolMatcher>();
 							services.AddSingleton<ManualSymbolRepository>();
-							services.AddTransient<ICoinGeckoRestClient, CoinGeckoRestClient>();
+							services.AddSingleton<DividendMaxMatcher>();
+							services.AddTransient<ICoinGeckoRestClient>(sp =>
+								new CoinGeckoRestClient(
+									sp.GetRequiredService<HttpClient>(),
+									sp.GetRequiredService<ILoggerFactory>(),
+									Options.Create(new CoinGeckoRestOptions())));
 
 							services.AddSingleton<ICurrencyRepository>(sp => sp.GetRequiredService<YahooRepository>());
 							services.AddSingleton<ISymbolMatcher[]>(sp => [
 									sp.GetRequiredService<YahooRepository>(),
 									sp.GetRequiredService<CoinGeckoRepository>(),
 									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
-									sp.GetRequiredService<ManualSymbolRepository>()
+									sp.GetRequiredService<ManualSymbolRepository>(),
+									sp.GetRequiredService<DividendMaxMatcher>()
 								]);
 							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
+
+							services.AddHttpClient<IDividendRepository, DividendMaxScraper>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							RegisterAllWithInterface<IScheduledWork>(services);
