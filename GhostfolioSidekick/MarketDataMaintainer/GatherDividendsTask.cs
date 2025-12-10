@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 			foreach (var symbol in symbols)
 			{
-				logger.LogTrace("Processing dividends for symbol {Symbol}", symbol.Symbol);
+				logger.LogDebug("Processing dividends for symbol {Symbol}", symbol.Symbol);
 
 				// Gather all dividends
 				var gatheredDividends = await dividendRepository.GetDividends(symbol);
@@ -35,16 +35,16 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				// Build lookups by key (ExDividendDate, PaymentDate, DividendType)
 				var existingDividends = symbol.Dividends.ToList();
 				var existingLookup = existingDividends.ToDictionary(
-					d => (d.ExDividendDate, d.PaymentDate, d.DividendType)
+					d => (d.ExDividendDate, d.PaymentDate, d.DividendType, d.DividendState)
 				);
 				var gatheredLookup = gatheredDividends.ToDictionary(
-					d => (d.ExDividendDate, d.PaymentDate, d.DividendType)
+					d => (d.ExDividendDate, d.PaymentDate, d.DividendType, d.DividendState)
 				);
 
 				// Upsert gathered dividends
 				foreach (var gathered in gatheredDividends)
 				{
-					if (existingLookup.TryGetValue((gathered.ExDividendDate, gathered.PaymentDate, gathered.DividendType), out var existing))
+					if (existingLookup.TryGetValue((gathered.ExDividendDate, gathered.PaymentDate, gathered.DividendType, gathered.DividendState), out var existing))
 					{
 						// Update properties if changed
 						existing.Amount = gathered.Amount;
@@ -58,14 +58,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 				}
 
 				foreach (var existing in existingDividends
-						.Where(existing => !gatheredLookup.ContainsKey((existing.ExDividendDate, existing.PaymentDate, existing.DividendType)))
+						.Where(existing => !gatheredLookup.ContainsKey((existing.ExDividendDate, existing.PaymentDate, existing.DividendType, existing.DividendState)))
 				)
 				{
 					symbol.Dividends.Remove(existing);
 					databaseContext.Dividends.Remove(existing);
 				}
 
-				logger.LogInformation("Upserted {Count} dividends for symbol {Symbol}", gatheredDividends.Count, symbol.Symbol);
+				logger.LogDebug("Upserted {Count} dividends for symbol {Symbol}", gatheredDividends.Count, symbol.Symbol);
 			}
 
 			// Save changes

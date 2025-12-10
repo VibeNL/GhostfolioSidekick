@@ -35,6 +35,22 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			}
 
 			var dividends = ParseDividendsFromHtml(page);
+
+			// Group per ex-dividend date and sum
+			dividends = dividends
+				.GroupBy(d => new { d.ExDividendDate, d.PaymentDate, d.DividendType, d.DividendState })
+				.Select(g => new Dividend
+				{
+					Id = 0,
+					ExDividendDate = g.Key.ExDividendDate,
+					PaymentDate = g.Key.PaymentDate,
+					DividendType = g.Key.DividendType,
+					DividendState = g.Key.DividendState,
+					Amount = new Money(g.First().Amount.Currency, g.Sum(d => d.Amount.Amount))
+				})
+				.ToList();
+
+
 			return dividends;
 		}
 

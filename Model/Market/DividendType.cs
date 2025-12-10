@@ -2,12 +2,12 @@
 {
 	public enum DividendType
 	{
-		Cash,
+		Cash = 1,
 
-		CashInterim,
+		CashInterim = 2,
 
-		Stock,
+		Stock = 3,
 
-		SpecialCash
+		SpecialCash = 4,
 	}
 }

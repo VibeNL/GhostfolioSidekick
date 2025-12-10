@@ -2,12 +2,12 @@
 {
 	public enum DividendState
 	{
-		Paid,
+		Paid = 1,
 
-		Declared,
+		Declared = 2,
 
-		ExDividend,
+		ExDividend = 3,
 
-		Guessed,
+		Estimated = 4,
 	}
 }
