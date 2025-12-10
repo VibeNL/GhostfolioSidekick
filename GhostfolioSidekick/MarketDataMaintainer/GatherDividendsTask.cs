@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
 		IDividendRepository dividendRepository) : IScheduledWork
 	{
-		public TaskPriority Priority => TaskPriority.GatherDividends;
+		public TaskPriority Priority => TaskPriority.MarketDataDividends;
 
 		public TimeSpan ExecutionFrequency => Frequencies.Hourly;
 

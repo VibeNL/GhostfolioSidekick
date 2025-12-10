@@ -2,8 +2,6 @@
 {
 	public enum TaskPriority
 	{
-		GatherDividends, //TODO
-
 		DisplayInformation,
 
 		AccountMaintainer,
@@ -20,7 +18,7 @@
 
 		SymbolMatcher,
 
-
+		MarketDataDividends,
 
 		MarketDataStockSplit,
 
