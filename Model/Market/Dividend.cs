@@ -4,14 +4,14 @@ namespace GhostfolioSidekick.Model.Market
 	{
 		public int Id { get; set; }
 
-		public DateOnly ExDividendDate { get; init; }
+		public DateOnly ExDividendDate { get; set; }
 
-		public DateOnly PaymentDate { get; init; }
+		public DateOnly PaymentDate { get; set; }
 
-		public DividendType DividendType { get; init; }
+		public DividendType DividendType { get; set; }
 
-		public DividendState DividendState { get; init; }
+		public DividendState DividendState { get; set; }
 
-		public Money Amount { get; init; } = default!;
+		public Money Amount { get; set; } = default!;
 	}
 }

@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		private const string TableSelector = "//table[contains(@class, 'mdc-data-table__table')]";
 		private const string TableRowsSelector = ".//tbody/tr";
 
-		public async Task<IList<Dividend>> Gather(SymbolProfile symbol)
+		public async Task<IList<Dividend>> GetDividends(SymbolProfile symbol)
 		{
 			if (symbol == null || symbol.WebsiteUrl == null || symbol.DataSource != Datasource.DividendMax)
 			{
@@ -94,7 +94,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			}
 
 			var exDivDate = ParseDate(dividendData.ExDivDateStr);
-			if (!exDivDate.HasValue || exDivDate.Value <= DateTime.Today)
+			if (!exDivDate.HasValue)
 			{
 				return null;
 			}
@@ -102,29 +102,44 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			var payDate = ParseDate(dividendData.PayDateStr) ?? exDivDate.Value;
 			var amount = ParseDecimal(dividendData.DeclAmountStr);
 			var currency = Currency.GetCurrency(dividendData.CurrencyStr);
+			var type = ParseType(dividendData.Type);
 
 			return new Dividend
 			{
 				Id = 0,
 				ExDividendDate = DateOnly.FromDateTime(exDivDate.Value),
 				PaymentDate = DateOnly.FromDateTime(payDate),
-				DividendType = DividendType.Cash,
+				DividendType = type,
 				DividendState = DividendState.Declared,
 				Amount = new Money(currency, amount)
 			};
 		}
 
-		private static (string ExDivDateStr, string PayDateStr, string DeclAmountStr, string CurrencyStr) ExtractDividendData(HtmlNodeCollection cells)
+		private static DividendType ParseType(string type)
+		{
+			return type switch
+			{
+				"Monthly" => DividendType.Cash,
+				"Quarterly" => DividendType.Cash,
+				"Final" => DividendType.Cash,
+				"Interim" => DividendType.CashInterim,
+				"Special" => DividendType.SpecialCash,
+				_ => throw new NotSupportedException($"Dividend type '{type}' is not supported."),
+			};
+		}
+
+		private static (string ExDivDateStr, string PayDateStr, string DeclAmountStr, string CurrencyStr, string Type) ExtractDividendData(HtmlNodeCollection cells)
 		{
 			return (
 				ExDivDateStr: cells[3].InnerText.Trim(),
 				PayDateStr: cells[4].InnerText.Trim(),
 				DeclAmountStr: cells[7].InnerText.Trim(),
-				CurrencyStr: cells[5].InnerText.Trim()
+				CurrencyStr: cells[5].InnerText.Trim(),
+				Type: cells[1].InnerText.Trim()
 			);
 		}
 
-		private static bool IsValidDividendData((string ExDivDateStr, string PayDateStr, string DeclAmountStr, string CurrencyStr) data)
+		private static bool IsValidDividendData((string ExDivDateStr, string PayDateStr, string DeclAmountStr, string CurrencyStr, string Type) data)
 		{
 			return !string.IsNullOrWhiteSpace(data.DeclAmountStr) &&
 				   data.DeclAmountStr != "-" &&

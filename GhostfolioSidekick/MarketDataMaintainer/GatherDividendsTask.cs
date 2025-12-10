@@ -2,12 +2,13 @@
 using GhostfolioSidekick.ExternalDataProvider;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
 	internal class GatherDividendsTask(
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
-		IDividendRepository upcomingDividendRepository) : IScheduledWork
+		IDividendRepository dividendRepository) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.GatherDividends;
 
@@ -28,21 +29,43 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			{
 				logger.LogTrace("Processing dividends for symbol {Symbol}", symbol.Symbol);
 
-				// Gather all dividends (upcoming and past)
-				var list = await upcomingDividendRepository.Gather(symbol);
+				// Gather all dividends
+				var gatheredDividends = await dividendRepository.GetDividends(symbol);
 
-				// Delete all existing dividends for the symbol
-				symbol.Dividends.Clear();
+				// Build lookups by key (ExDividendDate, PaymentDate, DividendType)
+				var existingDividends = symbol.Dividends.ToList();
+				var existingLookup = existingDividends.ToDictionary(
+					d => (d.ExDividendDate, d.PaymentDate, d.DividendType)
+				);
+				var gatheredLookup = gatheredDividends.ToDictionary(
+					d => (d.ExDividendDate, d.PaymentDate, d.DividendType)
+				);
 
-				// Insert all gathered dividends
-				if (list.Count > 0)
+				// Upsert gathered dividends
+				foreach (var gathered in gatheredDividends)
 				{
-					logger.LogInformation("Found {Count} dividends for symbol {Symbol}", list.Count, symbol.Symbol);
-					foreach (var dividend in list)
+					if (existingLookup.TryGetValue((gathered.ExDividendDate, gathered.PaymentDate, gathered.DividendType), out var existing))
 					{
-						symbol.Dividends.Add(dividend);
+						// Update properties if changed
+						existing.Amount = gathered.Amount;
+						existing.DividendState = gathered.DividendState;
+					}
+					else
+					{
+						// Add new dividend
+						symbol.Dividends.Add(gathered);
 					}
 				}
+
+				foreach (var existing in existingDividends
+						.Where(existing => !gatheredLookup.ContainsKey((existing.ExDividendDate, existing.PaymentDate, existing.DividendType)))
+				)
+				{
+					symbol.Dividends.Remove(existing);
+					databaseContext.Dividends.Remove(existing);
+				}
+
+				logger.LogInformation("Upserted {Count} dividends for symbol {Symbol}", gatheredDividends.Count, symbol.Symbol);
 			}
 
 			// Save changes

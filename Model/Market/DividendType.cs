@@ -4,6 +4,8 @@
 	{
 		Cash,
 
+		CashInterim,
+
 		Stock,
 
 		SpecialCash

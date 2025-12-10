@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var repo = new DividendMaxScraper(httpClient);
 
 			// Act
-			var result = await repo.Gather(symbol);
+			var result = await repo.GetDividends(symbol);
 
 			// Assert
 			Assert.Single(result);
@@ -79,7 +79,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.DividendMax
 			var repo = new DividendMaxScraper(httpClient);
 
 			// Act
-			var result = await repo.Gather(symbol);
+			var result = await repo.GetDividends(symbol);
 
 			// Assert
 			Assert.Empty(result);
