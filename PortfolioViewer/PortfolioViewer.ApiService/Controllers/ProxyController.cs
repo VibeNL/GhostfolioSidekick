@@ -3,6 +3,7 @@ using GhostfolioSidekick.PortfolioViewer.ApiService.Services;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 
