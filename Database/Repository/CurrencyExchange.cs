@@ -40,8 +40,7 @@ namespace GhostfolioSidekick.Database.Repository
 		{
 			if (sourceCurrency == Currency.NONE || targetCurrency == Currency.NONE)
 			{
-				logger.LogWarning("One of the currencies is NONE: {FromCurrency} to {ToCurrency}.", sourceCurrency, targetCurrency);
-				return 1m; // Default to 1 if one of the currencies is NONE
+				throw new ArgumentException("Source or target currency cannot be NONE.");
 			}
 
 			// If the currencies are the same, return 1
