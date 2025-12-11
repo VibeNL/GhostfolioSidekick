@@ -107,6 +107,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 			{
 				var defaultSymbolProfile = data
 					.SymbolProfiles
+					.Where(x => x.Currency != Currency.NONE)
 					.OrderBy(x => x.
 						DataSource
 						.Contains(Datasource.GHOSTFOLIO) ? 2 : 1)
