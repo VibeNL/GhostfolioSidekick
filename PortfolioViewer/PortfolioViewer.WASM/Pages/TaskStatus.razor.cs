@@ -39,7 +39,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				_isLoading = true;
 				StateHasChanged();
 
-				using var DbContext = DbContextFactory.CreateDbContext();
+				using var DbContext = await DbContextFactory.CreateDbContextAsync();
 				_taskRuns = await DbContext.Tasks
 					.AsNoTracking()
 					.ToListAsync();

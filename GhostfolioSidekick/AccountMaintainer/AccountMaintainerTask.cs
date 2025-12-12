@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 			var platforms = applicationSettings.ConfigurationInstance.Platforms;
 			var accounts = applicationSettings.ConfigurationInstance.Accounts;
 
-			using var databaseContext = databaseContextFactory.CreateDbContext();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var existingAccounts = await databaseContext.Accounts.ToListAsync();
 
 			foreach (var accountConfig in accounts ?? Enumerable.Empty<AccountConfiguration>())
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		private async Task CreateAccount(AccountConfiguration accountConfig, PlatformConfiguration? platformConfiguration)
 		{
-			using var databaseContext = databaseContextFactory.CreateDbContext();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 
 			var platform = await CreateOrUpdatePlatform(databaseContext, platformConfiguration);
 			await databaseContext.Accounts.AddAsync(new Account(accountConfig.Name)

@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Sync
 
 		public async Task DoWork(ILogger logger)
 		{
-			await using var databaseContext = databaseContextFactory.CreateDbContext();
+			await using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 
 			// Only sync activities for accounts that have SyncActivities enabled
 			var allActivities = await databaseContext.Activities

@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Performance
 			}
 
 			// Use a fresh context for obsolete detection
-			using (var dbContext = dbContextFactory.CreateDbContext())
+			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
 			{
 				var existingHoldingKeys = await dbContext.HoldingAggregateds
 					.Select(h => new { h.Id, h.Symbol, h.AssetClass, h.AssetSubClass })
@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.Performance
 			var holdingList = holdings.ToList();
 			foreach (var batch in holdingList.Chunk(batchSize))
 			{
-				using var dbContext = dbContextFactory.CreateDbContext();
+				using var dbContext = await dbContextFactory.CreateDbContextAsync();
 				var batchKeys = batch.Select(h => (h.Symbol, h.AssetClass, h.AssetSubClass)).ToHashSet();
 
 				var existingBatchHoldings = (await dbContext.HoldingAggregateds
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.Performance
 
 		private async Task DeleteAllHoldings()
 		{
-			using var dbContext = dbContextFactory.CreateDbContext();
+			using var dbContext = await dbContextFactory.CreateDbContextAsync();
 			var allHoldings = await dbContext.HoldingAggregateds.ToListAsync();
 			if (allHoldings.Count != 0)
 			{
