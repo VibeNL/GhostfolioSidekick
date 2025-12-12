@@ -12,6 +12,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 	/// Configuration helper that provides a unified way to read configuration values
 	/// from appsettings.json files and environment variables with proper fallback logic.
 	/// </summary>
+	[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1873:Avoid potentially expensive logging", Justification = "<Pending>")]
 	public class ConfigurationHelper(IConfiguration configuration, IApplicationSettings applicationSettings, ILogger<ConfigurationHelper>? logger = null) : IConfigurationHelper
 	{
 		private readonly IConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
