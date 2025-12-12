@@ -8,6 +8,7 @@ using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
@@ -22,7 +23,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 		public TransactionServiceTests()
 		{
 			_mockDatabaseContext = new Mock<DatabaseContext>();
-			_transactionService = new TransactionService(_mockDatabaseContext.Object);
+
+			var dbFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+			_transactionService = new TransactionService(dbFactory.Object);
 		}
 
 		[Fact]

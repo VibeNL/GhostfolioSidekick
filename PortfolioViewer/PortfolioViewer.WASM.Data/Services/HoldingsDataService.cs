@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 	/// Interface for portfolio data services. Implement this interface to provide real data to the Holdings page.
 	/// </summary>
 	public class HoldingsDataService(
-		DatabaseContext databaseContext,
+		IDbContextFactory<DatabaseContext> dbContextFactory,
 		IServerConfigurationService serverConfigurationService) : IHoldingsDataService
 	{
 
@@ -37,6 +37,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			DateOnly endDate,
 			CancellationToken cancellationToken = default)
 		{
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var rawSnapShots = await databaseContext.HoldingAggregateds
 				.Where(x => x.Symbol == symbol)
 				.SelectMany(x => x.CalculatedSnapshots)
@@ -66,6 +67,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			int? accountId,
 			CancellationToken cancellationToken = default)
 		{
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var snapShots = await databaseContext.CalculatedSnapshotPrimaryCurrencies
 				.Where(x => (accountId == 0 || x.AccountId == accountId) &&
 							x.Date >= startDate &&
@@ -85,6 +87,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		private async Task<List<HoldingDisplayModel>> GetHoldingsInternallyAsync(int? accountId, CancellationToken cancellationToken)
 		{
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var lastKnownDate = await databaseContext.CalculatedSnapshotPrimaryCurrencies
 				.Where(x => accountId == null || x.AccountId == accountId)
 				.MaxAsync(x => (DateOnly?)x.Date, cancellationToken);

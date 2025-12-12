@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class TransactionService(
-			DatabaseContext databaseContext
+			IDbContextFactory<DatabaseContext> dbContextFactory
 		) : ITransactionService
 	{
 		public async Task<PaginatedTransactionResult> GetTransactionsPaginatedAsync(
@@ -184,6 +184,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			List<string> transactionTypes,
 			string searchText)
 		{
+			using var databaseContext = dbContextFactory.CreateDbContext();
 			var query = databaseContext.Activities
 				.Include(a => a.Account)
 				.Include(a => a.Holding)
@@ -286,6 +287,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		public async Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default)
 		{
 			// Get all distinct activity types from the database
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var typeNames = await databaseContext.Activities
 				.Select(a => a.GetType().Name)
 				.Distinct()

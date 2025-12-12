@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
-	public class DataIssuesService(DatabaseContext databaseContext) : IDataIssuesService
+	public class DataIssuesService(IDbContextFactory<DatabaseContext> databaseContextFactory) : IDataIssuesService
 	{
 		private const string Error = "Error";
 		private const string Warning = "Warning";
@@ -17,6 +17,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			try
 			{
 				// Query for activities that have no holding assigned - using more conservative approach
+				using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 				var activitiesWithoutHoldings = await databaseContext.Activities
 					.Include(a => a.Account)
 					.Where(a => a.Holding == null)
@@ -83,6 +84,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 					return;
 				}
 
+				using var databaseContext = await databaseContextFactory.CreateDbContextAsync(cancellationToken);
 				var detailedActivities = await databaseContext.Activities
 					.Where(a => activityIds.Contains(a.Id))
 					.ToListAsync(cancellationToken);
