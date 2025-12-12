@@ -11,7 +11,7 @@
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<UserSecretsId>0c5d0c9e-4b64-41be-8ab5-1d3d767e3f29</UserSecretsId>
 		<WasmFingerprintAssets>false</WasmFingerprintAssets>
-		<PublishTrimmed>true</PublishTrimmed>
+		<PublishTrimmed>false</PublishTrimmed>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -89,11 +89,6 @@
 
 	<ItemGroup>
 		<TrimmerRootDescriptor Include="linker.xml" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<TrimmerRootAssembly Include="Microsoft.EntityFrameworkCore" />
-		<TrimmerRootAssembly Include="Microsoft.EntityFrameworkCore.Relational" />
 	</ItemGroup>
 
 	<Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences">
