@@ -67,7 +67,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities);
 			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
-			_mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+			_mockDbContextFactory.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			var loggerMock = new Mock<ILogger<SymbolMatcherTask>>();
 
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities);
 			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
-			_mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+			_mockDbContextFactory.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			var mockSymbolMatcher = new Mock<ISymbolMatcher>();
 			_symbolMatchers.Clear();
@@ -129,7 +129,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities);
 			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
-			_mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+			_mockDbContextFactory.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			var mockSymbolMatcher = new Mock<ISymbolMatcher>();
 			_symbolMatchers.Clear();
