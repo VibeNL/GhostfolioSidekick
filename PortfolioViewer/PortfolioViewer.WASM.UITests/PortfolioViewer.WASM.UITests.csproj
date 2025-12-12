@@ -32,13 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="..\PortfolioViewer.WASM\bin\$(Configuration)\net9.0\GhostfolioSidekick.PortfolioViewer.WASM.deps.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>GhostfolioSidekick.PortfolioViewer.WASM.deps.json</Link>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
