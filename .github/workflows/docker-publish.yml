@@ -47,7 +47,7 @@ jobs:
           sudo apt install -y mono-complete
       - name: Install .NET 10 WASM workload
         run: |
-          dotnet workload install wasm-tools-net10
+          dotnet workload install wasm-tools
           dotnet workload restore
       - name: Install Playwright Browsers
         run: pwsh -Command "npx playwright install"
