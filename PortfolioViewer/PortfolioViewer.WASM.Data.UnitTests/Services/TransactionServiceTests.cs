@@ -25,6 +25,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext = new Mock<DatabaseContext>();
 
 			var dbFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+			dbFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(_mockDatabaseContext.Object);
+
 			_transactionService = new TransactionService(dbFactory.Object);
 		}
 

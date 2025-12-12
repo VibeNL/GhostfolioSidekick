@@ -27,6 +27,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.USD);
 
 			var dbFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+			dbFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(_mockDatabaseContext.Object);
 
 			_holdingsDataService = new HoldingsDataService(
 				dbFactory.Object,

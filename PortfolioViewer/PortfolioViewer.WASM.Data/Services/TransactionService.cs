@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			TransactionQueryParameters parameters,
 			CancellationToken cancellationToken = default)
 		{
-			var baseQuery = BuildBaseQuery(
+			var baseQuery = await BuildBaseQuery(
 				parameters.StartDate,
 				parameters.EndDate,
 				parameters.AccountId,
@@ -176,7 +176,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Complex query optimized")]
-		private IQueryable<Activity> BuildBaseQuery(
+		private async Task<IQueryable<Activity>> BuildBaseQuery(
 			DateOnly startDate,
 			DateOnly endDate,
 			int accountId,
@@ -184,7 +184,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			List<string> transactionTypes,
 			string searchText)
 		{
-			using var databaseContext = dbContextFactory.CreateDbContext();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
 			var query = databaseContext.Activities
 				.Include(a => a.Account)
 				.Include(a => a.Holding)
