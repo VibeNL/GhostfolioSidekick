@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		public async Task<List<Account>> GetAccountsAsync(string? symbolFilter, CancellationToken cancellationToken = default)
 		{
-			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var query = databaseContext.Accounts
 				.Include(a => a.Platform)
 				.AsNoTracking()
@@ -42,16 +42,16 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			DateOnly endDate,
 			CancellationToken cancellationToken = default)
 		{
-			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var snapShots = await databaseContext.CalculatedSnapshotPrimaryCurrencies
 				.Where(s => s.Date >= startDate && s.Date <= endDate)
 				.GroupBy(s => new { s.Date, s.AccountId })
 				.Select(g => new
 				{
-					Date = g.Key.Date,
+					g.Key.Date,
 					Value = g.Sum(x => (double)x.TotalValue),
 					Invested = g.Sum(x => (double)x.TotalInvested),
-					AccountId = g.Key.AccountId,
+					g.Key.AccountId,
 					Currency = serverConfigurationService.PrimaryCurrency.Symbol
 				})
 				.ToListAsync(cancellationToken);
@@ -61,9 +61,9 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.GroupBy(s => new { s.Date, s.AccountId })
 				.Select(g => new
 				{
-					Date = g.Key.Date,
+					g.Key.Date,
 					Value = g.Min(x => (double)x.Money),
-					AccountId = g.Key.AccountId,
+					g.Key.AccountId,
 				})
 				.ToListAsync(cancellationToken);
 
@@ -99,14 +99,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		public async Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
 		{
-			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			return await databaseContext.CalculatedSnapshotPrimaryCurrencies
 				.MinAsync(s => s.Date, cancellationToken);
 		}
 
 		public async Task<List<string>> GetSymbolProfilesAsync(int? accountFilter, CancellationToken cancellationToken = default)
 		{
-			using var databaseContext = await dbContextFactory.CreateDbContextAsync();
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			if (!accountFilter.HasValue)
 			{
 				return await databaseContext.SymbolProfiles
