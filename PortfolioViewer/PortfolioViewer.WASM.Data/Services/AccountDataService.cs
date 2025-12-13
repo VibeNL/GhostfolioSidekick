@@ -7,12 +7,13 @@ using Microsoft.EntityFrameworkCore;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class AccountDataService(
-		DatabaseContext databaseContext,
+		IDbContextFactory<DatabaseContext> dbContextFactory,
 		IServerConfigurationService serverConfigurationService
 	) : IAccountDataService
 	{
 		public Task<List<Account>> GetAccountInfo()
 		{
+			using var databaseContext = dbContextFactory.CreateDbContext();
 			return databaseContext.Accounts
 				.Include(a => a.Platform)
 				.OrderBy(a => a.Name)
@@ -22,6 +23,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		public Task<List<Account>> GetAccountsAsync(string? symbolFilter, CancellationToken cancellationToken = default)
 		{
+			using var databaseContext = dbContextFactory.CreateDbContext();
 			var query = databaseContext.Accounts
 				.Include(a => a.Platform)
 				.AsNoTracking()
@@ -40,6 +42,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			DateOnly endDate,
 			CancellationToken cancellationToken = default)
 		{
+			using var databaseContext = dbContextFactory.CreateDbContext();
 			var snapShots = await databaseContext.CalculatedSnapshotPrimaryCurrencies
 				.Where(s => s.Date >= startDate && s.Date <= endDate)
 				.GroupBy(s => new { s.Date, s.AccountId })
@@ -96,12 +99,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 
 		public Task<DateOnly> GetMinDateAsync(CancellationToken cancellationToken = default)
 		{
+			using var databaseContext = dbContextFactory.CreateDbContext();
 			return databaseContext.CalculatedSnapshotPrimaryCurrencies
 				.MinAsync(s => s.Date, cancellationToken);
 		}
 
 		public Task<List<string>> GetSymbolProfilesAsync(int? accountFilter, CancellationToken cancellationToken = default)
 		{
+			using var databaseContext = dbContextFactory.CreateDbContext();
 			if (!accountFilter.HasValue)
 			{
 				return databaseContext.SymbolProfiles
