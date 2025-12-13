@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="Microsoft.EntityFrameworkCore">
+    <type fullname="Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions" preserve="all"/>
+  </assembly>
+</linker>

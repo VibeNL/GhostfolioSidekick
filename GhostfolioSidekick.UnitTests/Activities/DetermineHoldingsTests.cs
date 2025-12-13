@@ -78,7 +78,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
 			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
-			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
 			var loggerMock = new Mock<ILogger<DetermineHoldings>>();
 
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
 			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
 			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
-			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(new SymbolProfile { Symbol = "TEST", DataSource = "TestSource" });
 
@@ -141,7 +141,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
 			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
 			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
-			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
 			// Return the same symbol profile for both partial identifiers
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync(symbolProfile);
@@ -177,7 +177,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
 			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
 			dbContextMock.Setup(db => db.SymbolProfiles).ReturnsDbSet([]);
-			_dbContextFactoryMock.Setup(factory => factory.CreateDbContext()).Returns(dbContextMock.Object);
+			_dbContextFactoryMock.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(dbContextMock.Object);
 
 			// Return null for all symbol matches
 			_symbolMatcherMock.Setup(sm => sm.MatchSymbol(It.IsAny<PartialSymbolIdentifier[]>())).ReturnsAsync((SymbolProfile?)null);

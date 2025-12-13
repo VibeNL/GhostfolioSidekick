@@ -8,7 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
 	public partial class TaskStatus : ComponentBase
 	{
-		[Inject] private DatabaseContext DbContext { get; set; } = default!;
+		[Inject] private IDbContextFactory<DatabaseContext> DbContextFactory { get; set; } = default!;
 		[Inject] private PortfolioClient PortfolioClient { get; set; } = default!;
 
 		private List<TaskRun>? _taskRuns;
@@ -39,6 +39,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 				_isLoading = true;
 				StateHasChanged();
 
+				using var DbContext = await DbContextFactory.CreateDbContextAsync();
 				_taskRuns = await DbContext.Tasks
 					.AsNoTracking()
 					.ToListAsync();

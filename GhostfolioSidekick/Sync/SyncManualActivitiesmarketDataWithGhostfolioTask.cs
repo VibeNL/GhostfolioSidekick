@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Sync
 
 		public async Task DoWork(ILogger logger)
 		{
-			await using var databaseContext = databaseContextFactory.CreateDbContext();
+			await using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var manualSymbolProfiles = await databaseContext.SymbolProfiles
 				.Include(x => x.MarketData)
 				.Where(x => x.DataSource == Datasource.MANUAL).ToListAsync();

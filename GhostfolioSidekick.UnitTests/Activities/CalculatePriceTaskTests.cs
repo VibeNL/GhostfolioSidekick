@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			};
 
 			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(holdings);
-			_mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+			_mockDbContextFactory.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			var mockStrategy1 = new Mock<IHoldingStrategy>();
 			var mockStrategy2 = new Mock<IHoldingStrategy>();
@@ -70,7 +70,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Arrange
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(db => db.Holdings).ReturnsDbSet(new List<Holding>());
-			_mockDbContextFactory.Setup(factory => factory.CreateDbContext()).Returns(mockDbContext.Object);
+			_mockDbContextFactory.Setup(factory => factory.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			var mockStrategy = new Mock<IHoldingStrategy>();
 			_holdingStrategies.Clear();

@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Performance
 		private async Task ConvertSnapshotsToPrimaryCurrency(Currency currency, string primaryCurrencySymbol, ILogger logger)
 		{
 			var totalSnapshots = 0;
-			using (var dbContext = dbContextFactory.CreateDbContext())
+			using (var dbContext = await dbContextFactory.CreateDbContextAsync())
 			{
 				totalSnapshots = await dbContext.CalculatedSnapshots.CountAsync();
 			}
@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.Performance
 
 			for (int i = 0; i < totalSnapshots; i += batchSize)
 			{
-				using var dbContext = dbContextFactory.CreateDbContext();
+				using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
 				var snapshots = await dbContext.CalculatedSnapshots
 					.AsNoTracking()
@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.Performance
 
 		private async Task ConvertBalancesToPrimaryCurrency(Currency currency, string primaryCurrencySymbol, ILogger logger)
 		{
-			using var queryContext = dbContextFactory.CreateDbContext();
+			using var queryContext = await dbContextFactory.CreateDbContextAsync();
 			var accountIds = await queryContext.Balances
 				.AsNoTracking()
 				.Select(b => b.AccountId)
@@ -108,7 +108,7 @@ namespace GhostfolioSidekick.Performance
 
 			foreach (var accountId in accountIds)
 			{
-				using var dbContext = dbContextFactory.CreateDbContext();
+				using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
 				var balances = await dbContext.Balances
 					.Where(b => b.AccountId == accountId)
@@ -159,7 +159,7 @@ namespace GhostfolioSidekick.Performance
 
 		private async Task CleanupUnmatchedItems()
 		{
-			using var dbContext = dbContextFactory.CreateDbContext();
+			using var dbContext = await dbContextFactory.CreateDbContextAsync();
 			var orphanedPrimarySnapshots = await dbContext.CalculatedSnapshotPrimaryCurrencies
 				.Where(ps => !dbContext.CalculatedSnapshots
 					.Any(s => s.HoldingAggregatedId == ps.HoldingAggregatedId &&
