@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		private readonly MemoryCache _memoryCache;
 		private readonly List<IFileImporter> _importers;
 		private readonly FileImporterTask _fileImporterTask;
-		private readonly DbContextFactory _dbContextFactory;
+		private readonly CustomDbContextFactory _dbContextFactory;
 
 		public FileImporterTaskTests()
 		{
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_mockSettings.Setup(x => x.FileImporterPath).Returns("test/path");
 
 			// Create a single DbContextFactory instance that will be shared across the test
-			_dbContextFactory = new DbContextFactory();
+			_dbContextFactory = new CustomDbContextFactory();
 
 			_fileImporterTask = new FileImporterTask(
 				_mockSettings.Object,
@@ -148,12 +148,12 @@ namespace GhostfolioSidekick.UnitTests.Activities
 	}
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>")]
-	public class DbContextFactory : IDbContextFactory<DatabaseContext>, IDisposable
+	public class CustomDbContextFactory : IDbContextFactory<DatabaseContext>, IDisposable
 	{
 		private readonly string _databasePath;
 		private bool _disposed = false;
 
-		public DbContextFactory()
+		public CustomDbContextFactory()
 		{
 			// Create a unique temporary database file for this test instance
 			_databasePath = Path.Combine(Path.GetTempPath(), $"test_database_{Guid.NewGuid()}.db");
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 		public DatabaseContext CreateDbContext()
 		{
-			ObjectDisposedException.ThrowIf(_disposed, nameof(DbContextFactory));
+			ObjectDisposedException.ThrowIf(_disposed, nameof(CustomDbContextFactory));
 
 			var options = new DbContextOptionsBuilder<DatabaseContext>()
 				.UseSqlite($"Data Source={_databasePath}")
