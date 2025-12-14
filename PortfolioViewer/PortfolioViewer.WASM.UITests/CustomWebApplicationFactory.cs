@@ -109,7 +109,7 @@ namespace PortfolioViewer.WASM.UITests
 			Directory.CreateDirectory(apiDebugWwwroot);
 
 			// Publish WASM project directly into temp folder
-			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\"")
+			var psi = new System.Diagnostics.ProcessStartInfo("dotnet", $"publish \"{wasmProj}\" -c Release -o \"{tempFolder}\" /p:PublishTrimmed=false")
 			{
 				WorkingDirectory = solutionDir,
 				RedirectStandardOutput = true,

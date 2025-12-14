@@ -65,7 +65,7 @@ public class Program
 
 		builder.Services.AddSingleton<SqlitePersistence>();
 
-		builder.Services.AddBesqlDbContextFactory<DatabaseContext>(options =>
+		builder.Services.AddBesqlDbContextFactory<DatabaseContext>((sp, options) =>
 		{
 			options.UseSqlite($"Data Source={DatabaseContext.DbFileName}");
 			options.UseLazyLoadingProxies();

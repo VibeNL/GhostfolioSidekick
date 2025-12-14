@@ -9,14 +9,16 @@ using System.Linq.Expressions;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
 	public class TransactionService(
-			DatabaseContext databaseContext
+			IDbContextFactory<DatabaseContext> dbContextFactory
 		) : ITransactionService
 	{
 		public async Task<PaginatedTransactionResult> GetTransactionsPaginatedAsync(
 			TransactionQueryParameters parameters,
 			CancellationToken cancellationToken = default)
 		{
-			var baseQuery = BuildBaseQuery(
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+			var baseQuery = await BuildBaseQuery(
+				databaseContext,
 				parameters.StartDate,
 				parameters.EndDate,
 				parameters.AccountId,
@@ -176,7 +178,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Complex query optimized")]
-		private IQueryable<Activity> BuildBaseQuery(
+		private static async Task<IQueryable<Activity>> BuildBaseQuery(
+			DatabaseContext databaseContext,
 			DateOnly startDate,
 			DateOnly endDate,
 			int accountId,
@@ -286,6 +289,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 		public async Task<List<string>> GetTransactionTypesAsync(CancellationToken cancellationToken = default)
 		{
 			// Get all distinct activity types from the database
+			using var databaseContext = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 			var typeNames = await databaseContext.Activities
 				.Select(a => a.GetType().Name)
 				.Distinct()

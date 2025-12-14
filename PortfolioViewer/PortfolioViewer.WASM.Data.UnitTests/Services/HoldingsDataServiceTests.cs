@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Moq.EntityFrameworkCore;
 using Xunit;
@@ -25,8 +26,12 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// Setup default primary currency
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.USD);
 
+			var dbFactory = new Mock<IDbContextFactory<DatabaseContext>>();
+			dbFactory.Setup(x => x.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+				.ReturnsAsync(_mockDatabaseContext.Object);
+
 			_holdingsDataService = new HoldingsDataService(
-				_mockDatabaseContext.Object,
+				dbFactory.Object,
 				_mockServerConfigurationService.Object);
 		}
 

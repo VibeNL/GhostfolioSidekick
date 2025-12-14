@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
 	public partial class Tables : ComponentBase
 	{
-		[Inject] private DatabaseContext DbContext { get; set; } = default!;
+		[Inject] private IDbContextFactory<DatabaseContext> DbContextFactory { get; set; } = default!;
 
 		private List<string?> TableNames = [];
 		private string? SelectedTable;
@@ -31,14 +31,14 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			await LoadTableNamesAsync();
 		}
 
-		private Task LoadTableNamesAsync()
+		private async Task LoadTableNamesAsync()
 		{
+			using var DbContext = await DbContextFactory.CreateDbContextAsync();
 			TableNames = [.. DbContext.Model.GetEntityTypes()
 				.Select(t => t.GetTableName())
 				.Where(name => !string.IsNullOrEmpty(name))
 				.Distinct()
 				.OrderBy(name => name)];
-			return Task.CompletedTask;
 		}
 
 		private async Task OnTableSelectionChanged()
@@ -116,6 +116,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 												.ToDictionary(f => f.Key, f => f.Value);
 
 				// Get total record count with filters applied
+				using var DbContext = await DbContextFactory.CreateDbContextAsync();
 				TotalRecords = await RawQuery.GetTableCount(DbContext, tableName, activeFilters.Count != 0 ? activeFilters : null);
 				TotalPages = (int)Math.Ceiling((double)TotalRecords / PageSize);
 

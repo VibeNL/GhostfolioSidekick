@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			appSettingsMock.Setup(a => a.ConfigurationInstance).Returns(configInstance);
 
 			var dbContextFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-			dbContextFactoryMock.Setup(f => f.CreateDbContext()).Returns(() => new DatabaseContext(options));
+			dbContextFactoryMock.Setup(f => f.CreateDbContextAsync()).ReturnsAsync(() => new DatabaseContext(options));
 
 			var loggerMock = new Mock<ILogger>();
 

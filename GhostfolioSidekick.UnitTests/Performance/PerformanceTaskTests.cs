@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			await dbContext.SaveChangesAsync();
 
 			var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-			dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => new DatabaseContext(options));
+			dbFactoryMock.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(() => new DatabaseContext(options));
 
 			var newHolding = new HoldingAggregated { Symbol = "NEW", AssetClass = AssetClass.Equity };
 			var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
@@ -87,7 +87,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			await dbContext.SaveChangesAsync();
 
 			var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-			dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => new DatabaseContext(options));
+			dbFactoryMock.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(() => new DatabaseContext(options));
 
 			var newSnapshot = new CalculatedSnapshot
 			{
@@ -145,7 +145,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			await dbContext.SaveChangesAsync();
 
 			var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-			dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => new DatabaseContext(options));
+			dbFactoryMock.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(() => new DatabaseContext(options));
 
 			var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
 			calculatorMock.Setup(x => x.GetCalculatedHoldings()).ReturnsAsync(new List<HoldingAggregated>());
@@ -178,7 +178,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 			calculatorMock.Setup(x => x.GetCalculatedHoldings()).ReturnsAsync(new List<HoldingAggregated> { newHolding });
 
 			var dbFactoryMock = new Mock<IDbContextFactory<DatabaseContext>>();
-			dbFactoryMock.Setup(x => x.CreateDbContext()).Returns(() => new DatabaseContext(options));
+			dbFactoryMock.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(() => new DatabaseContext(options));
 
 			var loggerMock = new Mock<ILogger>();
 			var task = new PerformanceTask(calculatorMock.Object, dbFactoryMock.Object);

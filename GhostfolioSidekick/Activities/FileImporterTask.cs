@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.Activities
 
 			logger.LogDebug("{Name} Starting to do work", nameof(FileImporterTask));
 
-			using var databaseContext = databaseContextFactory.CreateDbContext();
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var activityManager = new ActivityManager(await databaseContext.Accounts.ToListAsync());
 			var accountNames = new List<string>();
 			await ParseFiles(logger, importers, directories, activityManager, accountNames);

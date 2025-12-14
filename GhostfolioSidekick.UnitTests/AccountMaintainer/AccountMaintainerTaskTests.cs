@@ -74,7 +74,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(x => x.Accounts).ReturnsDbSet([]);
 			mockDbContext.Setup(x => x.Platforms).ReturnsDbSet([]);
-			mockDbContextFactory.Setup(x => x.CreateDbContext()).Returns(mockDbContext.Object);
+			mockDbContextFactory.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			// Act
 			await accountMaintainerTask.DoWork(mockLogger.Object);
@@ -116,7 +116,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			var mockDbContext = new Mock<DatabaseContext>();
 			mockDbContext.Setup(x => x.Accounts).ReturnsDbSet([existingAccount]);
 			mockDbContext.Setup(x => x.Platforms).ReturnsDbSet([]);
-			mockDbContextFactory.Setup(x => x.CreateDbContext()).Returns(mockDbContext.Object);
+			mockDbContextFactory.Setup(x => x.CreateDbContextAsync()).ReturnsAsync(mockDbContext.Object);
 
 			// Act
 			await accountMaintainerTask.DoWork(mockLogger.Object);
