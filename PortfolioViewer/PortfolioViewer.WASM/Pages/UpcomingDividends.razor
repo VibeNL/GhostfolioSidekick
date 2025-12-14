@@ -1,0 +1,80 @@
+@page "/dividends"
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@inject GhostfolioSidekick.PortfolioViewer.WASM.Services.IUpcomingDividendsService DividendsService
+
+<PageTitle>Upcoming Dividends</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="bi bi-cash-coin me-2"></i>Upcoming Dividends
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5 class="text-muted">Loading Upcoming Dividends...</h5>
+                        </div>
+                    }
+                    else if (dividends == null || !dividends.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-cash-coin text-muted" style="font-size: 4rem;"></i>
+                            <h5 class="text-muted mt-3">No Upcoming Dividends</h5>
+                            <p class="text-muted mb-0">There are no upcoming dividends at this time.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Company</th>
+                                        <th>Ex-Date</th>
+                                        <th>Payment Date</th>
+                                        <th class="text-end">Amount</th>
+                                        <th>Currency</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var div in dividends.OrderBy(d => d.ExDate))
+                                    {
+                                        <tr>
+                                            <td><strong>@div.Symbol</strong></td>
+                                            <td>@div.CompanyName</td>
+                                            <td>@div.ExDate.ToString("yyyy-MM-dd")</td>
+                                            <td>@div.PaymentDate.ToString("yyyy-MM-dd")</td>
+                                            <td class="text-end">@div.Amount.ToString("F2")</td>
+                                            <td>@div.Currency</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<UpcomingDividendModel>? dividends;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        dividends = await DividendsService.GetUpcomingDividendsAsync();
+        isLoading = false;
+    }
+}
