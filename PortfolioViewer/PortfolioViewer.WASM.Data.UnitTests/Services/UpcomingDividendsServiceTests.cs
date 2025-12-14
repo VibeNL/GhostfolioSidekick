@@ -5,6 +5,7 @@ using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq.EntityFrameworkCore;
 using Xunit;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Market;
@@ -38,24 +39,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
                 SymbolProfileDataSource = "TestSource"
             };
 
-            var mockSetDividends = new List<Dividend> { dividend }.AsQueryable().BuildMockDbSet();
-            var mockSetSymbolProfiles = new List<SymbolProfile> { symbolProfile }.AsQueryable().BuildMockDbSet();
-            var mockSetHoldings = new[]
+            var holdingAggregated = new HoldingAggregated
             {
-                new HoldingAggregated
+                Symbol = "AAPL",
+                CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency>
                 {
-                    Symbol = "AAPL",
-                    CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency>
-                    {
-                        new CalculatedSnapshotPrimaryCurrency { Date = DateOnly.FromDateTime(DateTime.Today), Quantity = 10m }
-                    }
+                    new CalculatedSnapshotPrimaryCurrency { Date = DateOnly.FromDateTime(DateTime.Today), Quantity = 10m }
                 }
-            }.AsQueryable().BuildMockDbSet();
+            };
 
             var mockContext = new Mock<DatabaseContext>();
-            mockContext.Setup(x => x.Dividends).Returns(mockSetDividends.Object);
-            mockContext.Setup(x => x.SymbolProfiles).Returns(mockSetSymbolProfiles.Object);
-            mockContext.Setup(x => x.HoldingAggregateds).Returns(mockSetHoldings.Object);
+            mockContext.Setup(x => x.Dividends).ReturnsDbSet(new List<Dividend> { dividend });
+            mockContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(new List<SymbolProfile> { symbolProfile });
+            mockContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(new List<HoldingAggregated> { holdingAggregated });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<System.Threading.CancellationToken>()))
@@ -73,20 +69,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
             Assert.Equal("Apple Inc.", div.CompanyName);
             Assert.Equal(25.0m, div.Amount); // 2.5 * 10
             Assert.Equal("USD", div.Currency);
-        }
-    }
-
-    // Helper for mocking DbSet
-    public static class DbSetMockingExtensions
-    {
-        public static Mock<DbSet<T>> BuildMockDbSet<T>(this IQueryable<T> data) where T : class
-        {
-            var mockSet = new Mock<DbSet<T>>();
-            mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(data.Provider);
-            mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
-            mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
-            mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
-            return mockSet;
         }
     }
 }
