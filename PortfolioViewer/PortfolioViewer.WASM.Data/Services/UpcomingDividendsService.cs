@@ -37,8 +37,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
                     dividend => new { Symbol = dividend.SymbolProfileSymbol, DataSource = dividend.SymbolProfileDataSource },
                     symbolProfile => new { Symbol = (string?)symbolProfile.Symbol, DataSource = (string?)symbolProfile.DataSource },
                     (dividend, symbolProfile) => new { Dividend = dividend, SymbolProfile = symbolProfile })
-                .OrderBy(x => x.Dividend.ExDividendDate)
-                .ToListAsync();
+                .Where(x => x.Dividend.Amount.Amount > 0)
+				.ToListAsync();
 
             var result = new List<UpcomingDividendModel>();
             foreach (var item in dividends)
@@ -47,6 +47,11 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
                 var companyName = item.SymbolProfile.Name ?? string.Empty;
                 holdingsDict.TryGetValue(symbol, out var quantity);
                 var expectedAmount = item.Dividend.Amount.Amount * quantity;
+
+				if (expectedAmount <= 0)
+				{
+					continue;
+				}
 
                 result.Add(new UpcomingDividendModel
                 {
