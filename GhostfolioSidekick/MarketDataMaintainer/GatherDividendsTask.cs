@@ -2,7 +2,6 @@
 using GhostfolioSidekick.ExternalDataProvider;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 
 namespace GhostfolioSidekick.MarketDataMaintainer
 {
