@@ -13,5 +13,9 @@ namespace GhostfolioSidekick.Model.Market
 		public DividendState DividendState { get; set; }
 
 		public Money Amount { get; set; } = default!;
+
+        // Add these for join
+        public string? SymbolProfileSymbol { get; set; }
+        public string? SymbolProfileDataSource { get; set; }
 	}
 }

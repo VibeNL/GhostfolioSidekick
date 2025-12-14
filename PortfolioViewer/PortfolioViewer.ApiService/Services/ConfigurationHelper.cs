@@ -1,6 +1,4 @@
 using GhostfolioSidekick.Configuration;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Globalization;
