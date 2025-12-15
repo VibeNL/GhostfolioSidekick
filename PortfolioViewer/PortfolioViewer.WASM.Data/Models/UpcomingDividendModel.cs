@@ -8,5 +8,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Models
         public DateTime PaymentDate { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = string.Empty;
+        public decimal Quantity { get; set; }
+        public decimal DividendPerShare { get; set; }
     }
 }

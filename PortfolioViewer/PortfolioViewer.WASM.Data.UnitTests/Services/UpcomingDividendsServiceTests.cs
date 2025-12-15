@@ -69,6 +69,8 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
             Assert.Equal("Apple Inc.", div.CompanyName);
             Assert.Equal(25.0m, div.Amount); // 2.5 * 10
             Assert.Equal("USD", div.Currency);
+            Assert.Equal(10m, div.Quantity);
+            Assert.Equal(2.5m, div.DividendPerShare);
         }
     }
 }
