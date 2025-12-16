@@ -47,7 +47,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
             // Get upcoming dividends, join with SymbolProfiles using explicit properties
             var today = DateOnly.FromDateTime(DateTime.Today);
             var dividends = await databaseContext.Dividends
-                .Where(dividend => dividend.ExDividendDate >= today)
+                .Where(dividend => dividend.PaymentDate >= today)
                 .Join(databaseContext.SymbolProfiles,
                     dividend => new { Symbol = dividend.SymbolProfileSymbol, DataSource = dividend.SymbolProfileDataSource },
                     symbolProfile => new { Symbol = (string?)symbolProfile.Symbol, DataSource = (string?)symbolProfile.DataSource },
