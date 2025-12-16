@@ -106,6 +106,7 @@ namespace GhostfolioSidekick
 							services.AddSingleton<GhostfolioSymbolMatcher>();
 							services.AddSingleton<ManualSymbolRepository>();
 							services.AddSingleton<DividendMaxMatcher>();
+							services.AddSingleton<TipRanksMatcher>();
 							services.AddTransient<ICoinGeckoRestClient>(sp =>
 								new CoinGeckoRestClient(
 									sp.GetRequiredService<HttpClient>(),
@@ -118,7 +119,8 @@ namespace GhostfolioSidekick
 									sp.GetRequiredService<CoinGeckoRepository>(),
 									sp.GetRequiredService<GhostfolioSymbolMatcher>(),
 									sp.GetRequiredService<ManualSymbolRepository>(),
-									sp.GetRequiredService<DividendMaxMatcher>()
+									sp.GetRequiredService<DividendMaxMatcher>(),
+									sp.GetRequiredService<TipRanksMatcher>()
 								]);
 							services.AddSingleton<IStockPriceRepository[]>(sp => [sp.GetRequiredService<YahooRepository>(), sp.GetRequiredService<CoinGeckoRepository>(), sp.GetRequiredService<ManualSymbolRepository>()]);
 							services.AddSingleton<IStockSplitRepository[]>(sp => [sp.GetRequiredService<YahooRepository>()]);
