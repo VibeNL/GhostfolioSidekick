@@ -41,10 +41,10 @@
                                         <th>Company</th>
                                         <th>Ex-Date</th>
                                         <th>Payment Date</th>
-                                        <th class="text-end">Amount</th>
+                                        <th class="text-end">Amount (Native)</th>
+                                        <th class="text-end">Amount (Primary)</th>
                                         <th class="text-end">Quantity</th>
                                         <th class="text-end">Dividend/Share</th>
-                                        <th>Currency</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -55,10 +55,27 @@
                                             <td>@div.CompanyName</td>
                                             <td>@div.ExDate.ToString("yyyy-MM-dd")</td>
                                             <td>@div.PaymentDate.ToString("yyyy-MM-dd")</td>
-                                            <td class="text-end">@div.Amount.ToString("F2")</td>
+                                            <td class="text-end">
+                                                @div.Amount.ToString("F2") @div.Currency
+                                            </td>
+                                            <td class="text-end">
+                                                @if (div.Currency != div.PrimaryCurrency)
+                                                {
+                                                    @div.AmountPrimaryCurrency.ToString("F2") @div.PrimaryCurrency
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
                                             <td class="text-end">@div.Quantity.ToString("N2")</td>
-                                            <td class="text-end">@div.DividendPerShare.ToString("F4")</td>
-                                            <td>@div.Currency</td>
+                                            <td class="text-end">
+                                                @div.DividendPerShare.ToString("F4") @div.Currency
+                                                @if (div.Currency != div.PrimaryCurrency)
+                                                {
+                                                    <br><small class="text-muted">(@div.DividendPerSharePrimaryCurrency.ToString("F4") @div.PrimaryCurrency)</small>
+                                                }
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>

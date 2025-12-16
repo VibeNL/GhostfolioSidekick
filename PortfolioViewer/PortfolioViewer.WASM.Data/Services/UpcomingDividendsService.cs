@@ -67,14 +67,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
                     continue;
                 }
 
+                // Native currency values (original dividend currency)
+                var dividendPerShare = item.Dividend.Amount.Amount;
+                var expectedAmount = dividendPerShare * quantity;
+                var nativeCurrency = item.Dividend.Amount.Currency.Symbol;
+
                 // Convert dividend per share to primary currency
                 var dividendPerShareConverted = await currencyExchange.ConvertMoney(
                     item.Dividend.Amount, 
                     primaryCurrency, 
                     item.Dividend.ExDividendDate);
                 
-                var dividendPerShare = dividendPerShareConverted.Amount;
-                var expectedAmount = dividendPerShare * quantity;
+                var dividendPerSharePrimaryCurrency = dividendPerShareConverted.Amount;
+                var expectedAmountPrimaryCurrency = dividendPerSharePrimaryCurrency * quantity;
 
                 result.Add(new UpcomingDividendModel
                 {
@@ -82,10 +87,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
                     CompanyName = companyName,
                     ExDate = item.Dividend.ExDividendDate.ToDateTime(TimeOnly.MinValue),
                     PaymentDate = item.Dividend.PaymentDate.ToDateTime(TimeOnly.MinValue),
+                    
+                    // Native currency (original dividend currency)
                     Amount = expectedAmount,
-                    Currency = primaryCurrency.Symbol,
-                    Quantity = quantity,
-                    DividendPerShare = dividendPerShare
+                    Currency = nativeCurrency,
+                    DividendPerShare = dividendPerShare,
+                    
+                    // Primary currency equivalent
+                    AmountPrimaryCurrency = expectedAmountPrimaryCurrency,
+                    PrimaryCurrency = primaryCurrency.Symbol,
+                    DividendPerSharePrimaryCurrency = dividendPerSharePrimaryCurrency,
+                    
+                    Quantity = quantity
                 });
             }
 
