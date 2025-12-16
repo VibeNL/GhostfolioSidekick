@@ -209,6 +209,28 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 			var isSaving = await page.GetByTestId("icon-SAVINGS_PLAN").IsVisibleAsync();
 			bool isBuy = await page.GetByTestId("icon-BUY").IsVisibleAsync();
 			bool isSell = await page.GetByTestId("icon-SELL").IsVisibleAsync();
+
+			var isSecurity = await page.GetByTestId("icon-SECURITY").IsVisibleAsync();
+			if (isSecurity)
+			{
+				// Get parent div & compare text to 'Buy' or 'Sell'
+				var icon = page.GetByTestId("icon-SECURITY");
+				var parent = icon.Locator("..");
+				var text = await parent.InnerTextAsync();
+
+				switch (text)
+				{
+					case string s when s.Contains("Buy"):
+						isBuy = true;
+						break;
+					case string s when s.Contains("Sell"):
+						isSell = true;
+						break;
+					default:
+						throw new NotSupportedException();
+				}
+			}
+
 			if (isSaving ||
 				isBuy ||
 				isSell)
@@ -255,7 +277,22 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 				};
 			}
 
-			return null;
+			// If is Transfer In or Out
+			if (await page.GetByTestId("icon-TRANSFER_IN").IsVisibleAsync())
+			{
+				// Ignore for now
+				logger.LogWarning("Ignoring TRANSFER IN transaction.");
+				return null;
+			}
+
+			if (await page.GetByTestId("icon-TRANSFER_OUT").IsVisibleAsync())
+			{
+				// Ignore for now
+				logger.LogWarning("Ignoring TRANSFER OUT transaction.");
+				return null;
+			}
+
+			throw new NotSupportedException();
 		}
 
 		private async Task<DateTime> GetHistoryDate(string description)
