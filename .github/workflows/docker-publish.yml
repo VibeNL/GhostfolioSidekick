@@ -147,6 +147,7 @@ jobs:
             type=ref,event=pr
             # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v5
@@ -186,10 +187,12 @@ jobs:
       - name: Dependency Review
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v4
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@v0.16.0
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: vibenl/ghostfoliosidekick:latest
+          image-ref: 'vibenl/ghostfoliosidekick:${{ github.sha }}'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
