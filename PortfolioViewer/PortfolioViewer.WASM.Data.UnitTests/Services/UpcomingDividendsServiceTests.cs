@@ -13,6 +13,7 @@ using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using System.Linq;
+using GhostfolioSidekick.Database.Repository;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
 {
@@ -39,12 +40,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
                 SymbolProfileDataSource = "TestSource"
             };
 
+            var calculatedSnapshot = new CalculatedSnapshotPrimaryCurrency 
+            { 
+                Date = DateOnly.FromDateTime(DateTime.Today), 
+                Quantity = 10m 
+            };
+
             var holdingAggregated = new HoldingAggregated
             {
                 Symbol = "AAPL",
                 CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency>
                 {
-                    new CalculatedSnapshotPrimaryCurrency { Date = DateOnly.FromDateTime(DateTime.Today), Quantity = 10m }
+                    calculatedSnapshot
                 }
             };
 
@@ -52,12 +59,22 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
             mockContext.Setup(x => x.Dividends).ReturnsDbSet(new List<Dividend> { dividend });
             mockContext.Setup(x => x.SymbolProfiles).ReturnsDbSet(new List<SymbolProfile> { symbolProfile });
             mockContext.Setup(x => x.HoldingAggregateds).ReturnsDbSet(new List<HoldingAggregated> { holdingAggregated });
+            mockContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { calculatedSnapshot });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
             mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<System.Threading.CancellationToken>()))
                 .ReturnsAsync(mockContext.Object);
 
-            var service = new UpcomingDividendsService(mockFactory.Object);
+            // Mock ICurrencyExchange - return the same money (no conversion)
+            var mockCurrencyExchange = new Mock<ICurrencyExchange>();
+            mockCurrencyExchange.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
+                .ReturnsAsync((Money money, Currency currency, DateOnly date) => new Money(currency, money.Amount));
+
+            // Mock IServerConfigurationService
+            var mockConfigService = new Mock<IServerConfigurationService>();
+            mockConfigService.Setup(x => x.GetPrimaryCurrencyAsync()).ReturnsAsync(Currency.USD);
+
+            var service = new UpcomingDividendsService(mockFactory.Object, mockCurrencyExchange.Object, mockConfigService.Object);
 
             // Act
             var result = await service.GetUpcomingDividendsAsync();
