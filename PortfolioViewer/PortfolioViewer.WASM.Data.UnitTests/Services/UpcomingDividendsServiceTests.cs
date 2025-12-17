@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -12,7 +8,6 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
-using System.Linq;
 using GhostfolioSidekick.Database.Repository;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
@@ -49,10 +44,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
             var holdingAggregated = new HoldingAggregated
             {
                 Symbol = "AAPL",
-                CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency>
-                {
-                    calculatedSnapshot
-                }
+                CalculatedSnapshotsPrimaryCurrency =
+				[
+					calculatedSnapshot
+                ]
             };
 
             var mockContext = new Mock<DatabaseContext>();
@@ -62,7 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
             mockContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { calculatedSnapshot });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
-            mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<System.Threading.CancellationToken>()))
+            mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockContext.Object);
 
             // Mock ICurrencyExchange - return the same money (no conversion for USD to USD)
@@ -128,10 +123,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
             var holdingAggregated = new HoldingAggregated
             {
                 Symbol = "ASML",
-                CalculatedSnapshotsPrimaryCurrency = new List<CalculatedSnapshotPrimaryCurrency>
-                {
-                    calculatedSnapshot
-                }
+                CalculatedSnapshotsPrimaryCurrency =
+				[
+					calculatedSnapshot
+                ]
             };
 
             var mockContext = new Mock<DatabaseContext>();
@@ -141,7 +136,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
             mockContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(new List<CalculatedSnapshotPrimaryCurrency> { calculatedSnapshot });
 
             var mockFactory = new Mock<IDbContextFactory<DatabaseContext>>();
-            mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<System.Threading.CancellationToken>()))
+            mockFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(mockContext.Object);
 
             // Mock ICurrencyExchange - simulate EUR to USD conversion at 1.1 rate

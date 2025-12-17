@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		public async Task DoWork_ShouldUpdateBalances_WhenBalancesAreDifferent()
 		{
 			// Arrange
-			var activities = new List<Model.Activities.Activity>
+			var activities = new List<Activity>
 			{
 				new Model.Activities.Types.KnownBalanceActivity { Date = DateTime.Now, Account = new Model.Accounts.Account { Id =1, SyncBalance = true }, Amount = new Money(Currency.USD,100) }
 			};
@@ -80,7 +80,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 				account
 			});
 
-			var activities = new List<Model.Activities.Activity>
+			var activities = new List<Activity>
 			{
 				new Model.Activities.Types.KnownBalanceActivity { Date = DateTime.Now, Account = account, Amount = new Money(Currency.USD,100) }
 			};
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 				accountWithSyncEnabled
 			});
 
-			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(new List<Model.Activities.Activity>());
+			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(new List<Activity>());
 
 			_mockDbContextFactory.Setup(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mockDbContext.Object);
 

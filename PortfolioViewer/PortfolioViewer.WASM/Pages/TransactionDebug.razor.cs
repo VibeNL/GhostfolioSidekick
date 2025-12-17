@@ -1,8 +1,5 @@
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using Microsoft.AspNetCore.Components;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 {
@@ -87,7 +84,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 		private async Task<List<TransactionDebugRow>> LoadTransactionDebugRowsAsync(int accountId)
 		{
 			var accounts = await AccountDataService.GetAccountInfo();
-			var parameters = new GhostfolioSidekick.PortfolioViewer.WASM.Data.Models.TransactionQueryParameters
+			var parameters = new Data.Models.TransactionQueryParameters
 			{
 				StartDate = DateOnly.MinValue,
 				EndDate = DateOnly.MaxValue,
