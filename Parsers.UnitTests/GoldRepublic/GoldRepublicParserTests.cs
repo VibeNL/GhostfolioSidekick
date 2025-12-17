@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 
 		public GoldRepublicParserTests()
 		{
-			parser = new GoldRepublicParser(new PdfToText());
+			parser = new GoldRepublicParser(new PdfToWordsParser());
 
 			var fixture = CustomFixture.New();
 			account = fixture

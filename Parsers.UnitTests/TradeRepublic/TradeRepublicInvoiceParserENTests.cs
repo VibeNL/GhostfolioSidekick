@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/EN/BuyOrders", "*.pdf", SearchOption.AllDirectories)
 						  .Union(Directory.GetFiles("./TestFiles/TradeRepublic/EN/CashTransactions", "*.pdf", SearchOption.AllDirectories)))
 			{
@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuyBond_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/BuyOrders/single_buy_bond.pdf", activityManager, account.Name);
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuyStock_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/BuyOrders/single_buy_stock.pdf", activityManager, account.Name);
@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuySavingsplan_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/BuyOrders/single_savingsplan_stock.pdf", activityManager, account.Name);
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleRoundUpInformation_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/InformationOnly/single_round_up_information.pdf", activityManager, account.Name);
@@ -134,7 +134,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/CashTransactions/single_dividend.pdf", activityManager, account.Name);
@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleInterestBond_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/CashTransactions/single_interest_bond.pdf", activityManager, account.Name);
@@ -182,7 +182,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleRepayBond_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/CashTransactions/single_repay_bond.pdf", activityManager, account.Name);
@@ -203,7 +203,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFilesBulk_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToText());
+			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
 			var files = Directory.GetFiles("./TestFiles/TradeRepublic/EN/BuyOrders", "*.pdf", SearchOption.AllDirectories)
 				.Union(Directory.GetFiles("./TestFiles/TradeRepublic/EN/CashTransactions", "*.pdf", SearchOption.AllDirectories));
 

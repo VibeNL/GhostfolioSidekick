@@ -4,7 +4,7 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.GoldRepublic
 {
-	public partial class GoldRepublicParser(IPdfToText parsePDfToWords) : PdfBaseParser(parsePDfToWords)
+	public partial class GoldRepublicParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
 		protected override bool CanParseRecords(List<SingleWordToken> words)
 		{
