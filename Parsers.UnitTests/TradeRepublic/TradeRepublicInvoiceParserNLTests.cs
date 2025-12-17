@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+			var parser = new TradeRepublicInvoiceParserNL(new PdfToText());
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/NL/CashTransactions", "*.pdf", SearchOption.AllDirectories))
 			{
 				// Act
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+			var parser = new TradeRepublicInvoiceParserNL(new PdfToText());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/NL/CashTransactions/single_dividend.pdf", activityManager, account.Name);

@@ -3,19 +3,13 @@
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
 
-	internal class TestPdfToWords(Dictionary<int, string> text) : PdfToWordsParser
+	internal class TestPdfToWords(Dictionary<int, string> text) : IPdfToText
 	{
 		public Dictionary<int, string> Text { get; internal set; } = text;
 
-		public override List<SingleWordToken> ParseTokens(string filePath)
+		public string GetText(string filePath)
 		{
-			var lst = new List<SingleWordToken>();
-			foreach (var item in Text)
-			{
-				lst.AddRange(ParseWords(item.Value, item.Key));
-			}
-
-			return lst;
+			return string.Join(Environment.NewLine, Text.OrderBy(kv => kv.Key).Select(kv => kv.Value));
 		}
 	}
 }

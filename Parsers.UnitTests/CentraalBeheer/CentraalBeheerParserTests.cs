@@ -16,7 +16,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 
 		public CentraalBeheerParserTests()
 		{
-			parser = new CentraalBeheerParser(new PdfToWordsParser());
+			parser = new CentraalBeheerParser(new PdfToText());
 
 			var fixture = CustomFixture.New();
 			account = fixture

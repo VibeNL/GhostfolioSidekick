@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicStatementParserNL(new PdfToWordsParser());
+			var parser = new TradeRepublicStatementParserNL(new PdfToText());
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/NL/", "*_statement.pdf", SearchOption.AllDirectories))
 			{
 				// Act
@@ -42,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFile1_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicStatementParserNL(new PdfToWordsParser());
+			var parser = new TradeRepublicStatementParserNL(new PdfToText());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/NL/montly_statement.pdf", activityManager, account.Name);

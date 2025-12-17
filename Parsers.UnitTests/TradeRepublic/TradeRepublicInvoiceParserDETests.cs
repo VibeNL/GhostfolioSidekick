@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicInvoiceParserDE(new PdfToWordsParser());
+			var parser = new TradeRepublicInvoiceParserDE(new PdfToText());
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/DE", "*.pdf", SearchOption.AllDirectories))
 			{
 				// Act
@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuyStockFull_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserDE(new PdfToWordsParser());
+			var parser = new TradeRepublicInvoiceParserDE(new PdfToText());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/DE/BuyOrders/single_buy_stock_full.pdf", activityManager, account.Name);
@@ -71,7 +71,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuyStockFraction_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserDE(new PdfToWordsParser());
+			var parser = new TradeRepublicInvoiceParserDE(new PdfToText());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/DE/BuyOrders/single_buy_stock_fraction.pdf", activityManager, account.Name);
@@ -99,7 +99,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuySavingsplan_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserDE(new PdfToWordsParser());
+			var parser = new TradeRepublicInvoiceParserDE(new PdfToText());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/DE/BuyOrders/single_buy_savingsplan_etf.pdf", activityManager, account.Name);
@@ -121,7 +121,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleLimitBuyStock_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserDE(new PdfToWordsParser());
+			var parser = new TradeRepublicInvoiceParserDE(new PdfToText());
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/DE/BuyOrders/single_limit_buy_stock.pdf", activityManager, account.Name);

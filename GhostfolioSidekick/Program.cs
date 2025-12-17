@@ -134,7 +134,7 @@ namespace GhostfolioSidekick
 
 							services.AddScoped<IHoldingPerformanceCalculator, HoldingPerformanceCalculator>();
 
-							services.AddScoped<IPdfToWordsParser, PdfToWordsParser>();
+							services.AddScoped<IPdfToText, PdfToText>();
 						});
 		}
 
