@@ -140,10 +140,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
                         assets[t.Symbol] -= t.Quantity.Value;
                 }
 
-                var assetStateDisplay = assets.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.ToString("N4")
-                );
+                var assetStateDisplay = assets
+                    .Where(kvp => kvp.Value != 0m)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.ToString("N4")
+                    );
 
                 debugRows.Add(new TransactionDebugRow
                 {
