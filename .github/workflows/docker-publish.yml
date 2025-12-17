@@ -147,6 +147,7 @@ jobs:
             type=ref,event=pr
             # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v5
@@ -173,4 +174,25 @@ jobs:
             ```
           comment_tag: "development-ghostfoliosidekick-published"
           mode: "recreate"
-          pr_number: ${{ github.event.number }}     
+          pr_number: ${{ github.event.number }}
+
+  vulnerability-scan:
+    runs-on: ubuntu-latest
+    needs: publish
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Dependency Review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{ github.event_name == 'pull_request' && format('vibenl/ghostfoliosidekick:pr-{0}', github.event.number) || 'vibenl/ghostfoliosidekick:latest' }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
