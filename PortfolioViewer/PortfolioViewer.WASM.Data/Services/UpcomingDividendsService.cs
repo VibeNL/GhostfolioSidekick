@@ -2,8 +2,6 @@ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
-using GhostfolioSidekick.Model.Symbols;
-using GhostfolioSidekick.Model.Market;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 {
