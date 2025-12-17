@@ -190,7 +190,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: 'vibenl/ghostfoliosidekick:${{ github.sha }}'
+          image-ref: ${{ github.event_name == 'pull_request' && format('vibenl/ghostfoliosidekick:pr-{0}', github.event.number) || 'vibenl/ghostfoliosidekick:latest' }}
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
