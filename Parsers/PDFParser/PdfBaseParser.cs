@@ -51,5 +51,29 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 
 			return true;
 		}
+
+		protected static bool ContainsSequence (string[] sequence, List<SingleWordToken> words, bool caseInsentitive = false)
+		{
+			for (int i = 0; i <= words.Count - sequence.Length; i++)
+			{
+				bool match = true;
+				for (int j = 0; j < sequence.Length; j++)
+				{
+					var expected = sequence[j];
+					var actual = words[i + j].Text;
+					if (!string.Equals(expected, actual, caseInsentitive ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture))
+					{
+						match = false;
+						break;
+					}
+				}
+
+				if (match)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 }
