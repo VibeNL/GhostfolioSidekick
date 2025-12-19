@@ -22,7 +22,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
 		<PackageReference Include="Scalar.AspNetCore" Version="2.11.7" />
 		<PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
-		<PackageReference Include="Grpc.AspNetCore.Web" Version="2.71.0" />
+		<PackageReference Include="Grpc.AspNetCore.Web" Version="2.76.0" />
 	</ItemGroup>
 
 	<ItemGroup>
