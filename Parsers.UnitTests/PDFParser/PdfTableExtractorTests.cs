@@ -179,6 +179,137 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			rows[0].Columns[2].Select(t => t.Text).Should().ContainInOrder("C1", "C1b");
 		}
 
+		[Fact]
+		public void GetColumnValue_ReturnsCorrectColumnValue()
+		{
+			// Arrange
+			// Layout:
+			// Header: Transaction Type (x=0) | Date (x=20) | Description (x=35) | Amount (x=60)
+			// Row:    Deposit (x=1) | 17-05-2023 (x=21) | Bank transfer (x=36-37) | EUR 100.00 (x=61-62)
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Type", 0, 0, 1),
+				Token("Date", 0, 0, 20),
+				Token("Description", 0, 0, 35),
+				Token("Amount", 0, 0, 60)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Deposit", 0, 1, 1),
+				Token("17-05-2023", 0, 1, 21),
+				Token("Bank", 0, 1, 36),
+				Token("transfer", 0, 1, 37),
+				Token("EUR", 0, 1, 61),
+				Token("100.00", 0, 1, 62)
+			};
+
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Transaction Type", "Date", "Description", "Amount"],
+				stopPredicate: null,
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue(headerRow, "Transaction Type").Should().Be("Deposit");
+			row.GetColumnValue(headerRow, "Date").Should().Be("17-05-2023");
+			row.GetColumnValue(headerRow, "Description").Should().Be("Bank transfer");
+			row.GetColumnValue(headerRow, "Amount").Should().Be("EUR 100.00");
+		}
+
+		[Fact]
+		public void GetColumnValue_ReturnsNullForNonExistentColumn()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Col1", 0, 0, 0),
+				Token("Col2", 0, 0, 10)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Value1", 0, 1, 1),
+				Token("Value2", 0, 1, 11)
+			};
+
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Col1", "Col2"],
+				stopPredicate: null,
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue(headerRow, "NonExistentColumn").Should().BeNull();
+		}
+
+		[Fact]
+		public void GetColumnValue_ReturnsNullForEmptyColumn()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Col1", 0, 0, 0),
+				Token("Col2", 0, 0, 10),
+				Token("Col3", 0, 0, 20)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Value1", 0, 1, 1),
+				// No value for Col2 (empty column)
+				Token("Value3", 0, 1, 21)
+			};
+
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Col1", "Col2", "Col3"],
+				stopPredicate: null,
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue(headerRow, "Col1").Should().Be("Value1");
+			row.GetColumnValue(headerRow, "Col2").Should().BeNull(); // Empty column
+			row.GetColumnValue(headerRow, "Col3").Should().Be("Value3");
+		}
+
+		[Fact]
+		public void GetColumnValue_HandlesMultiWordColumnNames()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Type", 0, 0, 1),
+				Token("Amount", 0, 0, 20)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Buy", 0, 1, 1),
+				Token("150.00", 0, 1, 21)
+			};
+
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Transaction Type", "Amount"],
+				stopPredicate: null,
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue(headerRow, "Transaction Type").Should().Be("Buy");
+			row.GetColumnValue(headerRow, "Amount").Should().Be("150.00");
+		}
+
 		private static SingleWordToken Token(string text, int page, int row, int column)
 		{
 			return new SingleWordToken(text, new Position(page, row, column));
