@@ -194,6 +194,16 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			Func<PdfTableRow, bool>? stopPredicate = null,
 			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
 		{
+			return FindTableRowsWithColumns(words, headerKeywords, null, stopPredicate, mergePredicate);
+		}
+
+		public static (PdfTableRow Header, List<PdfTableRowColumns> Rows) FindTableRowsWithColumns(
+			IEnumerable<SingleWordToken> words,
+			string[] headerKeywords,
+			IReadOnlyList<ColumnAlignmentConfig>? alignmentConfigs,
+			Func<PdfTableRow, bool>? stopPredicate = null,
+			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
+		{
 			var rows = GroupRows(words);
 			if (rows.Count == 0)
 			{
@@ -226,7 +236,10 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				dataRows = MergeMultilineRows(dataRows, mergePredicate);
 			}
 
-			var aligned = AlignToHeaderColumns(header, dataRows, headerKeywords);
+			var strategy = alignmentConfigs != null 
+				? (IColumnAlignmentStrategy)new MixedColumnAlignmentStrategy() 
+				: new LeftAlignedColumnStrategy();
+			var aligned = AlignToHeaderColumns(header, dataRows, alignmentConfigs ?? [], strategy);
 			return (header, aligned);
 		}
 
@@ -250,14 +263,18 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return new PdfTableRow(row.Page, row.Row, headerTokens);
 		}
 
-		private static List<PdfTableRowColumns> AlignToHeaderColumns(PdfTableRow header, List<PdfTableRow> rows, string[] headerKeywords)
+		private static List<PdfTableRowColumns> AlignToHeaderColumns(
+			PdfTableRow header, 
+			List<PdfTableRow> rows, 
+			IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs, 
+			IColumnAlignmentStrategy strategy)
 		{
 			// The header parameter here already has the correct anchor positions from GetHeaders
 			var anchors = header.Tokens.Where(t => t.BoundingBox != null)
 				.Select(t => t.BoundingBox!.Column).ToList();
 
-			// Calculate cutoff points between columns instead of using nearest anchor
-			var cutoffs = CalculateColumnCutoffs(anchors);
+			// Use the strategy to calculate cutoff points between columns
+			var cutoffs = strategy.CalculateColumnCutoffs(anchors, alignmentConfigs);
 
 			var result = new List<PdfTableRowColumns>();
 
@@ -272,7 +289,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 						continue;
 					}
 
-					var columnIndex = FindColumnIndexByCutoff(cutoffs, token.BoundingBox.Column);
+					var columnIndex = strategy.FindColumnIndex(cutoffs, token.BoundingBox.Column, anchors, alignmentConfigs);
 					if (columnIndex >= 0 && columnIndex < columns.Count)
 					{
 						columns[columnIndex].Add(token);
@@ -283,56 +300,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			}
 
 			return result;
-		}
-
-		/// <summary>
-		/// Calculates cutoff points between columns to avoid splitting logical text units.
-		/// Assumes left-aligned column content.
-		/// </summary>
-		private static List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors)
-		{
-			if (anchors.Count == 0)
-			{
-				return [];
-			}
-
-			var cutoffs = new List<int>();
-
-			// For left-aligned columns, place cutoffs very close to the next column's anchor
-			// This assumes text starts at the anchor and should not extend much into the next column's space
-			for (int i = 0; i < anchors.Count - 1; i++)
-			{
-				var leftAnchor = anchors[i];
-				var rightAnchor = anchors[i + 1];
-				
-				// Place cutoff just before the next anchor with a small buffer
-				// This gives minimal space for left-aligned content to extend
-				var buffer = Math.Max(1, (rightAnchor - leftAnchor) / 20); // 5% buffer or minimum 1 unit
-				var cutoff = rightAnchor - buffer;
-				cutoffs.Add(cutoff);
-			}
-
-			// Add a final cutoff at a large value for the last column
-			cutoffs.Add(int.MaxValue);
-
-			return cutoffs;
-		}
-
-		/// <summary>
-		/// Finds which column a token belongs to based on cutoff points
-		/// </summary>
-		private static int FindColumnIndexByCutoff(IReadOnlyList<int> cutoffs, int tokenColumn)
-		{
-			for (int i = 0; i < cutoffs.Count; i++)
-			{
-				if (tokenColumn < cutoffs[i])
-				{
-					return i;
-				}
-			}
-
-			// Should not happen due to int.MaxValue cutoff, but fallback to last column
-			return cutoffs.Count - 1;
 		}
 
 		private static List<int> BuildAnchors(PdfTableRow header, string[] headerKeywords)
@@ -425,6 +392,63 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		}
 
 		/// <summary>
+		/// Calculates cutoff points between columns to avoid splitting logical text units.
+		/// Assumes left-aligned column content.
+		/// </summary>
+		/// <param name="anchors">Column anchor positions</param>
+		/// <returns>List of cutoff positions</returns>
+		[Obsolete("Use IColumnAlignmentStrategy.CalculateColumnCutoffs instead")]
+		private static List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors)
+		{
+			if (anchors.Count == 0)
+			{
+				return [];
+			}
+
+			var cutoffs = new List<int>();
+
+			// For left-aligned columns, place cutoffs very close to the next column's anchor
+			// This assumes text starts at the anchor and should not extend much into the next column's space
+			for (int i = 0; i < anchors.Count - 1; i++)
+			{
+				var leftAnchor = anchors[i];
+				var rightAnchor = anchors[i + 1];
+				
+				// Place cutoff just before the next anchor with a small buffer
+				// This gives minimal space for left-aligned content to extend
+				var buffer = Math.Max(1, (rightAnchor - leftAnchor) / 20); // 5% buffer or minimum 1 unit
+				var cutoff = rightAnchor - buffer;
+				cutoffs.Add(cutoff);
+			}
+
+			// Add a final cutoff at a large value for the last column
+			cutoffs.Add(int.MaxValue);
+
+			return cutoffs;
+		}
+
+		/// <summary>
+		/// Finds which column a token belongs to based on cutoff points
+		/// </summary>
+		/// <param name="cutoffs">Pre-calculated cutoff points</param>
+		/// <param name="tokenColumn">Position of the token</param>
+		/// <returns>Column index</returns>
+		[Obsolete("Use IColumnAlignmentStrategy.FindColumnIndex instead")]
+		private static int FindColumnIndexByCutoff(IReadOnlyList<int> cutoffs, int tokenColumn)
+		{
+			for (int i = 0; i < cutoffs.Count; i++)
+			{
+				if (tokenColumn < cutoffs[i])
+				{
+					return i;
+				}
+			}
+
+			// Should not happen due to int.MaxValue cutoff, but fallback to last column
+			return cutoffs.Count - 1;
+		}
+
+		/// <summary>
 		/// Finds table rows while excluding footer content from the analysis.
 		/// This is a convenience method that filters out footer tokens before processing the table.
 		/// </summary>
@@ -464,6 +488,29 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		{
 			var filteredWords = PdfToWordsParser.FilterOutFooter(words.ToList(), footerHeightThreshold);
 			return FindTableRowsWithColumns(filteredWords, headerKeywords, stopPredicate, mergePredicate);
+		}
+
+		/// <summary>
+		/// Finds table rows with columns while excluding footer content from the analysis.
+		/// This overload supports custom column alignment configurations.
+		/// </summary>
+		/// <param name="words">All words from the PDF</param>
+		/// <param name="headerKeywords">Keywords that identify the table header</param>
+		/// <param name="alignmentConfigs">Per-column alignment configurations</param>
+		/// <param name="footerHeightThreshold">Distance from bottom of page to consider as footer area</param>
+		/// <param name="stopPredicate">Optional predicate to stop processing rows</param>
+		/// <param name="mergePredicate">Optional predicate to merge multi-line rows</param>
+		/// <returns>Tuple containing the header and list of table rows with columns, excluding footer content</returns>
+		public static (PdfTableRow Header, List<PdfTableRowColumns> Rows) FindTableRowsWithColumnsIgnoringFooter(
+			IEnumerable<SingleWordToken> words,
+			string[] headerKeywords,
+			IReadOnlyList<ColumnAlignmentConfig>? alignmentConfigs,
+			int footerHeightThreshold = 50,
+			Func<PdfTableRow, bool>? stopPredicate = null,
+			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
+		{
+			var filteredWords = PdfToWordsParser.FilterOutFooter(words.ToList(), footerHeightThreshold);
+			return FindTableRowsWithColumns(filteredWords, headerKeywords, alignmentConfigs, stopPredicate, mergePredicate);
 		}
 	}
 }

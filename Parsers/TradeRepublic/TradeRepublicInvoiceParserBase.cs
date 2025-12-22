@@ -9,48 +9,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
 	public abstract class TradeRepublicInvoiceParserBase(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
-		protected abstract string Keyword_Position { get; }
-		protected abstract string Keyword_Quantity { get; }
-		protected abstract string Keyword_Quantity_PiecesText { get; }
-		protected abstract string[] Keyword_Price { get; }
-		protected abstract string Keyword_Amount { get; }
-		protected abstract string[] Keyword_Nominal { get; }
-		protected abstract string Keyword_Income { get; }
-		protected abstract string Keyword_Coupon { get; }
-		protected abstract string Keyword_Total { get; }
-		protected abstract string Keyword_AverageRate { get; }
-		protected abstract string[] Keyword_Booking { get; }
-		protected abstract string Keyword_Security { get; }
-		protected abstract string Keyword_Number { get; }
-		protected abstract string SECURITIES_SETTLEMENT { get; }
-		protected abstract string DIVIDEND { get; }
-		protected abstract string INTEREST_PAYMENT { get; }
-		protected abstract string REPAYMENT { get; }
-		protected abstract string ACCRUED_INTEREST { get; }
-		protected abstract string EXTERNAL_COST_SURCHARGE { get; }
-		protected abstract string WITHHOLDING_TAX { get; }
-		protected abstract string DATE { get; }
-		protected abstract CultureInfo Culture { get; }
-		protected CultureInfo AlternativeCulture { get; } = CultureInfo.InvariantCulture;
+		protected abstract string[] HeaderKeywords { get; } 
 
-		private List<string> TableKeyWords
-		{
-			get
-			{
-				return [.. Keyword_Booking.Union(Keyword_Nominal)
-				.Union(Keyword_Price)
-				.Union([
-					Keyword_Position,
-					Keyword_Quantity,
-					Keyword_AverageRate,
-					Keyword_Income,
-					Keyword_Amount,
-					Keyword_Coupon,
-					Keyword_Security,
-					Keyword_Number
-				])];
-			}
-		}
+		protected abstract string StopWord { get; }
+
+		protected override bool IgnoreFooter => true;
+
+		protected override int FooterHeightThreshold => 50;
 
 		protected override bool CanParseRecords(List<SingleWordToken> words)
 		{
@@ -65,19 +30,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					foundTradeRepublic = true;
 				}
 
-				if (IsCheckWords(DATE, words, i))
-				{
-					foundLanguage = true;
-				}
-
-				if (
-					IsCheckWords(SECURITIES_SETTLEMENT, words, i) ||
-					IsCheckWords(DIVIDEND, words, i) ||
-					IsCheckWords(INTEREST_PAYMENT, words, i) ||
-					IsCheckWords(REPAYMENT, words, i))
-				{
-					foundSecurities = true;
-				}
 			}
 
 			return foundLanguage && foundTradeRepublic && foundSecurities;
@@ -89,274 +41,79 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			var activities = new List<PartialActivity>();
 
-			var hasMainActivityParsed = false;
+			bool StopPredicate(PdfTableRow row) => row.Text.Contains(StopWord, StringComparison.InvariantCultureIgnoreCase);
 
-			// detect headers
-			var headers = new List<MultiWordToken>();
-			DateOnly? dateOnly = null;
-			bool inHeader = false;
-
-			for (int i = 0; i < words.Count; i++)
+			bool MergePredicate(PdfTableRow current, PdfTableRow next)
 			{
-				var word = words[i];
-
-				// Detect first date
-				if (word.Text == DATE && dateOnly == null)
+				// Merge if the first column of the next row is empty (indicating continuation of previous row)
+				if (next.Tokens.Count == 0)
 				{
-					var date = words[i + 1].Text;
-					dateOnly = DateOnly.ParseExact(date, "dd.MM.yyyy", CultureInfo.InvariantCulture);
-					i += 1;
+					return false;
 				}
 
-				if (Keyword_Total == word.Text) // start of header
+				// Check if the first token of the next row has the same or very similar horizontal position as subsequent columns
+				// This indicates that the first column is empty and this is a continuation row
+				var firstToken = next.Tokens.FirstOrDefault();
+				if (firstToken?.BoundingBox == null)
 				{
-					headers.Clear();
+					return false;
 				}
 
-				if (!inHeader && headers.Count == 4 && !hasMainActivityParsed) // parsing rows buys and sells
-				{
-					i = ParseSecurityRecord(words, i, dateOnly.GetValueOrDefault(), headers, activities);
-					hasMainActivityParsed = true;
-				}
+				// Get the first token's column position
+				var firstTokenColumn = firstToken.BoundingBox.Column;
 
-				if (!inHeader && headers.Count == 2) // parsing fees
+				// If current row has tokens, check if the first token of next row aligns with non-first columns
+				if (current.Tokens.Count > 1)
 				{
-					i = ParseFeeRecords(words, i, dateOnly.GetValueOrDefault(), activities);
-				}
+					// Find the second column position from current row to determine if next row starts there
+					var currentSecondColumnPosition = current.Tokens
+						.Where(t => t.BoundingBox != null)
+						.Skip(1)
+						.FirstOrDefault()?.BoundingBox?.Column;
 
-				if (Keyword_Position == word.Text || Keyword_Number == word.Text) // start of header
-				{
-					inHeader = true;
-				}
-
-				if (inHeader) // add column headers
-				{
-					var matched = false;
-					foreach (var kw in TableKeyWords.OrderByDescending(x => x.Length))
+					if (currentSecondColumnPosition.HasValue)
 					{
-						var keywordMatch = true;
-						string[] keywordSplitted = kw.Split(" ");
-						for (int j = 0; j < keywordSplitted.Length; j++)
-						{
-							string? keyword = keywordSplitted[j];
-							if (words[i + j].Text != keyword)
-							{
-								keywordMatch = false;
-								break;
-							}
-						}
+						// If the first token of next row is closer to the second column position,
+						// it likely means the first column is empty
+						var distanceToSecond = Math.Abs(firstTokenColumn - currentSecondColumnPosition.Value);
+						var distanceToFirst = current.Tokens.FirstOrDefault()?.BoundingBox?.Column is int firstCol
+							? Math.Abs(firstTokenColumn - firstCol)
+							: int.MaxValue;
 
-						if (keywordMatch)
-						{
-							headers.Add(new MultiWordToken(kw, word.BoundingBox));
-							matched = true;
-							i += keywordSplitted.Length - 1;
-							break;
-						}
-					}
-
-					if (!matched)
-					{
-						inHeader = false;
-						headers.Clear();
+						return distanceToSecond < distanceToFirst;
 					}
 				}
 
-				if (Keyword_Amount.Contains(word.Text) ||
-					(headers.Count != 0 && CheckEndOfRecord(headers, word.Text))) // end of header
+				return false;
+			}
+
+			var (header, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				words,
+				HeaderKeywords,
+				[
+					new(0, ColumnAlignment.Left),   // POSITION
+					new(1, ColumnAlignment.Left),   // QUANTITY  
+					new(2, ColumnAlignment.Left),   // PRICE
+					new(3, ColumnAlignment.Right)   // AMOUNT (right-aligned)
+				],
+				stopPredicate: StopPredicate,
+				mergePredicate: MergePredicate);
+
+			foreach (var row in rows)
+			{
+				var parsed = ParseRecord(header, row);
+				if (parsed != null)
 				{
-					inHeader = false;
+					activities.AddRange(parsed);
 				}
 			}
-
-			if (activities.Count == 0)
-			{
-				return activities;
-			}
-
-			var mainActivity = activities.Single(x => !string.IsNullOrWhiteSpace(x.TransactionId));
-			activities.ToList().ForEach(x => x.TransactionId = mainActivity.TransactionId);
 
 			return activities;
 		}
 
-		protected virtual bool CheckEndOfRecord(List<MultiWordToken> headers, string currentWord)
+		private IEnumerable<PartialActivity> ParseRecord(PdfTableRow header, PdfTableRowColumns row)
 		{
-			return false;
-		}
-
-		private int ParseFeeRecords(List<SingleWordToken> words, int i, DateOnly dateTime, List<PartialActivity> activities)
-		{
-			int skip;
-			if (IsCheckWords(ACCRUED_INTEREST, words, i))
-			{
-				skip = ACCRUED_INTEREST.Split(" ").Length;
-			}
-			else if (IsCheckWords(EXTERNAL_COST_SURCHARGE, words, i))
-			{
-				skip = EXTERNAL_COST_SURCHARGE.Split(" ").Length;
-			}
-			else if (IsCheckWords(WITHHOLDING_TAX, words, i))
-			{
-				skip = WITHHOLDING_TAX.Split(" ").Length;
-			}
-			else
-			{
-				return i;
-			}
-
-			var price = Math.Abs(Parse(words[i + skip].Text));
-			var currencySymbol = words[i + skip + 1].Text;
-			var currency = Currency.GetCurrency(currencySymbol);
-
-			activities.Add(PartialActivity.CreateFee(
-					currency,
-					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-					price,
-					new Money(currency, price),
-					string.Empty));
-
-			return i + skip + 1;
-		}
-
-		private int ParseSecurityRecord(List<SingleWordToken> words, int i, DateOnly dateTime, List<MultiWordToken> headers, List<PartialActivity> activities)
-		{
-			var headerStrings = headers.Select(h => h.KeyWord).ToList();
-			if (headerStrings.Contains(Keyword_Quantity) && (Keyword_Price.Any(headerStrings.Contains) || headerStrings.Contains(Keyword_AverageRate))) // Stocks
-			{
-				var isin = GetIsin(words, ref i);
-				string id = GetId(dateTime, isin);
-
-				var incrementDueToPiecesText = words[i + 2].Text == Keyword_Quantity_PiecesText ? 1 : 0;
-
-				Currency currency = Currency.GetCurrency(words[i + 3 + incrementDueToPiecesText].Text);
-				activities.Add(PartialActivity.CreateBuy(
-					currency,
-					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					Parse(words[i + 1].Text),
-					new Money(currency, Parse(words[i + 2 + incrementDueToPiecesText].Text)),
-					new Money(
-						currency,
-						Parse(words[i + 4 + incrementDueToPiecesText].Text)),
-					id));
-
-				return i + 5 + incrementDueToPiecesText;
-			}
-
-			if (Keyword_Nominal.Any(headerStrings.Contains) && Keyword_Price.Any(headerStrings.Contains)) // Bonds
-			{
-				var isin = GetIsin(words, ref i);
-				string id = GetId(dateTime, isin);
-
-				Currency currency = Currency.GetCurrency(words[i + 6].Text);
-				activities.Add(PartialActivity.CreateBuy(
-					currency,
-					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					Parse(words[i + 1].Text),
-					new Money(currency, Parse(words[i + 3].Text) / 100),
-					new Money(currency, Parse(words[i + 5].Text)),
-					id));
-
-				return i + 6;
-			}
-
-			if (headerStrings.Contains(Keyword_Income) || Keyword_Nominal.Any(headerStrings.Contains)) // Dividends
-			{
-				var isin = GetIsin(words, ref i);
-				string id = GetId(dateTime, isin);
-
-				activities.Add(PartialActivity.CreateDividend(
-					Currency.GetCurrency(words[i + 6].Text),
-					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					Parse(words[i + 5].Text),
-					new Money(Currency.GetCurrency(words[i + 6].Text), Parse(words[i + 5].Text)),
-					id));
-
-				return i + 6;
-			}
-
-			if (headerStrings.Contains(Keyword_Security) && Keyword_Booking.Any(headerStrings.Contains)) // Repay of bonds
-			{
-				i += 2; // skip column "Number" and "Booking"
-				var isin = GetIsin(words, ref i);
-				string id = GetId(dateTime, isin);
-
-				Currency currency = Currency.GetCurrency(words[i + 2].Text);
-				activities.Add(PartialActivity.CreateBondRepay(
-					currency,
-					dateTime.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					new Money(currency, Parse(words[i + 1].Text)),
-					new Money(currency, Parse(words[i + 1].Text)),
-					id));
-
-				return i + 2;
-			}
-
-			throw new NotSupportedException("Unknown security type");
-
-			static string GetId(DateOnly dateTime, string isin)
-			{
-				return $"Trade_Republic_{isin}_{dateTime:yyyy-MM-dd}";
-			}
-		}
-
-		private static string GetIsin(List<SingleWordToken> words, ref int i)
-		{
-			var sourceI = i;
-			string? isin = null;
-			while (i < words.Count)
-			{
-				if (words[i].Text == "ISIN:")
-				{
-					isin = words[i + 1].Text;
-					i++;
-					return isin;
-				}
-
-				i++;
-			}
-
-			// Detect via pattern
-			i = sourceI;
-			while (i < words.Count)
-			{
-				if (Isin.ValidateCheckDigit(words[i].Text))
-				{
-					isin = words[i].Text;
-					return isin;
-				}
-
-				i++;
-			}
-
-			throw new NotSupportedException("ISIN not found");
-		}
-
-		private decimal Parse(string s)
-		{
-			// Check if the string contains both decimal separators. Replace the first of the two with an empty string.
-			var indexOfComma = s.IndexOf(',');
-			var indexOfDots = s.IndexOf('.');
-			if (indexOfComma != -1 && indexOfDots != -1)
-			{
-				if (indexOfComma < indexOfDots)
-				{
-					s = s.Replace(",", string.Empty);
-				}
-				else
-				{
-					s = s.Replace(".", string.Empty);
-				}
-			}
-
-			var a = decimal.Parse(s, Culture);
-			var b = decimal.Parse(s, AlternativeCulture);
-
-			return Math.Abs(a) < Math.Abs(b) ? a : b;
+			throw new NotImplementedException();
 		}
 	}
 }
