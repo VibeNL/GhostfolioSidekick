@@ -286,7 +286,8 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		}
 
 		/// <summary>
-		/// Calculates cutoff points between columns to avoid splitting logical text units
+		/// Calculates cutoff points between columns to avoid splitting logical text units.
+		/// Assumes left-aligned column content.
 		/// </summary>
 		private static List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors)
 		{
@@ -297,13 +298,18 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 			var cutoffs = new List<int>();
 
-			// For each pair of adjacent anchors, calculate the midpoint as the cutoff
+			// For left-aligned columns, place cutoffs very close to the next column's anchor
+			// This assumes text starts at the anchor and should not extend much into the next column's space
 			for (int i = 0; i < anchors.Count - 1; i++)
 			{
 				var leftAnchor = anchors[i];
 				var rightAnchor = anchors[i + 1];
-				var midpoint = leftAnchor + (rightAnchor - leftAnchor) / 2;
-				cutoffs.Add(midpoint);
+				
+				// Place cutoff just before the next anchor with a small buffer
+				// This gives minimal space for left-aligned content to extend
+				var buffer = Math.Max(1, (rightAnchor - leftAnchor) / 20); // 5% buffer or minimum 1 unit
+				var cutoff = rightAnchor - buffer;
+				cutoffs.Add(cutoff);
 			}
 
 			// Add a final cutoff at a large value for the last column

@@ -3,13 +3,25 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System;
 using System.Globalization;
+using System.Transactions;
 
 namespace GhostfolioSidekick.Parsers.GoldRepublic
 {
 	public partial class GoldRepublicParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
 		private static readonly string[] HeaderKeywords = ["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"];
+
+		private class DescriptionData
+		{
+			public DateTime ExecutionDate { get; set; }
+			public string Action { get; set; } = string.Empty;
+			public decimal TransactionValue { get; set; }
+			public decimal Fee { get; set; }
+			public decimal Volume { get; set; }
+			public decimal Total { get; set; }
+		}
 
 		protected override bool CanParseRecords(List<SingleWordToken> words)
 		{
@@ -100,7 +112,6 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			// Transaction Type
 			var transactionType = row.GetColumnValue(header, "Transaction Type")?.Trim() ?? string.Empty;
 			var date = row.GetColumnValue(header, "Date")?.Trim();
-			var description = row.GetColumnValue(header, "Description")?.Trim();
 			var bullion = row.GetColumnValue(header, "Bullion")?.Trim();
 			var amount = row.GetColumnValue(header, "Amount")?.Trim();
 			var balance = row.GetColumnValue(header, "Balance")?.Trim();
@@ -120,7 +131,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			{
 				yield return PartialActivity.CreateCashDeposit(
 					Currency.EUR,
-					dateParsed.ToDateTime(TimeOnly.MinValue),
+					dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					amountParsed,
 					new Money(Currency.EUR, amountParsed),
 					transactionId
@@ -131,7 +142,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			{
 				yield return PartialActivity.CreateCashWithdrawal(
 					Currency.EUR,
-					dateParsed.ToDateTime(TimeOnly.MinValue),
+					dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					amountParsed,
 					new Money(Currency.EUR, amountParsed),
 					transactionId
@@ -141,7 +152,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			if (transactionType.Equals("Market Order", StringComparison.InvariantCultureIgnoreCase) ||
 				transactionType.Equals("Savings Order", StringComparison.InvariantCultureIgnoreCase))
 			{
-				var subTable = ParseDescription(description);
+				var subTable = ParseDescription(row.Columns[2]); // Description is usually the 3rd column
 				var executionDate = subTable.ExecutionDate;
 				var action = subTable.Action;
 				var transactionValue = subTable.TransactionValue;
@@ -151,7 +162,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 				yield return PartialActivity.CreateBuy(
 					Currency.EUR,
-					dateParsed.ToDateTime(TimeOnly.MinValue),
+					dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 					[PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>")],
 					volume,
 					new Money(Currency.EUR, transactionValue),
@@ -163,7 +174,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				{
 					yield return PartialActivity.CreateFee(
 						Currency.EUR,
-						dateParsed.ToDateTime(TimeOnly.MinValue),
+						dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 						fee,
 						new Money(Currency.EUR, fee),
 						transactionId
@@ -173,129 +184,108 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 			yield return PartialActivity.CreateKnownBalance(
 				Currency.EUR,
-				dateParsed.ToDateTime(TimeOnly.MinValue),
+				dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
 				balanceParsed
 				);
 		}
 
-		private GoldRepublicTransactionDetails ParseDescription(string? description)
+		private DescriptionData ParseDescription(IReadOnlyList<SingleWordToken> singleWordTokens)
 		{
-			if (string.IsNullOrWhiteSpace(description))
+			/* Example Description:
+			Processing order 572591 Gold €0.00 €110.01
+			Product Gold, Zürich
+			Date Submitted 22 - 05 - 2023 16:50:27
+			Execution Date 22 - 05 - 2023 16:50:27
+			Action Buy
+			Transaction Value €0.00
+			Fee €0.00
+			Volume 1.000
+			Total €0.00
+			*/
+
+			var result = new DescriptionData();
+
+			// Group tokens by row to handle multi-line descriptions
+			var rows = PdfTableExtractor.GroupRows(singleWordTokens);
+
+			foreach (var row in rows)
 			{
-				return new GoldRepublicTransactionDetails(null, string.Empty, 0m, 0m, 0m, 0m);
-			}
+				var rowText = row.Text;
 
-			// Initialize default values
-			DateOnly? executionDate = null;
-			string action = string.Empty;
-			decimal transactionValue = 0m;
-			decimal fee = 0m;
-			decimal volume = 0m;
-			decimal total = 0m;
-
-			// Split description into lines for parsing
-			var lines = description.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-			
-			foreach (var line in lines)
-			{
-				var cleanLine = line.Trim();
-
-				// Parse execution date (format could be "Executed: dd-MM-yyyy" or similar)
-				if (cleanLine.Contains("Executed:", StringComparison.InvariantCultureIgnoreCase) ||
-					cleanLine.Contains("Execution Date:", StringComparison.InvariantCultureIgnoreCase))
+				if (rowText.StartsWith("Execution Date", StringComparison.InvariantCultureIgnoreCase))
 				{
-					var datePart = cleanLine.Split(':')[^1].Trim();
-					if (DateOnly.TryParseExact(datePart, "dd-MM-yyyy", null, DateTimeStyles.None, out var parsedDate))
+					var dateString = ExtractValueFromLine(rowText, "Execution Date");
+					if (!string.IsNullOrEmpty(dateString) && TryParseDateTime(dateString, out var executionDate))
 					{
-						executionDate = parsedDate;
+						result.ExecutionDate = executionDate;
 					}
 				}
-
-				// Parse action (Buy/Sell)
-				if (cleanLine.Contains("Action:", StringComparison.InvariantCultureIgnoreCase))
+				else if (rowText.StartsWith("Action", StringComparison.InvariantCultureIgnoreCase))
 				{
-					action = cleanLine.Split(':')[^1].Trim();
+					result.Action = ExtractValueFromLine(rowText, "Action");
 				}
-				else if (cleanLine.StartsWith("Buy", StringComparison.InvariantCultureIgnoreCase) ||
-						 cleanLine.StartsWith("Sell", StringComparison.InvariantCultureIgnoreCase))
+				else if (rowText.StartsWith("Transaction Value", StringComparison.InvariantCultureIgnoreCase))
 				{
-					action = cleanLine.Split(' ')[0];
+					var valueString = ExtractValueFromLine(rowText, "Transaction Value");
+					result.TransactionValue = ParseDecimalFromLine(valueString);
 				}
-
-				// Parse monetary values
-				if (cleanLine.Contains("Transaction Value:", StringComparison.InvariantCultureIgnoreCase))
+				else if (rowText.StartsWith("Fee", StringComparison.InvariantCultureIgnoreCase))
 				{
-					var valuePart = cleanLine.Split(':')[^1].Trim();
-					transactionValue = ParseDecimalFromLine(valuePart);
+					var feeString = ExtractValueFromLine(rowText, "Fee");
+					result.Fee = ParseDecimalFromLine(feeString);
 				}
-
-				if (cleanLine.Contains("Fee:", StringComparison.InvariantCultureIgnoreCase))
+				else if (rowText.StartsWith("Volume", StringComparison.InvariantCultureIgnoreCase))
 				{
-					var feePart = cleanLine.Split(':')[^1].Trim();
-					fee = ParseDecimalFromLine(feePart);
+					var volumeString = ExtractValueFromLine(rowText, "Volume");
+					result.Volume = ParseDecimalFromLine(volumeString);
 				}
-
-				if (cleanLine.Contains("Volume:", StringComparison.InvariantCultureIgnoreCase))
+				else if (rowText.StartsWith("Total", StringComparison.InvariantCultureIgnoreCase))
 				{
-					var volumePart = cleanLine.Split(':')[^1].Trim();
-					volume = ParseDecimalFromLine(volumePart);
-				}
-
-				if (cleanLine.Contains("Total:", StringComparison.InvariantCultureIgnoreCase))
-				{
-					var totalPart = cleanLine.Split(':')[^1].Trim();
-					total = ParseDecimalFromLine(totalPart);
-				}
-
-				// Try to extract values from patterns like "€123.45"
-				if (string.IsNullOrEmpty(action))
-				{
-					if (cleanLine.Contains("€") && (cleanLine.Contains("gram", StringComparison.InvariantCultureIgnoreCase) || cleanLine.Contains("g ", StringComparison.InvariantCultureIgnoreCase)))
-					{
-						// This might be a transaction line, assume it's a buy if not specified
-						action = "Buy";
-					}
+					var totalString = ExtractValueFromLine(rowText, "Total");
+					result.Total = ParseDecimalFromLine(totalString);
 				}
 			}
 
-			// If we couldn't parse structured data, try to extract from the entire description
-			if (executionDate == null && action == string.Empty && transactionValue == 0m)
+			return result;
+		}
+
+		private static string ExtractValueFromLine(string line, string prefix)
+		{
+			if (line.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
 			{
-				// Try to extract any decimal values and dates from the entire description
-				var euroMatches = System.Text.RegularExpressions.Regex.Matches(description, @"€\s*(\d+(?:[.,]\d+)?)");
-				if (euroMatches.Count > 0)
+				return line.Substring(prefix.Length).Trim();
+			}
+			return string.Empty;
+		}
+
+		private static bool TryParseDateTime(string input, out DateTime dateTime)
+		{
+			dateTime = default;
+
+			// Try to match the pattern: "22 - 05 - 2023 16:50:27"
+			var match = System.Text.RegularExpressions.Regex.Match(input, @"(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})");
+			if (match.Success)
+			{
+				if (int.TryParse(match.Groups[1].Value, out var day) &&
+					int.TryParse(match.Groups[2].Value, out var month) &&
+					int.TryParse(match.Groups[3].Value, out var year) &&
+					int.TryParse(match.Groups[4].Value, out var hour) &&
+					int.TryParse(match.Groups[5].Value, out var minute) &&
+					int.TryParse(match.Groups[6].Value, out var second))
 				{
-					// First euro amount might be transaction value
-					if (decimal.TryParse(euroMatches[0].Groups[1].Value.Replace(',', '.'), out var value))
+					try
 					{
-						transactionValue = value;
+						dateTime = new DateTime(year, month, day, hour, minute, second);
+						return true;
 					}
-					
-					// If there are multiple euro amounts, last one might be total
-					if (euroMatches.Count > 1)
+					catch
 					{
-						if (decimal.TryParse(euroMatches[^1].Groups[1].Value.Replace(',', '.'), out var totalValue))
-						{
-							total = totalValue;
-						}
+						return false;
 					}
 				}
-
-				// Try to find any date in the description
-				var dateMatches = System.Text.RegularExpressions.Regex.Matches(description, @"\b(\d{1,2}[-/]\d{1,2}[-/]\d{4})\b");
-				if (dateMatches.Count > 0)
-				{
-					if (DateOnly.TryParseExact(dateMatches[0].Groups[1].Value, new[] { "dd-MM-yyyy", "dd/MM/yyyy" }, null, DateTimeStyles.None, out var parsedDate))
-					{
-						executionDate = parsedDate;
-					}
-				}
-
-				// Default action if not found
-				action = "Buy";
 			}
 
-			return new GoldRepublicTransactionDetails(executionDate, action, transactionValue, fee, volume, total);
+			return false;
 		}
 
 		private static decimal ParseDecimalFromLine(string input)
@@ -329,9 +319,14 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 		private DateOnly ParseDate(string? date)
 		{
-			//  17-05-2023
-			if (DateOnly.TryParseExact(date, "dd-MM-yyyy", null, DateTimeStyles.None, out var parsedDate))
+			if (string.IsNullOrWhiteSpace(date))
 			{
+				throw new FormatException($"Unable to parse date: {date}");
+			}
+
+			if (DateOnly.TryParseExact(date, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate))
+			{
+				// Assume Universal, do not convert to local
 				return parsedDate;
 			}
 
