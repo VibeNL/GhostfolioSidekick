@@ -23,21 +23,20 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		/// <param name="header">The header row containing column names</param>
 		/// <param name="columnName">The name of the column to retrieve (should match one of the header keywords)</param>
 		/// <returns>The text value of the column, or null if not found</returns>
-		public static string? GetColumnValue(this PdfTableRowColumns rowColumns, PdfTableRow header, string columnName)
+		public static string? GetColumnValue(this PdfTableRowColumns? rowColumns, PdfTableRow? header, string? columnName)
 		{
 			if (rowColumns?.Columns == null || header?.Tokens == null)
 			{
 				return null;
 			}
 
-			// The key insight: BuildAnchors processes headerKeywords sequentially and finds each keyword
-			// in the header tokens, creating anchors in the same order. We need to simulate this process
-			// to find the correct column index.
-			
-			// We can't use the exact headerKeywords array that was used, but we can simulate the
-			// BuildAnchors logic by finding the column name and determining its anchor position.
-			var columnIndex = FindColumnIndexUsingBuildAnchorsLogic(header, columnName);
-			
+			// Extract the original keywords that would have been used to create the columns
+			// This simulates what the original headerKeywords array would have looked like
+			var reconstructedKeywords = ExtractHeaderKeywords(header);
+
+			// Find the index of the requested column name in the reconstructed keywords
+			var columnIndex = FindColumnIndex(reconstructedKeywords, columnName);
+
 			if (columnIndex < 0 || columnIndex >= rowColumns.Columns.Count)
 			{
 				return null;
@@ -53,67 +52,32 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return null;
 		}
 
-		private static int FindColumnIndexUsingBuildAnchorsLogic(PdfTableRow header, string columnName)
+		private static int FindColumnIndex(string[] headerKeywords, string? columnName)
 		{
-			if (string.IsNullOrWhiteSpace(columnName) || header?.Tokens == null)
+			if (string.IsNullOrWhiteSpace(columnName) || headerKeywords == null)
 			{
 				return -1;
 			}
 
-			// Split the column name into parts like BuildAnchors does
-			var parts = columnName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-			
-			// Find the sequence in header tokens (like FindSequence does)
-			int foundIndex = -1;
-			for (int i = 0; i <= header.Tokens.Count - parts.Length; i++)
+			// Look for an exact match first (case-insensitive)
+			for (int i = 0; i < headerKeywords.Length; i++)
 			{
-				bool match = true;
-				for (int j = 0; j < parts.Length; j++)
+				if (string.Equals(headerKeywords[i], columnName, StringComparison.InvariantCultureIgnoreCase))
 				{
-					if (!string.Equals(header.Tokens[i + j].Text, parts[j], StringComparison.InvariantCultureIgnoreCase))
-					{
-						match = false;
-						break;
-					}
-				}
-
-				if (match)
-				{
-					foundIndex = i;
-					break;
+					return i;
 				}
 			}
 
-			if (foundIndex == -1)
+			// If no exact match, try to find a keyword that contains all parts of the column name
+			var columnParts = columnName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+			for (int i = 0; i < headerKeywords.Length; i++)
 			{
-				return -1;
-			}
+				var keyword = headerKeywords[i];
+				var keywordParts = keyword.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-			// Now we need to determine which column this corresponds to.
-			// The BuildAnchors method creates anchors by processing each keyword and getting its position.
-			// We need to simulate this by finding all possible column positions and seeing which one
-			// our found position corresponds to.
-			
-			var anchorToken = header.Tokens[foundIndex];
-			if (anchorToken.BoundingBox == null)
-			{
-				return -1;
-			}
-
-			var targetColumn = anchorToken.BoundingBox.Column;
-
-			// Find all unique column positions in the header (this simulates what BuildAnchors would do)
-			var allColumnPositions = header.Tokens
-				.Where(t => t.BoundingBox != null)
-				.Select(t => t.BoundingBox!.Column)
-				.Distinct()
-				.OrderBy(pos => pos)
-				.ToList();
-
-			// Find which column index our target position should map to
-			for (int i = 0; i < allColumnPositions.Count; i++)
-			{
-				if (Math.Abs(allColumnPositions[i] - targetColumn) <= 10) // Small tolerance for alignment
+				// Check if the keyword contains all parts of the column name
+				if (columnParts.All(part => keywordParts.Any(kp => string.Equals(kp, part, StringComparison.InvariantCultureIgnoreCase))))
 				{
 					return i;
 				}
@@ -149,7 +113,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 					var lastGroup = mergedGroups[^1];
 					var lastColumn = lastGroup.Last().BoundingBox!.Column;
 					var currentColumn = group.First().BoundingBox!.Column;
-					
+
 					// If columns are close (within 5 units), they're part of the same keyword
 					if (Math.Abs(currentColumn - lastColumn) <= 5)
 					{
@@ -242,7 +206,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				return (new PdfTableRow(0, 0, Array.Empty<SingleWordToken>()), []);
 			}
 
-			var header = rows[headerIndex];
+			var header = GetHeaders(headerKeywords, rows[headerIndex]);
 
 			var dataRows = new List<PdfTableRow>();
 			for (int i = headerIndex + 1; i < rows.Count; i++)
@@ -264,6 +228,18 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 			var aligned = AlignToHeaderColumns(header, dataRows, headerKeywords);
 			return (header, aligned);
+		}
+
+		private static PdfTableRow GetHeaders(string[] headerKeywords, PdfTableRow row)
+		{
+			var converted = AlignToHeaderColumns(row, [row], headerKeywords);
+			var headerTokens = new List<SingleWordToken>();
+			foreach (var column in converted[0].Columns)
+			{
+				headerTokens.AddRange(column);
+			}
+
+			return new PdfTableRow(row.Page, row.Row, headerTokens);
 		}
 
 		private static List<PdfTableRowColumns> AlignToHeaderColumns(PdfTableRow header, List<PdfTableRow> rows, string[] headerKeywords)

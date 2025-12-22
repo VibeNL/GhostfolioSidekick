@@ -310,6 +310,103 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			row.GetColumnValue(headerRow, "Amount").Should().Be("150.00");
 		}
 
+		[Fact]
+		public void GetColumnValue_HandlesPartialMatching()
+		{
+			// Arrange
+			// Test where we want to find "Date" and it matches "Transaction Date"
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Date", 0, 0, 5),
+				Token("Total", 0, 0, 100),
+				Token("Amount", 0, 0, 105),
+				Token("USD", 0, 0, 110)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("2023-01-01", 0, 1, 1),
+				Token("100.50", 0, 1, 101)
+			};
+
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Transaction Date", "Total Amount USD"],
+				stopPredicate: null,
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			// Should find "Date" within "Transaction Date"
+			row.GetColumnValue(headerRow, "Date").Should().Be("2023-01-01");
+			// Should find "Amount" within "Total Amount USD"
+			row.GetColumnValue(headerRow, "Amount").Should().Be("100.50");
+		}
+
+		[Fact]
+		public void GetColumnValue_CaseInsensitive()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Date", 0, 0, 5),
+				Token("Amount", 0, 0, 100)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("2023-01-01", 0, 1, 1),
+				Token("100.50", 0, 1, 101)
+			};
+
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Transaction Date", "Amount"],
+				stopPredicate: null,
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue(headerRow, "transaction date").Should().Be("2023-01-01");
+			row.GetColumnValue(headerRow, "AMOUNT").Should().Be("100.50");
+			row.GetColumnValue(headerRow, "DATE").Should().Be("2023-01-01");
+		}
+
+		[Fact]
+		public void GetColumnValue_WithNullOrEmptyInputs_ReturnsNull()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Date", 0, 0, 0)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("2023-01-01", 0, 1, 1)
+			};
+
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Date"],
+				stopPredicate: null,
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			PdfTableRowColumns? nullRowColumns = null;
+			nullRowColumns.GetColumnValue(headerRow, "Date").Should().BeNull();
+			row.GetColumnValue(null, "Date").Should().BeNull();
+			row.GetColumnValue(headerRow, null).Should().BeNull();
+			row.GetColumnValue(headerRow, "").Should().BeNull();
+			row.GetColumnValue(headerRow, "   ").Should().BeNull();
+		}
+
 		private static SingleWordToken Token(string text, int page, int row, int column)
 		{
 			return new SingleWordToken(text, new Position(page, row, column));
