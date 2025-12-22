@@ -450,6 +450,55 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			headerRow.Text.Should().Be("Transaction Type Date");
 		}
 
+		[Fact]
+		public void AlignToHeaderColumns_WithCutoffApproach_PreservesMultiWordDescriptions()
+		{
+			// This test validates that multi-word descriptions like "Bank transfer" 
+			// stay together in the same column instead of being split between columns
+			
+			// Layout:
+			// Header: Transaction Type (x=0) | Date (x=20) | Description (x=40) | Amount (x=70)
+			// Row:    Buy (x=1) | 2023-01-01 (x=21) | Bank transfer (x=41,46) | EUR 100.00 (x=71,75)
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Type", 0, 0, 8),
+				Token("Date", 0, 0, 20),
+				Token("Description", 0, 0, 40),
+				Token("Amount", 0, 0, 70)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Buy", 0, 1, 1),
+				Token("2023-01-01", 0, 1, 21),
+				Token("Bank", 0, 1, 41),      // Should stay with "transfer"
+				Token("transfer", 0, 1, 46), // Should stay with "Bank"
+				Token("EUR", 0, 1, 71),
+				Token("100.00", 0, 1, 75)
+			};
+
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Transaction Type", "Date", "Description", "Amount"],
+				stopPredicate: null,
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Assert - Multi-word descriptions should stay together
+			row.GetColumnValue(headerRow, "Transaction Type").Should().Be("Buy");
+			row.GetColumnValue(headerRow, "Date").Should().Be("2023-01-01");
+			row.GetColumnValue(headerRow, "Description").Should().Be("Bank transfer"); // Both words together
+			row.GetColumnValue(headerRow, "Amount").Should().Be("EUR 100.00");
+
+			// Verify the columns contain the expected tokens
+			rows[0].Columns[0].Select(t => t.Text).Should().ContainSingle().Which.Should().Be("Buy");
+			rows[0].Columns[1].Select(t => t.Text).Should().ContainSingle().Which.Should().Be("2023-01-01");
+			rows[0].Columns[2].Select(t => t.Text).Should().ContainInOrder("Bank", "transfer");
+			rows[0].Columns[3].Select(t => t.Text).Should().ContainInOrder("EUR", "100.00");
+		}
+
 		private static SingleWordToken Token(string text, int page, int row, int column)
 		{
 			return new SingleWordToken(text, new Position(page, row, column));

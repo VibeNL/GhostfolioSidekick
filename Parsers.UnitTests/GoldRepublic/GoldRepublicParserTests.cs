@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.GoldRepublic;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using GhostfolioSidekick.Parsers.UnitTests.TradeRepublic;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 {
@@ -118,5 +119,61 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 
 
 		}
+
+		[Fact]
+		public async Task GoldRepublicParser_Debug_ColumnExtraction()
+		{
+			// Debug test to understand what the parser is extracting
+			var parser = new GoldRepublicParser(new PdfToWordsParser());
+
+			// Act
+			await parser.ParseActivities("./TestFiles/GoldRepublic/year_overview.pdf", activityManager, account.Name);
+
+			// Assert - let's see what we actually get
+			// We won't assert anything specific, just output what we get
+			foreach (var activity in activityManager.PartialActivities)
+			{
+				System.Console.WriteLine($"Activity: {activity.ActivityType}, Date: {activity.Date}, Amount: {activity.Amount}, TransactionId: {activity.TransactionId}");
+			}
+
+			// For debugging, let's also see how many activities were parsed
+			System.Console.WriteLine($"Total activities parsed: {activityManager.PartialActivities.Count}");
+			activityManager.PartialActivities.Should().NotBeEmpty(); // Just ensure something was parsed
+		}
+
+		[Fact]
+		public async Task GoldRepublicParser_BasicTableStructure_ShouldParseCorrectly()
+		{
+			// This tests the GoldRepublicParser with a simulated table structure
+			// to verify that the cutoff-based column assignment works correctly
+
+			// Arrange - simulate a simple GoldRepublic statement
+			var parser = new GoldRepublicParser(new TestPdfToWords(new Dictionary<int, string>
+			{
+				{ 0, simpleGoldRepublicStatement }
+			}));
+
+			// Act
+			await parser.ParseActivities("test.pdf", activityManager, account.Name);
+
+			// Assert - check if basic parsing works
+			activityManager.PartialActivities.Should().NotBeEmpty("Parser should extract at least some activities");
+
+			// Check if we get a deposit activity
+			var depositActivity = activityManager.PartialActivities
+				.FirstOrDefault(a => a.ActivityType == PartialActivityType.CashDeposit);
+			depositActivity.Should().NotBeNull("Should find a deposit activity");
+		}
+
+		private readonly string simpleGoldRepublicStatement = @"
+WWW.GOLDREPUBLIC.COM
+Account Statement
+
+Transaction Type    Date        Description                     Bullion     Amount      Balance
+Deposit            17-05-2023   Bank transfer                   -           €100.00     €100.00
+Market Order       18-05-2023   Gold purchase 1g               Gold        €50.00      €50.00
+
+Closing balance: €50.00
+";
 	}
 }

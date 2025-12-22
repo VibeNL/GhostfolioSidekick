@@ -252,10 +252,12 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 		private static List<PdfTableRowColumns> AlignToHeaderColumns(PdfTableRow header, List<PdfTableRow> rows, string[] headerKeywords)
 		{
-			// Don't recalculate anchors from the modified header - use the original row data
 			// The header parameter here already has the correct anchor positions from GetHeaders
 			var anchors = header.Tokens.Where(t => t.BoundingBox != null)
 				.Select(t => t.BoundingBox!.Column).ToList();
+
+			// Calculate cutoff points between columns instead of using nearest anchor
+			var cutoffs = CalculateColumnCutoffs(anchors);
 
 			var result = new List<PdfTableRowColumns>();
 
@@ -270,14 +272,61 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 						continue;
 					}
 
-					var idx = FindNearestAnchorIndex(anchors, token.BoundingBox.Column);
-					columns[idx].Add(token);
+					var columnIndex = FindColumnIndexByCutoff(cutoffs, token.BoundingBox.Column);
+					if (columnIndex >= 0 && columnIndex < columns.Count)
+					{
+						columns[columnIndex].Add(token);
+					}
 				}
 
 				result.Add(new PdfTableRowColumns(row.Page, row.Row, columns.Select(c => (IReadOnlyList<SingleWordToken>)c.OrderBy(t => t.BoundingBox!.Column).ToList()).ToList()));
 			}
 
 			return result;
+		}
+
+		/// <summary>
+		/// Calculates cutoff points between columns to avoid splitting logical text units
+		/// </summary>
+		private static List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors)
+		{
+			if (anchors.Count == 0)
+			{
+				return [];
+			}
+
+			var cutoffs = new List<int>();
+
+			// For each pair of adjacent anchors, calculate the midpoint as the cutoff
+			for (int i = 0; i < anchors.Count - 1; i++)
+			{
+				var leftAnchor = anchors[i];
+				var rightAnchor = anchors[i + 1];
+				var midpoint = leftAnchor + (rightAnchor - leftAnchor) / 2;
+				cutoffs.Add(midpoint);
+			}
+
+			// Add a final cutoff at a large value for the last column
+			cutoffs.Add(int.MaxValue);
+
+			return cutoffs;
+		}
+
+		/// <summary>
+		/// Finds which column a token belongs to based on cutoff points
+		/// </summary>
+		private static int FindColumnIndexByCutoff(IReadOnlyList<int> cutoffs, int tokenColumn)
+		{
+			for (int i = 0; i < cutoffs.Count; i++)
+			{
+				if (tokenColumn < cutoffs[i])
+				{
+					return i;
+				}
+			}
+
+			// Should not happen due to int.MaxValue cutoff, but fallback to last column
+			return cutoffs.Count - 1;
 		}
 
 		private static List<int> BuildAnchors(PdfTableRow header, string[] headerKeywords)
@@ -367,23 +416,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 				return row.Text.Contains(h, StringComparison.InvariantCultureIgnoreCase);
 			});
-		}
-
-		private static int FindNearestAnchorIndex(IReadOnlyList<int> anchors, int column)
-		{
-			var nearest = 0;
-			var minDiff = int.MaxValue;
-			for (int i = 0; i < anchors.Count; i++)
-			{
-				var diff = Math.Abs(anchors[i] - column);
-				if (diff < minDiff)
-				{
-					minDiff = diff;
-					nearest = i;
-				}
-			}
-
-			return nearest;
 		}
 	}
 }
