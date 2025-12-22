@@ -45,46 +45,47 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			bool MergePredicate(PdfTableRow current, PdfTableRow next)
 			{
-				// Merge if the first column of the next row is empty (indicating continuation of previous row)
+				// Merge if the first column of the next row is filled (has content)
 				if (next.Tokens.Count == 0)
 				{
 					return false;
 				}
 
-				// Check if the first token of the next row has the same or very similar horizontal position as subsequent columns
-				// This indicates that the first column is empty and this is a continuation row
+				// Get the first token of the next row
 				var firstToken = next.Tokens.FirstOrDefault();
 				if (firstToken?.BoundingBox == null)
 				{
 					return false;
 				}
 
-				// Get the first token's column position
-				var firstTokenColumn = firstToken.BoundingBox.Column;
-
-				// If current row has tokens, check if the first token of next row aligns with non-first columns
-				if (current.Tokens.Count > 1)
+				// Check if we have a current row to compare against
+				if (current.Tokens.Count == 0)
 				{
-					// Find the second column position from current row to determine if next row starts there
-					var currentSecondColumnPosition = current.Tokens
-						.Where(t => t.BoundingBox != null)
-						.Skip(1)
-						.FirstOrDefault()?.BoundingBox?.Column;
-
-					if (currentSecondColumnPosition.HasValue)
-					{
-						// If the first token of next row is closer to the second column position,
-						// it likely means the first column is empty
-						var distanceToSecond = Math.Abs(firstTokenColumn - currentSecondColumnPosition.Value);
-						var distanceToFirst = current.Tokens.FirstOrDefault()?.BoundingBox?.Column is int firstCol
-							? Math.Abs(firstTokenColumn - firstCol)
-							: int.MaxValue;
-
-						return distanceToSecond < distanceToFirst;
-					}
+					return false;
 				}
 
-				return false;
+				// Get the first token's column position from the next row
+				var firstTokenColumn = firstToken.BoundingBox.Column;
+
+				// Get the first column position from the current row for comparison
+				var currentFirstColumnPosition = current.Tokens
+					.Where(t => t.BoundingBox != null)
+					.FirstOrDefault()?.BoundingBox?.Column;
+
+				if (!currentFirstColumnPosition.HasValue)
+				{
+					return false;
+				}
+
+				// Check if the first token of the next row aligns with the first column position
+				// If it does, it means the first column is filled and we should merge
+				var distanceToFirstColumn = Math.Abs(firstTokenColumn - currentFirstColumnPosition.Value);
+				
+				// Use a small tolerance for alignment (tokens might not be perfectly aligned)
+				const int alignmentTolerance = 10;
+				
+				// Merge if the first token of next row is aligned with the first column
+				return distanceToFirstColumn <= alignmentTolerance;
 			}
 
 			var (header, rows) = PdfTableExtractor.FindTableRowsWithColumns(
