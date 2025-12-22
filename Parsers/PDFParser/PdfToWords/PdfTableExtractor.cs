@@ -105,23 +105,19 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				dataRows = MergeMultilineRows(dataRows, mergePredicate);
 			}
 
-			var aligned = AlignToHeaderColumns(header, dataRows);
+			var aligned = AlignToHeaderColumns(header, dataRows, headerKeywords);
 			return (header, aligned);
 		}
 
-		private static List<PdfTableRowColumns> AlignToHeaderColumns(PdfTableRow header, List<PdfTableRow> rows)
+		private static List<PdfTableRowColumns> AlignToHeaderColumns(PdfTableRow header, List<PdfTableRow> rows, string[] headerKeywords)
 		{
-			var anchors = header.Tokens
-				.Where(t => t.BoundingBox != null)
-				.OrderBy(t => t.BoundingBox!.Column)
-				.Select(t => t.BoundingBox!.Column)
-				.ToArray();
+			var anchors = BuildAnchors(header, headerKeywords);
 
 			var result = new List<PdfTableRowColumns>();
 
 			foreach (var row in rows)
 			{
-				var columns = Enumerable.Range(0, anchors.Length).Select(_ => new List<SingleWordToken>()).ToList();
+				var columns = Enumerable.Range(0, anchors.Count).Select(_ => new List<SingleWordToken>()).ToList();
 
 				foreach (var token in row.Tokens)
 				{
@@ -140,21 +136,49 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return result;
 		}
 
-		private static int FindNearestAnchorIndex(int[] anchors, int column)
+		private static List<int> BuildAnchors(PdfTableRow header, string[] headerKeywords)
 		{
-			var nearest = 0;
-			var minDiff = int.MaxValue;
-			for (int i = 0; i < anchors.Length; i++)
+			var anchors = new List<int>();
+			int searchStart = 0;
+
+			foreach (var keyword in headerKeywords)
 			{
-				var diff = Math.Abs(anchors[i] - column);
-				if (diff < minDiff)
+				var parts = keyword.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				int idx = FindSequence(header.Tokens, parts, searchStart);
+				if (idx == -1)
 				{
-					minDiff = diff;
-					nearest = i;
+					idx = searchStart < header.Tokens.Count ? searchStart : header.Tokens.Count - 1;
+				}
+
+				var anchorToken = header.Tokens[idx];
+				anchors.Add(anchorToken.BoundingBox?.Column ?? 0);
+				searchStart = idx + parts.Length;
+			}
+
+			return anchors;
+		}
+
+		private static int FindSequence(IReadOnlyList<SingleWordToken> tokens, string[] parts, int start)
+		{
+			for (int i = start; i <= tokens.Count - parts.Length; i++)
+			{
+				bool match = true;
+				for (int j = 0; j < parts.Length; j++)
+				{
+					if (!string.Equals(tokens[i + j].Text, parts[j], StringComparison.InvariantCultureIgnoreCase))
+					{
+						match = false;
+						break;
+					}
+				}
+
+				if (match)
+				{
+					return i;
 				}
 			}
 
-			return nearest;
+			return -1;
 		}
 
 		private static List<PdfTableRow> MergeMultilineRows(List<PdfTableRow> rows, Func<PdfTableRow, PdfTableRow, bool> mergePredicate)
@@ -199,6 +223,23 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 				return row.Text.Contains(h, StringComparison.InvariantCultureIgnoreCase);
 			});
+		}
+
+		private static int FindNearestAnchorIndex(IReadOnlyList<int> anchors, int column)
+		{
+			var nearest = 0;
+			var minDiff = int.MaxValue;
+			for (int i = 0; i < anchors.Count; i++)
+			{
+				var diff = Math.Abs(anchors[i] - column);
+				if (diff < minDiff)
+				{
+					minDiff = diff;
+					nearest = i;
+				}
+			}
+
+			return nearest;
 		}
 	}
 }

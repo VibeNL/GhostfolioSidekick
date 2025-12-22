@@ -38,6 +38,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			foreach (var row in rows)
 			{
 				var recordTokens = row.Columns.SelectMany(c => c).ToList();
+
 				var parsed = ParseRecord(recordTokens);
 				if (parsed != null)
 				{
