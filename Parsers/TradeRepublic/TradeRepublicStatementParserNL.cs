@@ -17,6 +17,17 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		private static readonly CultureInfo DutchCultureInfo = new("nl-NL");
 
+		/// <summary>
+		/// Enable footer filtering for Trade Republic statements to avoid parsing 
+		/// footer information like page numbers or document metadata.
+		/// </summary>
+		protected override bool IgnoreFooter => true;
+
+		/// <summary>
+		/// Use a more conservative footer threshold for Trade Republic statements.
+		/// </summary>
+		protected override int FooterHeightThreshold => 40;
+
 		private static List<string> TableKeyWords
 		{
 			get
@@ -56,7 +67,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
-			var rows = PdfTableExtractor.FindTableRows(words, TableKeyWords.ToArray());
+			
+			// Use the footer-ignoring method for table extraction
+			var rows = PdfTableExtractor.FindTableRowsIgnoringFooter(words, TableKeyWords.ToArray(), FooterHeightThreshold);
 
 			foreach (var row in rows)
 			{

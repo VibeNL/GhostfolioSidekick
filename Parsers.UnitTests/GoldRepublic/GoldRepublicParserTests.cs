@@ -52,13 +52,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 			// Assert
 
 			// Default deposit
-			activityManager.PartialActivities.Should().Contain(
-				[PartialActivity.CreateCashDeposit(
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateCashDeposit(
 					Currency.EUR,
 					new DateTime(2023, 05, 17, 0, 0, 0, DateTimeKind.Utc),
 					110m,
 					new Money(Currency.EUR, 110),
-					"Deposit 17-05-2023 Account deposit ( ) - €0.01 €0.01")]
+					"Deposit 17-05-2023 Account deposit ( ) - €110.00 €110.01")
 				);
 
 			// Savings plan

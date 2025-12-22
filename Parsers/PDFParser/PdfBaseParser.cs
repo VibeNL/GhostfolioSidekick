@@ -5,6 +5,18 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 {
 	public abstract class PdfBaseParser(IPdfToWordsParser parsePDfToWords) : IActivityFileImporter
 	{
+		/// <summary>
+		/// Gets the footer height threshold for this parser.
+		/// Override this property in derived classes to customize footer filtering.
+		/// </summary>
+		protected virtual int FooterHeightThreshold => 50;
+
+		/// <summary>
+		/// Determines whether this parser should ignore footer content by default.
+		/// Override this property in derived classes to enable footer filtering.
+		/// </summary>
+		protected virtual bool IgnoreFooter => false;
+
 		public Task<bool> CanParse(string filename)
 		{
 			try
@@ -14,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 					return Task.FromResult(false);
 				}
 
-				var words = parsePDfToWords.ParseTokens(filename);
+				var words = GetWords(filename);
 				return Task.FromResult(CanParseRecords(words));
 			}
 			catch
@@ -25,10 +37,23 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 
 		public Task ParseActivities(string filename, IActivityManager activityManager, string accountName)
 		{
-			var records = ParseRecords(parsePDfToWords.ParseTokens(filename));
+			var words = GetWords(filename);
+			var records = ParseRecords(words);
 			activityManager.AddPartialActivity(accountName, records);
 
 			return Task.CompletedTask;
+		}
+
+		/// <summary>
+		/// Gets words from the PDF, optionally filtering out footer content.
+		/// </summary>
+		/// <param name="filename">Path to the PDF file</param>
+		/// <returns>List of word tokens</returns>
+		protected virtual List<SingleWordToken> GetWords(string filename)
+		{
+			return IgnoreFooter 
+				? parsePDfToWords.ParseTokensIgnoringFooter(filename, FooterHeightThreshold)
+				: parsePDfToWords.ParseTokens(filename);
 		}
 
 		protected abstract bool CanParseRecords(List<SingleWordToken> words);

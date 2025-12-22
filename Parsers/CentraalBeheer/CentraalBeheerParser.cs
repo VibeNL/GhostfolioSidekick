@@ -24,6 +24,17 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 		private const string Prefix = "Centraal Beheer ";
 
+		/// <summary>
+		/// Enable footer filtering for Centraal Beheer statements to avoid parsing 
+		/// footer information like page numbers or document metadata.
+		/// </summary>
+		protected override bool IgnoreFooter => true;
+
+		/// <summary>
+		/// Use a moderate footer threshold for Centraal Beheer statements.
+		/// </summary>
+		protected override int FooterHeightThreshold => 60;
+
 		private static List<string> MainKeyWords
 		{
 			get

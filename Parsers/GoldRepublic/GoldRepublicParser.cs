@@ -13,6 +13,10 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 	{
 		private static readonly string[] HeaderKeywords = ["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"];
 
+		protected override bool IgnoreFooter => true;
+
+		protected override int FooterHeightThreshold => 50;
+
 		private class DescriptionData
 		{
 			public DateTime ExecutionDate { get; set; }

@@ -423,5 +423,47 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				return row.Text.Contains(h, StringComparison.InvariantCultureIgnoreCase);
 			});
 		}
+
+		/// <summary>
+		/// Finds table rows while excluding footer content from the analysis.
+		/// This is a convenience method that filters out footer tokens before processing the table.
+		/// </summary>
+		/// <param name="words">All words from the PDF</param>
+		/// <param name="headerKeywords">Keywords that identify the table header</param>
+		/// <param name="footerHeightThreshold">Distance from bottom of page to consider as footer area</param>
+		/// <param name="stopPredicate">Optional predicate to stop processing rows</param>
+		/// <param name="mergePredicate">Optional predicate to merge multi-line rows</param>
+		/// <returns>List of table rows excluding footer content</returns>
+		public static List<PdfTableRow> FindTableRowsIgnoringFooter(
+			IEnumerable<SingleWordToken> words,
+			string[] headerKeywords,
+			int footerHeightThreshold = 50,
+			Func<PdfTableRow, bool>? stopPredicate = null,
+			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
+		{
+			var filteredWords = PdfToWordsParser.FilterOutFooter(words.ToList(), footerHeightThreshold);
+			return FindTableRows(filteredWords, headerKeywords, stopPredicate, mergePredicate);
+		}
+
+		/// <summary>
+		/// Finds table rows with columns while excluding footer content from the analysis.
+		/// This is a convenience method that filters out footer tokens before processing the table.
+		/// </summary>
+		/// <param name="words">All words from the PDF</param>
+		/// <param name="headerKeywords">Keywords that identify the table header</param>
+		/// <param name="footerHeightThreshold">Distance from bottom of page to consider as footer area</param>
+		/// <param name="stopPredicate">Optional predicate to stop processing rows</param>
+		/// <param name="mergePredicate">Optional predicate to merge multi-line rows</param>
+		/// <returns>Tuple containing the header and list of table rows with columns, excluding footer content</returns>
+		public static (PdfTableRow Header, List<PdfTableRowColumns> Rows) FindTableRowsWithColumnsIgnoringFooter(
+			IEnumerable<SingleWordToken> words,
+			string[] headerKeywords,
+			int footerHeightThreshold = 50,
+			Func<PdfTableRow, bool>? stopPredicate = null,
+			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
+		{
+			var filteredWords = PdfToWordsParser.FilterOutFooter(words.ToList(), footerHeightThreshold);
+			return FindTableRowsWithColumns(filteredWords, headerKeywords, stopPredicate, mergePredicate);
+		}
 	}
 }

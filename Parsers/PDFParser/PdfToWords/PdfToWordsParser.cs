@@ -21,6 +21,61 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return words;
 		}
 
+		public virtual List<SingleWordToken> ParseTokensIgnoringFooter(string filePath, int footerHeightThreshold = 50)
+		{
+			var allTokens = ParseTokens(filePath);
+			return FilterOutFooter(allTokens, footerHeightThreshold);
+		}
+
+		/// <summary>
+		/// Filters out tokens that appear in the footer area of pages.
+		/// The footer is determined by tokens whose row position is within the specified threshold
+		/// from the bottom of each page.
+		/// </summary>
+		/// <param name="tokens">All tokens from the PDF</param>
+		/// <param name="footerHeightThreshold">Distance from bottom of page to consider as footer area</param>
+		/// <returns>Filtered tokens excluding footer content</returns>
+		public static List<SingleWordToken> FilterOutFooter(List<SingleWordToken> tokens, int footerHeightThreshold = 50)
+		{
+			if (tokens.Count == 0)
+			{
+				return tokens;
+			}
+
+			// Group tokens by page to handle each page separately
+			var tokensByPage = tokens
+				.Where(t => t.BoundingBox != null)
+				.GroupBy(t => t.BoundingBox!.Page)
+				.ToDictionary(g => g.Key, g => g.ToList());
+
+			var filteredTokens = new List<SingleWordToken>();
+
+			// Add tokens without bounding box (shouldn't happen in normal PDF parsing, but handle gracefully)
+			filteredTokens.AddRange(tokens.Where(t => t.BoundingBox == null));
+
+			foreach (var pageGroup in tokensByPage)
+			{
+				var pageTokens = pageGroup.Value;
+				if (pageTokens.Count == 0)
+				{
+					continue;
+				}
+
+				// Find the maximum row position on this page (bottom of page)
+				var maxRow = pageTokens.Max(t => t.BoundingBox!.Row);
+				
+				// Filter out tokens that are within the footer threshold from the bottom
+				// Token is in footer if: maxRow - tokenRow <= footerHeightThreshold
+				var filteredPageTokens = pageTokens
+					.Where(t => (maxRow - t.BoundingBox!.Row) > footerHeightThreshold)
+					.ToList();
+
+				filteredTokens.AddRange(filteredPageTokens);
+			}
+
+			return filteredTokens;
+		}
+
 		protected static IEnumerable<SingleWordToken> ParseWords(Page page)
 		{
 			var tokens = new List<SingleWordToken>();
