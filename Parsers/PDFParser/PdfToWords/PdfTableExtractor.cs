@@ -70,7 +70,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		public static (PdfTableRow Header, List<PdfTableRowColumns> Rows) FindTableRowsWithColumns(
 			IEnumerable<SingleWordToken> words,
 			string[] headerKeywords,
-			Func<PdfTableRow, bool>? startPredicate = null,
 			Func<PdfTableRow, bool>? stopPredicate = null,
 			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
 		{
@@ -89,29 +88,16 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			var header = rows[headerIndex];
 
 			var dataRows = new List<PdfTableRow>();
-			bool started = startPredicate is null;
 			for (int i = headerIndex + 1; i < rows.Count; i++)
 			{
 				var row = rows[i];
-
-				if (!started && startPredicate != null)
-				{
-					if (!startPredicate(row))
-					{
-						continue;
-					}
-					started = true;
-				}
 
 				if (stopPredicate != null && stopPredicate(row))
 				{
 					break;
 				}
 
-				if (started)
-				{
-					dataRows.Add(row);
-				}
+				dataRows.Add(row);
 			}
 
 			if (mergePredicate != null)

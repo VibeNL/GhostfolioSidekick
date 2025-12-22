@@ -27,13 +27,11 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 		{
 			var activities = new List<PartialActivity>();
 
-			bool StartPredicate(PdfTableRow row) => row.Text.Contains("Transactions", StringComparison.InvariantCultureIgnoreCase);
 			bool StopPredicate(PdfTableRow row) => row.Text.Contains("Closing balance", StringComparison.InvariantCultureIgnoreCase);
 
 			var (_, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
 				HeaderKeywords,
-				startPredicate: StartPredicate,
 				stopPredicate: StopPredicate,
 				mergePredicate: null);
 

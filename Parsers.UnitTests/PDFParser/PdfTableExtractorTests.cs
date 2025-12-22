@@ -179,40 +179,6 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			rows[0].Columns[2].Select(t => t.Text).Should().ContainInOrder("C1", "C1b");
 		}
 
-		[Fact]
-		public void FindTableRowsWithColumns_RespectsStartPredicate()
-		{
-			// Layout:
-			// Header: H1 (x=0)
-			// Row1:   noise (x?1) -> skipped until start predicate
-			// Row2:   START (x?1) -> start capturing
-			// Row3:   AFTER (x?1) -> captured
-			var header = new List<SingleWordToken>
-			{
-				Token("H1", 0, 0, 0)
-			};
-
-			var rows = new List<SingleWordToken>
-			{
-				Token("noise", 0, 1, 1),
-				Token("START", 0, 2, 1),
-				Token("AFTER", 0, 3, 1)
-			};
-
-			bool StartPredicate(PdfTableRow row) => row.Text.Contains("START", StringComparison.InvariantCultureIgnoreCase);
-
-			var (hdr, dataRows) = PdfTableExtractor.FindTableRowsWithColumns(
-				header.Concat(rows),
-				["H1"],
-				startPredicate: StartPredicate,
-				stopPredicate: null,
-				mergePredicate: null);
-
-			dataRows.Should().HaveCount(2);
-			dataRows[0].Columns[0].Single().Text.Should().Be("START");
-			dataRows[1].Columns[0].Single().Text.Should().Be("AFTER");
-		}
-
 		private static SingleWordToken Token(string text, int page, int row, int column)
 		{
 			return new SingleWordToken(text, new Position(page, row, column));
