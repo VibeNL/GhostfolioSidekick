@@ -1,7 +1,6 @@
-using iText.Kernel.Pdf;
-using iText.Kernel.Pdf.Canvas.Parser;
-using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using System.Text;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
 
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
@@ -11,24 +10,37 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		{
 			List<SingleWordToken> words = [];
 
-			using (PdfReader reader = new(filePath))
+			using (PdfDocument pdf = PdfDocument.Open(filePath))
 			{
-				PdfDocument pdfDoc = new(reader);
-				for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
+				foreach (var page in pdf.GetPages())
 				{
-					ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
-					string currentText = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i), strategy);
-					words.AddRange(ParseWords(currentText, i - 1));
+					words.AddRange(ParseWords(page));
 				}
 			}
 
 			return words;
 		}
 
-		protected static List<SingleWordToken> ParseWords(string text, int page)
+		protected static IEnumerable<SingleWordToken> ParseWords(Page page)
+		{
+			var tokens = new List<SingleWordToken>();
+			var pageHeight = page.Height;
+			foreach (var word in page.GetWords())
+			{
+				var bbox = word.BoundingBox;
+				int row = (int)Math.Round(pageHeight - bbox.Bottom); // top to bottom
+				int column = (int)Math.Round(bbox.Left);
+				tokens.Add(new SingleWordToken(word.Text, new Position(page.Number - 1, row, column)));
+			}
+
+			return tokens;
+		}
+
+		// Backward-compatible path for tests that feed plain text.
+		protected static IEnumerable<SingleWordToken> ParseWords(string text, int page)
 		{
 			var lines = text.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-			var words = new List<SingleWordToken>();
+			var tokens = new List<SingleWordToken>();
 
 			for (int i = 0; i < lines.Length; i++)
 			{
@@ -38,16 +50,16 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 				for (int j = 0; j < line.Length; j++)
 				{
-					ProcessCharacter(line[j], word, ref c, j, words, page, i);
+					ProcessCharacter(line[j], word, ref c, j, tokens, page, i);
 				}
 
 				if (word.Length > 0)
 				{
-					words.Add(new SingleWordToken(word.ToString().Trim(), new Position(page, i, c)));
+					tokens.Add(new SingleWordToken(word.ToString().Trim(), new Position(page, i, c)));
 				}
 			}
 
-			return words;
+			return tokens;
 		}
 
 		private static void ProcessCharacter(char character, StringBuilder word, ref int c, int position, List<SingleWordToken> words, int page, int lineIndex)

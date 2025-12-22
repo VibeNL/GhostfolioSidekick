@@ -14,11 +14,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="CsvHelper" Version="33.1.0" />
-		<PackageReference Include="itext" Version="9.4.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
 	</ItemGroup>
 
 	<ItemGroup>

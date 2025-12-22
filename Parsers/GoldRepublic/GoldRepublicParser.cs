@@ -6,19 +6,16 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 {
 	public partial class GoldRepublicParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
+		private static readonly string[] HeaderKeywords = ["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"];
+
 		protected override bool CanParseRecords(List<SingleWordToken> words)
 		{
 			try
 			{
-				bool hasGoldRepublic = ContainsSequence(new[] { "WWW.GOLDREPUBLIC.COM" }, words);
-				bool hasAccountStatement = ContainsSequence(new[] { "Account", "Statement" }, words);
+				bool hasGoldRepublic = ContainsSequence(["WWW.GOLDREPUBLIC.COM"], words);
+				bool hasAccountStatement = ContainsSequence(["Account", "Statement"], words);
 
-				if (hasGoldRepublic && hasAccountStatement)
-				{
-					return true;
-				}
-
-				return false;
+				return hasGoldRepublic && hasAccountStatement;
 			}
 			catch
 			{
@@ -28,8 +25,35 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
-			throw new NotSupportedException();
+			var activities = new List<PartialActivity>();
+
+			bool StartPredicate(PdfTableRow row) => row.Text.Contains("Transactions", StringComparison.InvariantCultureIgnoreCase);
+			bool StopPredicate(PdfTableRow row) => row.Text.Contains("Closing balance", StringComparison.InvariantCultureIgnoreCase);
+
+			var (_, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				words,
+				HeaderKeywords,
+				startPredicate: StartPredicate,
+				stopPredicate: StopPredicate,
+				mergePredicate: null);
+
+			foreach (var row in rows)
+			{
+				var recordTokens = row.Columns.SelectMany(c => c).ToList();
+				var parsed = ParseRecord(recordTokens);
+				if (parsed != null)
+				{
+					activities.AddRange(parsed);
+				}
+			}
+
+			return activities;
+		}
+
+		private IEnumerable<PartialActivity>? ParseRecord(List<SingleWordToken> recordTokens)
+		{
+			// TODO: Implement actual GoldRepublic activity mapping once transaction semantics are defined.
+			return Enumerable.Empty<PartialActivity>();
 		}
 	}
-		
 }

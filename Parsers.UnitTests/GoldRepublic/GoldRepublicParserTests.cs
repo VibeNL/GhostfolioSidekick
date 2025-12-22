@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 			}
 		}
 
-		[Fact(Skip = "TODO")]
+		[Fact]
 		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
 		{
 			// Arrange
