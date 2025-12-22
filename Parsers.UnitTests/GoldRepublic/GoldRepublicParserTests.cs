@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 						new DateTime(2023, 06, 09, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateGeneric("Gold")],
 						0.001744m,
-						new Money(Currency.EUR, 59610.0917m),
+						new Money(Currency.EUR, 59610.09174311926605504587156m),
 						new Money(Currency.EUR, 103.96m),
 						"Market Order 09-06-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 571659 Gold, 17-05-2023 17-05-2023 Buy €103.96 €1.04 1.744 €105.00 Amsterdam 10:49:38 10:49:38 Gold €-105.00 €5.01"));
 
@@ -93,11 +93,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 				PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2023, 07, 26, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("Gold(KG)")],
+						[PartialSymbolIdentifier.CreateGeneric("Gold")],
 						0.001744m,
-						new Money(Currency.EUR, 59610.0917m),
+						new Money(Currency.EUR, 56662.844036697247706422018349m),
 						new Money(Currency.EUR, 98.82m),
-						"???"));
+						"Market Order 26-07-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 608527 Gold, 26-07-2023 26-07-2023 Sell €98.82 €0.99 1.744 €97.83 Amsterdam 08:06:00 08:06:00 Gold €97.83 €102.78"));
 
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
 					PartialActivity.CreateFee(
@@ -105,7 +105,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 						new DateTime(2023, 07, 26, 0, 0, 0, DateTimeKind.Utc),
 						0.99m,
 						new Money(Currency.EUR, 0.99m),
-						"???"));
+						"Market Order 26-07-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 608527 Gold, 26-07-2023 26-07-2023 Sell €98.82 €0.99 1.744 €97.83 Amsterdam 08:06:00 08:06:00 Gold €97.83 €102.78"));
 
 			// Single Fee
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
@@ -114,7 +114,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 					new DateTime(2023, 07, 17, 0, 0, 0, DateTimeKind.Utc),
 					0.06m,
 					new Money(Currency.EUR, 0.06m),
-					"???"));
+					"Cost Order 17-07-2023 Opslagkosten juni 2023 - €-0.06 €54.95"));
 		}
 
 		[Fact]
@@ -322,27 +322,6 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 			}
 
 			Assert.True(true, "Debug test");
-		}
-
-		[Fact]
-		public async Task ConvertActivitiesForAccount_SingleDeposit_Debug()
-		{
-			// Debug version to see what activities are actually being extracted
-			await parser.ParseActivities("./TestFiles/GoldRepublic/year_overview.pdf", activityManager, account.Name);
-
-			// Filter to just deposits to see what we get
-			var deposits = activityManager.PartialActivities
-				.Where(a => a.ActivityType == PartialActivityType.CashDeposit)
-				.ToList();
-
-			System.Console.WriteLine($"Found {deposits.Count} deposit activities:");
-			foreach (var deposit in deposits)
-			{
-				System.Console.WriteLine($"  {deposit.ActivityType} {deposit.Date} {deposit.Amount} {deposit.Currency} {deposit.TransactionId}");
-			}
-
-			// This is just for debugging
-			Assert.True(true);
 		}
 
 		private readonly string simpleGoldRepublicStatement = @"

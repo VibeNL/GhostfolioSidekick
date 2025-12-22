@@ -153,6 +153,17 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 					);
 			}
 
+			if (transactionType.Equals("Cost Order", StringComparison.InvariantCultureIgnoreCase))
+			{
+				yield return PartialActivity.CreateFee(
+					Currency.EUR,
+					dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+					amountParsed * -1,
+					new Money(Currency.EUR, amountParsed * -1),
+					transactionId
+					);
+			}
+
 			if (transactionType.Equals("Market Order", StringComparison.InvariantCultureIgnoreCase) ||
 				transactionType.Equals("Savings Order", StringComparison.InvariantCultureIgnoreCase))
 			{
@@ -164,15 +175,30 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				var volume = subTable.Volume / 1000; // In gram, store as KG
 				var total = subTable.Total;
 
-				yield return PartialActivity.CreateBuy(
-					Currency.EUR,
-					dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
-					[PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>")],
-					volume,
-					new Money(Currency.EUR, transactionValue),
-					new Money(Currency.EUR, total),
-					transactionId
-					);
+				if (action.Equals("Sell", StringComparison.InvariantCultureIgnoreCase))
+				{
+					yield return PartialActivity.CreateSell(
+						Currency.EUR,
+						dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>")],
+						volume,
+						new Money(Currency.EUR, transactionValue / volume),
+						new Money(Currency.EUR, transactionValue),
+						transactionId
+						);
+				}
+				else
+				{
+					yield return PartialActivity.CreateBuy(
+						Currency.EUR,
+						dateParsed.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateGeneric(bullion ?? "<??>")],
+						volume,
+						new Money(Currency.EUR, transactionValue / volume),
+						new Money(Currency.EUR, transactionValue),
+						transactionId
+						);
+				}
 
 				if (fee > 0)
 				{
@@ -296,7 +322,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 		{
 			// Remove currency symbols and extra spaces
 			var cleaned = input.Replace("€", "").Replace("EUR", "").Trim();
-			
+
 			// Try to parse the decimal value
 			if (decimal.TryParse(cleaned.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var result))
 			{
