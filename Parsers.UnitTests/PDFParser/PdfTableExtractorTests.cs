@@ -407,6 +407,49 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			row.GetColumnValue(headerRow, "   ").Should().BeNull();
 		}
 
+		[Fact]
+		public void GetHeaders_PreservesMultiWordColumnStructure()
+		{
+			// Test case: Header keywords are "Transaction Type" and "Date"
+			// But tokens are spread across: "Transaction", "Type", "Date"
+			// The GetHeaders method should preserve the original structure as "Transaction Type | Date"
+			// not "Transaction | Type Date"
+			
+			// Arrange - header tokens positioned to match the keywords structure
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),  // Part of "Transaction Type"
+				Token("Type", 0, 0, 8),         // Part of "Transaction Type" 
+				Token("Date", 0, 0, 20)         // Separate column
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Buy", 0, 1, 1),          // Under "Transaction Type"
+				Token("2023-01-01", 0, 1, 21)   // Under "Date"
+			};
+
+			// Act
+			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				["Transaction Type", "Date"], // This is the intended structure
+				stopPredicate: null,
+				mergePredicate: null);
+
+			// Assert - header should preserve the intended structure
+			// The header.Text should be "Transaction Type Date" with proper spacing
+			// And the column extraction should work correctly
+			var row = rows[0];
+			
+			// This should work correctly - "Transaction Type" should map to "Buy"
+			row.GetColumnValue(headerRow, "Transaction Type").Should().Be("Buy");
+			row.GetColumnValue(headerRow, "Date").Should().Be("2023-01-01");
+			
+			// The header should preserve the multi-word column names correctly
+			// Currently this might fail due to incorrect grouping in GetHeaders
+			headerRow.Text.Should().Be("Transaction Type Date");
+		}
+
 		private static SingleWordToken Token(string text, int page, int row, int column)
 		{
 			return new SingleWordToken(text, new Position(page, row, column));

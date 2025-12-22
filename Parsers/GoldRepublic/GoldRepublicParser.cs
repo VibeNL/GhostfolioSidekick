@@ -3,6 +3,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.GoldRepublic
 {
@@ -107,7 +108,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			var dateParsed = ParseDate(date);
 			var amountParsed = ParseDecimal(amount);
 			var balanceParsed = ParseDecimal(balance);
-			var transactionId = $"{transactionType}-{dateParsed:yyyyMMdd}-{amountParsed}";
+			var transactionId = row.Text;
 
 			if (string.IsNullOrEmpty(transactionType) || string.IsNullOrEmpty(date))
 			{
@@ -204,7 +205,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 					cleanLine.Contains("Execution Date:", StringComparison.InvariantCultureIgnoreCase))
 				{
 					var datePart = cleanLine.Split(':')[^1].Trim();
-					if (DateOnly.TryParseExact(datePart, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out var parsedDate))
+					if (DateOnly.TryParseExact(datePart, "dd-MM-yyyy", null, DateTimeStyles.None, out var parsedDate))
 					{
 						executionDate = parsedDate;
 					}
@@ -284,7 +285,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				var dateMatches = System.Text.RegularExpressions.Regex.Matches(description, @"\b(\d{1,2}[-/]\d{1,2}[-/]\d{4})\b");
 				if (dateMatches.Count > 0)
 				{
-					if (DateOnly.TryParseExact(dateMatches[0].Groups[1].Value, new[] { "dd-MM-yyyy", "dd/MM/yyyy" }, null, System.Globalization.DateTimeStyles.None, out var parsedDate))
+					if (DateOnly.TryParseExact(dateMatches[0].Groups[1].Value, new[] { "dd-MM-yyyy", "dd/MM/yyyy" }, null, DateTimeStyles.None, out var parsedDate))
 					{
 						executionDate = parsedDate;
 					}
@@ -303,7 +304,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			var cleaned = input.Replace("€", "").Replace("EUR", "").Trim();
 			
 			// Try to parse the decimal value
-			if (decimal.TryParse(cleaned.Replace(',', '.'), System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var result))
+			if (decimal.TryParse(cleaned.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var result))
 			{
 				return result;
 			}
@@ -316,8 +317,8 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			// €0.01
 			if (decimal.TryParse(
 				amount?.Replace("€", "").Replace(",", "").Trim(),
-				System.Globalization.NumberStyles.Number | System.Globalization.NumberStyles.AllowCurrencySymbol,
-				null,
+				NumberStyles.Number | NumberStyles.AllowCurrencySymbol,
+				CultureInfo.InvariantCulture,
 				out var parsedAmount))
 			{
 				return parsedAmount;
@@ -329,7 +330,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 		private DateOnly ParseDate(string? date)
 		{
 			//  17-05-2023
-			if (DateOnly.TryParseExact(date, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out var parsedDate))
+			if (DateOnly.TryParseExact(date, "dd-MM-yyyy", null, DateTimeStyles.None, out var parsedDate))
 			{
 				return parsedDate;
 			}

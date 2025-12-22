@@ -232,11 +232,19 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 		private static PdfTableRow GetHeaders(string[] headerKeywords, PdfTableRow row)
 		{
-			var converted = AlignToHeaderColumns(row, [row], headerKeywords);
+			// Build anchors based on the original header row tokens and keywords
+			var anchors = BuildAnchors(row, headerKeywords);
 			var headerTokens = new List<SingleWordToken>();
-			foreach (var column in converted[0].Columns)
+
+			for (int i = 0; i < headerKeywords.Length && i < anchors.Count; i++)
 			{
-				headerTokens.AddRange(column);
+				var keyword = headerKeywords[i];
+				var anchorColumn = anchors[i];
+				
+				// Create a single token for each header keyword at the anchor position
+				// This preserves the multi-word structure like "Transaction Type" as a single conceptual column
+				var headerToken = new SingleWordToken(keyword, new Position(row.Page, row.Row, anchorColumn));
+				headerTokens.Add(headerToken);
 			}
 
 			return new PdfTableRow(row.Page, row.Row, headerTokens);
@@ -244,7 +252,10 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 		private static List<PdfTableRowColumns> AlignToHeaderColumns(PdfTableRow header, List<PdfTableRow> rows, string[] headerKeywords)
 		{
-			var anchors = BuildAnchors(header, headerKeywords);
+			// Don't recalculate anchors from the modified header - use the original row data
+			// The header parameter here already has the correct anchor positions from GetHeaders
+			var anchors = header.Tokens.Where(t => t.BoundingBox != null)
+				.Select(t => t.BoundingBox!.Column).ToList();
 
 			var result = new List<PdfTableRowColumns>();
 
