@@ -161,7 +161,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				var action = subTable.Action;
 				var transactionValue = subTable.TransactionValue;
 				var fee = subTable.Fee;
-				var volume = subTable.Volume;
+				var volume = subTable.Volume / 1000; // In gram, store as KG
 				var total = subTable.Total;
 
 				yield return PartialActivity.CreateBuy(

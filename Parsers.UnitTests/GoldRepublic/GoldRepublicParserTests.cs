@@ -58,66 +58,63 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 					new DateTime(2023, 05, 17, 0, 0, 0, DateTimeKind.Utc),
 					110m,
 					new Money(Currency.EUR, 110),
-					"Deposit 17-05-2023 Account deposit ( ) - €110.00 €110.01")
-				);
+					"Deposit 17-05-2023 Account deposit ( ) - €110.00 €110.01"));
 
 			// Savings plan
-			activityManager.PartialActivities.Should().Contain(
-				[PartialActivity.CreateCashDeposit(
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateCashDeposit(
 					Currency.EUR,
 					new DateTime(2023, 07, 03, 0, 0, 0, DateTimeKind.Utc),
 					50m,
 					new Money(Currency.EUR, 50m),
-					"???")]
-				);
+					"Direct Debit 03-07-2023 Deposit for savingsplan Basic - €50.00 €55.01"));
 
 			// Single buy
-			activityManager.PartialActivities.Should().Contain(
-				[PartialActivity.CreateBuy(
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateBuy(
 						Currency.EUR,
 						new DateTime(2023, 06, 09, 0, 0, 0, DateTimeKind.Utc),
-						[PartialSymbolIdentifier.CreateStockAndETF("Gold(KG)")],
+						[PartialSymbolIdentifier.CreateGeneric("Gold")],
 						0.001744m,
 						new Money(Currency.EUR, 59610.0917m),
 						new Money(Currency.EUR, 103.96m),
-						"???"),
+						"Market Order 09-06-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 571659 Gold, 17-05-2023 17-05-2023 Buy €103.96 €1.04 1.744 €105.00 Amsterdam 10:49:38 10:49:38 Gold €-105.00 €5.01"));
+
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
 					PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2023, 06, 09, 0, 0, 0, DateTimeKind.Utc),
 						1.04M,
 						new Money(Currency.EUR, 1.04M),
-						"???")]
-				);
+						"Market Order 09-06-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 571659 Gold, 17-05-2023 17-05-2023 Buy €103.96 €1.04 1.744 €105.00 Amsterdam 10:49:38 10:49:38 Gold €-105.00 €5.01"));
 
 			// Single sell
-			activityManager.PartialActivities.Should().Contain(
-				[PartialActivity.CreateSell(
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateSell(
 						Currency.EUR,
 						new DateTime(2023, 07, 26, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockAndETF("Gold(KG)")],
 						0.001744m,
 						new Money(Currency.EUR, 59610.0917m),
 						new Money(Currency.EUR, 98.82m),
-						"???"),
+						"???"));
+
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
 					PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2023, 07, 26, 0, 0, 0, DateTimeKind.Utc),
 						0.99m,
 						new Money(Currency.EUR, 0.99m),
-						"???")]
-				);
+						"???"));
 
 			// Single Fee
-			activityManager.PartialActivities.Should().Contain(
-				[PartialActivity.CreateFee(
+			activityManager.PartialActivities.Should().ContainEquivalentOf(
+				PartialActivity.CreateFee(
 					Currency.EUR,
 					new DateTime(2023, 07, 17, 0, 0, 0, DateTimeKind.Utc),
 					0.06m,
 					new Money(Currency.EUR, 0.06m),
-					"???")]
-				);
-
-
+					"???"));
 		}
 
 		[Fact]
@@ -190,24 +187,24 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 			// Debug: check what we got
 			System.Console.WriteLine($"Header tokens: {header.Text}");
 			System.Console.WriteLine($"Number of rows: {rows.Count}");
-			
+
 			if (rows.Count > 0)
 			{
 				var row = rows[0];
 				System.Console.WriteLine($"Row text: {row.Text}");
 				System.Console.WriteLine($"Number of columns: {row.Columns.Count}");
-				
+
 				for (int i = 0; i < row.Columns.Count; i++)
 				{
 					var columnText = string.Join(" ", row.Columns[i].Select(t => t.Text));
 					System.Console.WriteLine($"Column {i}: '{columnText}'");
 				}
-				
+
 				// Test column value extraction
 				var transactionType = row.GetColumnValue(header, "Transaction Type");
 				var date = row.GetColumnValue(header, "Date");
 				var description = row.GetColumnValue(header, "Description");
-				
+
 				System.Console.WriteLine($"Transaction Type: '{transactionType}'");
 				System.Console.WriteLine($"Date: '{date}'");
 				System.Console.WriteLine($"Description: '{description}'");
@@ -229,13 +226,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 			// Use the same logic as the parser
 			var headerKeywords = new[] { "Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance" };
 			var rows = PdfTableExtractor.GroupRows(words);
-			
+
 			System.Console.WriteLine($"Total words: {words.Count}");
 			foreach (var word in words.Take(20)) // Show first 20 tokens
 			{
 				System.Console.WriteLine($"Token: '{word.Text}' at column {word.BoundingBox?.Column ?? -1}");
 			}
-			
+
 			var headerRow = rows.FirstOrDefault(r => r.Text.Contains("Transaction Type"));
 			if (headerRow != null)
 			{
@@ -244,17 +241,17 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 				{
 					System.Console.WriteLine($"Header token: '{token.Text}' at column {token.BoundingBox?.Column ?? -1}");
 				}
-				
+
 				// Debug BuildAnchors method
 				var anchors = new List<int>();
 				int searchStart = 0;
-				
+
 				System.Console.WriteLine("\nBuilding anchors:");
 				foreach (var keyword in headerKeywords)
 				{
 					var parts = keyword.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 					System.Console.WriteLine($"Looking for keyword '{keyword}' (parts: {string.Join(", ", parts)}) starting at {searchStart}");
-					
+
 					// Find sequence logic (simplified version of FindSequence)
 					int idx = -1;
 					for (int i = searchStart; i <= headerRow.Tokens.Count - parts.Length; i++)
@@ -274,22 +271,22 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 							break;
 						}
 					}
-					
+
 					if (idx == -1)
 					{
 						idx = searchStart < headerRow.Tokens.Count ? searchStart : headerRow.Tokens.Count - 1;
 					}
-					
+
 					var anchorToken = headerRow.Tokens[idx];
 					var anchorColumn = anchorToken.BoundingBox?.Column ?? 0;
 					anchors.Add(anchorColumn);
-					
+
 					System.Console.WriteLine($"Found '{keyword}' at index {idx}, token: '{anchorToken.Text}', column: {anchorColumn}");
 					searchStart = idx + parts.Length;
 				}
-				
+
 				System.Console.WriteLine($"\nAnchors: [{string.Join(", ", anchors)}]");
-				
+
 				// Debug cutoff calculation
 				if (anchors.Count > 0)
 				{
@@ -303,9 +300,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 						cutoffs.Add(cutoff);
 					}
 					cutoffs.Add(int.MaxValue);
-					
+
 					System.Console.WriteLine($"Cutoffs: [{string.Join(", ", cutoffs.Take(cutoffs.Count - 1))}]");
-					
+
 					// Test some sample tokens
 					var testTokens = words.Where(w => w.Text == "Deposit" || w.Text == "17-05-2023" || w.Text == "Bank").ToList();
 					foreach (var token in testTokens)
