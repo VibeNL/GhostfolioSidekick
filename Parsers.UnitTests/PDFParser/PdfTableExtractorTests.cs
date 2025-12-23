@@ -50,14 +50,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["H1", "H2", "H3"], "");
 
-			var (hdr, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
-			hdr.Tokens.Should().HaveCount(3);
 			rows.Should().HaveCount(1);
+			rows[0].Headers.Should().HaveCount(3); 
 			rows[0].Columns.Should().HaveCount(3);
 			rows[0].Columns[0].Single().Text.Should().Be("r1c1");
 			rows[0].Columns[1].Single().Text.Should().Be("r1c2");
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["H1", "H2"], "");
 
-			var (hdr, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(line1).Concat(line2),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -128,14 +128,14 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Date", "Description", "Amount"], "");
 
-			var (hdr, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
-			hdr.Tokens.Select(t => t.Text).Should().ContainInOrder("Date", "Description", "Amount");
 			rows.Should().HaveCount(1);
+			rows[0].Headers.Should().ContainInOrder("Date", "Description", "Amount");
 			rows[0].Columns.Should().HaveCount(3);
 			rows[0].Columns[0].Single().Text.Should().Be("2024-01-01");
 			rows[0].Columns[1].Select(t => t.Text).Should().ContainInOrder("Long", "desc");
@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Col1", "Col2", "Col3"], "");
 
-			var (hdr, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(line1).Concat(line2),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -214,7 +214,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Transaction Type", "Date", "Description", "Amount"], "");
 
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -223,10 +223,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var row = rows[0];
 
 			// Act & Assert
-			row.GetColumnValue(headerRow, "Transaction Type").Should().Be("Deposit");
-			row.GetColumnValue(headerRow, "Date").Should().Be("17-05-2023");
-			row.GetColumnValue(headerRow, "Description").Should().Be("Bank transfer");
-			row.GetColumnValue(headerRow, "Amount").Should().Be("EUR 100.00");
+			row.GetColumnValue("Transaction Type").Should().Be("Deposit");
+			row.GetColumnValue("Date").Should().Be("17-05-2023");
+			row.GetColumnValue("Description").Should().Be("Bank transfer");
+			row.GetColumnValue("Amount").Should().Be("EUR 100.00");
 		}
 
 		[Fact]
@@ -247,7 +247,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Col1", "Col2"], "");
 
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -256,7 +256,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var row = rows[0];
 
 			// Act & Assert
-			row.GetColumnValue(headerRow, "NonExistentColumn").Should().BeNull();
+			row.GetColumnValue("NonExistentColumn").Should().BeNull();
 		}
 
 		[Fact]
@@ -279,7 +279,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Col1", "Col2", "Col3"], "");
 
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -288,9 +288,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var row = rows[0];
 
 			// Act & Assert
-			row.GetColumnValue(headerRow, "Col1").Should().Be("Value1");
-			row.GetColumnValue(headerRow, "Col2").Should().BeNull(); // Empty column
-			row.GetColumnValue(headerRow, "Col3").Should().Be("Value3");
+			row.GetColumnValue("Col1").Should().Be("Value1");
+			row.GetColumnValue("Col2").Should().BeNull(); // Empty column
+			row.GetColumnValue("Col3").Should().Be("Value3");
 		}
 
 		[Fact]
@@ -312,7 +312,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Transaction Type", "Amount"], "");
 
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -321,8 +321,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var row = rows[0];
 
 			// Act & Assert
-			row.GetColumnValue(headerRow, "Transaction Type").Should().Be("Buy");
-			row.GetColumnValue(headerRow, "Amount").Should().Be("150.00");
+			row.GetColumnValue("Transaction Type").Should().Be("Buy");
+			row.GetColumnValue("Amount").Should().Be("150.00");
 		}
 
 		[Fact]
@@ -347,7 +347,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Transaction Date", "Total Amount USD"], "");
 
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -357,9 +357,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			// Act & Assert
 			// Should find "Date" within "Transaction Date"
-			row.GetColumnValue(headerRow, "Date").Should().Be("2023-01-01");
+			row.GetColumnValue("Date").Should().Be("2023-01-01");
 			// Should find "Amount" within "Total Amount USD"
-			row.GetColumnValue(headerRow, "Amount").Should().Be("100.50");
+			row.GetColumnValue("Amount").Should().Be("100.50");
 		}
 
 		[Fact]
@@ -381,7 +381,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Transaction Date", "Amount"], "");
 
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -390,9 +390,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var row = rows[0];
 
 			// Act & Assert
-			row.GetColumnValue(headerRow, "transaction date").Should().Be("2023-01-01");
-			row.GetColumnValue(headerRow, "AMOUNT").Should().Be("100.50");
-			row.GetColumnValue(headerRow, "DATE").Should().Be("2023-01-01");
+			row.GetColumnValue("transaction date").Should().Be("2023-01-01");
+			row.GetColumnValue("AMOUNT").Should().Be("100.50");
+			row.GetColumnValue("DATE").Should().Be("2023-01-01");
 		}
 
 		[Fact]
@@ -411,7 +411,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Date"], "");
 
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -420,12 +420,9 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var row = rows[0];
 
 			// Act & Assert
-			PdfTableRowColumns? nullRowColumns = null;
-			nullRowColumns.GetColumnValue(headerRow, "Date").Should().BeNull();
-			row.GetColumnValue(null, "Date").Should().BeNull();
-			row.GetColumnValue(headerRow, null).Should().BeNull();
-			row.GetColumnValue(headerRow, "").Should().BeNull();
-			row.GetColumnValue(headerRow, "   ").Should().BeNull();
+			row.GetColumnValue(null).Should().BeNull();
+			row.GetColumnValue("").Should().BeNull();
+			row.GetColumnValue("   ").Should().BeNull();
 		}
 
 		[Fact]
@@ -453,7 +450,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var tableDefinition = new TableDefinition(["Transaction Type", "Date"], "");
 
 			// Act
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -465,12 +462,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var row = rows[0];
 			
 			// This should work correctly - "Transaction Type" should map to "Buy"
-			row.GetColumnValue(headerRow, "Transaction Type").Should().Be("Buy");
-			row.GetColumnValue(headerRow, "Date").Should().Be("2023-01-01");
-			
+			row.GetColumnValue("Transaction Type").Should().Be("Buy");
+			row.GetColumnValue("Date").Should().Be("2023-01-01");
+
 			// The header should preserve the multi-word column names correctly
 			// Currently this might fail due to incorrect grouping in GetHeaders
-			headerRow.Text.Should().Be("Transaction Type Date");
+			row.Headers.Aggregate((current, next) => current + " " + next).Should().Be("Transaction Type Date");
 		}
 
 		[Fact]
@@ -503,7 +500,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			var tableDefinition = new TableDefinition(["Transaction Type", "Date", "Description", "Amount"], "");
 
-			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
 				[tableDefinition],
 				[], // Empty alignment configs for default left-aligned strategy
@@ -512,10 +509,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 			var row = rows[0];
 
 			// Assert - Multi-word descriptions should stay together
-			row.GetColumnValue(headerRow, "Transaction Type").Should().Be("Buy");
-			row.GetColumnValue(headerRow, "Date").Should().Be("2023-01-01");
-			row.GetColumnValue(headerRow, "Description").Should().Be("Bank transfer"); // Both words together
-			row.GetColumnValue(headerRow, "Amount").Should().Be("EUR 100.00");
+			row.GetColumnValue("Transaction Type").Should().Be("Buy");
+			row.GetColumnValue("Date").Should().Be("2023-01-01");
+			row.GetColumnValue("Description").Should().Be("Bank transfer"); // Both words together
+			row.GetColumnValue("Amount").Should().Be("EUR 100.00");
 
 			// Verify the columns contain the expected tokens
 			rows[0].Columns[0].Select(t => t.Text).Should().ContainSingle().Which.Should().Be("Buy");

@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			}
 
 			// Use the new API with TableDefinition and empty alignment configs (which triggers default left-aligned strategy)
-			var (header, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
 				[TableDefinition],
 				[],  // Empty alignment configs - will use default left-aligned strategy
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 			foreach (var row in rows)
 			{
-				var parsed = ParseRecord(header, row);
+				var parsed = ParseRecord(row);
 				if (parsed != null)
 				{
 					activities.AddRange(parsed);
@@ -106,15 +106,15 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			return activities;
 		}
 
-		private IEnumerable<PartialActivity>? ParseRecord(PdfTableRow header, PdfTableRowColumns row)
+		private IEnumerable<PartialActivity>? ParseRecord(PdfTableRowColumns row)
 		{
 			// Get values
 			// Transaction Type
-			var transactionType = row.GetColumnValue(header, "Transaction Type")?.Trim() ?? string.Empty;
-			var date = row.GetColumnValue(header, "Date")?.Trim();
-			var bullion = row.GetColumnValue(header, "Bullion")?.Trim();
-			var amount = row.GetColumnValue(header, "Amount")?.Trim();
-			var balance = row.GetColumnValue(header, "Balance")?.Trim();
+			var transactionType = row.GetColumnValue("Transaction Type")?.Trim() ?? string.Empty;
+			var date = row.GetColumnValue("Date")?.Trim();
+			var bullion = row.GetColumnValue("Bullion")?.Trim();
+			var amount = row.GetColumnValue("Amount")?.Trim();
+			var balance = row.GetColumnValue("Balance")?.Trim();
 
 			var dateParsed = ParseDate(date);
 			var amountParsed = ParseDecimal(amount);

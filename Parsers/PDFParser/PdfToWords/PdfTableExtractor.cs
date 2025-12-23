@@ -83,6 +83,16 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 			return -1;
 		}
+
+		internal bool HasHeader(string[] header)
+		{
+			return
+				header.Length == Headers.Length &&
+				header.All(h =>
+					!string.IsNullOrWhiteSpace(h) ||
+					Headers.Any(rh => string.Equals(rh, h, StringComparison.InvariantCultureIgnoreCase)));
+
+		}
 	}
 
 	public static class PdfTableRowColumnsExtensions
@@ -279,7 +289,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		/// <param name="mergePredicate">Optional predicate for merging multi-line rows</param>
 		/// <param name="returnMultipleTables">If true, returns all matching tables combined; if false, returns first match only. If null, automatically detects based on number of table definitions.</param>
 		/// <returns>Header and rows of the found table(s)</returns>
-		public static (PdfTableRow Header, List<PdfTableRowColumns> Rows) FindTableRowsWithColumns(
+		public static List<PdfTableRowColumns> FindTableRowsWithColumns(
 			IEnumerable<SingleWordToken> words,
 			IEnumerable<TableDefinition> tableDefinitions,
 			IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs,
@@ -291,7 +301,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			
 			if (allResults.Count == 0)
 			{
-				return (new PdfTableRow(Array.Empty<string>(), 0, 0, Array.Empty<SingleWordToken>()), []);
+				return new List<PdfTableRowColumns>();
 			}
 
 			// Determine if we should return multiple tables
@@ -303,11 +313,11 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				// Use the first table's header as the primary header
 				var primaryHeader = allResults[0].Header;
 				var allRows = allResults.SelectMany(r => r.Rows).ToList();
-				return (primaryHeader, allRows);
+				return allRows;
 			}
 			
 			// Return first match only
-			return (allResults[0].Header, allResults[0].Rows);
+			return allResults[0].Rows;
 		}
 
 		private static List<PdfTableRow> FindTableRowsForDefinition(

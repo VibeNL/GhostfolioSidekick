@@ -21,7 +21,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			var activities = new List<PartialActivity>();
 
-			var (header, rows) = PdfTableExtractor.FindTableRowsWithColumns(
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
 				TableDefinitions,
 				[
@@ -34,7 +34,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			foreach (var row in rows.Where(x => x.Columns[0].Any()))
 			{
-				var parsed = ParseRecord(header, row, words);
+				var parsed = ParseRecord(row, words);
 				if (parsed != null)
 				{
 					activities.AddRange(parsed);
@@ -44,7 +44,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return activities;
 		}
 
-		protected abstract IEnumerable<PartialActivity> ParseRecord(PdfTableRow header, PdfTableRowColumns row, List<SingleWordToken> words);
+		protected abstract IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words);
 
 		protected static string GenerateHash(List<SingleWordToken> words)
 		{
@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				new TableDefinition(Billing, "BOOKING"), // Fee only
 			];
 
-		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRow header, PdfTableRowColumns row, List<SingleWordToken> words)
+		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words)
 		{
 			var (type, date) = DetermineTypeAndDate(words);
 			if (type == PartialActivityType.Undefined)
@@ -144,7 +144,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 
 			// Multi line billing (fees)
-			if (header.IsHeader(Billing))
+			if (row.HasHeader(Billing))
 			{
 				// 0 is description, 1 is amount. Get by line
 				var lineNumbers = row.Columns[0]
@@ -174,7 +174,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			}
 			// Buy is always a single line
-			else if (header.IsHeader(HeaderStockWithoutFee) || header.IsHeader(BondWithFee)) // TODO Implement Bonds correcly
+			else if (row.HasHeader(HeaderStockWithoutFee) || row.HasHeader(BondWithFee)) // TODO Implement Bonds correcly
 			{
 				var positionColumn = row.Columns[0];
 				var positionPerLine = positionColumn.GroupBy(x => x.BoundingBox?.Row);
