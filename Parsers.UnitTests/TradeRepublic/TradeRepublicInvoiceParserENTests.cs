@@ -54,24 +54,24 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
 						99m,
 						new Money(Currency.EUR, 0.9939m),
 						new Money(Currency.EUR, 98.40m),
-						"Trade_Republic_DE0001102333_2023-10-06"),
+						"Trade_Republic_DE0001102333_2023-10-06-15-39"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
 						1.12m,
 						new Money(Currency.EUR, 1.12m),
-						"Trade_Republic_DE0001102333_2023-10-06"),
+						"Trade_Republic_DE0001102333_2023-10-06-15-39"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
 						1m,
 						new Money(Currency.EUR, 1m),
-						"Trade_Republic_DE0001102333_2023-10-06"),
+						"Trade_Republic_DE0001102333_2023-10-06-15-39"),
 				]);
 		}
 

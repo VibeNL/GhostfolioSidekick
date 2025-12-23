@@ -124,15 +124,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 	public class InvoiceStockEnglish : BaseSubParser
 	{
-		private string[] HeaderStockWithoutFee = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
-		private string[] BondWithFee = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
-		private string[] Billing = ["POSITION", "AMOUNT"];
+		private readonly string[] HeaderStockWithoutFee = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
+		private readonly string[] BondWithFee = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
+		private readonly string[] Billing = ["POSITION", "AMOUNT"];
 
 		protected override TableDefinition[] TableDefinitions =>
 			[
 				new TableDefinition(HeaderStockWithoutFee, "BOOKING"), // Stock without fee
 				new TableDefinition(BondWithFee, "Billing"), // Bond with fee
-				new TableDefinition(Billing, "BOOKING"), // Fee only
+				new TableDefinition(Billing, "TOTAL"), // Fee only
 			];
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words)
@@ -157,17 +157,27 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						.OrderBy(t => t.BoundingBox?.Column)
 						.Select(t => t.Text)
 						.Aggregate((current, next) => current + " " + next);
-					var amount = row.Columns[1]
+					var amountWithCurrency = row.Columns[1]
 						.Where(x => x.BoundingBox?.Row == item.Key)
 						.OrderBy(t => t.BoundingBox?.Column)
 						.Select(t => t.Text)
 						.Aggregate((current, next) => current + " " + next);
 
+					// Split amount and currency
+					var parts = amountWithCurrency.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+					if (parts.Length < 2)
+					{
+						throw new FormatException($"Unable to parse amount and currency from '{amountWithCurrency}'.");
+					}
+
+					var amount = ParseDecimal(parts[0]);
+					var currency = Currency.GetCurrency(parts[1]);
+
 					yield return PartialActivity.CreateFee(
-						Currency.EUR, // Fees are always in EUR
+						currency,
 						date,
-						ParseDecimal(amount),
-						new Money(Currency.EUR, ParseDecimal(amount)),
+						amount,
+						new Money(currency, amount),
 						description
 					);
 				}
