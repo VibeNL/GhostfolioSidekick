@@ -135,10 +135,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 	public class InvoiceStockEnglish : BaseSubParser
 	{
-		private readonly string[] HeaderStockWithoutFee = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
-		private readonly string[] SavingPlanWithoutFee = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
-		private readonly string[] BondWithFee = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
-		private readonly string[] Billing = ["POSITION", "AMOUNT"];
+		private const string POSITION = "POSITION";
+		private const string AMOUNT = "AMOUNT";
+
+		private readonly string[] HeaderStockWithoutFee = [POSITION, "QUANTITY", "PRICE", AMOUNT];
+		private readonly string[] SavingPlanWithoutFee = [POSITION, "QUANTITY", "AVERAGE RATE", AMOUNT];
+		private readonly string[] BondWithFee = [POSITION, "NOMINAL", "PRICE", AMOUNT];
+		private readonly string[] Billing = [POSITION, AMOUNT];
 
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 		private readonly ColumnAlignment[] column2 = [ColumnAlignment.Left, ColumnAlignment.Right];
@@ -272,4 +275,5 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return (PartialActivityType.Undefined, DateTime.Now);
 		}
 	}
+
 }
