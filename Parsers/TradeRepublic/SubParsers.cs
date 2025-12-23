@@ -113,6 +113,10 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		// Or without time: 06.10.2023
 		protected DateTime GetDateTime(string parseDate)
 		{
+			parseDate = parseDate
+				.Replace('-', '.')
+				.Trim('.'); // Just in case
+
 			if (DateTime.TryParseExact(parseDate, "dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
 			{
 				dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
@@ -189,11 +193,31 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		}
 	}
 
+	public static class PositionParser
+	{
+		public static string ExtractIsin(IReadOnlyList<SingleWordToken> positionColumn)
+		{
+			if (positionColumn == null || positionColumn.Count == 0)
+			{
+				return string.Empty;
+			}
+
+			var positionPerLine = positionColumn.GroupBy(x => x.BoundingBox?.Row);
+			var isin = positionPerLine
+				.Select(g => string.Join(" ", g.OrderBy(t => t.BoundingBox?.Column).Select(t => t.Text)))
+				.FirstOrDefault(line => line.StartsWith("ISIN:", StringComparison.InvariantCultureIgnoreCase))
+				?.Replace("ISIN:", "").Trim() ?? string.Empty;
+
+			return isin;
+		}
+	}
+
 	public class InvoiceStockEnglish : BaseSubParser
 	{
-		private readonly string[] HeaderStockWithoutFee = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
-		private readonly string[] SavingPlanWithoutFee = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
-		private readonly string[] BondWithFee = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
+		private readonly string[] Stock = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
+		private readonly string[] SavingPlan = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
+		private readonly string[] Dividend = ["POSITION", "QUANTITY", "INCOME", "AMOUNT"];
+		private readonly string[] Bond = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
 
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
@@ -202,9 +226,10 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(HeaderStockWithoutFee,"BOOKING", column4), // Stock without fee
-					new TableDefinition(SavingPlanWithoutFee, "BOOKING", column4), // Savings plan without fee
-					new TableDefinition(BondWithFee, "Billing", column4), // Bond with fee
+					new TableDefinition(Stock,"BOOKING", column4), // Stock without fee
+					new TableDefinition(SavingPlan, "BOOKING", column4), // Savings plan without fee
+					new TableDefinition(Bond, "Billing", column4), // Bond with fee
+					new TableDefinition(Dividend, "Billing", column4), // Dividend with fee
 					BillingParser.CreateBillingTableDefinition(), // Fee only
 			];
 			}
@@ -227,14 +252,10 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				}
 			}
 			// Buy is always a single line
-			else if (row.HasHeader(HeaderStockWithoutFee) || row.HasHeader(BondWithFee)) // TODO Implement Bonds correcly
+			else if (row.HasHeader(Stock) || row.HasHeader(SavingPlan) || row.HasHeader(Bond)) // TODO Implement Bonds correcly
 			{
 				var positionColumn = row.Columns[0];
-				var positionPerLine = positionColumn.GroupBy(x => x.BoundingBox?.Row);
-				var isin = positionPerLine
-					.Select(g => string.Join(" ", g.OrderBy(t => t.BoundingBox?.Column).Select(t => t.Text)))
-					.FirstOrDefault(line => line.StartsWith("ISIN:"))
-					?.Replace("ISIN:", "").Trim() ?? string.Empty;
+				var isin = PositionParser.ExtractIsin(positionColumn);
 				var quantity = row.Columns[1][0].Text;
 				var price = row.Columns[2][0].Text;
 				var amount = row.Columns[3][0].Text;
@@ -255,11 +276,40 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				else if (type == PartialActivityType.Sell)
 				{
 					// Handle Sell activity
+					yield return PartialActivity.CreateSell(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+						ParseDecimal(quantity),
+						new Money(currency, ParseDecimal(price)),
+						new Money(currency, ParseDecimal(amount)),
+						transactionId
+					);
 				}
 			}
+			else if (row.HasHeader(Dividend))
+			{
+				var positionColumn = row.Columns[0];
+				var isin = PositionParser.ExtractIsin(positionColumn);
+				var quantity = row.Columns[1][0].Text;
+				var averageRate = row.Columns[2][0].Text;
+				var amount = row.Columns[3][0].Text;
+				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+				// Savings plan is always a Buy
+				yield return PartialActivity.CreateDividend(
+					currency,
+					date,
+					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
+					ParseDecimal(quantity),
+					new Money(currency, ParseDecimal(amount)),
+					transactionId
+				);
+			}
+
 		}
 
 		// Search for words "Market-Order Buy on" or Savings plan execution on
+		// For dividends Dividend with the ex-tag 08.12.2023
 		// Note that the words are multiple tokens, so we need to search for the sequence
 		private (PartialActivityType, DateTime) DetermineTypeAndDate(List<SingleWordToken> words)
 		{
@@ -290,10 +340,18 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					var parseDate = words[i + 4].Text;
 					return (PartialActivityType.Buy, GetDateTime(parseDate));
 				}
+				else if (words[i].Text.Equals("Dividend", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 1].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 2].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 3].Text.Equals("ex-tag", StringComparison.InvariantCultureIgnoreCase))
+				{
+					// Dividend with the ex-tag 08.12.2023
+					var parseDate = words[i + 4].Text;
+					return (PartialActivityType.Buy, GetDateTime(parseDate));
+				}
 			}
 
 			return (PartialActivityType.Undefined, DateTime.Now);
 		}
 	}
-
 }

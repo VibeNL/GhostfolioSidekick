@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return
 				header.Length == Headers.Length &&
 				header.All(h =>
-					!string.IsNullOrWhiteSpace(h) ||
+					!string.IsNullOrWhiteSpace(h) &&
 					Headers.Any(rh => string.Equals(rh, h, StringComparison.InvariantCultureIgnoreCase)));
 
 		}
