@@ -1,16 +1,12 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.ISIN;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using System.Transactions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-
 	public abstract class BaseSubParser : ITradeRepublicActivityParser
 	{
 		protected abstract TableDefinition[] TableDefinitions { get; }
@@ -133,18 +129,73 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		}
 	}
 
+	public static class BillingParser
+	{
+		public static readonly string[] BillingHeaders = ["POSITION", "AMOUNT"];
+		public static readonly ColumnAlignment[] BillingColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Right];
+
+		public static TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL")
+		{
+			return new TableDefinition(BillingHeaders, endMarker, BillingColumnAlignment);
+		}
+
+		public static IEnumerable<PartialActivity> ParseBillingRecord(
+			PdfTableRowColumns row,
+			DateTime date,
+			string transactionId,
+			Func<string, decimal> parseDecimal)
+		{
+			if (!row.HasHeader(BillingHeaders))
+			{
+				yield break;
+			}
+
+			// Multi line billing (fees)
+			// 0 is description, 1 is amount. Get by line
+			var lineNumbers = row.Columns[0]
+				.GroupBy(x => x.BoundingBox?.Row);
+
+			foreach (var item in lineNumbers)
+			{
+				var description = row.Columns[0]
+					.Where(x => x.BoundingBox?.Row == item.Key)
+					.OrderBy(t => t.BoundingBox?.Column)
+					.Select(t => t.Text)
+					.Aggregate((current, next) => current + " " + next);
+				var amountWithCurrency = row.Columns[1]
+					.Where(x => x.BoundingBox?.Row == item.Key)
+					.OrderBy(t => t.BoundingBox?.Column)
+					.Select(t => t.Text)
+					.Aggregate((current, next) => current + " " + next);
+
+				// Split amount and currency
+				var parts = amountWithCurrency.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				if (parts.Length < 2)
+				{
+					throw new FormatException($"Unable to parse amount and currency from '{amountWithCurrency}'.");
+				}
+
+				var amount = parseDecimal(parts[0]) * -1;
+				var currency = Currency.GetCurrency(parts[1]);
+
+				yield return PartialActivity.CreateFee(
+					currency,
+					date,
+					amount,
+					new Money(currency, amount),
+					transactionId
+				);
+			}
+		}
+	}
+
 	public class InvoiceStockEnglish : BaseSubParser
 	{
-		private const string POSITION = "POSITION";
-		private const string AMOUNT = "AMOUNT";
-
-		private readonly string[] HeaderStockWithoutFee = [POSITION, "QUANTITY", "PRICE", AMOUNT];
-		private readonly string[] SavingPlanWithoutFee = [POSITION, "QUANTITY", "AVERAGE RATE", AMOUNT];
-		private readonly string[] BondWithFee = [POSITION, "NOMINAL", "PRICE", AMOUNT];
-		private readonly string[] Billing = [POSITION, AMOUNT];
+		private readonly string[] HeaderStockWithoutFee = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
+		private readonly string[] SavingPlanWithoutFee = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
+		private readonly string[] BondWithFee = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
 
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
-		private readonly ColumnAlignment[] column2 = [ColumnAlignment.Left, ColumnAlignment.Right];
 
 		protected override TableDefinition[] TableDefinitions
 		{
@@ -154,7 +205,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					new TableDefinition(HeaderStockWithoutFee,"BOOKING", column4), // Stock without fee
 					new TableDefinition(SavingPlanWithoutFee, "BOOKING", column4), // Savings plan without fee
 					new TableDefinition(BondWithFee, "Billing", column4), // Bond with fee
-					new TableDefinition(Billing, "TOTAL", column2), // Fee only
+					BillingParser.CreateBillingTableDefinition(), // Fee only
 			];
 			}
 		}
@@ -168,42 +219,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 
 			// Multi line billing (fees)
-			if (row.HasHeader(Billing))
+			if (row.HasHeader(BillingParser.BillingHeaders))
 			{
-				// 0 is description, 1 is amount. Get by line
-				var lineNumbers = row.Columns[0]
-					.GroupBy(x => x.BoundingBox?.Row);
-
-				foreach (var item in lineNumbers)
+				foreach (var activity in BillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
 				{
-					var description = row.Columns[0]
-						.Where(x => x.BoundingBox?.Row == item.Key)
-						.OrderBy(t => t.BoundingBox?.Column)
-						.Select(t => t.Text)
-						.Aggregate((current, next) => current + " " + next);
-					var amountWithCurrency = row.Columns[1]
-						.Where(x => x.BoundingBox?.Row == item.Key)
-						.OrderBy(t => t.BoundingBox?.Column)
-						.Select(t => t.Text)
-						.Aggregate((current, next) => current + " " + next);
-
-					// Split amount and currency
-					var parts = amountWithCurrency.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-					if (parts.Length < 2)
-					{
-						throw new FormatException($"Unable to parse amount and currency from '{amountWithCurrency}'.");
-					}
-
-					var amount = ParseDecimal(parts[0]) * -1;
-					var currency = Currency.GetCurrency(parts[1]);
-
-					yield return PartialActivity.CreateFee(
-						currency,
-						date,
-						amount,
-						new Money(currency, amount),
-						transactionId
-					);
+					yield return activity;
 				}
 			}
 			// Buy is always a single line
