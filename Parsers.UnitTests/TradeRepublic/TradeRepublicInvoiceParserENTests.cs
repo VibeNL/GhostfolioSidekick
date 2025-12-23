@@ -13,6 +13,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		private readonly Account account;
 		private readonly TestActivityManager activityManager;
 
+		private readonly List<ITradeRepublicActivityParser> SubParsers = [new InvoiceEnglish()];
+
 		public TradeRepublicInvoiceParserENTests()
 		{
 			var fixture = CustomFixture.New();
@@ -27,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/EN/BuyOrders", "*.pdf", SearchOption.AllDirectories)
 						  .Union(Directory.GetFiles("./TestFiles/TradeRepublic/EN/CashTransactions", "*.pdf", SearchOption.AllDirectories)))
 			{
@@ -43,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuyBond_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/BuyOrders/single_buy_bond.pdf", activityManager, account.Name);
@@ -77,7 +79,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuyStock_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/BuyOrders/single_buy_stock.pdf", activityManager, account.Name);
@@ -86,12 +88,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 17, 12, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
 						0.3247m,
 						new Money(Currency.EUR, 77.39m),
 						new Money(Currency.EUR, 25.13m),
-						"Trade_Republic_US2546871060_2023-10-06")
+						"Trade_Republic_US2546871060_2023-10-06-17-12")
 				]);
 		}
 
@@ -99,7 +101,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleBuySavingsplan_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/BuyOrders/single_savingsplan_stock.pdf", activityManager, account.Name);
@@ -121,7 +123,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleRoundUpInformation_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/InformationOnly/single_round_up_information.pdf", activityManager, account.Name);
@@ -134,7 +136,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/CashTransactions/single_dividend.pdf", activityManager, account.Name);
@@ -161,7 +163,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleInterestBond_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/CashTransactions/single_interest_bond.pdf", activityManager, account.Name);
@@ -182,7 +184,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleRepayBond_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/EN/CashTransactions/single_repay_bond.pdf", activityManager, account.Name);
@@ -203,7 +205,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFilesBulk_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserEN(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 			var files = Directory.GetFiles("./TestFiles/TradeRepublic/EN/BuyOrders", "*.pdf", SearchOption.AllDirectories)
 				.Union(Directory.GetFiles("./TestFiles/TradeRepublic/EN/CashTransactions", "*.pdf", SearchOption.AllDirectories));
 
