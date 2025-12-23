@@ -113,11 +113,23 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			throw new FormatException($"Unable to parse '{x}' as decimal.");
 		}
 
+		// Date format: 06.10.2023 17:12
+		// Or without time: 06.10.2023
 		protected DateTime GetDateTime(string parseDate)
 		{
-			var dateTime = DateTime.ParseExact(parseDate, "dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None);
-			dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-			return dateTime;
+			if (DateTime.TryParseExact(parseDate, "dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+			{
+				dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+				return dateTime;
+			}
+
+			if (DateTime.TryParseExact(parseDate, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateOnly))
+			{
+				dateOnly = DateTime.SpecifyKind(dateOnly, DateTimeKind.Utc);
+				return dateOnly;
+			}
+
+			throw new FormatException($"Unable to parse '{parseDate}' as DateTime.");
 		}
 	}
 
@@ -222,7 +234,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 		}
 
-		// Search for words "Market-Order Buy on"
+		// Search for words "Market-Order Buy on" or Savings plan execution on
 		// Note that the words are multiple tokens, so we need to search for the sequence
 		private (PartialActivityType, DateTime) DetermineTypeAndDate(List<SingleWordToken> words)
 		{
@@ -243,6 +255,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					// Market-Order Sell on 06.10.2023 at 17:12
 					var parseDate = words[i + 3].Text + " " + words[i + 5].Text;
 					return (PartialActivityType.Sell, GetDateTime(parseDate));
+				}
+				else if (words[i].Text.Equals("Savings", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 1].Text.Equals("plan", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 2].Text.Equals("execution", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 3].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+				{
+					// Savings plan execution on 06.10.2023 at 17:12
+					var parseDate = words[i + 4].Text;
+					return (PartialActivityType.Buy, GetDateTime(parseDate));
 				}
 			}
 
