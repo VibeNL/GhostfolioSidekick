@@ -292,10 +292,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			{
 				var positionColumn = row.Columns[0];
 				var isin = PositionParser.ExtractIsin(positionColumn);
-				var income = row.Columns[2][0].Text;
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
-				// Savings plan is always a Buy
 				yield return PartialActivity.CreateDividend(
 					currency,
 					date,
