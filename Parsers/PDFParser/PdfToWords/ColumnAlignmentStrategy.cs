@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
 	/// <summary>

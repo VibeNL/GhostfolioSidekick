@@ -1,17 +1,14 @@
-﻿using CsvHelper;
-using GhostfolioSidekick.Model;
+﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using System;
 using System.Globalization;
-using System.Transactions;
 
 namespace GhostfolioSidekick.Parsers.GoldRepublic
 {
 	public class GoldRepublicParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
-		private static readonly string[] HeaderKeywords = ["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"];
+		private static readonly TableDefinition TableDefinition = new(["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"], "Closing balance");
 
 		protected override bool IgnoreFooter => true;
 
@@ -45,8 +42,6 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
-
-			bool StopPredicate(PdfTableRow row) => row.Text.Contains("Closing balance", StringComparison.InvariantCultureIgnoreCase);
 
 			bool MergePredicate(PdfTableRow current, PdfTableRow next)
 			{
@@ -92,11 +87,12 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				return false;
 			}
 
+			// Use the new API with TableDefinition and empty alignment configs (which triggers default left-aligned strategy)
 			var (header, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
-				HeaderKeywords,
-				stopPredicate: StopPredicate,
-				mergePredicate: MergePredicate);
+				[TableDefinition],
+				[],  // Empty alignment configs - will use default left-aligned strategy
+				MergePredicate);
 
 			foreach (var row in rows)
 			{

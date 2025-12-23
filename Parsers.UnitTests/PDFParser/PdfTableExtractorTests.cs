@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using System.Linq;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
@@ -49,10 +48,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("r1c3", 0, 1, 21),
 			};
 
+			var tableDefinition = new TableDefinition(["H1", "H2", "H3"], "");
+
 			var (hdr, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["H1", "H2", "H3"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			hdr.Tokens.Should().HaveCount(3);
@@ -90,10 +91,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			bool MergePredicate(PdfTableRow current, PdfTableRow next) => next.Page == current.Page && next.Row == current.Row + 1;
 
+			var tableDefinition = new TableDefinition(["H1", "H2"], "");
+
 			var (hdr, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(line1).Concat(line2),
-				["H1", "H2"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: MergePredicate);
 
 			rows.Should().HaveCount(1);
@@ -123,10 +126,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("123.45", 0, 1, 42)
 			};
 
+			var tableDefinition = new TableDefinition(["Date", "Description", "Amount"], "");
+
 			var (hdr, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Date", "Description", "Amount"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			hdr.Tokens.Select(t => t.Text).Should().ContainInOrder("Date", "Description", "Amount");
@@ -167,10 +172,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 
 			bool MergePredicate(PdfTableRow current, PdfTableRow next) => next.Page == current.Page && next.Row == current.Row + 1;
 
+			var tableDefinition = new TableDefinition(["Col1", "Col2", "Col3"], "");
+
 			var (hdr, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(line1).Concat(line2),
-				["Col1", "Col2", "Col3"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: MergePredicate);
 
 			rows.Should().HaveCount(1);
@@ -205,10 +212,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("100.00", 0, 1, 62)
 			};
 
+			var tableDefinition = new TableDefinition(["Transaction Type", "Date", "Description", "Amount"], "");
+
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Transaction Type", "Date", "Description", "Amount"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			var row = rows[0];
@@ -236,10 +245,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("Value2", 0, 1, 11)
 			};
 
+			var tableDefinition = new TableDefinition(["Col1", "Col2"], "");
+
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Col1", "Col2"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			var row = rows[0];
@@ -266,10 +277,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("Value3", 0, 1, 21)
 			};
 
+			var tableDefinition = new TableDefinition(["Col1", "Col2", "Col3"], "");
+
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Col1", "Col2", "Col3"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			var row = rows[0];
@@ -297,10 +310,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("150.00", 0, 1, 21)
 			};
 
+			var tableDefinition = new TableDefinition(["Transaction Type", "Amount"], "");
+
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Transaction Type", "Amount"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			var row = rows[0];
@@ -330,10 +345,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("100.50", 0, 1, 101)
 			};
 
+			var tableDefinition = new TableDefinition(["Transaction Date", "Total Amount USD"], "");
+
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Transaction Date", "Total Amount USD"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			var row = rows[0];
@@ -362,10 +379,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("100.50", 0, 1, 101)
 			};
 
+			var tableDefinition = new TableDefinition(["Transaction Date", "Amount"], "");
+
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Transaction Date", "Amount"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			var row = rows[0];
@@ -390,10 +409,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("2023-01-01", 0, 1, 1)
 			};
 
+			var tableDefinition = new TableDefinition(["Date"], "");
+
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Date"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			var row = rows[0];
@@ -429,11 +450,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("2023-01-01", 0, 1, 21)   // Under "Date"
 			};
 
+			var tableDefinition = new TableDefinition(["Transaction Type", "Date"], "");
+
 			// Act
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Transaction Type", "Date"], // This is the intended structure
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			// Assert - header should preserve the intended structure
@@ -478,10 +501,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("100.00", 0, 1, 75)
 			};
 
+			var tableDefinition = new TableDefinition(["Transaction Type", "Date", "Description", "Amount"], "");
+
 			var (headerRow, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				header.Concat(data),
-				["Transaction Type", "Date", "Description", "Amount"],
-				stopPredicate: null,
+				[tableDefinition],
+				[], // Empty alignment configs for default left-aligned strategy
 				mergePredicate: null);
 
 			var row = rows[0];

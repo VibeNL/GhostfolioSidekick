@@ -1,18 +1,16 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
+	
 	public abstract class BaseSubParser : ITradeRepublicActivityParser
 	{
-		protected abstract string StopWord { get; }
-		public abstract string[] HeaderKeywords { get; }
+		protected abstract TableDefinition[] TableDefinitions { get; }
 
 		public bool CanParseRecord(List<SingleWordToken> words)
 		{
@@ -25,14 +23,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			var (header, rows) = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
-				HeaderKeywords,
+				TableDefinitions,
 				[
 					new(0, ColumnAlignment.Left),   // e.g. POSITION
 					new(1, ColumnAlignment.Left),   // e.g. QUANTITY  
 					new(2, ColumnAlignment.Left),   // e.g. PRICE
 					new(3, ColumnAlignment.Right)   // e.g. AMOUNT (right-aligned)
 				],
-				stopPredicate: StopPredicate,
 				mergePredicate: MergePredicate);
 
 			foreach (var row in rows.Where(x => x.Columns[0].Any()))
@@ -107,14 +104,32 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return distanceToFirstColumn <= alignmentTolerance;
 		}
 
-		private bool StopPredicate(PdfTableRow row) => row.Text.Contains(StopWord, StringComparison.InvariantCultureIgnoreCase);
+		protected decimal ParseDecimal(string x)
+		{
+			if (decimal.TryParse(x, NumberStyles.Currency, CultureInfo.InvariantCulture, out var result))
+			{
+				return result;
+			}
+
+			throw new FormatException($"Unable to parse '{x}' as decimal.");
+		}
+
+		protected DateTime GetDateTime(string parseDate)
+		{
+			var dateTime = DateTime.ParseExact(parseDate, "dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None);
+			dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+			return dateTime;
+		}
 	}
 
-	public class InvoiceEnglish : BaseSubParser
+	public class InvoiceStockEnglish : BaseSubParser
 	{
-		public override string[] HeaderKeywords => ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
-
-		protected override string StopWord => "BOOKING";
+		protected override TableDefinition[] TableDefinitions =>
+			[
+				new TableDefinition(["POSITION", "QUANTITY", "PRICE", "AMOUNT"], "BOOKING"), // Stock without fee
+				new TableDefinition(["POSITION", "NOMINAL", "PRICE", "AMOUNT"], "Billing"), // Bond with fee
+				new TableDefinition(["POSITION", "AMOUNT"], "BOOKING"), // Fee only
+			];
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRow header, PdfTableRowColumns row, List<SingleWordToken> words)
 		{
@@ -155,19 +170,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 		}
 
-		private decimal ParseDecimal(string x)
-		{
-			if (decimal.TryParse(x, NumberStyles.Currency, CultureInfo.InvariantCulture, out var result))
-			{
-				return result;
-			}
-
-			throw new FormatException($"Unable to parse '{x}' as decimal.");
-		}
-
 		// Search for words "Market-Order Buy on"
 		// Note that the words are multiple tokens, so we need to search for the sequence
-		private static (PartialActivityType, DateTime) DetermineTypeAndDate(List<SingleWordToken> words)
+		private (PartialActivityType, DateTime) DetermineTypeAndDate(List<SingleWordToken> words)
 		{
 			for (int i = 0; i < words.Count - 3; i++)
 			{
@@ -190,13 +195,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 
 			return (PartialActivityType.Undefined, DateTime.Now);
-
-			static DateTime GetDateTime(string parseDate)
-			{
-				var dateTime = DateTime.ParseExact(parseDate, "dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None);
-				dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-				return dateTime;
-			}
 		}
 	}
 }

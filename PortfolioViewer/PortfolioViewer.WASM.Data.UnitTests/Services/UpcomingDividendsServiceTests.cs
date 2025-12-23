@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -12,7 +8,6 @@ using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
-using System.Linq;
 using GhostfolioSidekick.Database.Repository;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services

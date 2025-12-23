@@ -1,10 +1,6 @@
-﻿using GhostfolioSidekick.Model;
-using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.ISIN;
+﻿using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using System.Globalization;
-using System.Linq;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {

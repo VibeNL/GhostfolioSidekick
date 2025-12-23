@@ -5,7 +5,6 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.GoldRepublic;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using GhostfolioSidekick.Parsers.UnitTests.TradeRepublic;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 {
