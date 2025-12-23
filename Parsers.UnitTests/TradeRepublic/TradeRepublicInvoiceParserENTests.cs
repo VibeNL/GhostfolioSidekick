@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
 						99m,
 						new Money(Currency.EUR, 99.39m),
@@ -62,13 +62,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						1.12m,
 						new Money(Currency.EUR, 1.12m),
 						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						1m,
 						new Money(Currency.EUR, 1m),
 						"Trade_Republic_single_buy_bond.pdf"),
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			activityManager.PartialActivities.Should().BeEquivalentTo(
 				[PartialActivity.CreateBuy(
 						Currency.EUR,
-						new DateTime(2023, 10, 06, 17, 12, 0, DateTimeKind.Utc),
+						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
 						0.3247m,
 						new Money(Currency.EUR, 77.39m),
@@ -149,13 +149,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						[PartialSymbolIdentifier.CreateStockBondAndETF("US2546871060")],
 						0.1m,
 						new Money(Currency.USD, 0.1m),
-						"Trade_Republic_US2546871060_2024-01-09"),
+						"Trade_Republic_single_dividend.pdf"),
 				 PartialActivity.CreateFee(
 						Currency.USD,
 						new DateTime(2024, 01, 09, 0, 0, 0, DateTimeKind.Utc),
 						0.02m,
 						new Money(Currency.USD, 0.02m),
-						"Trade_Republic_US2546871060_2024-01-09")
+						"Trade_Republic_single_dividend.pdf")
 				]);
 		}
 

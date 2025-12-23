@@ -237,7 +237,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{
-			var (type, date) = DetermineTypeAndDate(words);
+			var date = DetermineDate(words);
+			var type = DetermineType(words);
 			if (type == PartialActivityType.Undefined)
 			{
 				yield break;
@@ -291,16 +292,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			{
 				var positionColumn = row.Columns[0];
 				var isin = PositionParser.ExtractIsin(positionColumn);
-				var quantity = row.Columns[1][0].Text;
-				var averageRate = row.Columns[2][0].Text;
+				var income = row.Columns[2][0].Text;
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
 				// Savings plan is always a Buy
 				yield return PartialActivity.CreateDividend(
 					currency,
 					date,
-					[PartialSymbolIdentifier.CreateStockAndETF(isin)],
-					ParseDecimal(quantity),
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+					ParseDecimal(amount),
 					new Money(currency, ParseDecimal(amount)),
 					transactionId
 				);
@@ -308,10 +308,24 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		}
 
+		private DateTime DetermineDate(List<SingleWordToken> words)
+		{
+			// Find the first 'DATE' token and take the next token as date
+			for (int i = 0; i < words.Count - 1; i++)
+			{
+				if (words[i].Text.Equals("DATE", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return GetDateTime(words[i + 1].Text);
+				}
+			}
+			
+			throw new FormatException("Unable to determine date from the document.");
+		}
+
 		// Search for words "Market-Order Buy on" or Savings plan execution on
 		// For dividends Dividend with the ex-tag 08.12.2023
 		// Note that the words are multiple tokens, so we need to search for the sequence
-		private (PartialActivityType, DateTime) DetermineTypeAndDate(List<SingleWordToken> words)
+		private PartialActivityType DetermineType(List<SingleWordToken> words)
 		{
 			for (int i = 0; i < words.Count - 3; i++)
 			{
@@ -319,39 +333,31 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					words[i + 1].Text.Equals("Buy", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 2].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
 				{
-					// Market-Order Buy on 06.10.2023 at 17:12
-					var parseDate = words[i + 3].Text + " " + words[i + 5].Text;
-					return (PartialActivityType.Buy, GetDateTime(parseDate));
+					return PartialActivityType.Buy;
 				}
 				else if (words[i].Text.Equals("Market-Order", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 1].Text.Equals("Sell", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 2].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
 				{
-					// Market-Order Sell on 06.10.2023 at 17:12
-					var parseDate = words[i + 3].Text + " " + words[i + 5].Text;
-					return (PartialActivityType.Sell, GetDateTime(parseDate));
+					return PartialActivityType.Sell;
 				}
 				else if (words[i].Text.Equals("Savings", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 1].Text.Equals("plan", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 2].Text.Equals("execution", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 3].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
 				{
-					// Savings plan execution on 06.10.2023 at 17:12
-					var parseDate = words[i + 4].Text;
-					return (PartialActivityType.Buy, GetDateTime(parseDate));
+					return PartialActivityType.Buy;
 				}
 				else if (words[i].Text.Equals("Dividend", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 1].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 2].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 3].Text.Equals("ex-tag", StringComparison.InvariantCultureIgnoreCase))
 				{
-					// Dividend with the ex-tag 08.12.2023
-					var parseDate = words[i + 4].Text;
-					return (PartialActivityType.Buy, GetDateTime(parseDate));
+					return PartialActivityType.Dividend;
 				}
 			}
 
-			return (PartialActivityType.Undefined, DateTime.Now);
+			return PartialActivityType.Undefined;
 		}
 	}
 }
