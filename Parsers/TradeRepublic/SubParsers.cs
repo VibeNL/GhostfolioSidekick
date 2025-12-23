@@ -290,22 +290,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					);
 				}
 			}
-			else if (row.HasHeader(Dividend))
-			{
-				var positionColumn = row.Columns[0];
-				var isin = PositionParser.ExtractIsin(positionColumn);
-				var amount = row.Columns[3][0].Text;
-				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
-				yield return PartialActivity.CreateDividend(
-					currency,
-					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					ParseDecimal(amount),
-					new Money(currency, ParseDecimal(amount)),
-					transactionId
-				);
-			}
-			else if (row.HasHeader(InterestPayment))
+			else if (row.HasHeader(Dividend) || row.HasHeader(InterestPayment))
 			{
 				var positionColumn = row.Columns[0];
 				var isin = PositionParser.ExtractIsin(positionColumn);
