@@ -218,6 +218,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private readonly string[] SavingPlan = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
 		private readonly string[] Dividend = ["POSITION", "QUANTITY", "INCOME", "AMOUNT"];
 		private readonly string[] Bond = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
+		private readonly string[] InterestPayment = ["POSITION", "NOMINAL", "COUPON", "AMOUNT"];
 
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
@@ -230,6 +231,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					new TableDefinition(SavingPlan, "BOOKING", column4), // Savings plan without fee
 					new TableDefinition(Bond, "Billing", column4), // Bond with fee
 					new TableDefinition(Dividend, "Billing", column4), // Dividend with fee
+					new TableDefinition(InterestPayment, "Billing", column4), // Interest payment with fee
 					BillingParser.CreateBillingTableDefinition(), // Fee only
 			];
 			}
@@ -303,6 +305,21 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					transactionId
 				);
 			}
+			else if (row.HasHeader(InterestPayment))
+			{
+				var positionColumn = row.Columns[0];
+				var isin = PositionParser.ExtractIsin(positionColumn);
+				var amount = row.Columns[3][0].Text;
+				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+				yield return PartialActivity.CreateDividend(
+					currency,
+					date,
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+					ParseDecimal(amount),
+					new Money(currency, ParseDecimal(amount)),
+					transactionId
+				);
+			}
 
 		}
 
@@ -321,7 +338,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		}
 
 		// Search for words "Market-Order Buy on" or Savings plan execution on
-		// For dividends Dividend with the ex-tag 08.12.2023
+		// For dividends Dividend with the ex-tag 08.12.2023 or Interest Payment with the ex-tag
+
 		// Note that the words are multiple tokens, so we need to search for the sequence
 		private PartialActivityType DetermineType(List<SingleWordToken> words)
 		{
@@ -350,6 +368,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					words[i + 1].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 2].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase) &&
 					words[i + 3].Text.Equals("ex-tag", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return PartialActivityType.Dividend;
+				}
+				else if (words[i].Text.Equals("Interest", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 1].Text.Equals("Payment", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 2].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 3].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase))
 				{
 					return PartialActivityType.Dividend;
 				}
