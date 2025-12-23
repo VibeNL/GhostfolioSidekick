@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 				}
 
 				var words = GetWords(filename);
-				return Task.FromResult(CanParseRecords(words));
+				return Task.FromResult(CanParseRecords(filename, words));
 			}
 			catch
 			{
@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 		public Task ParseActivities(string filename, IActivityManager activityManager, string accountName)
 		{
 			var words = GetWords(filename);
-			var records = ParseRecords(words);
+			var records = ParseRecords(filename, words);
 			activityManager.AddPartialActivity(accountName, records);
 
 			return Task.CompletedTask;
@@ -56,9 +56,9 @@ namespace GhostfolioSidekick.Parsers.PDFParser
 				: parsePDfToWords.ParseTokens(filename);
 		}
 
-		protected abstract bool CanParseRecords(List<SingleWordToken> words);
+		protected abstract bool CanParseRecords(string filename, List<SingleWordToken> words);
 
-		protected abstract List<PartialActivity> ParseRecords(List<SingleWordToken> words);
+		protected abstract List<PartialActivity> ParseRecords(string filename, List<SingleWordToken> words);
 
 
 		protected static bool IsCheckWords(string check, List<SingleWordToken> words, int i, bool caseInsentitive = false)

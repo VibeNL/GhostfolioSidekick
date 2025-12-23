@@ -57,21 +57,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
 						99m,
-						new Money(Currency.EUR, 0.9939m),
+						new Money(Currency.EUR, 99.39m),
 						new Money(Currency.EUR, 98.40m),
-						"Trade_Republic_DE0001102333_2023-10-06-15-39"),
+						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
 						1.12m,
 						new Money(Currency.EUR, 1.12m),
-						"Trade_Republic_DE0001102333_2023-10-06-15-39"),
+						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2023, 10, 06, 15, 39, 0, DateTimeKind.Utc),
 						1m,
 						new Money(Currency.EUR, 1m),
-						"Trade_Republic_DE0001102333_2023-10-06-15-39"),
+						"Trade_Republic_single_buy_bond.pdf"),
 				]);
 		}
 
@@ -93,7 +93,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						0.3247m,
 						new Money(Currency.EUR, 77.39m),
 						new Money(Currency.EUR, 25.13m),
-						"Trade_Republic_US2546871060_2023-10-06-17-12")
+						"Trade_Republic_single_buy_stock.pdf")
 				]);
 		}
 

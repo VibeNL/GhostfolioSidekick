@@ -1,40 +1,39 @@
 ﻿using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.ISIN;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Transactions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	
+
 	public abstract class BaseSubParser : ITradeRepublicActivityParser
 	{
 		protected abstract TableDefinition[] TableDefinitions { get; }
 
-		public bool CanParseRecord(List<SingleWordToken> words)
+		public bool CanParseRecord(string filename, List<SingleWordToken> words)
 		{
-			return ParseRecords(words).Count != 0; // TODO, pass to the subparsers
+			return ParseRecords(filename, words).Count != 0; // TODO, pass to the subparsers
 		}
 
-		public List<PartialActivity> ParseRecords(List<SingleWordToken> words)
+		public List<PartialActivity> ParseRecords(string filename, List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
 
 			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
 				TableDefinitions,
-				[
-					new(0, ColumnAlignment.Left),   // e.g. POSITION
-					new(1, ColumnAlignment.Left),   // e.g. QUANTITY  
-					new(2, ColumnAlignment.Left),   // e.g. PRICE
-					new(3, ColumnAlignment.Right)   // e.g. AMOUNT (right-aligned)
-				],
 				mergePredicate: MergePredicate);
+
+			var transactionId = $"Trade_Republic_{Path.GetFileName(filename)}";
 
 			foreach (var row in rows.Where(x => x.Columns[0].Any()))
 			{
-				var parsed = ParseRecord(row, words);
+				var parsed = ParseRecord(row, words, transactionId);
 				if (parsed != null)
 				{
 					activities.AddRange(parsed);
@@ -44,7 +43,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return activities;
 		}
 
-		protected abstract IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words);
+		protected abstract IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId);
 
 		protected static string GenerateHash(List<SingleWordToken> words)
 		{
@@ -128,14 +127,22 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private readonly string[] BondWithFee = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
 		private readonly string[] Billing = ["POSITION", "AMOUNT"];
 
-		protected override TableDefinition[] TableDefinitions =>
-			[
-				new TableDefinition(HeaderStockWithoutFee, "BOOKING"), // Stock without fee
-				new TableDefinition(BondWithFee, "Billing"), // Bond with fee
-				new TableDefinition(Billing, "TOTAL"), // Fee only
-			];
+		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
+		private readonly ColumnAlignment[] column2 = [ColumnAlignment.Left, ColumnAlignment.Right];
 
-		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words)
+		protected override TableDefinition[] TableDefinitions
+		{
+			get
+			{
+				return [
+					new TableDefinition(HeaderStockWithoutFee,"BOOKING", column4), // Stock without fee
+					new TableDefinition(BondWithFee, "Billing", column4), // Bond with fee
+					new TableDefinition(Billing, "TOTAL", column2), // Fee only
+			];
+			}
+		}
+
+		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{
 			var (type, date) = DetermineTypeAndDate(words);
 			if (type == PartialActivityType.Undefined)
@@ -170,7 +177,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						throw new FormatException($"Unable to parse amount and currency from '{amountWithCurrency}'.");
 					}
 
-					var amount = ParseDecimal(parts[0]);
+					var amount = ParseDecimal(parts[0]) * -1;
 					var currency = Currency.GetCurrency(parts[1]);
 
 					yield return PartialActivity.CreateFee(
@@ -178,10 +185,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 						date,
 						amount,
 						new Money(currency, amount),
-						description
+						transactionId
 					);
 				}
-
 			}
 			// Buy is always a single line
 			else if (row.HasHeader(HeaderStockWithoutFee) || row.HasHeader(BondWithFee)) // TODO Implement Bonds correcly
@@ -196,8 +202,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				var price = row.Columns[2][0].Text;
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
-
-				var transactionId = $"Trade_Republic_{isin}_{date:yyyy-MM-dd-HH-mm}";
 
 				if (type == PartialActivityType.Buy)
 				{

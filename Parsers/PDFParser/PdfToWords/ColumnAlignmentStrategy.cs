@@ -11,11 +11,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 	}
 
 	/// <summary>
-	/// Configuration for a specific column's alignment behavior
-	/// </summary>
-	public sealed record ColumnAlignmentConfig(int ColumnIndex, ColumnAlignment Alignment);
-
-	/// <summary>
 	/// Strategy interface for column alignment algorithms
 	/// </summary>
 	public interface IColumnAlignmentStrategy
@@ -26,7 +21,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		/// <param name="anchors">Column anchor positions from headers</param>
 		/// <param name="alignmentConfigs">Per-column alignment configurations</param>
 		/// <returns>List of cutoff positions for token assignment</returns>
-		List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs);
+		List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignment> alignmentConfigs);
 
 		/// <summary>
 		/// Determines which column a token belongs to based on its position and alignment strategy
@@ -36,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		/// <param name="anchors">Column anchor positions</param>
 		/// <param name="alignmentConfigs">Per-column alignment configurations</param>
 		/// <returns>Column index for the token</returns>
-		int FindColumnIndex(IReadOnlyList<int> cutoffs, int tokenColumn, IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs);
+		int FindColumnIndex(IReadOnlyList<int> cutoffs, int tokenColumn, IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignment> alignmentConfigs);
 	}
 
 	/// <summary>
@@ -44,7 +39,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 	/// </summary>
 	public sealed class MixedColumnAlignmentStrategy : IColumnAlignmentStrategy
 	{
-		public List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs)
+		public List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignment> alignmentConfigs)
 		{
 			if (anchors.Count == 0)
 			{
@@ -70,7 +65,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return cutoffs;
 		}
 
-		public int FindColumnIndex(IReadOnlyList<int> cutoffs, int tokenColumn, IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs)
+		public int FindColumnIndex(IReadOnlyList<int> cutoffs, int tokenColumn, IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignment> alignmentConfigs)
 		{
 			for (int i = 0; i < cutoffs.Count; i++)
 			{
@@ -84,10 +79,15 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return cutoffs.Count - 1;
 		}
 
-		private static ColumnAlignment GetAlignmentForColumn(int columnIndex, IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs)
+		private static ColumnAlignment GetAlignmentForColumn(int columnIndex, IReadOnlyList<ColumnAlignment> alignmentConfigs)
 		{
-			var config = alignmentConfigs.FirstOrDefault(c => c.ColumnIndex == columnIndex);
-			return config?.Alignment ?? ColumnAlignment.Left; // Default to left alignment
+			if (columnIndex < 0 || columnIndex >= alignmentConfigs.Count)
+			{
+				// Default to left alignment if out of bounds
+				return ColumnAlignment.Left;
+			}
+
+			return alignmentConfigs[columnIndex];
 		}
 
 		private static int CalculateCutoffBetweenColumns(int leftAnchor, int rightAnchor, ColumnAlignment leftAlignment, ColumnAlignment rightAlignment)
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 	/// </summary>
 	public sealed class LeftAlignedColumnStrategy : IColumnAlignmentStrategy
 	{
-		public List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs)
+		public List<int> CalculateColumnCutoffs(IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignment> alignmentConfigs)
 		{
 			if (anchors.Count == 0)
 			{
@@ -147,7 +147,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			return cutoffs;
 		}
 
-		public int FindColumnIndex(IReadOnlyList<int> cutoffs, int tokenColumn, IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs)
+		public int FindColumnIndex(IReadOnlyList<int> cutoffs, int tokenColumn, IReadOnlyList<int> anchors, IReadOnlyList<ColumnAlignment> alignmentConfigs)
 		{
 			for (int i = 0; i < cutoffs.Count; i++)
 			{

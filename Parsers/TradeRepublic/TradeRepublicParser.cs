@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected override int FooterHeightThreshold => 50;
 
-		protected override bool CanParseRecords(List<SingleWordToken> words)
+		protected override bool CanParseRecords(string filename, List<SingleWordToken> words)
 		{
 			var foundTradeRepublic = false;
 
@@ -24,14 +24,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				}
 			}
 
-			return foundTradeRepublic && subParsers.Any(p => p.CanParseRecord(words));
+			return foundTradeRepublic && subParsers.Any(p => p.CanParseRecord(filename, words));
 		}
 
-		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
+		protected override List<PartialActivity> ParseRecords(string filename, List<SingleWordToken> words)
 		{
-			foreach (var parser in subParsers.Where(parser => parser.CanParseRecord(words)))
+			foreach (var parser in subParsers.Where(parser => parser.CanParseRecord(filename, words)))
 			{
-				var activities = parser.ParseRecords(words);
+				var activities = parser.ParseRecords(filename, words);
 				if (activities.Count > 0)
 				{
 					return activities;

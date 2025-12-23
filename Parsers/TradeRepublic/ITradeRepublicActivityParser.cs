@@ -5,8 +5,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
 	public interface ITradeRepublicActivityParser
 	{
-		bool CanParseRecord(List<SingleWordToken> words);
+		bool CanParseRecord(string filename, List<SingleWordToken> words);
 
-		List<PartialActivity> ParseRecords(List<SingleWordToken> words);
+		List<PartialActivity> ParseRecords(string filename, List<SingleWordToken> words);
 	}
 }

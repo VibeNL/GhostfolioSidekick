@@ -8,7 +8,10 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 {
 	public class GoldRepublicParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
-		private static readonly TableDefinition TableDefinition = new(["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"], "Closing balance");
+		private static readonly TableDefinition TableDefinition = new(
+			["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"], 
+			"Closing balance",
+			[]);
 
 		protected override bool IgnoreFooter => true;
 
@@ -24,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			public decimal Total { get; set; }
 		}
 
-		protected override bool CanParseRecords(List<SingleWordToken> words)
+		protected override bool CanParseRecords(string filename, List<SingleWordToken> words)
 		{
 			try
 			{
@@ -39,7 +42,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			}
 		}
 
-		protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
+		protected override List<PartialActivity> ParseRecords(string filename, List<SingleWordToken> words)
 		{
 			var activities = new List<PartialActivity>();
 
@@ -91,7 +94,6 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
 				[TableDefinition],
-				[],  // Empty alignment configs - will use default left-aligned strategy
 				MergePredicate);
 
 			foreach (var row in rows)

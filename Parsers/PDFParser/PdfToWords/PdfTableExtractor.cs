@@ -2,7 +2,7 @@ using System.Reflection.PortableExecutable;
 
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
-	public record TableDefinition(string[] Headers, string StopWord);
+	public record TableDefinition(string[] Headers, string StopWord, ColumnAlignment[] ColumnAlignments);
 
 	public sealed record PdfTableRow(string[] Headers, int Page, int Row, IReadOnlyList<SingleWordToken> Tokens)
 	{
@@ -256,7 +256,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		public static List<(PdfTableRow Header, List<PdfTableRowColumns> Rows, TableDefinition Definition)> FindAllTableRowsWithColumns(
 			IEnumerable<SingleWordToken> words,
 			IEnumerable<TableDefinition> tableDefinitions,
-			IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs,
 			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
 		{
 			var allResults = new List<(PdfTableRow Header, List<PdfTableRowColumns> Rows, TableDefinition Definition)>();
@@ -264,7 +263,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 			foreach (var definition in tableDefinitions)
 			{
-				var result = FindTableRowsWithColumnsForDefinition(words, definition, alignmentConfigs, mergePredicate, usedRows);
+				var result = FindTableRowsWithColumnsForDefinition(words, definition, mergePredicate, usedRows);
 				if (result.Rows.Count > 0)
 				{
 					allResults.Add((result.Header, result.Rows, definition));
@@ -292,12 +291,11 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		public static List<PdfTableRowColumns> FindTableRowsWithColumns(
 			IEnumerable<SingleWordToken> words,
 			IEnumerable<TableDefinition> tableDefinitions,
-			IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs,
 			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null,
 			bool? returnMultipleTables = null)
 		{
 			var definitions = tableDefinitions.ToList();
-			var allResults = FindAllTableRowsWithColumns(words, definitions, alignmentConfigs, mergePredicate);
+			var allResults = FindAllTableRowsWithColumns(words, definitions, mergePredicate);
 			
 			if (allResults.Count == 0)
 			{
@@ -378,7 +376,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		private static (PdfTableRow Header, List<PdfTableRowColumns> Rows) FindTableRowsWithColumnsForDefinition(
 			IEnumerable<SingleWordToken> words,
 			TableDefinition definition,
-			IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs,
 			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate,
 			HashSet<(int Page, int Row)>? usedRows = null)
 		{
@@ -428,11 +425,11 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				dataRows = MergeMultilineRows(dataRows, mergePredicate, definition.Headers);
 			}
 
-			var strategy = alignmentConfigs?.Count > 0 
+			var strategy = definition.ColumnAlignments?.Length > 0 
 				? (IColumnAlignmentStrategy)new MixedColumnAlignmentStrategy() 
 				: new LeftAlignedColumnStrategy();
 			
-			var aligned = AlignToHeaderColumns(header, dataRows, alignmentConfigs ?? [], strategy);
+			var aligned = AlignToHeaderColumns(header, dataRows, definition.ColumnAlignments ?? [], strategy);
 			return (header, aligned);
 		}
 
@@ -461,7 +458,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		private static List<PdfTableRowColumns> AlignToHeaderColumns(
 			PdfTableRow header, 
 			List<PdfTableRow> rows, 
-			IReadOnlyList<ColumnAlignmentConfig> alignmentConfigs, 
+			IReadOnlyList<ColumnAlignment> alignmentConfigs, 
 			IColumnAlignmentStrategy strategy)
 		{
 			var anchors = header.Tokens
