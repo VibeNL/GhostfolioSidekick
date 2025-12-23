@@ -124,11 +124,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 	public class InvoiceStockEnglish : BaseSubParser
 	{
+		private string[] HeaderStockWithoutFee = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
+		private string[] BondWithFee = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
+		private string[] Billing = ["POSITION", "AMOUNT"];
+
 		protected override TableDefinition[] TableDefinitions =>
 			[
-				new TableDefinition(["POSITION", "QUANTITY", "PRICE", "AMOUNT"], "BOOKING"), // Stock without fee
-				new TableDefinition(["POSITION", "NOMINAL", "PRICE", "AMOUNT"], "Billing"), // Bond with fee
-				new TableDefinition(["POSITION", "AMOUNT"], "BOOKING"), // Fee only
+				new TableDefinition(HeaderStockWithoutFee, "BOOKING"), // Stock without fee
+				new TableDefinition(BondWithFee, "Billing"), // Bond with fee
+				new TableDefinition(Billing, "BOOKING"), // Fee only
 			];
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRow header, PdfTableRowColumns row, List<SingleWordToken> words)
@@ -139,34 +143,68 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				yield break;
 			}
 
-			var positionColumn = row.Columns[0];
-			var positionPerLine = positionColumn.GroupBy(x => x.BoundingBox?.Row);
-			var isin = positionPerLine
-				.Select(g => string.Join(" ", g.OrderBy(t => t.BoundingBox?.Column).Select(t => t.Text)))
-				.FirstOrDefault(line => line.StartsWith("ISIN:"))
-				?.Replace("ISIN:", "").Trim() ?? string.Empty;
-			var quantity = row.Columns[1][0].Text;
-			var price = row.Columns[2][0].Text;
-			var amount = row.Columns[3][0].Text;
-			var currency = Currency.GetCurrency(row.Columns[3][1].Text);
-
-			var transactionId = $"Trade_Republic_{isin}_{date:yyyy-MM-dd-HH-mm}";
-
-			if (type == PartialActivityType.Buy)
+			// Multi line billing (fees)
+			if (header.IsHeader(Billing))
 			{
-				yield return PartialActivity.CreateBuy(
-					currency,
-					date,
-					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					ParseDecimal(quantity),
-					new Money(currency, ParseDecimal(price)),
-					new Money(currency, ParseDecimal(amount)),
-					transactionId
-				);
+				// 0 is description, 1 is amount. Get by line
+				var lineNumbers = row.Columns[0]
+					.GroupBy(x => x.BoundingBox?.Row);
+
+				foreach (var item in lineNumbers)
+				{
+					var description = row.Columns[0]
+						.Where(x => x.BoundingBox?.Row == item.Key)
+						.OrderBy(t => t.BoundingBox?.Column)
+						.Select(t => t.Text)
+						.Aggregate((current, next) => current + " " + next);
+					var amount = row.Columns[1]
+						.Where(x => x.BoundingBox?.Row == item.Key)
+						.OrderBy(t => t.BoundingBox?.Column)
+						.Select(t => t.Text)
+						.Aggregate((current, next) => current + " " + next);
+
+					yield return PartialActivity.CreateFee(
+						Currency.EUR, // Fees are always in EUR
+						date,
+						ParseDecimal(amount),
+						new Money(Currency.EUR, ParseDecimal(amount)),
+						description
+					);
+				}
+
 			}
-			else if (type == PartialActivityType.Sell)
+			// Buy is always a single line
+			else if (header.IsHeader(HeaderStockWithoutFee) || header.IsHeader(BondWithFee)) // TODO Implement Bonds correcly
 			{
-				// Handle Sell activity
+				var positionColumn = row.Columns[0];
+				var positionPerLine = positionColumn.GroupBy(x => x.BoundingBox?.Row);
+				var isin = positionPerLine
+					.Select(g => string.Join(" ", g.OrderBy(t => t.BoundingBox?.Column).Select(t => t.Text)))
+					.FirstOrDefault(line => line.StartsWith("ISIN:"))
+					?.Replace("ISIN:", "").Trim() ?? string.Empty;
+				var quantity = row.Columns[1][0].Text;
+				var price = row.Columns[2][0].Text;
+				var amount = row.Columns[3][0].Text;
+				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+
+				var transactionId = $"Trade_Republic_{isin}_{date:yyyy-MM-dd-HH-mm}";
+
+				if (type == PartialActivityType.Buy)
+				{
+					yield return PartialActivity.CreateBuy(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+						ParseDecimal(quantity),
+						new Money(currency, ParseDecimal(price)),
+						new Money(currency, ParseDecimal(amount)),
+						transactionId
+					);
+				}
+				else if (type == PartialActivityType.Sell)
+				{
+					// Handle Sell activity
+				}
 			}
 		}
 
