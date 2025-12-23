@@ -136,6 +136,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 	public class InvoiceStockEnglish : BaseSubParser
 	{
 		private readonly string[] HeaderStockWithoutFee = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
+		private readonly string[] SavingPlanWithoutFee = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
 		private readonly string[] BondWithFee = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
 		private readonly string[] Billing = ["POSITION", "AMOUNT"];
 
@@ -148,6 +149,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			{
 				return [
 					new TableDefinition(HeaderStockWithoutFee,"BOOKING", column4), // Stock without fee
+					new TableDefinition(SavingPlanWithoutFee, "BOOKING", column4), // Savings plan without fee
 					new TableDefinition(BondWithFee, "Billing", column4), // Bond with fee
 					new TableDefinition(Billing, "TOTAL", column2), // Fee only
 			];

@@ -115,7 +115,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						0.058377m,
 						new Money(Currency.EUR, 85.65m),
 						new Money(Currency.EUR, 5m),
-						"Trade_Republic_US2546871060_2023-12-18")
+						"Trade_Republic_single_savingsplan_stock.pdf")
 				]);
 		}
 
