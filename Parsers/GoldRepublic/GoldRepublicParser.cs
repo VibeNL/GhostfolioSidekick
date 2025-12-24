@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.GoldRepublic
 {
-	public class GoldRepublicParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
+	public partial class GoldRepublicParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 	{
 		private static readonly TableDefinition TableDefinition = new(
 			["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"], 
@@ -292,7 +292,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			dateTime = default;
 
 			// Try to match the pattern: "22 - 05 - 2023 16:50:27"
-			var match = System.Text.RegularExpressions.Regex.Match(input, @"(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})");
+			var match = DateRegEx().Match(input);
 			if (match.Success)
 			{
 				if (int.TryParse(match.Groups[1].Value, out var day) &&
@@ -361,5 +361,8 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 			throw new FormatException($"Unable to parse date: {date}");
 		}
+
+		[System.Text.RegularExpressions.GeneratedRegex(@"(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})", System.Text.RegularExpressions.RegexOptions.None, 30000)]
+		private static partial System.Text.RegularExpressions.Regex DateRegEx();
 	}
 }
