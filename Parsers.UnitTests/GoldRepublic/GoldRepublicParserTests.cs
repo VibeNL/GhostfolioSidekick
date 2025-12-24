@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 		}
 
 		[Fact]
-		public async Task ConvertActivitiesForAccount_SingleDeposit_Converted()
+		public async Task ConvertActivitiesForAccount_SingleYearOverview_Converted()
 		{
 			// Arrange
 
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 					new DateTime(2023, 05, 17, 0, 0, 0, DateTimeKind.Utc),
 					110m,
 					new Money(Currency.EUR, 110),
-					"Deposit 17-05-2023 Account deposit ( ) - €110.00 €110.01"));
+					"GoldRepublic_20230517_Deposit_0_351"));
 
 			// Savings plan
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 					new DateTime(2023, 07, 03, 0, 0, 0, DateTimeKind.Utc),
 					50m,
 					new Money(Currency.EUR, 50m),
-					"Direct Debit 03-07-2023 Deposit for savingsplan Basic - €50.00 €55.01"));
+					"GoldRepublic_20230703_Direct Debit_0_583"));
 
 			// Single buy
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 						0.001744m,
 						new Money(Currency.EUR, 59610.09174311926605504587156m),
 						new Money(Currency.EUR, 103.96m),
-						"Market Order 09-06-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 571659 Gold, 17-05-2023 17-05-2023 Buy €103.96 €1.04 1.744 €105.00 Amsterdam 10:49:38 10:49:38 Gold €-105.00 €5.01"));
+						"GoldRepublic_20230609_Market Order_0_475"));
 
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
 					PartialActivity.CreateFee(
@@ -85,7 +85,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 						new DateTime(2023, 06, 09, 0, 0, 0, DateTimeKind.Utc),
 						1.04M,
 						new Money(Currency.EUR, 1.04M),
-						"Market Order 09-06-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 571659 Gold, 17-05-2023 17-05-2023 Buy €103.96 €1.04 1.744 €105.00 Amsterdam 10:49:38 10:49:38 Gold €-105.00 €5.01"));
+						"GoldRepublic_20230609_Market Order_0_475"));
 
 			// Single sell
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 						0.001744m,
 						new Money(Currency.EUR, 56662.844036697247706422018349m),
 						new Money(Currency.EUR, 98.82m),
-						"Market Order 26-07-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 608527 Gold, 26-07-2023 26-07-2023 Sell €98.82 €0.99 1.744 €97.83 Amsterdam 08:06:00 08:06:00 Gold €97.83 €102.78"));
+						"GoldRepublic_20230726_Market Order_1_164"));
 
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
 					PartialActivity.CreateFee(
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 						new DateTime(2023, 07, 26, 0, 0, 0, DateTimeKind.Utc),
 						0.99m,
 						new Money(Currency.EUR, 0.99m),
-						"Market Order 26-07-2023 Processing Product Date Execution Action Transaction Fee Volume Total Submitted Date Value order 608527 Gold, 26-07-2023 26-07-2023 Sell €98.82 €0.99 1.744 €97.83 Amsterdam 08:06:00 08:06:00 Gold €97.83 €102.78"));
+						"GoldRepublic_20230726_Market Order_1_164"));
 
 			// Single Fee
 			activityManager.PartialActivities.Should().ContainEquivalentOf(
@@ -113,7 +113,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.GoldRepublic
 					new DateTime(2023, 07, 17, 0, 0, 0, DateTimeKind.Utc),
 					0.06m,
 					new Money(Currency.EUR, 0.06m),
-					"Cost Order 17-07-2023 Opslagkosten juni 2023 - €-0.06 €54.95"));
+					"GoldRepublic_20230717_Cost Order_1_39"));
 		}
 	}
 }

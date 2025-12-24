@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			var dateParsed = ParseDate(date);
 			var amountParsed = ParseDecimal(amount);
 			var balanceParsed = ParseDecimal(balance);
-			var transactionId = row.Text;
+			var transactionId = $"GoldRepublic_{dateParsed:yyyyMMdd}_{transactionType}_{row.Page}_{row.Row}";
 
 			if (string.IsNullOrEmpty(transactionType) || string.IsNullOrEmpty(date))
 			{
