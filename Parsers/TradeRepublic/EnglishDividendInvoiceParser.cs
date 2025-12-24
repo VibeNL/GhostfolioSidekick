@@ -10,6 +10,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private readonly ColumnAlignment[] _dividendColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 		private readonly string[] _dividendKeywords = ["Dividend", "with", "the", "ex-tag"];
 		private readonly string[] _dateTokens = ["DATE"];
+		private readonly string _billingEndMarker = "TOTAL";
 		
 		private readonly EnglishBillingParserAdapter _billingParser = new();
 		private readonly EnglishPositionParserAdapter _positionParser = new();
@@ -18,6 +19,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override ColumnAlignment[] DividendColumnAlignment => _dividendColumnAlignment;
 		protected override string[] DividendKeywords => _dividendKeywords;
 		protected override string[] DateTokens => _dateTokens;
+		protected override string BillingEndMarker => _billingEndMarker;
 		protected override IBillingParser BillingParser => _billingParser;
 		protected override IPositionParser PositionParser => _positionParser;
 
@@ -25,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			public string[] BillingHeaders => EnglishBillingParser.BillingHeaders;
 
-			public TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL", bool isRequired = false)
+			public TableDefinition CreateBillingTableDefinition(string endMarker, bool isRequired = false)
 			{
 				return EnglishBillingParser.CreateBillingTableDefinition(endMarker, isRequired);
 			}

@@ -9,6 +9,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected abstract string[] DividendHeaders { get; }
 		protected abstract ColumnAlignment[] DividendColumnAlignment { get; }
 		protected abstract string[] DividendKeywords { get; }
+		protected abstract string BillingEndMarker { get; }
 		protected abstract IBillingParser BillingParser { get; }
 		protected abstract IPositionParser PositionParser { get; }
 
@@ -17,8 +18,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(DividendHeaders, "Billing", DividendColumnAlignment, true, new ColumnAlignmentMergeStrategy()),
-					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
+					new TableDefinition(DividendHeaders, BillingEndMarker, DividendColumnAlignment, true, new AlwaysMergeStrategy()),
+					BillingParser.CreateBillingTableDefinition(BillingEndMarker, isRequired: false) // Billing is optional
 				];
 			}
 		}
@@ -73,7 +74,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 	public interface IBillingParser
 	{
 		string[] BillingHeaders { get; }
-		TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL", bool isRequired = false);
+		TableDefinition CreateBillingTableDefinition(string endMarker, bool isRequired = false);
 		IEnumerable<PartialActivity> ParseBillingRecord(PdfTableRowColumns row, DateTime date, string transactionId, Func<string, decimal> parseDecimal);
 	}
 

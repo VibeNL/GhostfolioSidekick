@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						[PartialSymbolIdentifier.CreateStockBondAndETF("IE0032895942")],
 						1.5m,
 						new Money(Currency.USD, 1.5m),
-						"Trade_Republic_IE0032895942_2024-06-27")
+						"Trade_Republic_single_dividend.pdf")
 				]);
 		}
 	}

@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		public static TableDefinition CreateBillingTableDefinition(
 			string[] headers, 
 			ColumnAlignment[] columnAlignment,
-			string endMarker = "TOTAL",
+			string endMarker,
 			bool isRequired = false)
 		{
 			return new TableDefinition(
@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			DateTime date,
 			string transactionId,
 			Func<string, decimal> parseDecimal,
-			string subtotalKeyword = "Subtotaal")
+			string subtotalKeyword)
 		{
 			if (!row.HasHeader(expectedHeaders))
 			{
