@@ -41,19 +41,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected abstract IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId);
 
-		protected static string GenerateHash(List<SingleWordToken> words)
-		{
-			var sb = new StringBuilder();
-			foreach (var word in words)
-			{
-				sb.Append(word.Text);
-				sb.Append('|');
-			}
-
-			var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(sb.ToString()));
-			return Convert.ToHexStringLower(hashBytes);
-		}
-
 		private static bool MergePredicate(PdfTableRow current, PdfTableRow next)
 		{
 			// Merge if the first column of the next row is filled (has content)
@@ -99,7 +86,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			return distanceToFirstColumn <= alignmentTolerance;
 		}
 
-		protected decimal ParseDecimal(string x)
+		protected static decimal ParseDecimal(string x)
 		{
 			if (decimal.TryParse(x, NumberStyles.Currency, CultureInfo.InvariantCulture, out var result))
 			{
@@ -109,9 +96,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			throw new FormatException($"Unable to parse '{x}' as decimal.");
 		}
 
-		// Date format: 06.10.2023 17:12
-		// Or without time: 06.10.2023
-		protected DateTime GetDateTime(string parseDate)
+		protected static DateTime GetDateTime(string parseDate)
 		{
 			parseDate = parseDate
 				.Replace('-', '.')
@@ -132,7 +117,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			throw new FormatException($"Unable to parse '{parseDate}' as DateTime.");
 		}
 
-		protected DateTime DetermineDate(List<SingleWordToken> words)
+		protected static DateTime DetermineDate(List<SingleWordToken> words)
 		{
 			// Find the first 'DATE' token and take the next token as date
 			for (int i = 0; i < words.Count - 1; i++)
@@ -146,49 +131,27 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			throw new FormatException("Unable to determine date from the document.");
 		}
 
-		// Search for words "Market-Order Buy on" or Savings plan execution on
-		// For dividends Dividend with the ex-tag 08.12.2023 or Interest Payment with the ex-tag
-		// Note that the words are multiple tokens, so we need to search for the sequence
-		protected PartialActivityType DetermineType(List<SingleWordToken> words)
+		protected static bool ContainsSequence(string[] wordTexts, string[] pattern)
 		{
-			for (int i = 0; i < words.Count - 3; i++)
+			for (int i = 0; i <= wordTexts.Length - pattern.Length; i++)
 			{
-				if (words[i].Text.Equals("Market-Order", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("Buy", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+				bool matches = true;
+				for (int j = 0; j < pattern.Length; j++)
 				{
-					return PartialActivityType.Buy;
+					if (!wordTexts[i + j].Equals(pattern[j], StringComparison.InvariantCultureIgnoreCase))
+					{
+						matches = false;
+						break;
+					}
 				}
-				else if (words[i].Text.Equals("Market-Order", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("Sell", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+				
+				if (matches)
 				{
-					return PartialActivityType.Sell;
-				}
-				else if (words[i].Text.Equals("Savings", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("plan", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("execution", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 3].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return PartialActivityType.Buy;
-				}
-				else if (words[i].Text.Equals("Dividend", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 3].Text.Equals("ex-tag", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return PartialActivityType.Dividend;
-				}
-				else if (words[i].Text.Equals("Interest", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("Payment", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 3].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return PartialActivityType.Dividend;
+					return true;
 				}
 			}
-
-			return PartialActivityType.Undefined;
+			
+			return false;
 		}
 	}
 
@@ -287,6 +250,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 		}
 
+		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
+			new[] { 
+				(new[] { "Market-Order", "Buy", "on" }, PartialActivityType.Buy),
+				(new[] { "Market-Order", "Sell", "on" }, PartialActivityType.Sell)
+			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Item2;
+
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{
 			var date = DetermineDate(words);
@@ -357,6 +326,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 		}
 
+		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
+			ContainsSequence([.. words.Select(w => w.Text)], ["Savings", "plan", "execution", "on"]) 
+				? PartialActivityType.Buy 
+				: PartialActivityType.Undefined;
+
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{
 			var date = DetermineDate(words);
@@ -412,6 +386,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			}
 		}
 
+		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
+			new[] { 
+				(new[] { "Market-Order", "Buy", "on" }, PartialActivityType.Buy),
+				(new[] { "Market-Order", "Sell", "on" }, PartialActivityType.Sell)
+			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Item2;
+
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{
 			var date = DetermineDate(words);
@@ -454,13 +434,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				{
 					yield return PartialActivity.CreateSell(
 						currency,
-						date,
-						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-						ParseDecimal(quantity),
-						new Money(currency, ParseDecimal(price)),
-						new Money(currency, ParseDecimal(amount)),
-						transactionId
-					);
+					 date,
+					 [PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+					 ParseDecimal(quantity),
+					 new Money(currency, ParseDecimal(price)),
+					 new Money(currency, ParseDecimal(amount)),
+					 transactionId
+				  );
 				}
 			}
 		}
@@ -481,6 +461,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				];
 			}
 		}
+
+		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
+			ContainsSequence([.. words.Select(w => w.Text)], ["Dividend", "with", "the", "ex-tag"]) 
+				? PartialActivityType.Dividend 
+				: PartialActivityType.Undefined;
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{
@@ -529,10 +514,15 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			{
 				return [
 					new TableDefinition(InterestPayment, "Billing", column4, true), // InterestPayment table is required
-					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
+					// No billing table as it contains identical information
 				];
 			}
 		}
+
+		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
+			ContainsSequence([.. words.Select(w => w.Text)], ["Interest", "Payment", "with", "the"]) 
+				? PartialActivityType.Dividend 
+				: PartialActivityType.Undefined;
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{
@@ -563,6 +553,65 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					date,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 					ParseDecimal(amount),
+					new Money(currency, ParseDecimal(amount)),
+					transactionId
+				);
+			}
+		}
+	}
+
+	public class BondRepaymentInvoiceParser : BaseSubParser
+	{
+		private readonly string[] BondRepayment = ["NO", "BOOKING", "SECURITY", "AMOUNT"];
+		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
+
+		protected override TableDefinition[] TableDefinitions
+		{
+			get
+			{
+				return [
+					new TableDefinition(BondRepayment, "Billing", column4, true), // BondRepayment table is required
+					// No billing table as it contains identical information
+				];
+			}
+		}
+
+		// Note: Bond repayment pattern detection needs to be defined based on actual TradeRepublic documents
+		// This is a placeholder implementation
+		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
+			ContainsSequence([.. words.Select(w => w.Text)], ["Repayment"]) 
+				? PartialActivityType.BondRepay 
+				: PartialActivityType.Undefined;
+
+		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
+		{
+			var date = DetermineDate(words);
+			var type = DetermineType(words);
+
+			if (type != PartialActivityType.BondRepay)
+			{
+				yield break;
+			}
+
+			if (row.HasHeader(BillingParser.BillingHeaders))
+			{
+				foreach (var activity in BillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
+				{
+					yield return activity;
+				}
+			}
+			else if (row.HasHeader(BondRepayment))
+			{
+				var positionColumn = row.Columns[2];
+				var isin = PositionParser.ExtractIsin(positionColumn);
+				var amount = row.Columns[3][0].Text;
+				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+
+				yield return PartialActivity.CreateBondRepay(
+					currency,
+					date,
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+					new Money(currency, ParseDecimal(amount)),
 					new Money(currency, ParseDecimal(amount)),
 					transactionId
 				);

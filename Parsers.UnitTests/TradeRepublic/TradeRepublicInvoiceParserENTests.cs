@@ -18,7 +18,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			new SavingPlanInvoiceParser(),
 			new BondInvoiceParser(),
 			new DividendInvoiceParser(),
-			new InterestPaymentInvoiceParser()
+			new InterestPaymentInvoiceParser(),
+			new BondRepaymentInvoiceParser()
 			];
 
 		public TradeRepublicInvoiceParserENTests()
@@ -182,7 +183,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
 						1.74m,
 						new Money(Currency.EUR, 1.74m),
-						"Trade_Republic_DE0001102333_2024-02-15")
+						"Trade_Republic_single_interest_bond.pdf")
 				]);
 		}
 
@@ -203,7 +204,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
 						new Money(Currency.EUR, 99.47m),
 						new Money(Currency.EUR, 99.47m),
-						"Trade_Republic_DE0001102333_2024-02-14")
+						"Trade_Republic_single_repay_bond.pdf")
 				]);
 		}
 
