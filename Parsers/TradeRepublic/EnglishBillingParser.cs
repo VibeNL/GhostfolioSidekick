@@ -12,11 +12,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		public static TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL", bool isRequired = false)
 		{
 			return new TableDefinition(
-				BillingHeaders, 
-				endMarker, 
-				BillingColumnAlignment, 
+				BillingHeaders,
+				endMarker,
+				BillingColumnAlignment,
 				isRequired,
-				new ColumnAlignmentMergeStrategy());
+				new NeverMergeStrategy());
 		}
 
 		public static IEnumerable<PartialActivity> ParseBillingRecord(
@@ -42,6 +42,14 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					.OrderBy(t => t.BoundingBox?.Column)
 					.Select(t => t.Text)
 					.Aggregate((current, next) => current + " " + next);
+
+
+				if (description.Contains("Subtotaal"))
+				{
+					// Skip dividends here
+					continue;
+				}
+
 				var amountWithCurrency = row.Columns[1]
 					.Where(x => x.BoundingBox?.Row == item.Key)
 					.OrderBy(t => t.BoundingBox?.Column)
