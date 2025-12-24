@@ -11,7 +11,8 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 		private static readonly TableDefinition TableDefinition = new(
 			["Transaction Type", "Date", "Description", "Bullion", "Amount", "Balance"], 
 			"Closing balance",
-			[]);
+			[],
+			true);
 
 		protected override bool IgnoreFooter => true;
 

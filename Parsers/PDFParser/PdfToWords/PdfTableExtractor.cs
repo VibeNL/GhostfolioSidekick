@@ -2,7 +2,7 @@ using System.Reflection.PortableExecutable;
 
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
-	public record TableDefinition(string[] Headers, string StopWord, ColumnAlignment[] ColumnAlignments);
+	public record TableDefinition(string[] Headers, string StopWord, ColumnAlignment[] ColumnAlignments, bool IsRequired = false);
 
 	public sealed record PdfTableRow(string[] Headers, int Page, int Row, IReadOnlyList<SingleWordToken> Tokens)
 	{
@@ -233,10 +233,15 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			IEnumerable<TableDefinition> tableDefinitions,
 			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
 		{
+			var definitions = tableDefinitions.ToList();
 			var allResults = new List<PdfTableRow>();
 			var usedRows = new HashSet<(int Page, int Row)>();
 
-			foreach (var definition in tableDefinitions)
+			// Check if all required table definitions are found
+			var requiredDefinitions = definitions.Where(d => d.IsRequired).ToList();
+			var foundRequiredDefinitions = new HashSet<TableDefinition>();
+
+			foreach (var definition in definitions)
 			{
 				var result = FindTableRowsForDefinition(words, definition, mergePredicate, usedRows);
 				if (result.Count > 0)
@@ -247,7 +252,19 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 					{
 						usedRows.Add((row.Page, row.Row));
 					}
+
+					// Track found required definitions
+					if (definition.IsRequired)
+					{
+						foundRequiredDefinitions.Add(definition);
+					}
 				}
+			}
+
+			// If not all required definitions were found, return empty result
+			if (requiredDefinitions.Count > 0 && foundRequiredDefinitions.Count < requiredDefinitions.Count)
+			{
+				return [];
 			}
 			
 			return allResults;
@@ -258,10 +275,15 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			IEnumerable<TableDefinition> tableDefinitions,
 			Func<PdfTableRow, PdfTableRow, bool>? mergePredicate = null)
 		{
+			var definitions = tableDefinitions.ToList();
 			var allResults = new List<(PdfTableRow Header, List<PdfTableRowColumns> Rows, TableDefinition Definition)>();
 			var usedRows = new HashSet<(int Page, int Row)>();
 
-			foreach (var definition in tableDefinitions)
+			// Check if all required table definitions are found
+			var requiredDefinitions = definitions.Where(d => d.IsRequired).ToList();
+			var foundRequiredDefinitions = new HashSet<TableDefinition>();
+
+			foreach (var definition in definitions)
 			{
 				var result = FindTableRowsWithColumnsForDefinition(words, definition, mergePredicate, usedRows);
 				if (result.Rows.Count > 0)
@@ -273,7 +295,19 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 					{
 						usedRows.Add((row.Page, row.Row));
 					}
+
+					// Track found required definitions
+					if (definition.IsRequired)
+					{
+						foundRequiredDefinitions.Add(definition);
+					}
 				}
+			}
+
+			// If not all required definitions were found, return empty result
+			if (requiredDefinitions.Count > 0 && foundRequiredDefinitions.Count < requiredDefinitions.Count)
+			{
+				return [];
 			}
 			
 			return allResults;

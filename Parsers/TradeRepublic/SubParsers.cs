@@ -197,9 +197,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		public static readonly string[] BillingHeaders = ["POSITION", "AMOUNT"];
 		public static readonly ColumnAlignment[] BillingColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Right];
 
-		public static TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL")
+		public static TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL", bool isRequired = false)
 		{
-			return new TableDefinition(BillingHeaders, endMarker, BillingColumnAlignment);
+			return new TableDefinition(BillingHeaders, endMarker, BillingColumnAlignment, isRequired);
 		}
 
 		public static IEnumerable<PartialActivity> ParseBillingRecord(
@@ -281,8 +281,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(Stock, "BOOKING", column4),
-					BillingParser.CreateBillingTableDefinition()
+					new TableDefinition(Stock, "BOOKING", column4, true), // Stock table is required
+					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
 		}
@@ -351,8 +351,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(SavingPlan, "BOOKING", column4),
-					BillingParser.CreateBillingTableDefinition()
+					new TableDefinition(SavingPlan, "BOOKING", column4, true), // SavingPlan table is required
+					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
 		}
@@ -406,8 +406,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(Bond, "Billing", column4),
-					BillingParser.CreateBillingTableDefinition()
+					new TableDefinition(Bond, "Billing", column4, true), // Bond table is required
+					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
 		}
@@ -476,8 +476,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(Dividend, "Billing", column4),
-					BillingParser.CreateBillingTableDefinition()
+					new TableDefinition(Dividend, "Billing", column4, true), // Dividend table is required
+					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
 		}
@@ -528,8 +528,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(InterestPayment, "Billing", column4),
-					BillingParser.CreateBillingTableDefinition()
+					new TableDefinition(InterestPayment, "Billing", column4, true), // InterestPayment table is required
+					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
 		}
