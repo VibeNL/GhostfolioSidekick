@@ -1,9 +1,7 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
