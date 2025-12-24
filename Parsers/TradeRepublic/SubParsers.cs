@@ -20,8 +20,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
-				TableDefinitions,
-				mergePredicate: MergePredicate);
+				TableDefinitions);
 
 			var transactionId = $"Trade_Republic_{Path.GetFileName(filename)}";
 
@@ -38,51 +37,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		}
 
 		protected abstract IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId);
-
-		private static bool MergePredicate(PdfTableRow current, PdfTableRow next)
-		{
-			// Merge if the first column of the next row is filled (has content)
-			if (next.Tokens.Count == 0)
-			{
-				return false;
-			}
-
-			// Get the first token of the next row
-			var firstToken = next.Tokens.FirstOrDefault();
-			if (firstToken?.BoundingBox == null)
-			{
-				return false;
-			}
-
-			// Check if we have a current row to compare against
-			if (current.Tokens.Count == 0)
-			{
-				return false;
-			}
-
-			// Get the first token's column position from the next row
-			var firstTokenColumn = firstToken.BoundingBox.Column;
-
-			// Get the first column position from the current row for comparison
-			var currentFirstColumnPosition = current.Tokens
-				.Where(t => t.BoundingBox != null)
-				.FirstOrDefault()?.BoundingBox?.Column;
-
-			if (!currentFirstColumnPosition.HasValue)
-			{
-				return false;
-			}
-
-			// Check if the first token of the next row aligns with the first column position
-			// If it does, it means the first column is filled and we should merge
-			var distanceToFirstColumn = Math.Abs(firstTokenColumn - currentFirstColumnPosition.Value);
-
-			// Use a small tolerance for alignment (tokens might not be perfectly aligned)
-			const int alignmentTolerance = 10;
-
-			// Merge if the first token of next row is aligned with the first column
-			return distanceToFirstColumn <= alignmentTolerance;
-		}
 
 		protected static decimal ParseDecimal(string x)
 		{
@@ -160,7 +114,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		public static TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL", bool isRequired = false)
 		{
-			return new TableDefinition(BillingHeaders, endMarker, BillingColumnAlignment, isRequired);
+			return new TableDefinition(
+				BillingHeaders, 
+				endMarker, 
+				BillingColumnAlignment, 
+				isRequired,
+				new ColumnAlignmentMergeStrategy());
 		}
 
 		public static IEnumerable<PartialActivity> ParseBillingRecord(
@@ -242,7 +201,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(Stock, "BOOKING", column4, true), // Stock table is required
+					new TableDefinition(Stock, "BOOKING", column4, true, new ColumnAlignmentMergeStrategy()), // Stock table is required
 					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
@@ -318,7 +277,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(SavingPlan, "BOOKING", column4, true), // SavingPlan table is required
+					new TableDefinition(SavingPlan, "BOOKING", column4, true, new ColumnAlignmentMergeStrategy()), // SavingPlan table is required
 					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
@@ -378,7 +337,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(Bond, "Billing", column4, true), // Bond table is required
+					new TableDefinition(Bond, "Billing", column4, true, new ColumnAlignmentMergeStrategy()), // Bond table is required
 					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
@@ -454,7 +413,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(Dividend, "Billing", column4, true), // Dividend table is required
+					new TableDefinition(Dividend, "Billing", column4, true, new ColumnAlignmentMergeStrategy()),
 					BillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
@@ -511,7 +470,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(InterestPayment, "Billing", column4, true), // InterestPayment table is required
+					new TableDefinition(InterestPayment, "Billing", column4, true, new ColumnAlignmentMergeStrategy()),
 					// No billing table as it contains identical information
 				];
 			}
@@ -568,7 +527,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(BondRepayment, "Billing", column4, true), // BondRepayment table is required
+					new TableDefinition(BondRepayment, "Billing", column4, true, new AlwaysMergeStrategy()),
 					// No billing table as it contains identical information
 				];
 			}
@@ -601,7 +560,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			else if (row.HasHeader(BondRepayment))
 			{
 				var positionColumn = row.Columns[2];
-				var isin = PositionParser.ExtractIsin(positionColumn);
+				var isin = positionColumn[2].Text;
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
 

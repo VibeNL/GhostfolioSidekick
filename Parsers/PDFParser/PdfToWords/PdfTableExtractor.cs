@@ -2,7 +2,12 @@ using System.Reflection.PortableExecutable;
 
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
-	public record TableDefinition(string[] Headers, string StopWord, ColumnAlignment[] ColumnAlignments, bool IsRequired = false);
+	public record TableDefinition(
+		string[] Headers, 
+		string StopWord, 
+		ColumnAlignment[] ColumnAlignments, 
+		bool IsRequired = false,
+		IMergeRowStrategy? MergeStrategy = null);
 
 	public sealed record PdfTableRow(string[] Headers, int Page, int Row, IReadOnlyList<SingleWordToken> Tokens)
 	{
@@ -243,7 +248,10 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 			foreach (var definition in definitions)
 			{
-				var result = FindTableRowsForDefinition(words, definition, mergePredicate, usedRows);
+				// Use the definition's merge strategy if available, otherwise fall back to the passed predicate
+				var effectiveMergePredicate = GetEffectiveMergePredicate(definition, mergePredicate);
+				
+				var result = FindTableRowsForDefinition(words, definition, effectiveMergePredicate, usedRows);
 				if (result.Count > 0)
 				{
 					allResults.AddRange(result);
@@ -285,7 +293,10 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 			foreach (var definition in definitions)
 			{
-				var result = FindTableRowsWithColumnsForDefinition(words, definition, mergePredicate, usedRows);
+				// Use the definition's merge strategy if available, otherwise fall back to the passed predicate
+				var effectiveMergePredicate = GetEffectiveMergePredicate(definition, mergePredicate);
+				
+				var result = FindTableRowsWithColumnsForDefinition(words, definition, effectiveMergePredicate, usedRows);
 				if (result.Rows.Count > 0)
 				{
 					allResults.Add((result.Header, result.Rows, definition));
@@ -318,8 +329,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		/// </summary>
 		/// <param name="words">The word tokens to search</param>
 		/// <param name="tableDefinitions">The table definitions to match</param>
-		/// <param name="alignmentConfigs">Column alignment configurations</param>
-		/// <param name="mergePredicate">Optional predicate for merging multi-line rows</param>
+		/// <param name="mergePredicate">Optional predicate for merging multi-line rows (fallback if TableDefinition doesn't have a strategy)</param>
 		/// <param name="returnMultipleTables">If true, returns all matching tables combined; if false, returns first match only. If null, automatically detects based on number of table definitions.</param>
 		/// <returns>Header and rows of the found table(s)</returns>
 		public static List<PdfTableRowColumns> FindTableRowsWithColumns(
@@ -350,6 +360,24 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			
 			// Return first match only
 			return allResults[0].Rows;
+		}
+
+		/// <summary>
+		/// Gets the effective merge predicate to use for a table definition.
+		/// Priority: TableDefinition.MergeStrategy -> passed mergePredicate -> null
+		/// </summary>
+		private static Func<PdfTableRow, PdfTableRow, bool>? GetEffectiveMergePredicate(
+			TableDefinition definition, 
+			Func<PdfTableRow, PdfTableRow, bool>? fallbackPredicate)
+		{
+			// If the table definition has a merge strategy, use it
+			if (definition.MergeStrategy != null)
+			{
+				return definition.MergeStrategy.ShouldMerge;
+			}
+
+			// Otherwise, fall back to the passed predicate
+			return fallbackPredicate;
 		}
 
 		private static List<PdfTableRow> FindTableRowsForDefinition(
