@@ -11,12 +11,12 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 	{
 		private class TestPdfBaseParser(IPdfToWordsParser parsePDfToWords) : PdfBaseParser(parsePDfToWords)
 		{
-			protected override bool CanParseRecords(List<SingleWordToken> words)
+			protected override bool CanParseRecords(string filename, List<SingleWordToken> words)
 			{
 				return words.Count > 0;
 			}
 
-			protected override List<PartialActivity> ParseRecords(List<SingleWordToken> words)
+			protected override List<PartialActivity> ParseRecords(string filename, List<SingleWordToken> words)
 			{
 				return
 				[

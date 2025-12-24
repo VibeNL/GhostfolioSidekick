@@ -13,6 +13,10 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		private readonly Account account;
 		private readonly TestActivityManager activityManager;
 
+		private readonly List<ITradeRepublicActivityParser> SubParsers = [
+			new DutchDividendInvoiceParser()
+			];
+
 		public TradeRepublicInvoiceParserNLTests()
 		{
 			var fixture = CustomFixture.New();
@@ -27,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task CanParseActivities_TestFiles_True()
 		{
 			// Arrange, use the real parser to test the real files
-			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 			foreach (var file in Directory.GetFiles("./TestFiles/TradeRepublic/NL/CashTransactions", "*.pdf", SearchOption.AllDirectories))
 			{
 				// Act
@@ -42,7 +46,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
 		{
 			// Arrange
-			var parser = new TradeRepublicInvoiceParserNL(new PdfToWordsParser());
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
 
 			// Act
 			await parser.ParseActivities("./TestFiles/TradeRepublic/NL/CashTransactions/single_dividend.pdf", activityManager, account.Name);
@@ -55,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						[PartialSymbolIdentifier.CreateStockBondAndETF("IE0032895942")],
 						1.5m,
 						new Money(Currency.USD, 1.5m),
-						"Trade_Republic_IE0032895942_2024-06-27")
+						"Trade_Republic_single_dividend.pdf")
 				]);
 		}
 	}
