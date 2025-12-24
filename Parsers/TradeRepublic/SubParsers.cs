@@ -131,6 +131,65 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			throw new FormatException($"Unable to parse '{parseDate}' as DateTime.");
 		}
+
+		protected DateTime DetermineDate(List<SingleWordToken> words)
+		{
+			// Find the first 'DATE' token and take the next token as date
+			for (int i = 0; i < words.Count - 1; i++)
+			{
+				if (words[i].Text.Equals("DATE", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return GetDateTime(words[i + 1].Text);
+				}
+			}
+			
+			throw new FormatException("Unable to determine date from the document.");
+		}
+
+		// Search for words "Market-Order Buy on" or Savings plan execution on
+		// For dividends Dividend with the ex-tag 08.12.2023 or Interest Payment with the ex-tag
+		// Note that the words are multiple tokens, so we need to search for the sequence
+		protected PartialActivityType DetermineType(List<SingleWordToken> words)
+		{
+			for (int i = 0; i < words.Count - 3; i++)
+			{
+				if (words[i].Text.Equals("Market-Order", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 1].Text.Equals("Buy", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 2].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return PartialActivityType.Buy;
+				}
+				else if (words[i].Text.Equals("Market-Order", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 1].Text.Equals("Sell", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 2].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return PartialActivityType.Sell;
+				}
+				else if (words[i].Text.Equals("Savings", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 1].Text.Equals("plan", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 2].Text.Equals("execution", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 3].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return PartialActivityType.Buy;
+				}
+				else if (words[i].Text.Equals("Dividend", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 1].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 2].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 3].Text.Equals("ex-tag", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return PartialActivityType.Dividend;
+				}
+				else if (words[i].Text.Equals("Interest", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 1].Text.Equals("Payment", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 2].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
+					words[i + 3].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase))
+				{
+					return PartialActivityType.Dividend;
+				}
+			}
+
+			return PartialActivityType.Undefined;
+		}
 	}
 
 	public static class BillingParser
@@ -212,14 +271,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		}
 	}
 
-	public class InvoiceStockEnglish : BaseSubParser
+	public class StockInvoiceParser : BaseSubParser
 	{
 		private readonly string[] Stock = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
-		private readonly string[] SavingPlan = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
-		private readonly string[] Dividend = ["POSITION", "QUANTITY", "INCOME", "AMOUNT"];
-		private readonly string[] Bond = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
-		private readonly string[] InterestPayment = ["POSITION", "NOMINAL", "COUPON", "AMOUNT"];
-
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
 		protected override TableDefinition[] TableDefinitions
@@ -227,13 +281,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(Stock,"BOOKING", column4), // Stock without fee
-					new TableDefinition(SavingPlan, "BOOKING", column4), // Savings plan without fee
-					new TableDefinition(Bond, "Billing", column4), // Bond with fee
-					new TableDefinition(Dividend, "Billing", column4), // Dividend with fee
-					new TableDefinition(InterestPayment, "Billing", column4), // Interest payment with fee
-					BillingParser.CreateBillingTableDefinition(), // Fee only
-			];
+					new TableDefinition(Stock, "BOOKING", column4),
+					BillingParser.CreateBillingTableDefinition()
+				];
 			}
 		}
 
@@ -241,12 +291,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		{
 			var date = DetermineDate(words);
 			var type = DetermineType(words);
+			
 			if (type == PartialActivityType.Undefined)
 			{
 				yield break;
 			}
 
-			// Multi line billing (fees)
 			if (row.HasHeader(BillingParser.BillingHeaders))
 			{
 				foreach (var activity in BillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
@@ -254,8 +304,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					yield return activity;
 				}
 			}
-			// Buy is always a single line
-			else if (row.HasHeader(Stock) || row.HasHeader(SavingPlan) || row.HasHeader(Bond)) // TODO Implement Bonds correcly
+			else if (row.HasHeader(Stock))
 			{
 				var positionColumn = row.Columns[0];
 				var isin = PositionParser.ExtractIsin(positionColumn);
@@ -278,7 +327,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				}
 				else if (type == PartialActivityType.Sell)
 				{
-					// Handle Sell activity
 					yield return PartialActivity.CreateSell(
 						currency,
 						date,
@@ -290,12 +338,174 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					);
 				}
 			}
-			else if (row.HasHeader(Dividend) || row.HasHeader(InterestPayment))
+		}
+	}
+
+	public class SavingPlanInvoiceParser : BaseSubParser
+	{
+		private readonly string[] SavingPlan = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
+		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
+
+		protected override TableDefinition[] TableDefinitions
+		{
+			get
+			{
+				return [
+					new TableDefinition(SavingPlan, "BOOKING", column4),
+					BillingParser.CreateBillingTableDefinition()
+				];
+			}
+		}
+
+		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
+		{
+			var date = DetermineDate(words);
+			var type = DetermineType(words);
+			
+			if (type == PartialActivityType.Undefined)
+			{
+				yield break;
+			}
+
+			if (row.HasHeader(BillingParser.BillingHeaders))
+			{
+				foreach (var activity in BillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
+				{
+					yield return activity;
+				}
+			}
+			else if (row.HasHeader(SavingPlan))
+			{
+				var positionColumn = row.Columns[0];
+				var isin = PositionParser.ExtractIsin(positionColumn);
+				var quantity = row.Columns[1][0].Text;
+				var price = row.Columns[2][0].Text;
+				var amount = row.Columns[3][0].Text;
+				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+
+				yield return PartialActivity.CreateBuy(
+					currency,
+					date,
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+					ParseDecimal(quantity),
+					new Money(currency, ParseDecimal(price)),
+					new Money(currency, ParseDecimal(amount)),
+					transactionId
+				);
+			}
+		}
+	}
+
+	public class BondInvoiceParser : BaseSubParser
+	{
+		private readonly string[] Bond = ["POSITION", "NOMINAL", "PRICE", "AMOUNT"];
+		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
+
+		protected override TableDefinition[] TableDefinitions
+		{
+			get
+			{
+				return [
+					new TableDefinition(Bond, "Billing", column4),
+					BillingParser.CreateBillingTableDefinition()
+				];
+			}
+		}
+
+		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
+		{
+			var date = DetermineDate(words);
+			var type = DetermineType(words);
+			
+			if (type == PartialActivityType.Undefined)
+			{
+				yield break;
+			}
+
+			if (row.HasHeader(BillingParser.BillingHeaders))
+			{
+				foreach (var activity in BillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
+				{
+					yield return activity;
+				}
+			}
+			else if (row.HasHeader(Bond))
+			{
+				var positionColumn = row.Columns[0];
+				var isin = PositionParser.ExtractIsin(positionColumn);
+				var quantity = row.Columns[1][0].Text;
+				var price = row.Columns[2][0].Text;
+				var amount = row.Columns[3][0].Text;
+				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+
+				if (type == PartialActivityType.Buy)
+				{
+					yield return PartialActivity.CreateBuy(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+						ParseDecimal(quantity),
+						new Money(currency, ParseDecimal(price)),
+						new Money(currency, ParseDecimal(amount)),
+						transactionId
+					);
+				}
+				else if (type == PartialActivityType.Sell)
+				{
+					yield return PartialActivity.CreateSell(
+						currency,
+						date,
+						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+						ParseDecimal(quantity),
+						new Money(currency, ParseDecimal(price)),
+						new Money(currency, ParseDecimal(amount)),
+						transactionId
+					);
+				}
+			}
+		}
+	}
+
+	public class DividendInvoiceParser : BaseSubParser
+	{
+		private readonly string[] Dividend = ["POSITION", "QUANTITY", "INCOME", "AMOUNT"];
+		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
+
+		protected override TableDefinition[] TableDefinitions
+		{
+			get
+			{
+				return [
+					new TableDefinition(Dividend, "Billing", column4),
+					BillingParser.CreateBillingTableDefinition()
+				];
+			}
+		}
+
+		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
+		{
+			var date = DetermineDate(words);
+			var type = DetermineType(words);
+			
+			if (type != PartialActivityType.Dividend)
+			{
+				yield break;
+			}
+
+			if (row.HasHeader(BillingParser.BillingHeaders))
+			{
+				foreach (var activity in BillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
+				{
+					yield return activity;
+				}
+			}
+			else if (row.HasHeader(Dividend))
 			{
 				var positionColumn = row.Columns[0];
 				var isin = PositionParser.ExtractIsin(positionColumn);
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+				
 				yield return PartialActivity.CreateDividend(
 					currency,
 					date,
@@ -305,67 +515,58 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					transactionId
 				);
 			}
+		}
+	}
 
+	public class InterestPaymentInvoiceParser : BaseSubParser
+	{
+		private readonly string[] InterestPayment = ["POSITION", "NOMINAL", "COUPON", "AMOUNT"];
+		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
+
+		protected override TableDefinition[] TableDefinitions
+		{
+			get
+			{
+				return [
+					new TableDefinition(InterestPayment, "Billing", column4),
+					BillingParser.CreateBillingTableDefinition()
+				];
+			}
 		}
 
-		private DateTime DetermineDate(List<SingleWordToken> words)
+		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{
-			// Find the first 'DATE' token and take the next token as date
-			for (int i = 0; i < words.Count - 1; i++)
-			{
-				if (words[i].Text.Equals("DATE", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return GetDateTime(words[i + 1].Text);
-				}
-			}
+			var date = DetermineDate(words);
+			var type = DetermineType(words);
 			
-			throw new FormatException("Unable to determine date from the document.");
-		}
-
-		// Search for words "Market-Order Buy on" or Savings plan execution on
-		// For dividends Dividend with the ex-tag 08.12.2023 or Interest Payment with the ex-tag
-
-		// Note that the words are multiple tokens, so we need to search for the sequence
-		private PartialActivityType DetermineType(List<SingleWordToken> words)
-		{
-			for (int i = 0; i < words.Count - 3; i++)
+			if (type != PartialActivityType.Dividend)
 			{
-				if (words[i].Text.Equals("Market-Order", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("Buy", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return PartialActivityType.Buy;
-				}
-				else if (words[i].Text.Equals("Market-Order", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("Sell", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return PartialActivityType.Sell;
-				}
-				else if (words[i].Text.Equals("Savings", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("plan", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("execution", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 3].Text.Equals("on", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return PartialActivityType.Buy;
-				}
-				else if (words[i].Text.Equals("Dividend", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 3].Text.Equals("ex-tag", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return PartialActivityType.Dividend;
-				}
-				else if (words[i].Text.Equals("Interest", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 1].Text.Equals("Payment", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 2].Text.Equals("with", StringComparison.InvariantCultureIgnoreCase) &&
-					words[i + 3].Text.Equals("the", StringComparison.InvariantCultureIgnoreCase))
-				{
-					return PartialActivityType.Dividend;
-				}
+				yield break;
 			}
 
-			return PartialActivityType.Undefined;
+			if (row.HasHeader(BillingParser.BillingHeaders))
+			{
+				foreach (var activity in BillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
+				{
+					yield return activity;
+				}
+			}
+			else if (row.HasHeader(InterestPayment))
+			{
+				var positionColumn = row.Columns[0];
+				var isin = PositionParser.ExtractIsin(positionColumn);
+				var amount = row.Columns[3][0].Text;
+				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
+				
+				yield return PartialActivity.CreateDividend(
+					currency,
+					date,
+					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+					ParseDecimal(amount),
+					new Money(currency, ParseDecimal(amount)),
+					transactionId
+				);
+			}
 		}
 	}
 }
