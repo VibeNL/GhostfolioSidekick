@@ -1,0 +1,77 @@
+@page "/transaction-debug"
+@using Microsoft.AspNetCore.Authorization
+@using GhostfolioSidekick.PortfolioViewer.WASM.Models
+@attribute [Authorize]
+
+<PageTitle>Transaction Debug</PageTitle>
+
+<div class="container-fluid">
+    <h2 class="mb-4">Transaction Debug View</h2>
+    <p class="text-muted">This screen shows, for each transaction, the cash balance and the current state of the assets per account after applying the transaction.</p>
+
+    <div class="mb-3">
+        <label for="accountSelect" class="form-label">Select Account</label>
+        <select id="accountSelect" class="form-select" @onchange="OnAccountChanged">
+            <option value="">-- Select an account --</option>
+            @foreach (var acc in Accounts)
+            {
+                <option value="@acc.Id" selected="@(acc.Id == SelectedAccountId)">@acc.Name</option>
+            }
+        </select>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div>Loading transaction debug data...</div>
+        </div>
+    }
+    else if (HasError)
+    {
+        <div class="alert alert-danger">@ErrorMessage</div>
+    }
+    else if (TransactionDebugRows == null || !TransactionDebugRows.Any())
+    {
+        <div class="alert alert-info">No transaction debug data available.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Symbol</th>
+                        <th>Cash Balance</th>
+                        <th>Assets State</th>
+                        <th>Transaction ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in TransactionDebugRows)
+                    {
+                        <tr>
+                            <td>@row.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@row.Type</td>
+                            <td>@row.Symbol</td>
+                            <td>@row.CashBalanceDisplay</td>
+                            <td>
+                                <ul class="mb-0">
+                                    @foreach (var asset in row.AssetStates)
+                                    {
+                                        <li><strong>@asset.Key</strong>: @asset.Value</li>
+                                    }
+                                </ul>
+                            </td>
+                            <td><code>@row.TransactionId</code></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

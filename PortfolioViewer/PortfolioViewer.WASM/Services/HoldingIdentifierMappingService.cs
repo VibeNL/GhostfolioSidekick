@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 		}
 
-		private static HoldingIdentifierMappingModel MapToHoldingIdentifierMappingModel(GhostfolioSidekick.Model.Holding holding)
+		private static HoldingIdentifierMappingModel MapToHoldingIdentifierMappingModel(Model.Holding holding)
 		{
 			var symbolProfiles = holding.SymbolProfiles;
 			var mappingModel = new HoldingIdentifierMappingModel
