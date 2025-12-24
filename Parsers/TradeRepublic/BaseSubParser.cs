@@ -8,6 +8,12 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 	{
 		protected abstract TableDefinition[] TableDefinitions { get; }
 
+		/// <summary>
+		/// Gets the date tokens for the specific language implementation.
+		/// Override this in language-specific parsers.
+		/// </summary>
+		protected virtual string[] DateTokens => ["DATE"];
+
 		public bool CanParseRecord(string filename, List<SingleWordToken> words)
 		{
 			return ParseRecords(filename, words).Count != 0; // TODO, pass to the subparsers
@@ -68,18 +74,21 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			throw new FormatException($"Unable to parse '{parseDate}' as DateTime.");
 		}
 
-		protected static DateTime DetermineDate(List<SingleWordToken> words)
+		protected DateTime DetermineDate(List<SingleWordToken> words)
 		{
-			// Find the first 'DATE' token and take the next token as date
+			// Find the first date token from the language-specific set and take the next token as date
 			for (int i = 0; i < words.Count - 1; i++)
 			{
-				if (words[i].Text.Equals("DATE", StringComparison.InvariantCultureIgnoreCase))
+				foreach (var dateToken in DateTokens)
 				{
-					return GetDateTime(words[i + 1].Text);
+					if (words[i].Text.Equals(dateToken, StringComparison.InvariantCultureIgnoreCase))
+					{
+						return GetDateTime(words[i + 1].Text);
+					}
 				}
 			}
 			
-			throw new FormatException("Unable to determine date from the document.");
+			throw new FormatException($"Unable to determine date from the document. Expected one of: {string.Join(", ", DateTokens)}");
 		}
 
 		protected static bool ContainsSequence(string[] wordTexts, string[] pattern)

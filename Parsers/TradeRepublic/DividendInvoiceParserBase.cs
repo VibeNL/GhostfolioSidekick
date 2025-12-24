@@ -9,7 +9,6 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected abstract string[] DividendHeaders { get; }
 		protected abstract ColumnAlignment[] DividendColumnAlignment { get; }
 		protected abstract string[] DividendKeywords { get; }
-		protected abstract string[] ExTagKeywords { get; }
 		protected abstract IBillingParser BillingParser { get; }
 		protected abstract IPositionParser PositionParser { get; }
 
@@ -64,7 +63,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			var wordTexts = words.Select(w => w.Text).ToArray();
 			
 			// Check for dividend sequence with ex-tag keywords
-			var dividendSequence = DividendKeywords.Concat(ExTagKeywords).ToArray();
+			var dividendSequence = DividendKeywords.ToArray();
 			return ContainsSequence(wordTexts, dividendSequence) 
 				? PartialActivityType.Dividend 
 				: PartialActivityType.Undefined;

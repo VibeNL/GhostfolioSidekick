@@ -9,7 +9,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private readonly string[] _dividendHeaders = ["POSITION", "QUANTITY", "INCOME", "AMOUNT"];
 		private readonly ColumnAlignment[] _dividendColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 		private readonly string[] _dividendKeywords = ["Dividend", "with", "the", "ex-tag"];
-		private readonly string[] _exTagKeywords = ["ex-tag"];
+		private readonly string[] _dateTokens = ["DATE"];
 		
 		private readonly EnglishBillingParserAdapter _billingParser = new();
 		private readonly EnglishPositionParserAdapter _positionParser = new();
@@ -17,7 +17,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string[] DividendHeaders => _dividendHeaders;
 		protected override ColumnAlignment[] DividendColumnAlignment => _dividendColumnAlignment;
 		protected override string[] DividendKeywords => _dividendKeywords;
-		protected override string[] ExTagKeywords => _exTagKeywords;
+		protected override string[] DateTokens => _dateTokens;
 		protected override IBillingParser BillingParser => _billingParser;
 		protected override IPositionParser PositionParser => _positionParser;
 
