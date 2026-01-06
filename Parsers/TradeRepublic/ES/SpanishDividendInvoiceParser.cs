@@ -3,18 +3,20 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
 
-namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
+namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 {
-	public class GermanDividendInvoiceParser : DividendInvoiceParserBase
+	public class SpanishDividendInvoiceParser : DividendInvoiceParserBase
 	{
-		private readonly string[] _dividendHeaders = ["POSITION", "ANZAHL", "ERTRAG", "BETRAG"];
+		private readonly string[] _dividendHeaders = ["POSICIÓN", "CANTIDAD", "RENDIMIENTO", "CANTIDAD"];
 		private readonly ColumnAlignment[] _dividendColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
-		private readonly string[] _dividendKeywords = ["Dividende", "mit"];
-		private readonly string[] _dateTokens = ["DATUM"];
-		private readonly string _billingEndMarker = "GESAMT";
+		private readonly string[] _dividendKeywords = ["Dividendo", "en", "efectivo", "con", "Ex-Date"];
+		private readonly string[] _dateTokens = ["FECHA"];
+		private readonly string _billingEndMarker = "TOTAL";
 		
-		private readonly GermanBillingParserAdapter _billingParser = new();
-		private readonly GermanPositionParserAdapter _positionParser = new();
+		private readonly SpanishBillingParserAdapter _billingParser = new();
+		private readonly SpanishPositionParserAdapter _positionParser = new();
+
+		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
 		protected override string[] DividendHeaders => _dividendHeaders;
 		protected override ColumnAlignment[] DividendColumnAlignment => _dividendColumnAlignment;
@@ -24,24 +26,22 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 		protected override IBillingParser BillingParser => _billingParser;
 		protected override IPositionParser PositionParser => _positionParser;
 
-		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
-
-		private class GermanBillingParserAdapter : IBillingParser
+		private class SpanishBillingParserAdapter : IBillingParser
 		{
-			public string[] BillingHeaders => GermanBillingParser.BillingHeaders;
+			public string[] BillingHeaders => SpanishBillingParser.BillingHeaders;
 
 			public TableDefinition CreateBillingTableDefinition(string endMarker, bool isRequired = false)
 			{
-				return GermanBillingParser.CreateBillingTableDefinition(endMarker, isRequired);
+				return SpanishBillingParser.CreateBillingTableDefinition(endMarker, isRequired);
 			}
 
 			public IEnumerable<PartialActivity> ParseBillingRecord(PdfTableRowColumns row, DateTime date, string transactionId, Func<string, decimal> parseDecimal)
 			{
-				return GermanBillingParser.ParseBillingRecord(row, date, transactionId, parseDecimal);
+				return SpanishBillingParser.ParseBillingRecord(row, date, transactionId, parseDecimal);
 			}
 		}
 
-		private class GermanPositionParserAdapter : IPositionParser
+		private class SpanishPositionParserAdapter : IPositionParser
 		{
 			public string ExtractIsin(IReadOnlyList<SingleWordToken> positionColumn)
 			{

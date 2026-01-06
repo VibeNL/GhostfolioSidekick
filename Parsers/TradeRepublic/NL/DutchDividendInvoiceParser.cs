@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.NL
 		{
 			public string ExtractIsin(IReadOnlyList<SingleWordToken> positionColumn)
 			{
-				return DutchPositionParser.ExtractIsin(positionColumn);
+				return ISINParser.ExtractIsin(positionColumn);
 			}
 		}
 	}

@@ -19,6 +19,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			new SpanishStockInvoiceParser(),
 			new SpanishStockInvoiceAltParser(),
 			new SpanishSavingPlanInvoiceParser(),
+			new SpanishDividendInvoiceParser(),
 			];
 
 		public TradeRepublicInvoiceParserESTests()
@@ -176,7 +177,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						[PartialSymbolIdentifier.CreateStockBondAndETF("US02079K3059")],
 						4.54m,
 						new Money(Currency.USD, 4.54m),
-						"Trade_Republic_US02079K3059_2025-03-17")
+						"Trade_Republic_single_dividend_stock.pdf")
 				]);
 		}
 

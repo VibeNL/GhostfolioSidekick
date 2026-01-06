@@ -50,7 +50,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			else if (row.HasHeader(InterestPayment))
 			{
 				var positionColumn = row.Columns[0];
-				var isin = EnglishPositionParser.ExtractIsin(positionColumn);
+				var isin = ISINParser.ExtractIsin(positionColumn);
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
 				

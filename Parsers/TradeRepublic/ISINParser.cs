@@ -1,8 +1,8 @@
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
-namespace GhostfolioSidekick.Parsers.TradeRepublic.NL
+namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public static class DutchPositionParser
+	public static class ISINParser
 	{
 		public static string ExtractIsin(IReadOnlyList<SingleWordToken> positionColumn)
 		{

@@ -51,7 +51,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 			else if (row.HasHeader(SavingPlan))
 			{
 				var positionColumn = row.Columns[0];
-				var isin = EnglishPositionParser.ExtractIsin(positionColumn);
+				var isin = ISINParser.ExtractIsin(positionColumn);
 				var quantity = row.Columns[1][0].Text;
 				var price = row.Columns[2][0].Text;
 				var amount = row.Columns[3][0].Text;
