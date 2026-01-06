@@ -1,6 +1,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -8,6 +9,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 	{
 		private readonly string[] SavingPlan = ["POSITION", "QUANTITY", "AVERAGE RATE", "AMOUNT"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
+
+		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
 		protected override string[] DateTokens => ["DATE"];
 

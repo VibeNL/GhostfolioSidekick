@@ -1,6 +1,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -22,6 +23,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override string BillingEndMarker => _billingEndMarker;
 		protected override IBillingParser BillingParser => _billingParser;
 		protected override IPositionParser PositionParser => _positionParser;
+
+		protected override CultureInfo CultureInfo => new CultureInfo("nl-NL");
 
 		private class DutchBillingParserAdapter : IBillingParser
 		{

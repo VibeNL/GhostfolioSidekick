@@ -118,7 +118,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						0.694251m,
 						new Money(Currency.EUR, 72.02m),
 						new Money(Currency.EUR, 50.00m),
-						"Trade_Republic_IE00B52VJ196_2024-09-02")
+						"Trade_Republic_single_buy_savingsplan_etf.pdf")
 				]);
 		}
 

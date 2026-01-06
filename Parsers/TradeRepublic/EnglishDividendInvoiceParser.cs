@@ -1,6 +1,7 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
@@ -14,6 +15,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		
 		private readonly EnglishBillingParserAdapter _billingParser = new();
 		private readonly EnglishPositionParserAdapter _positionParser = new();
+
+		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
 		protected override string[] DividendHeaders => _dividendHeaders;
 		protected override ColumnAlignment[] DividendColumnAlignment => _dividendColumnAlignment;

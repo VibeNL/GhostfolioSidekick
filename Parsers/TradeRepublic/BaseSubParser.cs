@@ -10,6 +10,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected abstract string[] DateTokens { get; }
 
+		protected abstract CultureInfo CultureInfo { get; }
+
 		public bool CanParseRecord(string filename, List<SingleWordToken> words)
 		{
 			return ParseRecords(filename, words).Count != 0; // TODO, pass to the subparsers
@@ -39,18 +41,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected abstract IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId);
 
-		protected static decimal ParseDecimal(string x)
+		protected decimal ParseDecimal(string x)
 		{
-			// Determine culture based on decimal separator
-			var cultureInfo = x.Contains(',') && x.Contains('.')
-				? (x.LastIndexOf(',') > x.LastIndexOf('.') 
-					? new CultureInfo("de-DE") // European style: 1.234,56
-					: new CultureInfo("en-US")) // US style: 1,234.56
-				: x.Contains(',') 
-					? new CultureInfo("de-DE") // European style: 1234,56
-					: new CultureInfo("en-US"); // US style: 1234.56
-
-			if (decimal.TryParse(x, NumberStyles.Currency, cultureInfo, out var result))
+			if (decimal.TryParse(x, NumberStyles.Currency, CultureInfo, out var result))
 			{
 				return result;
 			}
@@ -58,22 +51,21 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			throw new FormatException($"Unable to parse '{x}' as decimal.");
 		}
 
-		protected static DateTime ParseDateTime(string parseDate)
+		protected DateTime ParseDateTime(string parseDate)
 		{
 			parseDate = parseDate
 				.Replace('-', '.')
 				.Trim('.'); // Just in case
 
-			if (DateTime.TryParseExact(parseDate, "dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
-			{
-				dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-				return dateTime;
-			}
+			var dateFormats = new string[] { "dd.MM.yyyy HH:mm", "dd.MM.yyyy" };
 
-			if (DateTime.TryParseExact(parseDate, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateOnly))
+			foreach (var format in dateFormats)
 			{
-				dateOnly = DateTime.SpecifyKind(dateOnly, DateTimeKind.Utc);
-				return dateOnly;
+				if (DateTime.TryParseExact(parseDate, format, CultureInfo, DateTimeStyles.None, out var dateTimeFormat))
+				{
+					dateTimeFormat = DateTime.SpecifyKind(dateTimeFormat, DateTimeKind.Utc);
+					return dateTimeFormat;
+				}
 			}
 
 			throw new FormatException($"Unable to parse '{parseDate}' as DateTime.");
