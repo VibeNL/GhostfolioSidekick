@@ -2,14 +2,14 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
-namespace GhostfolioSidekick.Parsers.TradeRepublic
+namespace GhostfolioSidekick.Parsers.TradeRepublic.NL
 {
-	public static class EnglishBillingParser
+	public static class DutchBillingParser
 	{
-		public static readonly string[] BillingHeaders = ["POSITION", "AMOUNT"];
+		public static readonly string[] BillingHeaders = ["POSITIE", "BEDRAG"];
 		public static readonly ColumnAlignment[] BillingColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Right];
 
-		public static TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL", bool isRequired = false)
+		public static TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAAL", bool isRequired = false)
 		{
 			return BillingParserBase.CreateBillingTableDefinition(
 				BillingHeaders,

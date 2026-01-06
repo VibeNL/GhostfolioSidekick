@@ -1,9 +1,10 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using GhostfolioSidekick.Parsers.TradeRepublic.EN;
 using System.Globalization;
 
-namespace GhostfolioSidekick.Parsers.TradeRepublic
+namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 {
 	public class GermanStockInvoiceParser : BaseSubParser
 	{

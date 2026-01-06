@@ -3,31 +3,31 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
 
-namespace GhostfolioSidekick.Parsers.TradeRepublic
+namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 {
-	public class GermanSavingPlanInvoiceParser : BaseSubParser
+	public class EnglishInterestPaymentInvoiceParser : BaseSubParser
 	{
-		private readonly string[] SavingPlan = ["POSITION", "ANZAHL", "DURCHSCHNITTSKURS", "BETRAG"];
+		private readonly string[] InterestPayment = ["POSITION", "NOMINAL", "COUPON", "AMOUNT"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
-		protected override CultureInfo CultureInfo => new("de-DE");
+		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
-		protected override string[] DateTokens => ["DATUM"];
+		protected override string[] DateTokens => ["DATE"];
 
 		protected override TableDefinition[] TableDefinitions
 		{
 			get
 			{
 				return [
-					new TableDefinition(SavingPlan, "BUCHUNG", column4, true, new ColumnAlignmentMergeStrategy()), // SavingPlan table is required
-					GermanBillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
+					new TableDefinition(InterestPayment, "Billing", column4, true, new ColumnAlignmentMergeStrategy()),
+					// No billing table as it contains identical information
 				];
 			}
 		}
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
-			ContainsSequence([.. words.Select(w => w.Text)], ["Sparplanausführung", "am"]) 
-				? PartialActivityType.Buy 
+			ContainsSequence([.. words.Select(w => w.Text)], ["Interest", "Payment", "with", "the"]) 
+				? PartialActivityType.Dividend 
 				: PartialActivityType.Undefined;
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			var date = DetermineDate(words);
 			var type = DetermineType(words);
 			
-			if (type == PartialActivityType.Undefined)
+			if (type != PartialActivityType.Dividend)
 			{
 				yield break;
 			}
@@ -47,21 +47,18 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					yield return activity;
 				}
 			}
-			else if (row.HasHeader(SavingPlan))
+			else if (row.HasHeader(InterestPayment))
 			{
 				var positionColumn = row.Columns[0];
 				var isin = EnglishPositionParser.ExtractIsin(positionColumn);
-				var quantity = row.Columns[1][0].Text;
-				var price = row.Columns[2][0].Text;
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
-
-				yield return PartialActivity.CreateBuy(
+				
+				yield return PartialActivity.CreateDividend(
 					currency,
 					date,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					ParseDecimal(quantity),
-					new Money(currency, ParseDecimal(price)),
+					ParseDecimal(amount),
 					new Money(currency, ParseDecimal(amount)),
 					transactionId
 				);

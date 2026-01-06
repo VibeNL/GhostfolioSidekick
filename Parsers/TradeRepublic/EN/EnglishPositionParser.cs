@@ -1,6 +1,6 @@
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
-namespace GhostfolioSidekick.Parsers.TradeRepublic
+namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 {
 	public static class EnglishPositionParser
 	{
