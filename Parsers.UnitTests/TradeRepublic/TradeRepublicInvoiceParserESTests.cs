@@ -15,6 +15,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		private readonly TestActivityManager activityManager;
 
 		private readonly List<ITradeRepublicActivityParser> SubParsers = [
+			new SpanishBondInvoiceParser(),
 			new SpanishStockInvoiceParser(),
 			new SpanishStockInvoiceAltParser(),
 			new SpanishSavingPlanInvoiceParser(),
@@ -62,21 +63,21 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2024, 06, 03, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
 						99m,
-						new Money(Currency.EUR, 0.99345m),
+						new Money(Currency.EUR, 99.345m),
 						new Money(Currency.EUR, 98.35m),
-						"Trade_Republic_DE0001104909_2024-06-03"),
+						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2024, 06, 03, 0, 0, 0, DateTimeKind.Utc),
 						1,
 						new Money(Currency.EUR, 1),
-						"Trade_Republic_DE0001104909_2024-06-03"),
+						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2024, 06, 03, 0, 0, 0, DateTimeKind.Utc),
 						1.05m,
 						new Money(Currency.EUR, 1.05m),
-						"Trade_Republic_DE0001104909_2024-06-03"),
+						"Trade_Republic_single_buy_bond.pdf"),
 				]);
 		}
 
