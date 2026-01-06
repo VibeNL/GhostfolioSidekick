@@ -90,13 +90,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						0.410846m,
 						new Money(Currency.EUR, 121.70m),
 						new Money(Currency.EUR, 50.00m),
-						"Trade_Republic_US0079031078_2024-08-01"),
+						"Trade_Republic_single_buy_stock_fraction.pdf"),
 				PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2024, 08, 01, 0, 0, 0, DateTimeKind.Utc),
 						1m,
 						new Money(Currency.EUR, 1m),
-						"Trade_Republic_US0079031078_2024-08-01")
+						"Trade_Republic_single_buy_stock_fraction.pdf")
 				]);
 		}
 

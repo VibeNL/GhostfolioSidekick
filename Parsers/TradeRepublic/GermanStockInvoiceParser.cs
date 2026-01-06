@@ -28,6 +28,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
 			new[] { 
 				(new[] { "Market-Order", "Kauf", "am" }, PartialActivityType.Buy),
+				(new[] { "Market-Order", "BUY", "am" }, PartialActivityType.Buy),
 				(new[] { "Market-Order", "Verkauf", "am" }, PartialActivityType.Sell)
 			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Item2;
 
