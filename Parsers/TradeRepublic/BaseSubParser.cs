@@ -58,7 +58,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			throw new FormatException($"Unable to parse '{x}' as decimal.");
 		}
 
-		protected static DateTime GetDateTime(string parseDate)
+		protected static DateTime ParseDateTime(string parseDate)
 		{
 			parseDate = parseDate
 				.Replace('-', '.')
@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				{
 					if (words[i].Text.Equals(dateToken, StringComparison.InvariantCultureIgnoreCase))
 					{
-						return GetDateTime(words[i + 1].Text);
+						return ParseDateTime(words[i + 1].Text);
 					}
 				}
 			}
