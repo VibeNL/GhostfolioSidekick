@@ -17,6 +17,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		private readonly List<ITradeRepublicActivityParser> SubParsers = [
 			new SpanishStockInvoiceParser(),
 			new SpanishStockInvoiceAltParser(),
+			new SpanishSavingPlanInvoiceParser(),
 			];
 
 		public TradeRepublicInvoiceParserESTests()
@@ -153,7 +154,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						0.081275m,
 						new Money(Currency.EUR, 615.19m),
 						new Money(Currency.EUR, 50m),
-						"Trade_Republic_IE00B5BMR087_2025-02-03")
+						"Trade_Republic_single_buy_savingsplan_etf.pdf")
 				]);
 		}
 
