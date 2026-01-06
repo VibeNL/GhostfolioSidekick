@@ -6,8 +6,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 	public enum ColumnAlignment
 	{
 		Left,
-		Right,
-		Center
+		Right
 	}
 
 	/// <summary>
@@ -94,11 +93,11 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		{
 			var columnSpan = rightAnchor - leftAnchor;
 
-			// Use 50% separation for left vs right alignment cases
+			// Use 70% separation for left vs right alignment cases
 			if ((leftAlignment == ColumnAlignment.Left && rightAlignment == ColumnAlignment.Right) ||
 				(leftAlignment == ColumnAlignment.Right && rightAlignment == ColumnAlignment.Left))
 			{
-				return leftAnchor + (columnSpan / 2);
+				return leftAnchor + (columnSpan * 7 / 10);
 			}
 
 			// For all other cases, use a simple 5% buffer from the right anchor
