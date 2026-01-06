@@ -140,13 +140,54 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						1m,
 						new Money(Currency.EUR, 48.95m),
 						new Money(Currency.EUR, 48.95m),
-						"Trade_Republic_JP3756600007_2024-08-02"),
+						"Trade_Republic_single_limit_buy_stock.pdf"),
 				PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2024, 08, 02, 0, 0, 0, DateTimeKind.Utc),
 						1m,
 						new Money(Currency.EUR, 1m),
-						"Trade_Republic_JP3756600007_2024-08-02")
+						"Trade_Republic_single_limit_buy_stock.pdf")
+				]);
+		}
+
+		// SellOrders
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleSellStock_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/DE/SellOrders/single_sell_stock.pdf", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateSell(
+						Currency.EUR,
+						new DateTime(2024, 08, 13, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US0079031078")],
+						1m,
+						new Money(Currency.EUR, 127.88m),
+						new Money(Currency.EUR, 127.88m),
+						"Trade_Republic_single_sell_stock.pdf"),
+				PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2024, 08, 13, 0, 0, 0, DateTimeKind.Utc),
+						1m,
+						new Money(Currency.EUR, 1m),
+						"Trade_Republic_single_sell_stock.pdf"),
+				PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2024, 08, 13, 0, 0, 0, DateTimeKind.Utc),
+						0.66m,
+						new Money(Currency.EUR, 0.66m),
+						"Trade_Republic_single_sell_stock.pdf"),
+				PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2024, 08, 13, 0, 0, 0, DateTimeKind.Utc),
+						0.03m,
+						new Money(Currency.EUR, 0.03m),
+						"Trade_Republic_single_sell_stock.pdf")
 				]);
 		}
 	}

@@ -29,6 +29,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			new[] { 
 				(new[] { "Market-Order", "Kauf", "am" }, PartialActivityType.Buy),
 				(new[] { "Market-Order", "BUY", "am" }, PartialActivityType.Buy),
+				(new[] { "Limit-Order", "Kauf", "am" }, PartialActivityType.Buy),
 				(new[] { "Market-Order", "Verkauf", "am" }, PartialActivityType.Sell)
 			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Item2;
 
