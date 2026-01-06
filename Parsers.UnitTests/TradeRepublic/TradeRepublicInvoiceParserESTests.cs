@@ -5,6 +5,7 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.TradeRepublic;
+using GhostfolioSidekick.Parsers.TradeRepublic.EN;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -14,6 +15,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		private readonly TestActivityManager activityManager;
 
 		private readonly List<ITradeRepublicActivityParser> SubParsers = [
+			new SpanishStockInvoiceParser(),
+			new SpanishStockInvoiceAltParser(),
 			];
 
 		public TradeRepublicInvoiceParserESTests()
@@ -94,13 +97,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						133,
 						new Money(Currency.EUR, 18.702m),
 						new Money(Currency.EUR, 2487.37m),
-						"Trade_Republic_US4581401001_2025-01-30"),
+						"Trade_Republic_single_buy_stock.pdf"),
 				PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2025, 01, 30, 0, 0, 0, DateTimeKind.Utc),
 						1m,
 						new Money(Currency.EUR, 1m),
-						"Trade_Republic_US4581401001_2025-01-30"),
+						"Trade_Republic_single_buy_stock.pdf"),
 				]);
 		}
 
@@ -122,13 +125,13 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						3,
 						new Money(Currency.EUR, 152.44M),
 						new Money(Currency.EUR, 457.32M),
-						"Trade_Republic_US02079K3059_2025-03-12"),
+						"Trade_Republic_single_buy_stock_alt.pdf"),
 				PartialActivity.CreateFee(
 						Currency.EUR,
 						new DateTime(2025, 03, 12, 0, 0, 0, DateTimeKind.Utc),
 						1m,
 						new Money(Currency.EUR, 1m),
-						"Trade_Republic_US02079K3059_2025-03-12"),
+						"Trade_Republic_single_buy_stock_alt.pdf"),
 				]);
 		}
 

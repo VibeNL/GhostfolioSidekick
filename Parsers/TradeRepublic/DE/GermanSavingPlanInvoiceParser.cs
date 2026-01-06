@@ -41,9 +41,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 				yield break;
 			}
 
-			if (row.HasHeader(EnglishBillingParser.BillingHeaders))
+			if (row.HasHeader(GermanBillingParser.BillingHeaders))
 			{
-				foreach (var activity in EnglishBillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
+				foreach (var activity in GermanBillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
 				{
 					yield return activity;
 				}
