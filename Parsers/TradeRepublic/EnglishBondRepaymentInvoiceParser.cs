@@ -9,7 +9,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 	{
 		private readonly string[] BondRepayment = ["NO", "BOOKING", "SECURITY", "AMOUNT"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
-
+		
+		protected override string[] DateTokens => ["DATE"];
+		
 		protected override TableDefinition[] TableDefinitions
 		{
 			get

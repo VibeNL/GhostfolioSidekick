@@ -9,6 +9,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		private readonly string[] Stock = ["POSITION", "QUANTITY", "PRICE", "AMOUNT"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
+		protected override string[] DateTokens => ["DATE"];
+
 		protected override TableDefinition[] TableDefinitions
 		{
 			get

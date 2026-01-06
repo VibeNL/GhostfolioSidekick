@@ -8,11 +8,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 	{
 		protected abstract TableDefinition[] TableDefinitions { get; }
 
-		/// <summary>
-		/// Gets the date tokens for the specific language implementation.
-		/// Override this in language-specific parsers.
-		/// </summary>
-		protected virtual string[] DateTokens => ["DATE"];
+		protected abstract string[] DateTokens { get; }
 
 		public bool CanParseRecord(string filename, List<SingleWordToken> words)
 		{
@@ -45,7 +41,16 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		protected static decimal ParseDecimal(string x)
 		{
-			if (decimal.TryParse(x, NumberStyles.Currency, CultureInfo.InvariantCulture, out var result))
+			// Determine culture based on decimal separator
+			var cultureInfo = x.Contains(',') && x.Contains('.')
+				? (x.LastIndexOf(',') > x.LastIndexOf('.') 
+					? new CultureInfo("de-DE") // European style: 1.234,56
+					: new CultureInfo("en-US")) // US style: 1,234.56
+				: x.Contains(',') 
+					? new CultureInfo("de-DE") // European style: 1234,56
+					: new CultureInfo("en-US"); // US style: 1234.56
+
+			if (decimal.TryParse(x, NumberStyles.Currency, cultureInfo, out var result))
 			{
 				return result;
 			}

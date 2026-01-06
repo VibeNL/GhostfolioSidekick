@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 		private readonly TestActivityManager activityManager;
 
 		private readonly List<ITradeRepublicActivityParser> SubParsers = [
+			new GermanStockInvoiceParser(),
+			new GermanSavingPlanInvoiceParser()
 			];
 
 		public TradeRepublicInvoiceParserDETests()

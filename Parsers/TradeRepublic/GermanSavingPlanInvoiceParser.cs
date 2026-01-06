@@ -4,27 +4,27 @@ using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
-	public class EnglishInterestPaymentInvoiceParser : BaseSubParser
+	public class GermanSavingPlanInvoiceParser : BaseSubParser
 	{
-		private readonly string[] InterestPayment = ["POSITION", "NOMINAL", "COUPON", "AMOUNT"];
+		private readonly string[] SavingPlan = ["POSITION", "ANZAHL", "DURCHSCHNITTSKURS", "BETRAG"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
-		protected override string[] DateTokens => ["DATE"];
+		protected override string[] DateTokens => ["DATUM"];
 
 		protected override TableDefinition[] TableDefinitions
 		{
 			get
 			{
 				return [
-					new TableDefinition(InterestPayment, "Billing", column4, true, new ColumnAlignmentMergeStrategy()),
-					// No billing table as it contains identical information
+					new TableDefinition(SavingPlan, "BUCHUNG", column4, true, new ColumnAlignmentMergeStrategy()), // SavingPlan table is required
+					GermanBillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
 		}
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
-			ContainsSequence([.. words.Select(w => w.Text)], ["Interest", "Payment", "with", "the"]) 
-				? PartialActivityType.Dividend 
+			ContainsSequence([.. words.Select(w => w.Text)], ["Sparplanausführung", "am"]) 
+				? PartialActivityType.Buy 
 				: PartialActivityType.Undefined;
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
@@ -32,7 +32,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			var date = DetermineDate(words);
 			var type = DetermineType(words);
 			
-			if (type != PartialActivityType.Dividend)
+			if (type == PartialActivityType.Undefined)
 			{
 				yield break;
 			}
@@ -44,18 +44,21 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 					yield return activity;
 				}
 			}
-			else if (row.HasHeader(InterestPayment))
+			else if (row.HasHeader(SavingPlan))
 			{
 				var positionColumn = row.Columns[0];
 				var isin = EnglishPositionParser.ExtractIsin(positionColumn);
+				var quantity = row.Columns[1][0].Text;
+				var price = row.Columns[2][0].Text;
 				var amount = row.Columns[3][0].Text;
 				var currency = Currency.GetCurrency(row.Columns[3][1].Text);
-				
-				yield return PartialActivity.CreateDividend(
+
+				yield return PartialActivity.CreateBuy(
 					currency,
 					date,
 					[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					ParseDecimal(amount),
+					ParseDecimal(quantity),
+					new Money(currency, ParseDecimal(price)),
 					new Money(currency, ParseDecimal(amount)),
 					transactionId
 				);
