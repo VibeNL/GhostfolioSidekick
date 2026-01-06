@@ -94,25 +94,15 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		{
 			var columnSpan = rightAnchor - leftAnchor;
 
-			return (leftAlignment, rightAlignment) switch
+			// Use 50% separation for left vs right alignment cases
+			if ((leftAlignment == ColumnAlignment.Left && rightAlignment == ColumnAlignment.Right) ||
+				(leftAlignment == ColumnAlignment.Right && rightAlignment == ColumnAlignment.Left))
 			{
-				// Left column gets more space, right column starts closer to its anchor
-				(ColumnAlignment.Left, ColumnAlignment.Left) => rightAnchor - Math.Max(1, columnSpan / 20), // 5% buffer
-				(ColumnAlignment.Left, ColumnAlignment.Right) => rightAnchor - Math.Max(1, columnSpan / 10), // 10% buffer for right-aligned
-				(ColumnAlignment.Left, ColumnAlignment.Center) => rightAnchor - Math.Max(1, columnSpan / 8), // 12.5% buffer for center
+				return leftAnchor + (columnSpan / 2);
+			}
 
-				// Right column gets more space, split closer to middle
-				(ColumnAlignment.Right, ColumnAlignment.Left) => leftAnchor + (columnSpan * 3 / 4), // 75% to left column
-				(ColumnAlignment.Right, ColumnAlignment.Right) => leftAnchor + (columnSpan * 2 / 3), // 66% to left column
-				(ColumnAlignment.Right, ColumnAlignment.Center) => leftAnchor + (columnSpan * 3 / 5), // 60% to left column
-
-				// Center column cases
-				(ColumnAlignment.Center, ColumnAlignment.Left) => rightAnchor - Math.Max(1, columnSpan / 6), // 16% buffer
-				(ColumnAlignment.Center, ColumnAlignment.Right) => leftAnchor + (columnSpan / 2), // Split in middle
-				(ColumnAlignment.Center, ColumnAlignment.Center) => leftAnchor + (columnSpan / 2), // Split in middle
-
-				_ => rightAnchor - Math.Max(1, columnSpan / 20) // Default fallback
-			};
+			// For all other cases, use a simple 5% buffer from the right anchor
+			return rightAnchor - Math.Max(1, columnSpan / 20);
 		}
 	}
 

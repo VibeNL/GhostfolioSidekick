@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 		protected override IBillingParser BillingParser => _billingParser;
 		protected override IPositionParser PositionParser => _positionParser;
 
-		protected override CultureInfo CultureInfo => new CultureInfo("nl-NL");
+		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
 		private class DutchBillingParserAdapter : IBillingParser
 		{

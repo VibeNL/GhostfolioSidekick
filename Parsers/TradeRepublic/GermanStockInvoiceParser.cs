@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 {
 	public class GermanStockInvoiceParser : BaseSubParser
 	{
-		private readonly string[] Stock = ["POSITION", "ANZAHL", "DURCHSCHNITTSKURS", "BETRAG"];
+		private readonly string[] Stock = ["POSITION", "ANZAHL", "PREIS", "BETRAG"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
 		protected override CultureInfo CultureInfo => new("de-DE");
@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 			get
 			{
 				return [
-					new TableDefinition(Stock, "GESAMT", column4, true, new ColumnAlignmentMergeStrategy()), // Stock table is required
+					new TableDefinition(Stock, "ABRECHNUNG", column4, true, new ColumnAlignmentMergeStrategy()), // Stock table is required
 					GermanBillingParser.CreateBillingTableDefinition(isRequired: false) // Billing is optional
 				];
 			}
@@ -27,8 +27,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
 			new[] { 
-				(new[] { "Market-Order", "Kauf", "on" }, PartialActivityType.Buy),
-				(new[] { "Market-Order", "Verkauf", "on" }, PartialActivityType.Sell)
+				(new[] { "Market-Order", "Kauf", "am" }, PartialActivityType.Buy),
+				(new[] { "Market-Order", "Verkauf", "am" }, PartialActivityType.Sell)
 			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Item2;
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
@@ -41,9 +41,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 				yield break;
 			}
 
-			if (row.HasHeader(EnglishBillingParser.BillingHeaders))
+			if (row.HasHeader(GermanBillingParser.BillingHeaders))
 			{
-				foreach (var activity in EnglishBillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
+				foreach (var activity in GermanBillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
 				{
 					yield return activity;
 				}
