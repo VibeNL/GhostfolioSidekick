@@ -15,7 +15,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 
 		private readonly List<ITradeRepublicActivityParser> SubParsers = [
 			new GermanStockInvoiceParser(),
-			new GermanSavingPlanInvoiceParser()
+			new GermanSavingPlanInvoiceParser(),
+			new GermanDividendInvoiceParser()
 			];
 
 		public TradeRepublicInvoiceParserDETests()
@@ -188,6 +189,34 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						0.03m,
 						new Money(Currency.EUR, 0.03m),
 						"Trade_Republic_single_sell_stock.pdf")
+				]);
+		}
+
+		// Dividends
+		[Fact]
+		public async Task ConvertActivitiesForAccount_TestFileSingleDividend_Converted()
+		{
+			// Arrange
+			var parser = new TradeRepublicParser(new PdfToWordsParser(), SubParsers);
+
+			// Act
+			await parser.ParseActivities("./TestFiles/TradeRepublic/DE/CashTransactions/single_dividend_stock.pdf", activityManager, account.Name);
+
+			// Assert
+			activityManager.PartialActivities.Should().BeEquivalentTo(
+				[PartialActivity.CreateDividend(
+						Currency.USD,
+						new DateTime(2024, 10, 03, 0, 0, 0, DateTimeKind.Utc),
+						[PartialSymbolIdentifier.CreateStockBondAndETF("US67066G1040")],
+						0.02m,
+						new Money(Currency.USD, 0.02m),
+						"Trade_Republic_single_dividend_stock.pdf"),
+				 PartialActivity.CreateFee(
+						Currency.EUR,
+						new DateTime(2024, 10, 03, 0, 0, 0, DateTimeKind.Utc),
+						0.01m,
+						new Money(Currency.EUR, 0.01m),
+						"Trade_Republic_single_dividend_stock.pdf")
 				]);
 		}
 	}
