@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			new SpanishSavingPlanInvoiceParser(),
 			new SpanishDividendInvoiceParser(),
 			new SpanishInterestPaymentInvoiceParser(),
-			//new SpanishBondRepaymentInvoiceParser()
+			new SpanishBondRepaymentInvoiceParser()
 			];
 
 		public TradeRepublicInvoiceParserESTests()
@@ -222,7 +222,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
 						new Money(Currency.EUR, 99.6m),
 						new Money(Currency.EUR, 99.6m),
-						"Trade_Republic_DE0001104909_2024-12-12")
+						"Trade_Republic_single_repayment_bond.pdf")
 				]);
 		}
 	}
