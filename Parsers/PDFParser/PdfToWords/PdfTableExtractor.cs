@@ -1,5 +1,3 @@
-using System.Reflection.PortableExecutable;
-
 namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 {
 	public record TableDefinition(
