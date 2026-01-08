@@ -3,7 +3,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
 
-namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
+namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public class SpanishBondInvoiceParser : BaseSubParser
 	{

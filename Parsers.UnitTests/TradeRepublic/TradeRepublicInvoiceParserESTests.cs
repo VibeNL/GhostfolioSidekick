@@ -6,6 +6,7 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.Parsers.TradeRepublic.EN;
+using GhostfolioSidekick.Parsers.TradeRepublic.ES;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 {
@@ -20,6 +21,8 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 			new SpanishStockInvoiceAltParser(),
 			new SpanishSavingPlanInvoiceParser(),
 			new SpanishDividendInvoiceParser(),
+			new SpanishInterestPaymentInvoiceParser(),
+			//new SpanishBondRepaymentInvoiceParser()
 			];
 
 		public TradeRepublicInvoiceParserESTests()
@@ -198,7 +201,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
 						2.19m,
 						new Money(Currency.EUR, 2.19m),
-						"Trade_Republic_DE0001104909_2024-12-12")
+						"Trade_Republic_single_interest_bond.pdf")
 				]);
 		}
 
