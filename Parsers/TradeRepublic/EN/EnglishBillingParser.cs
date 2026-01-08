@@ -30,7 +30,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				date,
 				transactionId,
 				parseDecimal,
-				"Subtotaal");
+				"Subtotal");
 		}
 	}
 }
