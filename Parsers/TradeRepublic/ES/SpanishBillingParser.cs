@@ -6,7 +6,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public static class SpanishBillingParser
 	{
-		// Original text: "POSICIÓN", "IMPORTE"
+		// Original text: "POSICIÃ“N", "IMPORTE"
 		public static readonly string[] BillingHeaders = ["POSICI\u00d3N", "IMPORTE"];
 		public static readonly ColumnAlignment[] BillingColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Right];
 
@@ -31,7 +31,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 				date,
 				transactionId,
 				parseDecimal,
-				"Subtotaal");
+				"Subtotal");
 		}
 	}
 }
