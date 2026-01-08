@@ -27,7 +27,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 		}
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
-			ContainsSequence([.. words.Select(w => w.Text)], ["Sparplanausführung", "am"]) 
+			// Original text: Sparplanausführung
+			ContainsSequence([.. words.Select(w => w.Text)], ["Sparplanausf\u00fchrung", "am"]) 
 				? PartialActivityType.Buy 
 				: PartialActivityType.Undefined;
 

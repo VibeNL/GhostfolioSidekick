@@ -3,12 +3,12 @@ using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
 
-namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
+namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
-
 	public class SpanishBondRepaymentInvoiceParser : BaseSubParser
 	{
-		private readonly string[] BondRepayment = ["NÚM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD"];
+		// Original text: "NÚM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD"
+		private readonly string[] BondRepayment = ["N\u00daM.", "REGISTRO", "INSTRUMENTO", "CANTIDAD"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 		
 		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
@@ -43,9 +43,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				yield break;
 			}
 
-			if (row.HasHeader(EnglishBillingParser.BillingHeaders))
+			if (row.HasHeader(SpanishBillingParser.BillingHeaders))
 			{
-				foreach (var activity in EnglishBillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
+				foreach (var activity in SpanishBillingParser.ParseBillingRecord(row, date, transactionId, ParseDecimal))
 				{
 					yield return activity;
 				}

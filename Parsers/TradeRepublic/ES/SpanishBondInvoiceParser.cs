@@ -7,7 +7,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public class SpanishBondInvoiceParser : BaseSubParser
 	{
-		private readonly string[] Bond = ["POSICIÓN", "NOMINAL", "COTIZACIÓN", "IMPORTE"];
+		// Original text: "POSICIÓN", "NOMINAL", "COTIZACIÓN", "IMPORTE"
+		private readonly string[] Bond = ["POSICI\u00d3N", "NOMINAL", "COTIZACI\u00d3N", "IMPORTE"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
 		protected override CultureInfo CultureInfo => new CultureInfo("es-ES");
@@ -27,7 +28,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
 			new[] { 
-				(new[] { "Market-OrderBUY", "el", "día" }, PartialActivityType.Buy)
+				// Original text: "Market-OrderBUY el día"
+				(new[] { "Market-OrderBUY", "el", "d\u00eda" }, PartialActivityType.Buy)
 			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Item2;
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
@@ -72,13 +74,13 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 				{
 					yield return PartialActivity.CreateSell(
 						currency,
-					 date,
-					 [PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
-					 ParseDecimal(quantity),
-					 new Money(currency, ParseDecimal(price)),
-					 new Money(currency, ParseDecimal(amount)),
-					 transactionId
-				  );
+						date,
+						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
+						ParseDecimal(quantity),
+						new Money(currency, ParseDecimal(price)),
+						new Money(currency, ParseDecimal(amount)),
+						transactionId
+					);
 				}
 			}
 		}

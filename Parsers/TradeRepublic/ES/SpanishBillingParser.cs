@@ -6,7 +6,8 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public static class SpanishBillingParser
 	{
-		public static readonly string[] BillingHeaders = ["POSICIÓN", "IMPORTE"];
+		// Original text: "POSICIÓN", "IMPORTE"
+		public static readonly string[] BillingHeaders = ["POSICI\u00d3N", "IMPORTE"];
 		public static readonly ColumnAlignment[] BillingColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Right];
 
 		public static TableDefinition CreateBillingTableDefinition(string endMarker = "TOTAL", bool isRequired = false)
