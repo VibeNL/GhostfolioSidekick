@@ -143,7 +143,7 @@ namespace GhostfolioSidekick.IntegrationTests
 
 		private async Task InitializePostgresContainer(INetwork network)
 		{
-			postgresContainer = new PostgreSqlBuilder()
+			postgresContainer = new PostgreSqlBuilder("postgres:16")
 				.WithReuse(ReuseContainers)
 				.WithUsername(Username)
 				.WithPassword(Password)
@@ -168,7 +168,7 @@ namespace GhostfolioSidekick.IntegrationTests
 
 		private async Task InitializeRedisContainer(INetwork network)
 		{
-			redisContainer = new RedisBuilder()
+			redisContainer = new RedisBuilder("redis")
 				.WithReuse(ReuseContainers)
 				.WithPortBinding(ReditPort, true)
 				.WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(ReditPort))
@@ -182,8 +182,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			await TestcontainersSettings.ExposeHostPortsAsync(postgresContainer.GetMappedPublicPort(PostgresPort)).ConfigureAwait(false);
 			await TestcontainersSettings.ExposeHostPortsAsync(redisContainer.GetMappedPublicPort(ReditPort)).ConfigureAwait(false);
 
-			ghostfolioContainer = new ContainerBuilder()
-				.WithImage("ghostfolio/ghostfolio:latest")
+			ghostfolioContainer = new ContainerBuilder("ghostfolio/ghostfolio:latest")
 				.WithPortBinding(GhostfolioPort, true)
 				.WithEnvironment("ACCESS_TOKEN_SALT", Guid.NewGuid().ToString())
 				.WithEnvironment("JWT_SECRET_KEY", Guid.NewGuid().ToString())
