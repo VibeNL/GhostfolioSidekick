@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
@@ -78,14 +78,9 @@ namespace GhostfolioSidekick.Activities
 					{
 						var importer = importers.SingleOrDefault(x => x.CanParse(file).Result);
 
-						if (importer is null && file.EndsWith("csv"))
+						if (importer is null)
 						{
 							throw new NoImporterAvailableException($"No importer available for {file}");
-						}
-						else if (importer is null)
-						{
-							logger.LogWarning("No importer available for {File}", file);
-							continue;
 						}
 
 						if (importer is IActivityFileImporter activityImporter)
