@@ -88,7 +88,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 				Token("partB", 0, 2, 12)
 			};
 
-			bool MergePredicate(PdfTableRow current, PdfTableRow next) => next.Page == current.Page && next.Row == current.Row + 1;
+			static bool MergePredicate(PdfTableRow current, PdfTableRow next) => next.Page == current.Page && next.Row == current.Row + 1;
 
 			var tableDefinition = new TableDefinition(["H1", "H2"], "", []);
 

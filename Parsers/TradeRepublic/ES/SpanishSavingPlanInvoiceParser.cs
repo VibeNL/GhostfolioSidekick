@@ -11,7 +11,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 		private readonly string[] SavingPlan = ["POSICI\u00d3N", "CANTIDAD", "COTIZACI\u00d3N PROMEDIO", "IMPORTE"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
-		protected override CultureInfo CultureInfo => new CultureInfo("es-ES");
+		protected override CultureInfo CultureInfo => new("es-ES");
 
 		protected override string[] DateTokens => ["FECHA"];
 

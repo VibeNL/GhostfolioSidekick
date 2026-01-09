@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 // Performance suppressions
 [assembly: SuppressMessage("Performance", "CA1873:Avoid potentially expensive logging")]
+[assembly: SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
 
 // Usage suppressions
 [assembly: SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize")]

@@ -110,9 +110,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			}
 
 			// Convert each group to a keyword string
-			return mergedGroups
-				.Select(group => string.Join(" ", group.OrderBy(t => t.BoundingBox!.Column).Select(t => t.Text)))
-				.ToArray();
+			return [.. mergedGroups.Select(group => string.Join(" ", group.OrderBy(t => t.BoundingBox!.Column).Select(t => t.Text)))];
 		}
 	}
 }

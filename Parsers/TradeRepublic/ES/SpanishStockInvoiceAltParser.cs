@@ -7,7 +7,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public class SpanishStockInvoiceAltParser : BaseSubParser
 	{
-		// Original text: "POSICIÓN", "CANTIDAD", "PRECIO", "IMPORTE"
+		// Original text: "POSICIÃ“N", "CANTIDAD", "PRECIO", "IMPORTE"
 		private readonly string[] Stock = ["POSICI\u00d3N", "CANTIDAD", "PRECIO", "IMPORTE"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
@@ -28,9 +28,9 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
 			new[] { 
-				// Original text: "Market-Order BUY el día"
+				// Original text: "Market-Order BUY el dÃ­a"
 				(new[] { "Market-Order", "BUY", "el", "d\u00eda" }, PartialActivityType.Buy),
-			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Item2;
+			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Buy;
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{

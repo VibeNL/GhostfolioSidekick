@@ -330,7 +330,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				}
 
 				var orderedColumns = columns
-					.Select(c => (IReadOnlyList<SingleWordToken>)c.OrderBy(t => t.BoundingBox!.Column).ToList())
+					.Select(c => (IReadOnlyList<SingleWordToken>)[.. c.OrderBy(t => t.BoundingBox!.Column)])
 					.ToList();
 
 				// Create PdfTableRowColumns with header information
