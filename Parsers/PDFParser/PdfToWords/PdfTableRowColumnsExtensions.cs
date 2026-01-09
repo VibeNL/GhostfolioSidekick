@@ -73,7 +73,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 		{
 			if (header?.Tokens == null)
 			{
-				return Array.Empty<string>();
+				return [];
 			}
 
 			// Group tokens by their column positions to reconstruct the original keywords

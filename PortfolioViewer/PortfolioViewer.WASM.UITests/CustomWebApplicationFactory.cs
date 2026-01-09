@@ -82,7 +82,7 @@ namespace PortfolioViewer.WASM.UITests
 		}
 
 
-		private void EnsureWasmPublishedToApiStaticFiles()
+		private static void EnsureWasmPublishedToApiStaticFiles()
 		{
 			var solutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../.."));
 			var wasmProj = Path.Combine(solutionDir, "PortfolioViewer", "PortfolioViewer.WASM", "PortfolioViewer.WASM.csproj");

@@ -10,7 +10,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				.OrderBy(g => g.Key.Page)
 				.ThenBy(g => g.Key.Row)
 				.Select(g => new PdfTableRow(
-					headers ?? Array.Empty<string>(),
+					headers ?? [],
 					g.Key.Page,
 					g.Key.Row,
 					g.OrderBy(w => w.BoundingBox!.Column).ToList()))
@@ -228,14 +228,14 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			var rows = GroupRows(words);
 			if (rows.Count == 0)
 			{
-				return (new PdfTableRow(Array.Empty<string>(), 0, 0, Array.Empty<SingleWordToken>()), []);
+				return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
 			}
 
 			int headerIndex = rows.FindIndex(r => RowContainsAll(r, definition.Headers) && 
 												  (usedRows == null || !usedRows.Contains((r.Page, r.Row))));
 			if (headerIndex == -1)
 			{
-				return (new PdfTableRow(Array.Empty<string>(), 0, 0, Array.Empty<SingleWordToken>()), []);
+				return (new PdfTableRow([], 0, 0, Array.Empty<SingleWordToken>()), []);
 			}
 
 			var header = GetHeaders(definition.Headers, rows[headerIndex]);

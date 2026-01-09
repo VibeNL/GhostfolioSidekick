@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			return false;
 		}
 
-		private IEnumerable<PartialActivity>? ParseRecord(PdfTableRowColumns row)
+		private static IEnumerable<PartialActivity>? ParseRecord(PdfTableRowColumns row)
 		{
 			// Get values
 			// Transaction Type
@@ -167,13 +167,11 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				transactionType.Equals("Savings Order", StringComparison.InvariantCultureIgnoreCase))
 			{
 				var subTable = ParseDescription(row.Columns[2]); // Description is usually the 3rd column
-				var executionDate = subTable.ExecutionDate;
 				var action = subTable.Action;
 				var transactionValue = subTable.TransactionValue;
 				var fee = subTable.Fee;
 				var volume = subTable.Volume / 1000; // In gram, store as KG
-				var total = subTable.Total;
-
+				
 				if (action.Equals("Sell", StringComparison.InvariantCultureIgnoreCase))
 				{
 					yield return PartialActivity.CreateSell(
@@ -218,7 +216,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 				);
 		}
 
-		private DescriptionData ParseDescription(IReadOnlyList<SingleWordToken> singleWordTokens)
+		private static DescriptionData ParseDescription(IReadOnlyList<SingleWordToken> singleWordTokens)
 		{
 			/* Example Description:
 			Processing order 572591 Gold €0.00 €110.01
@@ -282,7 +280,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 		{
 			if (line.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
 			{
-				return line.Substring(prefix.Length).Trim();
+				return line[prefix.Length..].Trim();
 			}
 			return string.Empty;
 		}
@@ -328,7 +326,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			return 0m;
 		}
 
-		private decimal ParseDecimal(string? amount)
+		private static decimal ParseDecimal(string? amount)
 		{
 			// €0.01
 			if (decimal.TryParse(
@@ -343,7 +341,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			throw new FormatException($"Unable to parse decimal amount: {amount}");
 		}
 
-		private DateOnly ParseDate(string? date)
+		private static DateOnly ParseDate(string? date)
 		{
 			if (string.IsNullOrWhiteSpace(date))
 			{
