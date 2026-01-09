@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
@@ -204,8 +204,8 @@ namespace GhostfolioSidekick.IntegrationTests
 			}
 			catch (Exception)
 			{
-				var logs = await ghostfolioContainer.GetLogsAsync().ConfigureAwait(false);
-				throw new Exception(logs.Stderr + logs.Stdout);
+				var (Stdout, Stderr) = await ghostfolioContainer.GetLogsAsync().ConfigureAwait(false);
+				throw new Exception(Stderr + Stdout);
 			}
 
 			await TestcontainersSettings.ExposeHostPortsAsync(ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).ConfigureAwait(false);

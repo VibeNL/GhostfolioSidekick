@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 			// Check if the first token of the next row has the same or very similar horizontal position as subsequent columns
 			// This indicates that the first column is empty and this is a continuation row
-			var firstToken = next.Tokens.FirstOrDefault();
+			var firstToken = next.Tokens[0];
 			if (firstToken?.BoundingBox == null)
 			{
 				return false;
@@ -98,7 +98,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 					// If the first token of next row is closer to the second column position,
 					// it likely means the first column is empty
 					var distanceToSecond = Math.Abs(firstTokenColumn - currentSecondColumnPosition.Value);
-					var distanceToFirst = current.Tokens.FirstOrDefault()?.BoundingBox?.Column is int firstCol
+					var distanceToFirst = current.Tokens[0].BoundingBox?.Column is int firstCol
 						? Math.Abs(firstTokenColumn - firstCol)
 						: int.MaxValue;
 

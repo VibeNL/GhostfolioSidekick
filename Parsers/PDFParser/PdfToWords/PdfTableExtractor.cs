@@ -80,13 +80,13 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				// Use the definition's merge strategy if available, otherwise fall back to the passed predicate
 				var effectiveMergePredicate = GetEffectiveMergePredicate(definition, mergePredicate);
 				
-				var result = FindTableRowsWithColumnsForDefinition(words, definition, effectiveMergePredicate, usedRows);
-				if (result.Rows.Count > 0)
+				var (Header, Rows) = FindTableRowsWithColumnsForDefinition(words, definition, effectiveMergePredicate, usedRows);
+				if (Rows.Count > 0)
 				{
-					allResults.Add((result.Header, result.Rows, definition));
+					allResults.Add((Header, Rows, definition));
 					// Mark the header and data rows as used to avoid overlapping tables
-					usedRows.Add((result.Header.Page, result.Header.Row));
-					foreach (var row in result.Rows)
+					usedRows.Add((Header.Page, Header.Row));
+					foreach (var row in Rows)
 					{
 						usedRows.Add((row.Page, row.Row));
 					}
@@ -127,7 +127,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			
 			if (allResults.Count == 0)
 			{
-				return new List<PdfTableRowColumns>();
+				return [];
 			}
 
 			// Determine if we should return multiple tables
@@ -137,7 +137,6 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			{
 				// Combine all results into a single response
 				// Use the first table's header as the primary header
-				var primaryHeader = allResults[0].Header;
 				var allRows = allResults.SelectMany(r => r.Rows).ToList();
 				return allRows;
 			}

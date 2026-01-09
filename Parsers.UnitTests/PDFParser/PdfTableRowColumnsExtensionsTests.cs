@@ -315,7 +315,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
 		// Helper methods
 		private static PdfTableRowColumns CreatePdfTableRowColumns(string[] values)
 		{
-			var columns = values.Select(value => (IReadOnlyList<SingleWordToken>)new List<SingleWordToken> { new(value) }).ToList();
+			var columns = values.Select(value => (IReadOnlyList<SingleWordToken>)[new(value)]).ToList();
 			return new PdfTableRowColumns(["Header1", "Header2", "Header3"], 0, 1, columns);
 		}
 
