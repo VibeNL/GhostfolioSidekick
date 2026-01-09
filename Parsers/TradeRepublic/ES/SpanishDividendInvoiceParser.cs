@@ -1,4 +1,3 @@
-using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using System.Globalization;
@@ -7,7 +6,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public class SpanishDividendInvoiceParser : DividendInvoiceParserBase
 	{
-		// Original text: "POSICIÓN", "CANTIDAD", "RENDIMIENTO", "CANTIDAD"
+		// Original text: "POSICIÃ“N", "CANTIDAD", "RENDIMIENTO", "CANTIDAD"
 		private readonly string[] _dividendHeaders = ["POSICI\u00d3N", "CANTIDAD", "RENDIMIENTO", "CANTIDAD"];
 		private readonly ColumnAlignment[] _dividendColumnAlignment = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 		private readonly string[] _dividendKeywords = ["Dividendo", "en", "efectivo", "con", "Ex-Date"];

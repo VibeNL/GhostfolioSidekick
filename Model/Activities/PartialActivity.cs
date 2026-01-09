@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Activities
+namespace GhostfolioSidekick.Model.Activities
 {
 	public class PartialActivity
 	{
@@ -328,6 +328,11 @@
 				SymbolIdentifiers = symbolIdentifiers,
 				UnitPrice = unitPrice
 			};
+		}
+
+		public static PartialActivity CreateIgnore()
+		{
+			return new PartialActivity(PartialActivityType.Ignore, DateTime.UtcNow, Currency.USD, new Money(Currency.USD, 0), "IGNORE");
 		}
 
 		public override string ToString()

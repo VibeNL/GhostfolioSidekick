@@ -37,6 +37,11 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 				return PartialActivityType.Buy;
 			}
 
+			if (ContainsSequence([.. words.Select(w => w.Text)], ["Round", "up", "execution", "on"]))
+			{
+				return PartialActivityType.Buy;
+			}
+
 			return PartialActivityType.Undefined;
 		}
 

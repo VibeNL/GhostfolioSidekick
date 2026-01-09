@@ -1,7 +1,6 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using GhostfolioSidekick.Parsers.TradeRepublic.EN;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
@@ -27,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 		}
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
-			// Original text: Sparplanausführung
+			// Original text: SparplanausfÃ¼hrung
 			ContainsSequence([.. words.Select(w => w.Text)], ["Sparplanausf\u00fchrung", "am"]) 
 				? PartialActivityType.Buy 
 				: PartialActivityType.Undefined;

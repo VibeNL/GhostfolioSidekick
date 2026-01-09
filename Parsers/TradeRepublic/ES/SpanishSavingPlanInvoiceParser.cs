@@ -1,14 +1,13 @@
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
-using GhostfolioSidekick.Parsers.TradeRepublic.EN;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 {
 	public class SpanishSavingPlanInvoiceParser : BaseSubParser
 	{
-		// Original text: "POSICIÓN", "CANTIDAD", "COTIZACIÓN PROMEDIO", "IMPORTE"
+		// Original text: "POSICIÃ“N", "CANTIDAD", "COTIZACIÃ“N PROMEDIO", "IMPORTE"
 		private readonly string[] SavingPlan = ["POSICI\u00d3N", "CANTIDAD", "COTIZACI\u00d3N PROMEDIO", "IMPORTE"];
 		private readonly ColumnAlignment[] column4 = [ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Left, ColumnAlignment.Right];
 
@@ -28,7 +27,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 		}
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
-			// Original text: "Ejecución del plan de inversión el día"
+			// Original text: "EjecuciÃ³n del plan de inversiÃ³n el dÃ­a"
 			ContainsSequence([.. words.Select(w => w.Text)], ["Ejecuci\u00f3n", "del", "plan", "de", "inversi\u00f3n", "el", "d\u00eda"]) 
 				? PartialActivityType.Buy 
 				: PartialActivityType.Undefined;

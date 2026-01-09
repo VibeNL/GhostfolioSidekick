@@ -1,11 +1,10 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 using GhostfolioSidekick.Parsers.TradeRepublic;
-using GhostfolioSidekick.Parsers.TradeRepublic.EN;
 using GhostfolioSidekick.Parsers.TradeRepublic.ES;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
