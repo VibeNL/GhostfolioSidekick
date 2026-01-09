@@ -15,7 +15,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 			}
 
 			// Get the first token of the next row
-			var firstToken = next.Tokens.FirstOrDefault();
+			var firstToken = next.Tokens[0];
 			if (firstToken?.BoundingBox == null)
 			{
 				return false;
@@ -32,8 +32,7 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 
 			// Get the first column position from the current row for comparison
 			var currentFirstColumnPosition = current.Tokens
-				.Where(t => t.BoundingBox != null)
-				.FirstOrDefault()?.BoundingBox?.Column;
+				.FirstOrDefault(t => t.BoundingBox != null)?.BoundingBox?.Column;
 
 			if (!currentFirstColumnPosition.HasValue)
 			{
