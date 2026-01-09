@@ -47,50 +47,6 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 		{
 			var activities = new List<PartialActivity>();
 
-			bool MergePredicate(PdfTableRow current, PdfTableRow next)
-			{
-				// Merge if the first column of the next row is empty (indicating continuation of previous row)
-				if (next.Tokens.Count == 0)
-				{
-					return false;
-				}
-
-				// Check if the first token of the next row has the same or very similar horizontal position as subsequent columns
-				// This indicates that the first column is empty and this is a continuation row
-				var firstToken = next.Tokens.FirstOrDefault();
-				if (firstToken?.BoundingBox == null)
-				{
-					return false;
-				}
-
-				// Get the first token's column position
-				var firstTokenColumn = firstToken.BoundingBox.Column;
-
-				// If current row has tokens, check if the first token of next row aligns with non-first columns
-				if (current.Tokens.Count > 1)
-				{
-					// Find the second column position from current row to determine if next row starts there
-					var currentSecondColumnPosition = current.Tokens
-						.Where(t => t.BoundingBox != null)
-						.Skip(1)
-						.FirstOrDefault()?.BoundingBox?.Column;
-
-					if (currentSecondColumnPosition.HasValue)
-					{
-						// If the first token of next row is closer to the second column position,
-						// it likely means the first column is empty
-						var distanceToSecond = Math.Abs(firstTokenColumn - currentSecondColumnPosition.Value);
-						var distanceToFirst = current.Tokens.FirstOrDefault()?.BoundingBox?.Column is int firstCol
-							? Math.Abs(firstTokenColumn - firstCol)
-							: int.MaxValue;
-
-						return distanceToSecond < distanceToFirst;
-					}
-				}
-
-				return false;
-			}
-
 			// Use the new API with TableDefinition and empty alignment configs (which triggers default left-aligned strategy)
 			var rows = PdfTableExtractor.FindTableRowsWithColumns(
 				words,
@@ -107,6 +63,50 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 			}
 
 			return activities;
+		}
+
+		private static bool MergePredicate(PdfTableRow current, PdfTableRow next)
+		{
+			// Merge if the first column of the next row is empty (indicating continuation of previous row)
+			if (next.Tokens.Count == 0)
+			{
+				return false;
+			}
+
+			// Check if the first token of the next row has the same or very similar horizontal position as subsequent columns
+			// This indicates that the first column is empty and this is a continuation row
+			var firstToken = next.Tokens.FirstOrDefault();
+			if (firstToken?.BoundingBox == null)
+			{
+				return false;
+			}
+
+			// Get the first token's column position
+			var firstTokenColumn = firstToken.BoundingBox.Column;
+
+			// If current row has tokens, check if the first token of next row aligns with non-first columns
+			if (current.Tokens.Count > 1)
+			{
+				// Find the second column position from current row to determine if next row starts there
+				var currentSecondColumnPosition = current.Tokens
+					.Where(t => t.BoundingBox != null)
+					.Skip(1)
+					.FirstOrDefault()?.BoundingBox?.Column;
+
+				if (currentSecondColumnPosition.HasValue)
+				{
+					// If the first token of next row is closer to the second column position,
+					// it likely means the first column is empty
+					var distanceToSecond = Math.Abs(firstTokenColumn - currentSecondColumnPosition.Value);
+					var distanceToFirst = current.Tokens.FirstOrDefault()?.BoundingBox?.Column is int firstCol
+						? Math.Abs(firstTokenColumn - firstCol)
+						: int.MaxValue;
+
+					return distanceToSecond < distanceToFirst;
+				}
+			}
+
+			return false;
 		}
 
 		private IEnumerable<PartialActivity>? ParseRecord(PdfTableRowColumns row)
@@ -293,24 +293,21 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 			// Try to match the pattern: "22 - 05 - 2023 16:50:27"
 			var match = DateRegEx().Match(input);
-			if (match.Success)
-			{
-				if (int.TryParse(match.Groups[1].Value, out var day) &&
+			if (match.Success && int.TryParse(match.Groups[1].Value, out var day) &&
 					int.TryParse(match.Groups[2].Value, out var month) &&
 					int.TryParse(match.Groups[3].Value, out var year) &&
 					int.TryParse(match.Groups[4].Value, out var hour) &&
 					int.TryParse(match.Groups[5].Value, out var minute) &&
 					int.TryParse(match.Groups[6].Value, out var second))
+			{
+				try
 				{
-					try
-					{
-						dateTime = new DateTime(year, month, day, hour, minute, second);
-						return true;
-					}
-					catch
-					{
-						return false;
-					}
+					dateTime = new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
+					return true;
+				}
+				catch
+				{
+					return false;
 				}
 			}
 
