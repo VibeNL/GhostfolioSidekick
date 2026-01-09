@@ -59,7 +59,10 @@ namespace GhostfolioSidekick.Activities
 				sourceTransaction.SortingPriority,
 				sourceTransaction.Description);
 
-			activities.Add(activity);
+			if (activity != null)
+			{
+				activities.Add(activity);
+			}
 
 			int counter = 2;
 			foreach (var transaction in otherTransactions)
@@ -78,12 +81,15 @@ namespace GhostfolioSidekick.Activities
 					transaction.SortingPriority,
 					sourceTransaction.Description);
 
-				activities.Add(activity);
+				if (activity != null)
+				{
+					activities.Add(activity);
+				}
 			}
 		}
 
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "Required for generating")]
-		private static Activity GenerateActivity(
+		private static Activity? GenerateActivity(
 			Account account,
 			PartialActivityType activityType,
 			ICollection<PartialSymbolIdentifier> partialSymbolIdentifiers,
@@ -138,6 +144,7 @@ namespace GhostfolioSidekick.Activities
 				PartialActivityType.GiftAsset => new GiftAssetActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description),
 				PartialActivityType.StakingReward => new StakingRewardActivity(account, null, partialSymbolIdentifiers, date, amount, transactionId, sortingPriority, description),
 				PartialActivityType.BondRepay => new RepayBondActivity(account, null, partialSymbolIdentifiers, date, totalTransactionAmount, transactionId, sortingPriority, description),
+				PartialActivityType.Ignore => null,
 				_ => throw new NotSupportedException($"GenerateActivity PartialActivityType.{activityType} not yet implemented"),
 			};
 		}
