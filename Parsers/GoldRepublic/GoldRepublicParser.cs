@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.GoldRepublic
 
 		protected override int FooterHeightThreshold => 50;
 
-		private class DescriptionData
+		private sealed class DescriptionData
 		{
 			public DateTime ExecutionDate { get; set; }
 			public string Action { get; set; } = string.Empty;
