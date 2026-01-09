@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -20,7 +20,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public string Name => "Currency Gatherer";
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork(ILogger logger)
 		{
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();

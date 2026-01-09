@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -177,7 +177,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				.ToDictionaryAsync(x => x.AccountName, x => x.Count, cancellationToken);
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Complex query optimized")]
 		private static async Task<IQueryable<Activity>> BuildBaseQuery(
 			DatabaseContext databaseContext,
 			DateOnly startDate,
@@ -262,7 +261,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return query;
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3358:Ternary operators should not be nested", Justification = "Expression")]
 		private static Expression<Func<Activity, object>> GetSortExpressionForTotalValue()
 		{
 			return a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount :

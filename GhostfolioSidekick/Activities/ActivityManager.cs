@@ -88,7 +88,6 @@ namespace GhostfolioSidekick.Activities
 			}
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "Required for generating")]
 		private static Activity? GenerateActivity(
 			Account account,
 			PartialActivityType activityType,

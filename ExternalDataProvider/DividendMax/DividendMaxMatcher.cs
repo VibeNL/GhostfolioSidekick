@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
 using System.Net.Http.Json;
@@ -9,10 +9,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 {
 	public class DividendMaxMatcher(IHttpClientFactory httpClientFactory) : ISymbolMatcher
 	{
-		[SuppressMessage("Sonar", "S1075:URIs should not be hardcoded", Justification = "External API endpoint is stable and required for integration")]
 		private const string BaseUrl = "https://www.dividendmax.com";
-
-		[SuppressMessage("Sonar", "S1075:URIs should not be hardcoded", Justification = "External API endpoint is stable and required for integration")]
 		private const string SuggestEndpoint = "/suggest.json";
 
 		public string DataSource => Datasource.DividendMax;
@@ -133,9 +130,6 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return r;
 		}
 
-		[SuppressMessage("Minor Code Smell", "S3459:Unassigned members should be removed", Justification = "Required for serialization")]
-		[SuppressMessage("CodeQuality", "S1144:Unused private types or members should be removed", Justification = "Used for deserialization")]
-		[SuppressMessage("Style", "S1104:Fields should not have public accessibility", Justification = "DTO for JSON deserialization")]
 		private sealed class SuggestResult
 		{
 			public required string Name { get; set; } // Full name

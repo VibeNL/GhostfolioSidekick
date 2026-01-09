@@ -20,6 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Major Code Smell", "S2629:Logging templates should be constant", Justification = "TODO")]
 [assembly: SuppressMessage("Major Code Smell", "S3925:\"ISerializable\" should be implemented correctly")]
 [assembly: SuppressMessage("Major Code Smell", "S2234:Arguments should be passed in the same order as the method parameters", Justification = "False positive")]
+[assembly: SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "DDD")]
 
 // Critical Code Smell suppressions
 [assembly: SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high")]

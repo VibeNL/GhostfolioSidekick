@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Hosting.Server;
 namespace PortfolioViewer.WASM.UITests
 {
 	// https://danieldonbavand.com/2022/06/13/using-playwright-with-the-webapplicationfactory-to-test-a-blazor-application/
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "Test code")]
 	public class CustomWebApplicationFactory : WebApplicationFactory<GhostfolioSidekick.PortfolioViewer.ApiService.Program>
 	{
 		private IHost? _host;

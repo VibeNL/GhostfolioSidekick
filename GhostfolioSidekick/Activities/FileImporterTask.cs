@@ -59,7 +59,6 @@ namespace GhostfolioSidekick.Activities
 			logger.LogDebug("{Name} Done", nameof(FileImporterTask));
 		}
 
-		[SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Linear logic")]
 		private static async Task ParseFiles(ILogger logger, IEnumerable<IFileImporter> importers, string[] directories, ActivityManager activityManager, List<string> accountNames)
 		{
 			foreach (var directory in directories.Select(x => new DirectoryInfo(x)).OrderBy(x => x.Name))

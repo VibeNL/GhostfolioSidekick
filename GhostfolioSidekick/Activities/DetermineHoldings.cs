@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Activities.Comparer;
+using GhostfolioSidekick.Activities.Comparer;
 using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
@@ -64,7 +64,6 @@ namespace GhostfolioSidekick.Activities
 			await databaseContext.SaveChangesAsync();
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		private async Task CreateOrUpdateHolding(
 			ILogger logger,
 			DatabaseContext databaseContext, Dictionary<SymbolProfile, Holding> symbolHoldingDictionary,

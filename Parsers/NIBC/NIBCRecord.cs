@@ -1,8 +1,7 @@
-﻿using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration.Attributes;
 
 namespace GhostfolioSidekick.Parsers.NIBC
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "Name of bank")]
 	public class NIBCRecord
 	{
 		[DateTimeStyles(System.Globalization.DateTimeStyles.AssumeUniversal)]

@@ -8,7 +8,6 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace GhostfolioSidekick.UnitTests.Activities
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>")]
 	public class FileImporterTaskTests : IDisposable
 	{
 		private readonly Mock<ILogger<FileImporterTask>> _mockLogger;
@@ -147,7 +146,6 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 	}
 
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>")]
 	public class CustomDbContextFactory : IDbContextFactory<DatabaseContext>, IDisposable
 	{
 		private readonly string _databasePath;

@@ -8,7 +8,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 		IDbContextFactory<DatabaseContext> dbContextFactory,
 		ILogger<HoldingIdentifierMappingService> logger) : IHoldingIdentifierMappingService
 	{
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "Service needs to log and rethrow")]
 		public async Task<HoldingIdentifierMappingModel?> GetHoldingIdentifierMappingAsync(string symbol, CancellationToken cancellationToken = default)
 		{
 			try
@@ -39,7 +38,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "Service needs to log and rethrow")]
 		public async Task<List<HoldingIdentifierMappingModel>> GetAllHoldingIdentifierMappingsAsync(CancellationToken cancellationToken = default)
 		{
 			try
@@ -66,7 +64,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 			}
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "Service needs to log and rethrow")]
 		public async Task<List<IdentifierMatchingHistoryModel>> GetIdentifierMatchingHistoryAsync(string partialIdentifier, CancellationToken cancellationToken = default)
 		{
 			try

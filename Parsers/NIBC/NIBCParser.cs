@@ -1,11 +1,10 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
 
 namespace GhostfolioSidekick.Parsers.NIBC
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "Name of bank")]
 	public class NIBCParser(ICurrencyMapper currencyMapper) : RecordBaseImporter<NIBCRecord>
 	{
 		protected override IEnumerable<PartialActivity> ParseRow(NIBCRecord record, int rowNumber)

@@ -976,7 +976,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			return new ValuableActivity(account, null, [], date, new Money(Currency.USD, amount), transactionId, null, description);
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		private static Activity? CreateTestActivityInstance(Type type, Account account, Holding holding)
 		{
 			if (type == typeof(BuyActivity))
