@@ -463,12 +463,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			// Act
 			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
-			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
+			var (Title, Description, Keywords) = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
-			resultTuple.Title.Should().Be("Test Title");
-			resultTuple.Description.Should().BeEmpty();
-			resultTuple.Keywords.Should().BeEmpty();
+			Title.Should().Be("Test Title");
+			Description.Should().BeEmpty();
+			Keywords.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -487,12 +487,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			// Act
 			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
-			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
+			var (Title, Description, Keywords) = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
-			resultTuple.Title.Should().BeEmpty();
-			resultTuple.Description.Should().Be("Test description");
-			resultTuple.Keywords.Should().BeEmpty();
+			Title.Should().BeEmpty();
+			Description.Should().Be("Test description");
+			Keywords.Should().BeEmpty();
 		}
 
 		[Fact]
@@ -511,15 +511,15 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			// Act
 			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
-			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
+			var (Title, Description, Keywords) = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
-			resultTuple.Title.Should().BeEmpty();
-			resultTuple.Description.Should().BeEmpty();
-			resultTuple.Keywords.Should().HaveCount(3);
-			resultTuple.Keywords.Should().Contain("test");
-			resultTuple.Keywords.Should().Contain("keywords");
-			resultTuple.Keywords.Should().Contain("example");
+			Title.Should().BeEmpty();
+			Description.Should().BeEmpty();
+			Keywords.Should().HaveCount(3);
+			Keywords.Should().Contain("test");
+			Keywords.Should().Contain("keywords");
+			Keywords.Should().Contain("example");
 		}
 
 		[Fact]
@@ -538,14 +538,14 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			// Act
 			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
-			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
+			var (Title, Description, Keywords) = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
-			resultTuple.Keywords.Should().HaveCount(3);
-			resultTuple.Keywords.Should().Contain("test");
-			resultTuple.Keywords.Should().Contain("empty");
-			resultTuple.Keywords.Should().Contain("another");
-			resultTuple.Keywords.Should().NotContain("");
+			Keywords.Should().HaveCount(3);
+			Keywords.Should().Contain("test");
+			Keywords.Should().Contain("empty");
+			Keywords.Should().Contain("another");
+			Keywords.Should().NotContain("");
 		}
 
 		[Fact]
@@ -566,16 +566,16 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			// Act
 			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
-			var resultTuple = ((string Title, string Description, List<string> Keywords))result!;
+			var (Title, Description, Keywords) = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
-			resultTuple.Title.Should().Be("Complete Test Page");
-			resultTuple.Description.Should().Be("This is a complete test page with all metadata");
-			resultTuple.Keywords.Should().HaveCount(4);
-			resultTuple.Keywords.Should().Contain("complete");
-			resultTuple.Keywords.Should().Contain("test");
-			resultTuple.Keywords.Should().Contain("metadata");
-			resultTuple.Keywords.Should().Contain("example");
+			Title.Should().Be("Complete Test Page");
+			Description.Should().Be("This is a complete test page with all metadata");
+			Keywords.Should().HaveCount(4);
+			Keywords.Should().Contain("complete");
+			Keywords.Should().Contain("test");
+			Keywords.Should().Contain("metadata");
+			Keywords.Should().Contain("example");
 		}
 
 		#endregion

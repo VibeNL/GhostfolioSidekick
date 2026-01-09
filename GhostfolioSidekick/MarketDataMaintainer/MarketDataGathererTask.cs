@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -19,7 +19,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 
 		public string Name => "Market Data Gatherer";
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		public async Task DoWork(ILogger logger)
 		{
 			var symbolIdentifiers = new List<Tuple<string, string>>();

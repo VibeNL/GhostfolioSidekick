@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 
 namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.ScalableCapital
 		internal async Task<IReadOnlyCollection<ILocator>> GetPortfolios()
 		{
 			var products = await page.GetByLabel("Products").AllAsync();
-			var brokercards = await products.First().GetByRole(AriaRole.Listitem).AllAsync();
+			var brokercards = await products[0].GetByRole(AriaRole.Listitem).AllAsync();
 			return brokercards;
 		}
 

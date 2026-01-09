@@ -1,0 +1,6 @@
+<Project>
+  <!-- Include global suppressions file in all projects -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)GlobalSuppressions.cs" Link="GlobalSuppressions.cs" />
+  </ItemGroup>
+</Project>

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Market;
+using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Model;
 using System.Globalization;
@@ -37,7 +37,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			var dividends = ParseDividendsFromHtml(page);
 
 			// Group per ex-dividend date and sum
-			dividends = dividends
+			dividends = [.. dividends
 				.GroupBy(d => new { d.ExDividendDate, d.PaymentDate, d.DividendType, d.DividendState })
 				.Select(g => new Dividend
 				{
@@ -47,8 +47,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 					DividendType = g.Key.DividendType,
 					DividendState = g.Key.DividendState,
 					Amount = new Money(g.First().Amount.Currency, g.Sum(d => d.Amount.Amount))
-				})
-				.ToList();
+				})];
 
 
 			return dividends;

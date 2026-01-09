@@ -259,7 +259,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			SortHoldings();
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "TODO, Sort logic")]
 		private void SortHoldings()
 		{
 			switch (sortColumn)

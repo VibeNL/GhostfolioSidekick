@@ -154,7 +154,6 @@ The goal is to support all platforms as best as possible. Due to the continuous 
 |--|--|--|
 | Bitvavo (Broken) | Export of transaction history | |
 | Bunq (Bank) | Export CSV (Semicolom delimited) | |
-| Centraal Beheer Begeleid beleggen (Dutch insurance company) | Export of transaction history via print pdf | [Documentation](./Documentation/Parsers/CentraalBeheer.md) |
 | Coinbase (Broken) | Export of transaction history | |
 | De Giro | Export of account history (Language dependend, NL and PT supported currently) | [Documentation](./Documentation/Parsers/DeGiro.md) |
 | Generic importer | See below | |

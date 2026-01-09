@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.PortfolioViewer.ApiService.Grpc;
 using GhostfolioSidekick.PortfolioViewer.WASM.Services;
@@ -28,7 +28,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 		private SyncService.SyncServiceClient? _grpcClient;
 		private bool _disposed;
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "Update UI")]
 		public async Task SyncPortfolio(IProgress<(string action, int progress)> progress, bool forceFullSync, CancellationToken cancellationToken = default)
 		{
 			try
@@ -713,7 +712,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 			}
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "UI Update")]
 		public async Task DeleteAllData(IProgress<(string action, int progress)> progress, CancellationToken cancellationToken = default)
 		{
 			try
@@ -828,14 +826,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Clients
 				progress?.Report(($"Sync completed for table: {tableName}.", 100));
 				logger.LogInformation("Single table sync completed successfully for table: {TableName}", tableName);
 			}
-#pragma warning disable S2139 // Exceptions should be either logged or rethrown but not both
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Error during single table sync for {TableName}: {Message}", tableName, ex.Message);
 				progress?.Report(($"Error syncing table {tableName}: {ex.Message}", 100));
 				throw;
 			}
-#pragma warning restore S2139 // Exceptions should be either logged or rethrown but not both
 		}
 	}
 }

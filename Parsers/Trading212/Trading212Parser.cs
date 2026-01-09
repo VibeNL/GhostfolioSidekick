@@ -1,4 +1,4 @@
-﻿using CsvHelper.Configuration;
+using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
@@ -51,12 +51,12 @@ namespace GhostfolioSidekick.Parsers.Trading212
 						record.Id));
 					break;
 				case "Currency conversion":
-					var parsed = ParserConvertion(record);
+					var (Source, Target) = ParserConvertion(record);
 					lst.AddRange(PartialActivity.CreateCurrencyConvert(
 						record.Time,
-						parsed.Source,
-						parsed.Target,
-						new Money(parsed.Source.Currency, Math.Abs(record.Total.GetValueOrDefault())),
+						Source,
+						Target,
+						new Money(Source.Currency, Math.Abs(record.Total.GetValueOrDefault())),
 						record.Id));
 					break;
 				case "Limit buy":

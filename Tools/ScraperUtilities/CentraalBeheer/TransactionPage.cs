@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Activities.Types.MoneyLists;
@@ -96,7 +96,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.CentraalBeheer
 				try
 				{
 					var locators = await page.Locator("div[qa-id^='transactie-collapsable-']").AllAsync();
-					var content = await locators.Last().GetAttributeAsync("qa-id") ?? throw new NotSupportedException();
+					var content = await locators[locators.Count - 1].GetAttributeAsync("qa-id") ?? throw new NotSupportedException();
 
 					return int.Parse(content.Split("-").Last());
 				}

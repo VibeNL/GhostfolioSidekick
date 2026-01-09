@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Services;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
-using GhostfolioSidekick.Model.Accounts;
 
 namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 {

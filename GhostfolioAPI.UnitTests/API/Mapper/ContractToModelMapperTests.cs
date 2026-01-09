@@ -10,13 +10,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 {
 	public class ContractToModelMapperTests
 	{
-		private readonly Mock<ICurrencyExchange> _currencyExchangeMock;
-
-		public ContractToModelMapperTests()
-		{
-			_currencyExchangeMock = new Mock<ICurrencyExchange>();
-		}
-
 		[Fact]
 		public void MapPlatform_ShouldMapCorrectly()
 		{
@@ -119,7 +112,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -148,7 +141,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -170,7 +163,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -194,7 +187,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -215,7 +208,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -239,7 +232,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -260,7 +253,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -282,7 +275,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -304,7 +297,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -327,7 +320,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -351,7 +344,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Act & Assert
 			var exception = Assert.Throws<NotSupportedException>(() =>
-				ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity));
+				ContractToModelMapper.MapActivity(account, symbols, contractActivity));
 
 			exception.Message.Should().Contain("Activity type");
 			exception.Message.Should().Contain("is not supported");
@@ -368,7 +361,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 
 			// Act & Assert
 			var exception = Assert.Throws<ArgumentException>(() =>
-				ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity));
+				ContractToModelMapper.MapActivity(account, symbols, contractActivity));
 
 			exception.Message.Should().Contain("Symbol");
 			exception.Message.Should().Contain("not found");
@@ -386,7 +379,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -405,7 +398,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -424,7 +417,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -445,7 +438,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -465,7 +458,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -493,7 +486,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API.Mapper
 			var symbols = new List<SymbolProfile> { symbolProfile };
 
 			// Act
-			var result = ContractToModelMapper.MapActivity(account, _currencyExchangeMock.Object, symbols, contractActivity);
+			var result = ContractToModelMapper.MapActivity(account, symbols, contractActivity);
 
 			// Assert
 			result.Should().NotBeNull();

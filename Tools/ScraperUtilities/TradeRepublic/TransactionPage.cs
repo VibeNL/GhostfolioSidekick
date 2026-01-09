@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
@@ -93,7 +93,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return page.Locator("li[class='timeline__entry']").CountAsync();
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Scraper logic is complex")]
 		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			var table = await ParseTable(0);

@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Activities
+namespace GhostfolioSidekick.Model.Activities
 {
 	public enum PartialActivityType
 	{
@@ -38,6 +38,8 @@
 
 		Liability,
 
-		BondRepay
+		BondRepay,
+
+		Ignore
 	}
 }

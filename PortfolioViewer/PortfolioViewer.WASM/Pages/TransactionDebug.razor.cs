@@ -24,9 +24,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Pages
 			{
 				IsLoading = true;
 				HasError = false;
-				Accounts = (await AccountDataService.GetAccountInfo())
-					.Select(a => new AccountInfo { Id = a.Id, Name = a.Name })
-					.ToList();
+				Accounts = [.. (await AccountDataService.GetAccountInfo()).Select(a => new AccountInfo { Id = a.Id, Name = a.Name })];
 			}
 			catch (Exception ex)
 			{

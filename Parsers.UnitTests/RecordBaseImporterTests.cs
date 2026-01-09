@@ -11,7 +11,6 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 	{
 		private class TestRecord
 		{
-			[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1144:Unused private types or members should be removed", Justification = "<Pending>")]
 			public string? Header1 { get; set; }
 		}
 

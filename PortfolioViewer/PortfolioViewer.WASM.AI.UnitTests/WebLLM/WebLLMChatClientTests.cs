@@ -144,7 +144,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		}
 
 		[Fact]
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S2699:Tests should include assertions", Justification = "<Pending>")]
 		public void Dispose_ShouldNotThrow()
 		{
 			// Act & Assert - Should not throw

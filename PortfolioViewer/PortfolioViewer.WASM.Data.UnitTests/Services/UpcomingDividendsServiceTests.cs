@@ -10,7 +10,7 @@ using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Performance;
 using GhostfolioSidekick.Database.Repository;
 
-namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.UnitTests.Services
+namespace PortfolioViewer.WASM.Data.UnitTests.Services
 {
     public class UpcomingDividendsServiceTests
     {

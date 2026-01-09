@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.GhostfolioAPI.Contract;
+using GhostfolioSidekick.GhostfolioAPI.Contract;
 using KellermanSoftware.CompareNetObjects;
 
 namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
@@ -35,7 +35,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Compare
 			return Task.FromResult(mergeOrders);
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "<Pending>")]
 		private static IEnumerable<MergeOrder> MergeMatched(IEnumerable<Activity> existingActivityGroup, IEnumerable<Activity> newActivityGroup)
 		{
 			var existingListOfItems = Sortorder([.. existingActivityGroup]).GroupBy(x => x.Date.Date);

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using System.Diagnostics.CodeAnalysis;
 
@@ -20,7 +20,6 @@ namespace GhostfolioSidekick.Model.Symbols
 			Identifiers = [];
 		}
 
-		[SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "DDD")]
 		public SymbolProfile(
 			string symbol,
 			string? name,

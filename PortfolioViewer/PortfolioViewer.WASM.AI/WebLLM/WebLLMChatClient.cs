@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
@@ -10,7 +10,6 @@ using System.Text.Json;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.WebLLM
 {
 	[method: System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S4462:Calls to \"async\" methods should not be blocking", Justification = "Constructor")]
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3881:\"IDisposable\" should be implemented correctly", Justification = "<Pending>")]
 	public partial class WebLLMChatClient(IJSRuntime jsRuntime, ILogger<WebLLMChatClient> logger, Dictionary<ChatMode, string> modelIds) : ICustomChatClient
 	{
 		private InteropInstance? interopInstance;
