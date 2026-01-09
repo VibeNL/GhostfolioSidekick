@@ -25,10 +25,20 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 			}
 		}
 
-		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
-			ContainsSequence([.. words.Select(w => w.Text)], ["Savings", "plan", "execution", "on"]) 
-				? PartialActivityType.Buy 
-				: PartialActivityType.Undefined;
+		private static PartialActivityType DetermineType(List<SingleWordToken> words)
+		{
+			if (ContainsSequence([.. words.Select(w => w.Text)], ["Savings", "plan", "execution", "on"]))
+			{
+				return PartialActivityType.Buy;
+			}
+
+			if (ContainsSequence([.. words.Select(w => w.Text)], ["Saveback", "execution", "on"]))
+			{
+				return PartialActivityType.Buy;
+			}
+
+			return PartialActivityType.Undefined;
+		}
 
 		protected override IEnumerable<PartialActivity> ParseRecord(PdfTableRowColumns row, List<SingleWordToken> words, string transactionId)
 		{

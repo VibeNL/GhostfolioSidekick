@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.PDFParser;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
 
@@ -18,7 +18,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic
 
 			for (int i = 0; i < words.Count; i++)
 			{
-				if (IsCheckWords("TRADE REPUBLIC BANK GMBH", words, i, true))
+				if (IsCheckWords("TRADE REPUBLIC BANK", words, i, true))
 				{
 					foundTradeRepublic = true;
 				}

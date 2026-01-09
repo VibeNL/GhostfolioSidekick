@@ -88,7 +88,10 @@ namespace GhostfolioSidekick.Parsers.PDFParser.PdfToWords
 				tokens.Add(new SingleWordToken(word.Text, new Position(page.Number - 1, row, column)));
 			}
 
-			return tokens;
+			return tokens
+				.OrderBy(t => t.BoundingBox!.Page)
+				.ThenBy(t => t.BoundingBox!.Row)
+				.ThenBy(t => t.BoundingBox!.Column);
 		}
 
 		// Backward-compatible path for tests that feed plain text.
