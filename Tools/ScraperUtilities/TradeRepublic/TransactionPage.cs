@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 				// Press Close button to close the details
 				var closeButtons = await page.Locator("svg[class='closeIcon']").AllAsync();
-				await closeButtons.Skip(1).First().ClickAsync();
+				await closeButtons[1].ClickAsync();
 
 				counter++;
 			}
@@ -260,7 +260,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 						await Task.Delay(100);
 					}
 
-					var newPage = page.Context.Pages.LastOrDefault();
+					var newPage = page.Context.Pages.Count > countPages ? page.Context.Pages[^1] : null;
 					if (newPage != null)
 					{
 						try
