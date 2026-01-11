@@ -75,13 +75,7 @@ namespace GhostfolioSidekick.Activities
 
 					foreach (var file in files)
 					{
-						var importer = importers.SingleOrDefault(x => x.CanParse(file).Result);
-
-						if (importer is null)
-						{
-							throw new NoImporterAvailableException($"No importer available for {file}");
-						}
-
+						var importer = importers.SingleOrDefault(x => x.CanParse(file).Result) ?? throw new NoImporterAvailableException($"No importer available for {file}");
 						if (importer is IActivityFileImporter activityImporter)
 						{
 							await activityImporter.ParseActivities(file, activityManager, accountName);

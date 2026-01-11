@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Tasks;
+using GhostfolioSidekick.Model.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -29,13 +29,7 @@ namespace GhostfolioSidekick
 				.Where(tr => tr.Type == work.GetType().Name || tr.Name == work.Name)
 				.AsEnumerable()
 				.OrderByDescending(tr => tr.LastUpdate)
-				.FirstOrDefault();
-
-			if (taskRun == null)
-			{
-				throw new NotSupportedException($"No TaskRun found for work of type {work.GetType().Name} and name {work.Name}. Ensure that a TaskRun is created before logging.");
-			}
-
+				.FirstOrDefault() ?? throw new NotSupportedException($"No TaskRun found for work of type {work.GetType().Name} and name {work.Name}. Ensure that a TaskRun is created before logging.");
 			var logEntry = new TaskRunLog
 			{
 				TaskRunType = work.GetType().Name,

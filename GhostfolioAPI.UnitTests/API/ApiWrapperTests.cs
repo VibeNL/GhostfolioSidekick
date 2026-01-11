@@ -299,7 +299,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 			SetupRestCall("api/v1/order", JsonConvert.SerializeObject(new ActivityList { Activities = [.. activities] }));
 
 			// Set up the symbol profiles response to include the symbol that will be looked up
-			var symbolProfiles = new List<Contract.SymbolProfile> { testSymbol };
 			var marketDataResponse = new MarketDataList
 			{
 				MarketData = [new MarketData { Symbol = testSymbol.Symbol, DataSource = testSymbol.DataSource }],
@@ -417,7 +416,6 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests.API
 		public async Task UpdateAccount_WithValidAccount_ShouldUpdateAccount()
 		{
 			// Arrange
-			var testAccount = CreateTestAccount();
 			var account = new Model.Accounts.Account { Name = "TestAccount", Balance = [new Model.Accounts.Balance(DateOnly.FromDateTime(DateTime.Now), new Money { Amount = 100 })] };
 			var accounts = new List<Account> { new() { Name = account.Name, Id = "1", Currency = "EUR" } };
 			SetupRestCall("api/v1/account", JsonConvert.SerializeObject(new { Accounts = accounts }));

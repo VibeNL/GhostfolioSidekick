@@ -538,7 +538,7 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Controllers
 
 			// Act
 			var result = extractMetadataMethod!.Invoke(null, [htmlDoc]);
-			var (Title, Description, Keywords) = ((string Title, string Description, List<string> Keywords))result!;
+			var (_, _, Keywords) = ((string Title, string Description, List<string> Keywords))result!;
 
 			// Assert
 			Keywords.Should().HaveCount(3);
