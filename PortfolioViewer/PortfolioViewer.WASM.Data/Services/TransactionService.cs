@@ -261,10 +261,19 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			return query;
 		}
 
-		private static Expression<Func<Activity, object>> GetSortExpressionForTotalValue()
+		private static object GetTotalValueAmount(Activity activity)
 		{
-			return a => a is ActivityWithQuantityAndUnitPrice ? ((ActivityWithQuantityAndUnitPrice)a).TotalTransactionAmount.Amount :
-						a is ActivityWithAmount ? ((ActivityWithAmount)a).Amount.Amount : (object)0;
+			if (activity is ActivityWithQuantityAndUnitPrice quantityActivity)
+			{
+				return quantityActivity.TotalTransactionAmount.Amount;
+			}
+			
+			if (activity is ActivityWithAmount amountActivity)
+			{
+				return amountActivity.Amount.Amount;
+			}
+			
+			return 0;
 		}
 
 		private static IQueryable<Activity> ApplySorting(IQueryable<Activity> query, string sortColumn, bool sortAscending)
@@ -276,7 +285,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 				"Symbol" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Symbol : "",
 				"Name" => a => a.Holding != null && a.Holding.SymbolProfiles != null ? a.Holding.SymbolProfiles[0].Name ?? "" : "",
 				"AccountName" => a => a.Account.Name,
-				"TotalValue" => GetSortExpressionForTotalValue(),
+				"TotalValue" => a => GetTotalValueAmount(a),
 				"Description" => a => a.Description ?? "",
 				_ => a => a.Date // Default sort
 			};
