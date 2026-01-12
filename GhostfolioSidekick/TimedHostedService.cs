@@ -1,7 +1,8 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick
 {
@@ -192,7 +193,7 @@ namespace GhostfolioSidekick
 			return string.Join(" -> ", messages);
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S1215:\"GC.Collect\" should not be called", Justification = "Desired behaviour")]
+		[SuppressMessage("SonarQube", "S1215:GC.Collect should not be called", Justification = "Intentional GC call for memory measurement purposes")]
 		private async Task ExecuteWorkItemWithMemoryTracking(Scheduled workItem)
 		{
 			// Measure memory before execution

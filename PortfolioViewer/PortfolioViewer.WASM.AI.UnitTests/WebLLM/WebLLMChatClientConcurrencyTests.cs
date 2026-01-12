@@ -52,14 +52,18 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		}
 
 		[Fact]
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Blocker Code Smell", "S2699:Tests should include assertions", Justification = "<Pending>")]
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3966:Objects should not be disposed more than once", Justification = "<Pending>")]
 		public void Dispose_CalledMultipleTimes_ShouldNotThrow()
 		{
 			// Act & Assert - Should not throw
-			_client.Dispose();
-			_client.Dispose();
-			_client.Dispose();
+			var exception = Record.Exception(() =>
+			{
+				_client.Dispose();
+				_client.Dispose();
+				_client.Dispose();
+			});
+
+			// Assert that no exception was thrown
+			Assert.Null(exception);
 		}
 
 		public void Dispose()

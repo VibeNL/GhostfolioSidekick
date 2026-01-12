@@ -6,6 +6,7 @@
 		<Nullable>enable</Nullable>
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<Utf8Output>true</Utf8Output>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -14,11 +15,12 @@
 
 	<ItemGroup>
 		<PackageReference Include="CsvHelper" Version="33.1.0" />
-		<PackageReference Include="itext" Version="9.5.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
+		<PackageReference Include="itext7" Version="8.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>

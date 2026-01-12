@@ -24,7 +24,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 				EndDate = filterState.EndDate,
 				SelectedAccountId = filterState.SelectedAccountId,
 				SelectedSymbol = filterState.SelectedSymbol,
-				SelectedTransactionType = new List<string>(filterState.SelectedTransactionType),
+				SelectedTransactionType = [.. filterState.SelectedTransactionType],
 				SearchText = filterState.SearchText
 			};
 		}
@@ -38,7 +38,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 			filterState.EndDate = EndDate;
 			filterState.SelectedAccountId = SelectedAccountId;
 			filterState.SelectedSymbol = SelectedSymbol;
-			filterState.SelectedTransactionType = new List<string>(SelectedTransactionType);
+			filterState.SelectedTransactionType = [.. SelectedTransactionType];
 			filterState.SearchText = SearchText;
 		}
 

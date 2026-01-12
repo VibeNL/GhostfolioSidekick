@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.GhostfolioAPI.API.Compare;
 using GhostfolioSidekick.GhostfolioAPI.API.Mapper;
 using GhostfolioSidekick.GhostfolioAPI.Contract;
@@ -120,7 +120,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API
 			}
 
 			var symbols = await GetAllSymbolProfiles();
-			return [.. existingActivities.Select(x => ContractToModelMapper.MapActivity(account, currencyExchange, symbols, x))];
+			return [.. existingActivities.Select(x => ContractToModelMapper.MapActivity(account, symbols, x))];
 		}
 
 		public async Task SyncAllActivities(List<Model.Activities.Activity> allActivities)

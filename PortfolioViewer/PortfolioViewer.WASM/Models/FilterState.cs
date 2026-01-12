@@ -19,7 +19,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Models
 			_endDate = source._endDate;
 			_selectedAccountId = source._selectedAccountId;
 			_selectedSymbol = source._selectedSymbol;
-			_selectedTransactionType = new List<string>(source._selectedTransactionType);
+			_selectedTransactionType = [.. source._selectedTransactionType];
 			_searchText = source._searchText;
 		}
 

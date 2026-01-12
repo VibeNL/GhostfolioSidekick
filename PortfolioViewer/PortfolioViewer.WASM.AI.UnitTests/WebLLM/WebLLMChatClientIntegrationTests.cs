@@ -120,7 +120,6 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		}
 
 		[Fact]
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S3966:Objects should not be disposed more than once", Justification = "<Pending>")]
 		public void Dispose_ShouldBeIdempotent()
 		{
 			// Act & Assert - Should not throw when called multiple times

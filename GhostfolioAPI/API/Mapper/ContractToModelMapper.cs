@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database.Repository;
+using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities.Types;
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.API.Mapper
 			return [.. (countries ?? []).Select(x => new CountryWeight(x.Name, x.Code, x.Continent, x.Weight))];
 		}
 
-		internal static Model.Activities.Activity MapActivity(Account account, ICurrencyExchange currencyExchange, List<Contract.SymbolProfile> symbols, Contract.Activity rawActivity)
+		internal static Model.Activities.Activity MapActivity(Account account, List<Contract.SymbolProfile> symbols, Contract.Activity rawActivity)
 		{
 			var symbol = symbols.FirstOrDefault(s => s.Symbol == rawActivity.SymbolProfile.Symbol) ?? throw new ArgumentException($"Symbol {rawActivity.SymbolProfile} not found.");
 
