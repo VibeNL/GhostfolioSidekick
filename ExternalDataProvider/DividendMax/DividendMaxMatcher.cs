@@ -130,6 +130,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return r;
 		}
 
+		[SuppressMessage("SonarAnalyzer.CSharp", "S1144:Unused private types or members should be removed", Justification = "Serializing for API response")]
+		[SuppressMessage("SonarAnalyzer.CSharp", "S3459:Unassigned members should be removed", Justification = "Serializing for API response")]
 		private sealed class SuggestResult
 		{
 			public required string Name { get; set; } // Full name
