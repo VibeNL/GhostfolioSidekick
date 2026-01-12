@@ -5,100 +5,75 @@ using Microsoft.EntityFrameworkCore;
 namespace GhostfolioSidekick.PortfolioViewer.WASM.Services
 {
 	public class HoldingIdentifierMappingService(
-		IDbContextFactory<DatabaseContext> dbContextFactory,
-		ILogger<HoldingIdentifierMappingService> logger) : IHoldingIdentifierMappingService
+		IDbContextFactory<DatabaseContext> dbContextFactory) : IHoldingIdentifierMappingService
 	{
 		public async Task<HoldingIdentifierMappingModel?> GetHoldingIdentifierMappingAsync(string symbol, CancellationToken cancellationToken = default)
 		{
-			try
+			using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+			var holding = await context.Holdings
+			 .Include(h => h.SymbolProfiles)
+			 .FirstOrDefaultAsync(h => h.SymbolProfiles.Any(sp => sp.Symbol == symbol), cancellationToken);
+
+			if (holding == null)
 			{
-				using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-				var holding = await context.Holdings
-				 .Include(h => h.SymbolProfiles)
-				 .FirstOrDefaultAsync(h => h.SymbolProfiles.Any(sp => sp.Symbol == symbol), cancellationToken);
-
-				if (holding == null)
-				{
-					return null;
-				}
-
-				var symbolProfiles = holding.SymbolProfiles;
-				if (symbolProfiles == null || symbolProfiles.Count == 0)
-				{
-					return null;
-				}
-
-				return MapToHoldingIdentifierMappingModel(holding);
+				return null;
 			}
-			catch (Exception ex)
+
+			var symbolProfiles = holding.SymbolProfiles;
+			if (symbolProfiles == null || symbolProfiles.Count == 0)
 			{
-				logger.LogError(ex, "Error retrieving holding identifier mapping for symbol: {Symbol}", symbol);
-				throw;
+				return null;
 			}
+
+			return MapToHoldingIdentifierMappingModel(holding);
 		}
 
 		public async Task<List<HoldingIdentifierMappingModel>> GetAllHoldingIdentifierMappingsAsync(CancellationToken cancellationToken = default)
 		{
-			try
-			{
-				using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+			using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-				var holdings = await context.Holdings
-					.Include(h => h.SymbolProfiles)
-					.Where(h => h.SymbolProfiles.Any()) // Only holdings with symbol profiles
-					.ToListAsync(cancellationToken);
+			var holdings = await context.Holdings
+				.Include(h => h.SymbolProfiles)
+				.Where(h => h.SymbolProfiles.Any()) // Only holdings with symbol profiles
+				.ToListAsync(cancellationToken);
 
-				var mappingModels = holdings
-					.Where(h => h.SymbolProfiles != null && h.SymbolProfiles.Count > 0)
-					.Select(MapToHoldingIdentifierMappingModel)
-					.OrderBy(m => m.Symbol)
-					.ToList();
+			var mappingModels = holdings
+				.Where(h => h.SymbolProfiles != null && h.SymbolProfiles.Count > 0)
+				.Select(MapToHoldingIdentifierMappingModel)
+				.OrderBy(m => m.Symbol)
+				.ToList();
 
-				return mappingModels;
-			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex, "Error retrieving all holding identifier mappings");
-				throw;
-			}
+			return mappingModels;
 		}
 
 		public async Task<List<IdentifierMatchingHistoryModel>> GetIdentifierMatchingHistoryAsync(string partialIdentifier, CancellationToken cancellationToken = default)
 		{
-			try
+			using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+			// For now, create a simple history based on current mappings
+			// In a real implementation, you might have a separate audit/history table
+			var holdings = await context.Holdings
+							.Include(h => h.SymbolProfiles)
+							.Where(h => h.PartialSymbolIdentifiers.Any(pi => pi.Identifier == partialIdentifier))
+							.ToListAsync(cancellationToken);
+
+			var historyModels = new List<IdentifierMatchingHistoryModel>();
+
+			foreach (var holding in holdings)
 			{
-				using var context = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-				// For now, create a simple history based on current mappings
-				// In a real implementation, you might have a separate audit/history table
-				var holdings = await context.Holdings
-								.Include(h => h.SymbolProfiles)
-								.Where(h => h.PartialSymbolIdentifiers.Any(pi => pi.Identifier == partialIdentifier))
-								.ToListAsync(cancellationToken);
-
-				var historyModels = new List<IdentifierMatchingHistoryModel>();
-
-				foreach (var holding in holdings)
+				foreach (var symbolProfile in holding.SymbolProfiles.Where(x => ContainsIdentifier(x, partialIdentifier)))
 				{
-					foreach (var symbolProfile in holding.SymbolProfiles.Where(x => ContainsIdentifier(x, partialIdentifier)))
+					historyModels.Add(new IdentifierMatchingHistoryModel
 					{
-						historyModels.Add(new IdentifierMatchingHistoryModel
-						{
-							PartialIdentifier = partialIdentifier,
-							DataSource = symbolProfile.DataSource,
-							MatchedSymbol = symbolProfile.Symbol,
-						});
-					}
+						PartialIdentifier = partialIdentifier,
+						DataSource = symbolProfile.DataSource,
+						MatchedSymbol = symbolProfile.Symbol,
+					});
 				}
+			}
 
-				return [.. historyModels.OrderByDescending(h => h.PartialIdentifier)];
-			}
-			catch (Exception ex)
-			{
-				logger.LogError(ex, "Error retrieving identifier matching history for: {Identifier}", partialIdentifier);
-				throw;
-			}
+			return [.. historyModels.OrderByDescending(h => h.PartialIdentifier)];
 		}
 
 		private static HoldingIdentifierMappingModel MapToHoldingIdentifierMappingModel(Model.Holding holding)
