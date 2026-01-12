@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 
 		protected override CultureInfo CultureInfo => CultureInfo.InvariantCulture;
 
-		private class GermanBillingParserAdapter : IBillingParser
+		private sealed class GermanBillingParserAdapter : IBillingParser
 		{
 			public string[] BillingHeaders => GermanBillingParser.BillingHeaders;
 
@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.DE
 			}
 		}
 
-		private class GermanPositionParserAdapter : IPositionParser
+		private sealed class GermanPositionParserAdapter : IPositionParser
 		{
 			public string ExtractIsin(IReadOnlyList<SingleWordToken> positionColumn)
 			{

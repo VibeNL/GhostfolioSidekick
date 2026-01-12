@@ -101,9 +101,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 				It.Is<object[]>(args => args.Length == 1 && args[0].ToString() == "./js/dist/webllm.interop.js")),
 				Times.Once);
 
-			// We can't easily verify the InvokeVoidAsync call because it's an extension method
-			// but we can verify that no exception was thrown and the initialization completed
-			Assert.True(true); // Test passes if no exception was thrown during initialization
+			// Verify that the module reference was properly stored by checking we can call Clone without exception
+			var cloned = _client.Clone();
+			Assert.NotNull(cloned);
+			Assert.IsType<WebLLMChatClient>(cloned);
 		}
 
 		[Fact]
@@ -147,7 +148,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void Dispose_ShouldNotThrow()
 		{
 			// Act & Assert - Should not throw
-			_client.Dispose();
+			var exception = Record.Exception(() => _client.Dispose());
+			Assert.Null(exception);
+			
+			// Verify multiple dispose calls don't throw (idempotent behavior)
+			var secondDisposeException = Record.Exception(() => _client.Dispose());
+			Assert.Null(secondDisposeException);
 		}
 
 		[Fact]

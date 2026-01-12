@@ -55,9 +55,15 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 		public void Dispose_CalledMultipleTimes_ShouldNotThrow()
 		{
 			// Act & Assert - Should not throw
-			_client.Dispose();
-			_client.Dispose();
-			_client.Dispose();
+			var exception = Record.Exception(() =>
+			{
+				_client.Dispose();
+				_client.Dispose();
+				_client.Dispose();
+			});
+
+			// Assert that no exception was thrown
+			Assert.Null(exception);
 		}
 
 		public void Dispose()

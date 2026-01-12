@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 		protected override IBillingParser BillingParser => _billingParser;
 		protected override IPositionParser PositionParser => _positionParser;
 
-		private class SpanishBillingParserAdapter : IBillingParser
+		private sealed class SpanishBillingParserAdapter : IBillingParser
 		{
 			public string[] BillingHeaders => SpanishBillingParser.BillingHeaders;
 
@@ -41,7 +41,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 			}
 		}
 
-		private class SpanishPositionParserAdapter : IPositionParser
+		private sealed class SpanishPositionParserAdapter : IPositionParser
 		{
 			public string ExtractIsin(IReadOnlyList<SingleWordToken> positionColumn)
 			{
