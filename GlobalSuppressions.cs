@@ -36,3 +36,10 @@ using System.Diagnostics.CodeAnalysis;
 
 // Info Code Smell suppressions
 [assembly: SuppressMessage("Info Code Smell", "S1135:Track uses of \"TODO\" tags")]
+
+// Maintainability suppressions
+[assembly: SuppressMessage("Maintainability", "S2139:Either log this exception and handle it, or rethrow it with some contextual information.")]
+
+
+// Code Quality suppressions
+[assembly: SuppressMessage("CodeQuality", "IDE0079:Remove unnecessary suppression", Justification = "<Pending>", Scope = "type", Target = "~T:GhostfolioSidekick.ExternalDataProvider.DividendMax.DividendMaxMatcher.SuggestResult")]
