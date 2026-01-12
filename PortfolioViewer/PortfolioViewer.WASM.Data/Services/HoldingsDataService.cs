@@ -1,4 +1,4 @@
-using GhostfolioSidekick.Database;
+ using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.PortfolioViewer.WASM.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -107,6 +107,12 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.Data.Services
 			var result = new List<HoldingDisplayModel>();
 			foreach (var x in list)
 			{
+				// Skip holdings with no snapshots to avoid NoElements exceptions
+				if (!x.Snapshots.Any())
+				{
+					continue;
+				}
+
 				result.Add(new HoldingDisplayModel
 				{
 					AssetClass = x.Holding.AssetClass.ToString(),

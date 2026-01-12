@@ -14,6 +14,7 @@ using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
 using GhostfolioSidekick.Parsers;
 using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+using GhostfolioSidekick.Parsers.TradeRepublic;
 using GhostfolioSidekick.PerformanceCalculations;
 using GhostfolioSidekick.PerformanceCalculations.Calculator;
 using Microsoft.EntityFrameworkCore;
@@ -133,6 +134,7 @@ namespace GhostfolioSidekick
 							RegisterAllWithInterface<IScheduledWork>(services);
 							RegisterAllWithInterface<IHoldingStrategy>(services);
 							RegisterAllWithInterface<IFileImporter>(services);
+							RegisterAllWithInterface<ITradeRepublicActivityParser>(services);
 
 							services.AddScoped<IHoldingPerformanceCalculator, HoldingPerformanceCalculator>();
 

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
@@ -25,17 +25,13 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 			var symbolIdentifiers = new List<Tuple<string, string>>();
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
 			{
-#pragma warning disable S2971 // LINQ expressions should be simplified
-				(await databaseContext.SymbolProfiles.Where(x => x.AssetSubClass == AssetSubClass.Stock)
-					.Select(x => new Tuple<string, string>(x.Symbol, x.DataSource))
-					.ToListAsync())
-					.OrderBy(x => x.Item1)
-					.ThenBy(x => x.Item2)
-					.ToList()
-					.Where(x => !Datasource.IsGhostfolio(x.Item2))
-					.ToList()
-					.ForEach(symbolIdentifiers.Add);
-#pragma warning restore S2971 // LINQ expressions should be simplified
+				symbolIdentifiers.AddRange(
+					(await databaseContext.SymbolProfiles.Where(x => x.AssetSubClass == AssetSubClass.Stock)
+						.Select(x => new Tuple<string, string>(x.Symbol, x.DataSource))
+						.ToListAsync())
+						.OrderBy(x => x.Item1)
+						.ThenBy(x => x.Item2)
+						.Where(x => !Datasource.IsGhostfolio(x.Item2)));
 			}
 
 			foreach (var symbolIds in symbolIdentifiers)
@@ -93,7 +89,6 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					logger.LogDebug("Stock splits for {Symbol} from {DataSource} gathered. Found {SplitCount}", symbol.Symbol, symbol.DataSource, splits.Count());
 				}
 			}
-
 		}
 	}
 }

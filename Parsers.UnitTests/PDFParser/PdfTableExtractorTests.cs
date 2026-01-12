@@ -1,0 +1,516 @@
+using AwesomeAssertions;
+using GhostfolioSidekick.Parsers.PDFParser.PdfToWords;
+
+namespace GhostfolioSidekick.Parsers.UnitTests.PDFParser
+{
+	public class PdfTableExtractorTests
+	{
+		[Fact]
+		public void GroupRows_GroupsByPageAndRow()
+		{
+			// Layout:
+			// Page0 Row0: A (x=0), B (x=5)
+			// Page0 Row1: C (x=1)
+			// Page1 Row0: D (x=0)
+			var words = new List<SingleWordToken>
+			{
+				Token("A", 0, 0, 0),
+				Token("B", 0, 0, 5),
+				Token("C", 0, 1, 1),
+				Token("D", 1, 0, 0)
+			};
+
+			var rows = PdfTableExtractor.GroupRows(words);
+
+			rows.Should().HaveCount(3);
+			rows[0].Tokens.Select(t => t.Text).Should().ContainInOrder("A", "B");
+			rows[1].Tokens.Select(t => t.Text).Should().ContainSingle().Which.Should().Be("C");
+			rows[2].Tokens.Select(t => t.Text).Should().ContainSingle().Which.Should().Be("D");
+		}
+
+		[Fact]
+		public void FindTableRowsWithColumns_AlignsByHeaderAnchors()
+		{
+			// Layout:
+			// Header: H1 (x=0) | H2 (x=10) | H3 (x=20)
+			// Row:    r1c1 (x?1) | r1c2 (x?11) | r1c3 (x?21)
+			var header = new List<SingleWordToken>
+			{
+				Token("H1", 0, 0, 0),
+				Token("H2", 0, 0, 10),
+				Token("H3", 0, 0, 20),
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("r1c1", 0, 1, 1),
+				Token("r1c2", 0, 1, 11),
+				Token("r1c3", 0, 1, 21),
+			};
+
+			var tableDefinition = new TableDefinition(["H1", "H2", "H3"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			rows.Should().HaveCount(1);
+			rows[0].Headers.Should().HaveCount(3); 
+			rows[0].Columns.Should().HaveCount(3);
+			rows[0].Columns[0].Single().Text.Should().Be("r1c1");
+			rows[0].Columns[1].Single().Text.Should().Be("r1c2");
+			rows[0].Columns[2].Single().Text.Should().Be("r1c3");
+		}
+
+		[Fact]
+		public void FindTableRowsWithColumns_MergesMultiLineRows()
+		{
+			// Layout:
+			// Header: H1 (x=0) | H2 (x=10)
+			// Row1: r1c1 (x?1) | partA (x?11)
+			// Row2: r1c1b (x?2) | partB (x?12) -> merged with Row1
+			var header = new List<SingleWordToken>
+			{
+				Token("H1", 0, 0, 0),
+				Token("H2", 0, 0, 10)
+			};
+
+			var line1 = new List<SingleWordToken>
+			{
+				Token("r1c1", 0, 1, 1),
+				Token("partA", 0, 1, 11)
+			};
+
+			var line2 = new List<SingleWordToken>
+			{
+				Token("r1c1b", 0, 2, 2),
+				Token("partB", 0, 2, 12)
+			};
+
+			static bool MergePredicate(PdfTableRow current, PdfTableRow next) => next.Page == current.Page && next.Row == current.Row + 1;
+
+			var tableDefinition = new TableDefinition(["H1", "H2"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(line1).Concat(line2),
+				[tableDefinition],
+				mergePredicate: MergePredicate);
+
+			rows.Should().HaveCount(1);
+			rows[0].Columns[0].Select(t => t.Text).Should().ContainInOrder("r1c1", "r1c1b");
+			rows[0].Columns[1].Select(t => t.Text).Should().ContainInOrder("partA", "partB");
+		}
+
+		[Fact]
+		public void FindTableRowsWithColumns_HandlesUnevenColumnSpacing()
+		{
+			// Layout:
+			// Header: Date (x=0) | Description (x=15) | Amount (x=40)
+			// Row:    2024-01-01 (x?1) | Long desc (x?16-17) | EUR 123.45 (x?41-42)
+			var header = new List<SingleWordToken>
+			{
+				Token("Date", 0, 0, 0),
+				Token("Description", 0, 0, 15),
+				Token("Amount", 0, 0, 40)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("2024-01-01", 0, 1, 1),
+				Token("Long", 0, 1, 16),
+				Token("desc", 0, 1, 17),
+				Token("EUR", 0, 1, 41),
+				Token("123.45", 0, 1, 42)
+			};
+
+			var tableDefinition = new TableDefinition(["Date", "Description", "Amount"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			rows.Should().HaveCount(1);
+			rows[0].Headers.Should().ContainInOrder("Date", "Description", "Amount");
+			rows[0].Columns.Should().HaveCount(3);
+			rows[0].Columns[0].Single().Text.Should().Be("2024-01-01");
+			rows[0].Columns[1].Select(t => t.Text).Should().ContainInOrder("Long", "desc");
+			rows[0].Columns[2].Select(t => t.Text).Should().ContainInOrder("EUR", "123.45");
+		}
+
+		[Fact]
+		public void FindTableRowsWithColumns_MergesMultiLineRows_WithMultipleColumns()
+		{
+			// Layout:
+			// Header: Col1 (x=0) | Col2 (x=10) | Col3 (x=20)
+			// Row1:   A1 (x?1) | B1 (x?11) | C1 (x?21)
+			// Row2:   A1b (x?2) | B1b (x?12) | C1b (x?22)
+			var header = new List<SingleWordToken>
+			{
+				Token("Col1", 0, 0, 0),
+				Token("Col2", 0, 0, 10),
+				Token("Col3", 0, 0, 20)
+			};
+
+			var line1 = new List<SingleWordToken>
+			{
+				Token("A1", 0, 1, 1),
+				Token("B1", 0, 1, 11),
+				Token("C1", 0, 1, 21)
+			};
+
+			var line2 = new List<SingleWordToken>
+			{
+				Token("A1b", 0, 2, 2),
+				Token("B1b", 0, 2, 12),
+				Token("C1b", 0, 2, 22)
+			};
+
+			static bool MergePredicate(PdfTableRow current, PdfTableRow next) => next.Page == current.Page && next.Row == current.Row + 1;
+
+			var tableDefinition = new TableDefinition(["Col1", "Col2", "Col3"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(line1).Concat(line2),
+				[tableDefinition],
+				mergePredicate: MergePredicate);
+
+			rows.Should().HaveCount(1);
+			rows[0].Columns[0].Select(t => t.Text).Should().ContainInOrder("A1", "A1b");
+			rows[0].Columns[1].Select(t => t.Text).Should().ContainInOrder("B1", "B1b");
+			rows[0].Columns[2].Select(t => t.Text).Should().ContainInOrder("C1", "C1b");
+		}
+
+		[Fact]
+		public void GetColumnValue_ReturnsCorrectColumnValue()
+		{
+			// Arrange
+			// Layout:
+			// Header: Transaction Type (x=0) | Date (x=20) | Description (x=35) | Amount (x=60)
+			// Row:    Deposit (x=1) | 17-05-2023 (x=21) | Bank transfer (x=36-37) | EUR 100.00 (x=61-62)
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Type", 0, 0, 1),
+				Token("Date", 0, 0, 20),
+				Token("Description", 0, 0, 35),
+				Token("Amount", 0, 0, 60)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Deposit", 0, 1, 1),
+				Token("17-05-2023", 0, 1, 21),
+				Token("Bank", 0, 1, 36),
+				Token("transfer", 0, 1, 37),
+				Token("EUR", 0, 1, 61),
+				Token("100.00", 0, 1, 62)
+			};
+
+			var tableDefinition = new TableDefinition(["Transaction Type", "Date", "Description", "Amount"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue("Transaction Type").Should().Be("Deposit");
+			row.GetColumnValue("Date").Should().Be("17-05-2023");
+			row.GetColumnValue("Description").Should().Be("Bank transfer");
+			row.GetColumnValue("Amount").Should().Be("EUR 100.00");
+		}
+
+		[Fact]
+		public void GetColumnValue_ReturnsNullForNonExistentColumn()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Col1", 0, 0, 0),
+				Token("Col2", 0, 0, 10)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Value1", 0, 1, 1),
+				Token("Value2", 0, 1, 11)
+			};
+
+			var tableDefinition = new TableDefinition(["Col1", "Col2"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue("NonExistentColumn").Should().BeNull();
+		}
+
+		[Fact]
+		public void GetColumnValue_ReturnsNullForEmptyColumn()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Col1", 0, 0, 0),
+				Token("Col2", 0, 0, 10),
+				Token("Col3", 0, 0, 20)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Value1", 0, 1, 1),
+				// No value for Col2 (empty column)
+				Token("Value3", 0, 1, 21)
+			};
+
+			var tableDefinition = new TableDefinition(["Col1", "Col2", "Col3"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue("Col1").Should().Be("Value1");
+			row.GetColumnValue("Col2").Should().BeNull(); // Empty column
+			row.GetColumnValue("Col3").Should().Be("Value3");
+		}
+
+		[Fact]
+		public void GetColumnValue_HandlesMultiWordColumnNames()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Type", 0, 0, 1),
+				Token("Amount", 0, 0, 20)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Buy", 0, 1, 1),
+				Token("150.00", 0, 1, 21)
+			};
+
+			var tableDefinition = new TableDefinition(["Transaction Type", "Amount"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue("Transaction Type").Should().Be("Buy");
+			row.GetColumnValue("Amount").Should().Be("150.00");
+		}
+
+		[Fact]
+		public void GetColumnValue_HandlesPartialMatching()
+		{
+			// Arrange
+			// Test where we want to find "Date" and it matches "Transaction Date"
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Date", 0, 0, 5),
+				Token("Total", 0, 0, 100),
+				Token("Amount", 0, 0, 105),
+				Token("USD", 0, 0, 110)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("2023-01-01", 0, 1, 1),
+				Token("100.50", 0, 1, 101)
+			};
+
+			var tableDefinition = new TableDefinition(["Transaction Date", "Total Amount USD"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			// Should find "Date" within "Transaction Date"
+			row.GetColumnValue("Date").Should().Be("2023-01-01");
+			// Should find "Amount" within "Total Amount USD"
+			row.GetColumnValue("Amount").Should().Be("100.50");
+		}
+
+		[Fact]
+		public void GetColumnValue_CaseInsensitive()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Date", 0, 0, 5),
+				Token("Amount", 0, 0, 100)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("2023-01-01", 0, 1, 1),
+				Token("100.50", 0, 1, 101)
+			};
+
+			var tableDefinition = new TableDefinition(["Transaction Date", "Amount"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue("transaction date").Should().Be("2023-01-01");
+			row.GetColumnValue("AMOUNT").Should().Be("100.50");
+			row.GetColumnValue("DATE").Should().Be("2023-01-01");
+		}
+
+		[Fact]
+		public void GetColumnValue_WithNullOrEmptyInputs_ReturnsNull()
+		{
+			// Arrange
+			var header = new List<SingleWordToken>
+			{
+				Token("Date", 0, 0, 0)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("2023-01-01", 0, 1, 1)
+			};
+
+			var tableDefinition = new TableDefinition(["Date"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Act & Assert
+			row.GetColumnValue(null).Should().BeNull();
+			row.GetColumnValue("").Should().BeNull();
+			row.GetColumnValue("   ").Should().BeNull();
+		}
+
+		[Fact]
+		public void GetHeaders_PreservesMultiWordColumnStructure()
+		{
+			// Test case: Header keywords are "Transaction Type" and "Date"
+			// But tokens are spread across: "Transaction", "Type", "Date"
+			// The GetHeaders method should preserve the original structure as "Transaction Type | Date"
+			// not "Transaction | Type Date"
+			
+			// Arrange - header tokens positioned to match the keywords structure
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),  // Part of "Transaction Type"
+				Token("Type", 0, 0, 8),         // Part of "Transaction Type" 
+				Token("Date", 0, 0, 20)         // Separate column
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Buy", 0, 1, 1),          // Under "Transaction Type"
+				Token("2023-01-01", 0, 1, 21)   // Under "Date"
+			};
+
+			var tableDefinition = new TableDefinition(["Transaction Type", "Date"], "", []);
+
+			// Act
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			// Assert - header should preserve the intended structure
+			// The header.Text should be "Transaction Type Date" with proper spacing
+			// And the column extraction should work correctly
+			var row = rows[0];
+			
+			// This should work correctly - "Transaction Type" should map to "Buy"
+			row.GetColumnValue("Transaction Type").Should().Be("Buy");
+			row.GetColumnValue("Date").Should().Be("2023-01-01");
+
+			// The header should preserve the multi-word column names correctly
+			// Currently this might fail due to incorrect grouping in GetHeaders
+			row.Headers.Aggregate((current, next) => current + " " + next).Should().Be("Transaction Type Date");
+		}
+
+		[Fact]
+		public void AlignToHeaderColumns_WithCutoffApproach_PreservesMultiWordDescriptions()
+		{
+			// This test validates that multi-word descriptions like "Bank transfer" 
+			// stay together in the same column instead of being split between columns
+			
+			// Layout:
+			// Header: Transaction Type (x=0) | Date (x=20) | Description (x=40) | Amount (x=70)
+			// Row:    Buy (x=1) | 2023-01-01 (x=21) | Bank transfer (x=41,46) | EUR 100.00 (x=71,75)
+			var header = new List<SingleWordToken>
+			{
+				Token("Transaction", 0, 0, 0),
+				Token("Type", 0, 0, 8),
+				Token("Date", 0, 0, 20),
+				Token("Description", 0, 0, 40),
+				Token("Amount", 0, 0, 70)
+			};
+
+			var data = new List<SingleWordToken>
+			{
+				Token("Buy", 0, 1, 1),
+				Token("2023-01-01", 0, 1, 21),
+				Token("Bank", 0, 1, 41),      // Should stay with "transfer"
+				Token("transfer", 0, 1, 46), // Should stay with "Bank"
+				Token("EUR", 0, 1, 71),
+				Token("100.00", 0, 1, 75)
+			};
+
+			var tableDefinition = new TableDefinition(["Transaction Type", "Date", "Description", "Amount"], "", []);
+
+			var rows = PdfTableExtractor.FindTableRowsWithColumns(
+				header.Concat(data),
+				[tableDefinition],
+				mergePredicate: null);
+
+			var row = rows[0];
+
+			// Assert - Multi-word descriptions should stay together
+			row.GetColumnValue("Transaction Type").Should().Be("Buy");
+			row.GetColumnValue("Date").Should().Be("2023-01-01");
+			row.GetColumnValue("Description").Should().Be("Bank transfer"); // Both words together
+			row.GetColumnValue("Amount").Should().Be("EUR 100.00");
+
+			// Verify the columns contain the expected tokens
+			rows[0].Columns[0].Select(t => t.Text).Should().ContainSingle().Which.Should().Be("Buy");
+			rows[0].Columns[1].Select(t => t.Text).Should().ContainSingle().Which.Should().Be("2023-01-01");
+			rows[0].Columns[2].Select(t => t.Text).Should().ContainInOrder("Bank", "transfer");
+			rows[0].Columns[3].Select(t => t.Text).Should().ContainInOrder("EUR", "100.00");
+		}
+
+		private static SingleWordToken Token(string text, int page, int row, int column)
+		{
+			return new SingleWordToken(text, new Position(page, row, column));
+		}
+	}
+}

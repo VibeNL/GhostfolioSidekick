@@ -45,7 +45,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 
 			var holdingAggregated = CreateTestHoldingAggregated("AAPL", "Apple Inc");
-			var calculatedSnapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holdingAggregated, 1, testDate);
+			var calculatedSnapshot = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
 
 			holdingAggregated.CalculatedSnapshotsPrimaryCurrency = [calculatedSnapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holdingAggregated };
@@ -88,8 +88,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holding1 = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var holding2 = CreateTestHoldingAggregated("MSFT", "Microsoft Corp");
 
-			var snapshot1 = CreateTestCalculatedSnapshotPrimaryCurrency(holding1, 1, testDate, 10, 100, 110, 1000, 1100);
-			var snapshot2 = CreateTestCalculatedSnapshotPrimaryCurrency(holding2, 1, testDate, 5, 200, 220, 1000, 1100);
+			var snapshot1 = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate, 10, 100, 110, 1000, 1100);
+			var snapshot2 = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate, 5, 200, 220, 1000, 1100);
 
 			holding1.CalculatedSnapshotsPrimaryCurrency = [snapshot1];
 			holding2.CalculatedSnapshotsPrimaryCurrency = [snapshot2];
@@ -121,7 +121,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
-			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate, 10, 100, 110, 1000, 1100);
+			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate, 10, 100, 110, 1000, 1100);
 
 			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
@@ -148,7 +148,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
-			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate, 10, 0, 110, 0, 1100);
+			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate, 10, 0, 110, 0, 1100);
 
 			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
@@ -177,9 +177,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holdingA = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var holdingM = CreateTestHoldingAggregated("MSFT", "Microsoft Corp");
 
-			var snapshotZ = CreateTestCalculatedSnapshotPrimaryCurrency(holdingZ, 1, testDate);
-			var snapshotA = CreateTestCalculatedSnapshotPrimaryCurrency(holdingA, 1, testDate);
-			var snapshotM = CreateTestCalculatedSnapshotPrimaryCurrency(holdingM, 1, testDate);
+			var snapshotZ = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
+			var snapshotA = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
+			var snapshotM = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
 
 			holdingZ.CalculatedSnapshotsPrimaryCurrency = [snapshotZ];
 			holdingA.CalculatedSnapshotsPrimaryCurrency = [snapshotA];
@@ -230,7 +230,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
-			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, accountId, testDate);
+			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(accountId, testDate);
 
 			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
@@ -254,7 +254,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
-			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
+			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
 
 			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
@@ -277,7 +277,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
-			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
+			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
 
 			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
@@ -306,8 +306,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var holdingAAPL = CreateTestHoldingAggregated("AAPL", "Apple Inc");
 			var holdingMSFT = CreateTestHoldingAggregated("MSFT", "Microsoft Corp");
 
-			var snapshotAAPL = CreateTestCalculatedSnapshotPrimaryCurrency(holdingAAPL, 1, testDate);
-			var snapshotMSFT = CreateTestCalculatedSnapshotPrimaryCurrency(holdingMSFT, 1, testDate);
+			var snapshotAAPL = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
+			var snapshotMSFT = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
 
 			holdingAAPL.CalculatedSnapshotsPrimaryCurrency = [snapshotAAPL];
 			holdingMSFT.CalculatedSnapshotsPrimaryCurrency = [snapshotMSFT];
@@ -334,7 +334,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
-			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
+			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
 
 			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
@@ -525,8 +525,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
 			{
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, accountId, startDate, 10, 100, 110, 1000, 1100),
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, accountId, startDate.AddDays(1), 10, 100, 115, 1000, 1150)
+				CreateTestCalculatedSnapshotPrimaryCurrency(accountId, startDate, 10, 100, 110, 1000, 1100),
+				CreateTestCalculatedSnapshotPrimaryCurrency(accountId, startDate.AddDays(1), 10, 100, 115, 1000, 1150)
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
@@ -561,8 +561,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// So when accountId is null, the condition never matches and returns empty result
 			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
 			{
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 1, startDate, 10, 100, 110, 1000, 1100),
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 2, startDate, 5, 200, 220, 1000, 1100)
+				CreateTestCalculatedSnapshotPrimaryCurrency(1, startDate, 10, 100, 110, 1000, 1100),
+				CreateTestCalculatedSnapshotPrimaryCurrency(2, startDate, 5, 200, 220, 1000, 1100)
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
@@ -588,8 +588,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			// So it returns ALL records regardless of AccountId
 			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
 			{
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 1, startDate, 10, 100, 110, 1000, 1100),
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 2, startDate, 5, 200, 220, 1000, 1100)
+				CreateTestCalculatedSnapshotPrimaryCurrency(1, startDate, 10, 100, 110, 1000, 1100),
+				CreateTestCalculatedSnapshotPrimaryCurrency(2, startDate, 5, 200, 220, 1000, 1100)
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
@@ -613,8 +613,8 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
 			{
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 1, startDate, 10, 100, 110, 1000, 1100),
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 2, startDate, 5, 200, 220, 1000, 1100)
+				CreateTestCalculatedSnapshotPrimaryCurrency(1, startDate, 10, 100, 110, 1000, 1100),
+				CreateTestCalculatedSnapshotPrimaryCurrency(2, startDate, 5, 200, 220, 1000, 1100)
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
@@ -637,9 +637,9 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 
 			var snapshots = new List<CalculatedSnapshotPrimaryCurrency>
 			{
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 1, startDate.AddDays(2), 10, 100, 110, 1000, 1100),
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 1, startDate, 10, 100, 110, 1000, 1100),
-				CreateTestCalculatedSnapshotPrimaryCurrency(null, 1, startDate.AddDays(1), 10, 100, 110, 1000, 1100)
+				CreateTestCalculatedSnapshotPrimaryCurrency(1, startDate.AddDays(2), 10, 100, 110, 1000, 1100),
+				CreateTestCalculatedSnapshotPrimaryCurrency(1, startDate, 10, 100, 110, 1000, 1100),
+				CreateTestCalculatedSnapshotPrimaryCurrency(1, startDate.AddDays(1), 10, 100, 110, 1000, 1100)
 			};
 
 			_mockDatabaseContext.Setup(x => x.CalculatedSnapshotPrimaryCurrencies).ReturnsDbSet(snapshots);
@@ -700,7 +700,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			var testDate = DateOnly.FromDateTime(DateTime.Now);
 
 			var holding = CreateTestHoldingAggregated("AAPL", null); // null name
-			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
+			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
 
 			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
@@ -725,7 +725,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockServerConfigurationService.Setup(x => x.PrimaryCurrency).Returns(Currency.EUR);
 
 			var holding = CreateTestHoldingAggregated("AAPL", "Apple Inc");
-			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(holding, 1, testDate);
+			var snapshot = CreateTestCalculatedSnapshotPrimaryCurrency(1, testDate);
 
 			holding.CalculatedSnapshotsPrimaryCurrency = [snapshot];
 			var holdingAggregateds = new List<HoldingAggregated> { holding };
@@ -785,9 +785,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters", Justification = "Testcode")]
 		private static CalculatedSnapshotPrimaryCurrency CreateTestCalculatedSnapshotPrimaryCurrency(
-			HoldingAggregated? holding,
 			int? accountId,
 			DateOnly? date,
 			decimal quantity = 10,

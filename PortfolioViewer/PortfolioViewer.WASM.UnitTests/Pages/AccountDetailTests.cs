@@ -353,7 +353,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 			using var testContext = new BunitContext();
 			testContext.Services.AddSingleton<ITestContextService>(new TestContextService { IsTest = true });
 			testContext.Services.AddSingleton<NavigationManager>(new MockNavigationManager());
-			testContext.Services.AddSingleton<IServerConfigurationService>(_mockServerConfigurationService.Object);
+			testContext.Services.AddSingleton(_mockServerConfigurationService.Object);
 
 			// Act & Assert - Component should handle missing services
 			try

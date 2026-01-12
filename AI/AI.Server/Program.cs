@@ -1,11 +1,10 @@
-﻿using GhostfolioSidekick.AI.Common;
+using GhostfolioSidekick.AI.Common;
 using Microsoft.Extensions.AI;
 
 namespace GhostfolioSidekick.AI.Server
 {
 	internal static class Program
 	{
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1075:URIs should not be hardcoded", Justification = "<Pending>")]
 		private const string ModelUrl = "https://huggingface.co/tensorblock/Llama-3.2-8B-Instruct-GGUF/resolve/main/Llama-3.2-8B-Instruct-Q3_K_M.gguf";
 
 		static async Task Main()

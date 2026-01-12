@@ -16,6 +16,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="TestFiles\TradeRepublic\NL\BuyOrders\**" />
+	  <EmbeddedResource Remove="TestFiles\TradeRepublic\NL\BuyOrders\**" />
+	  <None Remove="TestFiles\TradeRepublic\NL\BuyOrders\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
 	</ItemGroup>
 
@@ -45,12 +51,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="PDFParser\" />
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
 		<Folder Include="TestFiles\DeGiro\EN\SellOrders\" />
 		<Folder Include="TestFiles\TradeRepublic\ES\CashTransactions\" />
-		<Folder Include="TestFiles\TradeRepublic\NL\BuyOrders\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -107,18 +111,6 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Bunq\CashTransactions\single_withdrawal.csv">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\CentraalBeheer\buy_order.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\CentraalBeheer\deposit.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\CentraalBeheer\dividends.pdf">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\CentraalBeheer\sell_order.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Coinbase\BuyOrders\single_advance_trade_buy.csv">
@@ -303,6 +295,9 @@
 		</None>
 		<None Update="TestFiles\Generic\Specials\single_gift_fiat.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\GoldRepublic\year_overview.pdf">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\Nexo\Specials\single_exchange.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -494,9 +489,6 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\TradeRepublic\DE\CashTransactions\single_dividend_stock.pdf">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="TestFiles\TradeRepublic\NL\montly_statement.pdf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="TestFiles\TradeRepublic\multi-month-statement-nl.pdf">

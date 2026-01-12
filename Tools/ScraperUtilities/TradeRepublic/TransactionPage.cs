@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities.Types;
 using GhostfolioSidekick.Model.Symbols;
 using Microsoft.Extensions.Logging;
@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 
 				// Press Close button to close the details
 				var closeButtons = await page.Locator("svg[class='closeIcon']").AllAsync();
-				await closeButtons.Skip(1).First().ClickAsync();
+				await closeButtons[1].ClickAsync();
 
 				counter++;
 			}
@@ -93,7 +93,6 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 			return page.Locator("li[class='timeline__entry']").CountAsync();
 		}
 
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3776:Cognitive Complexity of methods should not be too high", Justification = "Scraper logic is complex")]
 		private async Task<ActivityWithSymbol?> ProcessDetails(ICollection<SymbolProfile> knownProfiles, string outputDirectory)
 		{
 			var table = await ParseTable(0);
@@ -261,7 +260,7 @@ namespace GhostfolioSidekick.Tools.ScraperUtilities.TradeRepublic
 						await Task.Delay(100);
 					}
 
-					var newPage = page.Context.Pages.LastOrDefault();
+					var newPage = page.Context.Pages.Count > countPages ? page.Context.Pages[^1] : null;
 					if (newPage != null)
 					{
 						try
