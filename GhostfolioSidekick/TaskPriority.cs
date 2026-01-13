@@ -4,8 +4,6 @@ namespace GhostfolioSidekick
 	{
 		DisplayInformation,
 
-		SymbolMatcher,
-
 		AccountMaintainer,
 
 		MaintainManualSymbol,
@@ -18,7 +16,7 @@ namespace GhostfolioSidekick
 
 		DetermineHoldings,
 
-		
+		SymbolMatcher,
 
 		MarketDataDividends,
 
