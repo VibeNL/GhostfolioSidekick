@@ -9,35 +9,11 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 {
 	public class TipRanksMatcher(IHttpClientFactory httpClientFactory) : ISymbolMatcher
 	{
-		/*https://autocomplete.tipranks.com/api/autocomplete/search?name=asrnl&topAnalysts=3&topInsiders=3&topInstitutions=3&topBloggers=3&topTickers=6&onlyStockTickers=false&ignoreFunds=false
-		
-			[
-    {
-        "label": "ASR Nederland N.V",
-        "ticker": null,
-        "value": "NL:ASRNL",
-        "category": "ticker",
-        "uid": "3da53095",
-        "countryId": 14,
-        "extraData": {
-            "market": "Amsterdam",
-            "marketCap": 12134264743
-
-		},
-        "stockType": 12,
-        "followers": 13,
-        "keywords": []
-}
-]
-			
-		https://www.tipranks.com/stocks/nl:asrnl/stock-forecast/payload.json
-		*/
-
 		[SuppressMessage("Sonar", "S1075:URIs should not be hardcoded", Justification = "External API endpoint is stable and required for integration")]
-		private const string BaseUrl = "https://www.tipranks.com/";
+		private const string SearchUrl = "https://autocomplete.tipranks.com/api/autocomplete/search?name=";
 
-		[SuppressMessage("Sonar", "S1075:URIs should not be hardcoded", Justification = "External API endpoint is stable and required for integration")]
-		private const string SuggestEndpoint = "/suggest.json";
+		private const string ForecastUrl = "https://www.tipranks.com/stocks/";
+		private const string PostFixForecastUrl = "/forecast";
 
 		public string DataSource => Datasource.TIPRANKS;
 
@@ -69,16 +45,20 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 			}
 
 			// Semantic matching and sort on score
-			var bestMatch = searchResults
+			var sortedResults = searchResults
+				.Where(x => x.Category == "ticker") // Only stocks for now
 				.Select(result => new
 				{
 					Result = result,
 					Score = SemanticMatcher.CalculateSemanticMatchScore(
 						[.. cleanedIdentifiers.Select(x => x.Identifier)],
-						[result.Ticker, result.CleanedName ?? result.Name])
+						[result.CleanedName ?? result.Label])
 				})
-				.OrderByDescending(x => x.Score)
-				.ThenByDescending(x => x.Result.Name.Length)
+				.OrderByDescending(x => x.Score) // Take the highest score
+				.ThenBy(x => x.Result.Value.Length) // Take the shorter Ticker
+				.ThenByDescending(x => x.Result.Label.Length) // Take the longer name
+				.ToList();
+			var bestMatch = sortedResults 
 				.First();
 
 			if (bestMatch == null || bestMatch.Score <= 0) // Minimum score threshold
@@ -88,8 +68,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 
 			// Build SymbolProfile from best match
 			var profile = new SymbolProfile(
-				symbol: bestMatch.Result.Ticker,
-				name: bestMatch.Result.Name,
+				symbol: bestMatch.Result.Value,
+				name: bestMatch.Result.Label,
 				dataSource: DataSource,
 				currency: Currency.NONE,
 				identifiers: [.. cleanedIdentifiers.Select(id => id.Identifier)],
@@ -98,7 +78,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 				countries: [],
 				sectors: [])
 			{
-				WebsiteUrl = $"{BaseUrl}{bestMatch.Result.Path}"
+				WebsiteUrl = $"{ForecastUrl}{bestMatch.Result.Value}{PostFixForecastUrl}"
 			};
 
 			return profile;
@@ -133,7 +113,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 
 		private async Task<List<SuggestResult>?> GetSuggestResponse(string searchTerm)
 		{
-			var suggestUrl = $"{BaseUrl}{SuggestEndpoint}?q={searchTerm}";
+			var suggestUrl = $"{SearchUrl}{searchTerm}";
 
 			using var httpClient = httpClientFactory.CreateClient();
 			var r = await httpClient.GetFromJsonAsync<List<SuggestResult>>(suggestUrl);
@@ -144,15 +124,14 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 				return null;
 			}
 
-			r = [.. r.Where(x => !x.Name.Contains("(delisted)", StringComparison.OrdinalIgnoreCase))];
+			r = [.. r.Where(x => !x.Label.Contains("(delisted)", StringComparison.OrdinalIgnoreCase))];
 
 			// Remove terms in the names like co., corp., inc., ltd.
 			r = [.. r.Select(x =>
 			{
-				x.CleanedName = SymbolNameCleaner.CleanSymbolName(x.Name);
+				x.CleanedName = SymbolNameCleaner.CleanSymbolName(x.Label);
 				return x;
 			})];
-
 
 			return r;
 		}
@@ -162,15 +141,22 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 		[SuppressMessage("Style", "S1104:Fields should not have public accessibility", Justification = "DTO for JSON deserialization")]
 		private sealed class SuggestResult
 		{
-			public required string Name { get; set; } // Full name
+			// [{"label":"ASR Nederland N.V","ticker":null,"value":"NL:ASRNL","category":"ticker","uid":"3da53095","countryId":14,"extraData":{"market":"Amsterdam","marketCap":12544542032},"stockType":12,"followers":14,"keywords":[]}]
 
-			public required string Path { get; set; } // e.g. /stocks/us/apple-inc-aapl
+			public string Label { get; set; } = string.Empty;
 
-			public required string Ticker { get; set; } // Symbol
+			public string Value { get; set; } = string.Empty;
 
-			public required string Flag { get; set; } // Country code
+			public string Category { get; set; } = string.Empty;
 
-			public string? CleanedName { get; internal set; } // Cleaned name
+			public string Uid { get; set; } = string.Empty;
+
+			public string CleanedName { get; set; } = string.Empty;
+
+			public override string ToString()
+			{
+				return $"{Label} ({Value})";
+			}
 		}
 	}
 }
