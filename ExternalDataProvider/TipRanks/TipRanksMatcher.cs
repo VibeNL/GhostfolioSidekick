@@ -1,11 +1,11 @@
-﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using GhostfolioSidekick.Utilities;
 using System.Net.Http.Json;
 using GhostfolioSidekick.Model;
 using System.Diagnostics.CodeAnalysis;
 
-namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
+namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 {
 	public class TipRanksMatcher(IHttpClientFactory httpClientFactory) : ISymbolMatcher
 	{
@@ -39,12 +39,12 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 		[SuppressMessage("Sonar", "S1075:URIs should not be hardcoded", Justification = "External API endpoint is stable and required for integration")]
 		private const string SuggestEndpoint = "/suggest.json";
 
-		public string DataSource => Datasource.DividendMax;
+		public string DataSource => Datasource.TIPRANKS;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
 			var cleanedIdentifiers = symbolIdentifiers
-				.Where(x => HasDividends(x))
+				.Where(x => IsIndividualStock(x))
 				.ToArray();
 
 			if (cleanedIdentifiers.Length == 0)
@@ -104,7 +104,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 			return profile;
 		}
 
-		private static bool HasDividends(PartialSymbolIdentifier identifier)
+		private static bool IsIndividualStock(PartialSymbolIdentifier identifier)
 		{
 			if (identifier.AllowedAssetClasses?.Contains(AssetClass.Equity) ?? false)
 			{

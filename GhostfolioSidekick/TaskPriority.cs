@@ -1,8 +1,10 @@
-﻿namespace GhostfolioSidekick
+namespace GhostfolioSidekick
 {
 	public enum TaskPriority
 	{
 		DisplayInformation,
+
+		SymbolMatcher,
 
 		AccountMaintainer,
 
@@ -16,7 +18,7 @@
 
 		DetermineHoldings,
 
-		SymbolMatcher,
+		
 
 		MarketDataDividends,
 

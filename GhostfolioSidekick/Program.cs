@@ -1,4 +1,4 @@
-﻿using CoinGecko.Net.Clients;
+using CoinGecko.Net.Clients;
 using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Options;
 using GhostfolioSidekick.Activities.Strategies;
@@ -9,6 +9,7 @@ using GhostfolioSidekick.ExternalDataProvider;
 using GhostfolioSidekick.ExternalDataProvider.CoinGecko;
 using GhostfolioSidekick.ExternalDataProvider.DividendMax;
 using GhostfolioSidekick.ExternalDataProvider.Manual;
+using GhostfolioSidekick.ExternalDataProvider.TipRanks;
 using GhostfolioSidekick.ExternalDataProvider.Yahoo;
 using GhostfolioSidekick.GhostfolioAPI;
 using GhostfolioSidekick.GhostfolioAPI.API;
