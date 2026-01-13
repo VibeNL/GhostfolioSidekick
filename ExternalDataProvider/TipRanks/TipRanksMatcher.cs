@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.TipRanks
 				.ThenByDescending(x => x.Result.Label.Length) // Take the longer name
 				.ToList();
 			var bestMatch = sortedResults 
-				.First();
+				.FirstOrDefault();
 
 			if (bestMatch == null || bestMatch.Score <= 0) // Minimum score threshold
 			{
