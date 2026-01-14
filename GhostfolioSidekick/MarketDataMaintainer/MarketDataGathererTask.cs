@@ -68,13 +68,14 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 					var maxDate = symbol.MarketData.Max(x => x.Date);
 
 					// If any data corruption is detected, we will re-fetch all data if possible
+					// For manual data sources, we always re-fetch all data
 					var hasDataCorruption = symbol.MarketData.Any(x =>
 						x.Close.Amount == 0 // Close price is not set
 						|| x.IsGenerated
 						) && symbol.MarketData.OrderBy(x => x.Date).Select(x => x.Close.Amount).LastOrDefault() != 0;
 					if (hasDataCorruption)
 					{
-						logger.LogWarning("Data corruption detected for {Symbol} from {DataSource}. Re-fetching all data.", symbol.Symbol, symbol.DataSource);
+						logger.LogDebug("Data corruption detected / Manual datasource found for {Symbol} from {DataSource}. Re-fetching all data.", symbol.Symbol, symbol.DataSource);
 					}
 					// Only get new data since our earliest date is inside the database
 					// Or we cannot get data ealier than we already have
