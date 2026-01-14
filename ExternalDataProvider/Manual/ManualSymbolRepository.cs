@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
@@ -79,6 +79,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 					Open = new Model.Money(fromActivity.UnitPrice.Currency, expectedPrice),
 					High = new Model.Money(fromActivity.UnitPrice.Currency, expectedPrice),
 					Low = new Model.Money(fromActivity.UnitPrice.Currency, expectedPrice),
+					IsGenerated = true,
 				});
 			}
 
