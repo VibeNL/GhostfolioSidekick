@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.MarketDataMaintainer
 						logger.LogWarning("Data corruption detected for {Symbol} from {DataSource}. Re-fetching all data.", symbol.Symbol, symbol.DataSource);
 					}
 					// Only get new data since our earliest date is inside the database
-					// Or we cannot get data ealiers than we already have
+					// Or we cannot get data ealier than we already have
 					else
 					{
 						if (date >= minDate)
