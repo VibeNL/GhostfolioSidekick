@@ -1,4 +1,4 @@
-﻿using AutoFixture;
+using AutoFixture;
 using AwesomeAssertions;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Accounts;
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
 						99m,
-						new Money(Currency.EUR, 99.39m),
+						new Money(Currency.EUR, 0.9939m),
 						new Money(Currency.EUR, 98.40m),
 						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(
@@ -230,7 +230,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2023, 10, 06, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001102333")],
 						99m,
-						new Money(Currency.EUR, 99.39m),
+						new Money(Currency.EUR, 0.9939m),
 						new Money(Currency.EUR, 98.40m),
 						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(
