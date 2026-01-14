@@ -36,7 +36,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 		{
 			var date = DetermineDate(words);
 			var type = DetermineType(words);
-			
+
 			if (type == PartialActivityType.Undefined)
 			{
 				yield break;
@@ -65,7 +65,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 						date,
 						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 						ParseDecimal(quantity),
-						new Money(currency, ParseDecimal(price)),
+						new Money(currency, ParseDecimal(price) / 100), // Price is given in percentage of nominal value
 						new Money(currency, ParseDecimal(amount)),
 						transactionId
 					);
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.ES
 						date,
 						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 						ParseDecimal(quantity),
-						new Money(currency, ParseDecimal(price)),
+						new Money(currency, ParseDecimal(price) / 100), // Price is given in percentage of nominal value
 						new Money(currency, ParseDecimal(amount)),
 						transactionId
 					);
