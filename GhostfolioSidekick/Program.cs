@@ -129,7 +129,8 @@ namespace GhostfolioSidekick
 							services.AddSingleton<IGhostfolioSync, GhostfolioSync>();
 							services.AddSingleton<IGhostfolioMarketData, GhostfolioMarketData>();
 
-							services.AddHttpClient<IDividendRepository, DividendMaxScraper>();
+							services.AddSingleton<IDividendRepository, DividendMaxScraper>();
+							services.AddSingleton<ITargetPriceRepository, TipRanksScraper>();
 
 							services.AddScoped<IHostedService, TimedHostedService>();
 							RegisterAllWithInterface<IScheduledWork>(services);
