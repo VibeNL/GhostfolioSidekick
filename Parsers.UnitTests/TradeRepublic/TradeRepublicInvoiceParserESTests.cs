@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.TradeRepublic
 						new DateTime(2024, 06, 03, 0, 0, 0, DateTimeKind.Utc),
 						[PartialSymbolIdentifier.CreateStockBondAndETF("DE0001104909")],
 						99m,
-						new Money(Currency.EUR, 99.345m),
+						new Money(Currency.EUR, 0.99345m),
 						new Money(Currency.EUR, 98.35m),
 						"Trade_Republic_single_buy_bond.pdf"),
 				 PartialActivity.CreateFee(

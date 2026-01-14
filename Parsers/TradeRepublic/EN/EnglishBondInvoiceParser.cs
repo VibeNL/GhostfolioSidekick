@@ -26,7 +26,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		}
 
 		private static PartialActivityType DetermineType(List<SingleWordToken> words) =>
-			new[] { 
+			new[] {
 				(new[] { "Market-Order", "Buy", "on" }, PartialActivityType.Buy),
 				(new[] { "Market-Order", "Sell", "on" }, PartialActivityType.Sell)
 			}.FirstOrDefault(p => ContainsSequence([.. words.Select(w => w.Text)], p.Item1)).Item2;
@@ -35,7 +35,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 		{
 			var date = DetermineDate(words);
 			var type = DetermineType(words);
-			
+
 			if (type == PartialActivityType.Undefined)
 			{
 				yield break;
@@ -64,7 +64,7 @@ namespace GhostfolioSidekick.Parsers.TradeRepublic.EN
 						date,
 						[PartialSymbolIdentifier.CreateStockBondAndETF(isin)],
 						ParseDecimal(quantity),
-						new Money(currency, ParseDecimal(price)),
+						new Money(currency, ParseDecimal(price) / 100), // Price is given in percentage of nominal value
 						new Money(currency, ParseDecimal(amount)),
 						transactionId
 					);
