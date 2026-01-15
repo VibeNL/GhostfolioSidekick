@@ -14,6 +14,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.DividendMax
 
 		public string DataSource => Datasource.DividendMax;
 
+		public bool AllowedForDeterminingHolding => false;
+
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
 			var cleanedIdentifiers = symbolIdentifiers
