@@ -27,6 +27,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			_symbolMatchers = [_symbolMatcherMock.Object];
 			var _mockApplicationSettings = new Mock<IApplicationSettings>();
 
+			_symbolMatcherMock.Setup(x => x.AllowedForDeterminingHolding).Returns(true);
+
 			_determineHoldings = new DetermineHoldings(
 				[.. _symbolMatchers],
 				_dbContextFactoryMock.Object,
