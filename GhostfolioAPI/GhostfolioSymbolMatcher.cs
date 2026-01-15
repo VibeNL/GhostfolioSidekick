@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 
 		private List<string> SortorderDataSources { get; set; }
 
-		public bool AllowedForDeterminingHolding => false;
+		public bool AllowedForDeterminingHolding => true;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
