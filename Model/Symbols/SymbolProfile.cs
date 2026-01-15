@@ -1,6 +1,5 @@
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
-using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Model.Symbols
 {
