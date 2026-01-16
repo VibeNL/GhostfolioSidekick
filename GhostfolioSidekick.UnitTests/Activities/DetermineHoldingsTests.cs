@@ -352,10 +352,15 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await determineHoldingsMultipleMatchers.DoWork(_loggerMock.Object);
 
 			// Assert
-			// Test simplified - multiple matcher fallback logic is complex
-			// Verify that at least one holding was added
-			// Basic test that method completes without throwing
-		}
+		// Verify that both matchers had their AllowedForDeterminingHolding property checked (actual MatchSymbol calls depend on implementation logic)
+		// Verify the method completes successfully
+		dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+		
+		
+		// Verify that both matchers had their AllowedForDeterminingHolding property checked
+		firstSymbolMatcher.VerifyGet(x => x.AllowedForDeterminingHolding, Times.AtLeastOnce);
+		symbolMatcher2.VerifyGet(x => x.AllowedForDeterminingHolding, Times.AtLeastOnce);
+	}
 
 		[Fact]
 		public async Task DoWork_ShouldSkipDisallowedSymbolMatchers()
