@@ -15,6 +15,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Manual
 
 		public DateOnly MinDate => DateOnly.MinValue;
 
+		public bool AllowedForDeterminingHolding => true;
+
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{
 			foreach (var identifier in symbolIdentifiers)

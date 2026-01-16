@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Market;
 using GhostfolioSidekick.Model.Symbols;
@@ -18,6 +18,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.Yahoo
 		public string DataSource => Datasource.YAHOO;
 
 		public DateOnly MinDate => DateOnly.MinValue;
+
+		public bool AllowedForDeterminingHolding => true;
 
 		public async Task<IEnumerable<CurrencyExchangeRate>> GetCurrencyHistory(Currency currencyFrom, Currency currencyTo, DateOnly fromDate)
 		{

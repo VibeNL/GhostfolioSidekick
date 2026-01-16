@@ -1,4 +1,4 @@
-﻿using CoinGecko.Net.Interfaces;
+using CoinGecko.Net.Interfaces;
 using CoinGecko.Net.Objects.Models;
 using CryptoExchange.Net.Objects;
 using GhostfolioSidekick.Cryptocurrency;
@@ -22,6 +22,8 @@ namespace GhostfolioSidekick.ExternalDataProvider.CoinGecko
 		public string DataSource => Datasource.COINGECKO;
 
 		public DateOnly MinDate => DateOnly.FromDateTime(DateTime.Today.AddDays(-365));
+
+		public bool AllowedForDeterminingHolding => true;
 
 		public async Task<SymbolProfile?> MatchSymbol(PartialSymbolIdentifier[] symbolIdentifiers)
 		{

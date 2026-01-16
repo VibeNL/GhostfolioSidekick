@@ -39,6 +39,14 @@ namespace GhostfolioSidekick.Activities
 			foreach (var holding in currentHoldings)
 			{
 				holding.SymbolProfiles.Clear();
+
+				// Clear all partial identifiers except the first one
+				if (holding.PartialSymbolIdentifiers.Count > 1)
+				{
+					var firstId = holding.PartialSymbolIdentifiers[0];
+					holding.PartialSymbolIdentifiers.Clear();
+					holding.PartialSymbolIdentifiers.Add(firstId);
+				}
 			}
 
 			var symbolHoldingDictionary = new Dictionary<SymbolProfile, Holding>(new SymbolComparer());
@@ -79,7 +87,7 @@ namespace GhostfolioSidekick.Activities
 			}
 
 			var found = false;
-			foreach (var symbolMatcher in symbolMatchers)
+			foreach (var symbolMatcher in symbolMatchers.Where(x => x.AllowedForDeterminingHolding))
 			{
 				var cacheKey = $"{nameof(DetermineHoldings)}|{symbolMatcher.GetType()}|{string.Join(",", partialIdentifiers)}";
 				if (!memoryCache.TryGetValue<SymbolProfile>(cacheKey, out var symbolProfile))

@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace GhostfolioSidekick.Model
 {
 	public record Currency
