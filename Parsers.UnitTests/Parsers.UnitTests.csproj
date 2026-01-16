@@ -113,6 +113,9 @@
 		<None Update="TestFiles\Bunq\CashTransactions\single_withdrawal.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="TestFiles\CentraalBeheer\single_sell.csv">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="TestFiles\Coinbase\BuyOrders\single_advance_trade_buy.csv">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
@@ -577,6 +580,15 @@
 		</None>
 		<None Update="TestFiles\Trine\single_repayment.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\CentraalBeheer\single_purchase.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\CentraalBeheer\single_deposit.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestFiles\CentraalBeheer\single_dividend.csv">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
