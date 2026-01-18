@@ -2,6 +2,7 @@ using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
+using System.Text;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
@@ -135,10 +136,12 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		private string? GetConstructedId(CentraalBeheerRecord record)
+		private static string? GetConstructedId(CentraalBeheerRecord record)
 		{
 			return record.FundName?.Trim().ToUpperInvariant().Replace(" ", "");
 		}
+
+		protected override Encoding Encoding => Encoding.BigEndianUnicode;
 
 		protected override CsvConfiguration GetConfig()
 		{
