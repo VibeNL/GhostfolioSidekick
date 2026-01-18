@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 		[Name("Netto bedrag (EUR)")]
 		[CultureInfo("nl-NL")]
-		public decimal NetAmount { get; set; }
+		public decimal? NetAmount { get; set; }
 
 		[Name("Naam")]
 		public string? Name { get; set; }

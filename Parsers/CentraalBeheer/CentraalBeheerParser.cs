@@ -22,7 +22,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					{
 						var unitPrice = record.Rate.Value;
 						var quantity = record.NumberOfUnits.Value;
-						var totalAmount = Math.Abs(record.NetAmount);
+						var totalAmount = Math.Abs(record.NetAmount.GetValueOrDefault());
 						var fee = record.PurchaseCosts ?? 0m;
 
 						yield return PartialActivity.CreateBuy(
@@ -52,7 +52,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					{
 						var unitPrice = record.Rate.Value;
 						var quantity = Math.Abs(record.NumberOfUnits.Value);
-						var totalAmount = Math.Abs(record.NetAmount);
+						var totalAmount = Math.Abs(record.NetAmount.GetValueOrDefault());
 						var fee = record.PurchaseCosts ?? 0m;
 
 						yield return PartialActivity.CreateSell(
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					break;
 
 				case "Overboeking": // Transfer
-					var amount = Math.Abs(record.NetAmount);
+					var amount = Math.Abs(record.NetAmount.GetValueOrDefault());
 					if (record.DebitCredit == "Bij") // Credit - money coming in
 					{
 						yield return PartialActivity.CreateCashDeposit(
@@ -101,7 +101,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				case "Dividend Uitkering": // Dividend Payment
 					if (!string.IsNullOrEmpty(record.FundName))
 					{
-						var grossAmount = record.GrossAmount ?? Math.Abs(record.NetAmount);
+						var grossAmount = record.GrossAmount ?? Math.Abs(record.NetAmount.GetValueOrDefault());
 						var dividendTax = record.DividendTax ?? 0m;
 
 						// Create dividend activity for the net amount
