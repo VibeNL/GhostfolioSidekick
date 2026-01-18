@@ -14,7 +14,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 			var transactionId = $"CB-{record.TransactionDate:yyyyMMdd}-{rowNumber}";
 
-			record.FundName = "Centraal Beheer " + record.FundName?.Trim();
+			var stockIdentifier = "Centraal Beheer " + record.FundName?.Trim();
 
 			switch (record.TransactionType)
 			{
@@ -29,7 +29,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateBuy(
 							currency,
 							record.TransactionDate,
-							PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
+							PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
 							quantity,
 							new Money(currency, unitPrice),
 							new Money(currency, totalAmount),
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateSell(
 						currency,
 						record.TransactionDate,
-						PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
+						PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
 						quantity,
 						new Money(currency, unitPrice),
 						new Money(currency, totalAmount),
@@ -109,7 +109,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateDividend(
 							currency,
 							record.TransactionDate,
-							PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
+							PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
 							Math.Abs(grossAmount),
 							new Money(currency, Math.Abs(grossAmount)),
 							transactionId);
@@ -136,9 +136,9 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		private static string? GetConstructedId(CentraalBeheerRecord record)
+		private static string? GetConstructedId(string? stockIdentifier)
 		{
-			return record.FundName?.Trim().ToUpperInvariant().Replace(" ", "");
+			return stockIdentifier?.Trim().ToUpperInvariant().Replace(" ", "");
 		}
 
 		protected override Encoding Encoding => Encoding.BigEndianUnicode;
