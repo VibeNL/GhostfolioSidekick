@@ -13,6 +13,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 {
 	public class CentraalBeheerParserTests
 	{
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance", Justification = "We test the parser")]
 		private readonly CentraalBeheerParser parser;
 		private readonly Account account;
 		private readonly TestActivityManager activityManager;
