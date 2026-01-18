@@ -13,6 +13,8 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 			var transactionId = $"CB-{record.TransactionDate:yyyyMMdd}-{rowNumber}";
 
+			record.FundName = "Centraal Beheer " + record.FundName?.Trim();
+
 			switch (record.TransactionType)
 			{
 				case "Aankoop": // Purchase
@@ -26,7 +28,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateBuy(
 							currency,
 							record.TransactionDate,
-							[PartialSymbolIdentifier.CreateStockAndETF(record.FundName)],
+							PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
 							quantity,
 							new Money(currency, unitPrice),
 							new Money(currency, totalAmount),
@@ -56,11 +58,11 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateSell(
 						currency,
 						record.TransactionDate,
-						[PartialSymbolIdentifier.CreateStockAndETF(record.FundName)],
-							quantity,
-							new Money(currency, unitPrice),
-							new Money(currency, totalAmount),
-							transactionId);
+						PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
+						quantity,
+						new Money(currency, unitPrice),
+						new Money(currency, totalAmount),
+						transactionId);
 
 						if (fee > 0)
 						{
@@ -106,7 +108,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 						yield return PartialActivity.CreateDividend(
 							currency,
 							record.TransactionDate,
-							[PartialSymbolIdentifier.CreateStockAndETF(record.FundName)],
+							PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
 							Math.Abs(grossAmount),
 							new Money(currency, Math.Abs(grossAmount)),
 							transactionId);
@@ -131,6 +133,11 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 				default:
 					throw new NotSupportedException($"Transaction type '{record.TransactionType}' is not supported.");
 			}
+		}
+
+		private string? GetConstructedId(CentraalBeheerRecord record)
+		{
+			return record.FundName?.Trim().ToUpperInvariant().Replace(" ", "");
 		}
 
 		protected override CsvConfiguration GetConfig()
