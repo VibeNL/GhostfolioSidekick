@@ -44,7 +44,8 @@ namespace GhostfolioSidekick.Activities
 			foreach (var partialIdentifiers in activities
 					.OfType<IActivityWithPartialIdentifier>()
 					.Select(x => x.PartialSymbolIdentifiers)
-					.Distinct()
+					.DistinctBy(x => string.Join("|", x.Select(id => id.Identifier)
+					.OrderBy(id => id)))
 					.OrderBy(x => x[0].Identifier))
 			{
 				var ids = GetIds(partialIdentifiers);
@@ -122,7 +123,7 @@ namespace GhostfolioSidekick.Activities
 					continue;
 				}
 								
-				logger.LogTrace("CreateOrReuseHolding: Creating new holding for symbol {Symbol}", symbolProfile.Symbol);
+				logger.LogDebug("CreateOrReuseHolding: Creating new holding for symbol {Symbol}", symbolProfile.Symbol);
 
 				// Try to reuse an existing holding, otherwise create a new one
 				Holding holding;
