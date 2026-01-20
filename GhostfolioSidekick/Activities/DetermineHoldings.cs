@@ -112,6 +112,8 @@ namespace GhostfolioSidekick.Activities
 					continue;
 				}
 
+				found = true;
+
 				if (symbolHoldingDictionary.TryGetValue(symbolProfile, out var existingHolding))
 				{
 					logger.LogTrace("CreateOrReuseHolding: Merging identifiers for existing holding with symbol {Symbol}", symbolProfile.Symbol);
@@ -119,10 +121,9 @@ namespace GhostfolioSidekick.Activities
 					existingHolding.MergeIdentifiers(partialIdentifiers);
 					continue;
 				}
-
-				found = true;
+								
 				logger.LogTrace("CreateOrReuseHolding: Creating new holding for symbol {Symbol}", symbolProfile.Symbol);
-				
+
 				// Try to reuse an existing holding, otherwise create a new one
 				Holding holding;
 				if (availableHoldings.TryDequeue(out var reusedHolding))
@@ -139,14 +140,14 @@ namespace GhostfolioSidekick.Activities
 
 				holding.MergeSymbolProfiles(symbolProfile);
 				holding.MergeIdentifiers(partialIdentifiers);
-				
+
 				symbolHoldingDictionary.Add(symbolProfile, holding);
 				usedHoldings.Add(holding);
 			}
 
 			if (!found)
 			{
-			logger.LogWarning("CreateOrReuseHolding: No symbol profile found for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
+				logger.LogWarning("CreateOrReuseHolding: No symbol profile found for {PartialIdentifiers}", string.Join(", ", partialIdentifiers));
 			}
 		}
 
