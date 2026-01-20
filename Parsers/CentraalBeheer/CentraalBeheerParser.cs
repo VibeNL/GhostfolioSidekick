@@ -78,24 +78,24 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					break;
 
 				case "Overboeking": // Transfer
-					var amount = Math.Abs(record.NetAmount.GetValueOrDefault());
+					var amount = Math.Abs(record.GrossAmount.GetValueOrDefault());
 					if (record.DebitCredit == "Bij") // Credit - money coming in
 					{
 						yield return PartialActivity.CreateCashDeposit(
-						currency,
-						record.TransactionDate,
-						amount,
-						new Money(currency, amount),
-						transactionId);
+							currency,
+							record.TransactionDate,
+							amount,
+							new Money(currency, amount),
+							transactionId);
 					}
 					else if (record.DebitCredit == "Af") // Debit - money going out
 					{
 						yield return PartialActivity.CreateCashWithdrawal(
-						currency,
-						record.TransactionDate,
-						amount,
-						new Money(currency, amount),
-						transactionId);
+							currency,
+							record.TransactionDate,
+							amount,
+							new Money(currency, amount),
+							transactionId);
 					}
 					break;
 
