@@ -160,8 +160,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 					LogLevel.Trace,
 					It.IsAny<EventId>(),
 					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrReuseHolding: Merging identifiers for existing holding with symbol") &&
-										v.ToString()!.Contains("TEST") &&
-										v.ToString()!.Contains("with")),
+										v.ToString()!.Contains("TEST")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);

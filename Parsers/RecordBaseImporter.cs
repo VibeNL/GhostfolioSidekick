@@ -76,7 +76,7 @@ namespace GhostfolioSidekick.Parsers
 
 		protected abstract CsvConfiguration GetConfig();
 
-		protected virtual Encoding Encoding { get; set; } = Encoding.UTF8;
+		protected virtual Encoding Encoding => Encoding.UTF8;
 
 		protected virtual StreamReader GetStreamReader(string file)
 		{

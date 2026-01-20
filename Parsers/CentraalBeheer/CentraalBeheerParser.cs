@@ -136,9 +136,9 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		private static string? GetConstructedId(string? stockIdentifier)
+		private static string? GetConstructedId(string? fundName)
 		{
-			return stockIdentifier?.Trim().ToUpperInvariant().Replace(" ", "");
+			return fundName?.Trim().ToUpperInvariant().Replace(" ", "");
 		}
 
 		protected override Encoding Encoding => Encoding.BigEndianUnicode;
