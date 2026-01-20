@@ -89,7 +89,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.RemoveRange(It.Is<IEnumerable<Holding>>(h => h.Count() == 2)), Times.Once);
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+			// SaveChangesAsync called twice: once for clearing existing holdings, once at the end
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
@@ -117,7 +118,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Once);
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+			// SaveChangesAsync called twice: once for clearing existing holdings, once at the end
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
@@ -354,7 +356,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Assert
 		// Verify that both matchers had their AllowedForDeterminingHolding property checked (actual MatchSymbol calls depend on implementation logic)
 		// Verify the method completes successfully
-		dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+		dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		
 		
 		// Verify that both matchers had their AllowedForDeterminingHolding property checked
@@ -473,7 +475,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Never);
 			dbContextMock.Verify(db => db.Holdings.Remove(It.IsAny<Holding>()), Times.Never);
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+			// SaveChangesAsync called twice: once for clearing existing holdings, once at the end
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
