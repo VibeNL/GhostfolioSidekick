@@ -30,6 +30,8 @@ namespace GhostfolioSidekick.Activities
 
 		public async Task DoWork(ILogger logger)
 		{
+			await ClearExistingHoldings();
+
 			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
 			var activities = await databaseContext.Activities.ToListAsync();
 
@@ -38,14 +40,6 @@ namespace GhostfolioSidekick.Activities
 			var availableHoldings = new Queue<Holding>(existingHoldings);
 			var usedHoldings = new List<Holding>();
 			var symbolHoldingDictionary = new Dictionary<SymbolProfile, Holding>(new SymbolComparer());
-
-			// Reset all existing holdings to a clean state
-			foreach (var holding in existingHoldings)
-			{
-				holding.SymbolProfiles.Clear();
-				holding.PartialSymbolIdentifiers.Clear();
-				holding.Activities.Clear();
-			}
 
 			foreach (var partialIdentifiers in activities
 					.OfType<IActivityWithPartialIdentifier>()
@@ -63,6 +57,22 @@ namespace GhostfolioSidekick.Activities
 			{
 				logger.LogInformation("Removing {Count} unused holdings", unusedHoldings.Count);
 				databaseContext.Holdings.RemoveRange(unusedHoldings);
+			}
+
+			await databaseContext.SaveChangesAsync();
+		}
+
+		private async Task ClearExistingHoldings()
+		{
+			using var databaseContext = await databaseContextFactory.CreateDbContextAsync();
+			var existingHoldings = await databaseContext.Holdings.ToListAsync();
+
+			// Reset all existing holdings to a clean state
+			foreach (var holding in existingHoldings)
+			{
+				holding.SymbolProfiles.Clear();
+				holding.PartialSymbolIdentifiers.Clear();
+				holding.Activities.Clear();
 			}
 
 			await databaseContext.SaveChangesAsync();
@@ -105,6 +115,7 @@ namespace GhostfolioSidekick.Activities
 				if (symbolHoldingDictionary.TryGetValue(symbolProfile, out var existingHolding))
 				{
 					logger.LogTrace("CreateOrReuseHolding: Merging identifiers for existing holding with symbol {Symbol}", symbolProfile.Symbol);
+					existingHolding.MergeSymbolProfiles(symbolProfile);
 					existingHolding.MergeIdentifiers(partialIdentifiers);
 					continue;
 				}
@@ -125,7 +136,8 @@ namespace GhostfolioSidekick.Activities
 					holding = new Holding();
 					databaseContext.Holdings.Add(holding);
 				}
-				holding.SymbolProfiles.Add(symbolProfile);
+
+				holding.MergeSymbolProfiles(symbolProfile);
 				holding.MergeIdentifiers(partialIdentifiers);
 				
 				symbolHoldingDictionary.Add(symbolProfile, holding);
