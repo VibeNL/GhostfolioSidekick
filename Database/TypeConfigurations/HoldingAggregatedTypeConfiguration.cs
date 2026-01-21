@@ -64,10 +64,11 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(x => x.Quantity).IsRequired();
 
 			// Configure Money complex properties
-			MapMoney(builder, x => x.AverageCostPrice, nameof(CalculatedSnapshot.AverageCostPrice));
-			MapMoney(builder, x => x.CurrentUnitPrice, nameof(CalculatedSnapshot.CurrentUnitPrice));
-			MapMoney(builder, x => x.TotalInvested, nameof(CalculatedSnapshot.TotalInvested));
-			MapMoney(builder, x => x.TotalValue, nameof(CalculatedSnapshot.TotalValue));
+			builder.Property(x => x.Currency).IsRequired();
+			builder.Property(x => x.AverageCostPrice).IsRequired();
+			builder.Property(x => x.CurrentUnitPrice).IsRequired();
+			builder.Property(x => x.TotalInvested).IsRequired();
+			builder.Property(x => x.TotalValue).IsRequired();
 
 			// Indexes
 			builder.HasIndex(x => new { x.Date });
@@ -75,17 +76,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.HasIndex(x => new { x.HoldingAggregatedId, x.AccountId, x.Date }).IsUnique();
 			builder.HasIndex(x => new { x.HoldingAggregatedId, x.Date });
 			builder.HasIndex(x => new { x.Date });
-		}
-
-		private static void MapMoney<TEntity>(EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, Money>> navigationExpression, string name) where TEntity : class
-		{
-			// Cast to nullable Money to satisfy EF Core's ComplexProperty method
-			var nullableExpression = Expression.Lambda<Func<TEntity, Money?>>(
-				navigationExpression.Body,
-				navigationExpression.Parameters);
-
-			builder.ComplexProperty(nullableExpression).IsRequired().Property(x => x!.Amount).HasColumnName(name);
-			builder.ComplexProperty(nullableExpression).IsRequired().ComplexProperty(x => x!.Currency).Property(x => x.Symbol).HasColumnName("Currency" + name);
 		}
 	}
 }

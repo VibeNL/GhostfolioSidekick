@@ -59,10 +59,11 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 						0, 0,
 						DateOnly.FromDateTime(DateTime.Today),
 						100m,
-						new Money(Currency.USD, 50m),
-						new Money(Currency.USD, 55m),
-						new Money(Currency.USD, 5000m),
-						new Money(Currency.USD, 5500m)
+						Currency.USD,
+						50m,
+						55m,
+						5000m,
+						5500m
 					)
 				}
 			};
@@ -81,10 +82,11 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 			var snapshot = retrieved.CalculatedSnapshots.First();
 			snapshot.Date.Should().Be(DateOnly.FromDateTime(DateTime.Today));
 			snapshot.Quantity.Should().Be(100m);
-			snapshot.AverageCostPrice.Amount.Should().Be(50m);
-			snapshot.CurrentUnitPrice.Amount.Should().Be(55m);
-			snapshot.TotalInvested.Amount.Should().Be(5000m);
-			snapshot.TotalValue.Amount.Should().Be(5500m);
+			snapshot.Currency.Should().Be(Currency.USD);
+			snapshot.AverageCostPrice.Should().Be(50m);
+			snapshot.CurrentUnitPrice.Should().Be(55m);
+			snapshot.TotalInvested.Should().Be(5000m);
+			snapshot.TotalValue.Should().Be(5500m);
 		}
 	}
 }

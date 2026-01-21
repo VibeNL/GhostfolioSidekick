@@ -7,10 +7,11 @@ namespace GhostfolioSidekick.Model.Performance
 		public long HoldingAggregatedId { get; set; } // Foreign key to Holding, if needed
 		public DateOnly Date { get; set; }
 		public decimal Quantity { get; set; }
-		public Money AverageCostPrice { get; set; } = Money.Zero(Currency.USD);
-		public Money CurrentUnitPrice { get; set; } = Money.Zero(Currency.USD);
-		public Money TotalInvested { get; set; } = Money.Zero(Currency.USD);
-		public Money TotalValue { get; set; } = Money.Zero(Currency.USD);
+		public Currency Currency { get; set; } = Currency.USD;
+		public decimal AverageCostPrice { get; set; }
+		public decimal CurrentUnitPrice { get; set; }
+		public decimal TotalInvested { get; set; }
+		public decimal TotalValue { get; set; }
 
 		// Parameterless constructor for EF Core
 		public CalculatedSnapshot()
@@ -18,14 +19,15 @@ namespace GhostfolioSidekick.Model.Performance
 		}
 
 		public CalculatedSnapshot(
-			long id, 
+			long id,
 			int accountId,
-			DateOnly date, 
+			DateOnly date,
 			decimal quantity,
-			Money averageCostPrice,
-			Money currentUnitPrice,
-			Money totalInvested,
-			Money totalValue)
+			Currency currency,
+			decimal averageCostPrice,
+			decimal currentUnitPrice,
+			decimal totalInvested,
+			decimal totalValue)
 		{
 			Id = id;
 			AccountId = accountId;
@@ -49,7 +51,7 @@ namespace GhostfolioSidekick.Model.Performance
 			AccountId = original.AccountId;
 		}
 
-		public static CalculatedSnapshot Empty(Currency currency, int accountId) => new(0, accountId, DateOnly.MinValue, 0, Money.Zero(currency), Money.Zero(currency), Money.Zero(currency), Money.Zero(currency));
+		public static CalculatedSnapshot Empty(Currency currency, int accountId) => new(0, accountId, DateOnly.MinValue, 0, Currency.EUR, 0, 0, 0, 0);
 
 		public override string ToString()
 		{
