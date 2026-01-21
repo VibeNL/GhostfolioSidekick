@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick.Model.Activities
+namespace GhostfolioSidekick.Model.Activities
 {
 	public record PartialSymbolIdentifier
 	{
@@ -74,7 +74,7 @@
 		public override int GetHashCode()
 		{
 			var hash = new HashCode();
-			hash.Add(StringComparer.OrdinalIgnoreCase.GetHashCode(Identifier.Trim()));
+			hash.Add(StringComparer.InvariantCultureIgnoreCase.GetHashCode(Identifier.Trim()));
 			hash.Add(GetListHashCode(AllowedAssetClasses));
 			hash.Add(GetListHashCode(AllowedAssetSubClasses));
 			return hash.ToHashCode();
