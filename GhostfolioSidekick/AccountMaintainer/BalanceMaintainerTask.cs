@@ -2,6 +2,7 @@ using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
+using GhostfolioSidekick.Model.Accounts;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,7 @@ namespace GhostfolioSidekick.AccountMaintainer
 		{
 			// Parse currencies from application settings
 			var currencies = applicationSettings.ConfigurationInstance.Settings.Currencies.Select(Currency.GetCurrency).ToList();
-			
+
 			if (currencies.Count == 0)
 			{
 				logger.LogWarning("No currencies configured in settings. Using EUR as default.");
@@ -52,7 +53,12 @@ namespace GhostfolioSidekick.AccountMaintainer
 				var orderedActivities = (activities ?? []).OrderBy(x => x.Date);
 
 				var balanceCalculator = new BalanceCalculator(exchangeRateService);
-				var allBalances = await balanceCalculator.CalculateMultipleCurrencies(currencies, orderedActivities);
+
+				List<Balance> allBalances = [];
+				foreach (var currency in currencies)
+				{
+					allBalances.AddRange(await balanceCalculator.Calculate(currency, orderedActivities));
+				}
 
 				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey)!;
 				var existingBalances = account!.Balance ?? [];

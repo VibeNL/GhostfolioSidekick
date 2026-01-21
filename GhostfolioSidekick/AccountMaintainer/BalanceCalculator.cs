@@ -86,20 +86,5 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 			return balances;
 		}
-
-		public async Task<List<Balance>> CalculateMultipleCurrencies(
-			List<Currency> targetCurrencies,
-			IEnumerable<Activity> activities)
-		{
-			var allBalances = new List<Balance>();
-
-			foreach (var currency in targetCurrencies)
-			{
-				var balancesForCurrency = await Calculate(currency, activities);
-				allBalances.AddRange(balancesForCurrency);
-			}
-
-			return allBalances;
-		}
 	}
 }
