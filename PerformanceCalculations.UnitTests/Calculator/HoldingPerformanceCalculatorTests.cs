@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
@@ -182,8 +183,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var firstSnapshot = holdingAggregated.CalculatedSnapshots.First();
 			firstSnapshot.Date.Should().Be(DateOnly.FromDateTime(buyDate));
 			firstSnapshot.Quantity.Should().Be(100);
-			firstSnapshot.TotalValue.Amount.Should().Be(155 * 100); // Market price * quantity
-			firstSnapshot.TotalInvested.Amount.Should().Be(150 * 100); // Unit price * quantity (TotalTransactionAmount)
+			firstSnapshot.TotalValue.Should().Be(155 * 100); // Market price * quantity
+			firstSnapshot.TotalInvested.Should().Be(150 * 100); // Unit price * quantity (TotalTransactionAmount)
 		}
 
 		[Fact]
@@ -253,8 +254,8 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(150); // Total quantity
-			finalSnapshot.TotalValue.Amount.Should().Be(155 * 150); // Today's market price * total quantity
-			finalSnapshot.TotalInvested.Amount.Should().Be((100 * 150) + (50 * 160)); // First buy: 100*150 + Second buy: 50*160 = 23000
+			finalSnapshot.TotalValue.Should().Be(155 * 150); // Today's market price * total quantity
+			finalSnapshot.TotalInvested.Should().Be((100 * 150) + (50 * 160)); // First buy: 100*150 + Second buy: 50*160 = 23000
 		}
 
 		[Fact]
@@ -310,7 +311,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(70); // 100 - 30
 													// TotalInvested: buy 100*150 = 15000, sell reduces by cost basis of 30*150 = 4500, total = 10500
-			finalSnapshot.TotalInvested.Amount.Should().Be(10500);
+			finalSnapshot.TotalInvested.Should().Be(10500);
 		}
 
 		[Fact]
@@ -351,7 +352,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Assert
 			var holdingAggregated = result.First();
 			var firstSnapshot = holdingAggregated.CalculatedSnapshots.First();
-			firstSnapshot.TotalValue.Amount.Should().Be(145 * 100); // Should use last known price
+			firstSnapshot.TotalValue.Should().Be(145 * 100); // Should use last known price
 		}
 
 		[Fact]
@@ -562,7 +563,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 		private HoldingPerformanceCalculator CreateCalculator(DatabaseContext context)
 		{
-			return new HoldingPerformanceCalculator(context, _mockCurrencyExchange.Object);
+			return new HoldingPerformanceCalculator(context, _mockCurrencyExchange.Object, Mock.Of<IApplicationSettings>());
 		}
 
 		private static Holding CreateHolding(IList<SymbolProfile> symbolProfiles, ICollection<Activity> activities)
@@ -722,19 +723,19 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var firstSnapshot = holdingAggregated.CalculatedSnapshots.First();
 			firstSnapshot.Date.Should().Be(DateOnly.FromDateTime(buyDate));
 			firstSnapshot.Quantity.Should().Be(100);
-			firstSnapshot.TotalInvested.Amount.Should().Be(15000); // 100 * 150
+			firstSnapshot.TotalInvested.Should().Be(15000); // 100 * 150
 
 			// Check sell day snapshot
 			var sellSnapshot = holdingAggregated.CalculatedSnapshots
 				.FirstOrDefault(s => s.Date == DateOnly.FromDateTime(sellDate));
 			sellSnapshot.Should().NotBeNull();
 			sellSnapshot!.Quantity.Should().Be(70); // 100 - 30
-			sellSnapshot.TotalInvested.Amount.Should().Be(10500); // 15000 - (30 * 150) = 10500 (cost basis reduction using average cost)
+			sellSnapshot.TotalInvested.Should().Be(10500); // 15000 - (30 * 150) = 10500 (cost basis reduction using average cost)
 
 			// Check final snapshot
 			var finalSnapshot = holdingAggregated.CalculatedSnapshots.Last();
 			finalSnapshot.Quantity.Should().Be(70); // 100 - 30
-			finalSnapshot.TotalInvested.Amount.Should().Be(10500); // Should remain the same
+			finalSnapshot.TotalInvested.Should().Be(10500); // Should remain the same
 		}
 	}
 }

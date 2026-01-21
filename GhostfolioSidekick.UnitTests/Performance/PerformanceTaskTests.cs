@@ -28,10 +28,11 @@ namespace GhostfolioSidekick.UnitTests.Performance
 						AccountId = 1,
 						Date = new DateOnly(2024, 1, 1),
 						Quantity = 1,
-						AverageCostPrice = new Money(Currency.USD, 0),
-						CurrentUnitPrice = new Money(Currency.USD, 0),
-						TotalInvested = new Money(Currency.USD, 0),
-						TotalValue = new Money(Currency.USD, 0)
+						Currency = Currency.USD,
+						AverageCostPrice = 0,
+						CurrentUnitPrice = 0,
+						TotalInvested = 0,
+						TotalValue = 0
 					}
 				]
 			});
@@ -76,10 +77,11 @@ namespace GhostfolioSidekick.UnitTests.Performance
 						AccountId = 1,
 						Date = new DateOnly(2024, 1, 1),
 						Quantity = 1,
-						AverageCostPrice = new Money(Currency.USD, 0),
-						CurrentUnitPrice = new Money(Currency.USD, 0),
-						TotalInvested = new Money(Currency.USD, 0),
-						TotalValue = new Money(Currency.USD, 0)
+						Currency = Currency.USD,
+						AverageCostPrice = 0,
+						CurrentUnitPrice = 0,
+						TotalInvested = 0,
+						TotalValue = 0
 					}
 				]
 			};
@@ -94,10 +96,11 @@ namespace GhostfolioSidekick.UnitTests.Performance
 				AccountId = 1,
 				Date = new DateOnly(2024, 1, 1),
 				Quantity = 2,
-				AverageCostPrice = new Money(Currency.USD, 0),
-				CurrentUnitPrice = new Money(Currency.USD, 0),
-				TotalInvested = new Money(Currency.USD, 0),
-				TotalValue = new Money(Currency.USD, 0)
+				Currency = Currency.USD,
+				AverageCostPrice = 0,
+				CurrentUnitPrice = 0,
+				TotalInvested = 0,
+				TotalValue = 0
 			};
 			var holding = new HoldingAggregated { Symbol = "A", AssetClass = AssetClass.Equity, CalculatedSnapshots = [newSnapshot] };
 			var calculatorMock = new Mock<IHoldingPerformanceCalculator>();
@@ -135,10 +138,11 @@ namespace GhostfolioSidekick.UnitTests.Performance
 						AccountId = 1,
 						Date = new DateOnly(2024, 1, 1),
 						Quantity = 1,
-						AverageCostPrice = new Money(Currency.USD, 0),
-						CurrentUnitPrice = new Money(Currency.USD, 0),
-						TotalInvested = new Money(Currency.USD, 0),
-						TotalValue = new Money(Currency.USD, 0)
+						Currency = Currency.USD,
+						AverageCostPrice = 0,
+						CurrentUnitPrice = 0,
+						TotalInvested = 0,
+						TotalValue = 0
 					}
 				]
 			});

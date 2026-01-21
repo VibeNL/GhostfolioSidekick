@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Linq.Expressions;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace GhostfolioSidekick.Database.TypeConfigurations
 {
@@ -64,7 +65,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.Property(x => x.Quantity).IsRequired();
 
 			// Configure Money complex properties
-			builder.Property(x => x.Currency).IsRequired();
+			builder.ComplexProperty(x => x.Currency).Property(x => x.Symbol).HasColumnName("Currency");
 			builder.Property(x => x.AverageCostPrice).IsRequired();
 			builder.Property(x => x.CurrentUnitPrice).IsRequired();
 			builder.Property(x => x.TotalInvested).IsRequired();
