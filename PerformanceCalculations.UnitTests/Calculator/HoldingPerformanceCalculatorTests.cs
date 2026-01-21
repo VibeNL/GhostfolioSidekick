@@ -18,6 +18,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 	{
 		private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
 		private readonly Mock<ICurrencyExchange> _mockCurrencyExchange;
+		private readonly Mock<IApplicationSettings> _mockApplicationSettings;
 		private readonly string _databaseFilePath;
 
 		public HoldingPerformanceCalculatorTests()
@@ -31,6 +32,21 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			_mockCurrencyExchange
 				.Setup(x => x.ConvertMoney(It.IsAny<Money>(), It.IsAny<Currency>(), It.IsAny<DateOnly>()))
 				.ReturnsAsync((Money money, Currency currency, DateOnly date) => new Money(currency, money.Amount));
+
+			// Setup proper mock for IApplicationSettings
+			var settings = new Settings
+			{
+				RawCurrencies = "USD", // Use only USD to match symbol profiles in tests
+				RawDataProviderPreference = "YAHOO;COINGECKO"
+			};
+
+			var configurationInstance = new ConfigurationInstance
+			{
+				Settings = settings
+			};
+
+			_mockApplicationSettings = new Mock<IApplicationSettings>();
+			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(configurationInstance);
 		}
 
 		[Fact]
@@ -563,7 +579,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 
 		private HoldingPerformanceCalculator CreateCalculator(DatabaseContext context)
 		{
-			return new HoldingPerformanceCalculator(context, _mockCurrencyExchange.Object, Mock.Of<IApplicationSettings>());
+			return new HoldingPerformanceCalculator(context, _mockCurrencyExchange.Object, _mockApplicationSettings.Object);
 		}
 
 		private static Holding CreateHolding(IList<SymbolProfile> symbolProfiles, ICollection<Activity> activities)
