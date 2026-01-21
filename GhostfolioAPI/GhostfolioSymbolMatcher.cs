@@ -20,7 +20,7 @@ namespace GhostfolioSidekick.GhostfolioAPI
 			this.apiWrapper = apiWrapper ?? throw new ArgumentNullException(nameof(apiWrapper));
 			this.memoryCache = memoryCache;
 
-			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference.Split(',').Select(x => x.ToUpperInvariant())];
+			SortorderDataSources = [.. settings.ConfigurationInstance.Settings.DataProviderPreference];
 		}
 
 		public string DataSource => Datasource.GHOSTFOLIO;

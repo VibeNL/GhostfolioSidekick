@@ -1,4 +1,4 @@
-﻿using AwesomeAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -25,7 +25,7 @@ namespace GhostfolioSidekick.Configuration.UnitTests
 
 			// Assert
 			settings.ConfigurationInstance.Should().NotBeNull();
-			settings.ConfigurationInstance.Settings.DataProviderPreference.Should().Be("COINGECKO,YAHOO");
+			settings.ConfigurationInstance.Settings.RawDataProviderPreference.Should().Be("COINGECKO,YAHOO");
 		}
 
 		[Fact]

@@ -1,4 +1,5 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Configuration;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using KellermanSoftware.CompareNetObjects;
@@ -9,7 +10,8 @@ namespace GhostfolioSidekick.AccountMaintainer
 {
 	internal class BalanceMaintainerTask(
 		IDbContextFactory<DatabaseContext> databaseContextFactory,
-		ICurrencyExchange exchangeRateService) : IScheduledWork
+		ICurrencyExchange exchangeRateService,
+		IApplicationSettings applicationSettings) : IScheduledWork
 	{
 		public TaskPriority Priority => TaskPriority.BalanceMaintainer;
 
@@ -21,6 +23,15 @@ namespace GhostfolioSidekick.AccountMaintainer
 
 		public async Task DoWork(ILogger logger)
 		{
+			// Parse currencies from application settings
+			var currencies = applicationSettings.ConfigurationInstance.Settings.Currencies.Select(Currency.GetCurrency).ToList();
+			
+			if (currencies.Count == 0)
+			{
+				logger.LogWarning("No currencies configured in settings. Using EUR as default.");
+				currencies.Add(Currency.EUR);
+			}
+
 			List<AccountKey> accountKeys;
 			using (var databaseContext = await databaseContextFactory.CreateDbContextAsync())
 			{
@@ -41,20 +52,20 @@ namespace GhostfolioSidekick.AccountMaintainer
 				var orderedActivities = (activities ?? []).OrderBy(x => x.Date);
 
 				var balanceCalculator = new BalanceCalculator(exchangeRateService);
-				var balances = await balanceCalculator.Calculate(Currency.EUR, orderedActivities);
+				var allBalances = await balanceCalculator.CalculateMultipleCurrencies(currencies, orderedActivities);
 
 				var account = await databaseContext.Accounts.SingleAsync(x => x.Id == accountKey)!;
 				var existingBalances = account!.Balance ?? [];
 
 				var compareLogic = new CompareLogic() { Config = new ComparisonConfig { MaxDifferences = int.MaxValue, IgnoreObjectTypes = true, MembersToIgnore = ["Id"] } };
-				ComparisonResult result = compareLogic.Compare(existingBalances.OrderBy(x => x.Date), balances.OrderBy(x => x.Date));
+				ComparisonResult result = compareLogic.Compare(existingBalances.OrderBy(x => x.Date).ThenBy(x => x.Money.Currency.Symbol), allBalances.OrderBy(x => x.Date).ThenBy(x => x.Money.Currency.Symbol));
 
 				if (!result.AreEqual)
 				{
 					if (account.Balance != null)
 					{
 						account.Balance.Clear();
-						account.Balance.AddRange(balances);
+						account.Balance.AddRange(allBalances);
 					}
 					await databaseContext.SaveChangesAsync();
 				}

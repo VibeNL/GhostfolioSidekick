@@ -1,4 +1,5 @@
 using GhostfolioSidekick.AccountMaintainer;
+using GhostfolioSidekick.Configuration;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using Moq.EntityFrameworkCore;
@@ -9,13 +10,23 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 	{
 		private readonly Mock<IDbContextFactory<DatabaseContext>> _mockDbContextFactory;
 		private readonly Mock<ICurrencyExchange> _mockExchangeRateService;
+		private readonly Mock<IApplicationSettings> _mockApplicationSettings;
 		private readonly BalanceMaintainerTask _balanceMaintainerTask;
 
 		public BalanceMaintainerTaskTests()
 		{
 			_mockDbContextFactory = new Mock<IDbContextFactory<DatabaseContext>>();
 			_mockExchangeRateService = new Mock<ICurrencyExchange>();
-			_balanceMaintainerTask = new BalanceMaintainerTask(_mockDbContextFactory.Object, _mockExchangeRateService.Object);
+			_mockApplicationSettings = new Mock<IApplicationSettings>();
+
+			// Setup default configuration
+			var mockConfigurationInstance = new ConfigurationInstance
+			{
+				Settings = new Settings { RawCurrencies = "EUR;USD" }
+			};
+			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(mockConfigurationInstance);
+
+			_balanceMaintainerTask = new BalanceMaintainerTask(_mockDbContextFactory.Object, _mockExchangeRateService.Object, _mockApplicationSettings.Object);
 		}
 
 		[Fact]

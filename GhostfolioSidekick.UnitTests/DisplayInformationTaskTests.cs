@@ -23,7 +23,7 @@ namespace GhostfolioSidekick.UnitTests
 			{
 				Settings = new Settings
 				{
-					DataProviderPreference = "provider1",
+					RawDataProviderPreference = "provider1",
 					DeleteUnusedSymbols = true
 				},
 				Mappings = [new Mapping { MappingType = MappingType.Symbol, Source = "source1", Target = "target1" }]
@@ -59,7 +59,7 @@ namespace GhostfolioSidekick.UnitTests
 			{
 				Settings = new Settings
 				{
-					DataProviderPreference = "provider1",
+					RawDataProviderPreference = "provider1",
 					DeleteUnusedSymbols = true
 				},
 			};

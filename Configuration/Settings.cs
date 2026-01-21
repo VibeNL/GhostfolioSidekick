@@ -11,9 +11,16 @@ namespace GhostfolioSidekick.Configuration
 		public bool DeleteUnusedSymbols { get; set; } = true;
 
 		[JsonPropertyName("dataprovider.preference.order")]
-		public required string DataProviderPreference { get; set; } = "YAHOO;COINGECKO";
+		public required string RawDataProviderPreference { get; set; } = "YAHOO;COINGECKO";
 
 		[JsonPropertyName("performance.currencies")]
-		public required string Currencies { get; set; } = "EUR;USD";
+		public required string RawCurrencies { get; set; } = "EUR;USD";
+
+		public string[] DataProviderPreference => SplitConfigurationValue(RawDataProviderPreference);
+
+		public string[] Currencies => SplitConfigurationValue(RawCurrencies);
+
+		private static string[] SplitConfigurationValue(string value) =>
+			[.. value.Split([';', ','], System.StringSplitOptions.RemoveEmptyEntries).Select(x => x.ToUpperInvariant())];
 	}
 }

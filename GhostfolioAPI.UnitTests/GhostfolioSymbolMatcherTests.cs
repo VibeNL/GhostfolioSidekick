@@ -27,7 +27,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Create real configuration objects instead of mocking
 			_configInstance = new ConfigurationInstance
 			{
-				Settings = new Settings { DataProviderPreference = "YAHOO,COINGECKO" }
+				Settings = new Settings { RawDataProviderPreference = "YAHOO,COINGECKO" }
 			};
 
 			_settingsMock.Setup(x => x.ConfigurationInstance).Returns(_configInstance);
@@ -400,7 +400,7 @@ namespace GhostfolioSidekick.GhostfolioAPI.UnitTests
 			// Arrange - Create a new symbol matcher with different preferences
 			var configInstance = new ConfigurationInstance
 			{
-				Settings = new Settings { DataProviderPreference = "COINGECKO,YAHOO" }
+				Settings = new Settings { RawDataProviderPreference = "COINGECKO,YAHOO" }
 			};
 			var settingsMock = new Mock<IApplicationSettings>();
 			settingsMock.Setup(x => x.ConfigurationInstance).Returns(configInstance);
