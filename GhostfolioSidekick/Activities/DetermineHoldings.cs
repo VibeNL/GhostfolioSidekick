@@ -39,7 +39,8 @@ namespace GhostfolioSidekick.Activities
 			var existingHoldings = await databaseContext.Holdings.ToListAsync();
 			var availableHoldings = new Queue<Holding>(existingHoldings);
 			var usedHoldings = new List<Holding>();
-			var symbolHoldingDictionary = new Dictionary<PartialSymbolIdentifier, Holding>(new PartialSymbolIdentifierComparer());
+			var partialIdentifierMap = new Dictionary<PartialSymbolIdentifier, Holding>(new PartialSymbolIdentifierComparer());
+			var symbolProfileMap = new Dictionary<string, Holding>(); // Track holdings by symbol+datasource
 
 			foreach (var partialIdentifiers in activities
 					.OfType<IActivityWithPartialIdentifier>()
@@ -49,7 +50,7 @@ namespace GhostfolioSidekick.Activities
 					.OrderBy(x => x[0].Identifier))
 			{
 				var ids = GetIds(partialIdentifiers);
-				await CreateOrReuseHolding(logger, databaseContext, symbolHoldingDictionary, availableHoldings, usedHoldings, ids).ConfigureAwait(false);
+				await CreateOrReuseHolding(logger, databaseContext, partialIdentifierMap, symbolProfileMap, availableHoldings, usedHoldings, ids).ConfigureAwait(false);
 			}
 
 			// Remove any unused holdings
@@ -82,7 +83,8 @@ namespace GhostfolioSidekick.Activities
 		private async Task CreateOrReuseHolding(
 			ILogger logger,
 			DatabaseContext databaseContext,
-			Dictionary<PartialSymbolIdentifier, Holding> partialSymbolIdentifierMap,
+			Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
+			Dictionary<string, Holding> symbolProfileMap,
 			Queue<Holding> availableHoldings,
 			List<Holding> usedHoldings,
 			IList<PartialSymbolIdentifier> partialIdentifiers)
@@ -115,13 +117,33 @@ namespace GhostfolioSidekick.Activities
 
 				found = true;
 
-				if (FindHolding(partialSymbolIdentifierMap, partialIdentifiers, out var existingHolding) && existingHolding != null)
+				var symbolKey = $"{symbolProfile.Symbol}|{symbolProfile.DataSource}";
+				
+				// First check if we already have a holding for this specific partial identifier
+				if (FindHolding(partialIdentifierMap, partialIdentifiers, out var existingHolding) && existingHolding != null)
 				{
 					logger.LogTrace("CreateOrReuseHolding: Merging identifiers for existing holding with symbol {Symbol}", symbolProfile.Symbol);
 					existingHolding.MergeSymbolProfiles(symbolProfile);
 					existingHolding.MergeIdentifiers(partialIdentifiers);
 
-					AddPartialIdentifiersToMap(partialSymbolIdentifierMap, partialIdentifiers, existingHolding);
+					AddPartialIdentifiersToMap(partialIdentifierMap, partialIdentifiers, existingHolding);
+					// Also update the symbol map
+					if (!symbolProfileMap.ContainsKey(symbolKey))
+					{
+						symbolProfileMap[symbolKey] = existingHolding;
+					}
+
+					continue;
+				}
+				
+				// Then check if we already have a holding for this symbol profile
+				if (symbolProfileMap.TryGetValue(symbolKey, out existingHolding))
+				{
+					logger.LogTrace("CreateOrReuseHolding: Merging identifiers for existing holding with symbol {Symbol}", symbolProfile.Symbol);
+					existingHolding.MergeSymbolProfiles(symbolProfile);
+					existingHolding.MergeIdentifiers(partialIdentifiers);
+
+					AddPartialIdentifiersToMap(partialIdentifierMap, partialIdentifiers, existingHolding);
 
 					continue;
 				}
@@ -145,7 +167,8 @@ namespace GhostfolioSidekick.Activities
 				holding.MergeSymbolProfiles(symbolProfile);
 				holding.MergeIdentifiers(partialIdentifiers);
 
-				AddPartialIdentifiersToMap(partialSymbolIdentifierMap, partialIdentifiers, holding);
+				AddPartialIdentifiersToMap(partialIdentifierMap, partialIdentifiers, holding);
+				symbolProfileMap[symbolKey] = holding;
 				usedHoldings.Add(holding);
 			}
 
@@ -156,21 +179,21 @@ namespace GhostfolioSidekick.Activities
 		}
 
 		private void AddPartialIdentifiersToMap(
-			Dictionary<PartialSymbolIdentifier, Holding> partialSymbolIdentifierMap,
+			Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
 			IList<PartialSymbolIdentifier> partialIdentifiers, 
 			Holding existingHolding)
 		{
 			foreach (var identifier in partialIdentifiers)
 			{
-				if (!partialSymbolIdentifierMap.ContainsKey(identifier))
+				if (!partialIdentifierMap.ContainsKey(identifier))
 				{
-					partialSymbolIdentifierMap[identifier] = existingHolding;
+					partialIdentifierMap[identifier] = existingHolding;
 				}
 			}
 		}
 
 		private bool FindHolding(
-			Dictionary<PartialSymbolIdentifier, Holding> partialSymbolIdentifierMap,
+			Dictionary<PartialSymbolIdentifier, Holding> partialIdentifierMap,
 			IList<PartialSymbolIdentifier> partialIdentifiers,
 			out Holding? existingHolding)
 		{
@@ -179,7 +202,7 @@ namespace GhostfolioSidekick.Activities
 			// Try to find an existing holding by any of the provided partial identifiers
 			foreach (var identifier in partialIdentifiers)
 			{
-				if (partialSymbolIdentifierMap.TryGetValue(identifier, out existingHolding))
+				if (partialIdentifierMap.TryGetValue(identifier, out existingHolding))
 				{
 					return true;
 				}
