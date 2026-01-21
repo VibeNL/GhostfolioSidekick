@@ -11,9 +11,7 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 {
 	internal class HoldingAggregatedTypeConfiguration :
 		IEntityTypeConfiguration<HoldingAggregated>,
-		IEntityTypeConfiguration<CalculatedSnapshot>,
-		IEntityTypeConfiguration<CalculatedSnapshotPrimaryCurrency>,
-		IEntityTypeConfiguration<BalancePrimaryCurrency>
+		IEntityTypeConfiguration<CalculatedSnapshot>
 	{
 		public void Configure(EntityTypeBuilder<HoldingAggregated> builder)
 		{
@@ -76,43 +74,6 @@ namespace GhostfolioSidekick.Database.TypeConfigurations
 			builder.HasIndex(x => new { x.AccountId, x.Date });
 			builder.HasIndex(x => new { x.HoldingAggregatedId, x.AccountId, x.Date }).IsUnique();
 			builder.HasIndex(x => new { x.HoldingAggregatedId, x.Date });
-			builder.HasIndex(x => new { x.Date });
-		}
-
-		public void Configure(EntityTypeBuilder<CalculatedSnapshotPrimaryCurrency> builder)
-		{
-			builder.ToTable("CalculatedSnapshotPrimaryCurrencies");
-
-			// Add a shadow property for the primary key since class doesn't have one
-			builder.Property<long>("Id")
-				.HasColumnType("integer")
-				.ValueGeneratedOnAdd()
-				.HasAnnotation("Key", 0);
-			builder.HasKey("Id");
-
-			// Configure simple properties
-			builder.Property(x => x.Date).IsRequired();
-			builder.Property(x => x.Quantity).IsRequired();
-
-			// Indexes
-			builder.HasIndex(x => new { x.Date });
-			builder.HasIndex(x => new { x.AccountId, x.Date });
-			builder.HasIndex(x => new { x.HoldingAggregatedId, x.AccountId, x.Date }).IsUnique();
-			builder.HasIndex(x => new { x.HoldingAggregatedId, x.Date });
-			builder.HasIndex(x => new { x.Date });
-		}
-
-		public void Configure(EntityTypeBuilder<BalancePrimaryCurrency> builder)
-		{
-			builder.ToTable("BalancePrimaryCurrencies");
-			builder.HasKey(x => x.Id);
-
-			// Configure simple properties
-			builder.Property(x => x.Date).IsRequired();
-			builder.Property(x => x.Money).IsRequired();
-
-			// Indexes
-			builder.HasIndex(x => new { x.AccountId, x.Date }).IsUnique();
 			builder.HasIndex(x => new { x.Date });
 		}
 

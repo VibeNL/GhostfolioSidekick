@@ -25,8 +25,6 @@ namespace GhostfolioSidekick.Model.Performance
 
 		public virtual ICollection<CalculatedSnapshot> CalculatedSnapshots { get; set; } = [];
 
-		public virtual ICollection<CalculatedSnapshotPrimaryCurrency> CalculatedSnapshotsPrimaryCurrency { get; set; } = [];
-
 		public override string ToString()
 		{
 			return $"{Symbol} ({DataSource}) - {Name ?? "No Name"}";

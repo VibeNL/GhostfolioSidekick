@@ -1,5 +1,4 @@
-﻿using GhostfolioSidekick.Model.Activities;
-using GhostfolioSidekick.Model.Performance;
+using GhostfolioSidekick.Model.Activities;
 
 namespace GhostfolioSidekick.Model.Accounts
 {
@@ -20,8 +19,6 @@ namespace GhostfolioSidekick.Model.Accounts
 		public string Name { get; set; }
 
 		public virtual List<Balance> Balance { get; set; } = [];
-
-		public virtual List<BalancePrimaryCurrency> BalancePrimaryCurrency { get; set; } = [];
 
 		public int Id { get; set; }
 

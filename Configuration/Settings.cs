@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace GhostfolioSidekick.Configuration
@@ -13,7 +13,7 @@ namespace GhostfolioSidekick.Configuration
 		[JsonPropertyName("dataprovider.preference.order")]
 		public required string DataProviderPreference { get; set; } = "YAHOO;COINGECKO";
 
-		[JsonPropertyName("performance.primarycurrency")]
-		public required string PrimaryCurrency { get; set; } = "EUR";
+		[JsonPropertyName("performance.currencies")]
+		public required string Currencies { get; set; } = "EUR;USD";
 	}
 }
