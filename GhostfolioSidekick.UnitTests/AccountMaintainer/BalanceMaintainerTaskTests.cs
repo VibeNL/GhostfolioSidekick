@@ -19,11 +19,11 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 			_mockExchangeRateService = new Mock<ICurrencyExchange>();
 			_mockApplicationSettings = new Mock<IApplicationSettings>();
 
-			// Setup default configuration
-			var mockConfigurationInstance = new ConfigurationInstance
-			{
-				Settings = new Settings { RawCurrencies = "EUR;USD" }
-			};
+		// Setup default configuration
+		var mockConfigurationInstance = new ConfigurationInstance
+		{
+			Settings = new Settings { RawCurrencies = "USD" }
+		};
 			_mockApplicationSettings.Setup(x => x.ConfigurationInstance).Returns(mockConfigurationInstance);
 
 			_balanceMaintainerTask = new BalanceMaintainerTask(_mockDbContextFactory.Object, _mockExchangeRateService.Object, _mockApplicationSettings.Object);
@@ -79,9 +79,10 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 		public async Task DoWork_ShouldNotUpdateBalances_WhenBalancesAreSame()
 		{
 			// Arrange
+			var testDate = DateTime.Today;
 			var existingBalances = new List<Model.Accounts.Balance>
 			{
-				new(DateOnly.FromDateTime(DateTime.Now), new Money(Currency.USD,100))
+				new(DateOnly.FromDateTime(testDate), new Money(Currency.USD,100))
 			};
 
 			var mockDbContext = new Mock<DatabaseContext>();
@@ -93,14 +94,12 @@ namespace GhostfolioSidekick.UnitTests.AccountMaintainer
 
 			var activities = new List<Activity>
 			{
-				new Model.Activities.Types.KnownBalanceActivity { Date = DateTime.Now, Account = account, Amount = new Money(Currency.USD,100) }
+				new Model.Activities.Types.KnownBalanceActivity { Date = testDate, Account = account, Amount = new Money(Currency.USD,100) }
 			};
 
 			mockDbContext.Setup(db => db.Activities).ReturnsDbSet(activities);
 
 			_mockDbContextFactory.Setup(factory => factory.CreateDbContextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mockDbContext.Object);
-
-			var balanceCalculator = new BalanceCalculator(_mockExchangeRateService.Object);
 
 			var loggerMock = new Mock<ILogger<BalanceMaintainerTask>>();
 
