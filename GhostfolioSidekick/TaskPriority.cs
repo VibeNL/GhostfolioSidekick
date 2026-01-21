@@ -1,4 +1,4 @@
-﻿namespace GhostfolioSidekick
+namespace GhostfolioSidekick
 {
 	public enum TaskPriority
 	{
@@ -23,6 +23,8 @@
 		MarketDataStockSplit,
 
 		MarketDataGatherer,
+
+		MarketDataTargetPrice,
 
 		CalculatePrice,
 
