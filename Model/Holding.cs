@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Model.Symbols;
 using System.Diagnostics.CodeAnalysis;
 
@@ -19,6 +19,14 @@ namespace GhostfolioSidekick.Model
 			foreach (var item in ids.Where(item => !IdentifierContainsInList(item)))
 			{
 				PartialSymbolIdentifiers.Add(item);
+			}
+		}
+
+		public void MergeSymbolProfiles(SymbolProfile symbolProfile)
+		{
+			if (!SymbolProfiles.Any(x => x.Symbol == symbolProfile.Symbol && x.DataSource == symbolProfile.DataSource))
+			{
+				SymbolProfiles.Add(symbolProfile);
 			}
 		}
 

@@ -7,18 +7,20 @@ using GhostfolioSidekick.Model.Accounts;
 using GhostfolioSidekick.Model.Activities;
 using GhostfolioSidekick.Parsers.CentraalBeheer;
 using System.Globalization;
+using System.Text;
 
 namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 {
 	public class CentraalBeheerParserTests
 	{
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance", Justification = "We test the parser")]
 		private readonly CentraalBeheerParser parser;
 		private readonly Account account;
 		private readonly TestActivityManager activityManager;
 
 		public CentraalBeheerParserTests()
 		{
-			parser = new CentraalBeheerParser();
+			parser = new CustomCentraalBeheerParser();
 
 			var fixture = CustomFixture.New();
 			account = fixture
@@ -143,6 +145,11 @@ namespace GhostfolioSidekick.Parsers.UnitTests.CentraalBeheer
 						new Money(Currency.EUR, 7.04M),
 						"CB-20250612-1")
 				]);
+		}
+
+		private class CustomCentraalBeheerParser : CentraalBeheerParser
+		{
+			protected override Encoding Encoding => Encoding.UTF8; // Testfiles are in UTF-8
 		}
 	}
 }

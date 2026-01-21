@@ -1,6 +1,7 @@
-﻿using CsvHelper;
+using CsvHelper;
 using CsvHelper.Configuration;
 using GhostfolioSidekick.Model.Activities;
+using System.Text;
 
 namespace GhostfolioSidekick.Parsers
 {
@@ -75,9 +76,11 @@ namespace GhostfolioSidekick.Parsers
 
 		protected abstract CsvConfiguration GetConfig();
 
+		protected virtual Encoding Encoding => Encoding.UTF8;
+
 		protected virtual StreamReader GetStreamReader(string file)
 		{
-			return File.OpenText(file);
+			return new StreamReader(file, Encoding, true);
 		}
 	}
 }

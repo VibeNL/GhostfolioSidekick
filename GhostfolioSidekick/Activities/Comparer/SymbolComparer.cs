@@ -1,9 +1,10 @@
-﻿using GhostfolioSidekick.Model.Symbols;
+using GhostfolioSidekick.Model.Activities;
+using GhostfolioSidekick.Model.Symbols;
 using System.Diagnostics.CodeAnalysis;
 
 namespace GhostfolioSidekick.Activities.Comparer
 {
-	internal class SymbolComparer : IEqualityComparer<SymbolProfile>
+	public class SymbolComparer : IEqualityComparer<SymbolProfile>
 	{
 		public bool Equals(SymbolProfile? x, SymbolProfile? y)
 		{
@@ -11,17 +12,45 @@ namespace GhostfolioSidekick.Activities.Comparer
 				return true;
 			if (x == null || y == null)
 				return false;
-			return GetSymbolString(x) == GetSymbolString(y);
+
+			// Primary comparison: Symbol must match (case-insensitive)
+			if (!string.Equals(x.Symbol, y.Symbol, StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+
+			// Flexible asset class comparison - allow compatible asset classes
+			return AreAssetClassesCompatible(x.AssetClass, x.AssetSubClass, y.AssetClass, y.AssetSubClass);
 		}
 
 		public int GetHashCode([DisallowNull] SymbolProfile obj)
 		{
-			return GetSymbolString(obj).GetHashCode();
+			// Use only the symbol for hash code to ensure symbols from different sources 
+			// with compatible asset classes get the same hash
+			return obj.Symbol?.ToUpperInvariant().GetHashCode() ?? 0;
 		}
 
-		private static string GetSymbolString(SymbolProfile x)
+		private static bool AreAssetClassesCompatible(AssetClass assetClass1, AssetSubClass? assetSubClass1, AssetClass assetClass2, AssetSubClass? assetSubClass2)
 		{
-			return string.Join("|", $"{x.Symbol}|{x.DataSource}|{x.AssetClass}|{x.AssetSubClass}|{x.Currency?.Symbol}");
+			// If either asset class is Undefined, they're considered compatible
+			if (assetClass1 == AssetClass.Undefined || assetClass2 == AssetClass.Undefined)
+			{
+				return true;
+			}
+
+			// If asset classes are different (and neither is Undefined), they're incompatible
+			if (assetClass1 != assetClass2)
+			{
+				return false;
+			}
+
+			// Asset classes are the same - check subclass compatibility
+			if (assetSubClass1 == null || assetSubClass2 == null)
+			{
+				return true;
+			}
+
+			return assetSubClass1 == assetSubClass2 || assetSubClass1 == AssetSubClass.Undefined || assetSubClass2 == AssetSubClass.Undefined;
 		}
 	}
 }

@@ -2,6 +2,7 @@ using CsvHelper.Configuration;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
 using System.Globalization;
+using System.Text;
 
 namespace GhostfolioSidekick.Parsers.CentraalBeheer
 {
@@ -13,7 +14,7 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 
 			var transactionId = $"CB-{record.TransactionDate:yyyyMMdd}-{rowNumber}";
 
-			record.FundName = "Centraal Beheer " + record.FundName?.Trim();
+			var stockIdentifier = "Centraal Beheer " + record.FundName?.Trim();
 
 			switch (record.TransactionType)
 			{
@@ -22,13 +23,13 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					{
 						var unitPrice = record.Rate.Value;
 						var quantity = record.NumberOfUnits.Value;
-						var totalAmount = Math.Abs(record.NetAmount);
+						var totalAmount = Math.Abs(record.NetAmount.GetValueOrDefault());
 						var fee = record.PurchaseCosts ?? 0m;
 
 						yield return PartialActivity.CreateBuy(
 							currency,
 							record.TransactionDate,
-							PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
+							PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
 							quantity,
 							new Money(currency, unitPrice),
 							new Money(currency, totalAmount),
@@ -52,13 +53,13 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					{
 						var unitPrice = record.Rate.Value;
 						var quantity = Math.Abs(record.NumberOfUnits.Value);
-						var totalAmount = Math.Abs(record.NetAmount);
+						var totalAmount = Math.Abs(record.NetAmount.GetValueOrDefault());
 						var fee = record.PurchaseCosts ?? 0m;
 
 						yield return PartialActivity.CreateSell(
 						currency,
 						record.TransactionDate,
-						PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
+						PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
 						quantity,
 						new Money(currency, unitPrice),
 						new Money(currency, totalAmount),
@@ -77,38 +78,38 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 					break;
 
 				case "Overboeking": // Transfer
-					var amount = Math.Abs(record.NetAmount);
+					var amount = Math.Abs(record.GrossAmount.GetValueOrDefault());
 					if (record.DebitCredit == "Bij") // Credit - money coming in
 					{
 						yield return PartialActivity.CreateCashDeposit(
-						currency,
-						record.TransactionDate,
-						amount,
-						new Money(currency, amount),
-						transactionId);
+							currency,
+							record.TransactionDate,
+							amount,
+							new Money(currency, amount),
+							transactionId);
 					}
 					else if (record.DebitCredit == "Af") // Debit - money going out
 					{
 						yield return PartialActivity.CreateCashWithdrawal(
-						currency,
-						record.TransactionDate,
-						amount,
-						new Money(currency, amount),
-						transactionId);
+							currency,
+							record.TransactionDate,
+							amount,
+							new Money(currency, amount),
+							transactionId);
 					}
 					break;
 
 				case "Dividend Uitkering": // Dividend Payment
 					if (!string.IsNullOrEmpty(record.FundName))
 					{
-						var grossAmount = record.GrossAmount ?? Math.Abs(record.NetAmount);
+						var grossAmount = record.GrossAmount ?? Math.Abs(record.NetAmount.GetValueOrDefault());
 						var dividendTax = record.DividendTax ?? 0m;
 
 						// Create dividend activity for the net amount
 						yield return PartialActivity.CreateDividend(
 							currency,
 							record.TransactionDate,
-							PartialSymbolIdentifier.CreateStockAndETF(record.FundName, GetConstructedId(record)),
+							PartialSymbolIdentifier.CreateStockAndETF(stockIdentifier, GetConstructedId(stockIdentifier)),
 							Math.Abs(grossAmount),
 							new Money(currency, Math.Abs(grossAmount)),
 							transactionId);
@@ -135,10 +136,12 @@ namespace GhostfolioSidekick.Parsers.CentraalBeheer
 			}
 		}
 
-		private string? GetConstructedId(CentraalBeheerRecord record)
+		private static string? GetConstructedId(string? fundName)
 		{
-			return record.FundName?.Trim().ToUpperInvariant().Replace(" ", "");
+			return fundName?.Trim().ToUpperInvariant().Replace(" ", "");
 		}
+
+		protected override Encoding Encoding => Encoding.BigEndianUnicode;
 
 		protected override CsvConfiguration GetConfig()
 		{

@@ -47,13 +47,13 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 
 		[Fact]
-		public void ExecutionFrequency_ShouldReturnDaily()
+		public void ExecutionFrequency_ShouldReturnHourly()
 		{
 			// Act
 			var frequency = _determineHoldings.ExecutionFrequency;
 
 			// Assert
-			frequency.Should().Be(Frequencies.Daily);
+			frequency.Should().Be(Frequencies.Hourly);
 		}
 
 		[Fact]
@@ -67,15 +67,15 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldRemoveHoldingsWithoutSymbolProfiles()
+		public async Task DoWork_ShouldRemoveUnusedHoldings()
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
-			var activities = new List<Activity>();
+			var activities = new List<Activity>(); // No activities means all holdings are unused
 			var holdings = new List<Holding>
 			{
-				new() { Id =1, SymbolProfiles = [] },
-				new() { Id =2, SymbolProfiles = [new SymbolProfile()] }
+				new() { Id = 1 },
+				new() { Id = 2 }
 			};
 
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
@@ -88,12 +88,13 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await _determineHoldings.DoWork(loggerMock.Object);
 
 			// Assert
-			dbContextMock.Verify(db => db.Holdings.Remove(It.Is<Holding>(h => h.Id == 1)), Times.Once);
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+			dbContextMock.Verify(db => db.Holdings.RemoveRange(It.Is<IEnumerable<Holding>>(h => h.Count() == 2)), Times.Once);
+			// SaveChangesAsync called twice: once for clearing existing holdings, once at the end
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldCreateNewHoldings()
+		public async Task DoWork_ShouldCreateNewHoldingsWhenNoExistingHoldings()
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
@@ -101,7 +102,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			{
 				new TestActivity { PartialSymbolIdentifiers = [ PartialSymbolIdentifier.CreateGeneric("TEST")] }
 			};
-			var holdings = new List<Holding>();
+			var holdings = new List<Holding>(); // No existing holdings to reuse
 
 			dbContextMock.Setup(db => db.Activities).ReturnsDbSet(activities);
 			dbContextMock.Setup(db => db.Holdings).ReturnsDbSet(holdings);
@@ -117,7 +118,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Once);
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+			// SaveChangesAsync called twice: once for clearing existing holdings, once at the end
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
@@ -157,9 +159,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				x => x.Log(
 					LogLevel.Trace,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: Holding already exists for") &&
-										v.ToString()!.Contains("TEST") &&
-										v.ToString()!.Contains("with")),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrReuseHolding: Merging identifiers for existing holding with symbol") &&
+										v.ToString()!.Contains("TEST")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
@@ -193,7 +194,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				x => x.Log(
 					LogLevel.Warning,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrUpdateHolding: No symbol profile found for") &&
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("CreateOrReuseHolding: No symbol profile found for") &&
 										v.ToString()!.Contains("UNKNOWN")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
@@ -354,7 +355,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Assert
 		// Verify that both matchers had their AllowedForDeterminingHolding property checked (actual MatchSymbol calls depend on implementation logic)
 		// Verify the method completes successfully
-		dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+		dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		
 		
 		// Verify that both matchers had their AllowedForDeterminingHolding property checked
@@ -430,7 +431,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldClearExcessPartialIdentifiers_WhenMoreThanOne()
+		public async Task DoWork_ShouldClearAllPartialIdentifiers_WhenNoActivities()
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
@@ -450,8 +451,9 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
-			holding.PartialSymbolIdentifiers.Should().HaveCount(1);
-			holding.PartialSymbolIdentifiers[0].Identifier.Should().Be("FIRST");
+			holding.PartialSymbolIdentifiers.Should().BeEmpty();
+			
+			
 		}
 
 		[Fact]
@@ -472,11 +474,12 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Assert
 			dbContextMock.Verify(db => db.Holdings.Add(It.IsAny<Holding>()), Times.Never);
 			dbContextMock.Verify(db => db.Holdings.Remove(It.IsAny<Holding>()), Times.Never);
-			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Once);
+			// SaveChangesAsync called twice: once for clearing existing holdings, once at the end
+			dbContextMock.Verify(db => db.SaveChangesAsync(default), Times.Exactly(2));
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldPreserveSymbolProfilesAndOnlyKeepFirstPartialIdentifier()
+		public async Task DoWork_ShouldReuseExistingHoldingForNewSymbol()
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
@@ -504,13 +507,17 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			await _determineHoldings.DoWork(_loggerMock.Object);
 
 			// Assert
-			holding.SymbolProfiles.Should().BeEmpty(); // Cleared at start
-			holding.PartialSymbolIdentifiers.Should().HaveCount(1);
-			holding.PartialSymbolIdentifiers[0].Identifier.Should().Be("FIRST");
+		// The existing holding should be reused for the new symbol
+		holding.SymbolProfiles.Should().HaveCount(1);
+		holding.SymbolProfiles[0].Symbol.Should().Be("NEW_SYMBOL");
+		holding.PartialSymbolIdentifiers.Should().HaveCount(1);
+		holding.PartialSymbolIdentifiers[0].Identifier.Should().Be("NEW_SYMBOL");
+			
+			
 		}
 
 		[Fact]
-		public async Task DoWork_ShouldLogInformation_WhenRemovingHoldingWithoutSymbolProfile()
+		public async Task DoWork_ShouldLogInformation_WhenRemovingUnusedHoldings()
 		{
 			// Arrange
 			var dbContextMock = new Mock<DatabaseContext>();
@@ -530,8 +537,8 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				x => x.Log(
 					LogLevel.Information,
 					It.IsAny<EventId>(),
-					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Removing holding without symbol profile") &&
-										v.ToString()!.Contains("42")),
+					It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Removing") &&
+										v.ToString()!.Contains("unused holdings")),
 					It.IsAny<Exception?>(),
 					It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
 				Times.Once);
