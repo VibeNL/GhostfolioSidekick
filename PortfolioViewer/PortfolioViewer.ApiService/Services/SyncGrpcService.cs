@@ -9,8 +9,12 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 	public class SyncGrpcService(DatabaseContext dbContext, ILogger<SyncGrpcService> logger) : SyncService.SyncServiceBase
 	{
 		private readonly string[] _tablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
-		private readonly Lazy<Task<Dictionary<string, string>>> _tablesWithDatesCache = new(() => LoadTablesWithDatesAsync(dbContext, logger));
+		private readonly Lazy<Task<Dictionary<string, string>>> _tablesWithDatesCache;
 
+		public SyncGrpcService
+		{
+			_tablesWithDatesCache = new(() => LoadTablesWithDatesAsync(dbContext, logger));
+		}
 		public override async Task<GetTableNamesResponse> GetTableNames(GetTableNamesRequest request, ServerCallContext context)
 		{
 			try
