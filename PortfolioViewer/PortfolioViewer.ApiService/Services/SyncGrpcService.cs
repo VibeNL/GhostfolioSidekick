@@ -9,12 +9,11 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 	public class SyncGrpcService(DatabaseContext dbContext, ILogger<SyncGrpcService> logger) : SyncService.SyncServiceBase
 	{
 		private readonly string[] _tablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
-		private readonly Lazy<Task<Dictionary<string, string>>> _tablesWithDatesCache;
+		private Lazy<Task<Dictionary<string, string>>>? _tablesWithDatesCache;
 
-		public SyncGrpcService
-		{
-			_tablesWithDatesCache = new(() => LoadTablesWithDatesAsync(dbContext, logger));
-		}
+		private Lazy<Task<Dictionary<string, string>>> TablesWithDatesCache =>
+			_tablesWithDatesCache ??= new(() => LoadTablesWithDatesAsync(dbContext, logger, _tablesToIgnore));
+
 		public override async Task<GetTableNamesResponse> GetTableNames(GetTableNamesRequest request, ServerCallContext context)
 		{
 			try
@@ -113,15 +112,14 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 		}
 
 		private async Task<Dictionary<string, string>> GetTablesWithDatesAsync() =>
-			await _tablesWithDatesCache.Value;
+			await TablesWithDatesCache.Value;
 
-		private static async Task<Dictionary<string, string>> LoadTablesWithDatesAsync(DatabaseContext dbContext, ILogger<SyncGrpcService> logger)
-		{
-			var tablesWithDates = new Dictionary<string, string>();
-			var tablesToIgnore = new[] { "sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock" };
+	private static async Task<Dictionary<string, string>> LoadTablesWithDatesAsync(DatabaseContext dbContext, ILogger<SyncGrpcService> logger, string[] tablesToIgnore)
+	{
+		var tablesWithDates = new Dictionary<string, string>();
 
-			using var connection = dbContext.Database.GetDbConnection();
-			await connection.OpenAsync();
+		using var connection = dbContext.Database.GetDbConnection();
+		await connection.OpenAsync();
 
 			var tableNames = new List<string>();
 			using (var cmd = connection.CreateCommand())
