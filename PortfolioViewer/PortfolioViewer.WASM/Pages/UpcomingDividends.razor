@@ -48,7 +48,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var div in dividends.OrderBy(d => d.ExDate))
+                                    @foreach (var div in dividends.OrderBy(d => d.PaymentDate))
                                     {
                                         <tr>
                                             <td><strong>@div.Symbol</strong></td>
@@ -65,7 +65,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <span class="text-muted">—</span>
+                                                    <span class="text-muted">â€”</span>
                                                 }
                                             </td>
                                             <td class="text-end">@div.Quantity.ToString("N2")</td>

@@ -9,70 +9,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 	public class SyncGrpcService(DatabaseContext dbContext, ILogger<SyncGrpcService> logger) : SyncService.SyncServiceBase
 	{
 		private readonly string[] _tablesToIgnore = ["sqlite_sequence", "__EFMigrationsHistory", "__EFMigrationsLock"];
-		private readonly Dictionary<string, string> _tablesWithDates = [];
-		private bool _tablesWithDatesInitialized;
+		private Lazy<Task<Dictionary<string, string>>>? _tablesWithDatesCache;
 
-		private async Task<Dictionary<string, string>> GetTablesWithDatesAsync()
-		{
-			if (_tablesWithDatesInitialized) return _tablesWithDates;
-
-			using var connection = dbContext.Database.GetDbConnection();
-			await connection.OpenAsync();
-
-			var tableNames = new List<string>();
-			using (var cmd = connection.CreateCommand())
-			{
-				cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
-				using var reader = await cmd.ExecuteReaderAsync();
-				while (await reader.ReadAsync())
-				{
-					var name = reader.GetString(0);
-					if (!_tablesToIgnore.Contains(name)) tableNames.Add(name);
-				}
-			}
-
-			foreach (var tableName in tableNames)
-			{
-				try
-				{
-					using var cmd = connection.CreateCommand();
-					cmd.CommandText = $"PRAGMA table_info({tableName})";
-					using var reader = await cmd.ExecuteReaderAsync();
-					while (await reader.ReadAsync())
-					{
-						var columnName = reader.GetString(1);
-						var columnType = reader.GetString(2);
-						if (IsDateColumn(columnName, columnType))
-						{
-							_tablesWithDates[tableName] = columnName;
-							logger.LogDebug("Found date column {ColumnName} in table {TableName}", columnName, tableName);
-							break;
-						}
-					}
-				}
-				catch (Exception ex)
-				{
-					logger.LogWarning(ex, "Failed to analyze columns for table {TableName}", tableName);
-				}
-			}
-
-			_tablesWithDatesInitialized = true;
-			logger.LogInformation("Discovered {Count} tables with date columns: {Tables}",
-				_tablesWithDates.Count, string.Join(", ", _tablesWithDates.Select(kvp => $"{kvp.Key}({kvp.Value})")));
-
-			return _tablesWithDates;
-		}
-
-		private static bool IsDateColumn(string columnName, string columnType) =>
-			columnName.ToLower() switch
-			{
-				var name when name == "date" || name.EndsWith("date") || name.StartsWith("date") || name.Contains("timestamp") => true,
-				_ => columnType.ToLower() switch
-				{
-					var type when type.Contains("date") || type.Contains("datetime") || type.Contains("timestamp") => true,
-					_ => false
-				}
-			};
+		private Lazy<Task<Dictionary<string, string>>> TablesWithDatesCache =>
+			_tablesWithDatesCache ??= new(() => LoadTablesWithDatesAsync(dbContext, logger, _tablesToIgnore));
 
 		public override async Task<GetTableNamesResponse> GetTableNames(GetTableNamesRequest request, ServerCallContext context)
 		{
@@ -170,6 +110,70 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.Services
 				throw new RpcException(new Status(StatusCode.Internal, ex.Message));
 			}
 		}
+
+		private async Task<Dictionary<string, string>> GetTablesWithDatesAsync() =>
+			await TablesWithDatesCache.Value;
+
+	private static async Task<Dictionary<string, string>> LoadTablesWithDatesAsync(DatabaseContext dbContext, ILogger<SyncGrpcService> logger, string[] tablesToIgnore)
+	{
+		var tablesWithDates = new Dictionary<string, string>();
+
+		using var connection = dbContext.Database.GetDbConnection();
+		await connection.OpenAsync();
+
+			var tableNames = new List<string>();
+			using (var cmd = connection.CreateCommand())
+			{
+				cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
+				using var reader = await cmd.ExecuteReaderAsync();
+				while (await reader.ReadAsync())
+				{
+					var name = reader.GetString(0);
+					if (!tablesToIgnore.Contains(name)) tableNames.Add(name);
+				}
+			}
+
+			foreach (var tableName in tableNames)
+			{
+				try
+				{
+					using var cmd = connection.CreateCommand();
+					cmd.CommandText = $"PRAGMA table_info({tableName})";
+					using var reader = await cmd.ExecuteReaderAsync();
+					while (await reader.ReadAsync())
+					{
+						var columnName = reader.GetString(1);
+						var columnType = reader.GetString(2);
+						if (IsDateColumn(columnName, columnType))
+						{
+							tablesWithDates[tableName] = columnName;
+							logger.LogDebug("Found date column {ColumnName} in table {TableName}", columnName, tableName);
+							break;
+						}
+					}
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Failed to analyze columns for table {TableName}", tableName);
+				}
+			}
+
+			logger.LogInformation("Discovered {Count} tables with date columns: {Tables}",
+				tablesWithDates.Count, string.Join(", ", tablesWithDates.Select(kvp => $"{kvp.Key}({kvp.Value})")));
+
+			return tablesWithDates;
+		}
+
+		private static bool IsDateColumn(string columnName, string columnType) =>
+			columnName.ToLower() switch
+			{
+				var name when name == "date" || name.EndsWith("date") || name.StartsWith("date") || name.Contains("timestamp") => true,
+				_ => columnType.ToLower() switch
+				{
+					var type when type.Contains("date") || type.Contains("datetime") || type.Contains("timestamp") => true,
+					_ => false
+				}
+			};
 
 		private async Task GetEntityDataInternal(string entity, int page, int pageSize, string? sinceDate, IServerStreamWriter<GetEntityDataResponse> responseStream)
 		{
