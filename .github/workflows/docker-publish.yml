@@ -197,8 +197,9 @@ jobs:
       - name: Scan for deprecated packages
         run: |
           echo "Scanning for deprecated NuGet packages..."
-          dotnet list package --deprecated
-          if [ $? -ne 0 ]; then
+          deprecated_output=$(dotnet list package --deprecated)
+          echo "$deprecated_output"
+          if echo "$deprecated_output" | grep -q "has the following deprecated packages"; then
             echo "⚠️  Deprecated packages found!"
             exit 0  # Don't fail the build for deprecated packages, just warn
           else
@@ -207,8 +208,9 @@ jobs:
       - name: Scan for vulnerable packages
         run: |
           echo "Scanning for vulnerable NuGet packages..."
-          dotnet list package --vulnerable
-          if [ $? -ne 0 ]; then
+          vulnerable_output=$(dotnet list package --vulnerable)
+          echo "$vulnerable_output"
+          if echo "$vulnerable_output" | grep -q "has the following vulnerable packages"; then
             echo "❌ Vulnerable packages found!"
             exit 1  # Fail the build for vulnerable packages
           else
