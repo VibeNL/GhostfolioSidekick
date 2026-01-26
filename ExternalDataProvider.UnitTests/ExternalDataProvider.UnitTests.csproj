@@ -1,18 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<OutputType>Exe</OutputType>
-		<NoWarn>xUnit1051;xUnit1013</NoWarn>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
 	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="AwesomeAssertions" Version="9.3.0" />
 		<PackageReference Include="coverlet.collector" Version="6.0.4">
@@ -31,17 +27,13 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
-
 	<ItemGroup>
 	  <ProjectReference Include="..\ExternalDataProvider\ExternalDataProvider.csproj" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<Using Include="Xunit" />
 	</ItemGroup>
-
 	<ItemGroup>
 	  <Folder Include="CoinGecko\" />
 	</ItemGroup>
-
 </Project>

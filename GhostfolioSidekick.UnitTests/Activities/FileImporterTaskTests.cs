@@ -66,7 +66,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			using (var setupContext = _dbContextFactory.CreateDbContext())
 			{
 				setupContext.Accounts.Add(new Account { Name = "TestAccount" });
-				await setupContext.SaveChangesAsync();
+				await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 			}
 
 			var knownHash = "knownHash";
@@ -89,7 +89,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			{
 				var account = new Account { Name = "TestAccount" };
 				setupContext.Accounts.Add(account);
-				await setupContext.SaveChangesAsync();
+				await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 				accountId = account.Id; // Store just the ID to avoid tracking issues
 			}
 
@@ -97,7 +97,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			using (var setupContext = _dbContextFactory.CreateDbContext())
 			{
 				// Load the account from this context to ensure proper tracking
-				var trackedAccount = await setupContext.Accounts.FindAsync(accountId);
+				var trackedAccount = await setupContext.Accounts.FindAsync(accountId, TestContext.Current.CancellationToken);
 
 				var existingActivities = new List<Activity>
 				{
@@ -106,13 +106,13 @@ namespace GhostfolioSidekick.UnitTests.Activities
 				};
 
 				setupContext.Activities.AddRange(existingActivities);
-				await setupContext.SaveChangesAsync();
+				await setupContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 			}
 
 			// Act & Assert - Use a fresh context for the StoreAll operation
 			using var testContext = _dbContextFactory.CreateDbContext();
 			// Load the account in this context to ensure proper tracking
-			var accountForTest = await testContext.Accounts.FindAsync(accountId);
+			var accountForTest = await testContext.Accounts.FindAsync(accountId, TestContext.Current.CancellationToken);
 
 			// Create new activities using the properly tracked account
 			var newActivities = new List<Activity>
@@ -135,7 +135,7 @@ namespace GhostfolioSidekick.UnitTests.Activities
 			// Verify results in the same context to avoid additional complexity
 			var finalActivities = await testContext.Activities
 				.Include(x => x.Account)
-				.ToListAsync();
+				.ToListAsync(TestContext.Current.CancellationToken);
 
 			finalActivities.Count.Should().Be(2);
 
@@ -192,3 +192,4 @@ namespace GhostfolioSidekick.UnitTests.Activities
 		}
 	}
 }
+

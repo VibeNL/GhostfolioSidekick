@@ -45,7 +45,7 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 		private async Task CreateTableAsync(string tableName, string columns, params (string sql, object?[]? parameters)[] inserts)
 		{
 			var conn = context.Database.GetDbConnection();
-			await context.Database.OpenConnectionAsync();
+			await context.Database.OpenConnectionAsync(TestContext.Current.CancellationToken);
 
 			using var cmd = conn.CreateCommand();
 			cmd.CommandText = $"CREATE TABLE {tableName} ({columns});";
@@ -171,3 +171,4 @@ namespace GhostfolioSidekick.PortfolioViewer.Tests
 		}
 	}
 }
+

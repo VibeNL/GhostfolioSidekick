@@ -1,15 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
 		<OutputType>Exe</OutputType>
-		<NoWarn>xUnit1051;xUnit1013</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.3.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
@@ -26,11 +23,9 @@
     <PackageReference Include="Moq.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.2" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\Database\Database.csproj" />
     <ProjectReference Include="..\..\Model\Model.csproj" />
     <ProjectReference Include="..\PortfolioViewer.WASM.Data\PortfolioViewer.WASM.Data.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<OutputType>Exe</OutputType>
-		<NoWarn>xUnit1051;xUnit1013</NoWarn>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
@@ -11,7 +9,6 @@
 		<AssemblyName>GhostfolioSidekick.Tools.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.Tools.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="AwesomeAssertions" Version="9.3.0" />
 		<PackageReference Include="coverlet.collector" Version="6.0.4">
@@ -30,13 +27,10 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\Database\Database.csproj" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<Using Include="Xunit" />
 	</ItemGroup>
-
 </Project>

@@ -1,45 +1,33 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<OutputType>Exe</OutputType>
-		<NoWarn>xUnit1051;xUnit1013</NoWarn>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
 		<AssemblyName>GhostfolioSidekick.$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>GhostfolioSidekick.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 	</PropertyGroup>
-
 	<PropertyGroup>
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-		<WarningsNotAsErrors>xUnit1051;xUnit1013</WarningsNotAsErrors>
 	</PropertyGroup>
-
 	<ItemGroup>
 	  <Compile Remove="TestFiles\TradeRepublic\NL\BuyOrders\**" />
 	  <EmbeddedResource Remove="TestFiles\TradeRepublic\NL\BuyOrders\**" />
 	  <None Remove="TestFiles\TradeRepublic\NL\BuyOrders\**" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<PackageReference Include="AutoFixture" Version="4.18.1" />
 		<PackageReference Include="AwesomeAssertions" Version="9.3.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
-
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
-
 		<PackageReference Include="Moq" Version="4.20.72" />
-
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-
 		<PackageReference Include="Polly" Version="8.6.5" />
 		<PackageReference Include="xunit.v3" Version="3.2.2" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
@@ -51,18 +39,15 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
-
 	<ItemGroup>
 		<Folder Include="TestFiles\Bitvavo\Interest\" />
 		<Folder Include="TestFiles\Coinbase\CashTransactions\" />
 		<Folder Include="TestFiles\DeGiro\EN\SellOrders\" />
 		<Folder Include="TestFiles\TradeRepublic\ES\CashTransactions\" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\Parsers\Parsers.csproj" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<None Update="MacroTrends\MacroTrends_Data_Download_ATVI.csv">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -593,5 +578,4 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
-
 </Project>
