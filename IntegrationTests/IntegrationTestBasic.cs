@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			await InitializeSidekick(authToken, url);
 		}
 
-		public async Task InitializeAsync()
+		public async ValueTask InitializeAsync()
 		{
 			INetwork network = new NetworkBuilder()
 				.WithCleanUp(true)
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			authToken = await response.Content.ReadFromJsonAsync<AuthData>().ConfigureAwait(false);
 		}
 
-		public async Task DisposeAsync()
+		public async ValueTask DisposeAsync()
 		{
 			// Dispose HttpClient.
 			httpClient.Dispose();

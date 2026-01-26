@@ -1,7 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<OutputType>Exe</OutputType>
+		<NoWarn>xUnit1051;xUnit1013</NoWarn>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
@@ -19,8 +21,8 @@
 		<PackageReference Include="Testcontainers" Version="4.10.0" />
 		<PackageReference Include="Testcontainers.PostgreSql" Version="4.10.0" />
 		<PackageReference Include="Testcontainers.Redis" Version="4.10.0" />
-		<PackageReference Include="xRetry" Version="1.9.0" />
-		<PackageReference Include="xunit" Version="2.9.3" />
+		<!--<PackageReference Include="xRetry" Version="1.9.0" />-->
+		<PackageReference Include="xunit.v3" Version="3.2.2" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
