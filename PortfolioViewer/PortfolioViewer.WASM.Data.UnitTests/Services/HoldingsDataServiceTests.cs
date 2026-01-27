@@ -35,7 +35,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				_mockServerConfigurationService.Object);
 		}
 
-		#region GetHoldingsAsync() Tests
 
 		[Fact]
 		public async Task GetHoldingsAsync_WithoutAccountId_ShouldReturnAllHoldings()
@@ -218,9 +217,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Verify(x => x.CalculatedSnapshotPrimaryCurrencies, Times.AtLeastOnce);
 		}
 
-		#endregion
 
-		#region GetHoldingsAsync(int accountId) Tests
 
 		[Fact]
 		public async Task GetHoldingsAsync_WithAccountId_ShouldReturnFilteredHoldings()
@@ -293,9 +290,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			result.Should().BeEmpty();
 		}
 
-		#endregion
 
-		#region GetHoldingAsync Tests
 
 		[Fact]
 		public async Task GetHoldingAsync_WithValidSymbol_ShouldReturnMatchingHolding()
@@ -379,9 +374,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Verify(x => x.CalculatedSnapshotPrimaryCurrencies, Times.AtLeastOnce);
 		}
 
-		#endregion
 
-		#region GetHoldingPriceHistoryAsync Tests
 
 		[Fact]
 		public async Task GetHoldingPriceHistoryAsync_WithValidData_ShouldReturnPriceHistory()
@@ -511,9 +504,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Verify(x => x.HoldingAggregateds, Times.AtLeastOnce);
 		}
 
-		#endregion
 
-		#region GetPortfolioValueHistoryAsync Tests
 
 		[Fact]
 		public async Task GetPortfolioValueHistoryAsync_WithValidData_ShouldReturnPortfolioHistory()
@@ -689,9 +680,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Verify(x => x.CalculatedSnapshotPrimaryCurrencies, Times.AtLeastOnce);
 		}
 
-		#endregion
 
-		#region Edge Cases and Error Handling
 
 		[Fact]
 		public async Task GetHoldingsAsync_WithNullName_ShouldUseSymbolAsName()
@@ -768,10 +757,6 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			result[0].Price.Amount.Should().Be(0); // Should handle null CurrentUnitPrice
 		}
 
-		#endregion
-
-		#region Helper Methods
-
 		private static HoldingAggregated CreateTestHoldingAggregated(string symbol, string? name)
 		{
 			return new HoldingAggregated
@@ -823,7 +808,5 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				totalInvested: Money.Zero(Currency.USD),
 				totalValue: Money.Zero(Currency.USD));
 		}
-
-		#endregion
 	}
 }
