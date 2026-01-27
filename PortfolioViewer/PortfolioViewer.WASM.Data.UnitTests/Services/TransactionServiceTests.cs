@@ -58,7 +58,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -101,7 +101,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -143,7 +143,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -184,7 +184,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -226,7 +226,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -268,7 +268,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -308,7 +308,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -352,7 +352,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -398,7 +398,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -429,7 +429,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(activities);
 
 			// Act
-			var result = await _transactionService.GetTransactionTypesAsync(TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionTypesAsync(CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeEmpty();
@@ -448,7 +448,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			_mockDatabaseContext.Setup(x => x.Activities).ReturnsDbSet(new List<Activity>());
 
 			// Act
-			var result = await _transactionService.GetTransactionTypesAsync(TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionTypesAsync(CancellationToken.None);
 
 			// Assert
 			result.Should().BeEmpty();
@@ -486,7 +486,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -528,7 +528,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -573,7 +573,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -612,7 +612,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -655,7 +655,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 			};
 
 			// Act
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 			// Assert
 			result.Should().NotBeNull();
@@ -707,7 +707,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				};
 
 				// Act
-				var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+				var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 
 				// Assert
 				result.Should().NotBeNull();
@@ -753,7 +753,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				PageNumber = 1,
 				PageSize = 10
 			};
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 			result.Should().NotBeNull();
 			result.Transactions.Should().NotBeEmpty();
 		}
@@ -785,7 +785,7 @@ namespace PortfolioViewer.WASM.Data.UnitTests.Services
 				PageNumber = 1,
 				PageSize = 10
 			};
-			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, TestContext.Current.CancellationToken);
+			var result = await _transactionService.GetTransactionsPaginatedAsync(parameters, CancellationToken.None);
 			result.Should().NotBeNull();
 			result.Transactions.Should().HaveCount(2);
 			result.Transactions.All(t => t.Type == "Buy" || t.Type == "Sell").Should().BeTrue();
