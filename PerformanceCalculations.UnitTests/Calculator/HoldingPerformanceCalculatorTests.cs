@@ -475,7 +475,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Assert
 			var holdingAggregated = result.First();
 			holdingAggregated.Symbol.Should().StartWith("AAPL_"); // Should use first symbol profile (with unique suffix)
-			holdingAggregated.Name.Should().Be("Apple Inc. (Alternative)"); // Implementation actually uses the second symbol profile due to ordering logic
+			holdingAggregated.Name.Should().Be("Apple Inc.");
 		}
 
 		[Fact]
