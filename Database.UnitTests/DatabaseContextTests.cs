@@ -18,17 +18,17 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 				.Options;
 
 		using var context = new DatabaseContext(options);
-		await context.Database.OpenConnectionAsync(TestContext.Current.CancellationToken);
+		await context.Database.OpenConnectionAsync(CancellationToken.None);
 
 		// Act
-		await context.Database.MigrateAsync(TestContext.Current.CancellationToken);
+		await context.Database.MigrateAsync(CancellationToken.None);
 
 			// Assert
-			var pendingMigrations = await context.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken);
+			var pendingMigrations = await context.Database.GetPendingMigrationsAsync(CancellationToken.None);
 			pendingMigrations.Should().BeEmpty();
 
 			// Check if table Holding exists
-			var tableExists = await context.Database.ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Holdings';", TestContext.Current.CancellationToken);
+			var tableExists = await context.Database.ExecuteSqlRawAsync("SELECT name FROM sqlite_master WHERE type='table' AND name='Holdings';", CancellationToken.None);
 		}
 
 		[Fact]
@@ -40,10 +40,10 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 				.Options;
 
 			using var context = new DatabaseContext(options);
-			await context.Database.OpenConnectionAsync(TestContext.Current.CancellationToken);
+			await context.Database.OpenConnectionAsync(CancellationToken.None);
 
 			// Act & Assert - Should not throw exception when creating DbContext
-			await context.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
+			await context.Database.EnsureCreatedAsync(CancellationToken.None);
 
 			// Verify that we can add a HoldingAggregated with CalculatedSnapshots
 			var holdingAggregated = new HoldingAggregated
@@ -68,12 +68,12 @@ namespace GhostfolioSidekick.Tools.Database.UnitTests
 			};
 
 			context.HoldingAggregateds.Add(holdingAggregated);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 		// Verify we can read it back
 		var retrieved = await context.HoldingAggregateds
 			.Include(x => x.CalculatedSnapshots)
-			.FirstOrDefaultAsync(TestContext.Current.CancellationToken);
+			.FirstOrDefaultAsync(CancellationToken.None);
 
 			retrieved.Should().NotBeNull();
 			retrieved!.CalculatedSnapshots.Should().HaveCount(1);

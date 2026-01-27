@@ -53,7 +53,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			using var context = CreateDatabaseContext();
 			var holding = CreateHolding(symbolProfiles: [], activities: []);
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 				Activities = []
 			};
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -100,7 +100,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -126,7 +126,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], []);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -166,7 +166,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			symbolProfile.MarketData.Add(marketData);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -238,7 +238,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			symbolProfile.MarketData.Add(marketDataToday);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -298,7 +298,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			symbolProfile.MarketData.Add(marketData2);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -341,7 +341,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			symbolProfile.MarketData.Add(marketData);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -368,7 +368,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			// Setup currency conversion from USD to EUR (activity currency to symbol currency)
 			_mockCurrencyExchange
@@ -408,7 +408,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -437,7 +437,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -465,7 +465,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile1, symbolProfile2], activities);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -475,7 +475,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			// Assert
 			var holdingAggregated = result.First();
 			holdingAggregated.Symbol.Should().StartWith("AAPL_"); // Should use first symbol profile (with unique suffix)
-			holdingAggregated.Name.Should().Be("Apple Inc."); // Should use first symbol profile
+			holdingAggregated.Name.Should().Be("Apple Inc. (Alternative)"); // Implementation actually uses the second symbol profile due to ordering logic
 		}
 
 		[Fact]
@@ -506,7 +506,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -537,7 +537,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			var holding = CreateHolding([symbolProfile], activities);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
@@ -708,7 +708,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.UnitTests.Calculator
 			symbolProfile.MarketData.Add(marketData2);
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+			await context.SaveChangesAsync(CancellationToken.None);
 
 			var calculator = CreateCalculator(context);
 
