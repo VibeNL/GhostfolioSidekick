@@ -201,7 +201,7 @@ jobs:
           echo "$deprecated_output"
           if echo "$deprecated_output" | grep -q "has the following deprecated packages"; then
             echo "⚠️  Deprecated packages found!"
-            exit 0  # Don't fail the build for deprecated packages, just warn
+            exit 1  # Fail the build for deprecated packages
           else
             echo "✅ No deprecated packages found."
           fi
