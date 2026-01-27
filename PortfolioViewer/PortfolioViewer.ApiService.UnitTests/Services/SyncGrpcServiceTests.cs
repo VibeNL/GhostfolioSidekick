@@ -105,15 +105,15 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			// create tables and insert rows using the same connection
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE test_table (id INTEGER PRIMARY KEY, created_date TEXT, name TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "CREATE TABLE other_table (id INTEGER PRIMARY KEY, value TEXT);";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE test_table (id INTEGER PRIMARY KEY, created_date TEXT, name TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "CREATE TABLE other_table (id INTEGER PRIMARY KEY, value TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
-				cmd.CommandText = "INSERT INTO test_table (created_date, name) VALUES ('2020-01-01', 'a'), ('2021-01-01', 'b');";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO other_table (value) VALUES ('x');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "INSERT INTO test_table (created_date, name) VALUES ('2020-01-01', 'a'), ('2021-01-01', 'b');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO other_table (value) VALUES ('x');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -137,15 +137,15 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE with_date (id INTEGER PRIMARY KEY, mydate TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO with_date (mydate) VALUES ('2020-01-01'), ('2022-05-03');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE with_date (id INTEGER PRIMARY KEY, mydate TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO with_date (mydate) VALUES ('2020-01-01'), ('2022-05-03');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
-				cmd.CommandText = "CREATE TABLE without_date (id INTEGER PRIMARY KEY, val TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO without_date (val) VALUES ('v');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE without_date (id INTEGER PRIMARY KEY, val TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO without_date (val) VALUES ('v');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -165,10 +165,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE items (id INTEGER PRIMARY KEY, created_date TEXT, name TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO items (created_date, name) VALUES ('2020-01-01','a'), ('2021-01-01','b'), ('2022-01-01','c');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE items (id INTEGER PRIMARY KEY, created_date TEXT, name TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO items (created_date, name) VALUES ('2020-01-01','a'), ('2021-01-01','b'), ('2022-01-01','c');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -202,10 +202,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE events (id INTEGER PRIMARY KEY, event_date TEXT, name TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO events (event_date, name) VALUES ('2020-01-01','a'), ('2021-06-01','b'), ('2022-07-01','c');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE events (id INTEGER PRIMARY KEY, event_date TEXT, name TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO events (event_date, name) VALUES ('2020-01-01','a'), ('2021-06-01','b'), ('2022-07-01','c');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -232,8 +232,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT);";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -268,8 +268,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE __EFMigrationsHistory (id INTEGER PRIMARY KEY, v TEXT);";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE __EFMigrationsHistory (id INTEGER PRIMARY KEY, v TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -287,10 +287,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE nodate (id INTEGER PRIMARY KEY, name TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO nodate (name) VALUES ('x'), ('y');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE nodate (id INTEGER PRIMARY KEY, name TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO nodate (name) VALUES ('x'), ('y');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -312,20 +312,20 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE t_date (id INTEGER PRIMARY KEY, date TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO t_date (date) VALUES ('2020-01-01');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE t_date (id INTEGER PRIMARY KEY, date TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO t_date (date) VALUES ('2020-01-01');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
-				cmd.CommandText = "CREATE TABLE t_timestamp (id INTEGER PRIMARY KEY, createdTimestamp TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO t_timestamp (createdTimestamp) VALUES ('2021-02-02');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE t_timestamp (id INTEGER PRIMARY KEY, createdTimestamp TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO t_timestamp (createdTimestamp) VALUES ('2021-02-02');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
-				cmd.CommandText = "CREATE TABLE t_type (id INTEGER PRIMARY KEY, col1 DATETIME);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO t_type (col1) VALUES ('2022-03-03');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE t_type (id INTEGER PRIMARY KEY, col1 DATETIME);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO t_type (col1) VALUES ('2022-03-03');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -345,10 +345,10 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE few (id INTEGER PRIMARY KEY, name TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO few (name) VALUES ('one');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE few (id INTEGER PRIMARY KEY, name TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO few (name) VALUES ('one');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -370,15 +370,15 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE maybe_null (id INTEGER PRIMARY KEY, d_date TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO maybe_null (d_date) VALUES (NULL), ('2020-04-04');";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE maybe_null (id INTEGER PRIMARY KEY, d_date TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO maybe_null (d_date) VALUES (NULL), ('2020-04-04');";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
-				cmd.CommandText = "CREATE TABLE all_null (id INTEGER PRIMARY KEY, d_date TEXT);";
-				await cmd.ExecuteNonQueryAsync();
-				cmd.CommandText = "INSERT INTO all_null (d_date) VALUES (NULL), (NULL);";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE all_null (id INTEGER PRIMARY KEY, d_date TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
+			cmd.CommandText = "INSERT INTO all_null (d_date) VALUES (NULL), (NULL);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			var logger = new Mock<ILogger<SyncGrpcService>>().Object;
@@ -430,8 +430,8 @@ namespace GhostfolioSidekick.PortfolioViewer.ApiService.UnitTests.Services
 			// create a simple table first
 			using (var cmd = db.Connection.CreateCommand())
 			{
-				cmd.CommandText = "CREATE TABLE some (id INTEGER PRIMARY KEY, name TEXT);";
-				await cmd.ExecuteNonQueryAsync();
+			cmd.CommandText = "CREATE TABLE some (id INTEGER PRIMARY KEY, name TEXT);";
+			await cmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 			}
 
 			// Now break the connection

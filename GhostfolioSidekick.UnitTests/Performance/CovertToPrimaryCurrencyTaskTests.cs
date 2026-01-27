@@ -12,7 +12,7 @@ namespace GhostfolioSidekick.UnitTests.Performance
 		public async Task DoWork_UsesRealSqliteDatabase()
 		{
 			var connection = new SqliteConnection("Filename=:memory:");
-			await connection.OpenAsync();
+			await connection.OpenAsync(TestContext.Current.CancellationToken);
 
 			var options = new DbContextOptionsBuilder<DatabaseContext>()
 				.UseSqlite(connection)
@@ -20,15 +20,15 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
 			// Use a context for seeding
 			var seedContext = new DatabaseContext(options);
-			await seedContext.Database.EnsureCreatedAsync();
+			await seedContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
 			// Seed Account entity to satisfy foreign key constraint
 			seedContext.Accounts.Add(new Account { Id = 1, Name = "Test Account" });
-			await seedContext.SaveChangesAsync();
+			await seedContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 			// Seed data as needed for your test
 			seedContext.Balances.Add(new Balance(DateOnly.FromDateTime(DateTime.Today), Money.Zero(Currency.EUR)) { AccountId = 1 });
-			await seedContext.SaveChangesAsync();
+			await seedContext.SaveChangesAsync(TestContext.Current.CancellationToken);
 			await seedContext.DisposeAsync();
 
 			var currencyExchangeMock = new Mock<ICurrencyExchange>();
@@ -54,9 +54,11 @@ namespace GhostfolioSidekick.UnitTests.Performance
 
 			// Use a new context to assert results
 			await using var assertContext = new DatabaseContext(options);
-			Assert.True(await assertContext.Balances.AnyAsync());
+			Assert.True(await assertContext.Balances.AnyAsync(TestContext.Current.CancellationToken));
 
 			await connection.DisposeAsync();
 		}
 	}
 }
+
+

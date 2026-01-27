@@ -62,7 +62,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 			};
 
 			context.Holdings.Add(holding);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 			var loggerMock = new Mock<ILogger<SyncManualActivitiesmarketDataWithGhostfolioTask>>();
 
@@ -107,7 +107,7 @@ namespace GhostfolioSidekick.UnitTests.Sync
 				CountryWeight = []
 			};
 			context.SymbolProfiles.Add(symbol);
-			await context.SaveChangesAsync();
+			await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 			// Act
 			await task.DoWork(loggerMock.Object);
@@ -141,3 +141,4 @@ namespace GhostfolioSidekick.UnitTests.Sync
 		}
 	}
 }
+

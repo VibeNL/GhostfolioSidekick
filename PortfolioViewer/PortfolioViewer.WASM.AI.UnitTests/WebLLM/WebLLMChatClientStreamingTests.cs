@@ -43,7 +43,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			// Act & Assert - Should throw NotSupportedException since client is not initialized
 			await Assert.ThrowsAsync<NotSupportedException>(async () =>
 			{
-				await foreach (var response in _client.GetStreamingResponseAsync(messages))
+			await foreach (var response in _client.GetStreamingResponseAsync(messages, cancellationToken: TestContext.Current.CancellationToken))
 				{
 					// Should not reach here
 				}
@@ -57,7 +57,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.AI.UnitTests.WebLLM
 			var messages = new[] { new ChatMessage(ChatRole.User, "Hello") };
 
 			// Act & Assert
-			await Assert.ThrowsAsync<NotSupportedException>(() => _client.GetResponseAsync(messages));
+		await Assert.ThrowsAsync<NotSupportedException>(() => _client.GetResponseAsync(messages, cancellationToken: TestContext.Current.CancellationToken));
 		}
 
 		[Fact]

@@ -1,4 +1,4 @@
-﻿using GhostfolioSidekick.Database;
+using GhostfolioSidekick.Database;
 using GhostfolioSidekick.Database.Repository;
 using GhostfolioSidekick.Model;
 using GhostfolioSidekick.Model.Activities;
@@ -111,6 +111,7 @@ namespace GhostfolioSidekick.PerformanceCalculations.Calculator
 					.OrderBy(x => x.
 						DataSource
 						.Contains(Datasource.GHOSTFOLIO) ? 2 : 1)
+					.ThenBy(x => x.Name?.Length ?? 0)
 					.FirstOrDefault();
 				if (defaultSymbolProfile == null)
 				{

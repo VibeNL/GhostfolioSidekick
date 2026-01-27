@@ -262,7 +262,6 @@ namespace GhostfolioSidekick.UnitTests.Activities.Comparer
 				// Act
 				profile1
 			};
-
 			var addResult1 = hashSet.Add(profile2); // Should not be added as it's considered equal
 			var addResult2 = hashSet.Add(profile3); // Should be added as it's different
 

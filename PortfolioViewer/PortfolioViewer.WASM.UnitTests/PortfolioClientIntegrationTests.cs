@@ -104,10 +104,10 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests
 			using var context = new DatabaseContext(_contextOptions);
 
 			// Verify we can perform basic database operations
-			await context.Database.EnsureCreatedAsync();
+			await context.Database.EnsureCreatedAsync(CancellationToken.None);
 
 			// Act - Try to query tables (should not throw)
-			var tableCount = await context.Database.SqlQueryRaw<int>("SELECT COUNT(*) as Value FROM sqlite_master WHERE type='table'").FirstOrDefaultAsync();
+			var tableCount = await context.Database.SqlQueryRaw<int>("SELECT COUNT(*) as Value FROM sqlite_master WHERE type='table'").FirstOrDefaultAsync(CancellationToken.None);
 
 			// Assert - Should have some tables created by EF migrations
 			Assert.True(tableCount > 0, "Database should contain tables after EF migrations");

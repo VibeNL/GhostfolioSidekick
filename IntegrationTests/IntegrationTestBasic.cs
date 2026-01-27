@@ -49,7 +49,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			await InitializeSidekick(authToken, url);
 		}
 
-		public async Task InitializeAsync()
+		public async ValueTask InitializeAsync()
 		{
 			INetwork network = new NetworkBuilder()
 				.WithCleanUp(true)
@@ -68,7 +68,7 @@ namespace GhostfolioSidekick.IntegrationTests
 
 			// Can access the Ghostfolio container.
 			var ghostfolioUri = new UriBuilder(Uri.UriSchemeHttp, ghostfolioContainer.Hostname, ghostfolioContainer.GetMappedPublicPort(GhostfolioPort)).Uri;
-			var response = await httpClient.GetAsync(ghostfolioUri).ConfigureAwait(false);
+			var response = await httpClient.GetAsync(ghostfolioUri, TestContext.Current.CancellationToken).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode();
 
 			// Create a new user.
@@ -77,7 +77,7 @@ namespace GhostfolioSidekick.IntegrationTests
 			authToken = await response.Content.ReadFromJsonAsync<AuthData>().ConfigureAwait(false);
 		}
 
-		public async Task DisposeAsync()
+		public async ValueTask DisposeAsync()
 		{
 			// Dispose HttpClient.
 			httpClient.Dispose();
@@ -122,7 +122,7 @@ namespace GhostfolioSidekick.IntegrationTests
 
 			while (!testLogger.IsTriggered)
 			{
-				await Task.Delay(1000);
+				await Task.Delay(1000, TestContext.Current.CancellationToken);
 			}
 
 			// Assert
@@ -220,3 +220,5 @@ namespace GhostfolioSidekick.IntegrationTests
 
 	}
 }
+
+

@@ -54,7 +54,7 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 
 			// Create a temporary CSV file for testing
 			var tempFilePath = Path.GetTempFileName();
-			await File.WriteAllTextAsync(tempFilePath, "Header1,Header2\nValue1,Value2");
+			await File.WriteAllTextAsync(tempFilePath, "Header1,Header2\nValue1,Value2", TestContext.Current.CancellationToken);
 
 			try
 			{
@@ -70,3 +70,5 @@ namespace GhostfolioSidekick.Parsers.UnitTests
 		}
 	}
 }
+
+
