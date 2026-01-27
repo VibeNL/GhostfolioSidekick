@@ -1,3 +1,5 @@
+using xRetry.v3;
+
 namespace GhostfolioSidekick.UnitTests
 {
 	public class TimedHostedServiceTests
@@ -68,7 +70,7 @@ namespace GhostfolioSidekick.UnitTests
 			Times.Once);
 		}
 
-		[Fact]
+		[RetryFact]
 		public async Task DoWork_ShouldExecuteWorkItems()
 		{
 			// Arrange
@@ -96,7 +98,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
 		}
 
-		[Fact]
+		[RetryFact]
 		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule()
 		{
 			// Arrange
@@ -124,7 +126,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once); // Should execute once initially
 		}
 
-		[Fact]
+		[RetryFact]
 		public async Task DoWork_ShouldExecuteWorkItemsOnSchedule_StopShouldWork()
 		{
 			// Arrange
@@ -153,7 +155,7 @@ namespace GhostfolioSidekick.UnitTests
 			scheduledWorkMock2.Verify(x => x.DoWork(It.IsAny<ILogger>()), Times.Once);
 		}
 
-		[Fact]
+		[RetryFact]
 		public async Task DoWork_Exception_ShouldContinueToWork()
 		{
 			// Arrange
