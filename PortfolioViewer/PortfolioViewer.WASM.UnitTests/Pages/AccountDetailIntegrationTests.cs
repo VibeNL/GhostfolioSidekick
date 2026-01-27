@@ -430,7 +430,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
 					// Ignore rendering exceptions during async operations
 				}
 
-				await Task.Delay(waitInterval, TestContext.Current.CancellationToken);
+			await Task.Delay(waitInterval, Xunit.TestContext.Current.CancellationToken);
 			}
 		}
 
