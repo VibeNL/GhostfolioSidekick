@@ -136,7 +136,7 @@ namespace GhostfolioSidekick.AI.Agents.UnitTests
 			// Assert basic contract: not null and we can get an enumerator and dispose it without iterating.
 			Assert.NotNull(asyncEnumerable);
 
-			await using var enumerator = asyncEnumerable.GetAsyncEnumerator(TestContext.Current.CancellationToken);
+			await using var enumerator = asyncEnumerable.GetAsyncEnumerator(CancellationToken.None);
 			// Do not call MoveNextAsync to avoid invoking downstream services. We just ensure enumerator can be acquired and disposed.
 		}
 	}
