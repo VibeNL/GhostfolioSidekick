@@ -40,7 +40,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
             mockAccountService.Setup(s => s.GetAccountInfo())
                 .ReturnsAsync([new() { Id = 1, Name = "Test Account" }]);
             var mockTransactionService = new Mock<ITransactionService>();
-            mockTransactionService.Setup(s => s.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(, TestContext.Current.CancellationToken), default))
+            mockTransactionService.Setup(s => s.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), default))
                 .ReturnsAsync(new PaginatedTransactionResult { Transactions = [] });
             Services.AddSingleton(mockAccountService.Object);
             Services.AddSingleton(mockTransactionService.Object);
@@ -75,7 +75,7 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
                 TransactionId = "T1"
             };
             var mockTransactionService = new Mock<ITransactionService>();
-            mockTransactionService.Setup(s => s.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(, TestContext.Current.CancellationToken), default))
+            mockTransactionService.Setup(s => s.GetTransactionsPaginatedAsync(It.IsAny<TransactionQueryParameters>(), default))
                 .ReturnsAsync(new PaginatedTransactionResult { Transactions = [tx] });
             Services.AddSingleton(mockAccountService.Object);
             Services.AddSingleton(mockTransactionService.Object);
@@ -93,4 +93,5 @@ namespace GhostfolioSidekick.PortfolioViewer.WASM.UnitTests.Pages
         }
     }
 }
+
 

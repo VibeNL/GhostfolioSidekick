@@ -264,7 +264,7 @@ namespace GhostfolioSidekick.ExternalDataProvider.UnitTests.Manual
 			await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
 			// Assert
-			var saved = await _context.SymbolProfiles.FindAsync("TEST", Datasource.MANUAL, TestContext.Current.CancellationToken);
+		var saved = await _context.SymbolProfiles.FindAsync(["TEST", Datasource.MANUAL], TestContext.Current.CancellationToken);
 			Assert.NotNull(saved);
 			Assert.Equal("TEST", saved.Symbol);
 			Assert.Equal("Test Company", saved.Name);

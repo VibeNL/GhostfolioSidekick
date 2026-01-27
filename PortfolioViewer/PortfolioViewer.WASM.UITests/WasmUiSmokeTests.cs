@@ -45,7 +45,7 @@ namespace PortfolioViewer.WASM.UITests
 			{
 				await page.ScreenshotAsync(new PageScreenshotOptions { Path = errorScreenshotPath });
 				var html = await page.ContentAsync();
-				await File.WriteAllTextAsync(errorHtmlPath, html, TestContext.Current.CancellationToken, TestContext.Current.CancellationToken);
+			await File.WriteAllTextAsync(errorHtmlPath, html, TestContext.Current.CancellationToken);
 				Console.WriteLine($"Exception: {ex}");
 				throw;
 			}
